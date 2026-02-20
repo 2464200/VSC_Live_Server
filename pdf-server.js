@@ -214,8 +214,6 @@ app.post('/api/open-pdf', (req, res) => {
         const chromeArgs = [
             '--new-window',                     // Nuova finestra
             '--kiosk',                          // Modalità fullscreen
-            `--window-position=${secondaryMonitor.x},${secondaryMonitor.y}`,  // Posiziona sul monitor secondario
-            `--window-size=${secondaryMonitor.width},${secondaryMonitor.height}`, // Dimensione massima
             '--no-first-run',
             '--no-default-browser-check',
             '--disable-background-networking',
@@ -231,7 +229,7 @@ app.post('/api/open-pdf', (req, res) => {
             fileUrl                             // URL del file PDF
         ];
 
-        console.log(`🚀 Avvio Chrome con argomenti: ${chromeArgs.join(' ')}`);
+        console.log(`🚀 Avvio Chrome con argomenti...`);
         
         // Metodo 1: Usa spawn con proceedPath
         chromeProcess = spawn(chromePath, chromeArgs, {
@@ -244,6 +242,73 @@ app.post('/api/open-pdf', (req, res) => {
         chromeProcess.unref();
         
         console.log(`✅ Chrome avviato con PID: ${pid}`);
+
+        // Sposta la finestra Chrome al monitor secondario usando PowerShell
+        // Questo assicura che la finestra appaia nel posto giusto anche in kiosk mode
+        setTimeout(() => {
+            try {
+                const psScript = `
+$windowTitle = 'Google Chrome'
+$timeout = 10
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+
+while ($sw.Elapsed.TotalSeconds -lt $timeout) {
+    $window = Get-Process chrome -ErrorAction SilentlyContinue | Where-Object {$_.MainWindowTitle -like '*Chrome*'} | Select-Object -First 1
+    
+    if ($window -and $window.MainWindowHandle) {
+        $mainWindowHandle = $window.MainWindowHandle
+        Add-Type @"
+        using System;
+        using System.Runtime.InteropServices;
+        public class MonitorPosition {
+            [DllImport("user32.dll")]
+            public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+            [DllImport("user32.dll")]
+            public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        }
+"@
+        # Posiziona la finestra al monitor secondario
+        [MonitorPosition]::SetWindowPos($mainWindowHandle, 0, ${secondaryMonitor.x}, ${secondaryMonitor.y}, ${secondaryMonitor.width}, ${secondaryMonitor.height}, 0)
+        
+        # Maximizza fullscreen (11 = SW_MAXIMIZE, 3 = SW_MAXIMIZE)
+        [MonitorPosition]::ShowWindow($mainWindowHandle, 3)
+        
+        Write-Host "✅ Finestra Chrome posizionata al monitor secondario"
+        exit 0
+    }
+    
+    Start-Sleep -Milliseconds 500
+}
+exit 1
+`;
+
+                // Salva lo script temporaneo
+                const tempScriptPath = path.join(os.tmpdir(), 'chrome-position-' + Date.now() + '.ps1');
+                fs.writeFileSync(tempScriptPath, psScript);
+                
+                // Esegui lo script PowerShell in background
+                execSync(`powershell -NoProfile -ExecutionPolicy Bypass -File "${tempScriptPath}"`, {
+                    detached: true,
+                    stdio: 'ignore',
+                    timeout: 15000
+                });
+                
+                // Elimina lo script dopo un po'
+                setTimeout(() => {
+                    try {
+                        if (fs.existsSync(tempScriptPath)) {
+                            fs.unlinkSync(tempScriptPath);
+                        }
+                    } catch (e) {
+                        // Ignora se file non può essere eliminato
+                    }
+                }, 5000);
+                
+                console.log('🖥️  Comando di posizionamento inviato');
+            } catch (e) {
+                console.warn('⚠️  Errore nel posizionamento finestra:', e.message);
+            }
+        }, 800);
 
         // Verifica che il processo sia effettivamente stato creato
         setTimeout(() => {
