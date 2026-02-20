@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang='it'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Gestione PDF</title>
+<style>
+body{font-family:Arial;text-align:center;background:#111;color:#fff;margin:0;padding:20px}
+nav{background:#222;padding:10px;margin-bottom:30px}
+nav a{color:#ff7f00;margin:0 15px;text-decoration:none;font-weight:bold}
+.container{max-width:900px;margin:auto;background:#222;padding:30px;border-radius:10px}
+h1{color:#ff7f00;margin-top:0}
+.control-group{margin:30px 0}
+label{color:#ff7f00;font-weight:bold;display:block;margin-bottom:10px}
+select, input{background:#333;color:#fff;padding:10px;border:1px solid #444;border-radius:5px;font-size:14px;width:100%;box-sizing:border-box}
+select:focus, input:focus{outline:none;border-color:#ff7f00}
+.button-group{display:flex;gap:15px;justify-content:center;margin:30px 0}
+button{background:#ff7f00;color:#000;padding:12px 30px;border:none;border-radius:5px;font-weight:bold;font-size:14px;cursor:pointer;transition:background 0.3s}
+button:hover{background:#ffaa33}
+button:active{background:#dd6600}
+.pdf-info{background:#333;padding:20px;border-radius:5px;margin:20px 0;color:#fff}
+.pdf-name{color:#ff7f00;font-size:18px;font-weight:bold}
+.pdf-counter{color:#aaa;font-size:12px;margin-top:10px}
+.error{background:#dc3545;padding:15px;border-radius:5px;color:#fff;margin:20px 0}
+.success{background:#28a745;padding:15px;border-radius:5px;color:#fff;margin:20px 0}
+</style>
+</head>
+<body>
+<nav>
+<a href='/index.html'>Home</a>
+<a href='/Prova/Report_black.html'>Report Black</a>
+<a href='/Prova/Report_white.html'>Report White</a>
+<a href='/Prova/Report.html'>Report</a>
+</nav>
+
+<div class='container'>
+<h1>Gestione PDF - ScriptPDF1</h1>
+
+<div style='background:#333;padding:10px;border-radius:5px;margin-bottom:20px;font-size:12px;color:#aaa'>
+📺 <strong>Monitor:</strong> <span id='monitor-info'>Rilevamento in corso...</span>
+</div>
+
+<div class='control-group'>
+<label for='pdf-select'>Seleziona un file PDF:</label>
+<select id='pdf-select' onchange='onPdfSelected()'>
+<option value=''>-- Caricamento lista... --</option>
+</select>
+</div>
+
+<div class='pdf-info' id='pdf-info' style='display:none'>
+<div class='pdf-name' id='pdf-name'></div>
+<div class='pdf-counter' id='pdf-counter'></div>
+</div>
+
+<div class='button-group'>
+<button class='CommandButton' id='CommandButton63' onclick='previousPdf()' title='Visualizza il file PDF precedente'>◀ Precedente</button>
+<button class='CommandButton' id='CommandButton64' onclick='nextPdf()' title='Visualizza il file PDF successivo'>Successivo ▶</button>
+<button class='CommandButton' id='CommandButton65' onclick='closePdfViewer()' title='Chiudi Chrome e torna ad Excel'>✕ Chiudi</button>
+</div>
+
+<div id='message'></div>
+
+<script>
+let pdfList = [];
+let currentIndex = 0;
+let chromeProcessId = null;
+
+// Carica la lista dei PDF al caricamento della pagina
+console.log('✅ Script caricato, registrazione event listeners...');
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 DOMContentLoaded triggerato - caricamento lista PDF...');
+    loadPdfList();
+    loadMonitorInfo();
+    
+    // Setup event listeners per i pulsanti
+    const pdfSelect = document.getElementById('pdf-select');
+    if (pdfSelect) {
+        pdfSelect.addEventListener('dblclick', function() {
+            console.log('📌 Doppio click su ComboBox');
+            openCurrentPdf();
+        });
+    }
+    
+    const btn63 = document.getElementById('CommandButton63');
+    if (btn63) {
+        btn63.addEventListener('click', function(e) {
+            console.log('🖱️ Click su Precedente');
+            e.preventDefault();
+            previousPdf();
+        });
+    }
+    
+    const btn64 = document.getElementById('CommandButton64');
+    if (btn64) {
+        btn64.addEventListener('click', function(e) {
+            console.log('🖱️ Click su Successivo');
+            e.preventDefault();
+            nextPdf();
+        });
+    }
+    
+    const btn65 = document.getElementById('CommandButton65');
+    if (btn65) {
+        btn65.addEventListener('click', function(e) {
+            console.log('🖱️ Click su Chiudi');
+            e.preventDefault();
+            closePdfViewer();
+        });
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'pdf-name') {
+            console.log('📌 Click su PDF name');
+            openCurrentPdf();
+        }
+    });
+});
+
+async function loadMonitorInfo() {
+    let timeoutId = null;
+    try {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        console.log('📡 Caricamento monitor info...');
+        const response = await fetch('http://localhost:8765/api/monitor-info?t=' + Date.now(), { 
+            cache: 'no-store',
+            signal: controller.signal
+        });
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        
+        if (!response || !response.ok) {
+            throw new Error('Server non disponibile');
+        }
+        
+        const text = await response.text();
+        if (!text) throw new Error('Risposta vuota dal server');
+        
+        let data = {};
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error('JSON non valido dalla risposta');
+        }
+        
+        console.log('✅ Monitor info:', data);
+        
+        const monitorDiv = document.getElementById('monitor-info');
+        if (!monitorDiv) return;
+        
+        if (data && data.success && data.primaryMonitor && data.secondaryMonitor) {
+            const p = data.primaryMonitor;
+            const s = data.secondaryMonitor;
+            monitorDiv.textContent = 'Primario: ' + p.width + 'x' + p.height + ' | Secondario: ' + s.width + 'x' + s.height;
+        } else {
+            monitorDiv.textContent = '⚠️ Monitor info non disponibili';
+        }
+    } catch (error) {
+        console.error('❌ Monitor info error:', error.message || error);
+        const monitorDiv = document.getElementById('monitor-info');
+        if (monitorDiv) {
+            monitorDiv.textContent = '⚠️ Server offline';
+        }
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+}
+
+async function loadPdfList() {
+    let timeoutId = null;
+    try {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => {
+            console.warn('⏱️ Timeout caricamento PDF');
+            controller.abort();
+        }, 10000);
+        
+        console.log('📡 Caricamento lista PDF...');
+        const response = await fetch('http://localhost:8765/api/pdf-list?t=' + Date.now(), { 
+            cache: 'no-store',
+            signal: controller.signal
+        });
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = null;
+        
+        if (!response) {
+            throw new Error('Nessuna risposta dal server');
+        }
+        
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+        }
+        
+        const text = await response.text();
+        if (!text || text.length === 0) {
+            throw new Error('Risposta vuota');
+        }
+        
+        let data = {};
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            throw new Error('Risposta non è JSON valido');
+        }
+        
+        if (!data || typeof data !== 'object') {
+            throw new Error('Dati non validi');
+        }
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Errore sconosciuto');
+        }
+        
+        pdfList = (Array.isArray(data.files) ? data.files : []);
+        console.log('✅ PDF caricati:', pdfList.length);
+        
+        if (pdfList.length === 0) {
+            showError('Nessun PDF trovato');
+            return;
+        }
+        
+        populateComboBox();
+        updateInfoDisplay();
+    } catch (error) {
+        console.error('❌ Caricamento PDF fallito:', error.message || error);
+        const errorMsg = error.name === 'AbortError' ? 'Timeout caricamento' : error.message;
+        showError('Errore PDF: ' + errorMsg);
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+}
+
+function populateComboBox() {
+    try {
+        const select = document.getElementById('pdf-select');
+        if (!select) {
+            console.error('❌ Elemento pdf-select non trovato');
+            return;
+        }
+        
+        select.innerHTML = '';
+        
+        if (!pdfList || pdfList.length === 0) {
+            console.warn('⚠️ pdfList vuoto');
+            const option = document.createElement('option');
+            option.textContent = '-- Nessun PDF disponibile --';
+            select.appendChild(option);
+            return;
+        }
+        
+        pdfList.forEach((pdf, index) => {
+            if (!pdf || !pdf.name) return;
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = pdf.name;
+            select.appendChild(option);
+        });
+        
+        if (pdfList.length > 0) {
+            select.value = 0;
+            currentIndex = 0;
+            console.log('✅ ComboBox popolata con ' + pdfList.length + ' PDF');
+        }
+    } catch (error) {
+        console.error('❌ Errore populateComboBox:', error.message);
+    }
+}
+
+function onPdfSelected() {
+    const select = document.getElementById('pdf-select');
+    currentIndex = parseInt(select.value) || 0;
+    updateInfoDisplay();
+}
+
+function updateInfoDisplay() {
+    try {
+        if (!pdfList || pdfList.length === 0 || currentIndex < 0 || currentIndex >= pdfList.length) {
+            const pdfInfo = document.getElementById('pdf-info');
+            if (pdfInfo) {
+                pdfInfo.style.display = 'none';
+            }
+            return;
+        }
+        
+        const pdf = pdfList[currentIndex];
+        if (!pdf) return;
+        
+        const pdfName = document.getElementById('pdf-name');
+        const pdfCounter = document.getElementById('pdf-counter');
+        const pdfInfo = document.getElementById('pdf-info');
+        
+        if (pdfName) pdfName.textContent = pdf.name || 'N/A';
+        if (pdfCounter) pdfCounter.textContent = (currentIndex + 1) + ' di ' + pdfList.length;
+        if (pdfInfo) pdfInfo.style.display = 'block';
+        
+        const select = document.getElementById('pdf-select');
+        if (select) select.value = currentIndex;
+        
+        console.log('✅ Info display aggiornato:', pdf.name);
+    } catch (error) {
+        console.error('❌ Errore updateInfoDisplay:', error.message);
+    }
+}
+
+function previousPdf() {
+    try {
+        if (!pdfList || pdfList.length === 0) {
+            showError('Nessun PDF disponibile');
+            return;
+        }
+        currentIndex = (currentIndex - 1 + pdfList.length) % pdfList.length;
+        updateInfoDisplay();
+        openCurrentPdf();
+    } catch (error) {
+        console.error('❌ Errore previousPdf:', error.message);
+        showError('Errore: ' + error.message);
+    }
+}
+
+function nextPdf() {
+    try {
+        if (!pdfList || pdfList.length === 0) {
+            showError('Nessun PDF disponibile');
+            return;
+        }
+        currentIndex = (currentIndex + 1) % pdfList.length;
+        updateInfoDisplay();
+        openCurrentPdf();
+    } catch (error) {
+        console.error('❌ Errore nextPdf:', error.message);
+        showError('Errore: ' + error.message);
+    }
+}
+
+async function openCurrentPdf() {
+    if (!pdfList || pdfList.length === 0 || currentIndex < 0 || currentIndex >= pdfList.length) {
+        showError('PDF non disponibile');
+        return;
+    }
+    
+    const pdf = pdfList[currentIndex];
+    if (!pdf || !pdf.path || !pdf.name) {
+        showError('PDF corrotto');
+        console.error('PDF object:', pdf);
+        return;
+    }
+    
+    let timeoutId = null;
+    try {
+        console.log('🔄 Apertura:', pdf.name);
+        
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => {
+            console.warn('⏱️ Timeout apertura PDF');
+            controller.abort();
+        }, 10000);
+        
+        const response = await fetch('http://localhost:8765/api/open-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: pdf.path, fileName: pdf.name }),
+            signal: controller.signal
+        });
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = null;
+        
+        if (!response || !response.ok) {
+            throw new Error('HTTP ' + (response ? response.status : 'error'));
+        }
+        
+        const text = await response.text();
+        if (!text) throw new Error('Risposta vuota');
+        
+        let data = {};
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error('Risposta non JSON');
+        }
+        
+        if (data && data.success) {
+            showSuccess('✓ ' + pdf.name);
+        } else {
+            showError('Errore apertura: ' + (data?.error || 'sconosciuto'));
+        }
+    } catch (error) {
+        console.error('❌ openCurrentPdf:', error.message || error);
+        if (error.name === 'AbortError') {
+            showError('Timeout server');
+        } else {
+            showError('Errore: ' + (error.message || 'sconosciuto'));
+        }
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+}
+
+
+
+async function closePdfViewer() {
+    let timeoutId = null;
+    let closed = false;
+    
+    const doClose = function() {
+        if (!closed) {
+            closed = true;
+            console.log('🔄 Chiusura finestra...');
+            setTimeout(() => {
+                try {
+                    window.close();
+                } catch (e) {
+                    console.warn('Impossibile chiudere finestra');
+                }
+            }, 500);
+        }
+    };
+    
+    try {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => {
+            console.warn('⏱️ Timeout richiesta chiusura');
+            controller.abort();
+        }, 5000);
+        
+        console.log('🔄 Richiesta chiusura Chrome...');
+        const response = await fetch('http://localhost:8765/api/close-chrome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal
+        });
+        
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = null;
+        
+        if (!response || !response.ok) {
+            console.warn('⚠️ Risposta non valida:', response ? response.status : 'null');
+            showSuccess('Chiusura in corso...');
+            doClose();
+            return;
+        }
+        
+        const text = await response.text();
+        if (text && text.length > 0) {
+            try {
+                const data = JSON.parse(text);
+                if (data && data.success) {
+                    showSuccess('Chrome chiuso');
+                }
+            } catch (e) {
+                console.warn('JSON parse error in close response');
+            }
+        }
+        
+        doClose();
+    } catch (error) {
+        console.error('❌ closePdfViewer:', error.message || error);
+        if (error.name !== 'AbortError') {
+            showSuccess('Chiusura in corso...');
+        }
+        doClose();
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+}
+
+function showError(message) {
+    try {
+        const messageDiv = document.getElementById('message');
+        if (messageDiv) {
+            messageDiv.className = 'error';
+            messageDiv.textContent = '⚠ ' + String(message || 'Errore sconosciuto').substring(0, 150);
+        }
+    } catch (e) {
+        console.error('Error in showError:', e);
+    }
+}
+
+function showSuccess(message) {
+    try {
+        const messageDiv = document.getElementById('message');
+        if (messageDiv) {
+            messageDiv.className = 'success';
+            messageDiv.textContent = '✓ ' + String(message || 'Completato').substring(0, 150);
+            setTimeout(() => {
+                if (messageDiv) {
+                    messageDiv.textContent = '';
+                    messageDiv.className = '';
+                }
+            }, 3000);
+        }
+    } catch (e) {
+        console.error('Error in showSuccess:', e);
+    }
+}
+
+// Funzione di test (accessibile da console)
+window.testOpenPdf = function() {
+    console.log('🧪 Test apertura PDF...');
+    if (pdfList.length === 0) {
+        console.error('Nessun PDF caricato');
+        return;
+    }
+    const testPdf = pdfList[currentIndex];
+    console.log('Tentativo apertura:', testPdf.name);
+    openCurrentPdf();
+};
+
+// Stampa informazioni nel log
+console.log('✅ ScriptPDF1 caricato');
+console.log('📊 Pulsanti disponibili:');
+console.log('   - previousPdf()');
+console.log('   - nextPdf()');
+console.log('   - openCurrentPdf()');
+console.log('   - closePdfViewer()');
+console.log('   - testOpenPdf()');
+console.log('📁 Cartella PDF: C:\\SCRIPT_PDF');
+</script>
+</body>
+</html>

@@ -1,471 +1,305 @@
-<!DOCTYPE html>
-<html lang='it'>
+﻿<!DOCTYPE html>
+<html lang="it">
 <head>
-<meta charset='UTF-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<title>Gestione PDF</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestione PDF - ScriptPDF1</title>
 <style>
-body{font-family:Arial;text-align:center;background:#111;color:#fff;margin:0;padding:20px}
-nav{background:#222;padding:10px;margin-bottom:30px}
-nav a{color:#ff7f00;margin:0 15px;text-decoration:none;font-weight:bold}
-.container{max-width:900px;margin:auto;background:#222;padding:30px;border-radius:10px}
-h1{color:#ff7f00;margin-top:0}
-.control-group{margin:30px 0}
-label{color:#ff7f00;font-weight:bold;display:block;margin-bottom:10px}
-select, input{background:#333;color:#fff;padding:10px;border:1px solid #444;border-radius:5px;font-size:14px;width:100%;box-sizing:border-box}
-select:focus, input:focus{outline:none;border-color:#ff7f00}
-.button-group{display:flex;gap:15px;justify-content:center;margin:30px 0}
-button{background:#ff7f00;color:#000;padding:12px 30px;border:none;border-radius:5px;font-weight:bold;font-size:14px;cursor:pointer;transition:background 0.3s}
-button:hover{background:#ffaa33}
-button:active{background:#dd6600}
-.pdf-info{background:#333;padding:20px;border-radius:5px;margin:20px 0;color:#fff}
-.pdf-name{color:#ff7f00;font-size:18px;font-weight:bold}
-.pdf-counter{color:#aaa;font-size:12px;margin-top:10px}
-.error{background:#dc3545;padding:15px;border-radius:5px;color:#fff;margin:20px 0}
-.success{background:#28a745;padding:15px;border-radius:5px;color:#fff;margin:20px 0}
+* { box-sizing: border-box; }
+body { font-family: Arial, sans-serif;background: #111; color: #fff; margin: 0; padding: 20px; text-align: center; }
+nav { background: #222; padding: 10px; margin-bottom: 30px; border-radius: 5px; }
+nav a { color: #ff7f00; margin: 0 15px; text-decoration: none; font-weight: bold; }
+nav a:hover { text-decoration: underline; }
+.container { max-width: 900px; margin: 0 auto; background: #222; padding: 30px; border-radius: 10px; }
+h1 { color: #ff7f00; margin-top: 0; }
+.status { background: #333; padding: 12px; margin-bottom: 20px; border-radius: 5px; font-size: 13px; }
+.status.loading { color: #ffaa00; }
+.status.ready { color: #00ff00; }
+.status.error { color: #ff5555; }
+.control-group { margin: 30px 0; text-align: left; }
+label { color: #ff7f00; font-weight: bold; display: block; margin-bottom: 8px; }
+select { background: #333; color: #fff; padding: 10px; border: 1px solid #444; border-radius: 5px; font-size: 14px; width: 100%; margin-bottom: 15px; }
+select:focus { outline: none; border-color: #ff7f00; }
+.button-group { display: flex; gap: 15px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
+button { background: #ff7f00; color: #000; padding: 12px 30px; border: none; border-radius: 5px; font-weight: bold; font-size: 14px; cursor: pointer; transition: all 0.3s; min-width: 120px; }
+button:hover { background: #ffaa33; }
+button:active { background: #dd6600; }
+.pdf-info { background: #333; padding: 20px; border-radius: 5px; margin: 20px 0; color: #fff; display: none; }
+.pdf-info.show { display: block; }
+.pdf-name { color: #ff7f00; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+.pdf-counter { color: #aaa; font-size: 12px; }
+.message { min-height: 20px; margin: 20px 0; padding: 12px; border-radius: 5px; font-weight: bold; }
+.message.error { background: #dc3545; color: #fff; }
+.message.success { background: #28a745; color: #fff; }
+.message.info { background: #17a2b8; color: #fff; }
 </style>
 </head>
 <body>
+
 <nav>
-<a href='/index.html'>Home</a>
-<a href='/Prova/Report_black.html'>Report Black</a>
-<a href='/Prova/Report_white.html'>Report White</a>
-<a href='/Prova/Report.html'>Report</a>
+<a href="/index.html"> Home</a>
+<a href="/Prova/Report_black.html"> Report Black</a>
+<a href="/Prova/Report_white.html"> Report White</a>
 </nav>
 
-<div class='container'>
-<h1>Gestione PDF - ScriptPDF1</h1>
+<div class="container">
+<h1> Gestione PDF - ScriptPDF1</h1>
 
-<div style='background:#333;padding:10px;border-radius:5px;margin-bottom:20px;font-size:12px;color:#aaa'>
-📺 <strong>Monitor:</strong> <span id='monitor-info'>Rilevamento in corso...</span>
+<div class="status loading" id="status">
+<strong> Caricamento...</strong> <span id="status-text">Connessione al server...</span>
 </div>
 
-<div class='control-group'>
-<label for='pdf-select'>Seleziona un file PDF:</label>
-<select id='pdf-select' onchange='onPdfSelected()'>
-<option value=''>-- Caricamento lista... --</option>
+<div class="control-group">
+<label for="pdf-select"> Seleziona PDF:</label>
+<select id="pdf-select" onchange="onPdfSelected()">
+<option value="">-- Caricamento in corso... --</option>
 </select>
 </div>
 
-<div class='pdf-info' id='pdf-info' style='display:none'>
-<div class='pdf-name' id='pdf-name'></div>
-<div class='pdf-counter' id='pdf-counter'></div>
+<div class="pdf-info" id="pdf-info">
+<div class="pdf-name" id="pdf-name"></div>
+<div class="pdf-counter" id="pdf-counter"></div>
 </div>
 
-<div class='button-group'>
-<button class='CommandButton' id='CommandButton63' onclick='previousPdf()' title='Visualizza il file PDF precedente'>◀ Precedente</button>
-<button class='CommandButton' id='CommandButton64' onclick='nextPdf()' title='Visualizza il file PDF successivo'>Successivo ▶</button>
-<button class='CommandButton' id='CommandButton65' onclick='closePdfViewer()' title='Chiudi Chrome e torna ad Excel'>✕ Chiudi</button>
+<div class="button-group">
+<button onclick="previousPdf()" title="PDF precedente"> Precedente</button>
+<button onclick="nextPdf()" title="PDF successivo">Successivo </button>
+<button onclick="openCurrentPdf()" title="Apri PDF"> Apri</button>
+<button onclick="closePdfViewer()" title="Chiudi"> Chiudi</button>
 </div>
 
-<div id='message'></div>
+<div class="message" id="message"></div>
+
+</div>
 
 <script>
+// VARIABILI
 let pdfList = [];
 let currentIndex = 0;
-let chromeProcessId = null;
 
-// Carica la lista dei PDF al caricamento della pagina
-console.log('✅ Script caricato, registrazione event listeners...');
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('🔄 DOMContentLoaded triggerato - caricamento lista PDF...');
-    loadPdfList();
-    loadMonitorInfo();
-    
-    // Setup event listeners per i pulsanti
-    const pdfSelect = document.getElementById('pdf-select');
-    if (pdfSelect) {
-        pdfSelect.addEventListener('dblclick', function() {
-            console.log('📌 Doppio click su ComboBox');
-            openCurrentPdf();
-        });
-    }
-    
-    const btn63 = document.getElementById('CommandButton63');
-    if (btn63) {
-        btn63.addEventListener('click', function(e) {
-            console.log('🖱️ Click su Precedente');
-            e.preventDefault();
-            previousPdf();
-        });
-    }
-    
-    const btn64 = document.getElementById('CommandButton64');
-    if (btn64) {
-        btn64.addEventListener('click', function(e) {
-            console.log('🖱️ Click su Successivo');
-            e.preventDefault();
-            nextPdf();
-        });
-    }
-    
-    const btn65 = document.getElementById('CommandButton65');
-    if (btn65) {
-        btn65.addEventListener('click', function(e) {
-            console.log('🖱️ Click su Chiudi');
-            e.preventDefault();
-            closePdfViewer();
-        });
-    }
-    
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'pdf-name') {
-            console.log('📌 Click su PDF name');
-            openCurrentPdf();
-        }
-    });
+// Attesa e caricamento
+document.addEventListener("DOMContentLoaded", function() {
+    console.log(" DOM Ready");
+    loadPdfData();
 });
 
-async function loadMonitorInfo() {
-    let timeoutId = null;
+// CARICAMENTO DATI
+async function loadPdfData() {
+    const statusDiv = document.getElementById("status");
+    const statusText = document.getElementById("status-text");
+    
     try {
-        const controller = new AbortController();
-        timeoutId = setTimeout(() => controller.abort(), 5000);
+        console.log(" Caricamento PDF...");
+        statusText.textContent = "Connessione al server...";
         
-        console.log('📡 Caricamento monitor info...');
-        const response = await fetch('http://localhost:8765/api/monitor-info?t=' + Date.now(), { 
-            cache: 'no-store',
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        
+        const url = "http://localhost:8765/api/pdf-list?t=" + Date.now();
+        const response = await fetch(url, {
+            cache: "no-store",
             signal: controller.signal
         });
         
-        if (timeoutId) clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
         
         if (!response || !response.ok) {
-            throw new Error('Server non disponibile');
+            throw new Error("HTTP " + (response ? response.status : "error"));
         }
         
         const text = await response.text();
-        if (!text) throw new Error('Risposta vuota dal server');
+        if (!text) throw new Error("Empty response");
         
-        let data = {};
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            throw new Error('JSON non valido dalla risposta');
+        const data = JSON.parse(text);
+        
+        if (!data.success || !Array.isArray(data.files)) {
+            throw new Error(data.error || "Invalid data");
         }
         
-        console.log('✅ Monitor info:', data);
-        
-        const monitorDiv = document.getElementById('monitor-info');
-        if (!monitorDiv) return;
-        
-        if (data && data.success && data.primaryMonitor && data.secondaryMonitor) {
-            const p = data.primaryMonitor;
-            const s = data.secondaryMonitor;
-            monitorDiv.textContent = 'Primario: ' + p.width + 'x' + p.height + ' | Secondario: ' + s.width + 'x' + s.height;
-        } else {
-            monitorDiv.textContent = '⚠️ Monitor info non disponibili';
-        }
-    } catch (error) {
-        console.error('❌ Monitor info error:', error.message || error);
-        const monitorDiv = document.getElementById('monitor-info');
-        if (monitorDiv) {
-            monitorDiv.textContent = '⚠️ Server offline';
-        }
-    } finally {
-        if (timeoutId) clearTimeout(timeoutId);
-    }
-}
-
-async function loadPdfList() {
-    let timeoutId = null;
-    try {
-        const controller = new AbortController();
-        timeoutId = setTimeout(() => {
-            console.warn('⏱️ Timeout caricamento PDF');
-            controller.abort();
-        }, 10000);
-        
-        console.log('📡 Caricamento lista PDF...');
-        const response = await fetch('http://localhost:8765/api/pdf-list?t=' + Date.now(), { 
-            cache: 'no-store',
-            signal: controller.signal
-        });
-        
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = null;
-        
-        if (!response) {
-            throw new Error('Nessuna risposta dal server');
-        }
-        
-        if (!response.ok) {
-            throw new Error('HTTP ' + response.status);
-        }
-        
-        const text = await response.text();
-        if (!text || text.length === 0) {
-            throw new Error('Risposta vuota');
-        }
-        
-        let data = {};
-        try {
-            data = JSON.parse(text);
-        } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            throw new Error('Risposta non è JSON valido');
-        }
-        
-        if (!data || typeof data !== 'object') {
-            throw new Error('Dati non validi');
-        }
-        
-        if (!data.success) {
-            throw new Error(data.error || 'Errore sconosciuto');
-        }
-        
-        pdfList = (Array.isArray(data.files) ? data.files : []);
-        console.log('✅ PDF caricati:', pdfList.length);
+        pdfList = data.files;
+        console.log(" PDF caricati:", pdfList.length);
         
         if (pdfList.length === 0) {
-            showError('Nessun PDF trovato');
+            updateStatus(" Nessun PDF in C:\\SCRIPT_PDF", "error");
+            showMessage("Cartella C:\\SCRIPT_PDF vuota", "error");
             return;
         }
         
-        populateComboBox();
-        updateInfoDisplay();
+        populateSelect();
+        updateDisplay();
+        updateStatus(" Pronto - " + pdfList.length + " PDF", "ready");
+        
     } catch (error) {
-        console.error('❌ Caricamento PDF fallito:', error.message || error);
-        const errorMsg = error.name === 'AbortError' ? 'Timeout caricamento' : error.message;
-        showError('Errore PDF: ' + errorMsg);
-    } finally {
-        if (timeoutId) clearTimeout(timeoutId);
+        const msg = error.name === "AbortError" 
+            ? "Timeout: server non risponde"
+            : error.message || "Unknown error";
+        
+        console.error(" Errore:", msg);
+        updateStatus(" " + msg, "error");
+        showMessage(msg, "error");
     }
 }
 
-function populateComboBox() {
-    const select = document.getElementById('pdf-select');
-    select.innerHTML = '';
+function updateStatus(text, type) {
+    const status = document.getElementById("status");
+    const statusText = document.getElementById("status-text");
+    if (status && statusText) {
+        status.className = "status " + type;
+        statusText.textContent = text;
+    }
+}
+
+// POPOLA SELECT
+function populateSelect() {
+    const select = document.getElementById("pdf-select");
+    if (!select) return;
     
-    pdfList.forEach((pdf, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = pdf.name;
-        select.appendChild(option);
+    select.innerHTML = "";
+    pdfList.forEach((pdf, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = pdf.name || "PDF " + (idx + 1);
+        select.appendChild(opt);
     });
     
-    if (pdfList.length > 0) {
-        select.value = 0;
-        currentIndex = 0;
-    }
+    if (pdfList.length > 0) select.value = 0;
 }
 
-function onPdfSelected() {
-    const select = document.getElementById('pdf-select');
-    currentIndex = parseInt(select.value) || 0;
-    updateInfoDisplay();
-}
-
-function updateInfoDisplay() {
-    if (currentIndex < 0 || currentIndex >= pdfList.length) {
-        document.getElementById('pdf-info').style.display = 'none';
+// AGGIORNA DISPLAY
+function updateDisplay() {
+    const info = document.getElementById("pdf-info");
+    
+    if (!pdfList.length || currentIndex < 0 || currentIndex >= pdfList.length) {
+        if (info) info.classList.remove("show");
         return;
     }
     
     const pdf = pdfList[currentIndex];
-    document.getElementById('pdf-name').textContent = pdf.name;
-    document.getElementById('pdf-counter').textContent = `${currentIndex + 1} di ${pdfList.length}`;
-    document.getElementById('pdf-info').style.display = 'block';
-    document.getElementById('pdf-select').value = currentIndex;
+    const name = document.getElementById("pdf-name");
+    const counter = document.getElementById("pdf-counter");
+    const select = document.getElementById("pdf-select");
+    
+    if (name) name.textContent = " " + (pdf.name || "N/A");
+    if (counter) counter.textContent = (currentIndex + 1) + " di " + pdfList.length;
+    if (info) info.classList.add("show");
+    if (select) select.value = currentIndex;
+}
+
+// NAVIGAZIONE
+function onPdfSelected() {
+    const select = document.getElementById("pdf-select");
+    if (select) currentIndex = parseInt(select.value) || 0;
+    updateDisplay();
 }
 
 function previousPdf() {
-    if (pdfList.length === 0) return;
+    if (pdfList.length < 2) return;
     currentIndex = (currentIndex - 1 + pdfList.length) % pdfList.length;
-    updateInfoDisplay();
+    updateDisplay();
     openCurrentPdf();
 }
 
 function nextPdf() {
-    if (pdfList.length === 0) return;
+    if (pdfList.length < 2) return;
     currentIndex = (currentIndex + 1) % pdfList.length;
-    updateInfoDisplay();
+    updateDisplay();
     openCurrentPdf();
 }
 
+// APERTURA PDF
 async function openCurrentPdf() {
-    if (!pdfList || pdfList.length === 0 || currentIndex < 0 || currentIndex >= pdfList.length) {
-        showError('PDF non disponibile');
+    if (!pdfList.length || currentIndex < 0 || currentIndex >= pdfList.length) {
+        showMessage("PDF non disponibile", "error");
         return;
     }
     
     const pdf = pdfList[currentIndex];
     if (!pdf || !pdf.path || !pdf.name) {
-        showError('PDF corrotto');
-        console.error('PDF object:', pdf);
+        showMessage("PDF corrotto", "error");
         return;
     }
     
-    let timeoutId = null;
     try {
-        console.log('🔄 Apertura:', pdf.name);
+        console.log(" Apertura:", pdf.name);
+        updateStatus("Apertura " + pdf.name + "...", "loading");
         
         const controller = new AbortController();
-        timeoutId = setTimeout(() => {
-            console.warn('⏱️ Timeout apertura PDF');
-            controller.abort();
-        }, 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        const response = await fetch('http://localhost:8765/api/open-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("http://localhost:8765/api/open-pdf", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ filePath: pdf.path, fileName: pdf.name }),
             signal: controller.signal
         });
         
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = null;
+        clearTimeout(timeoutId);
         
         if (!response || !response.ok) {
-            throw new Error('HTTP ' + (response ? response.status : 'error'));
+            throw new Error("HTTP " + (response ? response.status : "error"));
         }
         
         const text = await response.text();
-        if (!text) throw new Error('Risposta vuota');
+        const data = text ? JSON.parse(text) : {};
         
-        let data = {};
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            throw new Error('Risposta non JSON');
-        }
-        
-        if (data && data.success) {
-            showSuccess('✓ ' + pdf.name);
+        if (data.success) {
+            showMessage(" " + pdf.name, "success");
+            updateStatus(" " + pdf.name, "ready");
         } else {
-            showError('Errore apertura: ' + (data?.error || 'sconosciuto'));
+            throw new Error(data.error || "Unknown error");
         }
     } catch (error) {
-        console.error('❌ openCurrentPdf:', error.message || error);
-        if (error.name === 'AbortError') {
-            showError('Timeout server');
-        } else {
-            showError('Errore: ' + (error.message || 'sconosciuto'));
-        }
-    } finally {
-        if (timeoutId) clearTimeout(timeoutId);
+        const msg = error.name === "AbortError" ? "Timeout" : error.message;
+        console.error("", msg);
+        updateStatus(" Errore", "error");
+        showMessage(msg, "error");
     }
 }
 
-
-
+// CHIUSURA
 async function closePdfViewer() {
-    let timeoutId = null;
-    let closed = false;
-    
-    const doClose = function() {
-        if (!closed) {
-            closed = true;
-            console.log('🔄 Chiusura finestra...');
-            setTimeout(() => {
-                try {
-                    window.close();
-                } catch (e) {
-                    console.warn('Impossibile chiudere finestra');
-                }
-            }, 500);
-        }
-    };
+    console.log(" Chiusura...");
     
     try {
         const controller = new AbortController();
-        timeoutId = setTimeout(() => {
-            console.warn('⏱️ Timeout richiesta chiusura');
-            controller.abort();
-        }, 5000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         
-        console.log('🔄 Richiesta chiusura Chrome...');
-        const response = await fetch('http://localhost:8765/api/close-chrome', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        await fetch("http://localhost:8765/api/close-chrome", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             signal: controller.signal
         });
         
-        if (timeoutId) clearTimeout(timeoutId);
-        timeoutId = null;
-        
-        if (!response || !response.ok) {
-            console.warn('⚠️ Risposta non valida:', response ? response.status : 'null');
-            showSuccess('Chiusura in corso...');
-            doClose();
-            return;
-        }
-        
-        const text = await response.text();
-        if (text && text.length > 0) {
-            try {
-                const data = JSON.parse(text);
-                if (data && data.success) {
-                    showSuccess('Chrome chiuso');
-                }
-            } catch (e) {
-                console.warn('JSON parse error in close response');
-            }
-        }
-        
-        doClose();
+        clearTimeout(timeoutId);
     } catch (error) {
-        console.error('❌ closePdfViewer:', error.message || error);
-        if (error.name !== 'AbortError') {
-            showSuccess('Chiusura in corso...');
-        }
-        doClose();
-    } finally {
-        if (timeoutId) clearTimeout(timeoutId);
+        console.warn("", error.message);
+    }
+    
+    showMessage("Chiusura...", "info");
+    setTimeout(() => window.close(), 1000);
+}
+
+// MESSAGGI
+function showMessage(text, type) {
+    const msg = document.getElementById("message");
+    if (!msg) return;
+    
+    msg.className = "message " + type;
+    msg.textContent = text;
+    
+    if (type === "success" || type === "error") {
+        setTimeout(() => {
+            msg.textContent = "";
+            msg.className = "message";
+        }, 5000);
     }
 }
 
-function showError(message) {
-    try {
-        const messageDiv = document.getElementById('message');
-        if (messageDiv) {
-            messageDiv.className = 'error';
-            messageDiv.textContent = '⚠ ' + String(message || 'Errore sconosciuto').substring(0, 150);
-        }
-    } catch (e) {
-        console.error('Error in showError:', e);
-    }
-}
+console.log(" ScriptPDF1 caricato");
+console.log("Server: http://localhost:8765");
+console.log("PDF Folder: C:\\SCRIPT_PDF");
 
-function showSuccess(message) {
-    try {
-        const messageDiv = document.getElementById('message');
-        if (messageDiv) {
-            messageDiv.className = 'success';
-            messageDiv.textContent = '✓ ' + String(message || 'Completato').substring(0, 150);
-            setTimeout(() => {
-                if (messageDiv) {
-                    messageDiv.textContent = '';
-                    messageDiv.className = '';
-                }
-            }, 3000);
-        }
-    } catch (e) {
-        console.error('Error in showSuccess:', e);
-    }
-}
-
-// Funzione di test (accessibile da console)
-window.testOpenPdf = function() {
-    console.log('🧪 Test apertura PDF...');
-    if (pdfList.length === 0) {
-        console.error('Nessun PDF caricato');
-        return;
-    }
-    const testPdf = pdfList[currentIndex];
-    console.log('Tentativo apertura:', testPdf.name);
-    openCurrentPdf();
-};
-
-// Stampa informazioni nel log
-console.log('✅ ScriptPDF1 caricato');
-console.log('📊 Pulsanti disponibili:');
-console.log('   - previousPdf()');
-console.log('   - nextPdf()');
-console.log('   - openCurrentPdf()');
-console.log('   - closePdfViewer()');
-console.log('   - testOpenPdf()');
-console.log('📁 Cartella PDF: C:\\SCRIPT_PDF');
 </script>
+
 </body>
 </html>
