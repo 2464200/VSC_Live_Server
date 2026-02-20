@@ -94,24 +94,32 @@ window.addEventListener("beforeunload", async function() {
 
 // Funzione semplice per contattare il server PDF
 async function checkPdfServer() {
+    console.log("🟡 checkPdfServer(): verifica connessione...");
     try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
+        const timeout = setTimeout(() => {
+            console.log("   ⏱️ Timeout 3s attivato!");
+            controller.abort();
+        }, 3000);
         
-        const response = await fetch(window.PDF_SERVER_HOST + '/api/health', {
+        const url = window.PDF_SERVER_HOST + '/api/health';
+        console.log("   URL:", url);
+        
+        const response = await fetch(url, {
             method: 'GET',
             signal: controller.signal
         });
         
         clearTimeout(timeout);
+        console.log("   ✅ Response OK:", response.ok);
         
         if (response.ok) {
             const data = await response.json();
-            console.log("✅ PDF Server raggiungibile:", data);
+            console.log("   ✅ PDF Server raggiungibile:", data);
             return true;
         }
     } catch (error) {
-        console.warn("❌ PDF Server non raggiungibile:", error.message);
+        console.warn("❌ checkPdfServer ERRORE:", error.message);
         return false;
     }
 }
@@ -148,25 +156,38 @@ document.addEventListener("DOMContentLoaded", async function() {
  * CARICAMENTO DATI PDF LIST
  */
 async function loadPdfData() {
+    console.log("🟣 loadPdfData(): inizio caricamento...");
     try {
-        console.log("📚 Caricamento lista PDF...");
+        console.log("   📚 Caricamento lista PDF...");
         updateStatus("Caricamento lista PDF...", "loading");
         
         // Fetch diretto dal server PDF
         const url = window.PDF_SERVER_HOST + '/api/pdf-list?t=' + Date.now();
-        console.log("🔄 Contatto: " + url);
+        console.log("   URL:", url);
+        console.log("   Invio fetch...");
         
         const response = await fetch(url, {
             method: 'GET'
         });
         
+        console.log("   Response ricevuta - Status:", response.status, "OK:", response.ok);
+        
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const errText = await response.text();
+            console.error("❌ Response NOT OK! Body:", errText);
+            throw new Error(`HTTP ${response.status}: ${errText}`);
         }
         
+        console.log("   Parsing JSON...");
         const data = await response.json();
+        console.log("   ✅ JSON parsato:", {
+            success: data.success,
+            files: data.files ? data.files.length : 0,
+            folder: data.folder
+        });
         
         if (!data.success || !Array.isArray(data.files)) {
+            console.error("❌ Dati invalidi:", {success: data.success, files: Array.isArray(data.files), error: data.error});
             throw new Error(data.error || "Dati invalidi dalla API");
         }
         
@@ -174,19 +195,23 @@ async function loadPdfData() {
         console.log(`✅ ${pdfList.length} PDF caricati`);
         
         if (pdfList.length === 0) {
+            console.warn("⚠️  Nessun PDF trovato!");
             updateStatus("Nessun PDF trovato in C:\\SCRIPT_PDF", "error");
             showMessage("📁 La cartella C:\\SCRIPT_PDF è vuota", "error");
             return;
         }
         
         // Popola UI
+        console.log("   Popolo UI con", pdfList.length, "PDF");
         populateSelect();
         updateDisplay();
         updateStatus(`Pronto - ${pdfList.length} PDF disponibili`, "ready");
+        console.log("✅ loadPdfData COMPLETATO");
         
     } catch (error) {
         const msg = error.message || "Errore sconosciuto";
-        console.error("❌ Errore caricamento:", msg);
+        console.error("❌ loadPdfData ERRORE:", error);
+        console.error("   Message:", msg);
         
         updateStatus(`Errore: ${msg}`, "error");
         showMessage(`❌ ${msg}\n\n💡 Se il server non è avviato, esegui:\nnode pdf-server-simple.js`, "error");
@@ -276,18 +301,29 @@ function onPdfSelected() {
  * APERTURA PDF IN CHROME
  */
 async function openCurrentPdf() {
+    console.log("🔴 openCurrentPdf INIZIO");
+    console.log("   serverReady:", serverReady);
+    console.log("   pdfList.length:", pdfList.length);
+    console.log("   currentIndex:", currentIndex);
+    
     if (!serverReady) {
+        console.error("❌ Server NON ready!");
         showMessage("⚠️ Server non disponibile", "error");
         return;
     }
     
     if (!pdfList.length || currentIndex < 0 || currentIndex >= pdfList.length) {
+        console.error("❌ PDF list vuoto o indice invalido!");
         showMessage("❌ PDF non disponibile", "error");
         return;
     }
     
     const pdf = pdfList[currentIndex];
+    console.log("   PDF selezionato:", pdf.name);
+    console.log("   Percorso:", pdf.path);
+    
     if (!pdf || !pdf.path || !pdf.name) {
+        console.error("❌ PDF dati invalidi!");
         showMessage("❌ PDF corrotto o invalido", "error");
         return;
     }
@@ -297,28 +333,44 @@ async function openCurrentPdf() {
         updateStatus(`Apertura ${pdf.name}...`, "loading");
         
         const url = window.PDF_SERVER_HOST + '/api/open-pdf';
+        console.log("   URL server:", url);
         
+        const payload = { 
+            filePath: pdf.path, 
+            fileName: pdf.name 
+        };
+        console.log("   Payload:", JSON.stringify(payload));
+        
+        console.log("   Invio fetch...");
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                filePath: pdf.path, 
-                fileName: pdf.name 
-            })
+            body: JSON.stringify(payload)
         });
         
+        console.log("   Response ricevuta:", response.status, response.ok);
+        
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error("❌ Response NOT OK! Status:", response.status, "Body:", errText);
+            throw new Error(`HTTP ${response.status}: ${errText}`);
+        }
+        
         const data = await response.json();
+        console.log("   JSON data:", JSON.stringify(data));
         
         if (data.success) {
-            console.log(`✅ PDF aperto: ${pdf.name}`);
+            console.log(`✅ PDF aperto con successo: ${pdf.name}`);
             showMessage(`✅ ${pdf.name}`, "success");
             updateStatus(`Aperto: ${pdf.name}`, "ready");
         } else {
+            console.error("❌ API ritorna success=false:", data.error);
             throw new Error(data.error || "Errore sconosciuto");
         }
     } catch (error) {
         const msg = error.message || "Errore apertura PDF";
-        console.error("❌ Errore:", msg);
+        console.error("❌ CATCH ERRORE:", error);
+        console.error("   Message:", msg);
         
         updateStatus(`Errore: ${msg}`, "error");
         showMessage(`❌ ${msg}`, "error");
