@@ -196,14 +196,12 @@ function previousPdf() {
     if (pdfList.length < 2) return;
     currentIndex = (currentIndex - 1 + pdfList.length) % pdfList.length;
     updateDisplay();
-    openCurrentPdf();
 }
 
 function nextPdf() {
     if (pdfList.length < 2) return;
     currentIndex = (currentIndex + 1) % pdfList.length;
     updateDisplay();
-    openCurrentPdf();
 }
 
 // APERTURA PDF
