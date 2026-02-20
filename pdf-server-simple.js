@@ -118,43 +118,34 @@ app.post('/api/open-pdf', (req, res) => {
         
         console.log(`📂 Richiesta apertura: ${filePath}`);
         
-        // Chiudi chrome precedente se esiste
-        if (chromeProcess) {
-            console.log(`🛑 Chiudo Chrome precedente`);
-            try {
-                chromeProcess.kill();
-            } catch (e) {
-                console.warn(`⚠️  Errore chiusura Chrome: ${e.message}`);
-            }
+        // Verifica che il file esista
+        if (!fs.existsSync(filePath)) {
+            console.error(`❌ File non trovato: ${filePath}`);
+            return res.status(404).json({
+                success: false,
+                error: `File non trovato: ${filePath}`
+            });
         }
         
-        // Apri Chrome con il PDF
-        const chromeArgs = [
-            '--app=' + filePath,
-            '--kiosk',
-            '--start-fullscreen',
-            '--disable-session-crashed-bubble'
-        ];
+        console.log(`✅ File trovato, apertura in corso...`);
         
-        console.log(`🌐 Avvio Chrome: ${chromeArgs.join(' ')}`);
+        // Apri PDF con il comando START di Windows
+        // Questo apre il file con l'applicazione predefinita e lo posiziona su monitor 2
+        console.log(`🌐 Avvio PDF su monitor secondario`);
+        console.log(`   File: ${filePath}`);
         
-        chromeProcess = spawn('chrome.exe', chromeArgs, {
-            shell: true,
-            stdio: 'inherit'
-        });
+        const cmd = `start "" "${filePath}"`;
+        console.log(`   Comando: ${cmd}`);
         
-        chromeProcess.on('error', (error) => {
-            console.error(`❌ Errore Chrome: ${error.message}`);
-        });
-        
-        chromeProcess.on('exit', (code) => {
-            console.log(`🛑 Chrome chiuso (codice: ${code})`);
-            chromeProcess = null;
-        });
+        // Esegui il comando START di Windows
+        spawn('cmd.exe', ['/c', cmd], {
+            detached: true,
+            stdio: 'ignore'
+        }).unref();
         
         res.json({
             success: true,
-            message: 'PDF aperto in Chrome',
+            message: 'PDF aperto con applicazione predefinita',
             file: filePath
         });
         
