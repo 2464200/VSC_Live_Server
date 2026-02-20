@@ -33,6 +33,8 @@ button:active { background: #dd6600; }
 .message.success { background: #28a745; color: #fff; }
 .message.info { background: #17a2b8; color: #fff; }
 </style>
+<!-- Config del server API -->
+<script src="../api-config.js"></script>
 </head>
 <body>
 
@@ -73,83 +75,175 @@ button:active { background: #dd6600; }
 </div>
 
 <script>
-// VARIABILI
+// VARIABILI GLOBALI
 let pdfList = [];
 let currentIndex = 0;
+let serverReady = false;
+let serverAutoStarted = false;
 
-// Attesa e caricamento
-document.addEventListener("DOMContentLoaded", function() {
-    console.log(" DOM Ready");
-    loadPdfData();
+/**
+ * INIZIALIZZAZIONE - Eseguita al caricamento della pagina
+ */
+window.addEventListener("beforeunload", async function() {
+    // Prima di chiudere la pagina, ferma il server se l'abbiamo avviato noi
+    console.log("🔌 Chiusura pagina - Arresto server se auto-avviato...");
+    
+    if (serverAutoStarted && window.APIConfig.__managerAvailable) {
+        try {
+            await window.APIConfig.requestStopServer();
+            console.log("✅ Server fermato in uscita");
+        } catch (e) {
+            console.warn("⚠️  Errore nell'arresto del server:", e);
+        }
+    }
 });
 
-// CARICAMENTO DATI
+document.addEventListener("DOMContentLoaded", async function() {
+    console.log("🚀 PageInitialization: DOM caricato");
+    console.log("📍 Host: " + window.APIConfig.HOSTNAME);
+    console.log("📍 Manager porta: " + window.APIConfig.MANAGER_PORT);
+    console.log("📍 PDF Server porte da provare: " + window.APIConfig.PORTS.join(', '));
+    
+    updateStatus("Inizializzazione...", "loading");
+    
+    try {
+        // Fase 1: Verificare se il Server Manager è disponibile
+        console.log("🔍 [1/3] Ricerca Server Manager sulla porta " + window.APIConfig.MANAGER_PORT + "...");
+        const managerAvailable = await window.APIConfig.isManagerAvailable();
+        
+        if (managerAvailable) {
+            console.log("✅ Server Manager TROVATO");
+            
+            // Fase 2a: Se Manager esiste, prova a contattare il PDF Server
+            console.log("🔍 [2a/3] Ricerca Server PDF (contatto diretto)...");
+            let port = await window.APIConfig.detectAvailablePort();
+            
+            if (!port) {
+                // Fase 2b: Se non trovato direttamente, chiedi al Manager di avviarlo
+                console.log("📢 [2b/3] Server PDF non trovato - Richiesta auto-avvio al Manager...");
+                updateStatus("Avvio Server PDF...", "loading");
+                
+                const started = await window.APIConfig.requestStartServer();
+                
+                if (started) {
+                    serverAutoStarted = true;
+                    console.log("✅ Richiesta di avvio inviata al Manager");
+                    
+                    // Attendi che il server si avvi
+                    console.log("⏳ Attesa avvio server (3 secondi)...");
+                    await new Promise(r => setTimeout(r, 3000));
+                    
+                    // Riprova la rilevazione della porta
+                    port = await window.APIConfig.detectAvailablePort();
+                }
+            }
+            
+            // Fase 3: Verifica il risultato
+            if (port) {
+                console.log(`✅ [3/3] Server PDF disponibile su porta ${port}`);
+                serverReady = true;
+                updateStatus(`Server pronto (porta ${port})`, "ready");
+                loadPdfData();
+            } else {
+                console.error("❌ [FALLITO] Server PDF non disponibile nemmeno dopo avvio");
+                updateStatus("❌ Server PDF non disponibile", "error");
+                showMessage("❌ Errore: PDF Server non risponderebbe\n\n💡 Assicurati che Node.js sia installato\n💡 Esegui: node server-manager.js\n💡 In un'altra finestra", "error");
+            }
+        } else {
+            console.warn("⚠️  Server Manager NON trovato - Tentativa connessione diretta...");
+            
+            // Fallback: Provare connessione diretta al PDF Server senza manager
+            console.log("🔍 [2A/3] Ricerca Server PDF (senza Manager)...");
+            const port = await window.APIConfig.detectAvailablePort();
+            
+            if (port) {
+                console.log(`✅ [3/3] Server PDF trovato direttamente su porta ${port}`);
+                serverReady = true;
+                updateStatus(`Server pronto (porta ${port}, senza Manager)`, "ready");
+                loadPdfData();
+            } else {
+                console.error("❌ [FALLITO] Server PDF non trovato - Manager non disponibile");
+                updateStatus("❌ Server PDF non raggiungibile", "error");
+                showMessage("❌ PDF Server non disponibile\n\n💡 Opzione 1 (CONSIGLIATO):\n   node server-manager.js\n\n💡 Opzione 2 (fallback):\n   node pdf-server.js", "error");
+            }
+        }
+        
+        // Monitoraggio attività dell'utente
+        document.addEventListener('click', () => window.APIConfig.signalActivity());
+        document.addEventListener('keypress', () => window.APIConfig.signalActivity());
+        
+    } catch (error) {
+        console.error("❌ [FATALE] Errore durante inizializzazione:", error);
+        updateStatus("Errore durante inizializzazione", "error");
+        showMessage(`❌ Errore fatale: ${error.message}`, "error");
+    }
+});
+
+/**
+ * CARICAMENTO DATI PDF LIST
+ */
 async function loadPdfData() {
     const statusDiv = document.getElementById("status");
     const statusText = document.getElementById("status-text");
     
     try {
-        console.log(" Caricamento PDF...");
-        statusText.textContent = "Connessione al server...";
+        console.log("📚 Caricamento lista PDF...");
+        statusText.textContent = "Caricamento lista PDF...";
         
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        // Usa il nuovo sistema di fetch con retry automatico
+        const response = await window.APIConfig.fetchAPI(`/api/pdf-list?t=${Date.now()}`);
         
-        const url = "http://localhost:8765/api/pdf-list?t=" + Date.now();
-        const response = await fetch(url, {
-            cache: "no-store",
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response || !response.ok) {
-            throw new Error("HTTP " + (response ? response.status : "error"));
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
         
         const text = await response.text();
-        if (!text) throw new Error("Empty response");
+        if (!text) throw new Error("Risposta vuota dal server");
         
         const data = JSON.parse(text);
         
         if (!data.success || !Array.isArray(data.files)) {
-            throw new Error(data.error || "Invalid data");
+            throw new Error(data.error || "Dati invalidi dalla API");
         }
         
         pdfList = data.files;
-        console.log(" PDF caricati:", pdfList.length);
+        console.log(`✅ ${pdfList.length} PDF caricati`);
         
         if (pdfList.length === 0) {
-            updateStatus(" Nessun PDF in C:\\SCRIPT_PDF", "error");
-            showMessage("Cartella C:\\SCRIPT_PDF vuota", "error");
+            updateStatus("Nessun PDF trovato in C:\\SCRIPT_PDF", "error");
+            showMessage("📁 La cartella C:\\SCRIPT_PDF è vuota", "error");
             return;
         }
         
+        // Popola UI
         populateSelect();
         updateDisplay();
-        updateStatus(" Pronto - " + pdfList.length + " PDF", "ready");
+        updateStatus(`Pronto - ${pdfList.length} PDF disponibili`, "ready");
         
     } catch (error) {
-        const msg = error.name === "AbortError" 
-            ? "Timeout: server non risponde"
-            : error.message || "Unknown error";
+        const msg = error.message || "Errore sconosciuto";
+        console.error("❌ Errore caricamento:", msg);
         
-        console.error(" Errore:", msg);
-        updateStatus(" " + msg, "error");
-        showMessage(msg, "error");
+        updateStatus(`Errore: ${msg}`, "error");
+        showMessage(`❌ ${msg}\n\n💡 Se il server non è avviato, esegui:\nnode server-manager.js`, "error");
     }
 }
 
+/**
+ * AGGIORNA STATO UI
+ */
 function updateStatus(text, type) {
     const status = document.getElementById("status");
     const statusText = document.getElementById("status-text");
     if (status && statusText) {
-        status.className = "status " + type;
+        status.className = `status ${type}`;
         statusText.textContent = text;
     }
 }
 
-// POPOLA SELECT
+/**
+ * POPOLA SELECT CON LISTA PDF
+ */
 function populateSelect() {
     const select = document.getElementById("pdf-select");
     if (!select) return;
@@ -158,14 +252,16 @@ function populateSelect() {
     pdfList.forEach((pdf, idx) => {
         const opt = document.createElement("option");
         opt.value = idx;
-        opt.textContent = pdf.name || "PDF " + (idx + 1);
+        opt.textContent = `${idx + 1}. ${pdf.name || "PDF senza nome"}`;
         select.appendChild(opt);
     });
     
     if (pdfList.length > 0) select.value = 0;
 }
 
-// AGGIORNA DISPLAY
+/**
+ * AGGIORNA DISPLAY PDF CORRENTE
+ */
 function updateDisplay() {
     const info = document.getElementById("pdf-info");
     
@@ -175,114 +271,126 @@ function updateDisplay() {
     }
     
     const pdf = pdfList[currentIndex];
-    const name = document.getElementById("pdf-name");
-    const counter = document.getElementById("pdf-counter");
+    const nameEl = document.getElementById("pdf-name");
+    const counterEl = document.getElementById("pdf-counter");
     const select = document.getElementById("pdf-select");
     
-    if (name) name.textContent = " " + (pdf.name || "N/A");
-    if (counter) counter.textContent = (currentIndex + 1) + " di " + pdfList.length;
+    if (nameEl) nameEl.textContent = pdf.name || "PDF senza nome";
+    if (counterEl) counterEl.textContent = `${currentIndex + 1} di ${pdfList.length}`;
     if (info) info.classList.add("show");
     if (select) select.value = currentIndex;
 }
 
-// NAVIGAZIONE
-function onPdfSelected() {
-    const select = document.getElementById("pdf-select");
-    if (select) currentIndex = parseInt(select.value) || 0;
-    updateDisplay();
-}
-
+/**
+ * NAVIGAZIONE - PDF PRECEDENTE
+ */
 function previousPdf() {
     if (pdfList.length < 2) return;
     currentIndex = (currentIndex - 1 + pdfList.length) % pdfList.length;
     updateDisplay();
 }
 
+/**
+ * NAVIGAZIONE - PDF SUCCESSIVO
+ */
 function nextPdf() {
     if (pdfList.length < 2) return;
     currentIndex = (currentIndex + 1) % pdfList.length;
     updateDisplay();
 }
 
-// APERTURA PDF
+/**
+ * CAMBIO SELEZIONE DA SELECT
+ */
+function onPdfSelected() {
+    const select = document.getElementById("pdf-select");
+    if (select) currentIndex = parseInt(select.value) || 0;
+    updateDisplay();
+}
+
+/**
+ * APERTURA PDF IN CHROME
+ */
 async function openCurrentPdf() {
+    if (!serverReady) {
+        showMessage("⚠️ Server non disponibile", "error");
+        return;
+    }
+    
     if (!pdfList.length || currentIndex < 0 || currentIndex >= pdfList.length) {
-        showMessage("PDF non disponibile", "error");
+        showMessage("❌ PDF non disponibile", "error");
         return;
     }
     
     const pdf = pdfList[currentIndex];
     if (!pdf || !pdf.path || !pdf.name) {
-        showMessage("PDF corrotto", "error");
+        showMessage("❌ PDF corrotto o invalido", "error");
         return;
     }
     
     try {
-        console.log(" Apertura:", pdf.name);
-        updateStatus("Apertura " + pdf.name + "...", "loading");
+        console.log(`📖 Apertura PDF: ${pdf.name}`);
+        updateStatus(`Apertura ${pdf.name}...`, "loading");
         
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const response = await fetch("http://localhost:8765/api/open-pdf", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ filePath: pdf.path, fileName: pdf.name }),
-            signal: controller.signal
+        const response = await window.APIConfig.fetchAPI('/api/open-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                filePath: pdf.path, 
+                fileName: pdf.name 
+            })
         });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response || !response.ok) {
-            throw new Error("HTTP " + (response ? response.status : "error"));
-        }
         
         const text = await response.text();
         const data = text ? JSON.parse(text) : {};
         
         if (data.success) {
-            showMessage(" " + pdf.name, "success");
-            updateStatus(" " + pdf.name, "ready");
+            console.log(`✅ PDF aperto: ${pdf.name}`);
+            showMessage(`✅ ${pdf.name}`, "success");
+            updateStatus(`Aperto: ${pdf.name}`, "ready");
         } else {
-            throw new Error(data.error || "Unknown error");
+            throw new Error(data.error || "Errore sconosciuto");
         }
     } catch (error) {
-        const msg = error.name === "AbortError" ? "Timeout" : error.message;
-        console.error("", msg);
-        updateStatus(" Errore", "error");
-        showMessage(msg, "error");
+        const msg = error.message || "Errore apertura PDF";
+        console.error("❌ Errore:", msg);
+        
+        updateStatus(`Errore: ${msg}`, "error");
+        showMessage(`❌ ${msg}`, "error");
     }
 }
 
-// CHIUSURA
+/**
+ * CHIUSURA PDF E CHROME
+ */
 async function closePdfViewer() {
-    console.log(" Chiusura...");
+    console.log("🛑 Chiusura PDF viewer...");
     
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        
-        await fetch("http://localhost:8765/api/close-chrome", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
+        if (!serverReady) {
+            console.warn("Server non disponibile, skip chiusura remota");
+        } else {
+            await window.APIConfig.fetchAPI('/api/close-chrome', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
     } catch (error) {
-        console.warn("", error.message);
+        console.warn("⚠️ Errore chiusura remota:", error.message);
     }
     
-    showMessage("Chiusura...", "info");
+    showMessage("Chiusura in corso...", "info");
     setTimeout(() => window.close(), 1000);
 }
 
-// MESSAGGI
+/**
+ * MOSTRA MESSAGGIO TEMPORANEO
+ */
 function showMessage(text, type) {
     const msg = document.getElementById("message");
     if (!msg) return;
     
-    msg.className = "message " + type;
+    msg.className = `message ${type}`;
     msg.textContent = text;
     
     if (type === "success" || type === "error") {
@@ -293,9 +401,10 @@ function showMessage(text, type) {
     }
 }
 
-console.log(" ScriptPDF1 caricato");
-console.log("Server: http://localhost:8765");
-console.log("PDF Folder: C:\\SCRIPT_PDF");
+// LOG INIZIALE
+console.log("📍 ScriptPDF1 - Gestione automatica server");
+console.log("   💡 Il server PDF si avvia/spegne AUTOMATICAMENTE");
+console.log("   💡 Assicurati che server-manager.js sia avviato: node server-manager.js");
 
 </script>
 

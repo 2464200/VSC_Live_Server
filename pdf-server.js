@@ -13,7 +13,7 @@ const path = require('path');
 const os = require('os');
 const { execSync, spawn } = require('child_process');
 const app = express();
-const PORT = 8765;
+const PORT = process.env.PDF_SERVER_PORT || 8765;  // Default 8765, configurabile via env variable
 
 const PDF_FOLDER = 'C:\\SCRIPT_PDF';
 const PROVA_FOLDER = path.join(__dirname, 'Prova');
@@ -465,16 +465,16 @@ app.get('/ScriptPDF1', (req, res) => {
  */
 app.listen(PORT, () => {
     console.log(`\n========================================`);
-    console.log(`Server PDF avviato su http://localhost:${PORT}`);
-    console.log(`Pagina: http://localhost:${PORT}/Prova/ScriptPDF1.html`);
-    console.log(`API: http://localhost:${PORT}/api/pdf-list`);
-    console.log(`Cartella PDF: ${PDF_FOLDER}`);
+    console.log(`✅ Server PDF avviato su http://127.0.0.1:${PORT}`);
+    console.log(`   URL Pagina: http://127.0.0.1:${PORT}/Prova/ScriptPDF1.html`);
+    console.log(`   API: http://127.0.0.1:${PORT}/api/pdf-list`);
+    console.log(`   Cartella PDF: ${PDF_FOLDER}`);
     console.log(`========================================\n`);
     
     // Verifica che la cartella esista
     if (!fs.existsSync(PDF_FOLDER)) {
-        console.log(`⚠ AVVISO: La cartella ${PDF_FOLDER} non esiste!`);
-        console.log(`Crearla e aggiungere i file PDF.\n`);
+        console.log(`⚠️  AVVISO: La cartella ${PDF_FOLDER} non esiste!`);
+        console.log(`   Crearla e aggiungere i file PDF.\n`);
     }
 });
 

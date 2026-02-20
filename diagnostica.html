@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostica Sistema - VSC Live Server</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Courier New", monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #252526;
+            padding: 30px;
+            border-radius: 5px;
+            border-left: 4px solid #ff7f00;
+        }
+        h1 {
+            color: #ff7f00;
+            margin-top: 0;
+            text-align: center;
+        }
+        h2 {
+            color: #4fc3f7;
+            margin-top: 30px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #1e1e1e;
+            border-left: 3px solid #888;
+            border-radius: 3px;
+        }
+        .test-section.success {
+            border-left-color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        .test-section.error {
+            border-left-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+        .test-section.warning {
+            border-left-color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        .status-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .test-details {
+            padding-left: 30px;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .test-details div {
+            margin: 5px 0;
+        }
+        button {
+            background: #ff7f00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #ffaa33;
+        }
+        button:active {
+            background: #dd6600;
+        }
+        .button-group {
+            margin: 20px 0;
+            padding: 15px;
+            background: #1e1e1e;
+            border-radius: 3px;
+            border-left: 3px solid #4fc3f7;
+        }
+        code {
+            background: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #4caf50;
+            display: inline-block;
+            margin: 2px;
+            font-size: 12px;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e1e1e;
+            border-left: 4px solid #4fc3f7;
+            border-radius: 3px;
+        }
+        .summary h3 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
+        .summary-item {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .summary-badge {
+            display: inline-block;
+            min-width: 20px;
+            text-align: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnostica Sistema VSC Live Server</h1>
+        
+        <div class="button-group">
+            <h3>Azioni rapide:</h3>
+            <button onclick="runAllTests()">▶️ Esegui tutti i test</button>
+            <button onclick="testLiveServer()">🌐 Test Live Server</button>
+            <button onclick="testPdfServer()">📄 Test PDF Server</button>
+            <button onclick="testCsvFiles()">📊 Test CSV Files</button>
+            <button onclick="clearTests()">🗑️ Pulisci risultati</button>
+        </div>
+
+        <h2>📋 Risultati Test</h2>
+        <div id="results"></div>
+
+        <div class="summary" id="summary" style="display:none;">
+            <h3>📊 Riepilogo</h3>
+            <div id="summary-content"></div>
+        </div>
+    </div>
+
+    <script src="utility.js"></script>
+    <script>
+        const resultsDiv = document.getElementById("results");
+        let testResults = [];
+
+        function log(title, status, details = [], icon = "❓") {
+            const section = document.createElement("div");
+            section.className = `test-section ${status}`;
+            
+            const statusMap = {
+                success: "✅",
+                error: "❌",
+                warning: "⚠️",
+                info: "ℹ️"
+            };
+            
+            icon = statusMap[status] || icon;
+            
+            let html = `<div class="test-title"><span class="status-icon">${icon}</span>${title}</div>`;
+            
+            if (details && details.length > 0) {
+                html += "<div class='test-details'>";
+                details.forEach(d => {
+                    html += `<div>${d}</div>`;
+                });
+                html += "</div>";
+            }
+            
+            section.innerHTML = html;
+            resultsDiv.appendChild(section);
+            
+            testResults.push({
+                title,
+                status,
+                details
+            });
+            
+            console.log(`[${status.toUpperCase()}] ${title}`, details);
+        }
+
+        async function testLiveServer() {
+            resultsDiv.innerHTML = "";
+            testResults = [];
+            
+            const url = "http://127.0.0.1:5500/";
+            
+            try {
+                const response = await fetch(url, { mode: "no-cors" });
+                log("Live Server (port 5500)", "success", [
+                    `URL: ${url}`,
+                    `Status: Raggiungibile`
+                ]);
+            } catch (error) {
+                log("Live Server (port 5500)", "error", [
+                    `URL: ${url}`,
+                    `Errore: ${error.message}`,
+                    `💡 Assicurati che Live Server sia avviato`
+                ]);
+            }
+        }
+
+        async function testPdfServer() {
+            resultsDiv.innerHTML = "";
+            testResults = [];
+            
+            const url = "http://127.0.0.1:8765/api/pdf-list";
+            
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    log("PDF Server (port 8765)", "success", [
+                        `URL: ${url}`,
+                        `Status: ${response.status} OK`,
+                        `PDF trovati: ${data.files ? data.files.length : "N/A"}`,
+                        `Cartella: ${data.folderPath || "N/A"}`
+                    ]);
+                } else {
+                    log("PDF Server (port 8765)", "warning", [
+                        `URL: ${url}`,
+                        `Status: ${response.status} ${response.statusText}`,
+                        `💡 Server risponde ma con errore`
+                    ]);
+                }
+            } catch (error) {
+                log("PDF Server (port 8765)", "error", [
+                    `URL: ${url}`,
+                    `Errore: ${error.message}`,
+                    `💡 Esegui: .\\start-pdf-server.ps1`
+                ]);
+            }
+        }
+
+        async function testCsvFiles() {
+            resultsDiv.innerHTML = "";
+            testResults = [];
+            
+            const csvFiles = ["display.csv", "NextCoreo.csv", "servizio.csv"];
+            
+            for (const file of csvFiles) {
+                try {
+                    const response = await fetch(file + "?t=" + Date.now());
+                    if (response.ok) {
+                        const text = await response.text();
+                        const lines = text.trim().split("\n").length;
+                        log(`CSV: ${file}`, "success", [
+                            `URL: ${file}`,
+                            `Status: ${response.status} OK`,
+                            `Righe: ${lines}`,
+                            `Dimensione: ${(text.length / 1024).toFixed(2)} KB`
+                        ]);
+                    } else {
+                        log(`CSV: ${file}`, "warning", [
+                            `URL: ${file}`,
+                            `Status: ${response.status} ${response.statusText}`
+                        ]);
+                    }
+                } catch (error) {
+                    log(`CSV: ${file}`, "error", [
+                        `URL: ${file}`,
+                        `Errore: ${error.message}`,
+                        `💡 Verifica che il file esista nella cartella root`
+                    ]);
+                }
+            }
+        }
+
+        async function runAllTests() {
+            resultsDiv.innerHTML = "";
+            testResults = [];
+            
+            await testLiveServer();
+            await new Promise(r => setTimeout(r, 500));
+            await testPdfServer();
+            await new Promise(r => setTimeout(r, 500));
+            await testCsvFiles();
+            
+            // Riepilogo
+            updateSummary();
+        }
+
+        function clearTests() {
+            resultsDiv.innerHTML = "";
+            testResults = [];
+            document.getElementById("summary").style.display = "none";
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById("summary");
+            const summaryContent = document.getElementById("summary-content");
+            
+            const successes = testResults.filter(r => r.status === "success").length;
+            const warnings = testResults.filter(r => r.status === "warning").length;
+            const errors = testResults.filter(r => r.status === "error").length;
+            const total = testResults.length;
+            
+            let html = `
+                <div class="summary-item">
+                    <span class="summary-badge" style="color:#4caf50;">✓</span>
+                    <span>${successes}/${total} test superati</span>
+                </div>
+            `;
+            
+            if (warnings > 0) {
+                html += `
+                    <div class="summary-item">
+                        <span class="summary-badge" style="color:#ff9800;">⚠</span>
+                        <span>${warnings} avvertimento/i</span>
+                    </div>
+                `;
+            }
+            
+            if (errors > 0) {
+                html += `
+                    <div class="summary-item">
+                        <span class="summary-badge" style="color:#f44336;">✗</span>
+                        <span>${errors} errore/i - Vedi dettagli sopra</span>
+                    </div>
+                `;
+            }
+            
+            if (successes === total && errors === 0 && warnings === 0) {
+                html += `
+                    <div class="summary-item">
+                        <span style="color:#4caf50; font-weight:bold;">🎉 TUTTO OK - Sistema funzionante!</span>
+                    </div>
+                `;
+            }
+            
+            summaryContent.innerHTML = html;
+            summary.style.display = "block";
+        }
+
+        // Auto-run on page load
+        window.addEventListener("load", () => {
+            log("Pagina caricata", "info", [
+                `URL: ${window.location.href}`,
+                `Browser: ${navigator.userAgent.split(" ").slice(-2).join(" ")}`,
+                `Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+            ], "ℹ️");
+        });
+    </script>
+</body>
+</html>

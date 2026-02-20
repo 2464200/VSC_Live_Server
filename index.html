@@ -141,7 +141,14 @@
   document.addEventListener("DOMContentLoaded", () => {
     async function caricaCSV() {
       try {
-        const response = await fetch("display.csv");
+        const response = await fetch("display.csv?t=" + Date.now(), { 
+          cache: "no-store" 
+        });
+        
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status + ": display.csv non trovato");
+        }
+        
         const text = await response.text();
 
         const righe = text.trim().split("\n").slice(3); 
@@ -163,8 +170,14 @@
           }
           tbody.appendChild(tr);
         });
+        
+        console.log(" display.csv caricato correttamente (" + righe.length + " righe)");
       } catch (err) {
-        console.error("Errore nel caricamento del CSV:", err);
+        console.error("❌ Errore nel caricamento di display.csv:", err);
+        const tbody = document.getElementById("data-body");
+        if (tbody) {
+          tbody.innerHTML = "<tr><td colspan='5' style='color:red;'>Errore caricamento CSV: " + err.message + "</td></tr>";
+        }
       }
     }
 
@@ -174,24 +187,40 @@
     // Carico NextCoreo.csv e gestisco lampeggio + fade-out
     async function mostraNextCoreo() {
       try {
-        const response = await fetch("NextCoreo.csv");
+        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { 
+          cache: "no-store" 
+        });
+        
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status + ": NextCoreo.csv non trovato");
+        }
+        
         const text = await response.text();
-
-        const primaRiga = text.trim().split("\n")[0];
+        
+        // Rimuovi BOM se presente
+        const cleanText = text.replace(/^\uFEFF/, "").trim();
+        const primaRiga = cleanText.split("\n")[0];
         const valoreB1 = primaRiga.split(",")[1].replace(/(^\"|\"$)/g, "").trim();
 
         const span = document.getElementById("next-coreo");
-        span.textContent = valoreB1;
-        span.classList.add("blink");
+        if (span) {
+          span.textContent = valoreB1;
+          span.classList.add("blink");
+          console.log(" NextCoreo caricato: " + valoreB1);
 
-        // Dopo 2 minuti attivo fade-out
-        setTimeout(() => {
-          span.classList.remove("blink");
-          span.classList.add("fade-out");
-        }, 120000);
-
+          // Dopo 2 minuti attivo fade-out
+          setTimeout(() => {
+            span.classList.remove("blink");
+            span.classList.add("fade-out");
+          }, 120000);
+        }
       } catch (err) {
-        console.error("Errore nel caricamento di NextCoreo.csv:", err);
+        console.error("❌ Errore nel caricamento di NextCoreo.csv:", err);
+        const span = document.getElementById("next-coreo");
+        if (span) {
+          span.textContent = "ERRORE CARICAMENTO";
+          span.style.color = "#ff0000";
+        }
       }
     }
 
