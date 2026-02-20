@@ -128,23 +128,25 @@ app.post('/api/open-pdf', (req, res) => {
         }
         
         console.log(`✅ File trovato, apertura in corso...`);
-        console.log(`🌐 Apertura su monitor secondario con PowerShell`);
+        console.log(`🌐 Apertura su monitor secondario`);
         
-        // Usa PowerShell per aprire il file (più affidabile)
-        const psCommand = `Start-Process '${filePath}'`;
-        console.log(`   Comando PS: ${psCommand}`);
+        // Usa script PowerShell per aprire il PDF su monitor secondario
+        const scriptPath = path.join(__dirname, 'open-pdf-secondary.ps1');
+        console.log(`   Script: ${scriptPath}`);
+        console.log(`   File: ${filePath}`);
         
-        spawn('powershell.exe', ['-NoProfile', '-Command', psCommand], {
+        const psCommand = `-NoProfile -File "${scriptPath}" -FilePath "${filePath}"`;
+        
+        spawn('powershell.exe', ['-NoProfile', '-File', scriptPath, '-FilePath', filePath], {
             detached: true,
-            stdio: 'ignore',
-            shell: false
+            stdio: 'inherit'
         }).unref();
         
         console.log(`✅ Comando inviato al sistema operativo`);
         
         res.json({
             success: true,
-            message: 'PDF aperto con applicazione predefinita',
+            message: 'PDF aperto sul monitor secondario',
             file: filePath
         });
         
