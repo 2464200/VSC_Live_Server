@@ -193,9 +193,15 @@ app.post('/api/open-pdf', (req, res) => {
             });
         }
 
-        // Conversione del percorso per file://
-        const fileUrl = 'file:///' + filePath.replace(/\\/g, '/');
-        console.log(`📂 URL: ${fileUrl}`);
+        // Conversione dei percorsi per file://
+        const pdfFileUrl = 'file:///' + filePath.replace(/\\/g, '/');
+        const viewerPath = path.join(__dirname, 'pdf-viewer.html');
+        const viewerUrl = 'file:///' + viewerPath.replace(/\\/g, '/');
+        const pdfName = path.basename(filePath);
+        
+        // URL del viewer con parametri query per il file PDF
+        const fileUrl = viewerUrl + `?file=${encodeURIComponent(pdfFileUrl)}&name=${encodeURIComponent(pdfName)}`;
+        console.log(`📂 URL Viewer: ${fileUrl}`);
 
         // Killer Chrome precedenti (fallback per assicurare definitivamente la chiusura)
         try {

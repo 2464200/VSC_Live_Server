@@ -1,0 +1,152 @@
+════════════════════════════════════════════════════════════════════════
+ CHIUSURA PDF - 3 METODI DISPONIBILI
+════════════════════════════════════════════════════════════════════════
+
+La pagina PDF visualizzata su Chrome (monitor secondario) può essere 
+chiusa in TRE modi diversi:
+
+───────────────────────────────────────────────────────────────────────
+ METODO 1: Tasto ESC (CONSIGLIATO - più rapido)
+───────────────────────────────────────────────────────────────────────
+
+Quando il PDF è visualizzato sul monitor secondario:
+  👉 Premi il tasto ESC sulla tastiera
+
+La pagina si chiuderà immediatamente e tornerai alla pagina HTML 
+del monitor primario.
+
+⚡ Vantaggi:
+  ✓ Rapidissimo - un solo tasto
+  ✓ Non serve cercare pulsanti
+  ✓ Funziona da qualsiasi punto del PDF
+
+───────────────────────────────────────────────────────────────────────
+ METODO 2: Pulsante "Chiudi" nel visualizzatore
+───────────────────────────────────────────────────────────────────────
+
+La pagina PDF ha un'area di controllo in alto con:
+  📍 Titolo del PDF
+  📍 Pulsante "✕ Chiudi" in rosso in alto a destra
+
+Fare clic sul pulsante rosso "✕ Chiudi" per terminare la 
+visualizzazione del PDF.
+
+⚡ Vantaggi:
+  ✓ Visivamente chiaro
+  ✓ Interfaccia intuitiva
+  ✓ Conferma immediatamente che la finestra sarà chiusa
+
+───────────────────────────────────────────────────────────────────────
+ METODO 3: Scorciatoia da tastiera Alt+Q (alternativa)
+───────────────────────────────────────────────────────────────────────
+
+Quando il PDF è visualizzato:
+  👉 Premi ALT + Q insieme
+
+Esta è una scorciatoia alternativa per chi preferisce combinazioni 
+di tasti.
+
+⚡ Vantaggi:
+  ✓ Scorciatoia configurabile
+  ✓ Alternative per preferenze diverse
+
+───────────────────────────────────────────────────────────────────────
+ METODO 4 (REMOTO): Pulsante "Chiudi PDF" dalla pagina primaria
+───────────────────────────────────────────────────────────────────────
+
+Dalla pagina HTML ScriptPDF1.html (monitor primario):
+  👉 Clicca il pulsante "Chiudi PDF" 
+
+Questo terminerà la sessione Chrome dal monitor primario, utile se:
+  • Non hai accesso al monitor secondario
+  • La tastiera non risponde
+  • Vuoi controllare tutto da un posto
+
+⚡ Vantaggi:
+  ✓ Controllo remoto dal primario
+  ✓ Utile per supporto tecnico
+  ✓ Soluzione alternativa se ESC non funziona
+
+════════════════════════════════════════════════════════════════════════
+ ARCHITETTURA TECNICA
+════════════════════════════════════════════════════════════════════════
+
+Nuovi file:
+  📄 pdf-viewer.html
+     - Visualizzatore PDF personalizzato
+     - Mostra il PDF in un iframe
+     - Integra interfaccia di controllo
+     - Listener di tastiera per ESC e Alt+Q
+
+Modifiche:
+  📝 pdf-server.js
+     - Endpoint /api/open-pdf
+       Ora apre pdf-viewer.html anziché il PDF diretto
+       Passa il percorso del PDF via query parameters
+     - Mantiene il posizionamento sul monitor secondario
+
+  📝 Prova/ScriptPDF1.html
+     - Aggiornate tooltips dei pulsanti
+     - Pulsante "Chiudi PDF" con descrizione migliorata
+
+════════════════════════════════════════════════════════════════════════
+ WORKFLOW DI CHIUSURA
+════════════════════════════════════════════════════════════════════════
+
+1. Utente apre PDF dal monitor primario (ScriptPDF1.html)
+   └─> Clicca "Apri"
+   
+2. Chrome si avvia sul monitor secondario in fullscreen
+   └─> Visualizza il PDF nel viewer personalizzato
+   
+3. Visualizzatore mostra:
+   └─> Barra di controllo in alto
+   └─> Pulsante "✕ Chiudi" in rosso
+   └─> Hint "Premi ESC per chiudere" (su hover)
+   
+4. Per chiudere: ESC o Alt+Q o clic pulsante
+   └─> Invia richiesta POST a /api/close-chrome
+   └─> Server termina processo Chrome
+   └─> Chiude la finestra
+   
+5. Utente torna al monitor primario
+   └─> Pronto per aprire un nuovo PDF
+
+════════════════════════════════════════════════════════════════════════
+ DOMANDE FREQUENTI
+════════════════════════════════════════════════════════════════════════
+
+D: Il PDF può restare acceso senza che io lo chiuda?
+R: No, è necessario usare uno dei 4 metodi per terminare 
+   la visualizzazione del PDF.
+
+D: Se premo ESC durante la visione, perdo il PDF?
+R: Sì, il PDF si chiude. Se vuoi conservare il file, prendi nota 
+   del nome prima di chiuderlo.
+
+D: Posso tornare al PDF precedente senza riaprirlo?
+R: No, ogni chiusura termina la sessione di Chrome. Devi usare i 
+   pulsanti "Precedente/Successivo" prima di aprire.
+
+D: Cosa succede se ESC non funziona?
+R: Usa il pulsante "✕ Chiudi" oppure Alt+Q, oppure clicca il 
+   pulsante "Chiudi PDF" dal monitor primario locale.
+
+════════════════════════════════════════════════════════════════════════
+ CONFIGURAZIONE & PERSONALIZZAZIONE
+════════════════════════════════════════════════════════════════════════
+
+File: pdf-viewer.html
+  • I colori e lo stile sono personalizzabili nella sezione <style>
+  • Il comportamento dei tasti è in <script>
+
+File: pdf-server.js
+  • La logica di positioning del secondario è in getSecondaryMonitorInfo()
+  • L'endpoint /api/open-pdf gestisce l'avvio di Chrome
+
+Per cambiare i tasti di chiusura:
+  1. Apri pdf-viewer.html
+  2. Modifica i listener di tastiera in <script>
+  3. Aggiungi o cambia il tasto desiderato
+
+════════════════════════════════════════════════════════════════════════

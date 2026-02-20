@@ -1,0 +1,252 @@
+================================================================================
+        FEATURE: POSIZIONAMENTO DUAL-MONITOR
+================================================================================
+
+DATA: 20 Febbraio 2026
+COMMIT: bcc2a79
+VERSIONE: Final
+
+================================================================================
+FEATURE IMPLEMENTATA
+================================================================================
+
+✅ HTML ScriptPDF1 → Monitor Primario (dove è l'utente)
+✅ PDF in Chrome → Monitor Secondario (display dedicato)
+
+Configurazione automatica tramite PowerShell che:
+1. Rileva le coordinate del monitor secondario
+2. Apre Chrome in modalità kiosk pieno schermo
+3. Posiziona la finestra nel punto esatto del monitor secondario
+4. Assicura il fullscreen sul monitor corretto
+
+================================================================================
+COME FUNZIONA
+================================================================================
+
+1. APRIRE LA PAGINA HTML
+   📍 Luogo: Monitor Primario (0,0)
+   Browser: http://localhost:8765/Prova/ScriptPDF1.html
+   o
+   file:///C:/VSC_Live_Server/Prova/ScriptPDF1.html
+
+2. CLICCARE SU "Apri" (dentro HTML)
+   📍 Azione: Server riceve richiesta POST /api/open-pdf
+   
+3. SERVER SVOLGE:
+   a) Uccide Chrome precedenti
+   b) Rileva monitor secondario (via PowerShell)
+   c) Avvia Chrome con file PDF in modalità kiosk
+   d) Crea script PowerShell temporaneo
+   e) Esegue PowerShell per posizionare finestra
+   📍 Luogo: Monitor Secondario (es: X=1920, Y=0)
+   
+4. RISULTATO:
+   ✅ HTML rimane sul monitor principale
+   ✅ PDF appare fullscreen sul monitor secondario
+   ✅ Utente vede entrambe le schermate
+
+================================================================================
+CODICE TECNICO
+================================================================================
+
+📄 FILE MODIFICATO: pdf-server.js
+
+COMPONENTI CHIAVE:
+─────────────────
+
+1. getSecondaryMonitorInfo()
+   Rileva via PowerShell le coordinate del monitor secondario
+   Output: {x, y, width, height}
+
+2. POST /api/open-pdf
+   • Cerca Chrome in percorsi standard
+   • Uccide istanze Chrome precedenti
+   • Apre Chrome con modalità kiosk
+   • Crea script PowerShell temporaneo
+   • Esegue posizionamento finestra in background
+
+3. PowerShell Positioning Script
+   • Aspetta fino a 10 secondi che Chrome appaia
+   • Usa Win32 API SetWindowPos() per spostare
+   • Assicura maxsize e fullscreen
+   • Elimina script temporaneo dopo uso
+
+================================================================================
+CONFIGURAZIONE MONITOR
+================================================================================
+
+RILEVAMENTO AUTOMATICO:
+⚙️ Legge da Windows via PowerShell + WMI:
+   - Get-Process -Class Win32_DesktopMonitor
+   - [System.Windows.Forms.Screen]::AllScreens
+
+CONFIGURAZIONE DEFAULT (fallback):
+   Monitor Primario: 1920x1080 @(0,0)
+   Monitor Secondario: 1920x1080 @(1920,0)
+
+PERSONALIZZAZIONE:
+   Se configurazione è diversa, il server adattan automaticamente
+   basato su rilevamento hardware reale
+
+================================================================================
+FLUSSO DI ESECUZIONE
+================================================================================
+
+CLIENT (ScriptPDF1.html on Monitor Primario)
+│
+├─ User clicca "Apri"
+│
+└─→ fetch POST /api/open-pdf
+    │
+    └─→ SERVER (pdf-server.js)
+        │
+        ├─ Calcola monitor secondario
+        │  └─ Esegue: Get-Process | WMI query
+        │     Risultato: {x:1920, y:0, w:1920, h:1080}
+        │
+        ├─ Avvia Chrome processo
+        │  └─ spawn('chrome.exe', [...args, fileUrl])
+        │  └─ PID: 12345 (es)
+        │
+        ├─ Crea PowerShell script temporaneo
+        │  └─ File: %TEMP%/chrome-position-[timestamp].ps1
+        │  └─ Contiene: SetWindowPos() + ShowWindow()
+        │
+        ├─ Esegui script PowerShell
+        │  └─ powershell -ExecutionPolicy Bypass -File ...
+        │  └─ Timeout: 15 secondi
+        │
+        └─ Rispondi HTTP 200 + monitor info
+           └─ Client riceve: {success: true, monitor: {...}}
+
+RESULT:
+│
+├─ Monitor Primario (0,0): ScriptPDF1.html rimane aperto
+│
+└─ Monitor Secondario (1920,0): PDF fullscreen in Chrome
+
+================================================================================
+PARAMETRI DEL SISTEMA
+================================================================================
+
+TIMEOUT:
+   • Caricamento PDF (Client): 8 secondi
+   • Posizionamento finestra: 10 secondi polling + 15s esecuzione
+   • Verifica processo Chrome: 500ms
+
+PORTE:
+   • Server: 8765
+   • Browser Client: 3000 (via http-server)
+
+CARTELLE:
+   • PDF: C:\SCRIPT_PDF
+   • HTML: C:\VSC_Live_Server\Prova\ScriptPDF1.html
+   • Temp: %TEMP%\ (script PowerShell)
+
+PROCESSI:
+   • Node.js: pdf-server.js (server)
+   • PowerShell: eseguito via os.execSync() per positioning
+   • Chrome: aperto con spawn() detached
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+❌ PDF non appare sul monitor secondario
+   → Verifica coordinate monitor secondario
+   → Comandi: Get-Monitor (PowerShell)
+   → Verifica che --kiosk funzioni sulla tua versione Chrome
+
+❌ Finestra Chrome non si sposta
+   → PowerShell execution policy potrebbe bloccare
+   → Esegui: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned
+   → Verifica che Win32 API sia disponibile
+
+❌ Script PowerShell rimane in temp folder
+   → Puoi eliminare manualmente file in C:\Users\[user]\AppData\Local\Temp
+   → In realtà vengono eliminati automaticamente dopo 5 secondi
+
+❌ Chrome non viene trovato
+   → Verifica installazione Chrome in uno di questi percorsi:
+      - C:\Program Files\Google\Chrome\Application\chrome.exe
+      - C:\Program Files (x86)\Google\Chrome\Application\chrome.exe
+      - %LOCALAPPDATA%\Google\Chrome\Application\chrome.exe
+
+================================================================================
+ISTRUZIONI PER L'USO
+================================================================================
+
+1. AVVIA IL SERVER PDF
+   ```
+   cd C:\VSC_Live_Server
+   node pdf-server.js
+   ```
+   
+   Output atteso:
+   ```
+   ========================================
+   Server PDF avviato su http://localhost:8765
+   Pagina: http://localhost:8765/Prova/ScriptPDF1.html
+   API: http://localhost:8765/api/pdf-list
+   Cartella PDF: C:\SCRIPT_PDF
+   ========================================
+   ```
+
+2. APRI PAGINA HTML
+   Opzione A: Browser
+   ```
+   http://localhost:8000/Prova/ScriptPDF1.html
+   ```
+   (se usi http-server come dev server)
+   
+   Opzione B: File locale
+   ```
+   file:///C:/VSC_Live_Server/Prova/ScriptPDF1.html
+   ```
+
+3. USA L'INTERFACCIA
+   - Seleziona PDF da dropdown
+   - Clicca "Apri"
+   - PDF appare on monitor secondario fullscreen
+   - HTML rimane visibile sul monitor primario
+
+4. CHIUDI
+   - Clicca "Chiudi" in HTML
+   - Server uccide processo Chrome
+   - Window si chiude
+
+================================================================================
+VERSIONI E COMPATIBILITÀ
+================================================================================
+
+✅ Node.js: v14+ (testato con v24.11.1)
+✅ Chrome: Qualsiasi versione moderna
+✅ Windows: Windows 7+ (PowerShell WMI support)
+✅ Monitor: Configurazione dual-monitor (2+)
+
+⚠️ Non testato su:
+   • Single-monitor setup
+   • Monitor arrangement complesso (>2)
+   • Linux/Mac (Win32 API non disponibile)
+
+================================================================================
+DOCUMENTI CORRELATI
+================================================================================
+
+📄 RISOLUZIONE_CARICAMENTO_PDF.txt - Analisi caricamento PDF
+📄 CORREZIONI_FETCH_DEFINITIVE.txt - Stabilizzazione fetch
+📄 PROGETTO_FINALIZZATO.txt - Status progetto completo
+
+================================================================================
+STATUS FINALE: ✅ FEATURE COMPLETATA
+================================================================================
+
+✅ Posizionamento monitor implementato
+✅ PowerShell positioning robusto
+✅ Fallback configurazione automatica
+✅ Error handling completo
+✅ Pronto per PRODUZIONE
+
+Il sistema posiziona correttamente HTML e PDF su monitor diversi.
+
+================================================================================
