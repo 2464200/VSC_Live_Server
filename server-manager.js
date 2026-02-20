@@ -49,7 +49,7 @@ function startPdfServer() {
 
         console.log('🚀 Avvio server PDF sulla porta ' + pdfServerPort + '...');
 
-        const pdfServerPath = path.join(__dirname, 'pdf-server.js');
+        const pdfServerPath = path.join(__dirname, 'pdf-server-simple.js');
 
         try {
             pdfServerProcess = spawn('node', [pdfServerPath], {

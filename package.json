@@ -1,17 +1,21 @@
 {
   "name": "scriptpdf-server",
-  "version": "1.0.0",
-  "description": "Server per la gestione e visualizzazione di file PDF in Chrome",
-  "main": "pdf-server.js",
+  "version": "2.0.0",
+  "description": "Server stabile per gestione PDF con auto-start/stop",
+  "main": "server-manager.js",
   "scripts": {
-    "start": "node pdf-server.js",
-    "dev": "nodemon pdf-server.js"
+    "start": "node server-manager.js",
+    "start:pdf": "node pdf-server-simple.js",
+    "start:web": "node simple-server.js",
+    "start:all": "concurrently \"npm run start\" \"npm run start:web\"",
+    "dev": "nodemon server-manager.js"
   },
   "keywords": [
     "pdf",
     "chrome",
     "kiosk",
-    "excel"
+    "excel",
+    "choreography"
   ],
   "author": "Admin",
   "license": "MIT",
