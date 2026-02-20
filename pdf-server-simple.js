@@ -135,9 +135,13 @@ app.post('/api/open-pdf', (req, res) => {
         console.log(`   Script: ${scriptPath}`);
         console.log(`   File: ${filePath}`);
         
-        const psCommand = `-NoProfile -File "${scriptPath}" -FilePath "${filePath}"`;
-        
-        spawn('powershell.exe', ['-NoProfile', '-File', scriptPath, '-FilePath', filePath], {
+        // Esegui con ExecutionPolicy Bypass per permettere l'esecuzione dello script
+        spawn('powershell.exe', [
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-File', scriptPath,
+            '-FilePath', filePath
+        ], {
             detached: true,
             stdio: 'inherit'
         }).unref();
