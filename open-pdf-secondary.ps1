@@ -52,7 +52,7 @@ public class Mover {
                 $result = [Mover]::SetWindowPos($proc.MainWindowHandle, [IntPtr]::Zero, $x, $y, $w, $h, $flags)
                 Write-Host "   SetWindowPos result: $result"
                 
-                Start-Sleep-Milliseconds 300
+                Start-Sleep -Milliseconds 300
                 $found = $true
                 break
             }
