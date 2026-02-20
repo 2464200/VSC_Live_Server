@@ -194,13 +194,12 @@ app.post('/api/open-pdf', (req, res) => {
         }
 
         // Conversione dei percorsi per file://
-        const pdfFileUrl = 'file:///' + filePath.replace(/\\/g, '/');
         const viewerPath = path.join(__dirname, 'pdf-viewer.html');
         const viewerUrl = 'file:///' + viewerPath.replace(/\\/g, '/');
         const pdfName = path.basename(filePath);
         
-        // URL del viewer con parametri query per il file PDF
-        const fileUrl = viewerUrl + `?file=${encodeURIComponent(pdfFileUrl)}&name=${encodeURIComponent(pdfName)}`;
+        // URL del viewer con parametri query per il file PDF (usando endpoint HTTP per serve-pdf)
+        const fileUrl = viewerUrl + `?file=${encodeURIComponent(filePath)}&name=${encodeURIComponent(pdfName)}`;
         console.log(`📂 URL Viewer: ${fileUrl}`);
 
         // Killer Chrome precedenti (fallback per assicurare definitivamente la chiusura)
@@ -343,6 +342,49 @@ exit 1
         });
     } catch (error) {
         console.error(`❌ Errore nell'apertura del PDF: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+/**
+ * GET /api/serve-pdf
+ * Serve un file PDF via HTTP
+ */
+app.get('/api/serve-pdf', (req, res) => {
+    try {
+        const filePath = req.query.file;
+        
+        if (!filePath) {
+            return res.status(400).json({
+                success: false,
+                error: 'File non specificato'
+            });
+        }
+        
+        if (!fs.existsSync(filePath)) {
+            console.error(`❌ File PDF non trovato: ${filePath}`);
+            return res.status(404).json({
+                success: false,
+                error: 'File PDF non trovato: ' + filePath
+            });
+        }
+        
+        console.log(`📥 Serving PDF: ${filePath}`);
+        
+        // Imposta i header per il PDF
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${path.basename(filePath)}"`);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        
+        // Serve il file
+        res.sendFile(filePath);
+    } catch (error) {
+        console.error(`❌ Errore nel servizio del PDF: ${error.message}`);
         res.status(500).json({
             success: false,
             error: error.message

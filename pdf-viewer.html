@@ -129,17 +129,19 @@
     // Aggiorna il titolo
     document.getElementById('pdf-title').textContent = pdfName;
     
-    // Carica il PDF
+    // Carica il PDF via HTTP endpoint del server
     if (pdfPath) {
-        // Usa il percorso del file per visualizzarlo
         const displayDiv = document.getElementById('pdf-display');
-        displayDiv.innerHTML = `<iframe src="file:///${pdfPath.replace(/\\/g, '/')}" type="application/pdf"></iframe>`;
+        // Usa l'endpoint del server per servire il PDF
+        const serveUrl = 'http://localhost:8765/api/serve-pdf?file=' + encodeURIComponent(pdfPath);
+        console.log('📡 URL Serve:', serveUrl);
+        displayDiv.innerHTML = `<iframe src="${serveUrl}" type="application/pdf"></iframe>`;
     } else {
-        document.getElementById('pdf-display').innerHTML = '<div class="error">Errore: File PDF non specificato</div>';
+        document.getElementById('pdf-display').innerHTML = '<div class="error">❌ Errore: File PDF non specificato</div>';
     }
     
     /**
-     * Chionde il visualizzatore PDF
+     * Chiude il visualizzatore PDF
      */
     async function closePdfViewer() {
         console.log('🔴 Chiusura PDF...');
