@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang='it'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Report Statistico</title>
+<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
+<style>
+body{font-family:Arial;text-align:center;background:#111;color:#fff;margin:0}
+nav{background:#222;padding:10px}
+nav a{color:#ff7f00;margin:0 15px;text-decoration:none;font-weight:bold}
+.container{max-width:1000px;margin:auto}
+table{border-collapse:collapse;margin:20px auto;width:100%;background:#222;color:#fff}
+th,td{border:1px solid #444;padding:8px}
+th{background:#222;color:#ff7f00;font-weight:bold}
+td{color:#fff}
+h1,h2{color:#ff7f00}
+p{color:#fff}
+strong{color:#ff7f00}
+.charts-row{display:flex;gap:20px;align-items:center;margin:20px auto}
+.chart-pie{width:260px;height:260px;background:#222;padding:10px;border-radius:10px}
+.chart-bar{flex:1;height:280px;background:#222;padding:15px;border-radius:10px}
+</style>
+</head><body>
+<nav>
+<a href='/index.html'>Home</a>
+<a href='/NextCoreo1.html'>NextCoreo1</a>
+<a href='/NextCoreo2.html'>NextCoreo2</a>
+<a href='/Prova/Report.html'>Report</a>
+<a href='/Prova/Report_white.html'>Report White</a>
+</nav>
+<div class='container'>
+<h1>Coreografie - Report Statistico</h1>
+<p>Totale coreografie eseguite nella serata: <strong id="total-eseguite">Caricamento...</strong></p>
+<p>Richieste con QR: <strong id="richieste-qr">Caricamento...</strong> di cui eseguite: <strong id="display-eseguite">Caricamento...</strong> e non eseguite: <strong id="non-eseguite">Caricamento...</strong></p>
+<p>Coreografia piu' richiesta: <strong id="coreo-piu-richiesta">Caricamento...</strong> (<span id="conteggio-coreo">0</span> volte)</p>
+<h2>Top 5 Coreografie</h2>
+<table>
+<tr><th>#</th><th>Coreografia</th><th>Richieste</th></tr>
+<tbody id="top5-table">
+<tr><td colspan="3">Caricamento...</td></tr>
+</tbody>
+</table>
+<div class='charts-row'>
+<div class='chart-pie'><canvas id='pie'></canvas></div>
+<div class='chart-bar'><canvas id='bar'></canvas></div>
+</div>
+<script>
+const pieCtx = document.getElementById('pie').getContext('2d');
+const barCtx = document.getElementById('bar').getContext('2d');
+
+function updateData() {
+    fetch('../public/border_data.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('total-eseguite').textContent = data.totale_eseguite;
+        document.getElementById('richieste-qr').textContent = data.richieste_qr;
+        document.getElementById('display-eseguite').textContent = data.eseguite;
+        document.getElementById('non-eseguite').textContent = data.non_eseguite;
+        document.getElementById('coreo-piu-richiesta').textContent = data.coreografia_piu_richiesta;
+        document.getElementById('conteggio-coreo').textContent = data.conteggio_piu_richiesta;
+        
+        const top5Body = document.getElementById('top5-table');
+        top5Body.innerHTML = '';
+        data.top_5.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${index + 1}</td><td>${item.nome}</td><td>${item.conteggio}</td>`;
+            top5Body.appendChild(row);
+        });
+        
+        // Clear previous charts if needed
+        if (window.pieChart) window.pieChart.destroy();
+        if (window.barChart) window.barChart.destroy();
+        
+        window.barChart = new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: data.top_5.map(item => item.nome),
+            datasets: [{
+              data: data.top_5.map(item => item.conteggio),
+              backgroundColor: '#ff7f00'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {color: '#fff'},
+                grid: {color: '#444'}
+              },
+              x: {
+                ticks: {color: '#fff'},
+                grid: {color: '#444'}
+              }
+            }
+          }
+        });
+        
+        window.pieChart = new Chart(pieCtx, {
+          type: 'pie',
+          data: {
+            labels: ['Eseguite', 'Non eseguite'],
+            datasets: [{
+              data: [data.eseguite, data.non_eseguite],
+              backgroundColor: ['#28A745', '#DC3545']
+            }]
+          }
+        });
+    })
+    .catch(error => {
+        console.error('Errore nel caricamento dei dati:', error);
+        document.getElementById('total-eseguite').textContent = 'Errore';
+        document.getElementById('richieste-qr').textContent = 'Errore';
+        document.getElementById('display-eseguite').textContent = 'Errore';
+        document.getElementById('non-eseguite').textContent = 'Errore';
+    });
+}
+
+// Initial load
+updateData();
+
+// Update every 60 seconds
+setInterval(updateData, 60000);
+</script>
+</div></body></html>

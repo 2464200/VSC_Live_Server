@@ -1,0 +1,59 @@
+╔════════════════════════════════════════════════════════════════╗
+║   WORKFLOW AUTOMATICO - ULTIMI PASSAGGI NECESSARI             ║
+╚════════════════════════════════════════════════════════════════╝
+
+✓ Completato:
+  - Script Python (generate_report_data.py) creato e testato
+  - Generate primo border_data.json
+  - File Report.html, Report_white.html, Report_black.html aggiornati
+  - Script PowerShell di gestione creati
+
+✗ Da completare:
+  - Registrare il task in Windows Task Scheduler
+
+══════════════════════════════════════════════════════════════════
+
+🚀 METODO CONSIGLIATO (Rapido - 30 secondi):
+
+1. Apri File Explorer
+2. Vai a: C:\VSC_Live_Server\
+3. Cerca il file: setup_report_scheduler.bat
+4. FACCI CLICK DESTRO
+5. Seleziona: "Esegui come amministratore"
+6. Fatto! ✓
+
+Il task sarà registrato per aggiornare i dati ogni 5 minuti.
+
+══════════════════════════════════════════════════════════════════
+
+📋 METODO ALTERNATIVO (PowerShell come Admin):
+
+1. Premi: Windows + X
+2. Seleziona: "Windows PowerShell (Admin)" oppure "Terminale (Admin)"
+3. Esegui:
+   
+   powershell -ExecutionPolicy Bypass -File "C:\VSC_Live_Server\setup_report_scheduler.ps1" -Interval 5
+
+4. AttendL'output di conferma
+
+══════════════════════════════════════════════════════════════════
+
+✓ Una volta completato, il sistema:
+
+  • Esegue generate_report_data.py ogni 5 minuti
+  • Aggiorna automaticamente border_data.json
+  • Le pagine HTML caricano i dati aggiornati
+  • I log si salvano in: C:\VSC_Live_Server\logs\report_update.log
+
+══════════════════════════════════════════════════════════════════
+
+📝 Verifica che il task è attivo:
+
+Apri Task Scheduler e cerca: VSC_Report_DataUpdate
+
+Oppure da PowerShell (admin):
+  Get-ScheduledTask -TaskName "VSC_Report_DataUpdate"
+
+══════════════════════════════════════════════════════════════════
+
+Per più dettagli, leggi: WORKFLOW_AUTOMATICO_README.md

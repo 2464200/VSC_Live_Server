@@ -1,0 +1,346 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                          SCRIPTPDF1 - RIEPILOGO COMPLETO                        ║
+║                   Gestione PDF Integrata con Excel su Chrome                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📦 FILE CREATI/CONFIGURATI (Da C:\VSC_Live_Server)
+═══════════════════════════════════════════════════════════════════════════════════
+
+CARTELLA PRINCIPALE: C:\VSC_Live_Server
+│
+├─ INTERFACCIA GRAFICA
+│  └─ Prova/
+│     └─ ScriptPDF1.html ..................... Pagina web con ComboBox e pulsanti
+│
+├─ SERVER NODE.JS
+│  └─ pdf-server.js .......................... Server REST (porta 8765)
+│
+├─ SCRIPT POWERSHELL
+│  ├─ Start_ScriptPDF1.ps1 .................. Avvia server + Chrome (modalità Kiosk)
+│  ├─ Setup_ScriptPDF1.ps1 .................. Setup iniziale (npm, Node.js, verifiche)
+│  └─ update_pdf_list.ps1 ................... Aggiorna lista PDF (opzionale)
+│
+├─ SCRIPT BATCH
+│  └─ Start_ScriptPDF1.bat .................. Wrapper batch per avvio semplice
+│
+├─ INTEGRAZIONE EXCEL / VBA
+│  └─ ScriptPDF1_VBA_Module.bas ............. Modulo VBA da importare in Excel
+│
+├─ CONFIGURAZIONE NODE.JS
+│  ├─ package.json .......................... Dipendenze (Express.js)
+│  └─ node_modules/ ......................... Cartella dipendenze (creata da npm)
+│
+├─ DOCUMENTAZIONE E GUIDE
+│  ├─ README_ScriptPDF1.md .................. Documentazione completa (Markdown)
+│  ├─ INSTALLAZIONE_RAPIDA.txt ............. Guida setup rapido (5 minuti)
+│  ├─ INTEGRAZIONE_EXCEL.txt ............... Guida integrazione con Excel
+│  └─ INDEX_SCRIPTPDF1.txt ................. Questo file
+│
+└─ CARTELLA DATI (creata automaticamente)
+   └─ C:\SCRIPT_PDF/ ........................ Cartella per i tuoi file PDF
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+🎯 FUNZIONALITÀ IMPLEMENTATE
+═══════════════════════════════════════════════════════════════════════════════════
+
+✅ INTERFACCIA UTENTE (HTML)
+   • ComboBox per selezionare file PDF dalla cartella C:\SCRIPT_PDF
+   • Pulsante "Precedente" (◀) - naviga al file precedente
+   • Pulsante "Successivo" (▶) - naviga al file successivo
+   • Pulsante "Chiudi" (✕) - chiude Chrome e torna a Excel
+   • Visualizzazione del file corrente con numero/totale
+   • Stile grafico identico a Report_black.html (nero + arancione)
+   • Doppio click sulla ComboBox apre il PDF
+
+✅ APERTURA PDF IN CHROME
+   • Modalità Kiosk (fullscreen senza menu)
+   • Monitor secondario (rilevamento automatico)
+   • Visualizzatore PDF integrato di Chrome
+   • Nessun menu visitibile
+   • Chiusura controllata con pulsante
+
+✅ INTEGRAZIONE EXCEL
+   • Modulo VBA per Excel
+   • Macro ApriGestorePDF (bloccante)
+   • Macro ApriGestorePDF_Async (non bloccante)
+   • Pulsanti configurabili rapidamente
+   • Accesso dalla barra di accesso rapido
+
+✅ SERVER NODE.JS
+   • API REST su localhost:8765
+   • Endpoint GET /api/pdf-list (lista file)
+   • Endpoint POST /api/open-pdf (apri file)
+   • Endpoint POST /api/close-chrome (chiudi)
+   • Gestione automatica processo Chrome
+
+✅ SETUP AUTOMATICO
+   • Script di setup iniziale
+   • Verifica Node.js
+   • Installazione Express.js
+   • Creazione cartella C:\SCRIPT_PDF
+   • Verifica Chrome
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+🚀 QUICK START (3 PASSAGGI)
+═══════════════════════════════════════════════════════════════════════════════════
+
+PASSO 1: Setup (eseclui una sola volta)
+   Apri PowerShell Admin in C:\VSC_Live_Server
+   .\Setup_ScriptPDF1.ps1
+   Segui le istruzioni
+
+PASSO 2: Aggiungi file PDF
+   Copia i tuoi PDF in C:\SCRIPT_PDF
+   
+PASSO 3: Avvia il programma
+   Opzione A: .\Start_ScriptPDF1.ps1 (PowerShell)
+   Opzione B: Start_ScriptPDF1.bat (File batch)
+   Opzione C: Pulsante Excel (dopo integrazione VBA)
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+📖 COME USARE (STEP BY STEP)
+═══════════════════════════════════════════════════════════════════════════════════
+
+1. APERTURA PROGRAMMA
+   ✓ Esegui Start_ScriptPDF1.ps1 o Start_ScriptPDF1.bat
+   ✓ Chrome si apre automaticamente in Kiosk mode (monitor secondario)
+   ✓ La pagina ScriptPDF1 carica la lista dei PDF
+
+2. SELEZIONE FILE
+   ✓ ComboBox in alto mostra "-- Caricamento lista... --"
+   ✓ Aspetta 2-3 secondi mentre carica i file da C:\SCRIPT_PDF
+   ✓ Seleziona il file che vuoi aprire dal menu a tendina
+
+3. NAVIGAZIONE
+   ✓ Clicca "◀ Precedente" per andare al file precedente
+   ✓ Clicca "Successivo ▶" per andare al file successivo
+   ✓ Clicca due volte sulla ComboBox per aprire il file
+
+4. VISUALIZZAZIONE PDF
+   ✓ Il file PDF si apre in Chrome
+   ✓ Usa i controlli di Chrome per leggere il PDF (zoom, pagine, ecc.)
+   ✓ Per un altro documento, torna alla finestra HTML
+   ✓ Seleziona un altro file e apri
+
+5. CHIUSURA
+   ✓ Clicca il pulsante "✕ Chiudi"
+   ✓ Chrome si chiude automaticamente
+   ✓ Torna a Excel (se era aperto)
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTAZIONE
+═══════════════════════════════════════════════════════════════════════════════════
+
+Per iniziare rapidamente:
+   → Leggi: INSTALLAZIONE_RAPIDA.txt (5 minuti)
+
+Per integrazione con Excel:
+   → Leggi: INTEGRAZIONE_EXCEL.txt
+
+Per informazioni tecniche complete:
+   → Leggi: README_ScriptPDF1.md
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+🔧 STRUTTURA TECNICA
+═══════════════════════════════════════════════════════════════════════════════════
+
+FLUSSO DI ESECUZIONE:
+   1. Utente esegue: .\Start_ScriptPDF1.ps1
+   2. PowerShell avvia: node pdf-server.js (listening su 8765)
+   3. PowerShell avvia: chrome.exe --kiosk http://localhost:8765/Prova/ScriptPDF1.html
+   4. Pagina HTML carica e fa fetch a: http://localhost:8765/api/pdf-list
+   5. Server legge file da: C:\SCRIPT_PDF e ritorna lista JSON
+   6. HTML popola ComboBox
+   7. Utente interagisce con l'interfaccia
+   8. Click su file → POST http://localhost:8765/api/open-pdf
+   9. Server apre nuovo processo Chrome con il PDF
+   10. Click su pulsante Chiudi → POST http://localhost:8765/api/close-chrome
+   11. Server kills processo Chrome
+   12. HTML chiude se stesso
+   13. PowerShell script termina
+
+PORTA: 8765 (non bloccata normalmente, ma controllabile nel codice)
+
+API ENDPOINTS:
+   GET  http://localhost:8765/api/pdf-list       → Lista file PDF
+   POST http://localhost:8765/api/open-pdf        → Apri PDF
+   POST http://localhost:8765/api/close-chrome    → Chiudi Chrome
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+⚡ SCORCIATOIE / COMANDI VELOCI
+═══════════════════════════════════════════════════════════════════════════════════
+
+Setup iniziale (una sola volta):
+   cd C:\VSC_Live_Server && .\Setup_ScriptPDF1.ps1
+
+Avvio programma (PowerShell):
+   cd C:\VSC_Live_Server && .\Start_ScriptPDF1.ps1
+
+Avvio programma (File Batch - più semplice):
+   C:\VSC_Live_Server\Start_ScriptPDF1.bat
+
+Apri cartella PDF:
+   explorer "C:\SCRIPT_PDF"
+
+Test connessione server:
+   Invoke-WebRequest http://localhost:8765/api/pdf-list
+
+Installa solo dipendenze:
+   cd C:\VSC_Live_Server && npm install
+
+Avvia server manualmente:
+   cd C:\VSC_Live_Server && node pdf-server.js
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+🎨 PERSONALIZZAZIONE
+═══════════════════════════════════════════════════════════════════════════════════
+
+Cambia porta server:
+   • pdf-server.js: const PORT = 8765 → const PORT = [NUMERO]
+   • ScriptPDF1.html: localhost:8765 → localhost:[NUMERO]
+   • Start_ScriptPDF1.ps1: stessa porta
+
+Cambia colori/stile:
+   • Prova/ScriptPDF1.html: modificare CSS alle righe 8-26
+   • Colori correnti: #111 (sfondo), #ff7f00 (accento arancione)
+
+Cambia cartella PDF:
+   • pdf-server.js: const PDF_FOLDER = 'C:\\SCRIPT_PDF' → nuovo percorso
+
+Disabilita Kiosk mode:
+   • pdf-server.js: chromeArgs rimuovi '--kiosk'
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+🐛 TROUBLESHOOTING COMUNE
+═══════════════════════════════════════════════════════════════════════════════════
+
+ERRORE: "Node.js non trovato"
+   → Scarica https://nodejs.org/ e installa
+   → Riavvia PowerShell
+   → Prova di nuovo
+
+ERRORE: "Chrome non trovato"
+   → Installa Google Chrome
+   → Verifica percorso standard: C:\Program Files\Google\Chrome
+
+ERRORE: "Porta 8765 già in uso"
+   → Chiudi altri programmi che usano la porta
+   → Oppure modifica il numero porta nel codice
+
+ERRORE: "Nessun file PDF trovato"
+   → Aggiungi file PDF in C:\SCRIPT_PDF
+   → Aggiorna pagina HTML (F5)
+   → Riavvia il server
+
+CHROME NON SI APRE:
+   → Controlla i log della console di PowerShell
+   → Assicurati Chrome sia installato
+   → Prova a disabilitare Kiosk mode per debug
+
+PER ULTERIORI AIUTI:
+   → Consulta README_ScriptPDF1.md sezione Troubleshooting
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+✅ REQUISITI SISTEMA
+═══════════════════════════════════════════════════════════════════════════════════
+
+OBBLIGATORI:
+   ✓ Windows 10 o 11
+   ✓ Node.js v14+ (https://nodejs.org/)
+   ✓ Google Chrome (https://www.google.com/chrome/)
+   ✓ PowerShell 5.0+ (generalmente preinstallato)
+
+OPZIONALI:
+   ✓ Excel 2016+ (per integrazione VBA)
+   ✓ Per due monitor (uno serve al PDF, uno per lavorare)
+   ✓ 100MB di spazio libero
+
+VERIFICHE PRE-SETUP:
+   node --version        → Deve mostrare v14+
+   npm --version         → Deve mostrare versione
+   powershell $PSVersionTable.PSVersion → Deve mostrare 5.x
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+📞 SUPPORTO E RISORSE
+═══════════════════════════════════════════════════════════════════════════════════
+
+File di documentazione:
+   • README_ScriptPDF1.md .......... Guida tecnica completa
+   • INSTALLAZIONE_RAPIDA.txt ..... Setup in 5 minuti
+   • INTEGRAZIONE_EXCEL.txt ....... Integrazione con Excel
+
+Comandi di verifica:
+   1. node --version           (verifica Node.js)
+   2. npm list express         (verifica Express)
+   3. Test-Path "C:\SCRIPT_PDF" (verifica cartella PDF)
+   4. Invoke-WebRequest http://localhost:8765/api/pdf-list (verifica server)
+
+Log di debug:
+   • PowerShell: messagi durante l'esecuzione
+   • Browser: F12 per console del browser
+   • Server: messaggi nella finestra di PowerShell
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+📋 CHECKLIST SETUP INIZIALE
+═══════════════════════════════════════════════════════════════════════════════════
+
+Preparazione:
+   ☐ Scarica e installa Node.js
+   ☐ Scarica e installa Google Chrome
+   ☐ Copia tutti i file nella cartella C:\VSC_Live_Server
+
+Setup:
+   ☐ Esegui Setup_ScriptPDF1.ps1
+   ☐ Verificai tutte le dipendenze
+   ☐ Controlla che cartella C:\SCRIPT_PDF sia stata creata
+
+Test:
+   ☐ Aggiungi file PDF in C:\SCRIPT_PDF
+   ☐ Esegui Start_ScriptPDF1.ps1
+   ☐ Verifica che Chrome si apra in Kiosk
+   ☐ Seleziona e apri un PDF
+   ☐ Chiudi con il pulsante Chiudi
+
+Integrazione Excel (opzionale):
+   ☐ Apri file Excel
+   ☐ Importa modulo VBA: ScriptPDF1_VBA_Module.bas
+   ☐ Crea pulsante sul foglio
+   ☐ Assegna macro ApriGestorePDF
+   ☐ Test il pulsante
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+🎓 PROSSIMI PASSI
+═══════════════════════════════════════════════════════════════════════════════════
+
+1. LEGGI SUBITO:
+   → INSTALLAZIONE_RAPIDA.txt (guida veloce)
+
+2. ESEGUI SETUP (5 minuti):
+   → .\Setup_ScriptPDF1.ps1
+
+3. PER EXCEL (opzionale):
+   → INTEGRAZIONE_EXCEL.txt
+
+4. PER DOMANDE TECNICHE:
+   → README_ScriptPDF1.md
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Versione: 1.0.0
+Data di creazione: 19 Febbraio 2026
+Ultima modifica: 19 Febbraio 2026
+Repository: C:\VSC_Live_Server
+
+═══════════════════════════════════════════════════════════════════════════════════

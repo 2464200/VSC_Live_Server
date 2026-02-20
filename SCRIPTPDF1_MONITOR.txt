@@ -1,0 +1,362 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║              SCRIPTPDF1 - CONFIGURAZIONE MONITOR SECONDARIO                     ║
+║                 Separazione Comandi e Visualizzazione                          ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📊 CONFIGURAZIONE DEI DUE MONITOR
+═════════════════════════════════════════════════════════════════════════════════
+
+MONITOR PRINCIPALE (Sinistra)
+  ├─ Risoluzione: 1920x1080
+  ├─ Posizione: X=0, Y=0
+  ├─ Utilizzo: Pagina HTML ScriptPDF1 con interfaccia di controllo
+  └─ Nota: Rimane fisso per la gestione dei PDF
+
+MONITOR SECONDARIO (Destra)
+  ├─ Risoluzione: 1920x1080
+  ├─ Posizione: X=1920, Y=0 (subito a destra del principale)
+  ├─ Utilizzo: Visualizzazione PDF in Chrome (modalità Kiosk)
+  └─ Nota: Si apre esclusivamente qui quando fai clic su un pulsante
+
+═════════════════════════════════════════════════════════════════════════════════
+
+🖥️ FLUSSO DI UTILIZZO CON DUE MONITOR
+═════════════════════════════════════════════════════════════════════════════════
+
+1. SITUAZIONE INIZIALE
+   ┌──────────────────────────────────┬──────────────────────────────────┐
+   │   Monitor Principale             │   Monitor Secondario             │
+   │   (1920x1080)                    │   (1920x1080)                    │
+   ├──────────────────────────────────┼──────────────────────────────────┤
+   │                                  │                                  │
+   │   [Pagina ScriptPDF1]            │                                  │
+   │   ├─ ComboBox PDF                │   [Disponibile per PDF]          │
+   │   ├─ ◀ Precedente                │                                  │
+   │   ├─ Successivo ▶                │                                  │
+   │   └─ ✕ Chiudi                    │                                  │
+   │                                  │                                  │
+   └──────────────────────────────────┴──────────────────────────────────┘
+
+2. UTENTE SELEZIONA E APRE UN PDF
+   ┌──────────────────────────────────┬──────────────────────────────────┐
+   │   Monitor Principale             │   Monitor Secondario             │
+   ├──────────────────────────────────┼──────────────────────────────────┤
+   │                                  │                                  │
+   │   [Pagina ScriptPDF1]            │   [Chrome - Kiosk Mode]          │
+   │   ├─ ComboBox PDF                │   ┌────────────────────────────┐ │
+   │   ├─ ◀ Precedente    <-- CLICK   │   │  PDF Visualizzato          │ │
+   │   ├─ Successivo ▶               │   │  (fullscreen,no menu)      │ │
+   │   └─ ✕ Chiudi                    │   └────────────────────────────┘ │
+   │                                  │                                  │
+   │   ✓ Rimane disponibile per       │   ✓ Visualizzazione esclusiva    │
+   │     ulteriori comandi            │     sul monitor secondario       │
+   │                                  │                                  │
+   └──────────────────────────────────┴──────────────────────────────────┘
+
+3. UTENTE NAVIGA TRAMITE PULSANTI
+   ┌──────────────────────────────────┬──────────────────────────────────┐
+   │   Monitor Principale             │   Monitor Secondario             │
+   ├──────────────────────────────────┼──────────────────────────────────┤
+   │                                  │                                  │
+   │   [Pagina ScriptPDF1]            │   [Chrome - Kiosk Mode]          │
+   │   ├─ ComboBox PDF  (PDF2)        │   │  PDF2 Visualizzato          │ │
+   │   ├─ ◀ Precedente    <-- CLICK   │   │  (aggiornato in tempo       │ │
+   │   ├─ Successivo ▶                │   │   reale)                    │ │
+   │   └─ ✕ Chiudi                    │   └────────────────────────────┘ │
+   │                                  │                                  │
+   │   ✓ Comandi rimangono sempre     │   ✓ PDF si aggiorna             │
+   │     visibili e disponibili       │     nel monitor secondario       │
+   │                                  │                                  │
+   └──────────────────────────────────┴──────────────────────────────────┘
+
+═════════════════════════════════════════════════════════════════════════════════
+
+🔧 COME FUNCIONA INTERNAMENTE
+═════════════════════════════════════════════════════════════════════════════════
+
+CLIENT SIDE (Browser - Monitor Principale):
+1. Utente interagisce con la pagina ScriptPDF1.html
+2. Clicca su un pulsante (Successivo, Precedente, etc)
+3. JavaScript invia richiesta POST a Server
+
+SERVER SIDE (Node.js):
+1. Riceve la richiesta per aprire un PDF
+2. Chiama funzione: getSecondaryMonitorInfo()
+   ├─ Usa PowerShell per interrogare gli schermi
+   ├─ Ordina per posizione X (secondario è più a destra)
+   └─ Ritorna: {x:1920, y:0, width:1920, height:1080}
+3. Prepara i parametri per Chrome:
+   ├─ --window-position=1920,0   (posizione sul monitor 2)
+   ├─ --window-size=1920,1080    (dimensioni massime)
+   ├─ --kiosk                    (modalità fullscreen)
+   └─ file:///path/to/pdf        (URL del PDF)
+4. Lancia Chrome con spawn()
+5. Ritorna successo al client con le info del monitor
+
+CHROME (Binary eseguibile):
+1. Avvia con i parametri ricevuti dal server
+2. Si posiziona a (1920, 0) - monitor secondario
+3. Si apre in modalità Kiosk (fullscreen)
+4. Visualizza il PDF usando Adobe Acrobat Reader integrato
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📍 COORDINATE E POSIZIONAMENTO
+═════════════════════════════════════════════════════════════════════════════════
+
+Sistema di Coordinate:
+  Y
+  |  Primario        Secondario
+  |  (0,0)-(1920,1080) (1920,0)-(3840,1080)
+  |  ┌──────────────┬──────────────┐
+  └──┴──────────────┴──────────────┴──-> X
+
+Parametri Chrome:
+  --window-position=X,Y    → Posiziona la finestra a coordinate (X,Y)
+  --window-size=W,H        → Dimensiona a larghezza W, altezza H
+
+Configurazione Tipica (due monitor affiancati orizzontalmente):
+  Monitor 1: X=0    Y=0    W=1920   H=1080
+  Monitor 2: X=1920 Y=0    W=1920   H=1080
+
+Configurazione Alternativa (monitor verticali):
+  Monitor 1: X=0    Y=0    W=1920   H=1080
+  Monitor 2: X=0    Y=1080 W=1920   H=1080
+  → Chrome userebbe: --window-position=0,1080
+
+═════════════════════════════════════════════════════════════════════════════════
+
+🔍 COME CONTROLLARE LA CONFIGURAZIONE DEI TUOI MONITOR
+═════════════════════════════════════════════════════════════════════════════════
+
+METODO 1: Via pagina ScriptPDF1
+1. Apri: http://localhost:8765/Prova/ScriptPDF1.html
+2. In alto vedrai: "Monitor Primario: ... | Monitor Secondario: ..."
+3. Le coordinate ti dicono esattamente dove sono i tuoi monitor
+
+METODO 2: Via API REST
+1. Apri PowerShell
+2. Esegui:
+   $info = (Invoke-WebRequest -Uri "http://localhost:8765/api/monitor-info" -UseBasicParsing).Content | ConvertFrom-Json
+   $info.secondaryMonitor
+
+3. Vedrai le coordinate in questo formato:
+   x            : 1920
+   y            : 0
+   width        : 1920
+   height       : 1080
+
+METODO 3: Windows Settings
+1. Premi: Windows + I (Impostazioni)
+2. Vai a: Sistema → Schermo
+3. Scorri verso il basso e guarda "Visualizza schermo aggiuntivo"
+4. Nota le risoluzioni e le disposizioni
+
+═════════════════════════════════════════════════════════════════════════════════
+
+⚙️ CONFIGURAZIONI SPECIALI
+═════════════════════════════════════════════════════════════════════════════════
+
+CASO 1: Monitor secondario VERTICAMENTE
+Se il secondo monitor è disposto verticalmente (sopra o sotto):
+
+Secondario in alto:
+  --window-position=0,-1080
+  --window-size=1920,1080
+
+Secondario in basso:
+  --window-position=0,1080
+  --window-size=1920,1080
+
+CASO 2: Monitor con RISOLUZIONI DIVERSE
+Se i monitor hanno diverse risoluzioni (es: 1920x1080 + 2560x1440):
+
+Il server rileva automaticamente e applia:
+  Primary:   1920x1080 @(0,0)
+  Secondary: 2560x1440 @(1920,0)
+
+Chrome si adatterà alla risoluzione del monitor secondario.
+
+CASO 3: UN SOLO MONITOR
+Se hai un monitor singolo:
+
+Comportamento di fallback:
+  --window-position=0,0        (si apre sul monitor principale)
+  --window-size=1920,1080      (occupa lo schermo)
+
+Nota: La pagina HTML rimane sempre accessibile. Usa Alt+Tab per 
+passare da Chrome alla pagina HTML.
+
+═════════════════════════════════════════════════════════════════════════════════
+
+🧪 TEST DI VERIFICA
+═════════════════════════════════════════════════════════════════════════════════
+
+TEST 1: Verifica che i monitor siano rilevati
+  1. Apri pagina: http://localhost:8765/Prova/ScriptPDF1.html
+  2. Guarda il testo "Monitor Primario | Monitor Secondario" in alto
+  3. Se vedi coordinate diverse, i monitor sono rilevati correttamente
+
+TEST 2: Verifica il posizionamento di Chrome
+  1. Apri la pagina con la ComboBox
+  2. Clicca il pulsante "Successivo ▶"
+  3. Una nuova finestra Chrome dovrebbe aprirsi sul monitor SECONDARIO
+  4. La pagina rimane disponibile sul monitor PRINCIPALE
+
+TEST 3: Verifica che Chrome sia in Kiosk mode
+  1. Quando si apre Chrome, non vedrai:
+     - Barra degli indirizzi
+     - Menu (File, Edit, View, ecc)
+     - Schede
+  2. Vedrai solo il PDF fullscreen
+  3. Per uscire: premi ESC oppure usa il pulsante "Chiudi"
+
+TEST 4: Verifica coordinate API
+  Esegui in PowerShell:
+  
+  $info = (Invoke-WebRequest -Uri "http://localhost:8765/api/monitor-info" -UseBasicParsing).Content | ConvertFrom-Json
+  
+  $info | ConvertTo-Json -Depth 3
+  
+  Dovresti vedere qualcosa come:
+  {
+    "primaryMonitor": {
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 1080
+    },
+    "secondaryMonitor": {
+      "x": 1920,
+      "y": 0,
+      "width": 1920,
+      "height": 1080
+    }
+  }
+
+═════════════════════════════════════════════════════════════════════════════════
+
+🐛 TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA: Chrome si apre sul monitor sbagliato
+SOLUZIONE:
+  1. Verifica le coordinate API: http://localhost:8765/api/monitor-info
+  2. Se le coordinate sono sbagliate, modifica il server:
+     → pdf-server.js linea ~50 nella funzione getSecondaryMonitorInfo()
+  3. Cambia manualmente le coordinate di fallback:
+     return {
+       x: 1920,      ← Cambia questo valore
+       y: 0,
+       width: 1920,
+       height: 1080
+     };
+
+PROBLEMA: Chrome non si apre affatto
+SOLUZIONE:
+  1. Controlla che i monitor siano accesi
+  2. Verifica che Chrome sia installato
+  3. Riavvia il server Node.js
+  4. Guarda la console del server per errori
+
+PROBLEMA: La posizione è invertita (secondario a sinistra)
+SOLUZIONE:
+  Il server cerca il monitor con la coordinata X più alta.
+  Se i tuoi monitor sono disposti diversamente, il server
+  potrebbe essere confuso. Modifica la funzione di rilevamento
+  in pdf-server.js per adattarsi alla tua configurazione.
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📚 CODICE CHIAVE
+═════════════════════════════════════════════════════════════════════════════════
+
+Funzione di Rilevamento (pdf-server.js):
+
+function getSecondaryMonitorInfo() {
+    try {
+        // PowerShell ottiene gli schermi disponibili
+        const psCommand = `
+            Add-Type -AssemblyName System.Windows.Forms
+            $screens = [System.Windows.Forms.Screen]::AllScreens
+            
+            if ($screens.Count -gt 1) {
+                # Ordina per posizione X e prendi l'ultimo (più a destra)
+                $sortedScreens = $screens | Sort-Object { $_.Bounds.X }
+                $secondary = $sortedScreens[-1]
+                
+                "$($secondary.Bounds.X),$($secondary.Bounds.Y),$($secondary.Bounds.Width),$($secondary.Bounds.Height)"
+            } else {
+                "1920,0,1920,1080"  # Fallback
+            }
+        `;
+        
+        // Esegui in PowerShell e ottieni il risultato...
+        // (dettagli omessi per brevità)
+    }
+}
+
+Parametri Chrome per Monitor Secondario (pdf-server.js):
+
+const chromeArgs = [
+    '--new-window',
+    '--kiosk',
+    `--window-position=${secondaryMonitor.x},${secondaryMonitor.y}`,
+    `--window-size=${secondaryMonitor.width},${secondaryMonitor.height}`,
+    // ... altri parametri ...
+    fileUrl
+];
+
+═════════════════════════════════════════════════════════════════════════════════
+
+💡 SUGGERIMENTI
+═════════════════════════════════════════════════════════════════════════════════
+
+1. MANTIENI I MONITOR ACCESI
+   Se il monitor secondario è spento, Chrome si aprirà sul principale.
+
+2. POSIZIONI MULTIPLE
+   Puoi avere monitor disposti in vari modi:
+   - Affiancati orizzontalmente (più comune)
+   - Impilati verticalmente
+   - A L
+   - A V
+   Il server rileva automaticamente e si adapta.
+
+3. DIVERSE RISOLUZIONI
+   Se i monitor hanno risoluzioni diverse (es: 1080p + 4K),
+   il server usa le dimensioni effettive del secondario.
+
+4. MODALITÀ PRESENTAZIONE
+   Questa configurazione è ideale per:
+   - Presentazioni con slide su schermo
+   - Supervisor di linea di produzione
+   - Sale riunioni con controllo remoto
+   - Stazioni di lavoro con comandi separati
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📞 SOPORTE E INFORMAZIONI
+═════════════════════════════════════════════════════════════════════════════════
+
+Endpoint API:
+  GET  /api/monitor-info     → Informazioni sui monitor
+  GET  /api/pdf-list         → Lista file PDF
+  POST /api/open-pdf         → Apri PDF su monitor secondario
+  POST /api/close-chrome     → Chiudi Chrome
+
+Pagina principale:
+  http://localhost:8765/Prova/ScriptPDF1.html
+
+File componenti:
+  • pdf-server.js           → Server Node.js
+  • ScriptPDF1.html         → Interfaccia HTML
+  • SCRIPTPDF1_MONITOR.txt  → Questo file
+
+═════════════════════════════════════════════════════════════════════════════════
+
+Versione: 1.0.0 - Con Supporto Monitor Secondario
+Data: 19 Febbraio 2026
+Status: ✅ OPERATIVA CON MONITOR SECONDARIO
+
+═════════════════════════════════════════════════════════════════════════════════

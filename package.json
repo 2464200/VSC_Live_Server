@@ -1,0 +1,24 @@
+{
+  "name": "scriptpdf-server",
+  "version": "1.0.0",
+  "description": "Server per la gestione e visualizzazione di file PDF in Chrome",
+  "main": "pdf-server.js",
+  "scripts": {
+    "start": "node pdf-server.js",
+    "dev": "nodemon pdf-server.js"
+  },
+  "keywords": [
+    "pdf",
+    "chrome",
+    "kiosk",
+    "excel"
+  ],
+  "author": "Admin",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

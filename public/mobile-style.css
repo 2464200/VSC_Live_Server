@@ -1,0 +1,452 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+  padding: 15px 20px;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border-bottom: 3px solid #ff6b35;
+}
+.logo-img {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 50px;         /* dimensione iniziale */
+  height: auto;
+  z-index: 101;        /* sopra lo sfondo, sotto il menu */
+  opacity: 0.9;        /* leggermente trasparente */
+  transition: all 0.3s ease;
+}
+logo h1 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+.subtitle {
+  font-size: 10px;
+  color: #ffa500;
+  font-weight: 500;
+}
+
+/* Barra info (centrata su due righe) */
+.info-bar {
+  display: flex;
+  flex-direction: column; /* data sopra, scritta sotto */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.date {
+  font-size: 14px;
+  color: #aaa;
+}
+.btn-menu {
+  background: #ff6b35;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(255, 107, 53, 0.4);
+  transition: all 0.3s ease;
+}
+.btn-menu:active { transform: scale(0.95); }
+
+/* ⭐ NASCONDI MENU E CONTROLLI DALL'UI ⭐ */
+.menu-panel {
+  display: none !important;
+}
+
+.menu-panel.active {
+  display: none !important;
+}
+
+.btn-menu {
+  display: none !important;
+}
+
+/* Menu Panel (nascosto) */
+.menu-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 200;
+  display: none;
+  overflow-y: auto;
+}
+.menu-panel.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+.menu-content {
+  background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.menu-content h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #ff6b35;
+}
+.control-group {
+  margin-bottom: 25px;
+}
+.control-group label {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #ffa500;
+  font-weight: 500;
+}
+.control-group input[type="range"] {
+  width: 100%;
+  height: 8px;
+  background: #0f3460;
+  border-radius: 5px;
+  outline: none;
+  margin-bottom: 5px;
+  -webkit-appearance: none;
+}
+.control-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #ff6b35;
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.5);
+}
+.control-group input[type="range"]::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #ff6b35;
+  cursor: pointer;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.5);
+}
+.control-group span {
+  display: inline-block;
+  background: #ff6b35;
+  padding: 5px 15px;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 14px;
+}
+.control-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.btn-control {
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.btn-stop {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+}
+.btn-play {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: white;
+}
+.btn-fullscreen {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  grid-column: 1 / -1;
+}
+.btn-control:active { transform: scale(0.95); }
+.btn-close {
+  width: 100%;
+  padding: 15px;
+  background: #555;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* Legenda */
+.legend {
+  position: fixed;
+  top: 140px;
+  left: 0;
+  right: 0;
+  background: rgba(255, 107, 53, 0.9);
+  padding: 12px 20px;
+  z-index: 90;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 12px;
+}
+.badge-done {
+  background: #27ae60;
+  color: white;
+}
+
+/* Scroll Container */
+.scroll-container {
+  position: fixed;
+  top: 185px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  padding: 15px;
+  /* ATTENZIONE: rimosso scroll-behavior: smooth per evitare micro-lag nello scroll automatico */
+}
+
+/* Card Coreografia */
+.choreo-card {
+  background: linear-gradient(135deg, #1e2a47 0%, #243447 100%);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-left: 5px solid #3498db;
+  transition: all 0.3s ease;
+}
+.choreo-card.executed {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+  border-left: 5px solid #27ae60;
+  animation: pulse 2s infinite;
+}
+.choreo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.choreo-number {
+  background: #3498db;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  min-width: 50px;
+  text-align: center;
+}
+.choreo-card.executed .choreo-number {
+  background: #27ae60;
+}
+.choreo-id {
+  background: rgba(255, 255, 255, 0.1);
+  color: #aaa;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.choreo-card.executed .choreo-id {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+.choreo-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+.choreo-details {
+  display: grid;
+  gap: 8px;
+}
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.detail-icon {
+  font-size: 16px;
+  min-width: 20px;
+}
+.detail-label {
+  color: #ffa500;
+  font-weight: 500;
+  min-width: 80px;
+}
+.detail-value {
+  color: #fff;
+}
+.choreo-card.executed .detail-value {
+  font-weight: bold;
+}
+
+/* Loader */
+.loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 300;
+}
+.loader.hidden { display: none; }
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #ff6b35;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+.loader p {
+  color: #fff;
+  font-size: 16px;
+}
+
+/* Animazioni */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
+  50%      { box-shadow: 0 4px 25px rgba(255, 107, 53, 0.6); }
+}
+
+/* Scrollbar personalizzata */
+.scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+.scroll-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #ff6b35;
+  border-radius: 10px;
+}
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #ff8c5a;
+}
+
+/* Media query per tablet e desktop */
+@media (min-width: 768px) {
+  .menu-content { max-width: 500px; }
+  .choreo-card  {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Stile per la scritta "Prossima Coreo" (rossa, gigante e lampeggiante) */
+#nextCoreoLabel {
+  font-weight: 900;
+  color: #ffa500;            /* arancione per distinguere */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 5px;
+  font-size: 1.5rem;
+}
+
+@keyframes blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0.2; }
+}
+
+#nextCoreoValue {
+  font-weight: 900;
+  color: #d80000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 5px;
+  font-size: 3rem;
+  text-align: center;
+}
+
+/* Animazione di lampeggio */
+@keyframes blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0.2; }
+}
+
+/* Blink as a reusable class (applied/removed from JS) */
+.blink {
+  animation: blink 1s linear infinite;
+}
+
+/* Fade-out class: gradual disappearance (5s) */
+.fade-out {
+  animation: fadeOut 5s forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; color: transparent; }
+}
+
+/* Reduced motion / low-power devices */
+html.reduced-motion *, html.reduced-motion *::before, html.reduced-motion *::after {
+  animation: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+}
+
+/* Slightly larger controls for TV remotes */
+.btn-control, .btn-menu, .control-group label {
+  font-size: 18px;
+}

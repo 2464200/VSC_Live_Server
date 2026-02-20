@@ -1,0 +1,30 @@
+{
+  "totale_eseguite": 15,
+  "eseguite": 5,
+  "non_eseguite": 10,
+  "richieste_qr": 114,
+  "coreografia_piu_richiesta": "IT'S AMERICA",
+  "conteggio_piu_richiesta": 3,
+  "top_5": [
+    {
+      "nome": "IT'S AMERICA",
+      "conteggio": 3
+    },
+    {
+      "nome": "DOCTOR DOCTOR",
+      "conteggio": 3
+    },
+    {
+      "nome": "A BAR SONG",
+      "conteggio": 3
+    },
+    {
+      "nome": "ALL SHOOK UP",
+      "conteggio": 3
+    },
+    {
+      "nome": "XXX",
+      "conteggio": 2
+    }
+  ]
+}

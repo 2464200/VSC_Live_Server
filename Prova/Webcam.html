@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>WEBCAM</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    nav {
+        background: #333;
+        padding: 10px;
+    }
+    nav a {
+        color: #fff;
+        margin: 0 15px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    h1 {
+        margin-top: 20px;
+        color: #333;
+    }
+    video {
+        margin-top: 20px;
+        width: 80%;
+        max-width: 800px;
+        border: 3px solid #333;
+        border-radius: 10px;
+        background: #000;
+    }
+</style>
+</head>
+<body>
+<nav>
+    <a href="/index.html">Home</a>
+    <a href="/NextCoreo1.html">NextCoreo1</a>
+    <a href="/NextCoreo2.html">NextCoreo2</a>
+</nav>
+<h1>Streaming Webcam</h1>
+<video id="webcam" autoplay playsinline></video>
+
+<script>
+    async function startWebcam() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: USB Camera }, audio: false });
+            document.getElementById('webcam').srcObject = stream;
+        } catch (err) {
+            alert('Errore nell\'accesso alla webcam: ' + err);
+        }
+    }
+    startWebcam();
+</script>
+</body>
+</html>

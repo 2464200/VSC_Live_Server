@@ -1,0 +1,253 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║               INTEGRAZIONE EXCEL - ScriptPDF1                                   ║
+║                  Guida passo dopo passo                                         ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+OPZIONE A: AGGIUNTA RAPIDA DI UN PULSANTE
+════════════════════════════════════════════════════════════════════════════════
+
+Passo 1: Importare il modulo VBA
+─────────────────────────────────
+
+1. Apri il tuo file Excel
+2. Premi ALT + F11 per aprire l'Editor VBA
+3. Vai a: File → Importa (Import...)
+4. Seleziona il file: C:\VSC_Live_Server\ScriptPDF1_VBA_Module.bas
+5. Clicca "Apri" - il modulo sarà aggiunto
+6. Chiudi l'Editor VBA (ALT + Q)
+
+Passo 2: Creare un pulsante nell'area di lavoro
+────────────────────────────────────────────────
+
+Excel 2016/2019/2021:
+1. Inserisci → Forme → (seleziona una forma, es. rettangolo)
+2. Disegna il pulsante sul foglio
+3. Digita: "Apri Gestione PDF"
+4. Fai clic destro → Assegna macro
+5. Seleziona: ApriGestorePDF
+6. Clicca OK
+
+Excel 2010 e versioni precedenti:
+1. Visualizza → Barre degli strumenti → Moduli
+2. Clicca sull'icona del pulsante
+3. Disegna il pulsante sul foglio
+4. Digita: "Apri Gestione PDF"
+5. Fai clic destro → Assegna macro
+6. Seleziona: ApriGestorePDF
+7. Clicca OK
+
+Passo 3: Prova il pulsante
+──────────────────────────
+
+1. Esci dalla modalità di disegno (clic su un'altra cosa)
+2. Clicca il pulsante
+3. Premi OK nei messaggi di dialogo
+4. Chrome dovrebbe aprirsi con ScriptPDF1
+
+────────────────────────────────────────────────────────────────────────────────
+
+OPZIONE B: AGGIUNTA NELLA BARRA DI ACCESSO RAPIDO
+═════════════════════════════════════════════════════════════════════════════════
+
+Passo 1: Importare il modulo VBA (vedi OPZIONE A - Passo 1)
+
+Passo 2: Aggiungere il pulsante alla barra
+─────────────────────────────────────────
+
+1. Nella barra di accesso rapido (in alto a sinistra), clicca sulla freccia ▼
+2. Seleziona: "Altre comandi"
+3. Nella finestra di dialogo:
+   - Scegli: "Macro Excel" dal menu a sinistra
+   - Seleziona: "VBAProject.ApriGestorePDF"
+   - Clicca il pulsante con ">>" per aggiungerla
+   - Clicca "OK"
+
+Passo 3: Personalizza l'icona (opzionale)
+──────────────────────────────────────────
+
+1. Ritorna a Barra di accesso rapido
+2. Nella lista delle macro, seleziona quella appena aggiunta
+3. Clicca "Modifica" (con il pulsante con la penna)
+4. Scegli un'icona e dai un nome (es. "PDF")
+5. Clicca "OK"
+
+Passo 4: Usa il pulsante
+────────────────────────
+
+Il pulsante sarà sempre visibile nella barra in alto.
+Clicca per aprire ScriptPDF1.
+
+────────────────────────────────────────────────────────────────────────────────
+
+OPZIONE C: PULSANTE CON SCORCIATOIA DA TASTIERA
+════════════════════════════════════════════════════════════════════════════════
+
+Passo 1: Importare il modulo VBA (vedi OPZIONE A - Passo 1)
+
+Passo 2: Assegnare scorciatoia
+──────────────────────────────
+
+Sfortunatamente, Excel non permette di assegnare direttamente scorciatoie da tastiera
+alle macro tramite l'interfaccia standard. Puoi usare:
+
+Alternativa 1: Alt+F4, poi Ctrl+Q (se configurato in Word/Access)
+Alternativa 2: Crea un pulsante sulla barra come in OPZIONE B
+Alternativa 3: Usa PowerShell direttamente con: .\Start_ScriptPDF1.ps1
+
+────────────────────────────────────────────────────────────────────────────────
+
+MACRO DISPONIBILI
+═════════════════════════════════════════════════════════════════════════════════
+
+ApriGestorePDF()
+  • Apre ScriptPDF1 in Chrome
+  • BLOCCANTE: attende che l'utente chiuda la finestra
+  • Usa quando: vuoi controllare il flusso dell'applicazione
+
+ApriGestorePDF_Async()
+  • Apre ScriptPDF1 in Chrome
+  • NON BLOCCANTE: continua l'esecuzione in Excel
+  • Usa quando: vuoi che Excel rimanga reattivo
+
+ConfiguraGestorePDF()
+  • Esegue il setup iniziale
+  • Verifica dipendenze
+  • Usa una sola volta all'inizio
+
+ApriCartellaScriptPDF()
+  • Apre C:\SCRIPT_PDF in Esplora file
+  • Usa per: aggiungere/gestire file PDF
+
+TestConessione()
+  • Verifica che il server sia in esecuzione
+  • Usa per: debug/troubleshooting
+
+────────────────────────────────────────────────────────────────────────────────
+
+SELEZIONE DELLA MACRO GIUSTA
+═════════════════════════════════════════════════════════════════════════════════
+
+Scenario 1: Vuoi che il codice attenda che l'utente finisca
+  → Usa: ApriGestorePDF()
+  Esempio: In un modulo di raccolta dati
+
+Scenario 2: Vuoi che Excel rimanga reattivo
+  → Usa: ApriGestorePDF_Async()
+  Esempio: Per visualizzare in parallelo
+
+Scenario 3: È la prima volta che usi il sistema
+  → Usa: ConfiguraGestorePDF()
+  Esempio: Al primo avvio del file Excel
+
+────────────────────────────────────────────────────────────────────────────────
+
+PERSONALIZZAZIONE DELLA MACRO
+═════════════════════════════════════════════════════════════════════════════════
+
+Puoi modificare il modulo VBA per cambiare il percorso degli script.
+
+Esempio: Cambiare il percorso base
+
+Apri l'Editor VBA (ALT+F11) e trova la riga:
+   scriptPath = "C:\VSC_Live_Server\Start_ScriptPDF1.ps1"
+
+Cambiala a:
+   scriptPath = "C:\Altro_Percorso\Start_ScriptPDF1.ps1"
+
+Salva (Ctrl+S) e chiudi.
+
+────────────────────────────────────────────────────────────────────────────────
+
+TROUBLESHOOTING INTEGRAZIONE EXCEL
+═════════════════════════════════════════════════════════════════════════════════
+
+Problema: "Macro disabilitata"
+Soluzione:
+  1. Salva il file come .xlsm (Excel con macro)
+  2. Quando lo apri, clicca "Abilita macros"
+  3. Prova di nuovo
+
+Problema: "Il modulo non è visibile in Assegna macro"
+Soluzione:
+  1. Ripeti l'importazione del modulo VBA
+  2. Assicurati di salvare il file come .xlsm
+  3. Riavvia Excel
+
+Problema: "Quando clicco il pulsante non succede nulla"
+Soluzione:
+  1. Verifica che il modulo VBA sia stato importato
+  2. Controlla che macro sia: ApriGestorePDF (scritto esattamente)
+  3. Prova ad eseguire manualmente da: Alt+F11 → Tools → Macros
+  4. Seleziona ApriGestorePDF e clicca Esegui
+
+Problema: "Errore: PowerShell not found"
+Soluzione:
+  1. Installa PowerShell 5+
+  2. Riavvia Excel
+  3. Prova di nuovo
+
+Problema: "Script non trovato a C:\VSC_Live_Server"
+Soluzione:
+  1. Verifica che il percorso sia corretto
+  2. Se hai installato in un altro percorso, modifica il modulo VBA
+  3. Salva e prova di nuovo
+
+────────────────────────────────────────────────────────────────────────────────
+
+WORKFLOW COMPLETETO
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Utente clicca "Apri Gestione PDF" in Excel
+2. ScriptPDF1 si avvia in Chrome sul monitor secondario
+3. Utente seleziona e visualizza un PDF
+4. Utente clicca "Chiudi" per terminare
+5. Excel riacquista il focus
+6. Utente continua il lavoro
+
+Questo flusso mantiene Excel come applicazione principale e ScriptPDF1
+come strumento ausiliario.
+
+────────────────────────────────────────────────────────────────────────────────
+
+BACKUP E SICUREZZA
+═════════════════════════════════════════════════════════════════════════════════
+
+Prima di modificare il tuo file Excel:
+1. Crea una copia di backup: File → Salva con nome
+2. Salva con nome diverso (es. "Backup_YYYYMMDD.xlsx")
+3. Ripeti il processo su un file di test
+4. Una volta verificato funziona, applica al file principale
+
+────────────────────────────────────────────────────────────────────────────────
+
+SUPPORTO VERSIONI EXCEL
+═════════════════════════════════════════════════════════════════════════════════
+
+Excel 2019+:           ✓ Completamente supportato
+Excel 2016:            ✓ Completamente supportato
+Excel 2013:            ✓ Supportato
+Excel 2010:            ✓ Supportato (UI leggermente diversa)
+Excel 2007:            ~ Parzialmente supportato (potrebbero esserci problemi)
+Excel Online:          ✗ Non supportato (niente macro)
+
+Per Excel 2007: Usa menu "Strumenti" anziché "Inserisci" per i pulsanti.
+
+────────────────────────────────────────────────────────────────────────────────
+
+PROSSIMI PASSI
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Importa il modulo VBA (ScriptPDF1_VBA_Module.bas)
+2. Crea un pulsante sul foglio
+3. Assegna la macro ApriGestorePDF
+4. Salva il file come .xlsm
+5. Prova il pulsante
+
+Dopo il ciclo di test, il sistema sarà completamente operativo e integrato
+con Excel.
+
+═════════════════════════════════════════════════════════════════════════════════
+
+Versione: 1.0.0
+Data: 19 Febbraio 2026
+Valido per: Excel 2010 e successivi, Windows 10/11

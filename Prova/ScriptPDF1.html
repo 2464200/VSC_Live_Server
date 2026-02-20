@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang='it'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Gestione PDF</title>
+<style>
+body{font-family:Arial;text-align:center;background:#111;color:#fff;margin:0;padding:20px}
+nav{background:#222;padding:10px;margin-bottom:30px}
+nav a{color:#ff7f00;margin:0 15px;text-decoration:none;font-weight:bold}
+.container{max-width:900px;margin:auto;background:#222;padding:30px;border-radius:10px}
+h1{color:#ff7f00;margin-top:0}
+.control-group{margin:30px 0}
+label{color:#ff7f00;font-weight:bold;display:block;margin-bottom:10px}
+select, input{background:#333;color:#fff;padding:10px;border:1px solid #444;border-radius:5px;font-size:14px;width:100%;box-sizing:border-box}
+select:focus, input:focus{outline:none;border-color:#ff7f00}
+.button-group{display:flex;gap:15px;justify-content:center;margin:30px 0}
+button{background:#ff7f00;color:#000;padding:12px 30px;border:none;border-radius:5px;font-weight:bold;font-size:14px;cursor:pointer;transition:background 0.3s}
+button:hover{background:#ffaa33}
+button:active{background:#dd6600}
+.pdf-info{background:#333;padding:20px;border-radius:5px;margin:20px 0;color:#fff}
+.pdf-name{color:#ff7f00;font-size:18px;font-weight:bold}
+.pdf-counter{color:#aaa;font-size:12px;margin-top:10px}
+.error{background:#dc3545;padding:15px;border-radius:5px;color:#fff;margin:20px 0}
+.success{background:#28a745;padding:15px;border-radius:5px;color:#fff;margin:20px 0}
+</style>
+</head>
+<body>
+<nav>
+<a href='/index.html'>Home</a>
+<a href='/Prova/Report_black.html'>Report Black</a>
+<a href='/Prova/Report_white.html'>Report White</a>
+<a href='/Prova/Report.html'>Report</a>
+</nav>
+
+<div class='container'>
+<h1>Gestione PDF - ScriptPDF1</h1>
+
+<div style='background:#333;padding:10px;border-radius:5px;margin-bottom:20px;font-size:12px;color:#aaa'>
+📺 <strong>Monitor:</strong> <span id='monitor-info'>Rilevamento in corso...</span>
+</div>
+
+<div class='control-group'>
+<label for='pdf-select'>Seleziona un file PDF:</label>
+<select id='pdf-select' onchange='onPdfSelected()'>
+<option value=''>-- Caricamento lista... --</option>
+</select>
+</div>
+
+<div class='pdf-info' id='pdf-info' style='display:none'>
+<div class='pdf-name' id='pdf-name'></div>
+<div class='pdf-counter' id='pdf-counter'></div>
+</div>
+
+<div class='button-group'>
+<button class='CommandButton' id='CommandButton63' onclick='previousPdf()' title='Visualizza il file PDF precedente'>◀ Precedente</button>
+<button class='CommandButton' id='CommandButton64' onclick='nextPdf()' title='Visualizza il file PDF successivo'>Successivo ▶</button>
+<button class='CommandButton' id='CommandButton65' onclick='closePdfViewer()' title='Chiudi Chrome e torna ad Excel'>✕ Chiudi</button>
+</div>
+
+<div id='message'></div>
+
+<script>
+let pdfList = [];
+let currentIndex = 0;
+let chromeProcessId = null;
+
+// Carica la lista dei PDF al caricamento della pagina
+console.log('✅ Script caricato, registrazione event listeners...');
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 DOMContentLoaded triggerato - caricamento lista PDF...');
+    loadPdfList();
+    loadMonitorInfo();
+    
+    // Setup event listeners per i pulsanti
+    const pdfSelect = document.getElementById('pdf-select');
+    if (pdfSelect) {
+        pdfSelect.addEventListener('dblclick', function() {
+            console.log('📌 Doppio click su ComboBox');
+            openCurrentPdf();
+        });
+    }
+    
+    const btn63 = document.getElementById('CommandButton63');
+    if (btn63) {
+        btn63.addEventListener('click', function(e) {
+            console.log('🖱️ Click su Precedente');
+            e.preventDefault();
+            previousPdf();
+        });
+    }
+    
+    const btn64 = document.getElementById('CommandButton64');
+    if (btn64) {
+        btn64.addEventListener('click', function(e) {
+            console.log('🖱️ Click su Successivo');
+            e.preventDefault();
+            nextPdf();
+        });
+    }
+    
+    const btn65 = document.getElementById('CommandButton65');
+    if (btn65) {
+        btn65.addEventListener('click', function(e) {
+            console.log('🖱️ Click su Chiudi');
+            e.preventDefault();
+            closePdfViewer();
+        });
+    }
+    
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'pdf-name') {
+            console.log('📌 Click su PDF name');
+            openCurrentPdf();
+        }
+    });
+});
+
+async function loadMonitorInfo() {
+    try {
+        const response = await fetch('http://localhost:8765/api/monitor-info?t=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error('Server non disponibile');
+        }
+        const data = await response.json();
+        
+        const monitorDiv = document.getElementById('monitor-info');
+        if (data.success) {
+            const primary = data.primaryMonitor;
+            const secondary = data.secondaryMonitor;
+            
+            monitorDiv.innerHTML = `
+                Monitor Primario: ${primary.width}x${primary.height} @(${primary.x},${primary.y}) | 
+                Monitor Secondario: ${secondary.width}x${secondary.height} @(${secondary.x},${secondary.y})
+            `;
+            console.log('✅ Monitor info:', data);
+        } else {
+            monitorDiv.textContent = 'Errore nel caricamento info monitor';
+        }
+    } catch (error) {
+        console.error('Errore caricamento monitor info:', error);
+        document.getElementById('monitor-info').textContent = '⚠️ Monitor non rilevati';
+    }
+}
+
+async function loadPdfList() {
+    try {
+        console.log('📡 Inizio caricamento lista PDF da http://localhost:8765/api/pdf-list...');
+        const response = await fetch('http://localhost:8765/api/pdf-list?t=' + Date.now(), { cache: 'no-store' });
+        console.log('📡 Response ricevuta:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            throw new Error('Errore nel caricamento della lista PDF - Server non disponibile (status: ' + response.status + ')');
+        }
+        const data = await response.json();
+        console.log('✅ JSON parsato, dati ricevuti:', data);
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Errore nel caricamento della lista PDF');
+        }
+        
+        pdfList = data.files || [];
+        console.log('📋 Liste PDF caricate:', pdfList.length, 'file');
+        
+        if (pdfList.length === 0) {
+            console.warn('⚠️ Nessun file PDF trovato');
+            showError('Nessun file PDF trovato nella cartella C:\\SCRIPT_PDF');
+            return;
+        }
+        
+        console.log('✓ Popolamento combobox...');
+        populateComboBox();
+        updateInfoDisplay();
+        console.log('✓ Lista PDF caricata con successo!');
+    } catch (error) {
+        console.error('❌ Errore nel loadPdfList:', error);
+        showError('Errore nel caricamento della lista PDF: ' + error.message);
+    }
+}
+
+function populateComboBox() {
+    const select = document.getElementById('pdf-select');
+    select.innerHTML = '';
+    
+    pdfList.forEach((pdf, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = pdf.name;
+        select.appendChild(option);
+    });
+    
+    if (pdfList.length > 0) {
+        select.value = 0;
+        currentIndex = 0;
+    }
+}
+
+function onPdfSelected() {
+    const select = document.getElementById('pdf-select');
+    currentIndex = parseInt(select.value) || 0;
+    updateInfoDisplay();
+}
+
+function updateInfoDisplay() {
+    if (currentIndex < 0 || currentIndex >= pdfList.length) {
+        document.getElementById('pdf-info').style.display = 'none';
+        return;
+    }
+    
+    const pdf = pdfList[currentIndex];
+    document.getElementById('pdf-name').textContent = pdf.name;
+    document.getElementById('pdf-counter').textContent = `${currentIndex + 1} di ${pdfList.length}`;
+    document.getElementById('pdf-info').style.display = 'block';
+    document.getElementById('pdf-select').value = currentIndex;
+}
+
+function previousPdf() {
+    if (pdfList.length === 0) return;
+    currentIndex = (currentIndex - 1 + pdfList.length) % pdfList.length;
+    updateInfoDisplay();
+    openCurrentPdf();
+}
+
+function nextPdf() {
+    if (pdfList.length === 0) return;
+    currentIndex = (currentIndex + 1) % pdfList.length;
+    updateInfoDisplay();
+    openCurrentPdf();
+}
+
+function openCurrentPdf() {
+    if (currentIndex < 0 || currentIndex >= pdfList.length) {
+        showError('File PDF non disponibile');
+        console.error('Indice non valido:', currentIndex);
+        return;
+    }
+    
+    const pdf = pdfList[currentIndex];
+    console.log('🔄 Tentativo apertura PDF:', pdf.name, 'Path:', pdf.path);
+    
+    try {
+        // Invia richiesta al server per aprire il PDF
+        fetch('http://localhost:8765/api/open-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                filePath: pdf.path,
+                fileName: pdf.name
+            })
+        }).then(response => {
+            console.log('📡 Response status:', response.status);
+            return response.json();
+        })
+          .then(data => {
+              console.log('✅ Response data:', data);
+              if (data.success) {
+                  showSuccess(`✓ Apertura di: ${pdf.name}`);
+                  console.log('✓ PDF aperto con successo');
+              } else {
+                  showError('✗ Errore nell\'apertura del file: ' + (data.error || 'Sconosciuto'));
+                  console.error('✗ Errore API:', data.error);
+              }
+          }).catch(error => {
+              console.error('❌ Fetch error:', error);
+              showError('❌ Impossibile contattare il server: ' + error.message);
+          });
+    } catch (error) {
+        console.error('❌ Exception:', error);
+        showError('❌ Errore: ' + error.message);
+    }
+}
+
+
+
+function closePdfViewer() {
+    try {
+        // Chiama il server per chiudere Chrome
+        fetch('http://localhost:8765/api/close-chrome', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  showSuccess('Chrome chiuso. Tornando ad Excel...');
+                  // Aspetta 2 secondi prima di chiudere la finestra
+                  setTimeout(() => {
+                      window.close();
+                  }, 2000);
+              } else {
+                  showError('Errore nella chiusura: ' + (data.error || 'Sconosciuto'));
+              }
+          }).catch(() => {
+              // Se il fetch fallisce, chiudi comunque la finestra
+              window.close();
+          });
+    } catch (error) {
+        console.error('Errore:', error);
+        window.close();
+    }
+}
+
+function showError(message) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.className = 'error';
+    messageDiv.textContent = '⚠ ' + message;
+}
+
+function showSuccess(message) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.className = 'success';
+    messageDiv.textContent = '✓ ' + message;
+    console.log('✓ Success:', message);
+    setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = '';
+    }, 3000);
+}
+
+// Funzione di test (accessibile da console)
+window.testOpenPdf = function() {
+    console.log('🧪 Test apertura PDF...');
+    if (pdfList.length === 0) {
+        console.error('Nessun PDF caricato');
+        return;
+    }
+    const testPdf = pdfList[currentIndex];
+    console.log('Tentativo apertura:', testPdf.name);
+    openCurrentPdf();
+};
+
+// Stampa informazioni nel log
+console.log('✅ ScriptPDF1 caricato');
+console.log('📊 Pulsanti disponibili:');
+console.log('   - previousPdf()');
+console.log('   - nextPdf()');
+console.log('   - openCurrentPdf()');
+console.log('   - closePdfViewer()');
+console.log('   - testOpenPdf()');
+console.log('📁 Cartella PDF: C:\\SCRIPT_PDF');
+</script>
+</body>
+</html>

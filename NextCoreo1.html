@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextCoreo</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                background-color: #2e2e2e; /* grigio scuro */
+                color: white;
+                text-align: center;
+            }
+            nav ul {
+                list-style: none;
+                padding: 0;
+            }
+            nav ul li {
+                display: inline;
+                margin-right: 15px;
+            }
+            nav ul li a {
+                text-decoration: none;
+                color: #ffa500; /* arancione */
+            }
+            h2 {
+                color: #ffa500;
+                font-size: 22px;
+                width: 300px;       /* larghezza fissa */
+                text-align: right;  /* testo allineato a destra */
+                position: absolute; /* posizionamento rispetto al contenitore */
+                left: 0;            /* agganciato a sinistra */
+                top: 50%;           /* centrato verticalmente */
+                transform: translateY(-50%);
+                margin: 0;
+            }
+            .row {
+                position: relative; /* contenitore per titolo e box */
+                margin: 45px 0;     /* spazio tra le righe */
+            }
+            .box {
+                background-color: #ffa500;
+                color: rgb(255, 0, 0);
+                padding: 30px;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 28px;
+                width: fit-content;    /* proporzionato al contenuto */
+                max-width: 90%;
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+                text-align: center;
+                margin: 0 auto;        /* centrato nella pagina */
+            }
+            #refreshIndicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background-color: #ffa500;
+                margin: 25px auto;
+                animation: none;
+                transition: background-color 0.3s ease;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.5); opacity: 0.5; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            #lastUpdate {
+                margin-top: 10px;
+                font-size: 16px;
+                color: #ccc;
+            }
+        </style>
+    </head>
+    <body>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="NextCoreo2.html" class="active">NextCoreo2</a></li>
+            </ul>
+        </nav>
+
+        <h1 style="font-size:32px;">Benvenuto nella pagina PROSSIMA COREOGRAFIA</h1>
+        <p style="font-size:14px;">Questa è una pagina separata da index.html. Puoi tornare alla Home usando il menu sopra.</p>
+
+        <!-- Titolo a sinistra e box centrato -->
+        <div class="row">
+            <h2>Prossima Coreo:</h2>
+            <div id="boxA" class="box" aria-live="polite" aria-atomic="true">Caricamento B1...</div>
+        </div>
+
+        <div class="row">
+            <h2>Livello:</h2>
+            <div id="boxB" class="box" aria-live="polite" aria-atomic="true">Caricamento C1...</div>
+        </div>
+
+        <div class="row">
+            <h2>Script:</h2>
+            <div id="boxC" class="box" aria-live="polite" aria-atomic="true">Caricamento D1...</div>
+        </div>
+
+        <div id="refreshIndicator" title="Aggiornamento dati"></div>
+        <div id="lastUpdate">Ultimo aggiornamento: —</div>
+
+        <script>
+            // Configuration
+            const REFRESH_MS = 45000;
+            const FETCH_TIMEOUT = 8000;
+            const FETCH_RETRIES = 1;
+
+            // Robust CSV parser (handles quoted fields)
+            function parseCSV(text) {
+                const rows = [];
+                let cur = '';
+                let row = [];
+                let inQuotes = false;
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    if (inQuotes) {
+                        if (ch === '"') {
+                            if (text[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; }
+                        } else {
+                            cur += ch;
+                        }
+                    } else {
+                        if (ch === '"') { inQuotes = true; }
+                        else if (ch === ',') { row.push(cur); cur = ''; }
+                        else if (ch === '\r') { continue; }
+                        else if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+                        else { cur += ch; }
+                    }
+                }
+                if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+                return rows;
+            }
+
+            // Fetch with timeout and simple retries
+            async function fetchWithTimeoutAndRetry(url, opts = {}, timeout = FETCH_TIMEOUT, retries = FETCH_RETRIES) {
+                let attempt = 0;
+                while (true) {
+                    attempt++;
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), timeout);
+                    try {
+                        const res = await fetch(url, { ...opts, signal: controller.signal });
+                        clearTimeout(id);
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        return res;
+                    } catch (err) {
+                        clearTimeout(id);
+                        if (attempt > retries) throw err;
+                        await new Promise(r => setTimeout(r, 300 * attempt));
+                    }
+                }
+            }
+
+            let refreshTimer = null;
+
+            async function aggiornaBox() {
+                const indicator = document.getElementById('refreshIndicator');
+                try {
+                    const res = await fetchWithTimeoutAndRetry('NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' });
+                    const text = await res.text();
+                    const rows = parseCSV(text.replace(/^\uFEFF/, ''));
+                    const first = rows.find(r => r && r.length) || [];
+
+                    document.getElementById('boxA').textContent = (first[1] || '—').toString().trim();
+                    document.getElementById('boxB').textContent = (first[2] || '—').toString().trim();
+                    document.getElementById('boxC').textContent = (first[3] || '—').toString().trim();
+
+                    indicator.style.backgroundColor = '#ffa500';
+                    indicator.style.animation = 'pulse 1s ease';
+                    setTimeout(() => indicator.style.animation = 'none', 1000);
+
+                    const now = new Date();
+                    document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + now.toLocaleTimeString();
+                } catch (err) {
+                    document.getElementById('boxA').textContent = 'Errore nel caricamento B1';
+                    document.getElementById('boxB').textContent = 'Errore nel caricamento C1';
+                    document.getElementById('boxC').textContent = 'Errore nel caricamento D1';
+                    indicator.style.backgroundColor = 'red';
+                    indicator.style.animation = 'pulse 1s ease';
+                    setTimeout(() => indicator.style.animation = 'none', 1000);
+                    console.error('Errore nel caricamento del CSV:', err);
+                }
+            }
+
+            function scheduleRefresh() {
+                if (refreshTimer) clearTimeout(refreshTimer);
+                refreshTimer = setTimeout(() => { aggiornaBox().finally(scheduleRefresh); }, REFRESH_MS);
+            }
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) { if (refreshTimer) clearTimeout(refreshTimer); }
+                else { aggiornaBox(); scheduleRefresh(); }
+            });
+
+            // initial run + schedule
+            aggiornaBox();
+            scheduleRefresh();
+        </script>
+    </body>
+    </html>

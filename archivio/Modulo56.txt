@@ -1,0 +1,89 @@
+Attribute VB_Name = "Modulo56"
+    ' === 6. HTML ===
+    fileHTML = FreeFile
+    Open percorsoHTML For Output As #fileHTML
+
+    Print #fileHTML, "<!DOCTYPE html>"
+    Print #fileHTML, "<html lang='it'>"
+    Print #fileHTML, "<head>"
+    Print #fileHTML, "<meta charset='UTF-8'>"
+    Print #fileHTML, "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+    Print #fileHTML, "<title>Report Statistico</title>"
+    Print #fileHTML, "<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>"
+
+    ' === STILE SCURO ===
+    Print #fileHTML, "<style>"
+    Print #fileHTML, "body{font-family:Arial;text-align:center;background:#111;color:#fff;margin:0}"
+    Print #fileHTML, "nav{background:#222;padding:10px}"
+    Print #fileHTML, "nav a{color:#ff7f00;margin:0 15px;text-decoration:none;font-weight:bold}"
+    Print #fileHTML, ".container{max-width:1000px;margin:auto}"
+    Print #fileHTML, "table{border-collapse:collapse;margin:20px auto;width:100%;background:#222;color:#fff}"
+    Print #fileHTML, "th,td{border:1px solid #444;padding:8px}"
+    Print #fileHTML, "th{background:#222;color:#ff7f00;font-weight:bold}"
+    Print #fileHTML, "h1,h2{color:#ff7f00}"
+    Print #fileHTML, "strong{color:#ff7f00}"
+    Print #fileHTML, ".charts-row{display:flex;gap:20px;align-items:center;margin:20px auto}"
+    Print #fileHTML, ".chart-pie{width:300px;height:300px;background:#222;padding:10px;border-radius:10px;display:flex;justify-content:center;align-items:center}"
+    Print #fileHTML, ".chart-pie canvas{width:100%!important;height:100%!important}"
+    Print #fileHTML, ".chart-bar{flex:1;height:280px;background:#222;padding:15px;border-radius:10px}"
+    Print #fileHTML, "footer{margin-top:30px;font-size:14px;color:#aaa}"
+    Print #fileHTML, "</style>"
+
+    Print #fileHTML, "</head><body>"
+    Print #fileHTML, "<nav>"
+    Print #fileHTML, "<a href='/index.html'>Home</a>"
+    Print #fileHTML, "<a href='/NextCoreo1.html'>NextCoreo1</a>"
+    Print #fileHTML, "<a href='/NextCoreo2.html'>NextCoreo2</a>"
+    Print #fileHTML, "</nav>"
+    Print #fileHTML, "<div class='container'>"
+
+    Print #fileHTML, "<h1>Coreografie - Report Statistico</h1>"
+    Print #fileHTML, "<p>Eseguite in totale: <strong>" & eseguite & "</strong></p>"
+    Print #fileHTML, "<p>Richieste con QR: <strong>" & richieste & "</strong> di cui non eseguite: <strong>" & nonEseguite & "</strong></p>"
+    Print #fileHTML, "<p>Coreografia pi  richiesta: <strong>" & Replace(topCoreografia, "'", "\'") & "</strong> (" & maxCount & " volte)</p>"
+
+    ' === TABELLA TOP 5 ===
+    Print #fileHTML, "<h2>Top " & numeroTop & " Coreografie</h2>"
+    Print #fileHTML, "<table>"
+    Print #fileHTML, "<tr><th>#</th><th>Coreografia</th><th>Richieste</th></tr>"
+    For i = 1 To numeroTop
+        Print #fileHTML, "<tr><td>" & i & "</td><td>" & Replace(topN(i), "'", "\'") & "</td><td>" & topNCount(i) & "</td></tr>"
+    Next i
+    Print #fileHTML, "</table>"
+
+    ' === GRAFICI ===
+    Print #fileHTML, "<div class='charts-row'>"
+    Print #fileHTML, "<div class='chart-pie'><canvas id='pie' width='300' height='300'></canvas></div>"
+    Print #fileHTML, "<div class='chart-bar'><canvas id='bar'></canvas></div>"
+    Print #fileHTML, "</div>"
+
+    ' === FOOTER ===
+    Print #fileHTML, "<footer>Report generato il " & dataOra & "</footer>"
+
+    ' === SCRIPT CHART.JS ===
+    Print #fileHTML, "<script>"
+    Print #fileHTML, "const pieCtx = document.getElementById('pie').getContext('2d');"
+    Print #fileHTML, "const barCtx = document.getElementById('bar').getContext('2d');"
+
+    ' Grafico a torta con percentuali
+    Print #fileHTML, "new Chart(pieCtx,{type:'pie',data:{labels:['Eseguite','Non eseguite'],datasets:[{data:[" & eseguite & "," & nonEseguite & "],backgroundColor:['#28A745','#DC3545'],borderColor:'#222',borderWidth:2}]},options:{responsive:true,plugins:{tooltip:{callbacks:{label:function(context){let total=" & eseguite + nonEseguite & ";let value=context.parsed;let perc=(value/total*100).toFixed(1)+'%';return context.label+': '+value+' ('+perc+')';}}},legend:{position:'bottom',labels:{color:'#fff',font:{size:12},padding:15}}}}});"
+
+    ' Grafico a barre
+    Print #fileHTML, "new Chart(barCtx,{type:'bar',data:{labels:["
+    For i = 1 To numeroTop
+        Print #fileHTML, "'" & Replace(topN(i), "'", "\'") & "'" & IIf(i < numeroTop, ",", "")
+    Next i
+    Print #fileHTML, "],datasets:[{label:'Richieste',data:["
+    For i = 1 To numeroTop
+        Print #fileHTML, topNCount(i) & IIf(i < numeroTop, ",", "")
+    Next i
+    Print #fileHTML, "],backgroundColor:'#ff7f00',borderColor:'#ffa200',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#fff'}}},scales:{y:{beginAtZero:true,ticks:{color:'#fff'},grid:{color:'#444'}},x:{ticks:{color:'#fff'},grid:{color:'#444'}}}}});"
+    Print #fileHTML, "</script>"
+
+    Print #fileHTML, "</div></body></html>"
+    Close #fileHTML
+
+    MsgBox "Report HTML generato correttamente!", vbInformation
+
+End Sub
+

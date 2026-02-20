@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Test ScriptPDF1</title>
+<style>
+body {
+    font-family: Arial;
+    background: #111;
+    color: #fff;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.test {
+    background: #222;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+.success { border-left: 5px solid #28a745; }
+.error { border-left: 5px solid #dc3545; }
+.pending { border-left: 5px solid #ffc107; }
+h1 { color: #ff7f00; }
+code {
+    background: #333;
+    padding: 5px 10px;
+    border-radius: 3px;
+    color: #ff7f00;
+}
+</style>
+</head>
+<body>
+<h1>🧪 Test ScriptPDF1</h1>
+
+<div id="tests"></div>
+
+<script>
+async function runTests() {
+    const testsContainer = document.getElementById('tests');
+    let testCount = 0;
+    let passCount = 0;
+
+    async function addTest(name, fn) {
+        testCount++;
+        const testDiv = document.createElement('div');
+        testDiv.className = 'test pending';
+        testDiv.innerHTML = `<strong>Test ${testCount}:</strong> ${name} <em>(in esecuzione...)</em>`;
+        testsContainer.appendChild(testDiv);
+
+        try {
+            await fn();
+            testDiv.className = 'test success';
+            testDiv.innerHTML = `<strong>✓ Test ${testCount}:</strong> ${name} <em>(OK)</em>`;
+            passCount++;
+        } catch (error) {
+            testDiv.className = 'test error';
+            testDiv.innerHTML = `<strong>✗ Test ${testCount}:</strong> ${name}<br/><em>${error.message}</em>`;
+        }
+    }
+
+    // Test 1: Server è raggiungibile
+    await addTest('Server è raggiungibile su localhost:8765', async () => {
+        const response = await fetch('http://localhost:8765/');
+        if (response.status !== 404) {
+            throw new Error(`Status atteso 404 ma ricevuto ${response.status}`);
+        }
+    });
+
+    // Test 2: API /api/pdf-list è disponibile
+    await addTest('API /api/pdf-list risponde', async () => {
+        const response = await fetch('http://localhost:8765/api/pdf-list');
+        if (response.status !== 200) {
+            throw new Error(`Status ${response.status} - atteso 200`);
+        }
+    });
+
+    // Test 3: API ritorna JSON valido
+    await addTest('API ritorna JSON valido', async () => {
+        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'success è false');
+        }
+    });
+
+    // Test 4: API ha proprietà corrette
+    await addTest('API ha tutte le proprietà richieste', async () => {
+        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const data = await response.json();
+        if (!data.files) throw new Error('Manca proprietà files');
+        if (!Array.isArray(data.files)) throw new Error('files non è un array');
+        if (!data.totalFiles) throw new Error('Manca proprietà totalFiles');
+        if (!data.timestamp) throw new Error('Manca proprietà timestamp');
+    });
+
+    // Test 5: Lista PDF caricata
+    await addTest('Cartella C:\\SCRIPT_PDF contiene file PDF', async () => {
+        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const data = await response.json();
+        if (data.files.length === 0) {
+            throw new Error('Nessun file PDF trovato in C:\\SCRIPT_PDF');
+        }
+    });
+
+    // Test 6: Ogni file ha proprietà complete
+    await addTest('Ogni file PDF ha tutte le proprietà', async () => {
+        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const data = await response.json();
+        data.files.forEach((file, index) => {
+            if (!file.name) throw new Error(`File ${index}: manca name`);
+            if (!file.path) throw new Error(`File ${index}: manca path`);
+            if (!file.size) throw new Error(`File ${index}: manca size`);
+            if (!file.created) throw new Error(`File ${index}: manca created`);
+        });
+    });
+
+    // Test 7: Pagina ScriptPDF1.html è accessibile
+    await addTest('Pagina ScriptPDF1.html è accessibile', async () => {
+        const response = await fetch('http://localhost:8765/Prova/ScriptPDF1.html');
+        if (response.status !== 200) {
+            throw new Error(`Status ${response.status} - atteso 200`);
+        }
+    });
+
+    // Test 8: CORS è abilitato
+    await addTest('CORS è abilitato (Access-Control-Allow-Origin)', async () => {
+        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const corsHeader = response.headers.get('Access-Control-Allow-Origin');
+        if (!corsHeader) {
+            throw new Error('Header Access-Control-Allow-Origin non trovato');
+        }
+    });
+
+    // Riepilogo
+    console.log(`\n=== RIEPILOGO TEST ===`);
+    console.log(`Test completati: ${testCount}`);
+    console.log(`Test riusciti: ${passCount}`);
+    console.log(`Test falliti: ${testCount - passCount}`);
+
+    const summaryDiv = document.createElement('div');
+    summaryDiv.style.marginTop = '30px';
+    summaryDiv.style.padding = '20px';
+    summaryDiv.style.background = passCount === testCount ? '#28a745' : '#dc3545';
+    summaryDiv.style.borderRadius = '5px';
+    summaryDiv.innerHTML = `
+        <h2>${passCount === testCount ? '✓ TUTTI I TEST PASSATI!' : '✗ ALCUNI TEST FALLITI'}</h2>
+        <p>Test completati: <strong>${passCount}/${testCount}</strong></p>
+        ${passCount === testCount ? '<p><strong>Puoi ora aprire e usare ScriptPDF1.html</strong></p>' : ''}
+    `;
+    testsContainer.appendChild(summaryDiv);
+}
+
+// Esegui i test al caricamento
+window.addEventListener('DOMContentLoaded', runTests);
+</script>
+</body>
+</html>

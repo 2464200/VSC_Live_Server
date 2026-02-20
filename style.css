@@ -1,0 +1,160 @@
+body {
+    --ui-scale: 1;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #fff;
+    margin: 0;
+    overflow: hidden;
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    background: #222;
+    padding: 10px;
+    z-index: 10;
+}
+
+.titoli-tabella {   
+    background: #222;
+}
+
+.logo-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000; 
+}
+
+.logo {
+    height: 130px;     /* regola a piacere */
+    width: auto;
+}
+
+button {
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#fullscreenBtn {
+    background-color: #ff7f00;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+}
+
+/* Nascondi i controlli da UI */
+.controls {
+    display: none !important;
+}
+
+/* Nascondi il bottone Schermo Intero */
+button[aria-label="Attiva o disattiva schermo intero"],
+button[onclick*="toggleFullscreen"] {
+    display: none !important;
+}
+
+.warning {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff7f00;
+    color: #111;
+        padding: 12px 22px;
+        font-weight: bold;
+    border-radius: 6px;
+    z-index: 999;
+}
+
+/* Reduced motion / low-power devices (SmartTV) */
+html.reduced-motion *, html.reduced-motion *::before, html.reduced-motion *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+}
+
+/* Slightly larger controls for TV */
+.controls input, .controls button {
+    font-size: 18px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+    color: #fff;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.scroll-container {
+    height: calc(100vh - 160px);
+    overflow-y: auto;
+    position: relative;
+    padding-bottom: 180px; /* spazio extra per ultima riga */
+}
+
+.orange-row {
+    background-color: #ff7f00;
+}
+
+.orange-row td:first-child {
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.orange-row td:nth-child(2) {
+    color: #fff;
+    font-weight: bold;
+    font-size: 22px;
+    }
+
+.orange-row td:nth-child(3) {
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.orange-row td:nth-child(4) {
+    color: #fff;
+    font-weight: bold;
+    }
+
+.controls {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    z-index: 20;
+    color: #fff;
+}
+
+.controls button {
+    margin-left: 15px;
+}
+
+nav ul li a.active {
+    font-weight: bold;
+    color: darkred;
+}
+
+.scroll-container table {
+    margin-bottom: 100px;
+}
+
+Print #fileHTML, "</div>"
+Print #fileHTML, "body{font-family:Arial;margin:20px}"
+Print #fileHTML, "<nav>"
+Print #fileHTML, "<a href='/index.html'>Home</a>"
+Print #fileHTML, "<a href='/NextCoreo1.html'>NextCoreo1</a>"
+Print #fileHTML, "<a href='/NextCoreo2.html'>NextCoreo2</a>"
+Print #fileHTML, "</nav>"
+Print #fileHTML, "<div class='container'>"

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextCoreo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #2e2e2e; /* grigio scuro */
+            color: white;
+            text-align: center;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin-right: 15px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: #ffa500; /* arancione */
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 60px;
+            padding: 30px;
+            border: 4px solid #ffa200;
+            border-radius: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            animation: neonPulse 2s infinite ease-in-out;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        .logo-image {
+            height: 500px;
+            filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.6));
+        }
+        @keyframes neonPulse {
+            0% { box-shadow: 0 0 8px #ffa200; }
+            50% { box-shadow: 0 0 25px #ffcc66; }
+            100% { box-shadow: 0 0 8px #ffa200; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/NextCoreo1.html" class="active">NextCoreo1</a></li>
+            <li><a href="/NextCoreo2.html" class="active">NextCoreo2</a></li>
+        </ul>
+    </nav>
+
+    <h1 style="font-size:32px;">Benvenuto nella pagina Monster Country Group</h1>
+    <p style="font-size:14px;">naviga tra le pagine usando il menu sopra.</p>
+
+    <div class="logo-container">
+        <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group" class="logo-image">
+    </div>
+
+</body>
+</html>

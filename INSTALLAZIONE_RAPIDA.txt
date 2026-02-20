@@ -1,0 +1,187 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                      INSTALLAZIONE RAPIDA - ScriptPDF1                         ║
+║                    Gestione PDF Integrata con Excel                            ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+📋 PREREQUISITI
+================================================================================
+✓ Windows 10/11
+✓ Node.js (v14+) - https://nodejs.org/
+✓ Google Chrome - https://www.google.com/chrome/
+✓ Excel 2016+ (opzionale, solo per integrazione VBA)
+
+🚀 PASSO 1: SETUP INIZIALE (5 MINUTI)
+================================================================================
+
+1. Apri PowerShell come Amministratore
+2. Esegui:
+   
+   cd C:\VSC_Live_Server
+   .\Setup_ScriptPDF1.ps1
+
+Questo farà:
+• Verifica Node.js
+• Installa dipendenze npm (Express.js)
+• Crea cartella C:\SCRIPT_PDF
+• Verifica Chrome
+
+🎯 PASSO 2: USA IL PROGRAMMA
+================================================================================
+
+OPZIONE A: Avvio da PowerShell (consigliato)
+   .\Start_ScriptPDF1.ps1
+   
+   Chrome si aprirà automaticamente in modalità Kiosk sul monitor secondario
+   La pagina HTML carica la lista dei PDF e sei pronto ad usarli
+
+OPZIONE B: Integrazione con Excel
+   1. Apri il file Excel
+   2. Copia il codice da: ScriptPDF1_VBA_Module.bas
+   3. In Excel: Alt+F11 (VBA Editor)
+   4. Incolla il modulo in un nuovo modulo
+   5. Crea un pulsante e assegnagli la macro "ApriGestorePDF"
+   6. Clicca il pulsante per aprire la gestione PDF
+
+📁 PASSO 3: AGGIUNGI FILE PDF
+================================================================================
+
+1. Copia i tuoi file PDF in: C:\SCRIPT_PDF
+2. La lista si aggiorna automaticamente nella pagina HTML
+3. Seleziona il file dalla ComboBox
+4. Clicca due volte per aprire
+
+💻 COMANDI VELOCI
+================================================================================
+
+Avvio server:           .\Start_ScriptPDF1.ps1
+Setup iniziale:         .\Setup_ScriptPDF1.ps1
+Apri cartella PDF:      explorer C:\SCRIPT_PDF
+Test connessione:       Invoke-WebRequest http://localhost:8765/api/pdf-list
+Stop server:            Ctrl+C (nella finestra PowerShell)
+
+🎮 UTILIZZO DELLA PAGINA
+================================================================================
+
+ComboBox:
+  • Seleziona il file PDF che desideri aprire
+  • Doppio click per aprire il file
+
+Pulsanti:
+  ◀ Precedente     → Vai al PDF precedente
+  Successivo ▶     → Vai al PDF successivo
+  ✕ Chiudi         → Chiudi Chrome e torna a Excel
+
+Scorciatoie:
+  • Doppio click su "Successivo ▶" per aprire il PDF
+  • Click sul nome del PDF per aprire
+
+🐛 TROUBLESHOOTING
+================================================================================
+
+Problema: "Node.js non trovato"
+Soluzione: 
+  1. Installa da https://nodejs.org/
+  2. Riavvia PowerShell
+  3. Verifica: node --version
+
+Problema: "Chrome non trovato"
+Soluzione:
+  1. Installa Google Chrome
+  2. Verifica il percorso di installazione
+  3. Assicurati sia il percorso standard (Program Files\Google\Chrome)
+
+Problema: "Porta 8765 già in uso"
+Soluzione:
+  1. Modifica pdf-server.js riga: const PORT = 8765
+  2. Cambia a un'altra porta (es: 8766)
+  3. Modifica ScriptPDF1.html: localhost:8765 → localhost:8766
+  4. Modifica Start_ScriptPDF1.ps1: stessa porta
+
+Problema: "Nessun file PDF trovato"
+Soluzione:
+  1. Aggiungi file PDF in C:\SCRIPT_PDF
+  2. Aggiorna la pagina HTML (F5)
+  3. Se il server è avviato, la lista si aggiorna automaticamente
+
+Problema: "Server non risponde"
+Soluzione:
+  1. Verifica che il server sia avviato: .\Start_ScriptPDF1.ps1
+  2. Controlla la finestra PowerShell per messaggi di errore
+  3. Riavvia il server
+  4. Verifica che npm install sia stata eseguita
+
+Problema: "PDF non si apre in Chrome"
+Soluzione:
+  1. Verifica che il file PDF sia leggibile
+  2. Controlla i permessi di accesso a C:\SCRIPT_PDF
+  3. Riavvia il server
+  4. Prova ad aprire il PDF manualmente con Chrome
+
+🔧 CONFIGURAZIONE AVANZATA
+================================================================================
+
+Modifica porta server:
+  • pdf-server.js: const PORT = [NUOVA_PORTA]
+  • ScriptPDF1.html: http://localhost:[NUOVA_PORTA]/...
+  • Start_ScriptPDF1.ps1: $htmlUrl = "http://localhost:[NUOVA_PORTA]/..."
+
+Modifica monitor secondario:
+  • Start_ScriptPDF1.ps1: Riga con $screen = [System.Windows.Forms.Screen]
+  • Oppure specifica coordinate manualmente
+
+Disabilita modalità Kiosk:
+  • pdf-server.js: Rimuovi '--kiosk' da chromeArgs
+  • Consigliato solo per debug
+
+📚 FILE IMPORTANTI
+================================================================================
+
+Cartella PDF:           C:\SCRIPT_PDF
+Interfaccia HTML:       C:\VSC_Live_Server\Prova\ScriptPDF1.html
+Server Node.js:         C:\VSC_Live_Server\pdf-server.js
+Script avvio:           C:\VSC_Live_Server\Start_ScriptPDF1.ps1
+Script setup:           C:\VSC_Live_Server\Setup_ScriptPDF1.ps1
+Modulo VBA:             C:\VSC_Live_Server\ScriptPDF1_VBA_Module.bas
+Documentazione:         C:\VSC_Live_Server\README_ScriptPDF1.md
+
+💡 SUGGERIMENTI
+================================================================================
+
+1. Crea un collegamento sul desktop per Start_ScriptPDF1.ps1
+2. Aggiungi un pulsante Excel per accesso rapido
+3. Organizza i PDF in sottocartelle e aggiorna manualmente
+4. Usa nomi chiari per i file PDF (es: "2025_01_Report.pdf")
+5. Mantieni almeno 100MB liberi nella partizione C:
+
+⏱️ TEMPO SETUP
+================================================================================
+
+Prima volta:           ~5-10 minuti
+Avvii successivi:      ~3-5 secondi
+Apertura PDF:          ~2-3 secondi
+
+🎓 ULTERIORE SUPPORTO
+================================================================================
+
+Per domande o problemi:
+1. Consulta README_ScriptPDF1.md per documentazione completa
+2. Controlla i log della console di PowerShell
+3. Verifica gli errori nel browser (F12)
+4. Controlla se Node.js e Chrome sono correttamente installati
+
+─────────────────────────────────────────────────────────────────────────────
+
+✅ INSTALLAZIONE COMPLETATA
+Sei pronto per usare ScriptPDF1!
+
+Prossimo passo:
+  1. Apri PowerShell
+  2. Esegui: cd C:\VSC_Live_Server
+  3. Esegui: .\Setup_ScriptPDF1.ps1
+  4. Segui le istruzioni a schermo
+
+═════════════════════════════════════════════════════════════════════════════════
+
+Versione: 1.0.0
+Data: 19 Febbraio 2026
+Repository: C:\VSC_Live_Server

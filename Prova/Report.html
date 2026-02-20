@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang='it'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>Report Statistico</title>
+<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
+<style>
+body{font-family:Arial;text-align:center;background:#f4f4f4;margin:0}
+nav{background:#333;padding:10px}
+nav a{color:#fff;margin:0 15px;text-decoration:none;font-weight:bold}
+.container{max-width:1000px;margin:auto}
+table{border-collapse:collapse;margin:20px auto;width:100%;background:#fff}
+th,td{border:1px solid #ccc;padding:8px}
+th{background:#333;color:#fff}
+.charts-row{display:flex;gap:20px;align-items:center;margin:20px auto}
+.chart-pie{width:260px;height:260px;background:#fff;padding:10px;border-radius:10px}
+.chart-bar{flex:1;height:280px;background:#fff;padding:15px;border-radius:10px}
+</style>
+</head><body>
+<nav>
+<a href='/index.html'>Home</a>
+<a href='/NextCoreo1.html'>NextCoreo1</a>
+<a href='/NextCoreo2.html'>NextCoreo2</a>
+</nav>
+<div class='container'>
+<h1>Coreografie - Report Statistico</h1>
+<p>Eseguite in totale: <strong>0 </strong>
+<p>Richieste con QR: <strong>134</strong> di cui non eseguite: <strong>0</strong></p>
+<p>Coreografia piu' richiesta: <strong>NICE TO MEET YOU</strong> (3 volte)</p>
+<h2>Top 5 Coreografie</h2>
+<table>
+<tr><th>#</th><th>Coreografia</th><th>Richieste</th></tr>
+<tr><td>1</td><td>NICE TO MEET YOU</td><td>3</td></tr>
+<tr><td>2</td><td>SEVEN</td><td>3</td></tr>
+<tr><td>3</td><td>IT&#39;S AMERICA</td><td>3</td></tr>
+<tr><td>4</td><td>DOCTOR DOCTOR</td><td>3</td></tr>
+<tr><td>5</td><td>A BAR SONG</td><td>3</td></tr>
+</table>
+<div class='charts-row'>
+<div class='chart-pie'><canvas id='pie'></canvas></div>
+<div class='chart-bar'><canvas id='bar'></canvas></div>
+</div>
+<script>
+new Chart(pie,{type:'pie',data:{labels:['Eseguite','Non eseguite'],datasets:[{data:[0,0],backgroundColor:['#28A745','#DC3545']}]} });
+new Chart(bar,{type:'bar',data:{labels:[
+'NICE TO MEET YOU',
+'SEVEN',
+'IT\'S AMERICA',
+'DOCTOR DOCTOR',
+'A BAR SONG'
+],datasets:[{data:[
+3,
+3,
+3,
+3,
+3
+],backgroundColor:'#007BFF'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});
+</script>
+</div></body></html>

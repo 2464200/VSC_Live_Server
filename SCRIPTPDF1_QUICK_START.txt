@@ -1,0 +1,293 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║          SCRIPTPDF1 - GUIDA RAPIDA MONITOR SECONDARIO                          ║
+║                   Quick Start - 5 minuti                                       ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+🚀 INIZIO RAPIDO
+═════════════════════════════════════════════════════════════════════════════════
+
+PASSO 1: Preparazione File e Cartelle
+──────────────────────────────────────────────────────────────────────────────
+
+1. Crea la cartella per i PDF (se non esiste):
+   
+   mkdir C:\SCRIPT_PDF
+   
+   Nota: Oppure usa Explorer: Tasto Destro → Nuova cartella → SCRIPT_PDF
+
+2. Copia i tuoi file PDF in questa cartella:
+   
+   Copia: file1.pdf, file2.pdf, file3.pdf → C:\SCRIPT_PDF
+   
+   Nota: Possono essere PDF di qualsiasi dimensione
+
+
+PASSO 2: Avviare il Server Node.js
+──────────────────────────────────────────────────────────────────────────────
+
+1. Apri PowerShell (o Command Prompt)
+2. Esegui:
+
+   cd C:\VSC_Live_Server
+   node pdf-server.js
+   
+3. Dovresti vedere:
+   ✅ 🖥️  Server in ascolto su http://localhost:8765
+
+Nota: Lascia questa finestra aperta! Il server deve restare in esecuzione.
+
+
+PASSO 3: Testare il Sistema
+──────────────────────────────────────────────────────────────────────────────
+
+In una NUOVA finestra PowerShell, esegui il test automatico:
+
+   cd C:\VSC_Live_Server
+   powershell -File test_scriptpdf1_monitor.ps1
+
+Il test verificherà:
+✅ Connessione al server
+✅ Rilevamento monitor
+✅ Elenco PDF
+✅ Apertura su monitor secondario
+✅ Risorse di sistema
+
+Risultato atteso:
+- Vedrai le coordinate dei tuoi monitor
+- Chrome si aprirà per 10 secondi mostrando un PDF
+- Poi será chiuso automaticamente
+
+
+PASSO 4: Usare l'Interfaccia HTML
+──────────────────────────────────────────────────────────────────────────────
+
+1. Apri il browser (Chrome, Firefox, Edge, ecc.)
+2. Vai a: http://localhost:8765/Prova/ScriptPDF1.html
+3. Vedrai la pagina di controllo con:
+   
+   📊 Monitor Primario e Secondario (coordinate in alto)
+   📋 ComboBox per selezionare i PDF
+   ◀ Pulsante Precedente
+   ▶ Pulsante Successivo
+   ✕ Pulsante Chiudi
+   
+4. Seleziona un PDF e clicca un pulsante:
+   
+   ▶ Clicca "Successivo ▶" → Chrome apre il PDF sul monitor secondario
+
+Risultato:
+✅ Monitor Principale: Pagina HTML rimane disponibile
+✅ Monitor Secondario: Chrome mostra il PDF fullscreen
+
+5. Puoi continuare a navigare con i pulsanti
+   mentre il PDF rimane visibile sull'altro monitor
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📋 COMANDI VELOCI
+═════════════════════════════════════════════════════════════════════════════════
+
+AVVIARE SERVER:
+  cd C:\VSC_Live_Server && node pdf-server.js
+
+ESEGUIRE TEST:
+  powershell -File test_scriptpdf1_monitor.ps1
+
+APRIRE PAGINA HTML:
+  http://localhost:8765/Prova/ScriptPDF1.html
+
+CONTROLLARE MONITOR:
+  (Invoke-WebRequest -Uri "http://localhost:8765/api/monitor-info" -UseBasicParsing).Content | ConvertFrom-Json | Format-List
+
+AGGIUNGERE PDF:
+  Copia file .pdf in → C:\SCRIPT_PDF
+
+CHIUDERE CHROME:
+  Clicca il pulsante "✕ Chiudi" oppure premi ESC
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+❌ PROBLEMI COMUNI E SOLUZIONI
+═════════════════════════════════════════════════════════════════════════════════
+
+PROBLEMA 1: "Errore di connessione - server non raggiungibile"
+─────────────────────────────────────────────────────────────
+Causa: Il server Node.js non è in esecuzione
+Soluzione:
+  1. Apri PowerShell
+  2. cd C:\VSC_Live_Server
+  3. node pdf-server.js
+  4. Attendi di vedere: "🖥️  Server in ascolto su http://localhost:8765"
+  5. Rifai il test
+
+PROBLEMA 2: "Chrome si apre sul monitor sbagliato"
+─────────────────────────────────────────────────
+Causa: Le coordinate del monitor secondario sono sbagliate
+Soluzione:
+  1. Esegui il test e guarda le coordinate in "TEST 2"
+  2. Se le coordinate non sono corrette:
+     - Apri C:\VSC_Live_Server\pdf-server.js
+     - Vai alla riga ~50 (funzione getSecondaryMonitorInfo)
+     - Modifica il fallback manual:
+       return {
+         x: 1920,      ← Cambia questo
+         y: 0,
+         width: 1920,
+         height: 1080
+       };
+  3. Salva e riavvia il server
+
+PROBLEMA 3: "Nessun file PDF trovato"
+──────────────────────────────────────
+Causa: La cartella C:\SCRIPT_PDF è vuota o non esiste
+Soluzione:
+  1. Crea: mkdir C:\SCRIPT_PDF
+  2. Copia almeno un file PDF in quella cartella
+  3. Riavvia il server
+  4. Rifai il test
+
+PROBLEMA 4: "Chrome non si apre affatto"
+─────────────────────────────────────────
+Causa: Chrome non è installato
+Soluzione:
+  1. Scarica Chrome da: https://www.google.com/chrome/
+  2. Installa normalmente
+  3. Riavvia il server
+  4. Rifai il test
+
+PROBLEMA 5: "La pagina HTML non carica"
+────────────────────────────────────────
+Causa: Indirizzo sbagliato o server non è in esecuzione
+Soluzione:
+  1. Verifica di aver eseguito: node pdf-server.js
+  2. Usa esattamente questo indirizzo: http://localhost:8765/Prova/ScriptPDF1.html
+  3. (Con la L maiuscola in "Prova")
+  4. Se il problema persiste, leggi i messaggi di errore di Node.js
+
+PROBLEMA 6: "Erro: Cannot GET /Prova/ScriptPDF1.html"
+──────────────────────────────────────────────────────
+Causa: Percorso file non trovato
+Soluzione:
+  1. Verifica che il file esista:
+     ls C:\VSC_Live_Server\Prova\ScriptPDF1.html
+  2. Il file DEVE essere in C:\VSC_Live_Server\Prova\
+  3. Se manca, è stato spostato o rinominato
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+✨ CONFIGURAZIONE AVANZATA
+═════════════════════════════════════════════════════════════════════════════════
+
+Per personalizzare il comportamento, modifica il file pdf-server.js:
+
+CAMBIARE RISOLUZIONI MONITOR:
+  Linea ~50: return { x: 1920, y: 0, width: 1920, height: 1080 }
+  
+CAMBIARE PORTA SERVER:
+  Linea ~430: const PORT = 8765;
+  (Cambia 8765 con il numero desiderato, es: 3000, 9000, ecc)
+  
+CAMBIARE CARTELLA PDF:
+  Linea ~150: const pdfDirectory = 'C:\\SCRIPT_PDF';
+  (Cambia il percorso, es: 'C:\\Documenti\\PDF\\', ecc)
+
+AGGIUNGERE PIU' MONITOR O CONFIGURAZIONI:
+  Vedi file: SCRIPTPDF1_MONITOR.txt (sezione "CONFIGURAZIONI SPECIALI")
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📁 STRUTTURA FILE E CARTELLE
+═════════════════════════════════════════════════════════════════════════════════
+
+C:\VSC_Live_Server                       ← Cartella principale
+├── pdf-server.js                        ← Server Node.js (avvia questo)
+├── Prova\
+│   ├── ScriptPDF1.html                  ← Pagina HTML (apri questo)
+│   └── test-scriptpdf1.html             ← Test automatico (vecchio)
+├── test_scriptpdf1_monitor.ps1          ← Test PowerShell (esegui questo)
+├── SCRIPTPDF1_MONITOR.txt               ← Documentazione completa
+├── SCRIPTPDF1_QUICK_START.txt           ← Questo file
+└── package.json                         ← Dipendenze Node.js
+
+C:\SCRIPT_PDF                            ← Copia i tuoi PDF qui
+├── documento1.pdf
+├── documento2.pdf
+└── documento3.pdf
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+🎯 PROSSIMI PASSI DOPO IL TEST INIZIALE
+═════════════════════════════════════════════════════════════════════════════════
+
+1. LEGGI LA DOCUMENTAZIONE COMPLETA:
+   C:\VSC_Live_Server\SCRIPTPDF1_MONITOR.txt
+   
+   Contiene:
+   • Spiegazione dettagliata del funzionamento
+   • Schema visuale dei due monitor
+   • Come funziona il server internamente
+   • Configurazioni speciali per vari setup
+
+2. PROVA CON I TUOI PDF:
+   • Copia il file PDF effettivo in C:\SCRIPT_PDF
+   • Apri la pagina HTML
+   • Naviga tra i tuoi PDF
+
+3. INTEGRAZIONE EXCEL (OPZIONALE):
+   • Se vuoi aprire PDF dal foglio Excel
+   • Leggi il file: INTEGRAZIONE_EXCEL.txt
+   • Importa il modulo VBA nel tuo workbook
+
+4. CONFIGURAZIONI PERSONALIZZATE:
+   • Se i tuoi monitor hanno setup diverso
+   • Vedi la sezione "CONFIGURAZIONI SPECIALI" in SCRIPTPDF1_MONITOR.txt
+   • Modifica le coordinate in pdf-server.js
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+💬 DOVE CERCARE AIUTO
+═════════════════════════════════════════════════════════════════════════════════
+
+Problema                              File da consultare
+────────────────────────────────────────────────────────────────────────────────
+Generale / Domande                    SCRIPTPDF1_MONITOR.txt
+Monitor non rilevati                  SCRIPTPDF1_MONITOR.txt (sezione 🔍)
+Chrome non si posiziona               SCRIPTPDF1_MONITOR.txt (sezione ⚙️)
+Dashboard / Pagina HTML               ScriptPDF1.html (vedi fonte HTML)
+Integrazioni Excel                    INTEGRAZIONE_EXCEL.txt
+Errori server                         Console di Node.js
+Test automatico                       test_scriptpdf1_monitor.ps1
+
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📞 INFORMAZIONI SISTEMA
+═════════════════════════════════════════════════════════════════════════════════
+
+Versione ScriptPDF1:           1.0.0 con Monitor Secondario
+Status:                        ✅ PRONTO PER USO
+Ambiente testato:              Windows 10/11, PowerShell 5+, Node.js 18+
+Browser supportati:            Chrome, Edge, Firefox, Safari
+Requisiti:
+  • Node.js 18+ (con npm)
+  • Chrome installato
+  • Almeno un file PDF
+  • Cartella C:\SCRIPT_PDF
+
+Data creazione:                19 Febbraio 2026
+Ultimo aggiornamento:          19 Febbraio 2026
+
+═════════════════════════════════════════════════════════════════════════════════
+
+Buon lavoro! 🎉
+
+Se hai domande, consulta i file di documentazione inclusi o modifica
+il codice in base alle tue esigenze specifiche.
+
+═════════════════════════════════════════════════════════════════════════════════
