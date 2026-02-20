@@ -118,14 +118,25 @@ window.addEventListener('DOMContentLoaded', function() {
 
 async function loadMonitorInfo() {
     try {
-        const response = await fetch('http://localhost:8765/api/monitor-info?t=' + Date.now(), { cache: 'no-store' });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        console.log('📡 Caricamento monitor info...');
+        const response = await fetch('http://localhost:8765/api/monitor-info?t=' + Date.now(), { 
+            cache: 'no-store',
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
-            throw new Error('Server non disponibile');
+            throw new Error('Server non disponibile - Status: ' + response.status);
         }
+        
         const data = await response.json();
+        console.log('✅ Monitor info ricevuto:', data);
         
         const monitorDiv = document.getElementById('monitor-info');
-        if (data.success) {
+        if (data.success && data.primaryMonitor && data.secondaryMonitor) {
             const primary = data.primaryMonitor;
             const secondary = data.secondaryMonitor;
             
@@ -133,34 +144,51 @@ async function loadMonitorInfo() {
                 Monitor Primario: ${primary.width}x${primary.height} @(${primary.x},${primary.y}) | 
                 Monitor Secondario: ${secondary.width}x${secondary.height} @(${secondary.x},${secondary.y})
             `;
-            console.log('✅ Monitor info:', data);
+            console.log('✅ Monitor info aggiornato');
         } else {
-            monitorDiv.textContent = 'Errore nel caricamento info monitor';
+            monitorDiv.textContent = 'Monitor info: dati non disponibili';
         }
     } catch (error) {
-        console.error('Errore caricamento monitor info:', error);
-        document.getElementById('monitor-info').textContent = '⚠️ Monitor non rilevati';
+        console.error('❌ Errore caricamento monitor info:', error.message);
+        const monitorDiv = document.getElementById('monitor-info');
+        if (monitorDiv) {
+            monitorDiv.textContent = '⚠️ Server non disponibile';
+        }
     }
 }
 
 async function loadPdfList() {
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         console.log('📡 Inizio caricamento lista PDF da http://localhost:8765/api/pdf-list...');
-        const response = await fetch('http://localhost:8765/api/pdf-list?t=' + Date.now(), { cache: 'no-store' });
+        const response = await fetch('http://localhost:8765/api/pdf-list?t=' + Date.now(), { 
+            cache: 'no-store',
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         console.log('📡 Response ricevuta:', response.status, response.statusText);
         
         if (!response.ok) {
             throw new Error('Errore nel caricamento della lista PDF - Server non disponibile (status: ' + response.status + ')');
         }
-        const data = await response.json();
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            console.error('❌ Errore nel parsing JSON:', parseError);
+            throw new Error('Risposta del server non è un JSON valido');
+        }
         console.log('✅ JSON parsato, dati ricevuti:', data);
         
-        if (!data.success) {
-            throw new Error(data.error || 'Errore nel caricamento della lista PDF');
+        if (!data || !data.success) {
+            throw new Error(data?.error || 'Errore nel caricamento della lista PDF');
         }
         
         pdfList = data.files || [];
-        console.log('📋 Liste PDF caricate:', pdfList.length, 'file');
+        console.log('📋 Lista PDF caricata:', pdfList.length, 'file');
         
         if (pdfList.length === 0) {
             console.warn('⚠️ Nessun file PDF trovato');
@@ -173,8 +201,12 @@ async function loadPdfList() {
         updateInfoDisplay();
         console.log('✓ Lista PDF caricata con successo!');
     } catch (error) {
-        console.error('❌ Errore nel loadPdfList:', error);
-        showError('Errore nel caricamento della lista PDF: ' + error.message);
+        console.error('❌ Errore nel loadPdfList:', error.message);
+        if (error.name === 'AbortError') {
+            showError('⏱️ Timeout: il server impiega troppo tempo a rispondere');
+        } else {
+            showError('Errore: ' + error.message);
+        }
     }
 }
 
@@ -228,7 +260,7 @@ function nextPdf() {
     openCurrentPdf();
 }
 
-function openCurrentPdf() {
+async function openCurrentPdf() {
     if (currentIndex < 0 || currentIndex >= pdfList.length) {
         showError('File PDF non disponibile');
         console.error('Indice non valido:', currentIndex);
@@ -239,8 +271,10 @@ function openCurrentPdf() {
     console.log('🔄 Tentativo apertura PDF:', pdf.name, 'Path:', pdf.path);
     
     try {
-        // Invia richiesta al server per aprire il PDF
-        fetch('http://localhost:8765/api/open-pdf', {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const response = await fetch('http://localhost:8765/api/open-pdf', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -248,58 +282,87 @@ function openCurrentPdf() {
             body: JSON.stringify({
                 filePath: pdf.path,
                 fileName: pdf.name
-            })
-        }).then(response => {
-            console.log('📡 Response status:', response.status);
-            return response.json();
-        })
-          .then(data => {
-              console.log('✅ Response data:', data);
-              if (data.success) {
-                  showSuccess(`✓ Apertura di: ${pdf.name}`);
-                  console.log('✓ PDF aperto con successo');
-              } else {
-                  showError('✗ Errore nell\'apertura del file: ' + (data.error || 'Sconosciuto'));
-                  console.error('✗ Errore API:', data.error);
-              }
-          }).catch(error => {
-              console.error('❌ Fetch error:', error);
-              showError('❌ Impossibile contattare il server: ' + error.message);
-          });
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error('Server ha restituito un errore - Status: ' + response.status);
+        }
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            console.error('❌ Errore nel parsing JSON:', parseError);
+            throw new Error('Risposta del server non è un JSON valido');
+        }
+        
+        console.log('✅ Response data:', data);
+        if (data && data.success) {
+            showSuccess('✓ Apertura di: ' + pdf.name);
+            console.log('✓ PDF aperto con successo');
+        } else {
+            showError('✗ Errore nell\'apertura del file: ' + (data?.error || 'Sconosciuto'));
+            console.error('✗ Errore API:', data?.error);
+        }
     } catch (error) {
-        console.error('❌ Exception:', error);
-        showError('❌ Errore: ' + error.message);
+        console.error('❌ Errore openCurrentPdf:', error.message);
+        if (error.name === 'AbortError') {
+            showError('⏱️ Timeout: il server impiega troppo tempo a rispondere');
+        } else if (error.message.includes('Failed to fetch')) {
+            showError('❌ Impossibile contattare il server. Verifica che il server sia in esecuzione.');
+        } else {
+            showError('❌ Errore: ' + error.message);
+        }
     }
 }
 
 
 
-function closePdfViewer() {
+async function closePdfViewer() {
     try {
-        // Chiama il server per chiudere Chrome
-        fetch('http://localhost:8765/api/close-chrome', {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        console.log('🔄 Chiusura Chrome in corso...');
+        const response = await fetch('http://localhost:8765/api/close-chrome', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
-        }).then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  showSuccess('Chrome chiuso. Tornando ad Excel...');
-                  // Aspetta 2 secondi prima di chiudere la finestra
-                  setTimeout(() => {
-                      window.close();
-                  }, 2000);
-              } else {
-                  showError('Errore nella chiusura: ' + (data.error || 'Sconosciuto'));
-              }
-          }).catch(() => {
-              // Se il fetch fallisce, chiudi comunque la finestra
-              window.close();
-          });
+            },
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            console.warn('⚠️ Server ha restituito:', response.status);
+        }
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            console.warn('⚠️ Impossibile parsare risposta, chiusura comunque');
+            setTimeout(() => window.close(), 1000);
+            return;
+        }
+        
+        if (data && data.success) {
+            showSuccess('Chrome chiuso. Tornando ad Excel...');
+            setTimeout(() => {
+                window.close();
+            }, 2000);
+        } else {
+            console.warn('⚠️ Server:', data?.error || 'Errore sconosciuto');
+            setTimeout(() => window.close(), 1000);
+        }
     } catch (error) {
-        console.error('Errore:', error);
-        window.close();
+        console.error('❌ Errore closePdfViewer:', error.message);
+        setTimeout(() => window.close(), 1000);
     }
 }
 
