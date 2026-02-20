@@ -128,20 +128,19 @@ app.post('/api/open-pdf', (req, res) => {
         }
         
         console.log(`✅ File trovato, apertura in corso...`);
+        console.log(`🌐 Apertura su monitor secondario con PowerShell`);
         
-        // Apri PDF con il comando START di Windows
-        // Questo apre il file con l'applicazione predefinita e lo posiziona su monitor 2
-        console.log(`🌐 Avvio PDF su monitor secondario`);
-        console.log(`   File: ${filePath}`);
+        // Usa PowerShell per aprire il file (più affidabile)
+        const psCommand = `Start-Process '${filePath}'`;
+        console.log(`   Comando PS: ${psCommand}`);
         
-        const cmd = `start "" "${filePath}"`;
-        console.log(`   Comando: ${cmd}`);
-        
-        // Esegui il comando START di Windows
-        spawn('cmd.exe', ['/c', cmd], {
+        spawn('powershell.exe', ['-NoProfile', '-Command', psCommand], {
             detached: true,
-            stdio: 'ignore'
+            stdio: 'ignore',
+            shell: false
         }).unref();
+        
+        console.log(`✅ Comando inviato al sistema operativo`);
         
         res.json({
             success: true,
