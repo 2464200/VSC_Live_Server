@@ -822,7 +822,7 @@ function getLocalIP() {
     return 'localhost';
 }
 
-app.listen(PORT, 'localhost', () => {
+app.listen(PORT, () => {
     const localIP = getLocalIP();
     console.log('\n' + '='.repeat(80));
     console.log('🚀 UNIFIED SERVER - Server consolidato avviato');

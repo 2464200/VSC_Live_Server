@@ -105,6 +105,9 @@
 <script>
     const resultsDiv = document.getElementById("results");
     let testResults = [];
+    const DIAGNOSTICA_BASE_URL = window.location.origin && window.location.origin !== 'null'
+        ? window.location.origin
+        : `${window.location.protocol}//${window.location.hostname || 'localhost'}:${window.location.port || '5500'}`;
 
     function resetTests() {
         resultsDiv.innerHTML = "";
@@ -151,7 +154,7 @@
 
     async function testUnifiedServer(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const url = "http://127.0.0.1:5500/";
+        const url = `${DIAGNOSTICA_BASE_URL}/`;
         try {
             const response = await fetch(url, { cache: "no-store" });
             if (response.ok) {
@@ -176,7 +179,7 @@
 
     async function testPdfApi(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const url = "http://127.0.0.1:5500/api/pdf-list";
+        const url = `${DIAGNOSTICA_BASE_URL}/api/pdf-list`;
         try {
             const { response, data } = await fetchJsonStatus(url);
             if (response.ok) {
@@ -202,7 +205,7 @@
 
     async function testEventiStatus(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const url = "http://127.0.0.1:5500/eventi/api/status";
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/status`;
         try {
             const { response, data } = await fetchJsonStatus(url);
             if (response.ok) {
@@ -228,7 +231,7 @@
 
     async function testEventiApi(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const url = "http://127.0.0.1:5500/eventi/api/ping";
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/ping`;
         try {
             const { response, data } = await fetchJsonStatus(url);
             if (response.ok) {
@@ -253,7 +256,7 @@
 
     async function testEventiQr(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const url = "http://127.0.0.1:5500/eventi/api/qr";
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/qr`;
         try {
             const { response, data } = await fetchJsonStatus(url);
             if (response.ok && data && data.ok) {
@@ -278,7 +281,7 @@
 
     async function testEventiHostIp(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const url = "http://127.0.0.1:5500/eventi/api/host-ip";
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/host-ip`;
         try {
             const { response, data } = await fetchJsonStatus(url);
             if (response.ok && data && data.ok) {
@@ -316,7 +319,7 @@
 
     async function testEventiDjApi(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const url = "http://127.0.0.1:5500/eventi/api/dj";
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/dj`;
         try {
             const { response, data, text } = await fetchJsonStatus(url);
             if (response.ok && Array.isArray(data)) {
