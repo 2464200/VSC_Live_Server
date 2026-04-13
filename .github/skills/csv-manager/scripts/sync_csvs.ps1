@@ -2,8 +2,8 @@
 # Copies display.csv and NextCoreo.csv from root to public/
 
 param(
-    [string]$SourceDir = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),  # Workspace root
-    [string]$DestDir = (Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "public")
+    [string]$SourceDir = (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))),  # Workspace root
+    [string]$DestDir = (Join-Path (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))) "public")
 )
 
 $csvFiles = @("display.csv", "NextCoreo.csv")

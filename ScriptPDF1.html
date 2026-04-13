@@ -70,8 +70,7 @@ window.PDF_SERVER_RETRIES = 2;     // 2 retry
     <button onclick="nextPdf()" title="PDF successivo">Successivo </button>
     <select id="viewer-select" title="Seleziona Viewer per apertura" style="background:#333;color:#fff;padding:8px;border-radius:5px;border:1px solid #444;min-width:180px;">
         <option value="auto">Apri (auto)</option>
-        <option value="adobe">Apri con Adobe Reader (se installato)</option>
-    </select>
+        <option value="adobe">Apri con Adobe Reader (se installato)</option>        <option value="chrome">Apri con Chrome</option>    </select>
     <input id="adobe-path" placeholder="Percorso Adobe (opzionale) es: C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe" style="background:#222;color:#fff;border:1px solid #444;padding:8px;border-radius:5px;min-width:420px;" />
     <button id="save-adobe" onclick="saveAdobePath()" title="Salva percorso Adobe" style="min-width:auto;padding:8px 12px;">Salva</button>
     <button id="open-btn" onclick="openCurrentPdf()" title="Apri PDF sul monitor secondario"> Apri</button>

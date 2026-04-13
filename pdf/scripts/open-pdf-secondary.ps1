@@ -26,6 +26,14 @@ function Log([string]$msg) {
 try {
     Log "=== INIZIO Apertura PDF: $FilePath (Viewer=$Viewer) ==="
 
+    # Validazione file
+    if (-not (Test-Path $FilePath)) {
+        Log "❌ ERRORE: File PDF non trovato: $FilePath"
+        throw "File non trovato: $FilePath"
+    }
+
+    Log "✅ File PDF trovato e valido"
+
     # Define Windows API helpers
     Add-Type -TypeDefinition @"
 using System;
@@ -41,6 +49,20 @@ public class WindowManager {
     [DllImport("user32.dll")]
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
+    [DllImport("user32.dll")]
+    public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern int GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
     public const uint SWP_NOSIZE = 1;
     public const uint SWP_NOZORDER = 4;
     public const uint SWP_SHOWWINDOW = 64;
@@ -48,7 +70,36 @@ public class WindowManager {
 }
 "@ -ErrorAction Stop
 
+    Add-Type -AssemblyName System.Web | Out-Null
     Add-Type -AssemblyName System.Windows.Forms | Out-Null
+
+    function Get-WindowHandlesForPid($pid) {
+        $handles = @()
+        $callback = [WindowManager+EnumWindowsProc] {
+            param($hWnd, $lParam)
+            if (-not [WindowManager]::IsWindowVisible($hWnd)) { return $true }
+            [int]$windowPid = 0
+            [WindowManager]::GetWindowThreadProcessId($hWnd, [ref]$windowPid) | Out-Null
+            if ($windowPid -eq $lParam.ToInt32()) {
+                $handles += $hWnd
+            }
+            return $true
+        }
+        [WindowManager]::EnumWindows($callback, [IntPtr]::op_Explicit($pid)) | Out-Null
+        return $handles
+    }
+
+    function Move-And-MaximizeWindow($hwnd, $x, $y, $w, $h) {
+        try {
+            $flags = [WindowManager]::SWP_SHOWWINDOW -bor [WindowManager]::SWP_NOZORDER
+            [WindowManager]::SetWindowPos($hwnd, [IntPtr]::Zero, $x, $y, $w, $h, $flags) | Out-Null
+            [WindowManager]::ShowWindow($hwnd, [WindowManager]::SW_SHOWMAXIMIZED) | Out-Null
+            [WindowManager]::SetForegroundWindow($hwnd) | Out-Null
+            return $true
+        } catch {
+            return $false
+        }
+    }
 
     Log "Rilevamento monitor..."
     $screens = [System.Windows.Forms.Screen]::AllScreens
@@ -57,10 +108,11 @@ public class WindowManager {
     # Helper to start process
     function Start-Viewer($exePath, $args) {
         try {
-            if ($args) {
-                return Start-Process -FilePath $exePath -ArgumentList $args -PassThru
+            if ($args -and $args.Count -gt 0) {
+                Log "   Argomenti: $($args -join ' | ')"
+                return Start-Process -FilePath $exePath -ArgumentList $args -PassThru -WindowStyle Maximized
             } else {
-                return Start-Process -FilePath $exePath -PassThru
+                return Start-Process -FilePath $exePath -PassThru -WindowStyle Maximized
             }
         } catch {
             try { Log ("ERRORE avvio processo " + $exePath + ": " + $_.ToString()) } catch { }
@@ -68,18 +120,82 @@ public class WindowManager {
         }
     }
 
+    function Open-With-Chrome($chromePath, $filePath, $x, $y, $w, $h) {
+        # Usa l'endpoint serve-pdf del server unificato per aprire il PDF
+        $fileUrl = 'http://localhost:5500/api/serve-pdf?file=' + [System.Web.HttpUtility]::UrlEncode($filePath)
+        $args = @('--new-window', $fileUrl, '--disable-infobars', '--disable-session-crashed-bubble')
+        if ($null -ne $x -and $null -ne $y -and $null -ne $w -and $null -ne $h) {
+            $args += "--window-position=$x,$y"
+            $args += "--window-size=$w,$h"
+        }
+        return Start-Viewer $chromePath $args
+    }
+
+    function Find-ChromePath() {
+        $chrome = Get-Command 'chrome.exe' -ErrorAction SilentlyContinue
+        if ($chrome) { return $chrome.Source }
+
+        $candidates = @(
+            'C:\Program Files\Google\Chrome\Application\chrome.exe',
+            'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'
+        )
+        foreach ($path in $candidates) {
+            if (Test-Path $path) { return $path }
+        }
+        return $null
+    }
+
+    function Find-AcrobatPath() {
+        $candidates = @(
+            'C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe',
+            'C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe',
+            'C:\Program Files\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe'
+        )
+        foreach ($path in $candidates) {
+            if (Test-Path $path) { return $path }
+        }
+        return $null
+    }
+
     if ($screens.Count -lt 2) {
         Log "Un solo monitor - apertura normale"
-        if ($Viewer -eq 'adobe') {
+        $proc = $null
+        $chromePath = Find-ChromePath
+        $acrobatPath = Find-AcrobatPath
+
+        if ($Viewer -eq 'chrome') {
+            if ($chromePath) {
+                Log "Avvio Chrome in fullscreen (single monitor)"
+                $proc = Open-With-Chrome $chromePath $FilePath $null $null $null $null
+            } else {
+                Log "Chrome non trovato, fallback a viewer di default"
+                $proc = Start-Viewer $FilePath
+            }
+        } elseif ($Viewer -eq 'adobe') {
             if ($AdobePath -and (Test-Path $AdobePath)) {
                 Log "Avvio Acrobat (single) da: $AdobePath"
                 $proc = Start-Viewer $AdobePath @($FilePath)
+            } elseif ($acrobatPath) {
+                Log "Avvio Acrobat (single) da candidato: $acrobatPath"
+                $proc = Start-Viewer $acrobatPath @($FilePath)
+            } elseif ($chromePath) {
+                Log "Acrobat non trovato, fallback Chrome in fullscreen"
+                $proc = Open-With-Chrome $chromePath $FilePath $null $null $null $null
             } else {
-                Log "AdobePath non fornito o non valido, avvio con viewer di default"
+                Log "Nessun viewer specifico trovato, avvio viewer di default"
                 $proc = Start-Viewer $FilePath
             }
         } else {
-            $proc = Start-Viewer $FilePath
+            if ($chromePath) {
+                Log "Avvio Chrome in fullscreen (auto)"
+                $proc = Open-With-Chrome $chromePath $FilePath $null $null $null $null
+            } elseif ($acrobatPath) {
+                Log "Avvio Acrobat in fullscreen (auto)"
+                $proc = Start-Viewer $acrobatPath @($FilePath)
+            } else {
+                Log "Nessun viewer specifico trovato, avvio viewer di default"
+                $proc = Start-Viewer $FilePath
+            }
         }
         Log "Processo avviato"
 
@@ -133,52 +249,61 @@ public class WindowManager {
 
         # Start viewer according to preference
         $proc = $null
-        if ($Viewer -eq 'adobe') {
+        $chromePath = Find-ChromePath
+        $acrobatPath = Find-AcrobatPath
+
+        if ($Viewer -eq 'chrome') {
+            if ($chromePath) {
+                Log "Avvio Chrome in fullscreen sul monitor secondario"
+                $proc = Open-With-Chrome $chromePath $FilePath $x $y $w $h
+            } elseif ($acrobatPath) {
+                Log "Chrome non trovato, fallback Acrobat sul monitor secondario"
+                $proc = Start-Viewer $acrobatPath @($FilePath)
+            } else {
+                Log "Nessun viewer specifico trovato, avvio viewer di default"
+                $proc = Start-Viewer $FilePath
+            }
+        } elseif ($Viewer -eq 'adobe') {
             if ($AdobePath -and (Test-Path $AdobePath)) {
                 Log "Avvio Acrobat da percorso custom: $AdobePath"
-                # Try to request fullscreen and hide toolbar via /A parameter
-                $args = @('/A', 'toolbar=0&navpanes=0&pagemode=FullScreen', $FilePath)
-                $proc = Start-Viewer $AdobePath $args
+                $proc = Start-Viewer $AdobePath @($FilePath)
+            } elseif ($acrobatPath) {
+                Log "Avvio Acrobat da candidato: $acrobatPath"
+                $proc = Start-Viewer $acrobatPath @($FilePath)
+            } elseif ($chromePath) {
+                Log "Acrobat non trovato, fallback Chrome in fullscreen"
+                $proc = Open-With-Chrome $chromePath $FilePath $x $y $w $h
             } else {
-                # Try known installations
-                $candidates = @(
-                    'C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe',
-                    'C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe',
-                    'C:\Program Files\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe'
-                )
-                $started = $false
-                foreach ($c in $candidates) {
-                    if (Test-Path $c) {
-                        Log "Avvio Acrobat da candidato: $c (richiesta fullscreen)"
-                        $args = @('/A', 'toolbar=0&navpanes=0&pagemode=FullScreen', $FilePath)
-                        $proc = Start-Viewer $c $args
-                        $started = $true
-                        break
-                    }
-                }
-                if (-not $started) {
-                    Log "Acrobat non trovato, uso viewer di default"
-                    $proc = Start-Viewer $FilePath
-                }
+                Log "Nessun viewer specifico trovato, avvio viewer di default"
+                $proc = Start-Viewer $FilePath
             }
         } else {
-            $proc = Start-Viewer $FilePath
+            if ($chromePath) {
+                Log "Avvio Chrome in fullscreen sul monitor secondario (auto)"
+                $proc = Open-With-Chrome $chromePath $FilePath $x $y $w $h
+            } elseif ($acrobatPath) {
+                Log "Avvio Acrobat sul monitor secondario (auto)"
+                $proc = Start-Viewer $acrobatPath @($FilePath)
+            } else {
+                Log "Nessun viewer specifico trovato, avvio viewer di default"
+                $proc = Start-Viewer $FilePath
+            }
         }
 
         if ($null -eq $proc) {
             Log "ERRORE: processo non avviato"
         } else {
-                $procId = $proc.Id
-                Log "   Processo avviato con PID: $procId"
+            $procId = $proc.Id
+            Log "   Processo avviato con PID: $procId"
 
-                # Output JSON to stdout so the server can capture PID
-                try {
-                    $info = @{ pid = $procId; file = $FilePath }
-                    $json = $info | ConvertTo-Json -Compress
-                    Write-Output $json
-                } catch {
-                    try { Write-Output ($procId) } catch { }
-                }
+            # Output JSON to stdout so the server can capture PID
+            try {
+                $info = @{ pid = $procId; file = $FilePath }
+                $json = $info | ConvertTo-Json -Compress
+                Write-Output $json
+            } catch {
+                try { Write-Output ($procId) } catch { }
+            }
 
             # Memorizza la finestra precedente
             $prevWindow = [WindowManager]::GetForegroundWindow()
@@ -208,6 +333,17 @@ public class WindowManager {
                     break
                 }
 
+                if ($i -eq 100 -and -not $found) {
+                    Log "   Non trovato main window: cerco finestre del PID $procId"
+                    $handles = Get-WindowHandlesForPid $procId
+                    if ($handles.Count -gt 0) {
+                        $pdfWindow = $handles[0]
+                        Log "   Trovati handle con PID: $($handles.Count)"
+                        $found = $true
+                        break
+                    }
+                }
+
                 if ($i % 20 -eq 0 -and $i -gt 0) {
                     Log "   [Attesa $($i*100)ms] MainWindowHandle: $(if ($null -eq $hwnd) { 'null' } else { $hwnd.ToInt64() })"
                 }
@@ -215,26 +351,19 @@ public class WindowManager {
 
             if ($found -and $null -ne $pdfWindow -and $pdfWindow -ne [IntPtr]::Zero) {
                 Log "✅ Finestra PDF trovata: $($pdfWindow.ToInt64())"
-                Log "Esecuzione SetWindowPos per spostamento al monitor 2..."
-                $flags = [WindowManager]::SWP_SHOWWINDOW -bor [WindowManager]::SWP_NOZORDER
-                try {
-                    $result = [WindowManager]::SetWindowPos($pdfWindow, [IntPtr]::Zero, $x, $y, $w, $h, $flags)
-                    if ($result) {
-                        Log "✅ SetWindowPos SUCCESS - Finestra spostata al monitor secondario"
-                    } else {
-                        Log "⚠️  SetWindowPos ritorna FALSE"
+                Log "Esecuzione spostamento e fullscreen sul monitor 2..."
+                if (Move-And-MaximizeWindow $pdfWindow $x $y $w $h) {
+                    Log "✅ Finestra spostata e massimizzata sul monitor secondario"
+                } else {
+                    Log "⚠️  Move-And-MaximizeWindow non ha funzionato, provo comunque SetWindowPos e ShowWindow"
+                    try {
+                        $flags = [WindowManager]::SWP_SHOWWINDOW -bor [WindowManager]::SWP_NOZORDER
+                        [WindowManager]::SetWindowPos($pdfWindow, [IntPtr]::Zero, $x, $y, $w, $h, $flags) | Out-Null
+                        [WindowManager]::ShowWindow($pdfWindow, [WindowManager]::SW_SHOWMAXIMIZED) | Out-Null
+                        Log "✅ Tentativo alternativo di spostamento/masgimizzazione eseguito"
+                    } catch {
+                        Log "❌ Errore alternativo spostamento/masgimizzazione: $_"
                     }
-                } catch {
-                    Log "❌ ERRORE SetWindowPos: $_"
-                }
-
-                # Force fullscreen for all viewers
-                try {
-                    Log "Forzo schermo intero per tutti i viewer..."
-                    [WindowManager]::ShowWindow($pdfWindow, [WindowManager]::SW_SHOWMAXIMIZED) | Out-Null
-                    Log "✅ ShowWindow(SW_SHOWMAXIMIZED) chiamato per schermo intero"
-                } catch {
-                    Log "❌ Errore ShowWindow: $_"
                 }
             } else {
                 Log "⚠️  Finestra PDF non trovata dopo 15 secondi"
