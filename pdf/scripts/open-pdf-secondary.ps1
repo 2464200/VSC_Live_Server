@@ -1,7 +1,19 @@
 param([string]$FilePath, [string]$Viewer = 'auto', [string]$AdobePath = '')
 
+# Questo script apre un PDF sul monitor secondario in modo robusto.
+# - usa l'endpoint unificato /api/serve-pdf per servire il file via HTTP
+# - avvia Chrome o Acrobat secondo il viewer richiesto
+# - cerca window handle anche nei processi figli del viewer
+# - applica tentativi di spostamento e massimizzazione sul monitor secondario
+# - scrive un log dettagliato in c:\VSC_Live_Server\pdf-open.log
+
 # Logging
 $logFile = "c:\VSC_Live_Server\pdf-open.log"
+$logDir = Split-Path $logFile -Parent
+
+if (-not (Test-Path $logDir)) {
+    try { New-Item -ItemType Directory -Path $logDir -Force | Out-Null } catch {}
+}
 
 # Rotate log if > 5MB
 try {
@@ -70,8 +82,23 @@ public class WindowManager {
 }
 "@ -ErrorAction Stop
 
-    Add-Type -AssemblyName System.Web | Out-Null
+    # System.Windows.Forms è usato solo per rilevare i monitor disponibili
     Add-Type -AssemblyName System.Windows.Forms | Out-Null
+
+    function Get-ChildProcessIds($pid) {
+        # Include eventuali processi figli in cascata: utile per Chrome/Acrobat
+        try {
+            $children = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $pid }
+            $ids = @()
+            foreach ($child in $children) {
+                $ids += $child.ProcessId
+                $ids += Get-ChildProcessIds($child.ProcessId)
+            }
+            return $ids
+        } catch {
+            return @()
+        }
+    }
 
     function Get-WindowHandlesForPid($pid) {
         $handles = @()
@@ -87,6 +114,15 @@ public class WindowManager {
         }
         [WindowManager]::EnumWindows($callback, [IntPtr]::op_Explicit($pid)) | Out-Null
         return $handles
+    }
+
+    function Get-WindowHandlesForPidTree($rootPid) {
+        $pids = @($rootPid) + (Get-ChildProcessIds $rootPid)
+        $handles = @()
+        foreach ($pid in $pids | Select-Object -Unique) {
+            $handles += Get-WindowHandlesForPid $pid
+        }
+        return $handles | Select-Object -Unique
     }
 
     function Move-And-MaximizeWindow($hwnd, $x, $y, $w, $h) {
@@ -110,9 +146,9 @@ public class WindowManager {
         try {
             if ($args -and $args.Count -gt 0) {
                 Log "   Argomenti: $($args -join ' | ')"
-                return Start-Process -FilePath $exePath -ArgumentList $args -PassThru -WindowStyle Maximized
+                return Start-Process -FilePath $exePath -ArgumentList $args -PassThru -WindowStyle Normal
             } else {
-                return Start-Process -FilePath $exePath -PassThru -WindowStyle Maximized
+                return Start-Process -FilePath $exePath -PassThru -WindowStyle Normal
             }
         } catch {
             try { Log ("ERRORE avvio processo " + $exePath + ": " + $_.ToString()) } catch { }
@@ -122,8 +158,9 @@ public class WindowManager {
 
     function Open-With-Chrome($chromePath, $filePath, $x, $y, $w, $h) {
         # Usa l'endpoint serve-pdf del server unificato per aprire il PDF
-        $fileUrl = 'http://localhost:5500/api/serve-pdf?file=' + [System.Web.HttpUtility]::UrlEncode($filePath)
-        $args = @('--new-window', $fileUrl, '--disable-infobars', '--disable-session-crashed-bubble')
+        # Il viewer Chrome apre il PDF via HTTP, così il file viene servito correttamente.
+        $fileUrl = 'http://localhost:5500/api/serve-pdf?file=' + [System.Net.WebUtility]::UrlEncode($FilePath)
+        $args = @('--new-window', $fileUrl, '--disable-infobars', '--disable-session-crashed-bubble', '--disable-extensions', '--disable-background-networking')
         if ($null -ne $x -and $null -ne $y -and $null -ne $w -and $null -ne $h) {
             $args += "--window-position=$x,$y"
             $args += "--window-size=$w,$h"
@@ -334,11 +371,11 @@ public class WindowManager {
                 }
 
                 if ($i -eq 100 -and -not $found) {
-                    Log "   Non trovato main window: cerco finestre del PID $procId"
-                    $handles = Get-WindowHandlesForPid $procId
+                    Log "   Non trovato main window: cerco finestre del PID e dei processi figli $procId"
+                    $handles = Get-WindowHandlesForPidTree $procId
                     if ($handles.Count -gt 0) {
                         $pdfWindow = $handles[0]
-                        Log "   Trovati handle con PID: $($handles.Count)"
+                        Log "   Trovati handle con PID (inclusi figli): $($handles.Count)"
                         $found = $true
                         break
                     }
