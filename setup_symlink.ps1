@@ -1,8 +1,8 @@
 
 # === Configura i percorsi qui se diverso ===
 $Project = 'C:\VSC_Live_Server'
-$Target  = 'C:\VIDEOCLIP'
-$Link    = Join-Path $Project 'VIDEOCLIP'
+$Target  = 'C:\VSC_VIDEOCLIP'
+$Link    = Join-Path $Project 'VSC_VIDEOCLIP'
 
 Write-Host "===== Impostazione symlink ====="
 Write-Host "Progetto : $Project"

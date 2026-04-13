@@ -1,11 +1,11 @@
 
 # Play-Videoclip.ps1
-# Legge A1 da videoclip.csv, estrae le prime 3 cifre, cerca in C:\VIDEOCLIP
+# Legge A1 da videoclip.csv, estrae le prime 3 cifre, cerca in C:\VSC_VIDEOCLIP
 # un file che inizia con quel prefisso e lo apre col viewer predefinito.
 
 param(
     [string]$CsvPath = $null,
-    [string]$VideoFolder = "C:\VIDEOCLIP",
+    [string]$VideoFolder = "C:\VSC_VIDEOCLIP",
     [string[]]$Extensions = @('mp4','mov','mkv','avi','wmv','m4v','mpeg','mpg')
 )
 

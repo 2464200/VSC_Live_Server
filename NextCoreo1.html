@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NextCoreo</title>
         <style>
+        /* 📍 MENU DI NAVIGAZIONE */
+        nav { background: #222; padding: 10px; margin: 0 0 20px 0; border-radius: 5px; }
+        nav a { color: #ff7f00; margin: 0 12px; text-decoration: none; font-weight: bold; font-size: 13px; }
+        nav a:hover { text-decoration: underline; }
             body {
                 font-family: Arial, sans-serif;
                 margin: 40px;
@@ -52,6 +56,9 @@
                 text-align: center;
                 margin: 0 auto;        /* centrato nella pagina */
             }
+            #boxC {
+                max-width: 60%;
+            }
             #refreshIndicator {
                 width: 16px;
                 height: 16px;
@@ -74,12 +81,9 @@
         </style>
     </head>
     <body>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="NextCoreo2.html" class="active">NextCoreo2</a></li>
-            </ul>
-        </nav>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
+<div style="margin: 40px;">
 
         <h1 style="font-size:32px;">Benvenuto nella pagina PROSSIMA COREOGRAFIA</h1>
         <p style="font-size:14px;">Questa è una pagina separata da index.html. Puoi tornare alla Home usando il menu sopra.</p>
@@ -200,5 +204,6 @@
             aggiornaBox();
             scheduleRefresh();
         </script>
-    </body>
+    </div>
+</body>
     </html>

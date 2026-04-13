@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eventi - QR Code di connessione</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      color: #ffffff;
+      background: #050505;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top, #222 0%, #090909 40%, #020202 100%);
+      padding: 20px;
+    }
+    .card {
+      width: min(100%, 640px);
+      padding: 28px;
+      border-radius: 24px;
+      background: rgba(10, 10, 10, 0.95);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 160, 0, 0.18);
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+      color: #ffb74d;
+    }
+    p {
+      margin: 0;
+      line-height: 1.6;
+      color: #ddd;
+    }
+    .subtitle {
+      margin-bottom: 24px;
+      color: #bbb;
+      font-size: 1rem;
+    }
+    .qr-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 320px;
+      height: 320px;
+      padding: 20px;
+      border-radius: 32px;
+      background: #111;
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      margin-bottom: 20px;
+    }
+    .qr-box img {
+      width: 100%;
+      height: auto;
+      max-width: 280px;
+    }
+    .link-panel {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .link-panel a {
+      color: #ffb74d;
+      text-decoration: none;
+      font-weight: 700;
+      word-break: break-all;
+    }
+    .link-panel code {
+      display: block;
+      padding: 14px 16px;
+      font-size: 0.96rem;
+      color: #fff;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      overflow-wrap: anywhere;
+    }
+    .wifi-checklist {
+      text-align: left;
+      margin: 20px auto 0;
+      max-width: 520px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 183, 77, 0.15);
+      color: #ddd;
+    }
+    .wifi-checklist p {
+      margin: 0 0 10px;
+      font-weight: 700;
+      color: #ffb74d;
+    }
+    .wifi-checklist ul {
+      margin: 0;
+      padding-left: 20px;
+      line-height: 1.7;
+      color: #eee;
+    }
+    .wifi-checklist li {
+      margin-bottom: 8px;
+    }
+    .status {
+      margin-top: 18px;
+      font-size: 0.98rem;
+      color: #aaa;
+    }
+    .error {
+      color: #ff8a80;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Connessione Eventi</h1>
+    <p class="subtitle">Scansiona questo QR Code con un telefono, notebook o tablet collegato alla rete Wi-Fi evento.</p>
+
+    <div class="qr-box" id="qr-box">
+      <span id="qr-loading">Generazione QR in corso...</span>
+    </div>
+
+    <div class="link-panel">
+      <p>Link diretto:</p>
+      <a id="eventi-link" href="#" target="_blank" rel="noreferrer">URL non ancora generato</a>
+      <code id="eventi-url">--</code>
+    </div>
+
+    <div class="wifi-checklist">
+      <p><strong>Wi-Fi evento</strong></p>
+      <ul>
+        <li>Connettiti alla rete <strong>Vodafone-Eventi-DJ</strong></li>
+        <li>Password: <strong>12345678</strong></li>
+        <li>Apri il link del QR o vai a <em>eventi.html</em></li>
+        <li>Usa lo stesso IP/Gateway locale: <strong>192.168.1.254</strong></li>
+      </ul>
+    </div>
+
+    <p class="status" id="status-text">Se il QR non viene visualizzato, ricarica la pagina.</p>
+  </div>
+
+  <script>
+    async function loadQrPage() {
+      const statusText = document.getElementById('status-text');
+      const qrBox = document.getElementById('qr-box');
+      const qrLoading = document.getElementById('qr-loading');
+      const eventLink = document.getElementById('eventi-link');
+      const eventUrl = document.getElementById('eventi-url');
+
+      try {
+        const protocol = window.location.protocol || 'http:';
+        const port = window.location.port;
+        const apiOrigin = (window.location.protocol === 'file:' || (port && port !== '5500'))
+          ? 'http://127.0.0.1:5500'
+          : window.location.origin || `${protocol}//${window.location.hostname || '127.0.0.1'}${port ? `:${port}` : ''}`;
+
+        const response = await fetch(`${apiOrigin}/eventi/api/qr?ts=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('Impossibile recuperare il QR dal server');
+        const data = await response.json();
+        if (!data.ok || !data.url || !data.dataUrl) {
+          throw new Error(data.error || 'Risposta API non valida');
+        }
+
+        qrBox.innerHTML = `<img src="${data.dataUrl}" alt="QR Code per Eventi" />`;
+        eventLink.href = data.url;
+        eventLink.textContent = data.url;
+        eventUrl.textContent = data.url;
+        statusText.textContent = 'Apri il link sul dispositivo o scansiona il QR code.';
+      } catch (err) {
+        qrBox.innerHTML = `<span class="error">Errore: ${err.message}</span>`;
+        statusText.textContent = 'Verifica che il server sia in esecuzione e che la pagina sia servita da un host accessibile in rete.';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadQrPage);
+  </script>
+</body>
+</html>

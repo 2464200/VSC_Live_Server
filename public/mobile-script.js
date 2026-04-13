@@ -161,6 +161,7 @@ if (resumeButton) {
   });
 }
 
+
 /* ===========================
    SCROLL FLUIDO CON requestAnimationFrame
    =========================== */
@@ -466,6 +467,16 @@ async function scheduleRefresh() {
   refreshTimeoutId = setTimeout(scheduleRefresh, REFRESH_MS);
 }
 
+// adjust scroll container position to avoid overlapping header
+function adjustScrollContainer() {
+  const header = document.querySelector('.header');
+  if (header && scrollContainer) {
+    const h = header.offsetHeight;
+    scrollContainer.style.top = h + 'px';
+  }
+}
+window.addEventListener('resize', adjustScrollContainer);
+
 // visibility handling to save resources on TV
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -490,6 +501,8 @@ document.addEventListener('keydown', e => {
 
 // init load
 scheduleRefresh();
+// layout adjustment
+adjustScrollContainer();
 
 /* ===========================
    INIZIALIZZAZIONE GENERALE

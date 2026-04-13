@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coreografie Aggiuntive</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    const cacheBust = '?v=' + Date.now();
+    document.write('<script defer src="event-navigation.js' + cacheBust + '"><\/script>');
+    document.write('<script defer src="inactivity-return.js' + cacheBust + '"><\/script>');
+    document.write('<script defer src="api-helper.js' + cacheBust + '"><\/script>');
+    document.write('<script defer src="coreografie-aggiuntive.js' + cacheBust + '"><\/script>');
+  </script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => renderCoreografieAggiuntive());
+  </script>
+</head>
+<body>
+  <h1>Coreografie Aggiuntive</h1>
+  <div class="nav">
+    <button class="attention-pulse-button" onclick="goEventiPage('eventi.html')">Torna alla pagina principale</button>
+    <button onclick="goEventiPage('spuntati.html')">Eseguiti</button>
+    <button onclick="goEventiPage('non-spuntati.html')">Non eseguiti</button>
+    <button onclick="goEventiPage('prenotati.html')">Prenotati</button>
+    <button onclick="goEventiPage('statistiche-dj.html')">Statistiche DJ</button>
+    <button onclick="goEventiPage('visualizer.html')">Apri visualizer</button>
+  </div>
+  <div class="tools-row">
+    <input id="search-input" type="text" placeholder="Cerca per coreografia, brano o autore..." />
+    <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
+  </div>
+  <hr />
+  <div id="lista-render"></div>
+
+  <!-- Modal di modifica: rimane nascosto al caricamento e si apre solo quando l'utente clicca "Modifica" -->
+  <div id="edit-modal" class="modal" hidden>
+    <div class="modal-content">
+      <div class="modal-header">
+        <strong>Modifica Coreografia</strong>
+        <button type="button" class="modal-close" id="btn-modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <label>
+          <span>ID</span>
+          <input id="edit-id" type="text" disabled />
+        </label>
+        <label>
+          <span>Coreografia *</span>
+          <input id="edit-coreografia" type="text" placeholder="Titolo coreografia" />
+        </label>
+        <label>
+          <span>Brano</span>
+          <input id="edit-brano" type="text" placeholder="Titolo brano" />
+        </label>
+        <label>
+          <span>Autore</span>
+          <input id="edit-autore" type="text" placeholder="Autore / artista" />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-save-edit" type="button">Salva</button>
+        <button id="btn-cancel-edit" type="button">Annulla</button>
+      </div>
+      <div id="edit-status" class="status-note" hidden></div>
+    </div>
+  </div>
+</body>
+</html>

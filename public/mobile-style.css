@@ -13,6 +13,9 @@ body {
 }
 
 /* Header */
+
+
+/* Header */
 .header {
   position: fixed;
   top: 0;
@@ -74,7 +77,11 @@ logo h1 {
 }
 .btn-menu:active { transform: scale(0.95); }
 
-/* ⭐ NASCONDI MENU E CONTROLLI DALL'UI ⭐ */
+/* ⭐ controlli menu normalmente visibili su mobile ⭐ */
+/* la sezione precedente nascondeva il pannello e il bottone menu, ma era stata
+   usata solo per modalità kiosk; lasciamo il menu accessibile di default */
+
+/*
 .menu-panel {
   display: none !important;
 }
@@ -86,6 +93,7 @@ logo h1 {
 .btn-menu {
   display: none !important;
 }
+*/
 
 /* Menu Panel (nascosto) */
 .menu-panel {
@@ -241,7 +249,7 @@ logo h1 {
 /* Scroll Container */
 .scroll-container {
   position: fixed;
-  top: 185px;
+  top: 0; /* sarà impostato dinamicamente da JS per evitare sovrapposizioni */
   left: 0;
   right: 0;
   bottom: 0;

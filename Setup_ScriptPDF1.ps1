@@ -2,7 +2,7 @@
 # Questo script:
 # 1. Verifica e installa Node.js se necessario
 # 2. Installa le dipendenze npm
-# 3. Crea la cartella C:\SCRIPT_PDF
+# 3. Crea la cartella C:\VSC_SCRIPT_PDF
 # 4. Avvia il sistema
 
 Write-Host "`n======================================"
@@ -50,9 +50,9 @@ try {
 }
 Pop-Location
 
-# 3. Crea cartella C:\SCRIPT_PDF
-Write-Host "`n3️⃣  Creazione cartella C:\SCRIPT_PDF..."
-$pdfFolder = "C:\SCRIPT_PDF"
+# 3. Crea cartella C:\VSC_SCRIPT_PDF
+Write-Host "`n3️⃣  Creazione cartella C:\VSC_SCRIPT_PDF..."
+$pdfFolder = "C:\VSC_SCRIPT_PDF"
 if (-not (Test-Path $pdfFolder)) {
     New-Item -ItemType Directory -Path $pdfFolder -Force | Out-Null
     Write-Host "   ✓ Cartella creata"

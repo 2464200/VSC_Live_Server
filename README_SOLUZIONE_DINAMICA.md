@@ -198,6 +198,44 @@ Tutti gli altri file rimangono invariati.
 ✓ Nessun hardcoding
 
 PRONTO AL DEPLOY! 🚀
+
+---
+
+## 🧹 Linee guida per mantenere il codice pulito
+Per evitare warning, errori in fase di editing e garantire che il progetto rimanga leggibile
+nel tempo, segui questi semplici consigli:
+
+1. **Niente righe estranee nei CSS/JS**
+   - Non lasciare istruzioni VBA/`Print #fileHTML` o testo non pertinente nei fogli di
+     stile. Queste causano errori nel Problems view.
+   - Un semplice `grep -R "Print #fileHTML" .` nella root segnala eventuali residui.
+
+2. **Commenti e TODO**
+   - Usa i commenti `// TODO` o `/* FIXME */` per annotare lavoro in sospeso e
+     rimuovili quando non sono più necessari.
+   - Evita di conservare codice commentato per mesi; se serve, spostalo in
+     `archivio/` o in un backup separato.
+
+3. **Condivisione del CSS**
+   - Le pagine HTML usano tutti `style.css`. Inserisci stili comuni lì e mantieni
+     il file snello; se serve un override locale, aggiungilo inline vicino alla
+     porzione interessata.
+
+4. **Verifiche automatiche**
+   - Integra un task `npm run lint` o un pre‑commit hook che lanci `stylelint`/
+     `eslint` oppure le ricerche di cui sopra.
+   - Un controllo di base potrebbe essere:
+     ```powershell
+     if (grep -R "Print #fileHTML" .) { throw "Sanifica il CSS prima di committare" }
+     ```
+
+5. **Archiviazione storica**
+   - La cartella `archivio/` contiene materiale vecchio: va tenuta fuori dalla
+     distribuzione o rimossa se non serve.
+
+Seguendo queste regole il repository rimane leggero, privo di errori di linting
+e più facile da capire per chiunque dovrà intervenire in futuro.
+
 ```
 
 ---

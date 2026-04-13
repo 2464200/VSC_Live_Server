@@ -12,18 +12,11 @@
             color: white;
             text-align: center;
         }
-        nav ul {
-            list-style: none;
-            padding: 0;
-        }
-        nav ul li {
-            display: inline;
-            margin-right: 15px;
-        }
-        nav ul li a {
-            text-decoration: none;
-            color: #ffa500; /* arancione */
-        }
+        /* 📍 MENU DI NAVIGAZIONE */
+        nav { background: #222; padding: 10px; margin: 0 0 20px 0; border-radius: 5px; }
+        nav a { color: #ff7f00; margin: 0 12px; text-decoration: none; font-weight: bold; font-size: 13px; }
+        nav a:hover { text-decoration: underline; }
+        nav ul { list-style: none; padding: 0; }
         h2 {
             color: #ffa500;
             font-size: 22px;
@@ -37,7 +30,7 @@
         }
         .row {
             position: relative; /* contenitore per titolo e box */
-            margin: 45px 0;     /* spazio tra le righe */
+            margin: 60px 0;     /* spazio tra le righe */
         }
         .box {
             background-color: #ffa500;
@@ -51,6 +44,12 @@
             box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
             text-align: center;
             margin: 0 auto;        /* centrato nella pagina */
+        }
+        #boxC {
+            max-width: 60%;
+        }
+        #boxA {
+            font-size: 40px;
         }
         #refreshIndicator {
             width: 16px;
@@ -74,25 +73,17 @@
     </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="NextCoreo1.html" class="active">NextCoreo1</a></li>
-        </ul>
-    </nav>
+    <div id="global-nav-container"></div>
+<script src="/nav.js"></script>
+    <div style="margin: 40px;">
 
-    <h1 style="font-size:32px;">Benvenuto nella pagina PRSSIMA COREOGRAFIA</h1>
-    <p style="font-size:14px;">Questa è una pagina separata da index.html. Puoi tornare alla Home usando il menu sopra.</p>
+    <h1 style="font-size:32px;\">Benvenuto nella pagina PROSSIMA COREOGRAFIA</h1>
+    <p style="font-size:14px;">Puoi navigare tra le pagine, o tornare alla Home, usando il menu sopra.</p>
 
     <!-- Titolo a sinistra e box centrato -->
     <div class="row">
         <h2>Prossima Coreo:</h2>
         <div id="boxA" class="box" aria-live="polite" aria-atomic="true">Caricamento B1...</div>
-    </div>
-
-    <div class="row">
-        <h2>Livello:</h2>
-        <div id="boxB" class="box" aria-live="polite" aria-atomic="true">Caricamento C1...</div>
     </div>
 
     <div class="row">
@@ -162,7 +153,6 @@
                 const first = rows.find(r => r && r.length) || [];
 
                 document.getElementById('boxA').textContent = (first[1] || '—').toString().trim();
-                document.getElementById('boxB').textContent = (first[2] || '—').toString().trim();
                 document.getElementById('boxC').textContent = (first[3] || '—').toString().trim();
 
                 indicator.style.backgroundColor = '#ffa500';
@@ -173,7 +163,6 @@
                 document.getElementById('lastUpdate').textContent = 'Ultimo aggiornamento: ' + now.toLocaleTimeString();
             } catch (err) {
                 document.getElementById('boxA').textContent = 'Errore nel caricamento B1';
-                document.getElementById('boxB').textContent = 'Errore nel caricamento C1';
                 document.getElementById('boxC').textContent = 'Errore nel caricamento D1';
                 indicator.style.backgroundColor = 'red';
                 indicator.style.animation = 'pulse 1s ease';

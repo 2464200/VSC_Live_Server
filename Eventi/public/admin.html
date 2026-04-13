@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin EVENTI - Gestione Backend</title>
+  <script defer src="inactivity-return.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .nav {
+      background: #222;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+
+    .nav a {
+      color: #ff7f00;
+      margin: 0 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .nav a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #222;
+      padding: 30px;
+      border-radius: 10px;
+    }
+
+    h1 {
+      color: #ff7f00;
+      text-align: center;
+    }
+
+    .section {
+      margin: 30px 0;
+      padding: 25px;
+      background: #1a1a1a;
+      border-radius: 5px;
+      border-left: 4px solid #ff7f00;
+    }
+
+    .section h2 {
+      color: #ff7f00;
+      margin-top: 0;
+    }
+
+    .section.section-extra {
+      border-left-color: #28a745;
+    }
+
+    .section.section-extra h2 {
+      color: #28a745;
+    }
+
+    button {
+      background: #ff7f00;
+      color: #000;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+      margin: 10px 5px 10px 0;
+    }
+
+    button:hover {
+      background: #ffaa33;
+    }
+
+    button:active {
+      background: #dd6600;
+    }
+
+    button:disabled {
+      background: #666;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .btn-extra {
+      background: #28a745;
+      color: #fff;
+    }
+
+    .btn-extra:hover {
+      background: #35be57;
+    }
+
+    .btn-extra:active {
+      background: #218838;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+    }
+
+    .status.success {
+      background: #28a745;
+      color: #fff;
+      display: block;
+    }
+
+    .status.error {
+      background: #dc3545;
+      color: #fff;
+      display: block;
+    }
+
+    .status.info {
+      background: #17a2b8;
+      color: #fff;
+      display: block;
+    }
+
+    .info-box {
+      background: #333;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+      border-left: 3px solid #17a2b8;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .info-box code {
+      background: #1a1a1a;
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: #66ff00;
+      font-family: "Courier New", monospace;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .stat-box {
+      background: #333;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+      border-top: 3px solid #ff7f00;
+    }
+
+    .section-extra .stat-box {
+      border-top-color: #28a745;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: bold;
+      color: #ff7f00;
+    }
+
+    .section-extra .stat-number {
+      color: #28a745;
+    }
+
+    .stat-label {
+      color: #aaa;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #ff7f00;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .section-extra .loading {
+      border-color: #28a745;
+      border-top-color: transparent;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 700px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/eventi/eventi.html">Torna a Eventi</a>
+  <a href="/eventi/dj-manager.html">DJ Manager</a>
+</div>
+
+<div class="container">
+  <h1>Admin EVENTI</h1>
+
+  <div class="section">
+    <h2>Sincronizza Brani dal CSV</h2>
+
+    <p>Legge automaticamente <code>Elenco_Brani_statico.csv</code> e, se presente, unisce anche <code>Coreografie_Aggiuntive.csv</code> aggiornando il database dei brani.</p>
+
+    <button id="btn-sync" onclick="sincronizzaBrani()">Sincronizza Brani Ora</button>
+
+    <div id="sync-status" class="status"></div>
+
+    <div class="info-box">
+      <strong>Endpoint API:</strong><br>
+      <code>GET /eventi/api/sync-brani</code><br><br>
+      <strong>File CSV:</strong><br>
+      <code>Elenco_Brani_statico.csv</code><br>
+      <code>Coreografie_Aggiuntive.csv</code> (opzionale, per nuove coreografie)<br><br>
+      <strong>Output:</strong><br>
+      <code>data/brani.json</code>
+    </div>
+
+    <div class="stats">
+      <div class="stat-box">
+        <div id="brani-count" class="stat-number">--</div>
+        <div class="stat-label">Brani Totali Caricati</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label" style="margin-top: 0;">Ultimo aggiornamento</div>
+        <div style="font-size: 12px; margin-top: 8px; color: #aaa;" id="sync-time">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section section-extra">
+    <h2>Sincronizzazione Brani Aggiuntivi</h2>
+
+    <p>Questa area mostra in modo separato le coreografie salvate in <code>Coreografie_Aggiuntive.csv</code>. La sincronizzazione usa lo stesso flusso generale, ma qui trovi stato e contatori dedicati ai soli brani extra.</p>
+
+    <button id="btn-sync-extra" class="btn-extra" onclick="sincronizzaBraniAggiuntivi()">Sincronizza Brani Aggiuntivi</button>
+
+    <div id="sync-extra-status" class="status"></div>
+
+    <div class="info-box">
+      <strong>File CSV aggiuntivo:</strong><br>
+      <code>Coreografie_Aggiuntive.csv</code><br><br>
+      <strong>Nota:</strong><br>
+      i brani extra vengono uniti all'elenco principale durante la sincronizzazione; eventuali duplicati per ID o titolo vengono ignorati automaticamente.
+    </div>
+
+    <div class="stats">
+      <div class="stat-box">
+        <div id="extra-count" class="stat-number">--</div>
+        <div class="stat-label">Brani Aggiuntivi Trovati</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label" style="margin-top: 0;">Ultima sincronizzazione extra</div>
+        <div style="font-size: 12px; margin-top: 8px; color: #aaa;" id="extra-sync-time">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>DJ Database</h2>
+    <button onclick="scaricaDJ()">Scarica DJ (JSON)</button>
+    <div id="dj-count" class="info-box" style="margin-top: 15px;">
+      Caricamento...
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Log & Cronologia</h2>
+    <button onclick="scaricaLog()">Scarica Log (JSON)</button>
+    <button onclick="esportaCsv()">Esporta CSV</button>
+    <div id="log-count" class="info-box" style="margin-top: 15px;">
+      Caricamento...
+    </div>
+  </div>
+</div>
+
+<script src="api-helper.js"></script>
+<script>
+function aggiornaStatisticheBrani(data) {
+  const now = new Date().toLocaleString('it-IT');
+  document.getElementById('brani-count').textContent = data.count ?? '--';
+  document.getElementById('extra-count').textContent = data.extraCount ?? 0;
+  document.getElementById('sync-time').textContent = now;
+  document.getElementById('extra-sync-time').textContent = now;
+}
+
+async function eseguiSyncBrani({ buttonId, statusId, loadingText, idleText, successText }) {
+  const btn = document.getElementById(buttonId);
+  const statusDiv = document.getElementById(statusId);
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="loading"></span> ${loadingText}`;
+  statusDiv.className = 'status info';
+  statusDiv.textContent = 'Sincronizzazione in corso...';
+
+  try {
+    const res = await eventiFetch('/sync-brani');
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error);
+    }
+
+    aggiornaStatisticheBrani(data);
+    statusDiv.className = 'status success';
+    statusDiv.textContent = `${successText} Principale: ${data.baseCount || 0}, aggiuntivi: ${data.extraCount || 0}.`;
+  } catch (e) {
+    statusDiv.className = 'status error';
+    statusDiv.textContent = `Errore: ${e.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = idleText;
+  }
+}
+
+async function sincronizzaBrani() {
+  await eseguiSyncBrani({
+    buttonId: 'btn-sync',
+    statusId: 'sync-status',
+    loadingText: 'Sincronizzazione...',
+    idleText: 'Sincronizza Brani Ora',
+    successText: 'Sincronizzazione completata.'
+  });
+}
+
+async function sincronizzaBraniAggiuntivi() {
+  await eseguiSyncBrani({
+    buttonId: 'btn-sync-extra',
+    statusId: 'sync-extra-status',
+    loadingText: 'Sincronizzazione extra...',
+    idleText: 'Sincronizza Brani Aggiuntivi',
+    successText: 'Brani aggiuntivi sincronizzati.'
+  });
+}
+
+async function caricaStats() {
+  try {
+    const djRes = await eventiFetch('/dj');
+    const dj = await djRes.json();
+    document.getElementById('dj-count').textContent = `${dj.length} DJ registrati`;
+
+    const logRes = await eventiFetch('/log');
+    const log = await logRes.json();
+    document.getElementById('log-count').textContent = `${log.length} eventi registrati`;
+
+    const braniRes = await eventiFetch('/brani');
+    const brani = await braniRes.json();
+    document.getElementById('brani-count').textContent = brani.length;
+    document.getElementById('extra-count').textContent = brani.filter(item => String(item.id || '').startsWith('EXTRA-')).length;
+  } catch (e) {
+    console.error('Errore caricamento stats:', e);
+  }
+}
+
+function scaricaDJ() {
+  eventiFetch('/dj')
+    .then(r => r.json())
+    .then(d => downloadJSON(d, 'dj.json'));
+}
+
+function scaricaLog() {
+  eventiFetch('/log')
+    .then(r => r.json())
+    .then(d => downloadJSON(d, 'log.json'));
+}
+
+async function esportaCsv() {
+  try {
+    const res = await eventiFetch('/export-csv');
+    const data = await res.json();
+    if (res.ok) {
+      alert('CSV esportato: ' + data.csv);
+      window.open(data.csv, '_blank');
+    } else {
+      alert(data.error);
+    }
+  } catch (e) {
+    alert('Errore export CSV');
+  }
+}
+
+function downloadJSON(data, filename) {
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  caricaStats();
+});
+</script>
+
+</body>
+</html>

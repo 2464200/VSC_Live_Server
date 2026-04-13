@@ -1,0 +1,20 @@
+[
+  {
+    "id": "412",
+    "stato": "prenotato",
+    "timestamp": "2026-04-09T06:40:30.849Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-04-09T06:41:11.097Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "008",
+    "stato": "eseguito",
+    "timestamp": "2026-04-09T06:41:13.257Z",
+    "dj": "DJ Lucas Berry"
+  }
+]

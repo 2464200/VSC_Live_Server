@@ -28,9 +28,15 @@ code {
     border-radius: 3px;
     color: #ff7f00;
 }
+/* 📍 MENU DI NAVIGAZIONE */
+nav { background: #222; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+nav a { color: #ff7f00; margin: 0 12px; text-decoration: none; font-weight: bold; font-size: 13px; }
+nav a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
 <h1>🧪 Test ScriptPDF1</h1>
 
 <div id="tests"></div>
@@ -95,11 +101,11 @@ async function runTests() {
     });
 
     // Test 5: Lista PDF caricata
-    await addTest('Cartella C:\\SCRIPT_PDF contiene file PDF', async () => {
+    await addTest('Cartella C:\\VSC_SCRIPT_PDF contiene file PDF', async () => {
         const response = await fetch('http://localhost:8765/api/pdf-list');
         const data = await response.json();
         if (data.files.length === 0) {
-            throw new Error('Nessun file PDF trovato in C:\\SCRIPT_PDF');
+            throw new Error('Nessun file PDF trovato in C:\\VSC_SCRIPT_PDF');
         }
     });
 

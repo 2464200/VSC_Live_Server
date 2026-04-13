@@ -1,15 +1,118 @@
 # ✅ CHANGELOG - Correzioni Applicate per Stabilità
 
-## Data: 20 Febbraio 2026
-## Stato: ✅ STABILE E FUNZIONANTE
+## Data: 9 Aprile 2026
+## Stato: ✅ STABILE E FUNZIONANTE - Fix Modal Coreografie + Stabilizzazione PDF Server
+
+## Data: 9 Aprile 2026
+## Stato: ✅ STABILE E FUNZIONANTE - Fix Modal Coreografie + Stabilizzazione PDF Server + Verifica Integrità
+
+### ✅ Verifica Integrità Progetto (9 Aprile 2026)
+
+#### **Obiettivo**: Assicurare che i fix PDF non interrompessero il resto del progetto
+- ✅ Analisi sistematica di tutti i moduli
+- ✅ Ricerca di conflitti di porta/URL
+- ✅ Verifica isolamento moduli
+- ✅ Zero interferenze rilevate
+
+#### **Problemi Trovati e Corretti**:
+1. `ScriptPDF1_prova.html` - Usa ancora `localhost` ❌ → ✅ Allineato a 127.0.0.1
+2. `pdf-viewer.html` - Codice duplicato e conflittuale ❌ → ✅ Pulito e consolidato
+3. `/Prova/ScriptPDF1.html` - Non allineato ❌ → ✅ Allineato a 127.0.0.1
+
+#### **Risultato**:
+✅ Tutti i client PDF (4 file) utilizzano URL consistente: `http://127.0.0.1:8765`
+✅ Modulo Eventi completamente isolato su porta 5500
+✅ Nessun conflitto fra moduli
+✅ Backward compatibility garantita
+✅ Documentazione: `INTEGRITY_CHECK_20260409.md`
+
+---
+
+### 🔧 Fix PDF Server (9 Aprile 2026)
+
+#### **Problemi Identificati**: ❌
+- Endpoint `/api/health` mancante → Server non poteva essere verificato
+- Endpoint `/api/pdf-log-tail` mancante → Log non visualizzabili
+- URL inconsistenti: client usa `localhost`, server risponde su `127.0.0.1`
+- Timeout 3s troppo breve → False negatives su connessioni intermittenti
+- No retry logic → Fallimento su primo timeout
+
+#### **Soluzioni Applicate**: ✅
+1. **Aggiunto `/api/health`** - Endpoint per verificare server alive
+2. **Aggiunto `/api/pdf-log-tail`** - Sistema di logging interno del server
+3. **Normalizzato tutti i client** a usare `127.0.0.1:8765` (non `localhost`)
+4. **Implementato Timeout + Retry**:
+   - Timeout aumentato da 3s a 8s (configurabile)
+   - Retry logic con backoff esponenziale (500ms, 1000ms)
+   - Max 2 tentativi per connessione intermittente
+5. **Migliorato Error Handling**:
+   - Differenziazione fra timeout e errori di rete
+   - Logging dettagliato di ogni tentativo
+   - Messaggi di errore descrittivi
+6. **Aggiunto supporto ESC** in pdf-viewer.html per chiudere con tasto
+
+#### **File Modificati**:
+- ✅ `pdf-server.js` - Aggiunto `/api/health`, `/api/pdf-log-tail`, logging
+- ✅ `ScriptPDF1.html` - URL 127.0.0.1, timeout 8s, retry logic
+- ✅ `pdf-viewer.html` - URL 127.0.0.1, ESC handler, closePdfViewer()
+
+#### **Risultato**:
+✅ Connessioni intermittenti supportate tramite retry
+✅ Timeout robusti e configurabili
+✅ Diagnostica server migliorata via `/api/health`
+✅ UX migliorata (ESC per chiudere viewer)
+✅ Documentazione: `README_PDF_FIXES.md`
+
+---
+
+### 🔧 Fix Modal Coreografie Aggiuntive (9 Aprile 2026)
+
+#### **Problema**: Modal di modifica si apriva automaticamente
+- ❌ Modal visibile al caricamento della pagina
+- ❌ Pulsanti X, Salva, Annulla non funzionali
+
+#### **Soluzione Applicata**: ✅
+1. **Aggiunta regola CSS** in `Eventi/public/style.css`:
+   ```css
+   .modal[hidden] {
+     display: none !important;
+   }
+   ```
+   - Mancava la regola CSS per nascondere il modal quando ha attributo `hidden`
+
+2. **Protezione listener duplicati** in `Eventi/public/coreografie-aggiuntive.js`:
+   - Aggiunto flag `_listenerAttached` su ogni pulsante
+   - Eseguita funzione `setupModalEventListeners()` una sola volta
+   - Evita listener multipli che causavano malfunzionamento pulsanti
+
+3. **Aggiunto controllo esplicito** in `renderCoreografieAggiuntive()`:
+   - Assicura che il modal rimanga `hidden` al caricamento
+
+#### **File Modificati**:
+- ✅ `Eventi/public/style.css` - Aggiunta regola `.modal[hidden]`
+- ✅ `Eventi/public/coreografie-aggiuntive.js` - Fix protezione listener
+- ✅ `Eventi/public/coreografie-aggiuntive.html` - Commento chiarificatore
+- ✅ `Eventi/README_EVENTI.md` - Documentazione aggiornata
+- ✅ `Eventi/VERIFICA_NUOVE_FUNZIONALITA.md` - Documentazione aggiornata
+
+#### **Risultato**:
+✅ Pagina carica mostrando SOLO l'elenco dei brani aggiuntivi
+✅ Modal rimane nascosto
+✅ Tutti i pulsanti (X, Salva, Annulla) funzionano perfettamente
+✅ Modifica si apre solo su richiesta utente (click "Modifica")
+
+---
+
+## Data: 4 Aprile 2026
+## Stato: ✅ STABILE E FUNZIONANTE - Aggiornato con automazione completa
 
 ---
 
 ## 📝 Sommario Correzioni
 
-Tutte le pagine HTML e gli script sono stati rivisti e corretti per garantire **stabilità e funzionamento affidabile**.
+Tutte le pagine HTML e gli script sono stati rivisti e corretti per garantire **stabilità e funzionamento affidabile**. Aggiunta automazione completa per virtual environment e generazione dati.
 
-### 🔧 Problemi risolti:
+### 🔧 Problemi risolti (Aggiornati):
 
 1. **URL localhost non stabili** → Aggiornato a `127.0.0.1` con porta specifica
 2. **Cache del browser causa errori** → Aggiunto cache-busting `?t=Date.now()`
@@ -17,6 +120,9 @@ Tutte le pagine HTML e gli script sono stati rivisti e corretti per garantire **
 4. **PDF Server non sempre disponibile** → Creati script PowerShell di auto-avvio/stop
 5. **Errori non chiari agli utenti** → Aggiunto error handling e messaggi descrittivi
 6. **Nessun meccanismo di diagnostica** → Creato file `diagnostica.html` per test automatici
+7. **Virtual environment richiede attivazione manuale** → Risolto con percorsi assoluti Python
+8. **Generazione dati report non automatica** → Integrata in startup.ps1
+9. **Documentazione non aggiornata** → Aggiunte istruzioni AI e skill di gestione CSV
 
 ---
 
@@ -194,6 +300,39 @@ npx http-server -c-1
 Apri: `http://127.0.0.1:5500/diagnostica.html`
 
 Clicca "Esegui tutti i test" per verificare che tutto funziona.
+
+---
+
+## 📅 Aggiornamenti 4 Aprile 2026
+
+### 🔧 Nuove Funzionalità Aggiunte
+
+#### 1. **Automazione Completa Startup** ✏️
+- ✅ Modificato `startup.ps1` per eseguire automaticamente `generate_report_data.py` all'avvio
+- ✅ Eliminata necessità di attivazione manuale virtual environment (usa percorso assoluto Python)
+- ✅ Sistema completamente operativo senza comandi manuali aggiuntivi
+
+#### 2. **Istruzioni AI per Workspace** 🆕
+- ✅ Creato `.github/copilot-instructions.md` con guide complete per agenti AI
+- ✅ Documentate convenzioni progetto (CSV parsing, cache-busting, etc.)
+- ✅ Include esempi e linee guida per manutenzione
+
+#### 3. **Skill CSV Manager** 🆕
+- ✅ Creato `.github/skills/csv-manager/` con SKILL.md e script
+- ✅ Script `validate_csv.py` per validazione struttura CSV
+- ✅ Script `sync_csvs.ps1` per sincronizzazione root ↔ public/
+- ✅ Skill invocabile con `/csv-manager` per gestione sicura CSV
+
+#### 4. **Prompt Firebase Deploy** 🆕
+- ✅ Creato `.github/prompts/firebase-deploy.prompt.md`
+- ✅ Automatizza deployment con checklist pre-deploy
+- ✅ Include sync CSV, test locali, deploy e verifica post-deploy
+
+#### 5. **Risoluzione Virtual Environment** ✅
+- ✅ Risolto errore "script not digitally signed" con `-ExecutionPolicy Bypass`
+- ✅ Script Python usano percorso assoluto, no attivazione manuale richiesta
+
+---
 
 ---
 

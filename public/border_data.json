@@ -1,29 +1,29 @@
 {
-  "totale_eseguite": 15,
-  "eseguite": 5,
-  "non_eseguite": 10,
-  "richieste_qr": 114,
-  "coreografia_piu_richiesta": "IT'S AMERICA",
-  "conteggio_piu_richiesta": 3,
+  "totale_eseguite": 0,
+  "eseguite": 0,
+  "non_eseguite": 93,
+  "richieste_qr": 59,
+  "coreografia_piu_richiesta": "CHEERLEADER",
+  "conteggio_piu_richiesta": 4,
   "top_5": [
     {
-      "nome": "IT'S AMERICA",
-      "conteggio": 3
+      "nome": "CHEERLEADER",
+      "conteggio": 4
     },
     {
-      "nome": "DOCTOR DOCTOR",
+      "nome": "IRISH STEW",
       "conteggio": 3
     },
     {
       "nome": "A BAR SONG",
-      "conteggio": 3
+      "conteggio": 2
     },
     {
-      "nome": "ALL SHOOK UP",
-      "conteggio": 3
+      "nome": "3 TEQUILA FLOOR",
+      "conteggio": 2
     },
     {
-      "nome": "XXX",
+      "nome": "LIQUOR TALKING",
       "conteggio": 2
     }
   ]

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EVENTI - Selezione Coreografie</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="event-navigation.js"></script>
+  <script defer src="inactivity-return.js"></script>
+  <script defer src="api-helper.js"></script>
+  <script defer src="stati.js"></script>
+  <script defer src="eventi.js"></script>
+</head>
+<body>
+  <h1>Elenco Coreografie da eseguire / eseguite dai DJ</h1>
+
+  <div class="header">
+    <label>
+      DJ:&nbsp;
+      <select id="dj-input" class="attention-pulse-control">
+        <option value="">-- Seleziona DJ --</option>
+      </select>
+    </label>
+    <a href="dj-manager.html" style="color: #ff7f00; text-decoration: none; margin-left: 15px; font-weight: bold;">Gestisci DJ</a>
+    <button onclick="window.open('/eventi/qr.html', '_blank');" style="margin-left: 15px; background:#ff7f00; color:#111; border:none; padding:8px 14px; border-radius:12px; font-weight:700; cursor:pointer;">QR Eventi</button>
+    <span id="dj-saved" class="badge" style="display:none;">Salvato</span>
+    <button id="btn-add-coreo" class="attention-pulse-button">Nuova coreografia</button>
+    <button id="btn-export">Esporta CSV</button>
+    <button id="btn-reset-times">Reset date e orari</button>
+  </div>
+
+  <div id="extra-coreo-panel" class="extra-coreo-panel" hidden>
+    <div class="extra-coreo-card">
+      <div class="extra-coreo-head">
+        <strong>Inserisci nuova coreografia</strong>
+        <span class="status-note">Salvataggio in Coreografie_Aggiuntive.csv</span>
+      </div>
+      <div class="extra-coreo-grid">
+        <label>
+          <span>Coreografia *</span>
+          <input id="extra-titolo" type="text" placeholder="Titolo coreografia" />
+        </label>
+        <label>
+          <span>Brano</span>
+          <input id="extra-brano" type="text" placeholder="Titolo brano" />
+        </label>
+        <label>
+          <span>Autore</span>
+          <input id="extra-autore" type="text" placeholder="Autore / artista" />
+        </label>
+        <label>
+          <span>ID opzionale</span>
+          <input id="extra-id" type="text" placeholder="Lascia vuoto per ID automatico" />
+        </label>
+      </div>
+      <div id="extra-coreo-status" class="lista-empty" hidden></div>
+      <div class="extra-coreo-actions">
+        <button id="btn-save-coreo">Salva nuova coreografia</button>
+        <button id="btn-cancel-coreo" type="button">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button onclick="goEventiPage('spuntati.html')">Eseguiti</button>
+    <button onclick="goEventiPage('non-spuntati.html')">Non eseguiti</button>
+    <button onclick="goEventiPage('tutti.html')">Mostra tutto</button>
+    <button onclick="goEventiPage('prenotati.html')">Prenotati</button>
+    <button onclick="goEventiPage('statistiche-dj.html')">Statistiche DJ</button>
+    <button onclick="goEventiPage('coreografie-aggiuntive.html')">Coreografie Aggiuntive</button>
+    <button onclick="goEventiPage('visualizer.html')">Apri visualizer</button>
+  </div>
+
+  <div class="labels">
+    <span class="left">Brani disponibili per l'esecuzione</span>
+    <span class="right">Panoramica aggiornata in tempo reale</span>
+  </div>
+
+  <div class="tools-row">
+    <input id="search-input" type="text" placeholder="Cerca per titolo o ID..." />
+    <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
+  </div>
+
+  <div id="summary-cards" class="summary-cards"></div>
+
+  <hr />
+
+  <div id="lista-brani"></div>
+</body>
+</html>

@@ -2,13 +2,13 @@
   "name": "scriptpdf-server",
   "version": "2.0.0",
   "description": "Server stabile per gestione PDF con auto-start/stop",
-  "main": "server-manager.js",
+  "main": "unified-server.js",
   "scripts": {
-    "start": "node server-manager.js",
-    "start:pdf": "node pdf-server-simple.js",
-    "start:web": "node simple-server.js",
-    "start:all": "concurrently \"npm run start\" \"npm run start:web\"",
-    "dev": "nodemon server-manager.js"
+    "start": "node unified-server.js",
+    "dev": "nodemon unified-server.js",
+    "build:brani": "node Eventi/sync-brani.js",
+    "eventi": "npm run build:brani && node unified-server.js",
+    "eventi:legacy": "npm run build:brani && node Eventi/server-eventi.js"
   },
   "keywords": [
     "pdf",
@@ -20,7 +20,9 @@
   "author": "Admin",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2"
+    "csv-parse": "^6.1.0",
+    "express": "^4.18.2",
+    "qrcode": "^1.5.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

@@ -5,24 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NextCoreo</title>
     <style>
+        /* 📍 MENU DI NAVIGAZIONE */
+        nav { background: #222; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+        nav a { color: #ff7f00; margin: 0 12px; text-decoration: none; font-weight: bold; font-size: 13px; }
+        nav a:hover { text-decoration: underline; }
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
-            background-color: #2e2e2e; /* grigio scuro */
+            background-color: #111;
             color: white;
             text-align: center;
-        }
-        nav ul {
-            list-style: none;
-            padding: 0;
-        }
-        nav ul li {
-            display: inline;
-            margin-right: 15px;
-        }
-        nav ul li a {
-            text-decoration: none;
-            color: #ffa500; /* arancione */
         }
         .logo-container {
             display: flex;
@@ -50,16 +42,11 @@
     </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="/index.html">Home</a></li>
-            <li><a href="/NextCoreo1.html" class="active">NextCoreo1</a></li>
-            <li><a href="/NextCoreo2.html" class="active">NextCoreo2</a></li>
-        </ul>
-    </nav>
+    <div id="global-nav-container"></div>
+<script src="/nav.js"></script>
 
-    <h1 style="font-size:32px;">Benvenuto nella pagina Monster Country Group</h1>
-    <p style="font-size:14px;">naviga tra le pagine usando il menu sopra.</p>
+    <h1 style="font-size:40px;">Monster Country Group</h1>
+    <p style="font-size:12px;">naviga tra le pagine usando il menu sopra.</p>
 
     <div class="logo-container">
         <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group" class="logo-image">

@@ -117,7 +117,7 @@ Sub ConfiguraGestorePDF()
            "Questo processo:" & vbCrLf & _
            "• Verifica Node.js" & vbCrLf & _
            "• Installa le dipendenze npm" & vbCrLf & _
-           "• Crea la cartella C:\SCRIPT_PDF" & vbCrLf & _
+           "• Crea la cartella C:\VSC_SCRIPT_PDF" & vbCrLf & _
            "• Verifica Google Chrome", _
            vbInformation, "Configurazione"
     
@@ -135,7 +135,7 @@ End Sub
 
 ' ============================================================
 ' SUB: ApriCartellaScriptPDF
-' Descrizione: Apre la cartella C:\SCRIPT_PDF in Esplora file
+' Descrizione: Apre la cartella C:\VSC_SCRIPT_PDF in Esplora file
 ' ============================================================
 
 Sub ApriCartellaScriptPDF()
@@ -145,7 +145,7 @@ Sub ApriCartellaScriptPDF()
     On Error GoTo ErrHandler
     
     Set shell = CreateObject("WScript.Shell")
-    pdfFolder = "C:\SCRIPT_PDF"
+    pdfFolder = "C:\VSC_SCRIPT_PDF"
     
     ' Verifica che la cartella esista
     If Dir(pdfFolder, vbDirectory) = "" Then

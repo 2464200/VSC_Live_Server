@@ -12,15 +12,15 @@ EDGE_PATH := "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 ASSETS_DIR := "C:\VSC_Live_Server\DASH\assets"
 
 ; --- URL PRINCIPALI IDENTICI AI TUOI ---
-FILE1_PRIMARY := "http://192.168.1.157:5500/Index.html"
+FILE1_PRIMARY := "http://localhost:5500/Index.html"
 IMAGE := ASSETS_DIR . "\foto.jpg"
-FILE2_PRIMARY := "http://192.168.1.157:5500/NextCoreo1.html"
-REMOTE_URL_PRIMARY := "http://192.168.1.157:5500/NextCoreo1.html"
+FILE2_PRIMARY := "http://localhost:5500/NextCoreo1.html"
+REMOTE_URL_PRIMARY := "http://localhost:5500/NextCoreo1.html"
 
 ; --- URL ALTERNATIVI (AGGIUNGILI TU COME SERVE) ---
-FILE1_ALT := "http://192.168.1.157:5501/Index.html"
-FILE2_ALT := "http://192.168.1.157:5501/NextCoreo1.html"
-REMOTE_URL_ALT := "http://192.168.1.157:5501/NextCoreo1.html"
+FILE1_ALT := "http://localhost:5501/Index.html"
+FILE2_ALT := "http://localhost:5501/NextCoreo1.html"
+REMOTE_URL_ALT := "http://localhost:5501/NextCoreo1.html"
 ; IMAGE non richiede fallback
 
 

@@ -36,8 +36,8 @@ try {
     npm install -g express --silent
 }
 
-# Crea la cartella C:\SCRIPT_PDF se non esiste
-$pdfFolder = "C:\SCRIPT_PDF"
+# Crea la cartella C:\VSC_SCRIPT_PDF se non esiste
+$pdfFolder = "C:\VSC_SCRIPT_PDF"
 if (-not (Test-Path $pdfFolder)) {
     New-Item -ItemType Directory -Path $pdfFolder -Force | Out-Null
     Write-Host "Cartella creata: $pdfFolder"

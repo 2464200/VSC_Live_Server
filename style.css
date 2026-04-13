@@ -26,9 +26,19 @@ body {
     z-index: 1000; 
 }
 
+/* Logo ridotto per evitare sovrapposizioni su schermi a bassa risoluzione */
 .logo {
-    height: 130px;     /* regola a piacere */
+    height: 90px;     /* leggermente più piccolo rispetto al valore originale */
+    max-height: 90px; /* assicura che non cresca su schermi grandi */
     width: auto;
+}
+
+/* In caso di risoluzioni particolarmente basse, riduci ulteriormente lo spazio occupato */
+@media (max-width: 1280px) {
+    .logo {
+        height: 80px;
+        max-height: 80px;
+    }
 }
 
 button {
@@ -149,12 +159,3 @@ nav ul li a.active {
 .scroll-container table {
     margin-bottom: 100px;
 }
-
-Print #fileHTML, "</div>"
-Print #fileHTML, "body{font-family:Arial;margin:20px}"
-Print #fileHTML, "<nav>"
-Print #fileHTML, "<a href='/index.html'>Home</a>"
-Print #fileHTML, "<a href='/NextCoreo1.html'>NextCoreo1</a>"
-Print #fileHTML, "<a href='/NextCoreo2.html'>NextCoreo2</a>"
-Print #fileHTML, "</nav>"
-Print #fileHTML, "<div class='container'>"

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "412",
+    "stato": "prenotato",
+    "timestamp": "2026-04-10T17:21:32.866Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-04-10T17:21:49.896Z",
+    "dj": "DJ Daniel West"
+  },
+  {
+    "id": "008",
+    "stato": "eseguito",
+    "timestamp": "2026-04-10T17:22:03.709Z",
+    "dj": "DJ Daniel West"
+  },
+  {
+    "id": "501",
+    "stato": "prenotato",
+    "timestamp": "2026-04-10T17:23:30.930Z",
+    "dj": "DJ Daniel West"
+  },
+  {
+    "id": "501",
+    "stato": "disponibile",
+    "timestamp": "2026-04-10T17:23:48.821Z",
+    "dj": "DJ Daniel West"
+  },
+  {
+    "id": "EXTRA-DANIELE",
+    "stato": "prenotato",
+    "timestamp": "2026-04-10T17:26:33.163Z",
+    "dj": "DJ Daniel West"
+  }
+]

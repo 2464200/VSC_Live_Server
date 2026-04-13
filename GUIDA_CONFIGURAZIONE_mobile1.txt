@@ -1,216 +1,34 @@
-════════════════════════════════════════════════════════════════════════════
-   GUIDA ALLA CONFIGURAZIONE - DISPLAY COREOGRAFIE MOBILE
-   Monster Country Group - Protezione Civile
-════════════════════════════════════════════════════════════════════════════
+GUIDA CONFIGURAZIONE MOBILE
+===========================
 
-📋 COSA SERVE:
--------------
-1. Un computer con Visual Studio Code (VSC)
-2. Estensione "Live Server" installata in VSC
-3. Computer e smartphone sulla stessa rete WiFi
-4. I file già presenti nella cartella (display.csv, mobile1.html, ecc.)
+Stato aggiornato:
+- il progetto usa il server unificato sulla porta 5500
+- non e' necessario usare "Live Server" o "Go Live"
 
-
-📌 PASSO 1: INSTALLARE LIVE SERVER IN VISUAL STUDIO CODE
----------------------------------------------------------
-1. Apri Visual Studio Code
-2. Clicca sull'icona "Estensioni" (quadrato con 4 quadratini) nella barra laterale
-   OPPURE premi Ctrl+Shift+X
-3. Nella barra di ricerca scrivi: Live Server
-4. Trova "Live Server" di Ritwick Dey (ha milioni di download)
-5. Clicca su "Installa"
-6. Attendi che l'installazione finisca
-
-
-📌 PASSO 2: AVVIARE IL SERVER
-------------------------------
-1. In Visual Studio Code, apri la cartella: c:\VSC_Live_Server
-   (File → Apri cartella → seleziona VSC_Live_Server)
-
-2. Clicca con il tasto destro sul file "mobile1.html"
-
-3. Seleziona "Open with Live Server"
-   OPPURE
-   Clicca sul pulsante "Go Live" in basso a destra nella barra blu di VSC
-
-4. Si aprirà automaticamente il browser sul tuo computer
-
-
-📌 PASSO 3: TROVARE L'INDIRIZZO IP DEL TUO COMPUTER
-----------------------------------------------------
-
-METODO A - Da Windows (il più semplice):
-1. Premi il tasto Windows + R
-2. Scrivi: cmd
-3. Premi Invio
-4. Nella finestra nera che si apre, scrivi: ipconfig
-5. Premi Invio
-6. Cerca la voce "Indirizzo IPv4" sotto "Scheda LAN wireless WiFi"
-7. Vedrai un numero tipo: 192.168.1.100
-   ⚠️ QUESTO È IL TUO INDIRIZZO IP - ANNOTALO!
-
-METODO B - Da Visual Studio Code:
-1. Quando avvii Live Server, guarda in basso a destra
-2. Vedrai scritto qualcosa tipo: "Server is Started at PORT : 5500"
-3. L'indirizzo completo sarà mostrato nella console
-
-
-📌 PASSO 4: CONNETTERE GLI SMARTPHONE
---------------------------------------
-
-IMPORTANTE: Tutti gli smartphone DEVONO essere connessi alla STESSA rete WiFi 
-del computer che fa da server!
-
-Su ogni smartphone:
-
-1. Apri il browser (Chrome, Safari, Firefox, ecc.)
-
-2. Nella barra dell'indirizzo scrivi:
-   http://[INDIRIZZO_IP]:5500/mobile1.html
-   
-   ESEMPIO PRATICO:
-   Se il tuo IP è 192.168.1.100, scrivi:
-   http://192.168.1.100:5500/mobile1.html
-
-3. Premi Invio/Vai
-
-4. La pagina si caricherà automaticamente!
-
-
-📌 ESEMPIO COMPLETO PASSO-PASSO
---------------------------------
-
-Computer con IP: 192.168.1.100
-Porta Live Server: 5500 (default)
-
-Sul computer:
-✓ Visual Studio Code aperto
-✓ Live Server attivo (pulsante "Port: 5500" visibile in basso)
-✓ Cartella VSC_Live_Server aperta
-
-Sugli smartphone (tutti sulla stessa WiFi):
-1. Apri browser
-2. Scrivi: http://192.168.1.100:5500/mobile1.html
-3. ✓ Pagina caricata!
-
-
-📌 RISOLUZIONE PROBLEMI
------------------------
-
-❌ "Impossibile raggiungere il sito"
-   → Controlla che computer e smartphone siano sulla STESSA rete WiFi
-   → Verifica che il Live Server sia attivo (pulsante "Port: 5500" visibile)
-   → Controlla di aver scritto correttamente l'indirizzo IP
-   → Verifica che non ci siano spazi nell'indirizzo
-
-❌ "Pagina non trovata" o "404"
-   → Controlla di aver scritto /mobile1.html alla fine
-   → Verifica che il file mobile1.html sia nella cartella
-
-❌ "La pagina è bianca"
-   → Controlla che i file mobile-style.css e mobile-script.js siano presenti
-   → Controlla che il file display.csv sia presente
-
-❌ Il firewall blocca la connessione
-   → Windows potrebbe chiedere se autorizzare Live Server
-   → Clicca "Consenti accesso" quando appare il popup
-   → Oppure vai in Impostazioni → Firewall → Consenti app
-
-
-📌 CAMBIARE LA PORTA (opzionale)
----------------------------------
-
-Se la porta 5500 è occupata:
-
-1. In VSC, vai su: File → Preferenze → Impostazioni
-2. Cerca: "Live Server Port"
-3. Cambia il numero (es: 8080, 3000, ecc.)
-4. Riavvia Live Server
-5. Usa il nuovo numero negli indirizzi smartphone
-
-
-📌 UTILIZZO DELL'INTERFACCIA MOBILE
-------------------------------------
-
-Sull'interfaccia mobile:
-
-🤠 HEADER: Mostra titolo e data
-⚙️ PULSANTE MENU: Apre il pannello controlli
-✓ BADGE VERDE: Indica coreografie già eseguite
-📱 CARDS COLORATE: Ogni coreografia ha la sua card
-
-CONTROLLI DISPONIBILI:
-- 🚀 Velocità Scroll: da 1 (lento) a 20 (veloce)
-- ⏱️ Pausa: tempo di pausa quando raggiunge fine/inizio
-- ⏸️ Pausa: ferma lo scroll automatico
-- ▶️ Riprendi: riavvia lo scroll
-- 📱 Schermo Intero: modalità fullscreen
-
-GESTURE TOUCH:
-- Swipe DESTRA: Apri menu controlli
-- Swipe SINISTRA: Chiudi menu controlli
-- Tocca fuori dal menu: Chiudi menu
-
-
-📌 AGGIORNARE I DATI
---------------------
-
-Per aggiornare le coreografie:
-
-1. Modifica il file "display.csv" con Excel o Blocco Note
-2. Salva il file
-3. Sugli smartphone, ricarica la pagina (F5 o tira giù per aggiornare)
-4. I nuovi dati appariranno automaticamente
-
-
-📌 SPEGNERE IL SERVER
----------------------
-
-Quando hai finito:
-
-1. In Visual Studio Code, clicca sul pulsante "Port: 5500" in basso a destra
-   OPPURE premi: Alt+L, Alt+C
-2. Il server si fermerà
-3. Gli smartphone non potranno più accedere alla pagina
-
-
-📌 CONSIGLI UTILI
+PASSI CONSIGLIATI
 -----------------
+1. Apri la cartella `C:\VSC_Live_Server` in VS Code
+2. Avvia il progetto con:
 
-✓ Mantieni il computer collegato all'alimentazione
-✓ Disattiva il risparmio energetico del computer
-✓ Non chiudere Visual Studio Code mentre gli altri usano la pagina
-✓ Aggiungi la pagina ai preferiti sugli smartphone per accesso rapido
-✓ Usa modalità schermo intero per una visione migliore
-✓ Se hai un router, puoi vedere l'IP anche dal pannello admin del router
+   powershell
+   .\startup.ps1 -NoWait
 
-📌 ACCESSO DA FUORI RETE (AVANZATO)
-------------------------------------
+3. Trova l'IP locale del computer con `ipconfig`
+4. Sul telefono apri:
 
-Se vuoi che persone fuori dalla tua rete WiFi accedano:
+   http://[IP_DEL_PC]:5500/public/mobile.html
 
-1. Devi configurare il "Port Forwarding" sul tuo router
-2. Serve conoscere il tuo IP pubblico (cerca su Google "qual è il mio ip")
-3. Configurazione più complessa, chiedi a qualcuno esperto di rete
+Esempio:
+http://192.168.1.100:5500/public/mobile.html
 
-ALTERNATIVA PIÙ SEMPLICE:
-- Usa servizi come ngrok per creare un tunnel pubblico
-- Oppure carica tutto su un hosting web gratuito (GitHub Pages, Netlify)
+NOTE IMPORTANTI
+---------------
+- computer e telefono devono stare sulla stessa rete WiFi
+- la porta corretta e' 5500
+- evita di usare "Open with Live Server" per queste pagine
 
-
-════════════════════════════════════════════════════════════════════════════
-
-📞 RIEPILOGO VELOCE
--------------------
-
-1. Installa "Live Server" in Visual Studio Code
-2. Apri cartella VSC_Live_Server in VSC
-3. Click destro su mobile1.html → "Open with Live Server"
-4. Trova IP del computer: cmd → ipconfig → Indirizzo IPv4
-5. Su smartphone: http://[TUO_IP]:5500/mobile1.html
-6. Fatto! 🎉
-
-════════════════════════════════════════════════════════════════════════════
-
-Creato per Monster Country Group e Protezione Civile
-Buon ballo! 🤠💃🕺
+SE NON FUNZIONA
+---------------
+1. verifica `http://localhost:5500/diagnostica.html`
+2. verifica che `startup.ps1` abbia avviato il server
+3. controlla eventuali firewall locali

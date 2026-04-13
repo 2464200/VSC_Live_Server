@@ -13,14 +13,20 @@
         padding: 0;
     }
     nav {
-        background: #333;
+        background: #222;
         padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 5px;
     }
     nav a {
-        color: #fff;
-        margin: 0 15px;
+        color: #ff7f00;
+        margin: 0 12px;
         text-decoration: none;
         font-weight: bold;
+        font-size: 13px;
+    }
+    nav a:hover {
+        text-decoration: underline;
     }
     h1 {
         margin-top: 20px;
@@ -37,24 +43,14 @@
 </style>
 </head>
 <body>
-<nav>
-    <a href="/index.html">Home</a>
-    <a href="/NextCoreo1.html">NextCoreo1</a>
-    <a href="/NextCoreo2.html">NextCoreo2</a>
-</nav>
-<h1>Streaming Webcam</h1>
-<video id="webcam" autoplay playsinline></video>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
+<h1>Streaming Webcam via VLC</h1>
+<video id="webcam" autoplay controls></video>
 
 <script>
-    async function startWebcam() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: USB Camera }, audio: false });
-            document.getElementById('webcam').srcObject = stream;
-        } catch (err) {
-            alert('Errore nell\'accesso alla webcam: ' + err);
-        }
-    }
-    startWebcam();
+    // Imposta la sorgente del video allo stream VLC
+    document.getElementById('webcam').src = 'http://localhost:8080';
 </script>
 </body>
 </html>

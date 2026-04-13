@@ -11,10 +11,10 @@ BROWSER := "edge"
 EDGE_PATH := "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 ASSETS_DIR := "C:\VSC_Live_Server\DASH\assets"
 
-FILE1 := "http://192.168.1.157:5500/Index.html"
+FILE1 := "http://localhost:5500/Index.html"
 IMAGE := ASSETS_DIR . "\foto.jpg"
-FILE2 := "http://192.168.1.157:5500/NextCoreo1.html"
-REMOTE_URL := "http://192.168.1.157:5500/NextCoreo1.html"
+FILE2 := "http://localhost:5500/NextCoreo1.html"
+REMOTE_URL := "http://localhost:5500/NextCoreo1.html"
 
 DURATION_FILE1 := 10000   ; milliseconds
 DURATION_IMAGE := 10000

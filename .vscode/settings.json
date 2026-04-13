@@ -1,2 +1,19 @@
 {
+    "task.allowAutomaticTasks": "always",
+    "task.autoDetect": "off",
+    "task.problemMatchers.neverPrompt": true,
+    "task.quickOpen.showAll": true,
+    "liveServer.settings.port": 5600,
+    "liveServer.settings.host": "127.0.0.1",
+    "files.exclude": {
+        "**/.startup-pids.json": true,
+        "**/node_modules": true,
+        "**/.git": true,
+        "**/.vscode": false
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/.git": true,
+        "**/logs": true
+    }
 }

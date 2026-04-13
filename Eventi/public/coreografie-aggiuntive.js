@@ -1,0 +1,233 @@
+const aggiuntiveState = {
+  allCoreografie: [],
+  visibleCoreografie: [],
+  query: '',
+  editingId: null
+};
+
+async function loadCoreografieAggiuntive() {
+  try {
+    const response = await fetch('/eventi/Coreografie_Aggiuntive.csv?t=' + Date.now(), { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`CSV non trovato (${response.status})`);
+    }
+    const text = await response.text();
+    return parseCoreografieCSV(text);
+  } catch (error) {
+    console.error('Errore caricamento CSV:', error);
+    return [];
+  }
+}
+
+function parseCoreografieCSV(text) {
+  const lines = text.split('\n').slice(1).filter(line => line.trim());
+  const coreografie = [];
+
+  lines.forEach((line, index) => {
+    const parts = line.split(';').map(part => part.replace(/^"|"$/g, '').trim());
+    if (parts.length > 2 && parts[2]) {
+      coreografie.push({
+        id: parts[2],
+        coreografia: parts[3] || '',
+        brano: parts[4] || '',
+        autore: parts[5] || '',
+        lineIndex: index
+      });
+    }
+  });
+
+  return coreografie;
+}
+
+function renderCoreografie(container, coreografie) {
+  container.innerHTML = '';
+
+  if (!coreografie || coreografie.length === 0) {
+    container.innerHTML = '<div class="lista-empty">Nessuna coreografia aggiuntiva trovata.</div>';
+    return;
+  }
+
+  coreografie.forEach((item, index) => {
+    const row = document.createElement('div');
+    row.className = 'riga-brano aggiuntiva';
+    row.dataset.coreoId = item.id;
+
+    const button = document.createElement('button');
+    button.className = 'edit-btn';
+    button.textContent = 'Modifica';
+    button.addEventListener('click', () => {
+      openEditModal(item.id, item.coreografia, item.brano, item.autore);
+    });
+
+    const label = document.createElement('label');
+    label.className = 'action-inline';
+    label.appendChild(button);
+
+    const titolo = document.createElement('span');
+    titolo.className = 'titolo';
+    titolo.innerHTML = `
+      <strong><span class="red-number">(${index + 1})</span> ${item.coreografia}</strong>
+      <span class="muted">ID ${item.id}${item.brano ? ` - brano: ${item.brano}` : ''}${item.autore ? ` - autore: ${item.autore}` : ''}</span>
+    `;
+
+    const pill = document.createElement('span');
+    pill.className = 'stato-pill';
+    pill.textContent = 'Aggiuntiva';
+
+    row.appendChild(pill);
+    row.appendChild(titolo);
+    row.appendChild(label);
+
+    container.appendChild(row);
+  });
+}
+
+function escapeQuotes(str) {
+  return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function openEditModal(id, coreografia, brano, autore) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-coreografia').value = coreografia;
+  document.getElementById('edit-brano').value = brano;
+  document.getElementById('edit-autore').value = autore;
+  aggiuntiveState.editingId = id;
+  document.getElementById('edit-modal').hidden = false;
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').hidden = true;
+  aggiuntiveState.editingId = null;
+  document.getElementById('edit-status').hidden = true;
+}
+
+async function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const coreografia = document.getElementById('edit-coreografia').value.trim();
+  const brano = document.getElementById('edit-brano').value.trim();
+  const autore = document.getElementById('edit-autore').value.trim();
+
+  console.log('saveEdit() called with:', { id, coreografia, brano, autore });
+
+  if (!coreografia) {
+    showEditStatus('Coreografia è obbligatoria', true);
+    return;
+  }
+
+  const statusDiv = document.getElementById('edit-status');
+  statusDiv.textContent = 'Salvataggio in corso...';
+  statusDiv.hidden = false;
+
+  const payload = { id, coreografia, brano, autore };
+  const url = '/eventi/api/aggiuntive/update';
+
+  console.log('POST to:', url, 'Payload:', payload);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    console.log('Response status:', response.status, 'OK:', response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error response:', response.status, errorText);
+      throw new Error(`Errore salvataggio (${response.status})`);
+    }
+
+    const result = await response.json();
+    console.log('Success response:', result);
+
+    showEditStatus('Coreografia aggiornata con successo', false);
+    setTimeout(() => {
+      closeEditModal();
+      renderCoreografieAggiuntive();
+    }, 800);
+  } catch (error) {
+    console.error('Catch error:', error.message);
+    showEditStatus(`Errore: ${error.message}`, true);
+  }
+}
+
+function showEditStatus(message, isError) {
+  const statusDiv = document.getElementById('edit-status');
+  statusDiv.textContent = message;
+  statusDiv.hidden = false;
+  statusDiv.style.color = isError ? '#dc3545' : '#28a745';
+}
+
+function bindSearchAggiuntive() {
+  const input = document.getElementById('search-input');
+  if (!input) return;
+  input.addEventListener('input', () => {
+    aggiuntiveState.query = input.value;
+    applySearchAggiuntive();
+  });
+}
+
+function applySearchAggiuntive() {
+  const query = aggiuntiveState.query.toLowerCase();
+  aggiuntiveState.visibleCoreografie = aggiuntiveState.allCoreografie.filter(item => {
+    const haystack = `${item.coreografia || ''} ${item.brano || ''} ${item.autore || ''}`.toLowerCase();
+    return haystack.includes(query);
+  });
+  renderCoreografie(document.getElementById('lista-render'), aggiuntiveState.visibleCoreografie);
+}
+
+function updateLastUpdate() {
+  const badge = document.getElementById('last-update');
+  if (badge) {
+    badge.textContent = `Ultimo aggiornamento: ${new Date().toLocaleString('it-IT')}`;
+  }
+}
+
+async function renderCoreografieAggiuntive() {
+  const container = document.getElementById('lista-render');
+  if (!container) return;
+
+  try {
+    aggiuntiveState.allCoreografie = await loadCoreografieAggiuntive();
+    bindSearchAggiuntive();
+    applySearchAggiuntive();
+    updateLastUpdate();
+    setupModalEventListeners();
+
+    // Assicurati che il modal rimanga nascosto al caricamento della pagina
+    // La maschera di modifica si apre solo quando l'utente clicca il pulsante "Modifica"
+    const modal = document.getElementById('edit-modal');
+    if (modal) {
+      modal.hidden = true;
+    }
+  } catch (error) {
+    console.error('Errore renderCoreografieAggiuntive:', error);
+    container.innerHTML = `<div class="lista-empty">Errore caricamento dati: ${error.message}</div>`;
+  }
+}
+
+function setupModalEventListeners() {
+  const btnSave = document.getElementById('btn-save-edit');
+  const btnCancel = document.getElementById('btn-cancel-edit');
+  const btnClose = document.getElementById('btn-modal-close');
+
+  // Evita listener duplicati aggiungendo handler una sola volta
+  if (btnSave && !btnSave._listenerAttached) {
+    btnSave.addEventListener('click', saveEdit);
+    btnSave._listenerAttached = true;
+  }
+  if (btnCancel && !btnCancel._listenerAttached) {
+    btnCancel.addEventListener('click', closeEditModal);
+    btnCancel._listenerAttached = true;
+  }
+  if (btnClose && !btnClose._listenerAttached) {
+    btnClose.addEventListener('click', closeEditModal);
+    btnClose._listenerAttached = true;
+  }
+}
+
+window.renderCoreografieAggiuntive = renderCoreografieAggiuntive;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.saveEdit = saveEdit;

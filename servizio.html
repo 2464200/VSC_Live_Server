@@ -5,6 +5,10 @@
     <title>Servizio</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* 📍 MENU DI NAVIGAZIONE */
+        nav { background: #222; padding: 10px; margin-bottom: 15px; border-radius: 5px; position: fixed; top: 0; left: 0; right: 0; z-index: 3000; }
+        nav a { color: #ff7f00; margin: 0 12px; text-decoration: none; font-weight: bold; font-size: 13px; }
+        nav a:hover { text-decoration: underline; }
         body {
             background: rgb(0, 0, 0);
             margin: 0;
@@ -42,7 +46,7 @@
         }
         .logo-container {
         position: fixed;   /* Fisso in alto a sinistra */
-        top: 10px;
+        top: 45px;
          left: 10px;
          padding: 10px 20px;
          z-index: 2000;     /* Sopra tutto */
@@ -54,6 +58,8 @@
     </style>
 </head>
 <body>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
     
 <!-- Logo in alto a sinistra -->
 <div class="logo-container">
@@ -66,41 +72,60 @@
     </div>
 
     <script>
-        async function caricaServizio() {
-            try {
-                // Prova prima servizio.csv (standard)
-                const res = await fetch('servizio.csv', { cache: 'no-store' });
-                if (res.ok) {
-                    const text = await res.text();
-                    const righe = text.trim().split('\n');
-                    if (righe.length > 0) {
-                        const primaRiga = righe[0];
-                        const valore = primaRiga.split(',')[0].trim().replace(/"/g, '');
-                        document.getElementById('service-content').textContent = valore;
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.error('Errore servizio.csv:', e);
+        function normalizeValue(raw) {
+            if (!raw) return '';
+            const cleaned = raw.trim().replace(/"/g, '');
+            if (!cleaned) return '';
+            return cleaned;
+        }
+
+        async function readServiceFile(filename) {
+            const response = await fetch(`${filename}?t=${Date.now()}`, { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} ${response.statusText}`);
             }
-            
+
+            const text = await response.text();
+            const line = text.replace(/^\uFEFF/, '').trim().split('\n')[0] || '';
+            if (!line) {
+                throw new Error(`File ${filename} vuoto o primo record vuoto`);
+            }
+
+            const cols = line.split(',').map(c => c.trim());
+            if (cols.length >= 2 && cols[0].toUpperCase() === 'X') {
+                return normalizeValue(cols[1]);
+            }
+
+            return normalizeValue(cols[0]);
+        }
+
+        async function caricaServizio() {
+            const contentDiv = document.getElementById('service-content');
+            contentDiv.textContent = 'Caricamento...';
+            contentDiv.style.color = '';
+
             try {
-                // Fallback: prova NextCoreo.csv come nell'index.html
-                const res = await fetch('NextCoreo.csv');
-                const text = await res.text();
-                const primaRiga = text.trim().split('\n')[0];
-                const valore = primaRiga.split(',')[0].replace(/"/g, '').trim();
-                document.getElementById('service-content').textContent = valore;
-            } catch (err) {
-                console.error('Errore NextCoreo.csv:', err);
-                document.getElementById('service-content').textContent = 'File non trovato';
+                const value = await readServiceFile('servizio.csv');
+                contentDiv.textContent = value;
+                console.log(`Servizio caricato da servizio.csv: ${value}`);
+                return;
+            } catch (e) {
+                console.warn('servizio.csv non disponibile o invalido:', e);
+            }
+
+            try {
+                const value = await readServiceFile('NextCoreo.csv');
+                contentDiv.textContent = value;
+                console.log(`Servizio caricato da NextCoreo.csv: ${value}`);
+                return;
+            } catch (e) {
+                console.error('Errore nel caricamento di NextCoreo.csv:', e);
+                contentDiv.textContent = 'ERRORE CARICAMENTO';
+                contentDiv.style.color = '#ff0000';
             }
         }
 
-        // Carica al caricamento della pagina
         document.addEventListener('DOMContentLoaded', caricaServizio);
-        
-        // Ricarica ogni 30 secondi
         setInterval(caricaServizio, 30000);
     </script>
 </body>

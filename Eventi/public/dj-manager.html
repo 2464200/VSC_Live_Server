@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestione DJ - EVENTI</title>
+  <script defer src="inactivity-return.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .nav {
+      background: #222;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+
+    .nav a {
+      color: #ff7f00;
+      margin: 0 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .nav a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #222;
+      padding: 30px;
+      border-radius: 10px;
+      border-left: 4px solid #ff7f00;
+    }
+
+    h1 {
+      color: #ff7f00;
+      margin-top: 0;
+      text-align: center;
+    }
+
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #1a1a1a;
+      border-radius: 5px;
+      border-left: 3px solid #ff7f00;
+    }
+
+    .section h2 {
+      color: #ff7f00;
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .form-group {
+      margin: 15px 0;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .form-group label {
+      color: #ff7f00;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+      width: 100%;
+    }
+
+    .form-group input {
+      background: #333;
+      color: #fff;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      font-size: 14px;
+      flex: 1;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #ff7f00;
+      box-shadow: 0 0 5px #ff7f00;
+    }
+
+    button {
+      background: #ff7f00;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #ffaa33;
+    }
+
+    button:active {
+      background: #dd6600;
+    }
+
+    button.secondary {
+      background: #555;
+      color: #fff;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button.secondary:hover {
+      background: #777;
+    }
+
+    button.danger {
+      background: #dc3545;
+    }
+
+    button.danger:hover {
+      background: #ff5555;
+    }
+
+    .dj-list {
+      list-style: none;
+      padding: 0;
+      margin: 15px 0;
+    }
+
+    .dj-item {
+      background: #333;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 3px solid #ff7f00;
+    }
+
+    .dj-name {
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .dj-id {
+      color: #aaa;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: #fff;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn-delete:hover {
+      background: #ff5555;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 5px;
+      margin: 15px 0;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .status.success {
+      background: #28a745;
+      color: #fff;
+    }
+
+    .status.error {
+      background: #dc3545;
+      color: #fff;
+    }
+
+    .status.info {
+      background: #17a2b8;
+      color: #fff;
+    }
+
+    /* Tastiera Virtuale */
+    .keyboard-toggle {
+      display: block;
+      margin: 10px 0;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .virtual-keyboard {
+      display: none;
+      background: #1a1a1a;
+      border: 2px solid #ff7f00;
+      border-radius: 5px;
+      padding: 10px;
+      margin-top: 15px;
+      box-shadow: 0 0 15px rgba(255, 127, 0, 0.3);
+    }
+
+    .virtual-keyboard.active {
+      display: block;
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .key {
+      background: #333;
+      border: 1px solid #555;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      min-width: 30px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .key:hover {
+      background: #ff7f00;
+      color: #000;
+      border-color: #ff7f00;
+    }
+
+    .key:active {
+      background: #dd6600;
+    }
+
+    .key.space {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .key.backspace {
+      background: #dc3545;
+    }
+
+    .key.backspace:hover {
+      background: #ff5555;
+    }
+
+    .key.enter {
+      background: #28a745;
+      min-width: 80px;
+    }
+
+    .key.enter:hover {
+      background: #52b844;
+    }
+
+    .key.shift {
+      background: #555;
+      min-width: 60px;
+    }
+
+    .key.shift.active {
+      background: #ff7f00;
+      color: #000;
+    }
+
+    .empty {
+      color: #aaa;
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+    }
+
+    .key[data-action] {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="/eventi/eventi.html">← Torna a Eventi</a>
+</div>
+
+<div class="container">
+
+<div class="container">
+  <h1>🎤 Gestione DJ SET</h1>
+
+  <div class="section">
+    <h2>Aggiungi nuovo DJ</h2>
+    
+    <div class="form-group">
+      <label for="dj-input">Nome DJ:</label>
+      <input type="text" id="dj-input" placeholder="Es: David Guetta, Martin Garrix, ..." />
+    </div>
+
+    <button id="btn-keyboard">📱 Tastiera Virtuale</button>
+
+    <div class="virtual-keyboard" id="keyboard">
+      <!-- Tastiera virtuale qui -->
+    </div>
+
+    <button id="btn-add-dj" style="width: 100%; margin-top: 15px;">Aggiungi DJ</button>
+
+    <div id="status-message"></div>
+  </div>
+
+  <div class="section">
+    <h2>DJ Disponibili</h2>
+    <ul class="dj-list" id="dj-list">
+      <li class="empty">Caricamento...</li>
+    </ul>
+  </div>
+
+</div>
+
+<script src="api-helper.js"></script>
+<script>
+let shiftActive = false;
+
+// Tastiera virtuale
+function createKeyboard() {
+  const keyboard = document.getElementById('keyboard');
+  const rows = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+  ];
+
+  let html = '';
+  
+  // Righe lettere
+  rows.forEach((row, idx) => {
+    html += '<div class="keyboard-row">';
+    if (idx === 2) html += '<button class="key shift" data-action="shift">MAIUSC</button>';
+    
+    row.forEach(key => {
+      html += '<button class="key" data-char="' + key + '">' + key + '</button>';
+    });
+    
+    if (idx === 2) html += '<button class="key backspace" data-action="backspace">⌫</button>';
+    html += '</div>';
+  });
+
+  // Riga spazio + invio
+  html += '<div class="keyboard-row">';
+  html += '<button class="key space" data-char=" ">SPAZIO</button>';
+  html += '<button class="key enter" data-action="submit">INVIO</button>';
+  html += '</div>';
+
+  // Numeri
+  html += '<div class="keyboard-row">';
+  for (let i = 0; i <= 9; i++) {
+    html += '<button class="key" data-char="' + i + '">' + i + '</button>';
+  }
+  html += '</div>';
+
+  keyboard.innerHTML = html;
+
+  // Event listeners - con controlli di sicurezza
+  document.querySelectorAll('[data-char]').forEach(btn => {
+    btn.addEventListener('click', () => addChar(btn.dataset.char));
+  });
+  
+  const shiftBtn = document.querySelector('[data-action="shift"]');
+  if (shiftBtn) {
+    shiftBtn.addEventListener('click', toggleShift);
+  }
+  
+  const backspaceBtn = document.querySelector('[data-action="backspace"]');
+  if (backspaceBtn) {
+    backspaceBtn.addEventListener('click', backspace);
+  }
+  
+  const submitBtn = document.querySelector('[data-action="submit"]');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', () => aggiungiDJ());
+  }
+}
+
+function showKeyboard() {
+  document.getElementById('keyboard').classList.toggle('active');
+  if (document.getElementById('keyboard').classList.contains('active')) {
+    document.getElementById('dj-input').focus();
+  }
+}
+
+function toggleShift() {
+  shiftActive = !shiftActive;
+  const keys = document.querySelectorAll('.key:not(.shift):not(.backspace):not(.space):not(.enter)');
+  keys.forEach(key => {
+    if (key.textContent.length === 1) {
+      key.textContent = shiftActive ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
+    }
+  });
+  const shiftBtn = document.querySelector('.shift');
+  if (shiftBtn) {
+    shiftBtn.classList.toggle('active');
+  }
+}
+
+function addChar(char) {
+  const input = document.getElementById('dj-input');
+  if (shiftActive && char.match(/[a-z]/i)) {
+    input.value += char.toUpperCase();
+    // Disattiva shift dopo un carattere
+    if (shiftActive) toggleShift();
+  } else {
+    input.value += char;
+  }
+  input.focus();
+}
+
+function backspace() {
+  const input = document.getElementById('dj-input');
+  input.value = input.value.slice(0, -1);
+}
+
+async function aggiungiDJ() {
+  const nome = document.getElementById('dj-input').value.trim();
+  const statusDiv = document.getElementById('status-message');
+
+  if (!nome) {
+    statusDiv.innerHTML = '<div class="status error">⚠️ Inserisci un nome</div>';
+    return;
+  }
+
+  try {
+    const res = await eventiFetch('/dj', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome })
+    });
+
+    if (res.ok) {
+      statusDiv.innerHTML = '<div class="status success">✅ DJ aggiunto con successo!</div>';
+      document.getElementById('dj-input').value = '';
+      document.getElementById('keyboard').classList.remove('active');
+      await caricaDJ();
+    } else {
+      const error = await res.json();
+      statusDiv.innerHTML = `<div class="status error">❌ ${error.error}</div>`;
+    }
+  } catch (e) {
+    statusDiv.innerHTML = `<div class="status error">❌ Errore: ${e.message}</div>`;
+  }
+}
+
+async function caricaDJ() {
+  try {
+    console.log('Caricamento DJ list...');
+    const dj = await fetchJSON('/dj');
+    console.log('DJ ottenuti:', dj);
+    const lista = document.getElementById('dj-list');
+
+    if (dj.length === 0) {
+      lista.innerHTML = '<li class="empty">Nessun DJ aggiunto ancora</li>';
+      return;
+    }
+
+    lista.innerHTML = dj.map(d => `
+      <li class="dj-item">
+        <div>
+          <div class="dj-name">${d.nome}</div>
+          <div class="dj-id">${d.id}</div>
+        </div>
+        <button class="btn-delete" data-dj-id="${d.id}">Elimina</button>
+      </li>
+    `).join('');
+
+    // Aggiungi event listeners per i pulsanti di eliminazione
+    document.querySelectorAll('[data-dj-id]').forEach(btn => {
+      btn.addEventListener('click', () => rimuoviDJ(btn.dataset.djId));
+    });
+    console.log('DJ list rendered');
+  } catch (e) {
+    console.error('Errore caricamento DJ:', e);
+    document.getElementById('dj-list').innerHTML = '<li class="empty">Errore caricamento DJ: ' + e.message + '</li>';
+  }
+}
+
+async function rimuoviDJ(id) {
+  if (!confirm('Sei sicuro di voler eliminare questo DJ?')) return;
+
+  try {
+    const res = await eventiFetch(`/dj/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      document.getElementById('status-message').innerHTML = '<div class="status success">✅ DJ eliminato</div>';
+      await caricaDJ();
+    }
+  } catch (e) {
+    alert('Errore eliminazione DJ');
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  createKeyboard();
+  caricaDJ();
+  
+  const btnKeyboard = document.getElementById('btn-keyboard');
+  if (btnKeyboard) {
+    btnKeyboard.addEventListener('click', showKeyboard);
+  }
+  
+  const btnAddDJ = document.getElementById('btn-add-dj');
+  if (btnAddDJ) {
+    btnAddDJ.addEventListener('click', aggiungiDJ);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -155,7 +155,7 @@ Assicurati che il virtual environment è stato configurato:
 ```powershell
 cd C:\VSC_Live_Server
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\activate_venv.ps1
 pip install openpyxl
 ```
 

@@ -1,0 +1,8 @@
+[
+    {
+        "key": "ctrl+alt+s",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Start All Servers Manually"
+    }
+]</content>
+<parameter name="filePath">c:\VSC_Live_Server\.vscode\keybindings.json

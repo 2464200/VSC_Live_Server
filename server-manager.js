@@ -20,8 +20,13 @@ const PORT = process.env.MANAGER_PORT || 3000;
 let pdfServerProcess = null;
 let pdfServerPort = 8765;
 let lastActivityTime = Date.now();
-const INACTIVITY_TIMEOUT = 30000; // Spegni dopo 30 secondi di inattività
+const INACTIVITY_TIMEOUT = 30000; // Spegni dopo 30 secondi di inattività (PDF Server)
 let inactivityTimer = null;
+
+// VSC Heartbeat monitoring
+let lastVscActivityTime = Date.now();
+let vscInactivityTimer = null;
+const VSC_INACTIVITY_TIMEOUT = 30000; // Spegni dopo 30 secondi di inattività VSC (30 secondi)
 
 // ===== MIDDLEWARE =====
 app.use(express.json());
@@ -178,6 +183,52 @@ function resetInactivityTimer() {
     }, INACTIVITY_TIMEOUT);
 }
 
+/**
+ * Reset timer inattività VSC
+ */
+function resetVscInactivityTimer() {
+    lastVscActivityTime = Date.now();
+    
+    if (vscInactivityTimer) clearTimeout(vscInactivityTimer);
+    
+    vscInactivityTimer = setTimeout(() => {
+        console.log('⚠️  [INFO] Heartbeat VSC non ricevuto da 30 secondi - VS Code potrebbe essere inattivo, ma continuo a funzionare');
+        // console.log('🛑 Shutdown completo di tutti i server...');
+        // shutdownAllServers();
+    }, VSC_INACTIVITY_TIMEOUT);
+}
+
+/**
+ * Shutdown completo di tutti i server
+ */
+async function shutdownAllServers() {
+    console.log('\n' + '='.repeat(60));
+    console.log('🛑 SHUTDOWN COMPLETO DEL SISTEMA');
+    console.log('='.repeat(60));
+    
+    // Ferma il PDF Server prima
+    if (isPdfServerRunning()) {
+        console.log('1. Arresto Server PDF...');
+        await stopPdfServer();
+    } else {
+        console.log('1. Server PDF non in esecuzione');
+    }
+    
+    // Ferma il Server Manager
+    console.log('2. Arresto Server Manager...');
+    if (vscInactivityTimer) clearTimeout(vscInactivityTimer);
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    
+    console.log('\n✅ Shutdown completato');
+    console.log('='.repeat(60) + '\n');
+    
+    // Attendi un momento prima di uscire
+    setTimeout(() => {
+        console.log('Uscita dal Manager...');
+        process.exit(0);
+    }, 1000);
+}
+
 // ===== ENDPOINT API =====
 
 /**
@@ -270,6 +321,61 @@ app.post('/api/manager/activity', (req, res) => {
 });
 
 /**
+ * POST /api/manager/vsc-heartbeat
+ * Heartbeat da VS Code - segnala che VS Code è ancora attivo
+ * Se questo endpoint non viene chiamato per 30 secondi, shutdown completo
+ */
+app.post('/api/manager/vsc-heartbeat', (req, res) => {
+    resetVscInactivityTimer();
+    resetInactivityTimer();
+    
+    const secondsUntilShutdown = Math.round((VSC_INACTIVITY_TIMEOUT) / 1000);
+    
+    res.json({
+        success: true,
+        message: 'Heartbeat ricevuto',
+        timestamp: new Date().toISOString(),
+        lastVscActivity: lastVscActivityTime,
+        uptime: Math.floor(process.uptime()),
+        secondsUntilShutdown: secondsUntilShutdown,
+        vscMonitoring: 'active'
+    });
+});
+
+/**
+ * POST /api/manager/stop-all
+ * Arresto completo di tutti i server
+ */
+app.post('/api/manager/stop-all', async (req, res) => {
+    try {
+        console.log('📢 Richiesta arresto completo');
+        
+        // Ferma il PDF Server
+        if (isPdfServerRunning()) {
+            await stopPdfServer();
+        }
+        
+        res.json({
+            success: true,
+            message: 'Arresto completo richiesto'
+        });
+        
+        // Shutdown il manager dopo aver risposto
+        setTimeout(() => {
+            console.log('🛑 Esecuzione shutdown...');
+            shutdownAllServers();
+        }, 500);
+        
+    } catch (error) {
+        console.error('❌ Errore arresto completo:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+/**
  * GET /api/manager/health
  * Health check - sempre disponibile
  */
@@ -343,8 +449,14 @@ app.listen(PORT, () => {
     console.log(`📍 Endpoint: POST /api/manager/start`);
     console.log(`📍 Endpoint: POST /api/manager/stop`);
     console.log(`📍 Endpoint: POST /api/manager/activity`);
-    console.log(`⏱️  Inactivity timeout: ${INACTIVITY_TIMEOUT / 1000} secondi`);
+    console.log(`📍 Endpoint: POST /api/manager/vsc-heartbeat (VSC monitor)`);
+    console.log(`📍 Endpoint: POST /api/manager/stop-all (shutdown completo)`);
+    console.log(`⏱️  Inactivity timeout (PDF): ${INACTIVITY_TIMEOUT / 1000} secondi`);
+    console.log(`⏱️  Inactivity timeout (VSC): ${VSC_INACTIVITY_TIMEOUT / 1000} secondi`);
     console.log('='.repeat(60) + '\n');
+    
+    // Inizializza il timer VSC al primo avvio
+    resetVscInactivityTimer();
 });
 
 // Graceful shutdown

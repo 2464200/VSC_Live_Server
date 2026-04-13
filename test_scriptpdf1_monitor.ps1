@@ -109,8 +109,8 @@ function Test-PdfList {
             
             return $data.files[0].name
         } else {
-            Write-ColorOutput "⚠️  Nessun file PDF trovato in C:\SCRIPT_PDF" "Warning"
-            Write-ColorOutput "   Copia almeno un file PDF in C:\SCRIPT_PDF e riprova" "Warning"
+            Write-ColorOutput "⚠️  Nessun file PDF trovato in C:\VSC_SCRIPT_PDF" "Warning"
+            Write-ColorOutput "   Copia almeno un file PDF in C:\VSC_SCRIPT_PDF e riprova" "Warning"
             return $null
         }
     } catch {
@@ -213,11 +213,11 @@ function Test-SystemResources {
     }
     
     # Verificare cartella PDF
-    if (Test-Path "C:\SCRIPT_PDF") {
-        $fileCount = @(Get-ChildItem -Path "C:\SCRIPT_PDF" -Filter "*.pdf" -ErrorAction SilentlyContinue).Count
-        Write-ColorOutput "📁 File PDF in C:\SCRIPT_PDF: $fileCount" "Info"
+    if (Test-Path "C:\VSC_SCRIPT_PDF") {
+        $fileCount = @(Get-ChildItem -Path "C:\VSC_SCRIPT_PDF" -Filter "*.pdf" -ErrorAction SilentlyContinue).Count
+        Write-ColorOutput "📁 File PDF in C:\VSC_SCRIPT_PDF: $fileCount" "Info"
     } else {
-        Write-ColorOutput "⚠️  Cartella C:\SCRIPT_PDF non trovata" "Warning"
+        Write-ColorOutput "⚠️  Cartella C:\VSC_SCRIPT_PDF non trovata" "Warning"
         Write-ColorOutput "   Crea la cartella e aggiungi file PDF" "Warning"
     }
 }

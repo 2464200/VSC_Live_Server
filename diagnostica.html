@@ -22,17 +22,8 @@
             border-radius: 5px;
             border-left: 4px solid #ff7f00;
         }
-        h1 {
-            color: #ff7f00;
-            margin-top: 0;
-            text-align: center;
-        }
-        h2 {
-            color: #4fc3f7;
-            margin-top: 30px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 10px;
-        }
+        h1 { color: #ff7f00; margin-top: 0; text-align: center; }
+        h2 { color: #4fc3f7; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px; }
         .test-section {
             margin: 20px 0;
             padding: 15px;
@@ -40,36 +31,14 @@
             border-left: 3px solid #888;
             border-radius: 3px;
         }
-        .test-section.success {
-            border-left-color: #4caf50;
-            background: rgba(76, 175, 80, 0.1);
-        }
-        .test-section.error {
-            border-left-color: #f44336;
-            background: rgba(244, 67, 54, 0.1);
-        }
-        .test-section.warning {
-            border-left-color: #ff9800;
-            background: rgba(255, 152, 0, 0.1);
-        }
-        .status-icon {
-            font-size: 20px;
-            margin-right: 10px;
-        }
-        .test-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        .test-details {
-            padding-left: 30px;
-            font-size: 13px;
-            color: #aaa;
-        }
-        .test-details div {
-            margin: 5px 0;
-        }
+        .test-section.success { border-left-color: #4caf50; background: rgba(76, 175, 80, 0.1); }
+        .test-section.error { border-left-color: #f44336; background: rgba(244, 67, 54, 0.1); }
+        .test-section.warning { border-left-color: #ff9800; background: rgba(255, 152, 0, 0.1); }
+        .test-section.info { border-left-color: #4fc3f7; background: rgba(79, 195, 247, 0.1); }
+        .test-title { font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; }
+        .status-icon { font-size: 20px; margin-right: 10px; }
+        .test-details { padding-left: 30px; font-size: 13px; color: #aaa; }
+        .test-details div { margin: 5px 0; }
         button {
             background: #ff7f00;
             color: #000;
@@ -82,27 +51,13 @@
             margin-right: 10px;
             margin-top: 10px;
         }
-        button:hover {
-            background: #ffaa33;
-        }
-        button:active {
-            background: #dd6600;
-        }
+        button:hover { background: #ffaa33; }
         .button-group {
             margin: 20px 0;
             padding: 15px;
             background: #1e1e1e;
             border-radius: 3px;
             border-left: 3px solid #4fc3f7;
-        }
-        code {
-            background: #000;
-            padding: 2px 6px;
-            border-radius: 3px;
-            color: #4caf50;
-            display: inline-block;
-            margin: 2px;
-            font-size: 12px;
         }
         .summary {
             margin-top: 30px;
@@ -111,247 +66,411 @@
             border-left: 4px solid #4fc3f7;
             border-radius: 3px;
         }
-        .summary h3 {
-            margin-top: 0;
-            color: #4fc3f7;
-        }
-        .summary-item {
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-        }
-        .summary-badge {
-            display: inline-block;
-            min-width: 20px;
-            text-align: center;
-            margin-right: 10px;
-            font-weight: bold;
-        }
+        .summary h3 { margin-top: 0; color: #4fc3f7; }
+        .summary-item { margin: 8px 0; display: flex; align-items: center; }
+        .summary-badge { display: inline-block; min-width: 20px; text-align: center; margin-right: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔍 Diagnostica Sistema VSC Live Server</h1>
-        
-        <div class="button-group">
-            <h3>Azioni rapide:</h3>
-            <button onclick="runAllTests()">▶️ Esegui tutti i test</button>
-            <button onclick="testLiveServer()">🌐 Test Live Server</button>
-            <button onclick="testPdfServer()">📄 Test PDF Server</button>
-            <button onclick="testCsvFiles()">📊 Test CSV Files</button>
-            <button onclick="clearTests()">🗑️ Pulisci risultati</button>
-        </div>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
+<div class="container">
+    <h1>Diagnostica Sistema VSC Live Server</h1>
 
-        <h2>📋 Risultati Test</h2>
-        <div id="results"></div>
-
-        <div class="summary" id="summary" style="display:none;">
-            <h3>📊 Riepilogo</h3>
-            <div id="summary-content"></div>
-        </div>
+    <div class="button-group">
+        <h3>Azioni rapide:</h3>
+        <button onclick="runAllTests()">Esegui tutti i test</button>
+        <button onclick="testUnifiedServer()">Test Unified Server</button>
+        <button onclick="testPdfApi()">Test PDF API</button>
+        <button onclick="testEventiFull()">Test Eventi completo</button>
+        <button onclick="testEventiStatus()">Test Eventi Status</button>
+        <button onclick="testEventiHostIp()">Test Eventi Host IP</button>
+        <button onclick="testEventiApi()">Test Eventi API</button>
+        <button onclick="testEventiDjApi()">Test Eventi DJ API</button>
+        <button onclick="testCsvFiles()">Test CSV Files</button>
+        <button onclick="testLegacyComponents()">Test Legacy opzionali</button>
+        <button onclick="clearTests()">Pulisci risultati</button>
     </div>
 
-    <script src="utility.js"></script>
-    <script>
-        const resultsDiv = document.getElementById("results");
-        let testResults = [];
+    <h2>Risultati Test</h2>
+    <div id="results"></div>
 
-        function log(title, status, details = [], icon = "❓") {
-            const section = document.createElement("div");
-            section.className = `test-section ${status}`;
-            
-            const statusMap = {
-                success: "✅",
-                error: "❌",
-                warning: "⚠️",
-                info: "ℹ️"
-            };
-            
-            icon = statusMap[status] || icon;
-            
-            let html = `<div class="test-title"><span class="status-icon">${icon}</span>${title}</div>`;
-            
-            if (details && details.length > 0) {
-                html += "<div class='test-details'>";
-                details.forEach(d => {
-                    html += `<div>${d}</div>`;
-                });
-                html += "</div>";
-            }
-            
-            section.innerHTML = html;
-            resultsDiv.appendChild(section);
-            
-            testResults.push({
-                title,
-                status,
-                details
+    <div class="summary" id="summary" style="display:none;">
+        <h3>Riepilogo</h3>
+        <div id="summary-content"></div>
+    </div>
+</div>
+
+<script src="utility.js"></script>
+<script>
+    const resultsDiv = document.getElementById("results");
+    let testResults = [];
+
+    function resetTests() {
+        resultsDiv.innerHTML = "";
+        testResults = [];
+        document.getElementById("summary").style.display = "none";
+    }
+
+    function log(title, status, details = [], icon = "?") {
+        const section = document.createElement("div");
+        section.className = `test-section ${status}`;
+
+        const statusMap = {
+            success: "OK",
+            error: "NO",
+            warning: "!",
+            info: "i"
+        };
+
+        icon = statusMap[status] || icon;
+
+        let html = `<div class="test-title"><span class="status-icon">${icon}</span>${title}</div>`;
+
+        if (details && details.length > 0) {
+            html += "<div class='test-details'>";
+            details.forEach(d => {
+                html += `<div>${d}</div>`;
             });
-            
-            console.log(`[${status.toUpperCase()}] ${title}`, details);
+            html += "</div>";
         }
 
-        async function testLiveServer() {
-            resultsDiv.innerHTML = "";
-            testResults = [];
-            
-            const url = "http://127.0.0.1:5500/";
-            
-            try {
-                const response = await fetch(url, { mode: "no-cors" });
-                log("Live Server (port 5500)", "success", [
+        section.innerHTML = html;
+        resultsDiv.appendChild(section);
+        testResults.push({ title, status, details });
+        console.log(`[${status.toUpperCase()}] ${title}`, details);
+    }
+
+    async function fetchJsonStatus(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        const text = await response.text();
+        let data = null;
+        try { data = JSON.parse(text); } catch (e) {}
+        return { response, text, data };
+    }
+
+    async function testUnifiedServer(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = "http://127.0.0.1:5500/";
+        try {
+            const response = await fetch(url, { cache: "no-store" });
+            if (response.ok) {
+                log("Unified Server (porta 5500)", "success", [
                     `URL: ${url}`,
-                    `Status: Raggiungibile`
+                    `Status: ${response.status} OK`
+                ]);
+            } else {
+                log("Unified Server (porta 5500)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Unified Server (porta 5500)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`,
+                `Suggerimento: verifica che unified-server.js sia avviato`
+            ]);
+        }
+    }
+
+    async function testPdfApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = "http://127.0.0.1:5500/api/pdf-list";
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok) {
+                log("PDF API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `PDF trovati: ${data && data.files ? data.files.length : "N/A"}`,
+                    `Cartella: ${data && data.folder ? data.folder : "N/A"}`
+                ]);
+            } else {
+                log("PDF API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("PDF API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiStatus(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = "http://127.0.0.1:5500/eventi/api/status";
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok) {
+                log("Eventi Status (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Nome servizio: ${data && data.name ? data.name : "N/A"}`,
+                    `Porta: ${data && data.port ? data.port : "N/A"}`
+                ]);
+            } else {
+                log("Eventi Status (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi Status (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = "http://127.0.0.1:5500/eventi/api/ping";
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok) {
+                log("Eventi API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Risposta: ${data && data.ping ? data.ping : "N/A"}`
+                ]);
+            } else {
+                log("Eventi API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiQr(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = "http://127.0.0.1:5500/eventi/api/qr";
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok && data && data.ok) {
+                log("Eventi QR API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Link evento: ${data.url || "N/D"}`
+                ]);
+            } else {
+                log("Eventi QR API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi QR API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiHostIp(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = "http://127.0.0.1:5500/eventi/api/host-ip";
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok && data && data.ok) {
+                log("Eventi Host IP", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Host IP: ${data.ip || "N/D"}`,
+                    `Porta: ${data.port || "N/D"}`
+                ]);
+            } else {
+                log("Eventi Host IP", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi Host IP", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiFull(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        await testEventiStatus(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiDjApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiQr(false);
+        updateSummary();
+    }
+
+    async function testEventiDjApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = "http://127.0.0.1:5500/eventi/api/dj";
+        try {
+            const { response, data, text } = await fetchJsonStatus(url);
+            if (response.ok && Array.isArray(data)) {
+                log("Eventi DJ API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `DJ registrati: ${data.length}`
+                ]);
+            } else {
+                log("Eventi DJ API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`,
+                    `Formato risposta: ${Array.isArray(data) ? "array" : (text || "non valido")}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi DJ API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`,
+                `Nota: questa API alimenta il selettore DJ della pagina Eventi`
+            ]);
+        }
+    }
+
+    async function testLegacyComponents(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const urls = [
+            "http://127.0.0.1:3000/api/status",
+            "http://127.0.0.1:3010/eventi/api/ping",
+            "http://127.0.0.1:8765/api/status"
+        ];
+
+        for (const url of urls) {
+            try {
+                const response = await fetch(url, { cache: "no-store" });
+                log("Componenti legacy opzionali", "info", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`,
+                    `Componente legacy rilevato, non richiesto nel flusso standard`
                 ]);
             } catch (error) {
-                log("Live Server (port 5500)", "error", [
+                log("Componenti legacy opzionali", "info", [
                     `URL: ${url}`,
-                    `Errore: ${error.message}`,
-                    `💡 Assicurati che Live Server sia avviato`
+                    `Esito: non raggiungibile`,
+                    `Nessun problema: il progetto standard usa solo unified-server.js su 5500`
                 ]);
             }
         }
+    }
 
-        async function testPdfServer() {
-            resultsDiv.innerHTML = "";
-            testResults = [];
-            
-            const url = "http://127.0.0.1:8765/api/pdf-list";
-            
+    async function testCsvFiles(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const csvFiles = ["display.csv", "NextCoreo.csv", "servizio.csv"];
+
+        for (const file of csvFiles) {
             try {
-                const response = await fetch(url);
+                const response = await fetch(file + "?t=" + Date.now());
                 if (response.ok) {
-                    const data = await response.json();
-                    log("PDF Server (port 8765)", "success", [
-                        `URL: ${url}`,
+                    const text = await response.text();
+                    const lines = text.trim().split("\n").length;
+                    log(`CSV: ${file}`, "success", [
+                        `URL: ${file}`,
                         `Status: ${response.status} OK`,
-                        `PDF trovati: ${data.files ? data.files.length : "N/A"}`,
-                        `Cartella: ${data.folderPath || "N/A"}`
+                        `Righe: ${lines}`,
+                        `Dimensione: ${(text.length / 1024).toFixed(2)} KB`
                     ]);
                 } else {
-                    log("PDF Server (port 8765)", "warning", [
-                        `URL: ${url}`,
-                        `Status: ${response.status} ${response.statusText}`,
-                        `💡 Server risponde ma con errore`
+                    log(`CSV: ${file}`, "warning", [
+                        `URL: ${file}`,
+                        `Status: ${response.status} ${response.statusText}`
                     ]);
                 }
             } catch (error) {
-                log("PDF Server (port 8765)", "error", [
-                    `URL: ${url}`,
-                    `Errore: ${error.message}`,
-                    `💡 Esegui: .\\start-pdf-server.ps1`
+                log(`CSV: ${file}`, "error", [
+                    `URL: ${file}`,
+                    `Errore: ${error.message}`
                 ]);
             }
         }
+    }
 
-        async function testCsvFiles() {
-            resultsDiv.innerHTML = "";
-            testResults = [];
-            
-            const csvFiles = ["display.csv", "NextCoreo.csv", "servizio.csv"];
-            
-            for (const file of csvFiles) {
-                try {
-                    const response = await fetch(file + "?t=" + Date.now());
-                    if (response.ok) {
-                        const text = await response.text();
-                        const lines = text.trim().split("\n").length;
-                        log(`CSV: ${file}`, "success", [
-                            `URL: ${file}`,
-                            `Status: ${response.status} OK`,
-                            `Righe: ${lines}`,
-                            `Dimensione: ${(text.length / 1024).toFixed(2)} KB`
-                        ]);
-                    } else {
-                        log(`CSV: ${file}`, "warning", [
-                            `URL: ${file}`,
-                            `Status: ${response.status} ${response.statusText}`
-                        ]);
-                    }
-                } catch (error) {
-                    log(`CSV: ${file}`, "error", [
-                        `URL: ${file}`,
-                        `Errore: ${error.message}`,
-                        `💡 Verifica che il file esista nella cartella root`
-                    ]);
-                }
-            }
-        }
+    async function runAllTests() {
+        resetTests();
+        await testUnifiedServer(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testPdfApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiDjApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testCsvFiles(false);
+        updateSummary();
+    }
 
-        async function runAllTests() {
-            resultsDiv.innerHTML = "";
-            testResults = [];
-            
-            await testLiveServer();
-            await new Promise(r => setTimeout(r, 500));
-            await testPdfServer();
-            await new Promise(r => setTimeout(r, 500));
-            await testCsvFiles();
-            
-            // Riepilogo
-            updateSummary();
-        }
+    function clearTests() {
+        resultsDiv.innerHTML = "";
+        testResults = [];
+        document.getElementById("summary").style.display = "none";
+    }
 
-        function clearTests() {
-            resultsDiv.innerHTML = "";
-            testResults = [];
-            document.getElementById("summary").style.display = "none";
-        }
+    function updateSummary() {
+        const summary = document.getElementById("summary");
+        const summaryContent = document.getElementById("summary-content");
 
-        function updateSummary() {
-            const summary = document.getElementById("summary");
-            const summaryContent = document.getElementById("summary-content");
-            
-            const successes = testResults.filter(r => r.status === "success").length;
-            const warnings = testResults.filter(r => r.status === "warning").length;
-            const errors = testResults.filter(r => r.status === "error").length;
-            const total = testResults.length;
-            
-            let html = `
+        const successes = testResults.filter(r => r.status === "success").length;
+        const warnings = testResults.filter(r => r.status === "warning").length;
+        const errors = testResults.filter(r => r.status === "error").length;
+        const total = testResults.length;
+
+        let html = `
+            <div class="summary-item">
+                <span class="summary-badge" style="color:#4caf50;">+</span>
+                <span>${successes}/${total} test superati</span>
+            </div>
+        `;
+
+        if (warnings > 0) {
+            html += `
                 <div class="summary-item">
-                    <span class="summary-badge" style="color:#4caf50;">✓</span>
-                    <span>${successes}/${total} test superati</span>
+                    <span class="summary-badge" style="color:#ff9800;">!</span>
+                    <span>${warnings} avvertimento/i</span>
                 </div>
             `;
-            
-            if (warnings > 0) {
-                html += `
-                    <div class="summary-item">
-                        <span class="summary-badge" style="color:#ff9800;">⚠</span>
-                        <span>${warnings} avvertimento/i</span>
-                    </div>
-                `;
-            }
-            
-            if (errors > 0) {
-                html += `
-                    <div class="summary-item">
-                        <span class="summary-badge" style="color:#f44336;">✗</span>
-                        <span>${errors} errore/i - Vedi dettagli sopra</span>
-                    </div>
-                `;
-            }
-            
-            if (successes === total && errors === 0 && warnings === 0) {
-                html += `
-                    <div class="summary-item">
-                        <span style="color:#4caf50; font-weight:bold;">🎉 TUTTO OK - Sistema funzionante!</span>
-                    </div>
-                `;
-            }
-            
-            summaryContent.innerHTML = html;
-            summary.style.display = "block";
         }
 
-        // Auto-run on page load
-        window.addEventListener("load", () => {
-            log("Pagina caricata", "info", [
-                `URL: ${window.location.href}`,
-                `Browser: ${navigator.userAgent.split(" ").slice(-2).join(" ")}`,
-                `Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`
-            ], "ℹ️");
-        });
-    </script>
+        if (errors > 0) {
+            html += `
+                <div class="summary-item">
+                    <span class="summary-badge" style="color:#f44336;">x</span>
+                    <span>${errors} errore/i - Vedi dettagli sopra</span>
+                </div>
+            `;
+        }
+
+        if (successes === total && errors === 0 && warnings === 0) {
+            html += `
+                <div class="summary-item">
+                    <span style="color:#4caf50; font-weight:bold;">TUTTO OK - Sistema funzionante</span>
+                </div>
+            `;
+        }
+
+        summaryContent.innerHTML = html;
+        summary.style.display = "block";
+    }
+
+    window.addEventListener("load", () => {
+        log("Pagina caricata", "info", [
+            `URL: ${window.location.href}`,
+            `Browser: ${navigator.userAgent.split(" ").slice(-2).join(" ")}`,
+            `Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+        ]);
+    });
+</script>
 </body>
 </html>

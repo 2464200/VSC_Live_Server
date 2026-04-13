@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizzatore PDF</title>
+    <style>
+        /* 📍 MENU DI NAVIGAZIONE */
+        nav { background: #222; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+        nav a { color: #ff7f00; margin: 0 12px; text-decoration: none; font-weight: bold; font-size: 13px; }
+        nav a:hover { text-decoration: underline; }
+    </style>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        body { background: #000; }
+        
+        #pdf-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #controls {
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ff7f00;
+        }
+        
+        #controls h2 {
+            color: #fff;
+            font-size: 16px;
+            margin: 0;
+            flex: 1;
+        }
+        
+        #close-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        #close-btn:hover {
+            background: #ff6666;
+            transform: scale(1.05);
+        }
+        
+        #close-btn:active {
+            background: #cc0000;
+        }
+        
+        #pdf-display {
+            flex: 1;
+            width: 100%;
+            height: calc(100% - 50px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .loading {
+            color: #ff7f00;
+            font-size: 18px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .error {
+            color: #ff4444;
+            font-size: 18px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .shortcut-hint {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: #aaa;
+            padding: 8px 12px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #pdf-container:hover .shortcut-hint {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
+
+<div id="pdf-container">
+    <div id="controls">
+        <h2 id="pdf-title">Visualizzatore PDF</h2>
+        <button id="close-btn" onclick="closePdfViewer()">✕ Chiudi</button>
+    </div>
+    <div id="pdf-display">
+        <div class="loading">Caricamento PDF...</div>
+    </div>
+</div>
+
+<div class="shortcut-hint">Premi ESC per chiudere</div>
+
+<script>
+    // Configurazione server PDF dinamica in base al server corrente
+    const PDF_SERVER_HOST = window.location.origin || (window.location.protocol + '//' + window.location.host);
+    
+    // GET il parametro del file PDF dall'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const pdfPath = urlParams.get('file');
+    const pdfName = urlParams.get('name') || 'PDF';
+    
+    console.log('📄 Visualizzatore PDF avviato');
+    console.log('File:', pdfPath);
+    console.log('Nome:', pdfName);
+    
+    // Aggiorna il titolo
+    document.getElementById('pdf-title').textContent = pdfName;
+    
+    // Carica il PDF via HTTP endpoint del server
+    if (pdfPath) {
+        const displayDiv = document.getElementById('pdf-display');
+        // Usa l'endpoint del server per servire il PDF
+        const serveUrl = PDF_SERVER_HOST + '/api/serve-pdf?file=' + encodeURIComponent(pdfPath);
+        console.log('📡 URL Serve:', serveUrl);
+        displayDiv.innerHTML = `<iframe src="${serveUrl}" type="application/pdf"></iframe>`;
+    } else {
+        document.getElementById('pdf-display').innerHTML = '<div class="error">❌ Errore: File PDF non specificato</div>';
+    }
+    
+    // Funzione per chiudere il viewer
+    function closePdfViewer() {
+        console.log('🔴 Chiusura PDF viewer...');
+        // Prova a chiudere il server in remoto
+        fetch(PDF_SERVER_HOST + '/api/close-chrome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        }).catch(() => {
+            // Se fallisce, chiudi comunque
+        });
+        setTimeout(() => window.close(), 500);
+    }
+    
+    // Supporto tasto ESC per chiudere
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            console.log('🔑 ESC premuto - chiusura viewer');
+            closePdfViewer();
+        }
+    });
+    
+    // Supporto Alt+Q come scorciatoia alternativa
+    document.addEventListener('keydown', (e) => {
+        if (e.altKey && e.key === 'q') {
+            console.log('🔑 Alt+Q premuto - chiusura viewer');
+            closePdfViewer();
+        }
+    });
+    
+    console.log('✅ Listener configurati: ESC / Alt+Q per chiudere viewer');
+</script>
+
+</body>
+</html>

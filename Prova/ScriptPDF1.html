@@ -35,17 +35,16 @@ button:active { background: #dd6600; }
 </style>
 <!-- Config del server API -->
 <script>
-// Configurazione diretta - PDF Server su localhost:8765
-window.PDF_SERVER_HOST = 'http://localhost:8765';
+const pdfOrigin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+window.PDF_SERVER_HOST = pdfOrigin;
+window.PDF_SERVER_TIMEOUT = 8000;  // 8 secondi timeout
+window.PDF_SERVER_RETRIES = 2;     // 2 retry
 </script>
 </head>
 <body>
 
-<nav>
-<a href="/index.html"> Home</a>
-<a href="/Prova/Report_black.html"> Report Black</a>
-<a href="/Prova/Report_white.html"> Report White</a>
-</nav>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
 
 <div class="container">
 <h1> Gestione PDF - ScriptPDF1</h1>
@@ -59,6 +58,16 @@ window.PDF_SERVER_HOST = 'http://localhost:8765';
 <select id="pdf-select" onchange="onPdfSelected()">
 <option value="">-- Caricamento in corso... --</option>
 </select>
+</div>
+
+<div class="control-group">
+<label for="viewer-select"> Viewer PDF:</label>
+<select id="viewer-select" title="Seleziona Viewer per apertura" style="background:#333;color:#fff;padding:8px;border-radius:5px;border:1px solid #444;min-width:180px;">
+    <option value="auto">Auto (Acrobat poi Chrome)</option>
+    <option value="adobe">Solo Acrobat</option>
+    <option value="chrome">Solo Chrome</option>
+</select>
+<input id="adobe-path" placeholder="Percorso Adobe (opzionale) es: C:\\Program Files\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe" style="background:#222;color:#fff;border:1px solid #444;padding:8px;border-radius:5px;min-width:420px;" onblur="saveAdobePath()" />
 </div>
 
 <div class="pdf-info" id="pdf-info">
@@ -84,12 +93,94 @@ let currentIndex = 0;
 let serverReady = false;
 let serverAutoStarted = false;
 
+const MANAGER_HOST = 'http://localhost:3000';
+const PDF_SERVER_PORT = 8765;
+
+function getPdfServerHost() {
+    return window.PDF_SERVER_HOST || `http://localhost:${PDF_SERVER_PORT}`;
+}
+
+function getManagerUrl(path = '') {
+    return `${MANAGER_HOST}${path}`;
+}
+
+async function ensureManagerRunning() {
+    try {
+        const response = await fetch(getManagerUrl('/api/manager/health'), { method: 'GET' });
+        return response.ok;
+    } catch (err) {
+        console.warn('⚠️ Manager non raggiungibile:', err.message);
+        return false;
+    }
+}
+
+async function startPdfServerViaManager() {
+    try {
+        const response = await fetch(getManagerUrl('/api/manager/start'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            const body = await response.text();
+            console.warn('⚠️ Manager start non OK:', response.status, body);
+            return false;
+        }
+        const data = await response.json();
+        if (data && data.success) {
+            console.log('✅ PDF Server avviato via manager', data);
+            serverAutoStarted = true;
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.error('❌ Errore avvio PDF Server via manager:', err.message);
+        return false;
+    }
+}
+
+async function stopPdfServerViaManager() {
+    try {
+        const response = await fetch(getManagerUrl('/api/manager/stop'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            const body = await response.text();
+            console.warn('⚠️ Manager stop non OK:', response.status, body);
+            return false;
+        }
+
+        const data = await response.json();
+        if (data && data.success) {
+            console.log('✅ PDF Server fermato via manager');
+            serverAutoStarted = false;
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.error('❌ Errore stop PDF Server via manager:', err.message);
+        return false;
+    }
+}
+
+async function waitForPdfServerReady(timeoutMs = 15000) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+        if (await checkPdfServer()) return true;
+        await new Promise(r => setTimeout(r, 500));
+    }
+    return false;
+}
+
 /**
  * INIZIALIZZAZIONE - Eseguita al caricamento della pagina
  */
 window.addEventListener("beforeunload", async function() {
     // Prima di chiudere la pagina, log scarico
     console.log("🔌 Chiusura pagina...");
+    if (serverAutoStarted) {
+        await stopPdfServerViaManager();
+    }
 });
 
 // Funzione semplice per contattare il server PDF
@@ -102,7 +193,7 @@ async function checkPdfServer() {
             controller.abort();
         }, 3000);
         
-        const url = window.PDF_SERVER_HOST + '/api/health';
+        const url = getPdfServerHost() + '/api/health';
         console.log("   URL:", url);
         
         const response = await fetch(url, {
@@ -126,14 +217,33 @@ async function checkPdfServer() {
 
 document.addEventListener("DOMContentLoaded", async function() {
     console.log("🚀 Inizializzazione pagina...");
-    console.log("📍 PDF Server: " + window.PDF_SERVER_HOST);
+    console.log("📍 PDF Server (fallback): " + getPdfServerHost());
+    console.log("📍 Server Manager: " + MANAGER_HOST);
     
     updateStatus("Verifica connessione server...", "loading");
     
     try {
-        // Verifica connessione al PDF Server
-        const serverOk = await checkPdfServer();
-        
+        let serverOk = await checkPdfServer();
+        let managerOk = false;
+
+        if (!serverOk) {
+            managerOk = await ensureManagerRunning();
+            if (managerOk) {
+                updateStatus("Manager trovato, avvio PDF Server...", "loading");
+                const started = await startPdfServerViaManager();
+                if (started) {
+                    const ready = await waitForPdfServerReady(15000);
+                    if (ready) {
+                        serverOk = true;
+                    } else {
+                        console.warn('⚠️ PDF Server non pronto dopo avvio manager');
+                    }
+                }
+            } else {
+                console.warn('⚠️ Manager non disponibile per avvio PDF');
+            }
+        }
+
         if (serverOk) {
             console.log("✅ Server PDF disponibile");
             serverReady = true;
@@ -142,13 +252,20 @@ document.addEventListener("DOMContentLoaded", async function() {
         } else {
             console.error("❌ Server PDF non raggiungibile");
             updateStatus("❌ Server non raggiungibile", "error");
-            showMessage("❌ PDF Server non disponibile\n\n💡 Esegui: node pdf-server-simple.js\n💡 In un terminale PowerShell", "error");
+            showMessage("❌ PDF Server non disponibile\n\n💡 Esegui: .\\start-server-manager.ps1 e poi .\\launch-all.ps1\n💡 Oppure: node pdf-server-simple.js", "error");
         }
         
     } catch (error) {
         console.error("❌ Errore durante inizializzazione:", error);
         updateStatus("Errore", "error");
         showMessage(`❌ Errore fatale: ${error.message}`, "error");
+    }
+
+    // Carica percorso Adobe salvato in localStorage
+    const adobeInput = document.getElementById('adobe-path');
+    if (adobeInput) {
+        const saved = localStorage.getItem('adobePath') || '';
+        adobeInput.value = saved;
     }
 });
 
@@ -162,7 +279,7 @@ async function loadPdfData() {
         updateStatus("Caricamento lista PDF...", "loading");
         
         // Fetch diretto dal server PDF
-        const url = window.PDF_SERVER_HOST + '/api/pdf-list?t=' + Date.now();
+        const url = getPdfServerHost() + '/api/pdf-list?t=' + Date.now();
         console.log("   URL:", url);
         console.log("   Invio fetch...");
         
@@ -196,8 +313,8 @@ async function loadPdfData() {
         
         if (pdfList.length === 0) {
             console.warn("⚠️  Nessun PDF trovato!");
-            updateStatus("Nessun PDF trovato in C:\\SCRIPT_PDF", "error");
-            showMessage("📁 La cartella C:\\SCRIPT_PDF è vuota", "error");
+            updateStatus("Nessun PDF trovato in C:\\VSC_SCRIPT_PDF", "error");
+            showMessage("📁 La cartella C:\\VSC_SCRIPT_PDF è vuota", "error");
             return;
         }
         
@@ -332,12 +449,19 @@ async function openCurrentPdf() {
         console.log(`📖 Apertura PDF: ${pdf.name}`);
         updateStatus(`Apertura ${pdf.name}...`, "loading");
         
-        const url = window.PDF_SERVER_HOST + '/api/open-pdf';
+        const url = getPdfServerHost() + '/api/open-pdf';
         console.log("   URL server:", url);
         
+        const viewerSelect = document.getElementById('viewer-select');
+        const viewer = viewerSelect ? viewerSelect.value : 'auto';
+        const adobeInput = document.getElementById('adobe-path');
+        const adobePath = adobeInput ? adobeInput.value.trim() : '';
+
         const payload = { 
             filePath: pdf.path, 
-            fileName: pdf.name 
+            fileName: pdf.name,
+            viewer: viewer,
+            adobePath: adobePath
         };
         console.log("   Payload:", JSON.stringify(payload));
         
@@ -387,7 +511,7 @@ async function closePdfViewer() {
         if (!serverReady) {
             console.warn("Server non disponibile, skip chiusura remota");
         } else {
-            const url = window.PDF_SERVER_HOST + '/api/close-chrome';
+            const url = getPdfServerHost() + '/api/close-chrome';
             await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
@@ -417,6 +541,15 @@ function showMessage(text, type) {
             msg.className = "message";
         }, 5000);
     }
+}
+
+// Salva percorso Adobe in localStorage
+function saveAdobePath() {
+    const adobeInput = document.getElementById('adobe-path');
+    if (!adobeInput) return;
+    const p = adobeInput.value.trim();
+    localStorage.setItem('adobePath', p);
+    showMessage('Percorso Adobe salvato', 'success');
 }
 
 // LOG INIZIALE
