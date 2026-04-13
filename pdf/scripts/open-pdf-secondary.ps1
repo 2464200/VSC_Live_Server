@@ -85,10 +85,10 @@ public class WindowManager {
     # System.Windows.Forms è usato solo per rilevare i monitor disponibili
     Add-Type -AssemblyName System.Windows.Forms | Out-Null
 
-    function Get-ChildProcessIds($pid) {
+    function Get-ChildProcessIds($processNumber) {
         # Include eventuali processi figli in cascata: utile per Chrome/Acrobat
         try {
-            $children = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $pid }
+            $children = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $processNumber }
             $ids = @()
             foreach ($child in $children) {
                 $ids += $child.ProcessId
@@ -100,7 +100,7 @@ public class WindowManager {
         }
     }
 
-    function Get-WindowHandlesForPid($pid) {
+    function Get-WindowHandlesForProcess($processNumber) {
         $handles = @()
         $callback = [WindowManager+EnumWindowsProc] {
             param($hWnd, $lParam)
@@ -112,15 +112,15 @@ public class WindowManager {
             }
             return $true
         }
-        [WindowManager]::EnumWindows($callback, [IntPtr]::op_Explicit($pid)) | Out-Null
+        [WindowManager]::EnumWindows($callback, [IntPtr]::op_Explicit($processNumber)) | Out-Null
         return $handles
     }
 
-    function Get-WindowHandlesForPidTree($rootPid) {
-        $pids = @($rootPid) + (Get-ChildProcessIds $rootPid)
+    function Get-WindowHandlesForProcessTree($rootProcessNumber) {
+        $processIds = @($rootProcessNumber) + (Get-ChildProcessIds $rootProcessNumber)
         $handles = @()
-        foreach ($pid in $pids | Select-Object -Unique) {
-            $handles += Get-WindowHandlesForPid $pid
+        foreach ($processNumber in $processIds | Select-Object -Unique) {
+            $handles += Get-WindowHandlesForProcess $processNumber
         }
         return $handles | Select-Object -Unique
     }
@@ -142,11 +142,11 @@ public class WindowManager {
     Log "Monitor totali: $($screens.Count)"
 
     # Helper to start process
-    function Start-Viewer($exePath, $args) {
+    function Start-Viewer($exePath, $cmdParams) {
         try {
-            if ($args -and $args.Count -gt 0) {
-                Log "   Argomenti: $($args -join ' | ')"
-                return Start-Process -FilePath $exePath -ArgumentList $args -PassThru -WindowStyle Normal
+            if ($cmdParams -and $cmdParams.Count -gt 0) {
+                Log "   Argomenti: $($cmdParams -join ' | ')"
+                return Start-Process -FilePath $exePath -ArgumentList $cmdParams -PassThru -WindowStyle Normal
             } else {
                 return Start-Process -FilePath $exePath -PassThru -WindowStyle Normal
             }
@@ -160,12 +160,12 @@ public class WindowManager {
         # Usa l'endpoint serve-pdf del server unificato per aprire il PDF
         # Il viewer Chrome apre il PDF via HTTP, così il file viene servito correttamente.
         $fileUrl = 'http://localhost:5500/api/serve-pdf?file=' + [System.Net.WebUtility]::UrlEncode($FilePath)
-        $args = @('--new-window', $fileUrl, '--disable-infobars', '--disable-session-crashed-bubble', '--disable-extensions', '--disable-background-networking')
+        $cmdParams = @('--new-window', $fileUrl, '--disable-infobars', '--disable-session-crashed-bubble', '--disable-extensions', '--disable-background-networking')
         if ($null -ne $x -and $null -ne $y -and $null -ne $w -and $null -ne $h) {
-            $args += "--window-position=$x,$y"
-            $args += "--window-size=$w,$h"
+            $cmdParams += "--window-position=$x,$y"
+            $cmdParams += "--window-size=$w,$h"
         }
-        return Start-Viewer $chromePath $args
+        return Start-Viewer $chromePath $cmdParams
     }
 
     function Find-ChromePath() {
@@ -372,7 +372,7 @@ public class WindowManager {
 
                 if ($i -eq 100 -and -not $found) {
                     Log "   Non trovato main window: cerco finestre del PID e dei processi figli $procId"
-                    $handles = Get-WindowHandlesForPidTree $procId
+                    $handles = Get-WindowHandlesForProcessTree $procId
                     if ($handles.Count -gt 0) {
                         $pdfWindow = $handles[0]
                         Log "   Trovati handle con PID (inclusi figli): $($handles.Count)"
