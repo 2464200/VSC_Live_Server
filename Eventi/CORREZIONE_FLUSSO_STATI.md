@@ -1,24 +1,26 @@
-# ✅ CORREZIONE LOGICA FLUSSO STATI COREOGRAFIE
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
+# âœ… CORREZIONE LOGICA FLUSSO STATI COREOGRAFIE
 
 **Data**: 6 Aprile 2026  
 **Scope**: Revisione logica di transizione stato eventi.js  
-**Status**: 🟢 COMPLETATO
+**Status**: ðŸŸ¢ COMPLETATO
 
 ---
 
-## 🔴 PROBLEMA IDENTIFICATO
+## ðŸ”´ PROBLEMA IDENTIFICATO
 
 La logica di transizione dello stato usava **DUE CHECKBOX SEPARATI**:
-- `checkbox-prenota`: disponibile ↔ prenotato
-- `checkbox-eseguito`: prenotato ↔ eseguito
+- `checkbox-prenota`: disponibile â†” prenotato
+- `checkbox-eseguito`: prenotato â†” eseguito
 
 Il timestamp veniva **sempre aggiunto** (anche per stato "prenotato"), violando il flusso corretto:
-- Prima spunta: disponibile → **prenotato** (SENZA timestamp)
-- Seconda spunta: prenotato → **eseguito** (CON timestamp)
+- Prima spunta: disponibile â†’ **prenotato** (SENZA timestamp)
+- Seconda spunta: prenotato â†’ **eseguito** (CON timestamp)
 
 ---
 
-## ✅ SOLUZIONE IMPLEMENTATA
+## âœ… SOLUZIONE IMPLEMENTATA
 
 ### 1. **Funzione `salvaStato()` - Aggiornata**
 
@@ -30,7 +32,7 @@ async function salvaStato(id, stato, addTimestamp = false) {
     dj: getDJLocal() || null
   };
   
-  // ✅ Timestamp SOLO quando stato è 'eseguito' E addTimestamp=true
+  // âœ… Timestamp SOLO quando stato Ã¨ 'eseguito' E addTimestamp=true
   if (addTimestamp && stato === 'eseguito') {
     payload.timestamp = new Date().toISOString();
   } else {
@@ -57,19 +59,19 @@ async function salvaStato(id, stato, addTimestamp = false) {
 **Nuovo flusso**: **UN UNICO CHECKBOX** con logica a tre stati
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ FLUSSO A TRE STATI - UN UNICO CHECKBOX                  │
-├─────────────────────────────────────────────────────────┤
-│ Stato: DISPONIBILE  ╱ checkbox: unchecked, abilitato    │
-│   └─ Utente spunta  │                                    │
-│        └─→ PRENOTATO  ╱ checkbox: checked, abilitato    │
-│             (SENZA timestamp)      │                     │
-│   └─ Utente spunta di nuovo        │                     │
-│        └─→ ESEGUITO  ╱ checkbox: checked, DISABLED      │
-│             (CON timestamp, data/ora aggiunta)           │
-│                                                          │
-│ Terminal: "✅ [id] prenotato → eseguito (CON timestamp)"│
-└─────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ FLUSSO A TRE STATI - UN UNICO CHECKBOX                  â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ Stato: DISPONIBILE  â•± checkbox: unchecked, abilitato    â”‚
+â”‚   â””â”€ Utente spunta  â”‚                                    â”‚
+â”‚        â””â”€â†’ PRENOTATO  â•± checkbox: checked, abilitato    â”‚
+â”‚             (SENZA timestamp)      â”‚                     â”‚
+â”‚   â””â”€ Utente spunta di nuovo        â”‚                     â”‚
+â”‚        â””â”€â†’ ESEGUITO  â•± checkbox: checked, DISABLED      â”‚
+â”‚             (CON timestamp, data/ora aggiunta)           â”‚
+â”‚                                                          â”‚
+â”‚ Terminal: "âœ… [id] prenotato â†’ eseguito (CON timestamp)"â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### 3. **Event Listener - Logica Corretta**
@@ -81,15 +83,15 @@ checkbox.addEventListener('change', async () => {
   let includeTimestamp = false;
 
   if (currentState === 'disponibile') {
-    // ✅ PRIMA SPUNTA: disponibile → prenotato (SENZA timestamp)
+    // âœ… PRIMA SPUNTA: disponibile â†’ prenotato (SENZA timestamp)
     newState = 'prenotato';
     includeTimestamp = false;
-    console.log(`📌 [${brano.id}] disponibile → prenotato (SENZA timestamp)`);
+    console.log(`ðŸ“Œ [${brano.id}] disponibile â†’ prenotato (SENZA timestamp)`);
   } else if (currentState === 'prenotato') {
-    // ✅ SECONDA SPUNTA: prenotato → eseguito (CON timestamp)
+    // âœ… SECONDA SPUNTA: prenotato â†’ eseguito (CON timestamp)
     newState = 'eseguito';
     includeTimestamp = true;
-    console.log(`✅ [${brano.id}] prenotato → eseguito (CON timestamp di ${getDJLocal()})`);
+    console.log(`âœ… [${brano.id}] prenotato â†’ eseguito (CON timestamp di ${getDJLocal()})`);
   }
 
   // Salva con il flag corretto
@@ -99,56 +101,56 @@ checkbox.addEventListener('change', async () => {
 
 ---
 
-## 🔍 FLUSSO OPERATIVO COMPLETO
+## ðŸ” FLUSSO OPERATIVO COMPLETO
 
 ### Scenario: Prenotare e Eseguire un Brano
 
 ```
-1️⃣ CARICO PAGINA principais (eventi.html)
-   └─ Console: "📋 Renderizzando 557 coreografie nel container"
-   └─ Vedo: ⬜ [Brano1] [checkbox UNCHECKED]
+1ï¸âƒ£ CARICO PAGINA principais (eventi.html)
+   â””â”€ Console: "ðŸ“‹ Renderizzando 557 coreografie nel container"
+   â””â”€ Vedo: â¬œ [Brano1] [checkbox UNCHECKED]
    
-2️⃣ UTENTE SPUNTA IL CHECKBOX PRIMA VOLTA
-   └─ Event: checkbox.change triggered
-   └─ Logica: currentState='disponibile' → newState='prenotato'
-   └─ Console: "📌 [id] disponibile → prenotato (SENZA timestamp)"
-   └─ Salva: salvaStato(id, 'prenotato', false)
-      └─ Payload: {id, stato: 'prenotato', dj: 'DJ Name', timestamp: null}
-   └─ UI Aggiorna: riga diventa GIALLA (classe 'prenotato')
+2ï¸âƒ£ UTENTE SPUNTA IL CHECKBOX PRIMA VOLTA
+   â””â”€ Event: checkbox.change triggered
+   â””â”€ Logica: currentState='disponibile' â†’ newState='prenotato'
+   â””â”€ Console: "ðŸ“Œ [id] disponibile â†’ prenotato (SENZA timestamp)"
+   â””â”€ Salva: salvaStato(id, 'prenotato', false)
+      â””â”€ Payload: {id, stato: 'prenotato', dj: 'DJ Name', timestamp: null}
+   â””â”€ UI Aggiorna: riga diventa GIALLA (classe 'prenotato')
    
-3️⃣ UTENTE SPUNTA IL CHECKBOX LA SECONDA VOLTA
-   └─ Event: checkbox.change triggered di nuovo
-   └─ Logica: currentState='prenotato' → newState='eseguito'  
-   └─ Console: "✅ [id] prenotato → eseguito (CON timestamp di DJ Name)"
-   └─ Salva: salvaStato(id, 'eseguito', true)
-      └─ Payload: {id, stato: 'eseguito', dj: 'DJ Name', timestamp: '2026-04-06 14:32:15'}
-   └─ UI Aggiorna: 
-      ├─ riga diventa VERDE (classe 'eseguito')
-      ├─ timestamp appare nella riga: "06/04/2026, 14:32:15"
-      └─ checkbox diventa DISABLED (non può più cambiare)
+3ï¸âƒ£ UTENTE SPUNTA IL CHECKBOX LA SECONDA VOLTA
+   â””â”€ Event: checkbox.change triggered di nuovo
+   â””â”€ Logica: currentState='prenotato' â†’ newState='eseguito'  
+   â””â”€ Console: "âœ… [id] prenotato â†’ eseguito (CON timestamp di DJ Name)"
+   â””â”€ Salva: salvaStato(id, 'eseguito', true)
+      â””â”€ Payload: {id, stato: 'eseguito', dj: 'DJ Name', timestamp: '2026-04-06 14:32:15'}
+   â””â”€ UI Aggiorna: 
+      â”œâ”€ riga diventa VERDE (classe 'eseguito')
+      â”œâ”€ timestamp appare nella riga: "06/04/2026, 14:32:15"
+      â””â”€ checkbox diventa DISABLED (non puÃ² piÃ¹ cambiare)
 
-4️⃣ POLLING AGGIORNA (ogni 30 secondi)
-   └─ Ricarica dati dal database
-   └─ Lo stato rimane 'eseguito' con timestamp
-   └─ UI rimane coerente
+4ï¸âƒ£ POLLING AGGIORNA (ogni 30 secondi)
+   â””â”€ Ricarica dati dal database
+   â””â”€ Lo stato rimane 'eseguito' con timestamp
+   â””â”€ UI rimane coerente
 ```
 
 ---
 
-## 🎯 VERIFICA NEL BROWSER
+## ðŸŽ¯ VERIFICA NEL BROWSER
 
-### Console (F12 → Console tab)
+### Console (F12 â†’ Console tab)
 
 Dovresti vedere questi log quando spunti il checkbox:
 
 ```
-📌 [BRANO-123] disponibile → prenotato (SENZA timestamp)
+ðŸ“Œ [BRANO-123] disponibile â†’ prenotato (SENZA timestamp)
 ```
 
 Poi quando lo spunti di nuovo:
 
 ```
-✅ [BRANO-123] prenotato → eseguito (CON timestamp di Luca)
+âœ… [BRANO-123] prenotato â†’ eseguito (CON timestamp di Luca)
 ```
 
 ### Database (log.json)
@@ -175,26 +177,26 @@ Quando lo spunti di nuovo e diventa "eseguito":
 
 ---
 
-## 📋 FILE MODIFICATI
+## ðŸ“‹ FILE MODIFICATI
 
-✅ **`Eventi/public/eventi.js`**
-- ✅ Funzione `salvaStato()`: aggiunto parametro `addTimestamp`
-- ✅ Funzione `renderRows()`: sostituito doppio checkbox con uno singolo
-- ✅ Event listener: logica a tre stati (disponibile → prenotato → eseguito)
-- ✅ Timestamp aggiunto SOLO quando stato = 'eseguito'
+âœ… **`Eventi/public/eventi.js`**
+- âœ… Funzione `salvaStato()`: aggiunto parametro `addTimestamp`
+- âœ… Funzione `renderRows()`: sostituito doppio checkbox con uno singolo
+- âœ… Event listener: logica a tre stati (disponibile â†’ prenotato â†’ eseguito)
+- âœ… Timestamp aggiunto SOLO quando stato = 'eseguito'
 
 **NON MODIFICATI** (funzionano benissimo):
-- ❌ `Eventi/public/api-helper.js`
-- ❌ `Eventi/public/render.js`
-- ❌ `Eventi/server-eventi.js`
-- ❌ HTML template
+- âŒ `Eventi/public/api-helper.js`
+- âŒ `Eventi/public/render.js`
+- âŒ `Eventi/server-eventi.js`
+- âŒ HTML template
 
 ---
 
-## 🚀 TEST & DEPLOYMENT
+## ðŸš€ TEST & DEPLOYMENT
 
 ```bash
-# Server già online
+# Server giÃ  online
 http://localhost:3010/eventi/eventi.html
 
 # Test manuale:
@@ -202,12 +204,12 @@ http://localhost:3010/eventi/eventi.html
 2. Seleziona un DJ dal dropdown
 3. Spunta un brano: vedi "prenotato" SENZA data
 4. Spunta di nuovo: vedi "eseguito" CON data/ora del DJ
-5. Non puoi più cambiare (checkbox disabled)
+5. Non puoi piÃ¹ cambiare (checkbox disabled)
 ```
 
 ---
 
-## ✨ MIGLIORAMENTI
+## âœ¨ MIGLIORAMENTI
 
 | Aspetto | Prima | Dopo |
 |---------|-------|------|
@@ -219,10 +221,12 @@ http://localhost:3010/eventi/eventi.html
 
 ---
 
-## 🔗 RELAZIONE CON FUNZIONAMENTI PRECEDENTI
+## ðŸ”— RELAZIONE CON FUNZIONAMENTI PRECEDENTI
 
-Il comportamento ora è **coerente** con come dovrebbe funzionare:
-- ✅ Pagine di filtro (render.js): conservate come erano
-- ✅ API backend: nessun cambiamento
-- ✅ Database schema: retrocompatibile
-- ✅ Logica stato: finalmente corretta
+Il comportamento ora Ã¨ **coerente** con come dovrebbe funzionare:
+- âœ… Pagine di filtro (render.js): conservate come erano
+- âœ… API backend: nessun cambiamento
+- âœ… Database schema: retrocompatibile
+- âœ… Logica stato: finalmente corretta
+
+

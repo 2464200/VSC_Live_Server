@@ -1,23 +1,27 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 # ScriptPDF1 - Gestione PDF per Excel
 
 Sistema per aprire e gestire file PDF da una cartella dedicata (`C:\SCRIPT_PDF`) attraverso un'interfaccia web grafica integrata con Excel.
 
-## 📋 Caratteristiche
+**Nota:** Questo sistema è ora integrato nel unified server principale su `http://localhost:5500`. Non richiede server separati.
+
+## ðŸ“‹ Caratteristiche
 
 - **Interfaccia grafica**: Pagina HTML con stile consistente (tema nero/arancione come Report_black.html)
 - **Gestione PDF**: ComboBox per selezionare file PDF, pulsanti di navigazione
-- **Modalità Kiosk**: Apertura di Chrome a schermo intero sul monitor secondario
+- **ModalitÃ  Kiosk**: Apertura di Chrome a schermo intero sul monitor secondario
 - **Controllo da Excel**: Integrazione con VBA per lanciare e controllare la sessione
-- **API REST**: Server Node.js per la comunicazione tra interfaccia e sistema operativo
+- **API REST**: Endpoint integrati nel unified server per la comunicazione tra interfaccia e sistema operativo
 
-## 🛠️ Requisiti
+## ðŸ› ï¸ Requisiti
 
 1. **Node.js** (v14+) - [Scarica da nodejs.org](https://nodejs.org/)
 2. **Google Chrome** - Browser per visualizzare i PDF
 3. **Excel** - Per il controllo tramite VBA (opzionale)
 4. **Windows 10/11** - Sistema operativo supportato
 
-## 📦 Installazione
+## ðŸ“¦ Installazione
 
 ### 1. Installa le dipendenze Node.js
 
@@ -26,7 +30,7 @@ cd C:\VSC_Live_Server
 npm install
 ```
 
-Se manca la cartella `node_modules`, verrà creata automaticamente.
+Se manca la cartella `node_modules`, verrÃ  creata automaticamente.
 
 ### 2. Crea la cartella per i PDF
 
@@ -42,14 +46,18 @@ Assicurati che Chrome sia installato nel percorso standard:
 - `C:\Program Files\Google\Chrome\Application\chrome.exe`
 - `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
 
-## 🚀 Utilizzo
+## ðŸš€ Utilizzo
 
-### Opzione 1: Avvio manuale da PowerShell
+### Avvio automatico con il progetto
+
+Il sistema PDF è integrato nel unified server. Avvia tutto con:
 
 ```powershell
-# Dal percorso C:\VSC_Live_Server
-.\Start_ScriptPDF1.ps1
+cd C:\VSC_Live_Server
+.\startup.ps1 -NoWait
 ```
+
+Poi apri: `http://localhost:5500/pdf/viewers/ScriptPDF1.html`
 
 ### Opzione 2: Avvio da Excel (VBA)
 
@@ -58,44 +66,46 @@ Aggiungi questo codice al tuo modulo VBA:
 ```vba
 Sub ApriGestorePDF()
     Dim shell As Object
-    Dim scriptPath As String
+    Dim url As String
     
     Set shell = CreateObject("WScript.Shell")
-    scriptPath = "C:\VSC_Live_Server\Start_ScriptPDF1.ps1"
+    url = "http://localhost:5500/pdf/viewers/ScriptPDF1.html"
     
-    ' Esegui lo script PowerShell
-    shell.Run "powershell -NoProfile -ExecutionPolicy Bypass -File """ & scriptPath & """", 1, False
+    ' Apri Chrome in modalità kiosk sul monitor secondario
+    shell.Run """C:\Program Files\Google\Chrome\Application\chrome.exe"" --app=""" & url & """ --new-window --window-position=1920,0 --window-size=1920,1080", 1, False
 End Sub
 ```
 
 Quindi chiama `ApriGestorePDF()` quando necessario.
 
-## 📖 Guida all'uso
+## ðŸ“– Guida all'uso
 
 ### Pagina ScriptPDF1.html
 
 1. **Selezione file**: Usa la ComboBox per scegliere il PDF
 2. **Navigazione**:
-   - **Precedente** (◀): Vai al file precedente nella lista
-   - **Successivo** (▶): Vai al file successivo nella lista
+   - **Precedente** (â—€): Vai al file precedente nella lista
+   - **Successivo** (â–¶): Vai al file successivo nella lista
 3. **Apertura**: Fai doppio click sulla ComboBox o sul nome del PDF per aprire il file selezionato
-4. **Chiusura**: Clicca su **Chiudi (✕)** per terminare la sessione e tornare ad Excel
+4. **Chiusura**: Clicca su **Chiudi (âœ•)** per terminare la sessione e tornare ad Excel
 
-## 🔧 Struttura del progetto
+## ðŸ”§ Struttura del progetto
 
 ```
 C:\VSC_Live_Server\
-├── pdf-server.js           # Server Node.js (porta 8765)
-├── Start_ScriptPDF1.ps1    # Script PowerShell per avviare tutto
-├── update_pdf_list.ps1     # Script per generare lista PDF (opzionale)
-├── package.json            # Dipendenze Node.js
-└── Prova\
-    └── ScriptPDF1.html     # Interfaccia grafica
+â”œâ”€â”€ unified-server.js       # Server principale (porta 5500) - include API PDF
+â”œâ”€â”€ pdf/                     # Sistema PDF integrato
+â”‚   â”œâ”€â”€ viewers/            # Interfacce web
+â”‚   â”‚   â””â”€â”€ ScriptPDF1.html # Interfaccia principale
+â”‚   â”œâ”€â”€ scripts/            # Script gestione
+â”‚   â””â”€â”€ config/             # Configurazione
+â”œâ”€â”€ startup.ps1             # Avvio automatico del tutto
+â””â”€â”€ package.json            # Dipendenze Node.js
 ```
 
-## 🌐 API REST
+## ðŸŒ API REST
 
-Il server fornisce le seguenti API:
+Gli endpoint PDF sono integrati nel unified server su porta 5500:
 
 ### GET `/api/pdf-list`
 Ritorna la lista dei file PDF disponibili
@@ -132,26 +142,17 @@ Apre un file PDF in Chrome
 ### POST `/api/close-chrome`
 Chiude la sessione Chrome attuale
 
-## ⚙️ Configurazione avanzata
+## âš™ï¸ Configurazione avanzata
 
 ### Monitor secondario
 
-Lo script `Start_ScriptPDF1.ps1` rileva automaticamente il monitor secondario. Se hai problemi:
+Il sistema rileva automaticamente il monitor secondario. Se hai problemi, modifica le coordinate nel codice VBA o negli script.
 
-1. Modifica lo script per specificare esplicitamente le coordinate:
-```powershell
-# Esempio: apertura su specifica posizione
---window-position=1920,0 --window-size=1920,1080
-```
+### Cartella PDF personalizzata
 
-### Porta personalizzata
+Se vuoi cambiare la cartella dei PDF, modifica la costante `PDF_FOLDER` nel unified-server.js.
 
-Se la porta 8765 è in uso, modifica:
-1. **pdf-server.js**: cambia `const PORT = 8765` su un'altra porta
-2. **ScriptPDF1.html**: aggiorna i fetch da `http://localhost:8765/...` alla nuova porta
-3. **Start_ScriptPDF1.ps1**: aggiorna `$htmlUrl`
-
-## 🐛 Troubleshooting
+## ðŸ› Troubleshooting
 
 ### "Chrome non trovato"
 **Soluzione**: Installa Google Chrome oppure verifica il percorso di installazione
@@ -159,44 +160,44 @@ Se la porta 8765 è in uso, modifica:
 ### "Server non risponde"
 **Soluzione**: 
 ```powershell
-# Assicurati di essere nella cartella giusta
+# Assicurati che il unified server sia avviato
 cd C:\VSC_Live_Server
+.\startup.ps1 -NoWait
 
-# Verifica che Express sia installato
-npm list express
-
-# Se manca, installa:
-npm install
+# Verifica che risponda
+curl http://localhost:5500/api/pdf-list
 ```
 
 ### PDF non si apre
 **Soluzione**: 
 1. Verifica che i file PDF siano in `C:\SCRIPT_PDF`
-2. Aggiorna la lista: `.\update_pdf_list.ps1`
-3. Controlla i log della console del server
+2. Controlla i log del unified server
+3. Assicurati che Chrome sia installato correttamente
 
 ### Problema con il monitor secondario
 **Soluzione**: 
-1. Nella PowerShell, esegui senza il flag `-Secondary`
-2. Oppure modifica lo script per specificare manualmente le coordinate
+1. Modifica le coordinate nel codice VBA
+2. Oppure apri manualmente senza kiosk mode per testare
 
-## 📝 Note
+## ðŸ“ Note
 
 - La lista dei PDF viene caricata in tempo reale dal server
-- Chrome si apre automaticamente in modalità Kiosk (schermo intero, nessun menu)
-- Chiudendo lo script PowerShell, si chiude automaticamente Chrome e il server
+- Chrome si apre automaticamente in modalitÃ  Kiosk (schermo intero, nessun menu)
+- Chiudendo la pagina, Chrome rimane aperto fino a chiusura manuale o tramite API
 - I file PDF rimangono nella cartella `C:\SCRIPT_PDF`
 
-## 📞 Supporto
+## ðŸ“ž Supporto
 
 Per problemi o domande:
-1. Controlla i log della console di PowerShell
-2. Verifica le dipendenze Node.js
-3. Assicurati che Chrome sia correttamente installato
-4. Controlla se la porta 8765 è già in uso: `netstat -an | findstr 8765`
+1. Controlla i log del unified server
+2. Verifica che il server sia avviato su porta 5500
+3. Testa gli endpoint API direttamente
+4. Assicurati che Chrome sia correttamente installato
 
 ---
 
-**Versione**: 1.0.0  
+**Versione**: 2.0.0 (Unified)  
 **Data**: 19 Febbraio 2026  
 **Author**: VSC_Live_Server
+
+

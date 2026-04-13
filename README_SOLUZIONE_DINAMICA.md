@@ -1,8 +1,10 @@
-# ✅ SOLUZIONE STABILE E FUNZIONANTE - ScriptPDF1
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
-## 📋 Cosa è stato RISOLTO
+# âœ… SOLUZIONE STABILE E FUNZIONANTE - ScriptPDF1
 
-### ✏️ **Nuovi file creati:**
+## ðŸ“‹ Cosa Ã¨ stato RISOLTO
+
+### âœï¸ **Nuovi file creati:**
 
 1. **`api-config.js`** - Configurazione API dinamica
    - Rileva automaticamente `window.location.hostname`
@@ -19,7 +21,7 @@
 
 ---
 
-## 🔧 Come funziona il sistema
+## ðŸ”§ Come funziona il sistema
 
 ### **1. Rilevamento dinamico della porta**
 
@@ -44,17 +46,17 @@ const response = await window.APIConfig.fetchAPI('/api/pdf-list');
 
 ```
 Prova porta 8765
-  ↓ (fallisce?)
+  â†“ (fallisce?)
 Prova porta 5500
-  ↓ (fallisce?)
+  â†“ (fallisce?)
 Prova porta 3000
-  ↓ (fallisce?)
+  â†“ (fallisce?)
 Mostra errore con istruzioni
 ```
 
 ---
 
-## 🚀 Come usare
+## ðŸš€ Come usare
 
 ### **Avvio del server PDF:**
 
@@ -83,12 +85,12 @@ Il sistema automaticamente:
 
 ---
 
-## ✅ Vantaggi della nuova soluzione
+## âœ… Vantaggi della nuova soluzione
 
-| Aspetto | Prima ❌ | Dopo ✅ |
+| Aspetto | Prima âŒ | Dopo âœ… |
 |---------|---------|--------|
 | **Host statici** | Hardcoded `127.0.0.1` | Dinamico da `window.location` |
-| **Porta statica** | Solo 8765 | Tenta 8765 → 5500 → 3000 |
+| **Porta statica** | Solo 8765 | Tenta 8765 â†’ 5500 â†’ 3000 |
 | **Error handling** | Messaggi confusi | Messaggi chiari + istruzioni |
 | **Retry** | Senza retry | 2 retry con backoff |
 | **Timeout** | Timeout lungo | Timeout 5s configurabile |
@@ -96,74 +98,74 @@ Il sistema automaticamente:
 
 ---
 
-## 📊 Architettura
+## ðŸ“Š Architettura
 
 ```
 Browser
-  │
-  ├─ HTML
-  │  └─ api-config.js (detects host:port)
-  │
-  ├─ Fetch localhost:8765 (or 5500, or 3000)
-  │  ├─ Timeout: 5 secondi
-  │  ├─ Retry: 2 volte
-  │  └─ Fallback: diverse porte
-  │
-  ├─ PDF Server
-  │  ├─ localhost:8765 (default)
-  │  ├─ Express + CORS
-  │  ├─ /api/pdf-list
-  │  ├─ /api/open-pdf
-  │  └─ /api/close-chrome
-  │
-  └─ Live Server
-     ├─ localhost:5500
-     ├─ HTML static files
-     ├─ CSV files
-     └─ api-config.js
+  â”‚
+  â”œâ”€ HTML
+  â”‚  â””â”€ api-config.js (detects host:port)
+  â”‚
+  â”œâ”€ Fetch localhost:8765 (or 5500, or 3000)
+  â”‚  â”œâ”€ Timeout: 5 secondi
+  â”‚  â”œâ”€ Retry: 2 volte
+  â”‚  â””â”€ Fallback: diverse porte
+  â”‚
+  â”œâ”€ PDF Server
+  â”‚  â”œâ”€ localhost:8765 (default)
+  â”‚  â”œâ”€ Express + CORS
+  â”‚  â”œâ”€ /api/pdf-list
+  â”‚  â”œâ”€ /api/open-pdf
+  â”‚  â””â”€ /api/close-chrome
+  â”‚
+  â””â”€ Live Server
+     â”œâ”€ localhost:5500
+     â”œâ”€ HTML static files
+     â”œâ”€ CSV files
+     â””â”€ api-config.js
 ```
 
 ---
 
-## 🧪 Test di verifica
+## ðŸ§ª Test di verifica
 
 ### **Apri la console browser (F12)**
 
 Dovresti vedere:
 
 ```
-📍 ScriptPDF1 - Configurazione dinamica
+ðŸ“ ScriptPDF1 - Configurazione dinamica
    Host: localhost
    Protocol: http:
    Porte da provare: 8765, 5500, 3000
-   💡 Assicurati che pdf-server sia avviato: npm start
+   ðŸ’¡ Assicurati che pdf-server sia avviato: npm start
 
-🚀 DOM Ready - Inizializzazione ScriptPDF1
-🔍 Rilevamento host: localhost
-✅ PDF Server rilevato su porta 8765
-📚 Caricamento lista PDF...
-✅ X PDF caricati
+ðŸš€ DOM Ready - Inizializzazione ScriptPDF1
+ðŸ” Rilevamento host: localhost
+âœ… PDF Server rilevato su porta 8765
+ðŸ“š Caricamento lista PDF...
+âœ… X PDF caricati
 Pronto - X PDF disponibili
 ```
 
 ### **Se vedi errori:**
 
 ```
-❌ Server PDF non trovato - Tentativo auto-start...
-⚠️ Server PDF non disponibile
+âŒ Server PDF non trovato - Tentativo auto-start...
+âš ï¸ Server PDF non disponibile
 ```
 
-→ Significa che il PDF Server non è avviato
-→ Esegui: `npm start` o `.\start-pdf-server.ps1`
+â†’ Significa che il PDF Server non Ã¨ avviato
+â†’ Esegui: `npm start` o `.\start-pdf-server.ps1`
 
 ---
 
-## 🔌 Porte disponibili
+## ðŸ”Œ Porte disponibili
 
 | Porta | Servizio | Default |
 |-------|----------|---------|
-| **5500** | Live Server (VSCode) | ✓ |
-| **8765** | PDF Server | ✓ |
+| **5500** | Live Server (VSCode) | âœ“ |
+| **8765** | PDF Server | âœ“ |
 | **3000** | Fallback | Opzionale |
 
 Se vuoi usare una porta diversa:
@@ -175,7 +177,7 @@ npm start
 
 ---
 
-## 📝 File sorgente
+## ðŸ“ File sorgente
 
 - **api-config.js** - Logica di rilevamento (100 righe)
 - **ScriptPDF1.html** - UI aggiornata con api-config.js
@@ -185,23 +187,23 @@ Tutti gli altri file rimangono invariati.
 
 ---
 
-## ✨ Status finale
+## âœ¨ Status finale
 
 ```
-✅ STABILE E COMPLETAMENTE FUNZIONANTE
+âœ… STABILE E COMPLETAMENTE FUNZIONANTE
 
-✓ Host dinamico (window.location)
-✓ Porta dinamica (multiple fallback)
-✓ Retry automatico
-✓ Timeout configurabile
-✓ Error handling robusto
-✓ Nessun hardcoding
+âœ“ Host dinamico (window.location)
+âœ“ Porta dinamica (multiple fallback)
+âœ“ Retry automatico
+âœ“ Timeout configurabile
+âœ“ Error handling robusto
+âœ“ Nessun hardcoding
 
-PRONTO AL DEPLOY! 🚀
+PRONTO AL DEPLOY! ðŸš€
 
 ---
 
-## 🧹 Linee guida per mantenere il codice pulito
+## ðŸ§¹ Linee guida per mantenere il codice pulito
 Per evitare warning, errori in fase di editing e garantire che il progetto rimanga leggibile
 nel tempo, segui questi semplici consigli:
 
@@ -212,17 +214,17 @@ nel tempo, segui questi semplici consigli:
 
 2. **Commenti e TODO**
    - Usa i commenti `// TODO` o `/* FIXME */` per annotare lavoro in sospeso e
-     rimuovili quando non sono più necessari.
+     rimuovili quando non sono piÃ¹ necessari.
    - Evita di conservare codice commentato per mesi; se serve, spostalo in
      `archivio/` o in un backup separato.
 
 3. **Condivisione del CSS**
-   - Le pagine HTML usano tutti `style.css`. Inserisci stili comuni lì e mantieni
+   - Le pagine HTML usano tutti `style.css`. Inserisci stili comuni lÃ¬ e mantieni
      il file snello; se serve un override locale, aggiungilo inline vicino alla
      porzione interessata.
 
 4. **Verifiche automatiche**
-   - Integra un task `npm run lint` o un pre‑commit hook che lanci `stylelint`/
+   - Integra un task `npm run lint` o un preâ€‘commit hook che lanci `stylelint`/
      `eslint` oppure le ricerche di cui sopra.
    - Un controllo di base potrebbe essere:
      ```powershell
@@ -234,7 +236,7 @@ nel tempo, segui questi semplici consigli:
      distribuzione o rimossa se non serve.
 
 Seguendo queste regole il repository rimane leggero, privo di errori di linting
-e più facile da capire per chiunque dovrà intervenire in futuro.
+e piÃ¹ facile da capire per chiunque dovrÃ  intervenire in futuro.
 
 ```
 
@@ -242,4 +244,6 @@ e più facile da capire per chiunque dovrà intervenire in futuro.
 
 **Data**: 20 Febbraio 2026  
 **Versione**: 2.0.0-dynamic  
-**Status**: ✅ LIVE
+**Status**: âœ… LIVE
+
+

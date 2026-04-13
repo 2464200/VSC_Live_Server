@@ -1,3 +1,5 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 # VSC Live Server
 
 Sistema locale per gestione pagine web, PDF ed Eventi con avvio e arresto automatizzati.
@@ -43,13 +45,13 @@ VSC_Live_Server/
 |- unified-server.js         # Server principale su 5500 (UNICO ATTIVO)
 |- startup.ps1               # Avvio automatico (solo unified-server)
 |- shutdown.ps1              # Arresto automatico + consolidamento Git
-|- test-system.js            # Test integrità del server unificato
+|- test-system.js            # Test integritÃ  del server unificato
 |- pdf/                      # Sistema PDF dedicato
 |  |- servers/               # Server PDF standalone
 |  |- scripts/               # Script gestione PDF
 |  |- viewers/               # Interfacce web PDF
 |  |- config/                # Configurazione PDF
-|  └─ README.md              # Documentazione PDF
+|  â””â”€ README.md              # Documentazione PDF
 |- Eventi/
 |  |- eventi-server.js       # Router API Eventi (integrato in unified)
 |  |- server-eventi.js       # Standalone legacy (non avviato)
@@ -58,11 +60,11 @@ VSC_Live_Server/
 ```
 
 ### Note su Server e Porte
-- **Porta unica 5500**: Tutto centralizzato su `localhost:5500` per semplicità e performance
+- **Porta unica 5500**: Tutto centralizzato su `localhost:5500` per semplicitÃ  e performance
 - **Sistema PDF**: Integrato in unified-server, organizzato in `pdf/` con viewer dedicati
 - **Server legacy rimossi**: `static-server.js`, `simple-server.js`, `pdf-server.js` eliminati (duplicati inutilizzati)
-- **Server standalone**: `pdf/servers/pdf-server-simple.js`, `server-manager.js`, `server-eventi.js` mantenuti per compatibilità ma NON avviati automaticamente
-- **Unificazione localhost**: Tutti i server ora ascoltano su `localhost` invece di IP specifici per portabilità
+- **Server standalone**: `pdf/servers/pdf-server-simple.js`, `server-manager.js`, `server-eventi.js` mantenuti per compatibilitÃ  ma NON avviati automaticamente
+- **Unificazione localhost**: Tutti i server ora ascoltano su `localhost` invece di IP specifici per portabilitÃ 
 |  |- data/
 |  |- public/
 |- Prova/
@@ -79,3 +81,5 @@ VSC_Live_Server/
 - [Automazione Completa](AUTOMAZIONE_COMPLETA.md)
 - [README Eventi](Eventi/README_EVENTI.md)
 - [README Server Manager](README_SERVER_MANAGER.md)
+
+

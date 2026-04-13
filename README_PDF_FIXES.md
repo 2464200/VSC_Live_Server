@@ -1,14 +1,16 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 # Fix PDF Server & Viewers - 9 Aprile 2026
 
 ## Problemi Risolti
 
-### 1. ✅ Endpoint Mancanti
-- **Prima**: `/api/health` non esisteva → Server non poteva essere verificato
+### 1. âœ… Endpoint Mancanti
+- **Prima**: `/api/health` non esisteva â†’ Server non poteva essere verificato
 - **Dopo**: Aggiunto endpoint `/api/health` che ritorna lo stato del server
-- **Prima**: `/api/pdf-log-tail` non esisteva → Log non potevano essere visualizzati
+- **Prima**: `/api/pdf-log-tail` non esisteva â†’ Log non potevano essere visualizzati
 - **Dopo**: Aggiunto sistema di logging interno del server con `/api/pdf-log-tail`
 
-### 2. ✅ URL Inconsistenti
+### 2. âœ… URL Inconsistenti
 - **Prima**: Client usava `http://localhost:8765`, Server rispondeva su `http://127.0.0.1:8765`
 - **Problema**: Potrebbe causare CORS issues, timeouts intermittenti
 - **Dopo**: Tutti i client normalizzati a usare `http://127.0.0.1:8765`
@@ -17,7 +19,7 @@
 - `ScriptPDF1.html`: `window.PDF_SERVER_HOST = 'http://127.0.0.1:8765'`
 - `pdf-viewer.html`: `const PDF_SERVER_HOST = 'http://127.0.0.1:8765'`
 
-### 3. ✅ Timeout Fragile
+### 3. âœ… Timeout Fragile
 - **Prima**: Timeout fisso 3 secondi per `/api/health` check
 - **Problema**: Timeout troppo breve causa false negatives
 - **Dopo**: 
@@ -27,21 +29,21 @@
 
 **Benefici:**
 - Connessioni intermittenti non fanno fallire
-- Retry automatico aumenta affidabilità
+- Retry automatico aumenta affidabilitÃ 
 - Tempo di attesa fra retry evita flood
 
-### 4. ✅ Migliorato Error Handling
+### 4. âœ… Migliorato Error Handling
 - **Prima**: Messaggi di errore generici ("Server non raggiungibile")
 - **Dopo**: 
-  - Ogni tentativo di connessione è loggato
+  - Ogni tentativo di connessione Ã¨ loggato
   - Differenziazione fra timeout e altri errori
   - Messaggi descrittivi nel debug console
 
-### 5. ✅ Aggiunto Supporto ESC in Viewer
+### 5. âœ… Aggiunto Supporto ESC in Viewer
 - **Prima**: Solo pulsante X per chiudere
 - **Dopo**: Tasto ESC chiude il viewer (migliore UX)
 
-### 6. ✅ Content-Type Consistency
+### 6. âœ… Content-Type Consistency
 - Aggiunto `res.setHeader('Content-Type', 'application/json')` su `/api/health` e `/api/pdf-log-tail`
 
 ---
@@ -51,13 +53,13 @@
 ### Server PDF
 ```bash
 node pdf-server.js
-# Output: ✅ Server PDF avviato su http://127.0.0.1:8765
+# Output: âœ… Server PDF avviato su http://127.0.0.1:8765
 ```
 
 ### Client Configuration
 ```javascript
 // ScriptPDF1.html
-window.PDF_SERVER_HOST = 'http://127.0.0.1:8765';  // ✅ Corretto
+window.PDF_SERVER_HOST = 'http://127.0.0.1:8765';  // âœ… Corretto
 window.PDF_SERVER_TIMEOUT = 8000;                   // 8 sec timeout
 window.PDF_SERVER_RETRIES = 2;                      // 2 tentativi
 ```
@@ -107,7 +109,7 @@ curl http://127.0.0.1:8765/api/pdf-list
 ### Problema: "Timeout anche dopo fix"
 **Diag:**
 1. Aumenta `window.PDF_SERVER_TIMEOUT` a 12000 (12 sec)
-2. Controlla velocità di rete
+2. Controlla velocitÃ  di rete
 3. Controlla CPU/RAM del server
 
 ### Problema: Chrome non si apre
@@ -123,19 +125,19 @@ curl http://127.0.0.1:8765/api/pdf-list
 | File | Cambiamenti | Motivo |
 |------|------------|--------|
 | `pdf-server.js` | +endpoint `/api/health`, `/api/pdf-log-tail`, logging | Aggiunto diagnostica server |
-| `ScriptPDF1.html` | Timeout 3→8s, retry logic, URL localhost→127.0.0.1 | Stabilità connessione |
-| `pdf-viewer.html` | URL localhost→127.0.0.1, ESC handler, closePdfViewer() | Consistenza + UX |
+| `ScriptPDF1.html` | Timeout 3â†’8s, retry logic, URL localhostâ†’127.0.0.1 | StabilitÃ  connessione |
+| `pdf-viewer.html` | URL localhostâ†’127.0.0.1, ESC handler, closePdfViewer() | Consistenza + UX |
 
 ---
 
 ## Note di Deployment
 
-✅ **Tutti i fix sono compatibili verso il basso**
+âœ… **Tutti i fix sono compatibili verso il basso**
 - Nessun breaking change
 - Server vecchi continueranno a funzionare
 - Se non si usa `/api/health`, non influisce
 
-✅ **Pronto per produzione**
+âœ… **Pronto per produzione**
 - Supporta retry + timeout robusti
 - Logging migliorato per diagnostica
 - Error handling completo
@@ -143,4 +145,6 @@ curl http://127.0.0.1:8765/api/pdf-list
 ---
 
 **Data**: 9 Aprile 2026
-**Status**: ✅ STABILE E TESTATO
+**Status**: âœ… STABILE E TESTATO
+
+

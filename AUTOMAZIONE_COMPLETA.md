@@ -1,3 +1,5 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 # Automazione Completa
 
 ## Stato attuale
@@ -52,3 +54,5 @@ Nel flusso standard serve solo:
 - `5500`
 
 Le vecchie porte `3000`, `3010` e `8765` sono legacy e non necessarie per l'uso normale del progetto.
+
+

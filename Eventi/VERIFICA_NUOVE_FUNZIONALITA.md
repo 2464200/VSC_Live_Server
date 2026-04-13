@@ -1,22 +1,24 @@
-# Verifica Nuove Funzionalità - Coreografie Aggiuntive
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
+# Verifica Nuove FunzionalitÃ  - Coreografie Aggiuntive
 
 **Data**: 9 Aprile 2026  
-**Status**: ✅ Verificato
+**Status**: âœ… Verificato
 
-## 1. Integrità Generale del Sistema
+## 1. IntegritÃ  Generale del Sistema
 
-- ✅ Server unificato operativo su porta 5500
-- ✅ API Eventi raggiungibile
-- ✅ API DJ raggiungibile
-- ✅ Nessun conflitto con funzionalità esistenti
+- âœ… Server unificato operativo su porta 5500
+- âœ… API Eventi raggiungibile
+- âœ… API DJ raggiungibile
+- âœ… Nessun conflitto con funzionalitÃ  esistenti
 
-## 2. Nuove Funzionalità - Sommario
+## 2. Nuove FunzionalitÃ  - Sommario
 
 ### Pagina: `coreografie-aggiuntive.html`
 - **Ubicazione**: `Eventi/public/coreografie-aggiuntive.html`
 - **Descrizione**: Visualizza e consente la modifica delle coreografie dal CSV aggiuntivo
 - **Fonte dati**: `Coreografie_Aggiuntive.csv`
-- **Funzionalità**:
+- **FunzionalitÃ **:
   - Caricamento CSV con parsing semicolon-delimited
   - Visualizzazione elenco brani aggiuntivi (modal di modifica **nascosto al caricamento**)
   - Ricerca per coreografia, brano, autore
@@ -67,10 +69,10 @@
 - **`.riga-brano.aggiuntiva`** - Stile riga coerente (sfondo arancione chiaro)
 
 ### Coerenza con Progetto
-- ✅ Utilizzo variabili CSS di progetto (`--accent`, `--text`, `--muted`, etc.)
-- ✅ Stessi font (`Segoe UI`)
-- ✅ Stesse spaziature e border-radius
-- ✅ Animazioni e shadow coerenti
+- âœ… Utilizzo variabili CSS di progetto (`--accent`, `--text`, `--muted`, etc.)
+- âœ… Stessi font (`Segoe UI`)
+- âœ… Stesse spaziature e border-radius
+- âœ… Animazioni e shadow coerenti
 
 ## 4. Formato CSV - Standardizzazione
 
@@ -78,9 +80,9 @@
 `Coreografie_Aggiuntive.csv` usava virgola (`,`) come separatore
 
 ### Formato Dopo
-- ✅ Convertito a punto-e-virgola (`;`) come `Elenco_Brani_statico.csv`
-- ✅ Header allineato
-- ✅ Indici colonne sincronizzati
+- âœ… Convertito a punto-e-virgola (`;`) come `Elenco_Brani_statico.csv`
+- âœ… Header allineato
+- âœ… Indici colonne sincronizzati
 
 **Struttura CSV**:
 ```
@@ -90,76 +92,76 @@ Colonna 1;Colonna 2;ID;coreografia;brano;autore;...
 
 ## 5. Flusso di Prenotazione/Esecuzione - Non Alterato
 
-La nuova pagina e funzionalità:
-- ✅ Non interferisce con stati `disponibile`, `prenotato`, `eseguito`
-- ✅ Non modifica il flusso di prenotazione in `eventi.html`
-- ✅ Non modifica checkbox `Eseguito` in `prenotati.html`
-- ✅ Non modifica checkbox `Annulla` in `spuntati.html`
-- ✅ Non modifica render dei brani in alcuna pagina di filtro
-- ✅ Non modifica visualizer
-- ✅ Non modifica statistiche DJ
+La nuova pagina e funzionalitÃ :
+- âœ… Non interferisce con stati `disponibile`, `prenotato`, `eseguito`
+- âœ… Non modifica il flusso di prenotazione in `eventi.html`
+- âœ… Non modifica checkbox `Eseguito` in `prenotati.html`
+- âœ… Non modifica checkbox `Annulla` in `spuntati.html`
+- âœ… Non modifica render dei brani in alcuna pagina di filtro
+- âœ… Non modifica visualizer
+- âœ… Non modifica statistiche DJ
 
-**Motivo**: La pagina coreografie-aggiuntive è una vista **separata** e di **gestione amministrativa** del CSV aggiuntivo. Non è parte del flusso operativo di prenotazione/esecuzione.
+**Motivo**: La pagina coreografie-aggiuntive Ã¨ una vista **separata** e di **gestione amministrativa** del CSV aggiuntivo. Non Ã¨ parte del flusso operativo di prenotazione/esecuzione.
 
 ## 6. Documentazione Aggiornata
 
 ### README_EVENTI.md
-- ✅ Aggiunta funzionalità principale: "gestione e modifica coreografie aggiuntive"
-- ✅ URL aggiunto: `coreografie-aggiuntive.html`
-- ✅ File HTML e JS aggiunti all'architettura
-- ✅ Endpoint API aggiunto a lista endpoint
-- ✅ Nota operativa: "La pagina `coreografie-aggiuntive.html` consente di visualizzare e modificare..."
+- âœ… Aggiunta funzionalitÃ  principale: "gestione e modifica coreografie aggiuntive"
+- âœ… URL aggiunto: `coreografie-aggiuntive.html`
+- âœ… File HTML e JS aggiunti all'architettura
+- âœ… Endpoint API aggiunto a lista endpoint
+- âœ… Nota operativa: "La pagina `coreografie-aggiuntive.html` consente di visualizzare e modificare..."
 
 ## 7. Integrazione nella Navigazione
 
 ### Homepage (`eventi.html`)
-- ✅ Pulsante "Coreografie Aggiuntive" aggiunto al menu di navigazione
-- ✅ Posizionamento logico (dopo "Statistiche DJ", prima di "Visualizer")
-- ✅ Stile coerente (pulsante scuro con testo bianco)
+- âœ… Pulsante "Coreografie Aggiuntive" aggiunto al menu di navigazione
+- âœ… Posizionamento logico (dopo "Statistiche DJ", prima di "Visualizer")
+- âœ… Stile coerente (pulsante scuro con testo bianco)
 
 ### Altre Pagine di Filtro
-- ✅ Pulsante disponibile in `prenotati.html`, `spuntati.html`, `non-spuntati.html`, `tutti.html`
-- ✅ Consente rapida alternanza tra viste
+- âœ… Pulsante disponibile in `prenotati.html`, `spuntati.html`, `non-spuntati.html`, `tutti.html`
+- âœ… Consente rapida alternanza tra viste
 
 ## 8. Percorsi Completi
 
 | File | Percorso | Stato |
 |------|---------|-------|
-| HTML pagina | `Eventi/public/coreografie-aggiuntive.html` | ✅ Presente |
-| JS logica | `Eventi/public/coreografie-aggiuntive.js` | ✅ Presente |
-| CSV dati | `Eventi/Coreografie_Aggiuntive.csv` | ✅ Convertito a `;` |
-| Funzione backend | `Eventi/brani-utils.js#updateExtraBrano()` | ✅ Presente |
-| Endpoint API | `Eventi/eventi-server.js#POST /aggiuntive/update` | ✅ Presente |
-| Stile CSS | `Eventi/public/style.css` | ✅ Aggiunto `.modal*` e `.riga-brano.aggiuntiva` |
-| Docs | `Eventi/README_EVENTI.md` | ✅ Aggiornato |
+| HTML pagina | `Eventi/public/coreografie-aggiuntive.html` | âœ… Presente |
+| JS logica | `Eventi/public/coreografie-aggiuntive.js` | âœ… Presente |
+| CSV dati | `Eventi/Coreografie_Aggiuntive.csv` | âœ… Convertito a `;` |
+| Funzione backend | `Eventi/brani-utils.js#updateExtraBrano()` | âœ… Presente |
+| Endpoint API | `Eventi/eventi-server.js#POST /aggiuntive/update` | âœ… Presente |
+| Stile CSS | `Eventi/public/style.css` | âœ… Aggiunto `.modal*` e `.riga-brano.aggiuntiva` |
+| Docs | `Eventi/README_EVENTI.md` | âœ… Aggiornato |
 
-## 9. Test di Disponibilità
+## 9. Test di DisponibilitÃ 
 
 ### URL Accessibili
-- ✅ `http://localhost:5500/eventi/coreografie-aggiuntive.html`
-- ✅ `http://localhost:5500/eventi/api/aggiuntive/update` (POST)
-- ✅ `http://localhost:5500/Coreografie_Aggiuntive.csv` (GET)
+- âœ… `http://localhost:5500/eventi/coreografie-aggiuntive.html`
+- âœ… `http://localhost:5500/eventi/api/aggiuntive/update` (POST)
+- âœ… `http://localhost:5500/Coreografie_Aggiuntive.csv` (GET)
 
 ### Script Caricati Correttamente
-- ✅ `event-navigation.js` - Navigazione tra pagine
-- ✅ `inactivity-return.js` - Ritorno automatico dopo 60s
-- ✅ `api-helper.js` - Helper per fetch API
-- ✅ `coreografie-aggiuntive.js` - Logica principale
+- âœ… `event-navigation.js` - Navigazione tra pagine
+- âœ… `inactivity-return.js` - Ritorno automatico dopo 60s
+- âœ… `api-helper.js` - Helper per fetch API
+- âœ… `coreografie-aggiuntive.js` - Logica principale
 
 ## 10. Errori e Warnings
 
-- ✅ **Zero errori** nei file HTML/JS/CSS
-- ✅ **Zero warning** di sintassi
-- ✅ **Sistema test**: PASS
+- âœ… **Zero errori** nei file HTML/JS/CSS
+- âœ… **Zero warning** di sintassi
+- âœ… **Sistema test**: PASS
 
 ## 11. Correzione Endpoint API (Risoluzione Errore 404)
 
 ### Problema Identificato
 L'endpoint `/aggiuntive/update` era stato aggiunto a:
-- ✅ `Eventi/eventi-server.js` (router standalone legacy)
+- âœ… `Eventi/eventi-server.js` (router standalone legacy)
 
 Ma NON era disponibile in:
-- ❌ `unified-server.js` (server attualmente in uso)
+- âŒ `unified-server.js` (server attualmente in uso)
 
 Il server unificato definisce il suo router locale e non usa il file `Eventi/eventi-server.js`, quindi l'endpoint non era mai raggiunto.
 
@@ -187,15 +189,15 @@ Il server unificato definisce il suo router locale e non usa il file `Eventi/eve
    - Fetch URL: `/eventi/api/aggiuntive/update`
 
 ### Test di Verifica
-- ✅ Endpoint raggiungibile: `POST http://localhost:5500/eventi/api/aggiuntive/update` → **HTTP 200**
-- ✅ CSV aggiornato: Test di scrittura EXTRA3 completato con successo
-- ✅ Dati ripristinati: CSV riportato ai valori originali post-test
+- âœ… Endpoint raggiungibile: `POST http://localhost:5500/eventi/api/aggiuntive/update` â†’ **HTTP 200**
+- âœ… CSV aggiornato: Test di scrittura EXTRA3 completato con successo
+- âœ… Dati ripristinati: CSV riportato ai valori originali post-test
 
 ## Conclusioni
 
-✅ **Tutte le nuove funzionalità sono PIENAMENTE OPERATIVE.**
+âœ… **Tutte le nuove funzionalitÃ  sono PIENAMENTE OPERATIVE.**
 
-- L'errore 404 è stato risolto
+- L'errore 404 Ã¨ stato risolto
 - Il modal di modifica funziona correttamente
 - I pulsanti del modal sono responsivi
 - Le modifiche al CSV vengono salvate nella base di dati
@@ -205,4 +207,6 @@ Il server unificato definisce il suo router locale e non usa il file `Eventi/eve
 
 **Verificato da**: Sistema automatico  
 **Data verifica**: 9 Aprile 2026  
-**Status finale**: ✅ OPERATIVO E TESTATO
+**Status finale**: âœ… OPERATIVO E TESTATO
+
+

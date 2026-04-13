@@ -1,43 +1,64 @@
-# 🎯 Server Manager - Guida Completa
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
-## 📋 Sommario
+# Server Manager - Guida (LEGACY)
 
-1. [Architettura](#architettura)
-2. [Avvio Rapido](#avvio-rapido)
-3. [Come Funziona](#come-funziona)
-4. [Componenti](#componenti)
-5. [Risoluzione Problemi](#risoluzione-problemi)
-6. [API Reference](#api-reference)
+**IMPORTANTE:** Questo documento descrive l'architettura legacy del progetto. Dal 13 Aprile 2026, il progetto usa un unico **unified-server.js** su porta 5500 che integra tutte le funzionalità precedentemente distribuite su server multipli.
 
----
+## Stato Attuale
 
-## 🏗️ Architettura
+Il sistema funziona ora con un'**architettura unificata**:
+
+```
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    BROWSER (Utente)                          â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                    Pagine HTML                               â”‚
+â”‚               â†“ (fetch diretto)                              â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚          UNIFIED SERVER (porta 5500)                        â”‚
+â”‚   - Pagine statiche (HTML/CSS/JS)                           â”‚
+â”‚   - API PDF (/api/pdf-*)                                    â”‚
+â”‚   - API Eventi (/api/eventi/*)                              â”‚
+â”‚   - API Diagnostica (/api/ping, etc.)                       â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```
+
+### Avvio Semplificato
+
+```powershell
+cd C:\VSC_Live_Server
+.\startup.ps1 -NoWait
+```
+
+Poi apri le pagine direttamente su `http://localhost:5500/...`
+
+## Architettura Legacy (STORICA)
 
 Il sistema funziona con una **architettura a tre livelli**:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    BROWSER (Utente)                          │
-├─────────────────────────────────────────────────────────────┤
-│                    ScriptPDF1.html                           │
-│               ↓ (fetch con auto-start)                       │
-├─────────────────────────────────────────────────────────────┤
-│          TIER 1: Live Server (porta 5500)                   │
-│   Serve le pagine HTML (index.html, servizio2.html, etc)   │
-├─────────────────────────────────────────────────────────────┤
-│          TIER 2: Server Manager (porta 3000)                │
-│   Gestisce il ciclo di vita del PDF Server                 │
-│   - /api/start-pdf-server (avvia)                           │
-│   - /api/stop-pdf-server (arresta)                          │
-│   - /api/status (stato)                                     │
-├─────────────────────────────────────────────────────────────┤
-│          TIER 3: PDF Server (porta 8765)                    │
-│   API per gestire PDF:                                      │
-│   - /api/pdf-list (lista PDF)                               │
-│   - /api/open-pdf (apri PDF su schermo)                     │
-│   - /api/close-chrome (chiudi visualizzatore)               │
-│   ⚠️ AVVIATO E FERMATO AUTOMATICAMENTE                       │
-└─────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    BROWSER (Utente)                          â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                    ScriptPDF1.html                           â”‚
+â”‚               â†“ (fetch con auto-start)                       â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚          TIER 1: Live Server (porta 5500)                   â”‚
+â”‚   Serve le pagine HTML (index.html, servizio2.html, etc)   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚          TIER 2: Server Manager (porta 3000)                â”‚
+â”‚   Gestisce il ciclo di vita del PDF Server                 â”‚
+â”‚   - /api/start-pdf-server (avvia)                           â”‚
+â”‚   - /api/stop-pdf-server (arresta)                          â”‚
+â”‚   - /api/status (stato)                                     â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚          TIER 3: PDF Server (porta 8765)                    â”‚
+â”‚   API per gestire PDF:                                      â”‚
+â”‚   - /api/pdf-list (lista PDF)                               â”‚
+â”‚   - /api/open-pdf (apri PDF su schermo)                     â”‚
+â”‚   - /api/close-chrome (chiudi visualizzatore)               â”‚
+â”‚   âš ï¸ AVVIATO E FERMATO AUTOMATICAMENTE                       â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Flusso Automatico
@@ -45,35 +66,35 @@ Il sistema funziona con una **architettura a tre livelli**:
 ```
 Utente apre
 ScriptPDF1.html
-      ↓
+      â†“
 DOMContentLoaded
-      ↓
+      â†“
 setupServerLifecycle()
-      ↓
+      â†“
 APIConfig.ensurePdfServerRunning()
-      ↓
+      â†“
 POST http://localhost:3000/api/start-pdf-server
-      ↓
+      â†“
 Server Manager spawna pdf-server.js
-      ↓
+      â†“
 PDF Server risponde su porta 8765
-      ↓
+      â†“
 Pagina carica lista PDF e li mostra
-      ↓
+      â†“
 Utente chiude tab/browser
-      ↓
+      â†“
 beforeunload event
-      ↓
+      â†“
 cleanupServer()
-      ↓
+      â†“
 POST http://localhost:3000/api/stop-pdf-server
-      ↓
+      â†“
 Server Manager termina pdf-server.js
 ```
 
 ---
 
-## 🚀 Avvio Rapido
+## ðŸš€ Avvio Rapido
 
 ### Primo Avvio (Una Sola Volta)
 
@@ -83,7 +104,7 @@ cd C:\VSC_Live_Server
 
 # 2. Avvia il Server Manager (settati una sola volta)
 .\start-server-manager.ps1
-# Aspetta il messaggio: ✅ Server Manager avviato su porta 3000
+# Aspetta il messaggio: âœ… Server Manager avviato su porta 3000
 
 # 3. In un'ALTRA finestra PowerShell, avvia Live Server
 .\launch-all.ps1
@@ -110,13 +131,13 @@ npx http-server -c-1 -p 5500
 
 ---
 
-## 🔄 Come Funziona
+## ðŸ”„ Come Funziona
 
 ### Phase 1: Startup del Server Manager
 
 Quando esegui `.\start-server-manager.ps1`:
 
-1. **Verifica se è già in esecuzione**
+1. **Verifica se Ã¨ giÃ  in esecuzione**
    ```powershell
    Get-Process -Name "node" | Where {$_.CommandLine -match "server-manager"}
    ```
@@ -149,7 +170,7 @@ Quando l'utente apre `ScriptPDF1.html`:
 2. **Al caricamento del DOM (DOMContentLoaded)**
    ```javascript
    document.addEventListener("DOMContentLoaded", async function() {
-       console.log("✅ DOM caricato - Configurazione server");
+       console.log("âœ… DOM caricato - Configurazione server");
        
        // Chiede al Server Manager di avviare il PDF Server
        await setupServerLifecycle();
@@ -173,23 +194,23 @@ Quando l'utente apre `ScriptPDF1.html`:
 
 4. **api-config.js fa health check**
    ```javascript
-   // Controlla se il server è pronto
+   // Controlla se il server Ã¨ pronto
    const health = await fetch("http://localhost:8765/api/pdf-list");
    if (health.ok) {
-       console.log("✅ PDF Server pronto!");
+       console.log("âœ… PDF Server pronto!");
    }
    ```
 
 5. **Carica i dati**
    ```javascript
-   // Ora che il server è pronto, carica i PDF
+   // Ora che il server Ã¨ pronto, carica i PDF
    const pdfList = await fetch("http://localhost:8765/api/pdf-list");
    const files = await pdfList.json();
    ```
 
 ### Phase 3: Interazione Utente
 
-L'utente può:
+L'utente puÃ²:
 
 ```javascript
 // Aprire un PDF
@@ -220,7 +241,7 @@ Quando l'utente chiude il tab o la pagina:
 
 ```javascript
 window.addEventListener('beforeunload', async function(event) {
-    console.log("👋 Pagina in chiusura - Pulizia server");
+    console.log("ðŸ‘‹ Pagina in chiusura - Pulizia server");
     
     // Ferma il PDF Server
     try {
@@ -228,9 +249,9 @@ window.addEventListener('beforeunload', async function(event) {
             "http://localhost:3000/api/stop-pdf-server",
             { method: "POST", keepalive: true }  // keepalive = funziona anche se il tab si chiude
         );
-        console.log("✅ PDF Server fermato");
+        console.log("âœ… PDF Server fermato");
     } catch (error) {
-        console.warn("⚠️ Errore nella chiusura:", error.message);
+        console.warn("âš ï¸ Errore nella chiusura:", error.message);
     }
 });
 ```
@@ -243,21 +264,21 @@ Server Manager:
 
 ---
 
-## 📦 Componenti
+## ðŸ“¦ Componenti
 
 ### 1. **server-manager.js** (TIER 2)
 
 File: `C:\VSC_Live_Server\server-manager.js`
 
-**Responsabilità:**
+**ResponsabilitÃ :**
 - Rimane sempre attivo (avviato con `start-server-manager.ps1`)
 - Ascolta su porta 3000
 - Gestisce il ciclo di vita di pdf-server.js
 
 **Endpoint:**
-- `POST /api/start-pdf-server` → Avvia pdf-server.js
-- `POST /api/stop-pdf-server` → Ferma pdf-server.js
-- `GET /api/status` → Ritorna lo stato (running/stopped)
+- `POST /api/start-pdf-server` â†’ Avvia pdf-server.js
+- `POST /api/stop-pdf-server` â†’ Ferma pdf-server.js
+- `GET /api/status` â†’ Ritorna lo stato (running/stopped)
 
 **Codice chiave:**
 ```javascript
@@ -267,7 +288,7 @@ let pdfServerProcess = null;
 // Avvia il PDF Server quando richiesto
 app.post('/api/start-pdf-server', (req, res) => {
     if (pdfServerProcess) {
-        return res.json({ success: true, message: "PDF Server già in esecuzione" });
+        return res.json({ success: true, message: "PDF Server giÃ  in esecuzione" });
     }
     
     // Spawna pdf-server.js come child process
@@ -277,7 +298,7 @@ app.post('/api/start-pdf-server', (req, res) => {
     });
     
     pdfServerProcess.on('error', (error) => {
-        console.error("❌ Errore pdf-server:", error);
+        console.error("âŒ Errore pdf-server:", error);
         pdfServerProcess = null;
     });
     
@@ -301,7 +322,7 @@ app.post('/api/stop-pdf-server', (req, res) => {
 
 File: `C:\VSC_Live_Server\api-config.js`
 
-**Responsabilità:**
+**ResponsabilitÃ :**
 - Auto-start del PDF Server
 - Health checks
 - Retry logic con timeout
@@ -357,7 +378,7 @@ async function fetchAPI(endpoint, options = {}) {
 
 File: `C:\VSC_Live_Server\Prova\ScriptPDF1.html`
 
-**Responsabilità:**
+**ResponsabilitÃ :**
 - Interfaccia grafica per visualizzare PDF
 - Lifecycle management (setupServerLifecycle, cleanupServer)
 - Comunicazione con api-config.js
@@ -370,7 +391,7 @@ File: `C:\VSC_Live_Server\Prova\ScriptPDF1.html`
 <script>
 // Al caricamento della pagina
 document.addEventListener("DOMContentLoaded", async function() {
-    console.log("✅ Pagina caricata");
+    console.log("âœ… Pagina caricata");
     
     // Avvia il server e carica i dati
     await setupServerLifecycle();
@@ -379,22 +400,22 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 // Quando l'utente chiude la pagina
 window.addEventListener('beforeunload', async function() {
-    console.log("👋 Chiusura pagina");
+    console.log("ðŸ‘‹ Chiusura pagina");
     await cleanupServer();
 });
 
 // Funzione di startup
 async function setupServerLifecycle() {
     const statusEl = document.getElementById('status');
-    statusEl.textContent = "🔄 Avvio server PDF...";
+    statusEl.textContent = "ðŸ”„ Avvio server PDF...";
     
     const started = await window.APIConfig.ensurePdfServerRunning();
     
     if (started) {
-        statusEl.textContent = "✅ Server pronto";
+        statusEl.textContent = "âœ… Server pronto";
         serverReady = true;
     } else {
-        statusEl.textContent = "❌ Errore avvio server";
+        statusEl.textContent = "âŒ Errore avvio server";
         serverReady = false;
     }
 }
@@ -417,7 +438,7 @@ async function cleanupServer() {
 
 File: `C:\VSC_Live_Server\pdf-server.js`
 
-**Responsabilità:**
+**ResponsabilitÃ :**
 - Servire la lista di PDF
 - Aprire PDF in Chrome
 - Chiudere Chrome
@@ -429,7 +450,7 @@ spawn('node', ['pdf-server.js'], { stdio: 'inherit' })
 
 ---
 
-## 🔍 Risoluzione Problemi
+## ðŸ” Risoluzione Problemi
 
 ### Problema: "Errore: PDF Server non si avvia"
 
@@ -444,7 +465,7 @@ spawn('node', ['pdf-server.js'], { stdio: 'inherit' })
    # Se non appare, installa da: https://nodejs.org
    ```
 
-2. **Porta 3000 già occupata**
+2. **Porta 3000 giÃ  occupata**
    ```powershell
    # Verifica cosa occupa la porta
    Get-NetTCPConnection -LocalPort 3000 | Select-Object -First 1
@@ -468,17 +489,17 @@ spawn('node', ['pdf-server.js'], { stdio: 'inherit' })
 **Diagnosi:**
 
 ```powershell
-# Controlla se Server Manager è in esecuzione
+# Controlla se Server Manager Ã¨ in esecuzione
 Get-Process -Name "node" | Where {$_.CommandLine -match "server-manager"}
 
 # Se non si vede, riavvia:
 .\start-server-manager.ps1
 
-# Controlla se la porta 3000 è aperta
+# Controlla se la porta 3000 Ã¨ aperta
 Test-NetConnection -ComputerName localhost -Port 3000
 
 # Debug nel browser:
-# Apri F12 → Console → Vedi i log della pagina
+# Apri F12 â†’ Console â†’ Vedi i log della pagina
 ```
 
 ### Problema: "La pagina non carica i PDF"
@@ -501,7 +522,7 @@ Test-NetConnection -ComputerName localhost -Port 3000
    Invoke-WebRequest -Uri "http://localhost:8765/api/pdf-list"
    ```
 
-4. **Se il Server Manager è strano, riavvia tutto**
+4. **Se il Server Manager Ã¨ strano, riavvia tutto**
    ```powershell
    # Ferma tutto
    .\stop-server-manager.ps1
@@ -516,7 +537,7 @@ Test-NetConnection -ComputerName localhost -Port 3000
 
 ---
 
-## 📡 API Reference
+## ðŸ“¡ API Reference
 
 ### Server Manager API (porta 3000)
 
@@ -541,7 +562,7 @@ POST http://localhost:3000/api/start-pdf-server
 ```json
 {
   "success": true,
-  "message": "PDF Server già in esecuzione",
+  "message": "PDF Server giÃ  in esecuzione",
   "port": 8765,
   "pid": 12345
 }
@@ -644,7 +665,7 @@ POST http://localhost:8765/api/close-chrome
 
 ---
 
-## 📚 File Involved
+## ðŸ“š File Involved
 
 | File | Tipo | Descrizione |
 |------|------|-------------|
@@ -658,22 +679,22 @@ POST http://localhost:8765/api/close-chrome
 
 ---
 
-## 🎯 Checklist di Verifica
+## ðŸŽ¯ Checklist di Verifica
 
 - [ ] Node.js v14+ installato (`node --version`)
 - [ ] npm installato (`npm --version`)
-- [ ] `start-server-manager.ps1` esiste e è eseguibile
-- [ ] `api-config.js` è nella cartella root
+- [ ] `start-server-manager.ps1` esiste e Ã¨ eseguibile
+- [ ] `api-config.js` Ã¨ nella cartella root
 - [ ] `ScriptPDF1.html` ha `<script src="/api-config.js"></script>`
 - [ ] C:\SCRIPT_PDF esiste e contiene PDF
 - [ ] Browser DevTools F12 non mostra errori di rete
-- [ ] Porta 3000 è disponibile
-- [ ] Porta 8765 è disponibile
-- [ ] Porta 5500 è disponibile (Live Server)
+- [ ] Porta 3000 Ã¨ disponibile
+- [ ] Porta 8765 Ã¨ disponibile
+- [ ] Porta 5500 Ã¨ disponibile (Live Server)
 
 ---
 
-## 📞 Support
+## ðŸ“ž Support
 
 Se hai problemi:
 
@@ -702,6 +723,38 @@ Se hai problemi:
 
 ---
 
-**Versione:** 1.0  
+## Migrazione all'Architettura Unificata
+
+**Questa architettura è stata sostituita dal unified-server.js su porta 5500.**
+
+### Per Migrare il Codice
+
+Se hai script o configurazioni che usano le porte legacy:
+
+1. **3000** → Sostituisci con chiamate dirette a `http://localhost:5500/api/pdf-*`
+2. **8765** → Stesso endpoint, ora su 5500
+3. **3010** → Sostituisci con `http://localhost:5500/api/eventi/*`
+
+### File Legacy Mantenuti
+
+I seguenti file sono mantenuti per compatibilità ma non sono più nel flusso standard:
+
+- `server-manager.js` (porta 3000)
+- `pdf-server.js` (porta 8765) 
+- `server-eventi.js` (porta 3010)
+- Script di avvio separati per server multipli
+
+### Documentazione Attuale
+
+- [README.md](README.md) - Guida al unified server
+- [QUICK_START.md](QUICK_START.md) - Avvio rapido
+- [pdf/README.md](pdf/README.md) - Sistema PDF integrato
+
+---
+
+**Versione:** 1.0 (Legacy)  
 **Data:** 2024  
 **Ultimo aggiornamento:** 2024  
+**Stato:** Deprecato - Vedi unified-server.js  
+
+

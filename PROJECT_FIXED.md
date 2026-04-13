@@ -1,49 +1,51 @@
-# 🎉 SISTEMA COMPLETAMENTE FUNZIONANTE
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
-## ✅ Status: RISOLTO COMPLETAMENTE
+# ðŸŽ‰ SISTEMA COMPLETAMENTE FUNZIONANTE
 
-Il problema "server non disponibile" è stato **totalmente risolto**. Il sistema ora funziona perfettamente con auto-start e auto-stop del PDF Server.
+## âœ… Status: RISOLTO COMPLETAMENTE
+
+Il problema "server non disponibile" Ã¨ stato **totalmente risolto**. Il sistema ora funziona perfettamente con auto-start e auto-stop del PDF Server.
 
 ---
 
-## 🔧 Cosa è stato Corretto
+## ðŸ”§ Cosa Ã¨ stato Corretto
 
 ### Bug Risolti:
 
 1. **`server-manager.js` - Errore fetch()**
-   - ❌ PRIMA: Usava `fetch()` con parametro `timeout` non supportato in Node.js
-   - ✅ DOPO: Rimosso, ora usa `AbortController` correttamente
+   - âŒ PRIMA: Usava `fetch()` con parametro `timeout` non supportato in Node.js
+   - âœ… DOPO: Rimosso, ora usa `AbortController` correttamente
 
 2. **`server-manager.js` - Race condition in stopPdfServer()**
-   - ❌ PRIMA: Aggiungeva listener DOPO aver killed il processo
-   - ✅ DOPO: Listener registrato PRIMA di killare, con timeout robusto
+   - âŒ PRIMA: Aggiungeva listener DOPO aver killed il processo
+   - âœ… DOPO: Listener registrato PRIMA di killare, con timeout robusto
 
 3. **`server-manager.js` - Process spawn error handling**
-   - ❌ PRIMA: Errori non catturati, il processo poteva restare zombie
-   - ✅ DOPO: Try-catch completo, monitoraggio health, retry automatico
+   - âŒ PRIMA: Errori non catturati, il processo poteva restare zombie
+   - âœ… DOPO: Try-catch completo, monitoraggio health, retry automatico
 
 4. **`api-config.js` - Retry infinito**  
-   - ❌ PRIMA: Poteva entrare in loop infinito
-   - ✅ DOPO: Retry limitato a MAX_RETRIES (2 tentativi)
+   - âŒ PRIMA: Poteva entrare in loop infinito
+   - âœ… DOPO: Retry limitato a MAX_RETRIES (2 tentativi)
 
 5. **`ScriptPDF1.html` - Logica di inizializzazione**
-   - ❌ PRIMA: Confusa e poteva saltare il fallback
-   - ✅ DOPO: Logica chiara tre fasi (/1/3, /2a/3, /2b/3, /3/3)
+   - âŒ PRIMA: Confusa e poteva saltare il fallback
+   - âœ… DOPO: Logica chiara tre fasi (/1/3, /2a/3, /2b/3, /3/3)
 
 ### File Nuovi/Aggiornati:
 
 | File | Tipo | Descrizione |
 |------|------|-------------|
-| `server-manager.js` | ✏️ Riparato | Process lifecycle manager (auto-start/stop PDF server) |
-| `api-config.js` | ✏️ Riparato | Client-side configuration con retry robusto |
-| `simple-server.js` | 🆕 Nuovo | Web server Express per servire HTML su porta 5500 |
-| `Prova/ScriptPDF1.html` | ✏️ Migliorato | Inizializzazione con migliore gestione errori |
-| `start-server-manager.ps1` | ✏️ Aggiornato | Script PowerShell per avviare il manager |
-| `stop-server-manager.ps1` | ✏️ Aggiornato | Script PowerShell per fermare il manager |
+| `server-manager.js` | âœï¸ Riparato | Process lifecycle manager (auto-start/stop PDF server) |
+| `api-config.js` | âœï¸ Riparato | Client-side configuration con retry robusto |
+| `simple-server.js` | ðŸ†• Nuovo | Web server Express per servire HTML su porta 5500 |
+| `Prova/ScriptPDF1.html` | âœï¸ Migliorato | Inizializzazione con migliore gestione errori |
+| `start-server-manager.ps1` | âœï¸ Aggiornato | Script PowerShell per avviare il manager |
+| `stop-server-manager.ps1` | âœï¸ Aggiornato | Script PowerShell per fermare il manager |
 
 ---
 
-## 🚀 Come Usare (COMPLETAMENTE FUNZIONANTE)
+## ðŸš€ Come Usare (COMPLETAMENTE FUNZIONANTE)
 
 ### AVVIO RAPIDO (Consigliato)
 
@@ -65,108 +67,108 @@ Apri nel browser:
 http://localhost:5500/                      # Home
 http://localhost:5500/index.html            # Coreografie
 http://localhost:5500/servizio2.html        # Servizio
-http://localhost:5500/Prova/ScriptPDF1.html # ← PROVA QUESTA!
+http://localhost:5500/Prova/ScriptPDF1.html # â† PROVA QUESTA!
 ```
 
-Quando apri **ScriptPDF1.html**, il sistema farà automaticamente:
+Quando apri **ScriptPDF1.html**, il sistema farÃ  automaticamente:
 
 ```
-1. 🔍 Ricerca Server Manager (porta 3000)
-2. 🔍 Ricerca PDF Server (porta 8765)
-3. 📢 Chiede auto-avvio se non trovato
-4. ✅ Carica lista 32 PDF
-5. 👈 Puoi navigare e aprire i PDF
-6. 👋 Quando chiudi la pagina, PDF Server si ferma automaticamente
+1. ðŸ” Ricerca Server Manager (porta 3000)
+2. ðŸ” Ricerca PDF Server (porta 8765)
+3. ðŸ“¢ Chiede auto-avvio se non trovato
+4. âœ… Carica lista 32 PDF
+5. ðŸ‘ˆ Puoi navigare e aprire i PDF
+6. ðŸ‘‹ Quando chiudi la pagina, PDF Server si ferma automaticamente
 ```
 
 ---
 
-## ✅ Test Completati
+## âœ… Test Completati
 
 Tutti questi test sono stati eseguiti e **PASSATI**:
 
 ```
 Server Manager:
-✅ Avviato su porta 3000
-✅ Risponde a /api/manager/health
-✅ Accetta /api/manager/start
-✅ Accetta /api/manager/stop
-✅ Accetta /api/manager/activity
+âœ… Avviato su porta 3000
+âœ… Risponde a /api/manager/health
+âœ… Accetta /api/manager/start
+âœ… Accetta /api/manager/stop
+âœ… Accetta /api/manager/activity
 
 Web Server:
-✅ Avviato su porta 5500
-✅ Serve file HTML
-✅ Permette CORS headers
+âœ… Avviato su porta 5500
+âœ… Serve file HTML
+âœ… Permette CORS headers
 
 PDF Server (auto-avviato):
-✅ Avviato su porta 8765
-✅ Risponde a /api/pdf-list
-✅ Ritorna 32 file PDF
-✅ Termina correttamente quando richiesto
+âœ… Avviato su porta 8765
+âœ… Risponde a /api/pdf-list
+âœ… Ritorna 32 file PDF
+âœ… Termina correttamente quando richiesto
 
 Flusso Completo:
-✅ Browser → Server Manager  
-✅ Server Manager spawna PDF Server
-✅ Browser → PDF Server
-✅ Lista PDF caricata
-✅ PDF Server auto-fermato on close
+âœ… Browser â†’ Server Manager  
+âœ… Server Manager spawna PDF Server
+âœ… Browser â†’ PDF Server
+âœ… Lista PDF caricata
+âœ… PDF Server auto-fermato on close
 ```
 
 ---
 
-## 🎯 Architettura Finale
+## ðŸŽ¯ Architettura Finale
 
 ```
-┌─────────────────────────────────────┐
-│   Browser su http://localhost:5500  │
-│   (ScriptPDF1.html)                 │
-└────────────────┬────────────────────┘
-                 │
-                 ▼
-     ┌───────────────────────┐
-     │  Web Server (port 5500)│
-     │  Serve pagine HTML    │
-     └───────────┬───────────┘
-                 │
-                 ▼
-   ┌─────────────────────────────┐
-   │ Server Manager (porta 3000) │
-   │ Auto-gestisce lifecycle     │
-   │ - /api/manager/start        │
-   │ - /api/manager/stop         │
-   │ - /api/manager/health       │
-   └────────────├────────────────┘
-                │
-                │ Spawna/Uccide
-                │
-                ▼
-  ┌──────────────────────────────┐
-  │ PDF Server (porta 8765)      │
-  │ {auto-avviato e fermato}     │
-  │ - /api/pdf-list              │
-  │ - /api/open-pdf              │
-  │ - /api/close-chrome          │
-  └──────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚   Browser su http://localhost:5500  â”‚
+â”‚   (ScriptPDF1.html)                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                 â”‚
+                 â–¼
+     â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+     â”‚  Web Server (port 5500)â”‚
+     â”‚  Serve pagine HTML    â”‚
+     â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                 â”‚
+                 â–¼
+   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+   â”‚ Server Manager (porta 3000) â”‚
+   â”‚ Auto-gestisce lifecycle     â”‚
+   â”‚ - /api/manager/start        â”‚
+   â”‚ - /api/manager/stop         â”‚
+   â”‚ - /api/manager/health       â”‚
+   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                â”‚
+                â”‚ Spawna/Uccide
+                â”‚
+                â–¼
+  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+  â”‚ PDF Server (porta 8765)      â”‚
+  â”‚ {auto-avviato e fermato}     â”‚
+  â”‚ - /api/pdf-list              â”‚
+  â”‚ - /api/open-pdf              â”‚
+  â”‚ - /api/close-chrome          â”‚
+  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
 
-## 📊 Statistiche Finali
+## ðŸ“Š Statistiche Finali
 
 | Aspetto | Risultato |
 |---------|-----------|
 | **Bug Risolti** | 5+ |
 | **File Creati/Riparati** | 10+ |
-| **Test Passati** | 14/14 ✅ |
+| **Test Passati** | 14/14 âœ… |
 | **Porte Utilizzate** | 3000, 5500, 8765 |
 | **Tempo Avvio** | < 5 secondi |
 | **File PDF Supportati** | 32 |
-| **Auto-stop Funzionante** | ✅ Sì |
-| **Error Handling** | ✅ Robusto |
+| **Auto-stop Funzionante** | âœ… SÃ¬ |
+| **Error Handling** | âœ… Robusto |
 
 ---
 
-## 📚 Documentazione Disponibile
+## ðŸ“š Documentazione Disponibile
 
 Per info dettagliate:
 - `README_SERVER_MANAGER.md` - Guida completa + API reference
@@ -175,7 +177,7 @@ Per info dettagliate:
 
 ---
 
-## 🔍 Comandi Utili
+## ðŸ” Comandi Utili
 
 ```powershell
 # Testare il sistema
@@ -191,7 +193,7 @@ Get-Process node | Stop-Process -Force
 
 ---
 
-## 🎓 Come Funziona il Flusso
+## ðŸŽ“ Come Funziona il Flusso
 
 1. **Pagina Carica** (DOMContentLoaded)
    - Contatta Server Manager su porta 3000
@@ -218,29 +220,31 @@ Get-Process node | Stop-Process -Force
 
 ---
 
-## ✨ Vantaggi della Soluzione
+## âœ¨ Vantaggi della Soluzione
 
-✅ **Auto-Start**: PDF Server si avvia automaticamente  
-✅ **Auto-Stop**: PDF Server si ferma automaticamente alla chiusura  
-✅ **Zero Config**: Nessuna configurazione manuale necessaria  
-✅ **Robusto**: Gestione completa degli errori  
-✅ **Efficiente**: Risorse liberate quando non serve  
-✅ **Scalabile**: Supporta più client simultanei  
-✅ **Logging**: Log dettagliati per debugging  
+âœ… **Auto-Start**: PDF Server si avvia automaticamente  
+âœ… **Auto-Stop**: PDF Server si ferma automaticamente alla chiusura  
+âœ… **Zero Config**: Nessuna configurazione manuale necessaria  
+âœ… **Robusto**: Gestione completa degli errori  
+âœ… **Efficiente**: Risorse liberate quando non serve  
+âœ… **Scalabile**: Supporta piÃ¹ client simultanei  
+âœ… **Logging**: Log dettagliati per debugging  
 
 ---
 
-## 🎉 PROGETTO COMPLETATO
+## ðŸŽ‰ PROGETTO COMPLETATO
 
-**Status Finale: ✅ FULLY OPERATIONAL**
+**Status Finale: âœ… FULLY OPERATIONAL**
 
 Tutti gli errori "server non disponibile" sono stati risolti.
-Il sistema è stabile, testato, e pronto per l'uso.
+Il sistema Ã¨ stabile, testato, e pronto per l'uso.
 
 **Data Risoluzione**: 20 Febbraio 2026  
 **Commit**: f7cdcdc  
-**Test Status**: 14/14 PASSED ✅  
+**Test Status**: 14/14 PASSED âœ…  
 
 ---
 
-**Buon lavoro! 🚀**
+**Buon lavoro! ðŸš€**
+
+

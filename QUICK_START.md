@@ -1,3 +1,5 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 # Quick Start
 
 ## Avvio consigliato
@@ -31,3 +33,5 @@ node test-system.js
 1. verifica `http://localhost:5500/diagnostica.html`
 2. verifica `http://localhost:5500/eventi/api/ping`
 3. chiudi eventuali tab aperti su porte diverse da `5500`
+
+

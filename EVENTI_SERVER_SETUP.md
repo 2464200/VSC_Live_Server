@@ -1,3 +1,5 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 # Eventi - Installazione e Uso in Rete Locale
 
 ## Obiettivo
@@ -40,9 +42,9 @@ Il server Eventi resta sul PC principale collegato fisicamente al router.
 3. Se tutto funziona, il server ascolta su porta `5500`.
 
 Dovresti vedere in console qualcosa come:
-- `📍 Server: http://localhost:5500`
-- `📍 Rete: http://<IP-del-server>:5500`
-- `📌 Eventi: http://<IP-del-server>:5500/eventi/eventi.html`
+- `ðŸ“ Server: http://localhost:5500`
+- `ðŸ“ Rete: http://<IP-del-server>:5500`
+- `ðŸ“Œ Eventi: http://<IP-del-server>:5500/eventi/eventi.html`
 
 ---
 
@@ -52,7 +54,7 @@ Il router deve creare una rete locale senza accesso a Internet.
 
 ### Vodafone Station Revolution: configurazione consigliata
 
-Se usi una Vodafone Station Revolution, segui questi passi per garantire la stabilità della rete tra il PC server e tutti i DJ:
+Se usi una Vodafone Station Revolution, segui questi passi per garantire la stabilitÃ  della rete tra il PC server e tutti i DJ:
 
 1. Apri il browser sul PC server e vai a:
    - `http://192.168.1.1` oppure `http://192.168.0.1`
@@ -60,26 +62,26 @@ Se usi una Vodafone Station Revolution, segui questi passi per garantire la stab
 3. Vai alla sezione `Impostazioni Wi-Fi` o `Wireless`.
 4. Crea una rete dedicata per l'evento:
    - SSID: scegli un nome chiaro come `EVENTI-DJ` o `EventiLocal`.
-   - Modalità di sicurezza: `WPA2-PSK` o `WPA2/WPA3` se disponibile.
+   - ModalitÃ  di sicurezza: `WPA2-PSK` o `WPA2/WPA3` se disponibile.
    - Password: imposta una password semplice da comunicare ai DJ ma lunga abbastanza da essere sicura.
-5. Su `Banda` usa preferibilmente `2.4 GHz` se ci sono dispositivi più vecchi; se tutti i dispositivi supportano bene il 5 GHz, puoi attivare anche la seconda banda.
-6. Seleziona un canale Wi-Fi fisso (es. `1`, `6`, `11` per 2.4 GHz) oppure lascia `Auto` solo se il router è in grado di scegliere un canale non disturbato.
+5. Su `Banda` usa preferibilmente `2.4 GHz` se ci sono dispositivi piÃ¹ vecchi; se tutti i dispositivi supportano bene il 5 GHz, puoi attivare anche la seconda banda.
+6. Seleziona un canale Wi-Fi fisso (es. `1`, `6`, `11` per 2.4 GHz) oppure lascia `Auto` solo se il router Ã¨ in grado di scegliere un canale non disturbato.
 7. Disabilita la `Rete ospite` per i DJ. La rete degli DJ deve essere una rete interna normale, non una rete guest isolata.
-8. Cerca e disabilita qualsiasi impostazione `AP Isolation / Client Isolation / Wireless Isolation`: deve essere disattivata perché i dispositivi devono comunicare con il PC server.
+8. Cerca e disabilita qualsiasi impostazione `AP Isolation / Client Isolation / Wireless Isolation`: deve essere disattivata perchÃ© i dispositivi devono comunicare con il PC server.
 9. Se possibile, imposta DHCP sul router per assegnare automaticamente gli IP. Puoi anche riservare un IP statico per il PC server:
    - Esempio: `192.168.1.10` o `192.168.0.10`
-10. Collega il PC server al router con cavo Ethernet, se puoi, per maggiore stabilità.
+10. Collega il PC server al router con cavo Ethernet, se puoi, per maggiore stabilitÃ .
 11. Salva le impostazioni e riavvia il router se richiesto.
 
-#### Controlli di stabilità
+#### Controlli di stabilitÃ 
 
 - Assicurati che il PC server e i dispositivi DJ siano sulla stessa subnet (es. `192.168.1.x` o `192.168.0.x`).
-- Non usare la modalità `Bridge` o `Modem only` se il router deve gestire la Wi-Fi e il DHCP.
+- Non usare la modalitÃ  `Bridge` o `Modem only` se il router deve gestire la Wi-Fi e il DHCP.
 - Se hai problemi solo con alcuni dispositivi, prova a connetterli prima uno alla volta e verifica l'IP assegnato.
 
 ### Opzioni consigliate
 
-- Metti il router in modalità hotspot locale o access point
+- Metti il router in modalitÃ  hotspot locale o access point
 - Disabilita il forwarding Internet se vuoi solo rete interna
 - Assicurati che il PC server e i dispositivi siano sulla stessa subnet
 - Se possibile, abilita DHCP nel router in modo che tutti ricevano un IP automaticamente
@@ -92,7 +94,7 @@ ipconfig
 ```
 Cerca l'indirizzo IPv4 della scheda Wi-Fi o Ethernet connessa al router.
 
-L'URL di accesso sarà:
+L'URL di accesso sarÃ :
 ```text
 http://<IP-del-server>:5500/eventi/eventi.html
 ```
@@ -110,19 +112,19 @@ La pagina mostra un QR code e il link diretto da usare.
 
 ### Dove trovare il pulsante QR
 
-- sulla home principale del server (`index.html`) è presente il pulsante `QR Eventi`
-- sulla pagina principale Eventi (`eventi.html`) è presente lo stesso pulsante
+- sulla home principale del server (`index.html`) Ã¨ presente il pulsante `QR Eventi`
+- sulla pagina principale Eventi (`eventi.html`) Ã¨ presente lo stesso pulsante
 
 ---
 
 ## Come si collega un DJ
 
-I DJ devono fare così:
+I DJ devono fare cosÃ¬:
 
 1. Connettersi alla rete Wi-Fi evento creata dal router
 2. Aprire il browser sul notebook/tablet
 3. Scansionare il QR code mostrato sul PC server
-4. Aprire il link ricevuto, che sarà:
+4. Aprire il link ricevuto, che sarÃ :
    ```text
    http://<IP-del-server>:5500/eventi/eventi.html
    ```
@@ -181,4 +183,6 @@ Esempio di topologia:
 
 ## Nota finale
 
-Il router non deve avere accesso a Internet per funzionare. L'importante è che tutti i dispositivi stiano sulla stessa rete locale del PC server.
+Il router non deve avere accesso a Internet per funzionare. L'importante Ã¨ che tutti i dispositivi stiano sulla stessa rete locale del PC server.
+
+

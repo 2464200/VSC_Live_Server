@@ -1,3 +1,5 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 ---
 name: csv-manager
 description: 'Manage CSV files for the project: validate structure, sync to public/, add columns safely. Use for CSV editing, deployment prep, data integrity checks.'
@@ -30,3 +32,4 @@ Run [sync_csvs.ps1](./scripts/sync_csvs.ps1) to copy root CSVs to public/ folder
 4. Test rendering
 
 Use this skill to avoid breaking the data-driven architecture.
+

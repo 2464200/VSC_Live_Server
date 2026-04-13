@@ -1,24 +1,26 @@
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
 # Workflow Automatico - Aggiornamento Report Dati
 
-## 📋 Descrizione
+## ðŸ“‹ Descrizione
 
 Questo sistema aggiorna automaticamente i dati del report statistico (`border_data.json`) leggendo i dati da Excel ogni N minuti.
 
-## 🗂️ File Creati
+## ðŸ—‚ï¸ File Creati
 
-1. **generate_report_data.py** — Script Python che legge Excel e genera il JSON
-2. **update_report_data.ps1** — Script PowerShell per gestire l'aggiornamento (loop o una tantum)
-3. **setup_report_scheduler.ps1** — Script PowerShell per registrare il task in Task Scheduler
-4. **setup_report_scheduler.bat** — File batch per eseguire facilmente come Amministratore
+1. **generate_report_data.py** â€” Script Python che legge Excel e genera il JSON
+2. **update_report_data.ps1** â€” Script PowerShell per gestire l'aggiornamento (loop o una tantum)
+3. **setup_report_scheduler.ps1** â€” Script PowerShell per registrare il task in Task Scheduler
+4. **setup_report_scheduler.bat** â€” File batch per eseguire facilmente come Amministratore
 
-## 🚀 Installazione
+## ðŸš€ Installazione
 
 ### Opzione 1: Esecuzione Rapida (Consigliato)
 
 1. **Leggi il file:** `setup_report_scheduler.bat`
 2. **Fai click destro** su `setup_report_scheduler.bat`
 3. Scegli: **"Esegui come amministratore"**
-4. ✓ Il task verrà registrato con intervallo di **5 minuti**
+4. âœ“ Il task verrÃ  registrato con intervallo di **5 minuti**
 
 ### Opzione 2: Line di Comando (per intervallo personalizzato)
 
@@ -37,24 +39,24 @@ Se non vuoi creare un task permanente, esegui manualmente quando serve:
 C:/VSC_Live_Server/.venv/Scripts/python.exe C:\VSC_Live_Server\generate_report_data.py
 ```
 
-## ⚙️ Come Funziona
+## âš™ï¸ Come Funziona
 
 1. **Task Scheduler** avvia il Python script ogni N minuti
 2. **generate_report_data.py** legge i dati da Excel:
-   - Foglio **borderò**: conta X in A12:A612 (totale eseguite) e quelle con valore in G
+   - Foglio **borderÃ²**: conta X in A12:A612 (totale eseguite) e quelle con valore in G
    - Foglio **Accoda 8+12**: conta righe non vuote D2:AA1000 (richieste QR) e top 5 coreografie
 3. Genera **border_data.json** nella cartella `public/`
 4. Le pagine HTML (Report.html, Report_white.html, Report_black.html) caricano i dati dal JSON
 
-## 📊 Dati Generati in border_data.json
+## ðŸ“Š Dati Generati in border_data.json
 
 ```json
 {
-  "totale_eseguite": 45,           // X in A12:A612 (borderò)
+  "totale_eseguite": 45,           // X in A12:A612 (borderÃ²)
   "eseguite": 38,                  // X in A12:A612 con valore in G
   "non_eseguite": 7,               // Totale - Eseguite
   "richieste_qr": 55,              // Righe non vuote D:AA (Accoda 8+12)
-  "coreografia_piu_richiesta": "Merengue",  // Nome più frequente
+  "coreografia_piu_richiesta": "Merengue",  // Nome piÃ¹ frequente
   "conteggio_piu_richiesta": 12,           // Occorrenze
   "top_5": [
     {"nome": "Merengue", "conteggio": 12},
@@ -64,7 +66,7 @@ C:/VSC_Live_Server/.venv/Scripts/python.exe C:\VSC_Live_Server\generate_report_d
 }
 ```
 
-## 🔍 Monitoraggio
+## ðŸ” Monitoraggio
 
 ### Visualizzare il Task
 
@@ -84,7 +86,7 @@ Il file log si trova in: `C:\VSC_Live_Server\logs\report_update.log`
 
 Ogni aggiornamento registra data, ora, e risultato (successo/errore).
 
-## 🛑 Gestione del Task
+## ðŸ›‘ Gestione del Task
 
 ### Avvia il task manualmente
 
@@ -110,7 +112,7 @@ Enable-ScheduledTask -TaskName "VSC_Report_DataUpdate"
 Unregister-ScheduledTask -TaskName "VSC_Report_DataUpdate" -Confirm:$false
 ```
 
-## ⚬ Modifica dell'Intervallo
+## âš¬ Modifica dell'Intervallo
 
 Se vuoi cambiare l'intervallo (es. da 5 a 10 minuti):
 
@@ -124,7 +126,7 @@ Se vuoi cambiare l'intervallo (es. da 5 a 10 minuti):
    powershell -ExecutionPolicy Bypass -File "C:\VSC_Live_Server\setup_report_scheduler.ps1" -Interval 10
    ```
 
-## 🧹 Pulizia Log
+## ðŸ§¹ Pulizia Log
 
 I log si accumulano in `C:\VSC_Live_Server\logs\report_update.log`. Per eliminarli periodicamente:
 
@@ -134,24 +136,24 @@ Remove-Item "C:\VSC_Live_Server\logs\report_update.log"
 
 oppure mantenili solo degli ultimi 7 giorni con uno script separato.
 
-## ⚠️ Note Importanti
+## âš ï¸ Note Importanti
 
-- **Excel deve avere il file fisico**: Se il file Excel è spostato o rinominato, lo script fallirà
-- **Privilegi Admin**: Il task è registrato per l'utente corrente. Se cambi utente, potrebbe non eseguirsi
+- **Excel deve avere il file fisico**: Se il file Excel Ã¨ spostato o rinominato, lo script fallirÃ 
+- **Privilegi Admin**: Il task Ã¨ registrato per l'utente corrente. Se cambi utente, potrebbe non eseguirsi
 - **File di lock**: Se Excel ha il file aperto con lock (file ~$...), lo script lo esclude automaticamente
-- **Connessione di rete**: Non è richiesta per leggere Excel localmente
+- **Connessione di rete**: Non Ã¨ richiesta per leggere Excel localmente
 
-## 🔧 Troubleshooting
+## ðŸ”§ Troubleshooting
 
 ### Il task non esegue
 
 1. Verifica che Pesci sia eseguito come Amministratore
 2. Controlla il log: `C:\VSC_Live_Server\logs\report_update.log`
-3. Verifica che il file Excel esiste e non è danneggiato
+3. Verifica che il file Excel esiste e non Ã¨ danneggiato
 
 ### Errore: "Python executable non trovato"
 
-Assicurati che il virtual environment è stato configurato:
+Assicurati che il virtual environment Ã¨ stato configurato:
 ```powershell
 cd C:\VSC_Live_Server
 python -m venv .venv
@@ -159,7 +161,7 @@ python -m venv .venv
 pip install openpyxl
 ```
 
-### Errore: "Foglio borderò non trovato"
+### Errore: "Foglio borderÃ² non trovato"
 
 Verifica il nome esatto del foglio Excel (potrebbe avere spazi o caratteri speciali).
 
@@ -167,3 +169,5 @@ Verifica il nome esatto del foglio Excel (potrebbe avere spazi o caratteri speci
 
 **Creato il:** 15 Febbraio 2026
 **Per il progetto:** VSC Live Server (Coreografie Report)
+
+

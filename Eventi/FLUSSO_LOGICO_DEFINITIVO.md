@@ -1,64 +1,66 @@
-# ✅ FLUSSO LOGICO CORRETTO - COREOGRAFIE PER STATI
+﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+
+# âœ… FLUSSO LOGICO CORRETTO - COREOGRAFIE PER STATI
 
 **Data**: 6 Aprile 2026  
-**Status**: 🟢 DEFINITIVO  
+**Status**: ðŸŸ¢ DEFINITIVO  
 **Modifiche**: Solo `Eventi/public/eventi.js` (renderRows)
 
 ---
 
-## 📊 ARCHITETTURA DELLE TRE PAGINE
+## ðŸ“Š ARCHITETTURA DELLE TRE PAGINE
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│                    EVENTO DJ - 3 PAGINE                    │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  PAGINA 1: eventi.html (⬜ DISPONIBILI)                    │
-│  ├─ Mostra: SOLO brani con stato "disponibile"            │
-│  ├─ Azione: Spunta checkbox → prenotato (🟠)              │
-│  ├─ Timestamp: NO (null)                                   │
-│  ├─ DJ: Salvato da localStorage                            │
-│  └─ Dopo: Brano scompare dal polling (30 sec)             │
-│                                                             │
-│       ⬜ Brano 1 [☐ prenota]                               │
-│       ⬜ Brano 2 [☐ prenota]                               │
-│       ⬜ Brano 3 [☐ prenota]                               │
-│                                                             │
-│  👇 Utente spunta checkbox                                 │
-│                                                             │
-│  ─────────────────────────────────────────                 │
-│                                                             │
-│  PAGINA 2: prenotati.html (🟠 PRENOTATI)                  │
-│  ├─ Mostra: SOLO brani con stato "prenotato"              │
-│  ├─ Azione: Clicca "Eseguito" → eseguito (✅)             │
-│  ├─ Azione alternativa: Clicca "Annulla" → torna disponibile│
-│  ├─ Timestamp: SI (Date.now()) quando clicca               │
-│  ├─ DJ: Salvato da localStorage                            │
-│  └─ Dopo: Brano scompare dal polling (30 sec)             │
-│                                                             │
-│       🟠 Brano 1 [☐ Eseguito] [☐ Annulla]                 │
-│       🟠 Brano 2 [☐ Eseguito] [☐ Annulla]                 │
-│                                                             │
-│  👇 Utente clicca "Eseguito"                               │
-│                                                             │
-│  ─────────────────────────────────────────                 │
-│                                                             │
-│  PAGINA 3: spuntati.html (✅ ESEGUITI)                    │
-│  ├─ Mostra: SOLO brani con stato "eseguito"               │
-│  ├─ Timestamp: SI (mostrato - es. 06/04/2026, 14:32:15)   │
-│  ├─ DJ: Mostrato accanto a ogni brano                      │
-│  ├─ Azione: Opzionale "Annulla" → torna disponibile        │
-│  └─ Nota: Report definitivo completato                    │
-│                                                             │
-│       ✅ Brano 1 - 06/04/2026 14:32:15 [☐ Annulla]        │
-│       ✅ Brano 2 - 06/04/2026 14:35:22 [☐ Annulla]        │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    EVENTO DJ - 3 PAGINE                    â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚                                                             â”‚
+â”‚  PAGINA 1: eventi.html (â¬œ DISPONIBILI)                    â”‚
+â”‚  â”œâ”€ Mostra: SOLO brani con stato "disponibile"            â”‚
+â”‚  â”œâ”€ Azione: Spunta checkbox â†’ prenotato (ðŸŸ )              â”‚
+â”‚  â”œâ”€ Timestamp: NO (null)                                   â”‚
+â”‚  â”œâ”€ DJ: Salvato da localStorage                            â”‚
+â”‚  â””â”€ Dopo: Brano scompare dal polling (30 sec)             â”‚
+â”‚                                                             â”‚
+â”‚       â¬œ Brano 1 [â˜ prenota]                               â”‚
+â”‚       â¬œ Brano 2 [â˜ prenota]                               â”‚
+â”‚       â¬œ Brano 3 [â˜ prenota]                               â”‚
+â”‚                                                             â”‚
+â”‚  ðŸ‘‡ Utente spunta checkbox                                 â”‚
+â”‚                                                             â”‚
+â”‚  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€                 â”‚
+â”‚                                                             â”‚
+â”‚  PAGINA 2: prenotati.html (ðŸŸ  PRENOTATI)                  â”‚
+â”‚  â”œâ”€ Mostra: SOLO brani con stato "prenotato"              â”‚
+â”‚  â”œâ”€ Azione: Clicca "Eseguito" â†’ eseguito (âœ…)             â”‚
+â”‚  â”œâ”€ Azione alternativa: Clicca "Annulla" â†’ torna disponibileâ”‚
+â”‚  â”œâ”€ Timestamp: SI (Date.now()) quando clicca               â”‚
+â”‚  â”œâ”€ DJ: Salvato da localStorage                            â”‚
+â”‚  â””â”€ Dopo: Brano scompare dal polling (30 sec)             â”‚
+â”‚                                                             â”‚
+â”‚       ðŸŸ  Brano 1 [â˜ Eseguito] [â˜ Annulla]                 â”‚
+â”‚       ðŸŸ  Brano 2 [â˜ Eseguito] [â˜ Annulla]                 â”‚
+â”‚                                                             â”‚
+â”‚  ðŸ‘‡ Utente clicca "Eseguito"                               â”‚
+â”‚                                                             â”‚
+â”‚  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€                 â”‚
+â”‚                                                             â”‚
+â”‚  PAGINA 3: spuntati.html (âœ… ESEGUITI)                    â”‚
+â”‚  â”œâ”€ Mostra: SOLO brani con stato "eseguito"               â”‚
+â”‚  â”œâ”€ Timestamp: SI (mostrato - es. 06/04/2026, 14:32:15)   â”‚
+â”‚  â”œâ”€ DJ: Mostrato accanto a ogni brano                      â”‚
+â”‚  â”œâ”€ Azione: Opzionale "Annulla" â†’ torna disponibile        â”‚
+â”‚  â””â”€ Nota: Report definitivo completato                    â”‚
+â”‚                                                             â”‚
+â”‚       âœ… Brano 1 - 06/04/2026 14:32:15 [â˜ Annulla]        â”‚
+â”‚       âœ… Brano 2 - 06/04/2026 14:35:22 [â˜ Annulla]        â”‚
+â”‚                                                             â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
 
-## 🔄 FLUSSO DETTAGLIATO DI UN BRANO
+## ðŸ”„ FLUSSO DETTAGLIATO DI UN BRANO
 
 ### Stato: DISPONIBILE  
 ```json
@@ -71,10 +73,10 @@
 }
 ```
 **Visualizzato in**: `eventi.html`  
-**Icona**: ⬜  
+**Icona**: â¬œ  
 **Checkbox UI**: Unchecked, abilitato  
 
-👇 **Utente spunta in eventi.html**
+ðŸ‘‡ **Utente spunta in eventi.html**
 
 ---
 
@@ -88,12 +90,12 @@
   "dj": "Luca"
 }
 ```
-**Visualizzato in**: `prenotati.html` (NON più in eventi.html)  
-**Icona**: 🟠  
+**Visualizzato in**: `prenotati.html` (NON piÃ¹ in eventi.html)  
+**Icona**: ðŸŸ   
 **Checkbox UI**: Unchecked (negli altri brani), ma questo ha checkbox "Eseguito"  
-**Significato**: Brano PRENOTATO - Nessun altro DJ può selezionarlo  
+**Significato**: Brano PRENOTATO - Nessun altro DJ puÃ² selezionarlo  
 
-👇 **Utente clicca "Eseguito" in prenotati.html**
+ðŸ‘‡ **Utente clicca "Eseguito" in prenotati.html**
 
 ---
 
@@ -108,14 +110,14 @@
 }
 ```
 **Visualizzato in**: `spuntati.html` (con data/ora visibile)  
-**Icona**: ✅  
+**Icona**: âœ…  
 **Data/Ora**: 06/04/2026 14:32:15  
 **DJ**: Luca (da localStorage)  
-**Significato**: Coreografia COMPLETATA ✅
+**Significato**: Coreografia COMPLETATA âœ…
 
 ---
 
-## 💻 CODICE AGGIORNATO - EVENTI.HTML
+## ðŸ’» CODICE AGGIORNATO - EVENTI.HTML
 
 ### Funzione: `salvaStato(id, stato, addTimestamp)`
 
@@ -127,9 +129,9 @@ async function salvaStato(id, stato, addTimestamp = false) {
     dj: getDJLocal() || null
   };
   
-  // ✅ Timestamp SOLO quando:
-  //    - stato è 'eseguito' 
-  //    - addTimestamp flag è true (dalla pagina prenotati)
+  // âœ… Timestamp SOLO quando:
+  //    - stato Ã¨ 'eseguito' 
+  //    - addTimestamp flag Ã¨ true (dalla pagina prenotati)
   if (addTimestamp && stato === 'eseguito') {
     payload.timestamp = new Date().toISOString();
   } else {
@@ -149,82 +151,82 @@ async function salvaStato(id, stato, addTimestamp = false) {
 **Comportamento**:
 1. Riceve solo brani "disponibili" (filtrati dal backend)
 2. Per ogni brano:
-   - Mostra icona ⬜
-   - Mostra 1 checkbox → "Prenota"
-   - Click → salvaStato(..., 'prenotato', false)
+   - Mostra icona â¬œ
+   - Mostra 1 checkbox â†’ "Prenota"
+   - Click â†’ salvaStato(..., 'prenotato', false)
 3. Dopo il click:
-   - Icona diventa 🟠
+   - Icona diventa ðŸŸ 
    - Checkbox disabilitato
-   - Messaggio console: `🟠 [BRANO-1] disponibile → prenotato`
-   - Al prossimo polling (30 sec): brano scompare (perché filtro esclude prenotati)
+   - Messaggio console: `ðŸŸ  [BRANO-1] disponibile â†’ prenotato`
+   - Al prossimo polling (30 sec): brano scompare (perchÃ© filtro esclude prenotati)
 
 ---
 
-## 📋 FLUSSO OPERATIVO COMPLETO
+## ðŸ“‹ FLUSSO OPERATIVO COMPLETO
 
 ```
 T=00:00 - CARICAMENTO PAGINA PRINCIPALE
-├─ URL: http://localhost:3010/eventi/eventi.html
-├─ Console: "📋 Renderizzando 350 coreografie nel container"
-├─ Vedo: 350 brani con ⬜ e checkbox unchecked
-└─ DJ è già selezionato da localStorage
+â”œâ”€ URL: http://localhost:3010/eventi/eventi.html
+â”œâ”€ Console: "ðŸ“‹ Renderizzando 350 coreografie nel container"
+â”œâ”€ Vedo: 350 brani con â¬œ e checkbox unchecked
+â””â”€ DJ Ã¨ giÃ  selezionato da localStorage
 
 T=00:05 - UTENTE SPUNTA UN BRANO
-├─ Click checkbox su "Toreador di Bizet"
-├─ Console: "🟠 [BRANO-1] disponibile → prenotato (DJ: Luca, SENZA timestamp)"
-├─ Backend riceve: {id, stato: 'prenotato', dj: 'Luca', timestamp: null}
-├─ UI aggiorna:
-│  ├─ Icona: ⬜ → 🟠
-│  ├─ Checkbox: unchecked → checked 
-│  ├─ Row: abilitata → disabilitata
-│  └─ Console: "ℹ️ Il brano scomparirà da questa pagina"
-└─ Database aggiornato ✅
+â”œâ”€ Click checkbox su "Toreador di Bizet"
+â”œâ”€ Console: "ðŸŸ  [BRANO-1] disponibile â†’ prenotato (DJ: Luca, SENZA timestamp)"
+â”œâ”€ Backend riceve: {id, stato: 'prenotato', dj: 'Luca', timestamp: null}
+â”œâ”€ UI aggiorna:
+â”‚  â”œâ”€ Icona: â¬œ â†’ ðŸŸ 
+â”‚  â”œâ”€ Checkbox: unchecked â†’ checked 
+â”‚  â”œâ”€ Row: abilitata â†’ disabilitata
+â”‚  â””â”€ Console: "â„¹ï¸ Il brano scomparirÃ  da questa pagina"
+â””â”€ Database aggiornato âœ…
 
 T=00:06 - UTENTE NAVIGA A PRENOTATI.HTML
-├─ URL: http://localhost:3010/eventi/prenotati.html
-├─ Console: "🎬 renderLista() con filtro: prenotati"
-├─ Carica: API → /brani + /log
-├─ Filtra: SOLO brani con stato "prenotato"
-├─ Vedo: 1 brano 🟠 "Toreador di Bizet" con checkbox "Eseguito"
-└─ Checkbox è abilitato, pronto al click
+â”œâ”€ URL: http://localhost:3010/eventi/prenotati.html
+â”œâ”€ Console: "ðŸŽ¬ renderLista() con filtro: prenotati"
+â”œâ”€ Carica: API â†’ /brani + /log
+â”œâ”€ Filtra: SOLO brani con stato "prenotato"
+â”œâ”€ Vedo: 1 brano ðŸŸ  "Toreador di Bizet" con checkbox "Eseguito"
+â””â”€ Checkbox Ã¨ abilitato, pronto al click
 
 T=00:07 - UTENTE CLICCA "ESEGUITO" IN PRENOTATI
-├─ Click checkbox "Eseguito"
-├─ Console: "📤 Marcando come eseguito: BRANO-1"
-├─ Backend riceve: {id, stato: 'eseguito', timestamp: '2026-04-06T14:07:00Z'}
-├─ Database aggiornato
-└─ Pagina si ricarica (location.reload())
+â”œâ”€ Click checkbox "Eseguito"
+â”œâ”€ Console: "ðŸ“¤ Marcando come eseguito: BRANO-1"
+â”œâ”€ Backend riceve: {id, stato: 'eseguito', timestamp: '2026-04-06T14:07:00Z'}
+â”œâ”€ Database aggiornato
+â””â”€ Pagina si ricarica (location.reload())
 
 T=00:08 - PAGINA REFRESH - BRANO VISIBILE IN SPUNTATI
-├─ Brano NON è più in prenotati.html (sparito dal polling)
-├─ Utente naviga a spuntati.html  
-├─ Vedo: 1 brano ✅ "Toreador di Bizet"
-├─ Timestamp: "06/04/2026, 14:07:00" ← ✅ PRESENTE!
-├─ DJ: "Luca" ← ✅ SALVATO!
-└─ Opzione "Annulla" per tornare disponibile (se necessario)
+â”œâ”€ Brano NON Ã¨ piÃ¹ in prenotati.html (sparito dal polling)
+â”œâ”€ Utente naviga a spuntati.html  
+â”œâ”€ Vedo: 1 brano âœ… "Toreador di Bizet"
+â”œâ”€ Timestamp: "06/04/2026, 14:07:00" â† âœ… PRESENTE!
+â”œâ”€ DJ: "Luca" â† âœ… SALVATO!
+â””â”€ Opzione "Annulla" per tornare disponibile (se necessario)
 ```
 
 ---
 
-## 🎯 VERIFICHE NEL BROWSER
+## ðŸŽ¯ VERIFICHE NEL BROWSER
 
-### Console (F12 → Console tab)
+### Console (F12 â†’ Console tab)
 
 Quando spunti in eventi.html:
 ```
-🟠 [BRANO-1] disponibile → prenotato (DJ: Luca, SENZA timestamp)
-   ℹ️ Il brano scomparirà da questa pagina
-   ℹ️ Apparirà nella lista PRENOTATI
+ðŸŸ  [BRANO-1] disponibile â†’ prenotato (DJ: Luca, SENZA timestamp)
+   â„¹ï¸ Il brano scomparirÃ  da questa pagina
+   â„¹ï¸ ApparirÃ  nella lista PRENOTATI
 ```
 
 Quando clicchi "Eseguito" in prenotati.html:
 ```
-📤 Marcando come eseguito: BRANO-1
+ðŸ“¤ Marcando come eseguito: BRANO-1
 ```
 
 ### Database: log.json
 
-**Dopo PRIMA SELEZIONE** (disponibile → prenotato):
+**Dopo PRIMA SELEZIONE** (disponibile â†’ prenotato):
 ```json
 {
   "id": "BRANO-1",
@@ -234,7 +236,7 @@ Quando clicchi "Eseguito" in prenotati.html:
 }
 ```
 
-**Dopo SECONDA SELEZIONE** (prenotato → eseguito):
+**Dopo SECONDA SELEZIONE** (prenotato â†’ eseguito):
 ```json
 {
   "id": "BRANO-1",
@@ -248,24 +250,24 @@ Quando clicchi "Eseguito" in prenotati.html:
 
 | Pagina | Stato | Icona | Momento |
 |--------|-------|-------|---------|
-| eventi.html | disponibile | ⬜ | Prima selezione |
-| prenotati.html | prenotato | 🟠 | Tra 2 selezioni |
-| spuntati.html | eseguito | ✅ | Con data/ora |
+| eventi.html | disponibile | â¬œ | Prima selezione |
+| prenotati.html | prenotato | ðŸŸ  | Tra 2 selezioni |
+| spuntati.html | eseguito | âœ… | Con data/ora |
 
 ---
 
-## 📌 NOTE IMPORTANTI
+## ðŸ“Œ NOTE IMPORTANTI
 
-1. **Timestamp SOLO a eseguito**: Non è salvato quando prenotato
+1. **Timestamp SOLO a eseguito**: Non Ã¨ salvato quando prenotato
 2. **DJ sempre salvato**: Dal primo click sulla localStorage
 3. **Filtering automatico**: Le pagine mostrano SOLO lo stato relativo
 4. **Polling ogni 30 sec**: I brani scompaiono/appaiono automaticamente
-5. **Icone coerenti**: ⬜ 🟠 ✅ in tutte le pagine
-6. **Non reversibile da events.html**: Una volta prenotato, scompare da lì
+5. **Icone coerenti**: â¬œ ðŸŸ  âœ… in tutte le pagine
+6. **Non reversibile da events.html**: Una volta prenotato, scompare da lÃ¬
 
 ---
 
-## 🚀 AVVIO E TEST
+## ðŸš€ AVVIO E TEST
 
 ```bash
 # Termina server precedente (se attivo)
@@ -277,17 +279,19 @@ http://localhost:3010/eventi/eventi.html
 ```
 
 **Test manuale**:
-1. ✅ Seleziona DJ dal dropdown
-2. ✅ Spunta un brano → diventa 🟠 (icona cambia)
-3. ✅ Vai a prenotati.html → vedi lo stesso brano con 🟠
-4. ✅ Clicca "Eseguito" → diventa ✅ con data/ora
-5. ✅ Vai a spuntati.html → vedi il brano ✅ con timestamp
-6. ✅ Verifica console (F12) per i log dettagliati
+1. âœ… Seleziona DJ dal dropdown
+2. âœ… Spunta un brano â†’ diventa ðŸŸ  (icona cambia)
+3. âœ… Vai a prenotati.html â†’ vedi lo stesso brano con ðŸŸ 
+4. âœ… Clicca "Eseguito" â†’ diventa âœ… con data/ora
+5. âœ… Vai a spuntati.html â†’ vedi il brano âœ… con timestamp
+6. âœ… Verifica console (F12) per i log dettagliati
 
 ---
 
-## ✨ COERENZA CON VERSIONI PRECEDENTI
+## âœ¨ COERENZA CON VERSIONI PRECEDENTI
 
-✅ **Non modificato**: Backend, API, database schema  
-✅ **Retrocompatibile**: Nuovi log passano ugualmente  
-✅ **Logica finalmente corretta**: Flusso dei tre stati chiaro e intuitivo
+âœ… **Non modificato**: Backend, API, database schema  
+âœ… **Retrocompatibile**: Nuovi log passano ugualmente  
+âœ… **Logica finalmente corretta**: Flusso dei tre stati chiaro e intuitivo
+
+
