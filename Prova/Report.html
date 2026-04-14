@@ -18,24 +18,21 @@ th{background:#333;color:#fff}
 .chart-bar{flex:1;height:280px;background:#fff;padding:15px;border-radius:10px}
 </style>
 </head><body>
-<nav>
-<a href='/index.html'>Home</a>
-<a href='/NextCoreo1.html'>NextCoreo1</a>
-<a href='/NextCoreo2.html'>NextCoreo2</a>
-</nav>
+<div id="global-nav-container"></div>
+<script src="/nav.js"></script>
 <div class='container'>
 <h1>Coreografie - Report Statistico</h1>
 <p>Eseguite in totale: <strong>0 </strong>
-<p>Richieste con QR: <strong>75</strong> di cui non eseguite: <strong>0</strong></p>
-<p>Coreografia piu' richiesta: <strong>CHILL FACTOR</strong> (4 volte)</p>
+<p>Richieste con QR: <strong>74</strong> di cui non eseguite: <strong>0</strong></p>
+<p>Coreografia piu' richiesta: <strong>CHEERLEADER</strong> (5 volte)</p>
 <h2>Top 5 Coreografie</h2>
 <table>
 <tr><th>#</th><th>Coreografia</th><th>Richieste</th></tr>
-<tr><td>1</td><td>CHILL FACTOR</td><td>4</td></tr>
-<tr><td>2</td><td>DELICIOUS</td><td>3</td></tr>
-<tr><td>3</td><td>GRAVITY</td><td>3</td></tr>
-<tr><td>4</td><td>LONG LONG WAY</td><td>3</td></tr>
-<tr><td>5</td><td>FORGIVE ME FRIEND</td><td>2</td></tr>
+<tr><td>1</td><td>CHEERLEADER</td><td>5</td></tr>
+<tr><td>2</td><td>IRISH STEW</td><td>4</td></tr>
+<tr><td>3</td><td>MAN ON A MISSION</td><td>3</td></tr>
+<tr><td>4</td><td>BETTER COUNTRY</td><td>2</td></tr>
+<tr><td>5</td><td>3 TEQUILA FLOOR</td><td>2</td></tr>
 </table>
 <div class='charts-row'>
 <div class='chart-pie'><canvas id='pie'></canvas></div>
@@ -44,16 +41,16 @@ th{background:#333;color:#fff}
 <script>
 new Chart(pie,{type:'pie',data:{labels:['Eseguite','Non eseguite'],datasets:[{data:[0,0],backgroundColor:['#28A745','#DC3545']}]} });
 new Chart(bar,{type:'bar',data:{labels:[
-'CHILL FACTOR',
-'DELICIOUS',
-'GRAVITY',
-'LONG LONG WAY',
-'FORGIVE ME FRIEND'
+'CHEERLEADER',
+'IRISH STEW',
+'MAN ON A MISSION',
+'BETTER COUNTRY',
+'3 TEQUILA FLOOR'
 ],datasets:[{data:[
+5,
 4,
 3,
-3,
-3,
+2,
 2
 ],backgroundColor:'#007BFF'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});
 </script>
