@@ -95,7 +95,8 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const cols = parseCSVLine(line, sourceName === 'base' ? ',' : delimiter).map(c => normalizeValue(c));
+    const delimiter = sourceName === 'base' ? ',' : detectCsvDelimiter(line);
+    const cols = parseCSVLine(line, delimiter).map(c => normalizeValue(c));
 
     let idIndex, titoloIndex, branoIndex, autoreIndex;
     if (sourceName === 'base') {
@@ -351,6 +352,7 @@ module.exports = {
   BASE_CSV_PATH,
   EXTRA_CSV_PATH,
   BRANI_JSON_PATH,
+  ensureExtraCsvFile,
   appendExtraBrano,
   updateExtraBrano,
   loadBraniFromSources,

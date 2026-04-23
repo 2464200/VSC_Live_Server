@@ -204,6 +204,17 @@ function syncBraniOnStartup() {
 // ===== MIDDLEWARE =====
 app.use(express.json());
 
+// CORS header per permettere connessioni da qualsiasi origin
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 // Normalize uppercase /EVENTI paths to lowercase so static files and routes resolve.
 app.use((req, res, next) => {
     if (/^\/eventi/i.test(req.url) && !req.url.startsWith('/eventi')) {
@@ -225,17 +236,6 @@ app.use(express.static(path.join(__dirname), {
     index: ['index.html'],
     extensions: ['html', 'htm']
 }));
-
-// CORS header per permettere connessioni da qualsiasi origin
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
 
 // Logging
 app.use((req, res, next) => {
@@ -353,11 +353,14 @@ app.post('/api/open-pdf', (req, res) => {
 
         let stdout = '';
         let stderr = '';
+        let responseSent = false;
         ps.stdout.on('data', d => { stdout += d.toString(); });
         ps.stderr.on('data', d => { stderr += d.toString(); });
 
         const timeout = setTimeout(() => {
+            if (responseSent) return;
             try {
+                responseSent = true;
                 res.json({ success: true, message: 'Comando inviato (timeout)', file: filePath, debug: stdout || stderr });
             } catch (e) {}
         }, 4000);
@@ -379,13 +382,19 @@ app.post('/api/open-pdf', (req, res) => {
                         openedViewers[pid] = { file: filePath, startedAt: Date.now() };
                         saveOpenedViewersToFile();
                         console.log(`✅ Viewer PID registrato: ${pid}`);
+                        if (responseSent) return;
+                        responseSent = true;
                         return res.json({ success: true, message: 'PDF aperto sul monitor secondario', file: filePath, pid });
                     }
                 }
 
+                if (responseSent) return;
+                responseSent = true;
                 return res.json({ success: true, message: 'Comando inviato', file: filePath, debug: out || stderr });
             } catch (err) {
                 console.error('❌ Errore parsing output PS:', err.message);
+                if (responseSent) return;
+                responseSent = true;
                 return res.json({ success: true, message: 'Comando inviato (no pid)', file: filePath, error: err.message });
             }
         });
