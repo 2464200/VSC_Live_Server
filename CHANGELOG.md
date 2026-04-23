@@ -2,6 +2,42 @@
 
 # âœ… CHANGELOG - Correzioni Applicate per StabilitÃ 
 
+## Data: 23 Aprile 2026
+## Stato: âœ… STABILE E FUNZIONANTE - Fix sincronizzazione brani + eliminazione coreografie aggiuntive
+
+### âœ… Correzione sincronizzazione brani CSV
+
+#### **Problema**: il conteggio totale era sceso da 559 a circa 58
+- âŒ La sincronizzazione leggeva `display.csv`, che contiene solo un sottoinsieme operativo
+- âŒ Il file completo `Eventi/Elenco_Brani_statico.csv` non veniva piu' usato come base
+
+#### **Soluzione Applicata**: âœ…
+1. **Ripristinata la sorgente principale corretta** in `Eventi/brani-utils.js`
+   - `Elenco_Brani_statico.csv` torna ad essere il CSV base
+   - `display.csv` resta solo come fallback legacy
+2. **Allineato il parser** al formato del file completo
+   - separatore `;`
+   - indici colonna corretti per ID, coreografia, brano, autore
+3. **Verifica eseguita**
+   - `baseCount: 559`
+   - `extraCount: 3`
+   - `total: 562`
+
+### âœ… Eliminazione coreografie aggiuntive
+
+#### **Soluzione Applicata**: âœ…
+1. **Aggiunto pulsante `Elimina`** in `Eventi/public/coreografie-aggiuntive.js`
+2. **Aggiunta API dedicata**:
+   - `POST /eventi/api/aggiuntive/delete`
+   - `DELETE /eventi/api/aggiuntive/:id` come fallback
+3. **Aggiornata utilita' backend** `deleteExtraBrano()` in `Eventi/brani-utils.js`
+4. **Aggiornata documentazione** in `Eventi/README_EVENTI.md` e `Eventi/VERIFICA_NUOVE_FUNZIONALITA.md`
+
+#### **Risultato**:
+âœ… Sincronizzazione tornata ai conteggi corretti
+âœ… Eliminazione coerente da lista e da `Coreografie_Aggiuntive.csv`
+âœ… Compatibilita' mantenuta con flussi legacy
+
 ## Data: 9 Aprile 2026
 ## Stato: âœ… STABILE E FUNZIONANTE - Fix Modal Coreografie + Stabilizzazione PDF Server
 

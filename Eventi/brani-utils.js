@@ -1,10 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const BASE_CSV_NAME = 'display.csv';
+const BASE_CSV_NAME = 'Elenco_Brani_statico.csv';
+const LEGACY_BASE_CSV_NAME = 'display.csv';
 const EXTRA_CSV_NAME = 'Coreografie_Aggiuntive.csv';
 
-const BASE_CSV_PATH = path.join(__dirname, '..', BASE_CSV_NAME);
+const BASE_CSV_PATH = path.join(__dirname, BASE_CSV_NAME);
+const LEGACY_BASE_CSV_PATH = path.join(__dirname, '..', LEGACY_BASE_CSV_NAME);
 const EXTRA_CSV_PATH = path.join(__dirname, EXTRA_CSV_NAME);
 const BRANI_JSON_PATH = path.join(__dirname, 'data', 'brani.json');
 const EXTRA_CSV_HEADER = 'Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info coreo 1,info coreo 2,studiate,coreografo,collaboratori,descrizione coreo';
@@ -76,6 +78,28 @@ function buildStableExtraId({ titolo, brano, autore }, rowNumber) {
   return `EXTRA-${seed || `riga-${rowNumber}`}`.toUpperCase();
 }
 
+function resolveBaseCsvSource() {
+  if (fs.existsSync(BASE_CSV_PATH)) {
+    return {
+      csvPath: BASE_CSV_PATH,
+      fileName: BASE_CSV_NAME,
+      sourceName: 'base-static',
+      skipLines: 1
+    };
+  }
+
+  if (fs.existsSync(LEGACY_BASE_CSV_PATH)) {
+    return {
+      csvPath: LEGACY_BASE_CSV_PATH,
+      fileName: LEGACY_BASE_CSV_NAME,
+      sourceName: 'base-legacy',
+      skipLines: 3
+    };
+  }
+
+  throw new Error(`File CSV principale non trovato: ${BASE_CSV_PATH}`);
+}
+
 function parseCsvRows(csvPath, sourceName, options = {}) {
   const { optional = false, skipLines = 1 } = options;
 
@@ -95,11 +119,20 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const delimiter = sourceName === 'base' ? ',' : detectCsvDelimiter(line);
+    const delimiter = sourceName === 'base-static'
+      ? ';'
+      : sourceName === 'base-legacy'
+        ? ','
+        : detectCsvDelimiter(line);
     const cols = parseCSVLine(line, delimiter).map(c => normalizeValue(c));
 
     let idIndex, titoloIndex, branoIndex, autoreIndex;
-    if (sourceName === 'base') {
+    if (sourceName === 'base-static') {
+      idIndex = 2;
+      titoloIndex = 3;
+      branoIndex = 4;
+      autoreIndex = 5;
+    } else if (sourceName === 'base-legacy') {
       idIndex = 1;
       titoloIndex = 2;
       branoIndex = 3;
@@ -143,7 +176,8 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
 }
 
 function loadBraniFromSources() {
-  const base = parseCsvRows(BASE_CSV_PATH, 'base', { skipLines: 3 });
+  const baseSource = resolveBaseCsvSource();
+  const base = parseCsvRows(baseSource.csvPath, baseSource.sourceName, { skipLines: baseSource.skipLines });
   const extra = parseCsvRows(EXTRA_CSV_PATH, 'extra', { optional: true, skipLines: 1 });
 
   const seenIds = new Set();
@@ -201,6 +235,7 @@ function loadBraniFromSources() {
       skippedInvalid: base.skipped + extra.skipped,
       skippedDuplicates,
       extraFileMissing: extra.missing,
+      baseFile: baseSource.fileName,
       warnings
     }
   };
@@ -396,9 +431,11 @@ function deleteExtraBrano(id, csvPath = EXTRA_CSV_PATH) {
 
 module.exports = {
   BASE_CSV_NAME,
+  LEGACY_BASE_CSV_NAME,
   EXTRA_CSV_NAME,
   EXTRA_CSV_HEADER,
   BASE_CSV_PATH,
+  LEGACY_BASE_CSV_PATH,
   EXTRA_CSV_PATH,
   BRANI_JSON_PATH,
   ensureExtraCsvFile,

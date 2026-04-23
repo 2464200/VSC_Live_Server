@@ -23,18 +23,19 @@
   - Visualizzazione elenco brani aggiuntivi (modal di modifica **nascosto al caricamento**)
   - Ricerca per coreografia, brano, autore
   - Modal di modifica si apre **solo su richiesta dell'utente** (click pulsante "Modifica")
-  - Pulsanti funzionali: X (chiudi), Salva, Annulla
-  - Salvataggio tramite API
+  - Pulsanti funzionali: `Modifica`, `Elimina`, X (chiudi), Salva, Annulla
+  - Salvataggio ed eliminazione tramite API
 
 ### Script: `coreografie-aggiuntive.js`
 - **Ubicazione**: `Eventi/public/coreografie-aggiuntive.js`
 - **Funzioni principali**:
   - `loadCoreografieAggiuntive()` - Carica CSV da `/Coreografie_Aggiuntive.csv`
   - `parseCoreografieCSV()` - Parsing con separatore punto-e-virgola
-  - `renderCoreografie()` - Renderizza righe con pulsante "Modifica"
+  - `renderCoreografie()` - Renderizza righe con pulsanti `Modifica` e `Elimina`
   - `openEditModal()` - Apre modal di modifica (richiesto da utente)
   - `closeEditModal()` - Chiude il modal (X, Annulla)
   - `saveEdit()` - Salva tramite API
+  - `deleteCoreografia()` - Elimina tramite API e aggiorna la lista
   - `setupModalEventListeners()` - Assoggetta i listener ai pulsanti una sola volta (protezione contro duplicati)
 
 ### Endpoint API: `POST /api/aggiuntive/update`
@@ -51,6 +52,18 @@
   ```
 - **Risposta**: JSON con `ok: true` e dati aggiornati
 
+### Endpoint API: `POST /api/aggiuntive/delete`
+- **Ubicazione**: `Eventi/eventi-server.js` e `unified-server.js`
+- **Metodo**: POST
+- **Body**:
+  ```json
+  {
+    "id": "EXTRA1"
+  }
+  ```
+- **Risposta**: JSON con `ok: true` e dati eliminati
+- **Nota**: e' disponibile anche il fallback `DELETE /api/aggiuntive/:id`
+
 ### Funzione Backend: `updateExtraBrano()`
 - **Ubicazione**: `Eventi/brani-utils.js`
 - **Descrizione**: Aggiorna riga nel CSV aggiuntivo e sincronizza JSON
@@ -66,6 +79,7 @@
 - **`.modal-body`** - Body del modal con form
 - **`.modal-actions`** - Pulsanti di salvataggio/annullamento
 - **`.edit-btn`** - Pulsante arancione "Modifica"
+- **`.delete-btn`** - Pulsante rosso "Elimina"
 - **`.riga-brano.aggiuntiva`** - Stile riga coerente (sfondo arancione chiaro)
 
 ### Coerenza con Progetto
@@ -110,7 +124,7 @@ La nuova pagina e funzionalitÃ :
 - âœ… URL aggiunto: `coreografie-aggiuntive.html`
 - âœ… File HTML e JS aggiunti all'architettura
 - âœ… Endpoint API aggiunto a lista endpoint
-- âœ… Nota operativa: "La pagina `coreografie-aggiuntive.html` consente di visualizzare e modificare..."
+- âœ… Nota operativa aggiornata: visualizzazione, modifica, eliminazione e sorgente CSV principale corretta
 
 ## 7. Integrazione nella Navigazione
 
@@ -131,8 +145,9 @@ La nuova pagina e funzionalitÃ :
 | JS logica | `Eventi/public/coreografie-aggiuntive.js` | âœ… Presente |
 | CSV dati | `Eventi/Coreografie_Aggiuntive.csv` | âœ… Convertito a `;` |
 | Funzione backend | `Eventi/brani-utils.js#updateExtraBrano()` | âœ… Presente |
-| Endpoint API | `Eventi/eventi-server.js#POST /aggiuntive/update` | âœ… Presente |
-| Stile CSS | `Eventi/public/style.css` | âœ… Aggiunto `.modal*` e `.riga-brano.aggiuntiva` |
+| Funzione backend delete | `Eventi/brani-utils.js#deleteExtraBrano()` | âœ… Presente |
+| Endpoint API | `Eventi/eventi-server.js#POST /aggiuntive/update` e `POST /aggiuntive/delete` | âœ… Presenti |
+| Stile CSS | `Eventi/public/style.css` | âœ… Aggiunto `.modal*`, `.riga-brano.aggiuntiva`, `.delete-btn` |
 | Docs | `Eventi/README_EVENTI.md` | âœ… Aggiornato |
 
 ## 9. Test di DisponibilitÃ 
@@ -140,6 +155,7 @@ La nuova pagina e funzionalitÃ :
 ### URL Accessibili
 - âœ… `http://localhost:5500/eventi/coreografie-aggiuntive.html`
 - âœ… `http://localhost:5500/eventi/api/aggiuntive/update` (POST)
+- âœ… `http://localhost:5500/eventi/api/aggiuntive/delete` (POST)
 - âœ… `http://localhost:5500/Coreografie_Aggiuntive.csv` (GET)
 
 ### Script Caricati Correttamente
@@ -201,6 +217,7 @@ Il server unificato definisce il suo router locale e non usa il file `Eventi/eve
 - Il modal di modifica funziona correttamente
 - I pulsanti del modal sono responsivi
 - Le modifiche al CSV vengono salvate nella base di dati
+- Le eliminazioni dal CSV aggiuntivo vengono recepite subito in elenco e sincronizzazione
 - Il sistema continua ad essere completamente operativo
 
 ---

@@ -99,6 +99,8 @@ Endpoint:
 - `DELETE /dj/:id`
 - `GET /export-csv`
 - `GET /sync-brani`
+- `POST /aggiuntive/delete` (elimina coreografia da CSV aggiuntivo)
+- `DELETE /aggiuntive/:id` (fallback equivalente per eliminazione)
 - `POST /aggiuntive/update` (aggiorna coreografia da CSV aggiuntivo)
 
 ## Note operative
@@ -107,6 +109,8 @@ Endpoint:
 - Il reset salva prima una copia del log precedente in `Eventi/data/archive/`.
 - Nella vista `prenotati.html` e' disponibile un checkbox `Annulla` che riporta il brano a stato `disponibile`, come avviene nella vista `spuntati.html`.
 - La pagina `coreografie-aggiuntive.html` consente di visualizzare l'elenco delle coreografie contenute in `Coreografie_Aggiuntive.csv`. La maschera di modifica rimane nascosta al caricamento della pagina e si apre solo quando l'utente clicca il pulsante "Modifica" su un brano specifico.
+- Nella stessa pagina e' disponibile anche il pulsante `Elimina`, che rimuove la coreografia sia dall'elenco mostrato sia dal file `Coreografie_Aggiuntive.csv`.
+- La sincronizzazione brani usa come sorgente principale `Eventi/Elenco_Brani_statico.csv`; `display.csv` resta solo come fallback legacy/compatibilita' se il file completo non e' disponibile.
 - Le etichette di navigazione correnti sono `Eseguiti`, `Non eseguiti`, `Prenotati`, `Mostra tutto`, `Statistiche DJ`, `Coreografie Aggiuntive`, `Apri visualizer`.
 - Il visualizer usa il solo percorso canonico `http://localhost:5500/eventi/visualizer.html` per evitare loop di redirect.
 

@@ -1,9 +1,63 @@
 [
   {
+    "id": "001",
+    "titolo": "101",
+    "brano": "lost in the shuffle",
+    "autore": "michael peterson"
+  },
+  {
+    "id": "002",
+    "titolo": "1540",
+    "brano": "what the heaven",
+    "autore": "kyle park"
+  },
+  {
+    "id": "003",
+    "titolo": "16 BARS",
+    "brano": "16 bars",
+    "autore": "the southern gothic"
+  },
+  {
+    "id": "004",
+    "titolo": "16 STEPS",
+    "brano": "crime of the century",
+    "autore": "shania twain"
+  },
+  {
+    "id": "005",
+    "titolo": "16 TONS",
+    "brano": "sixteen tons",
+    "autore": "tennessee ernie ford"
+  },
+  {
+    "id": "006",
+    "titolo": "19 FOREVER",
+    "brano": "19 forever",
+    "autore": "granger smith"
+  },
+  {
+    "id": "007",
+    "titolo": "1929",
+    "brano": "1929",
+    "autore": "tara oram"
+  },
+  {
     "id": "008",
     "titolo": "3 FLICKS",
     "brano": "1 2 3",
     "autore": "ann tayler"
+  },
+  {
+    "id": "009",
+    "titolo": "3 G",
+    "brano": "get it got it god",
+    "autore": "billy gilman"
+  },
+  {
+    "id": "010",
+    "titolo": "3 M",
+    "brano": "miss me more",
+    "autore": "kelsea ballerini"
   },
   {
     "id": "011",
@@ -12,10 +66,40 @@
     "autore": "josiah siska"
   },
   {
+    "id": "012",
+    "titolo": "50 SHOTS",
+    "brano": "shoulda",
+    "autore": "kylie morgan"
+  },
+  {
+    "id": "013",
+    "titolo": "8 BALLS",
+    "brano": "outback booty call",
+    "autore": "8 ball aitken"
+  },
+  {
+    "id": "014",
+    "titolo": "99 BOTTLES",
+    "brano": "99 bottles",
+    "autore": "zane williams"
+  },
+  {
     "id": "015",
     "titolo": "A BAR SONG",
     "brano": "a bar song (tipsy)",
     "autore": "shaboozey"
+  },
+  {
+    "id": "016",
+    "titolo": "A DIFFERENT SUMMER",
+    "brano": "nothing that a beer can't fix",
+    "autore": "thomas rhett"
+  },
+  {
+    "id": "017",
+    "titolo": "A SWING TO QUIT",
+    "brano": "whole lotta quit",
+    "autore": "randy houser"
   },
   {
     "id": "018",
@@ -24,10 +108,70 @@
     "autore": "walker hayes"
   },
   {
+    "id": "019",
+    "titolo": "AFTER MIDNIGHT",
+    "brano": "walkin' after midnight",
+    "autore": "the groovegrass boyz"
+  },
+  {
+    "id": "020",
+    "titolo": "AFTERGLOW",
+    "brano": "paradise",
+    "autore": "thomas rhett"
+  },
+  {
+    "id": "021",
+    "titolo": "ALL NIGHT LONG",
+    "brano": "you shock me all night long",
+    "autore": "steve' n' seagulls"
+  },
+  {
     "id": "022",
     "titolo": "ALL SHOOK UP",
     "brano": "all shook up",
     "autore": "billy joel"
+  },
+  {
+    "id": "023",
+    "titolo": "ALL TO MYSELF",
+    "brano": "all to myself",
+    "autore": "dan + shy"
+  },
+  {
+    "id": "024",
+    "titolo": "ALTITUDE",
+    "brano": "altitude",
+    "autore": "jarrod morris"
+  },
+  {
+    "id": "025",
+    "titolo": "AMERICAN KIDS",
+    "brano": "american kids",
+    "autore": "kenny chesney"
+  },
+  {
+    "id": "026",
+    "titolo": "ANGEL & CORONA",
+    "brano": "look what gone god gave her",
+    "autore": "thomas rhett"
+  },
+  {
+    "id": "027",
+    "titolo": "ANTHEM",
+    "brano": "anthem",
+    "autore": "brett kissel"
+  },
+  {
+    "id": "028",
+    "titolo": "ANYWAY",
+    "brano": "she loves me anyway",
+    "autore": "chancey williams"
+  },
+  {
+    "id": "029",
+    "titolo": "AROUND THE FIRE",
+    "brano": "old country barn",
+    "autore": "james johnston"
   },
   {
     "id": "030",
@@ -42,10 +186,34 @@
     "autore": "dasha"
   },
   {
+    "id": "032",
+    "titolo": "AUTHORITY",
+    "brano": "authority song",
+    "autore": "chancey williams"
+  },
+  {
+    "id": "033",
+    "titolo": "AW NAW",
+    "brano": "aw naw",
+    "autore": "chris young"
+  },
+  {
     "id": "034",
     "titolo": "BACK DOWN",
     "brano": "break it back down",
     "autore": "pat green"
+  },
+  {
+    "id": "035",
+    "titolo": "BAD",
+    "brano": "bad bad leroy brown",
+    "autore": "jim croce"
+  },
+  {
+    "id": "036",
+    "titolo": "BEAUTIFUL DRUG",
+    "brano": "beautiful drug",
+    "autore": "zac brown band"
   },
   {
     "id": "037",
@@ -54,10 +222,52 @@
     "autore": "toby keith & willie nelson"
   },
   {
+    "id": "038",
+    "titolo": "BEETHOVEN'S BOOGIE",
+    "brano": "boogie and beethoven",
+    "autore": "the gatlin brothers band"
+  },
+  {
+    "id": "039",
+    "titolo": "BEST ADVENTURE",
+    "brano": "best adventure",
+    "autore": "leaving thomas"
+  },
+  {
     "id": "040",
     "titolo": "BETTER COUNTRY",
     "brano": "better country",
     "autore": "paul brandt"
+  },
+  {
+    "id": "041",
+    "titolo": "BILL'S BASIC",
+    "brano": "i don't need the booze",
+    "autore": "alan jackson"
+  },
+  {
+    "id": "042",
+    "titolo": "BILL'S BASIC",
+    "brano": "lord have marcy on a country boy",
+    "autore": "josh turner"
+  },
+  {
+    "id": "043",
+    "titolo": "BILL'S BASIC",
+    "brano": "somebody take me home",
+    "autore": "kenny chesney"
+  },
+  {
+    "id": "044",
+    "titolo": "BILL'S BASIC",
+    "brano": "winter wonderland",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "045",
+    "titolo": "BILLBOARD",
+    "brano": "name on a billboard",
+    "autore": "charley crockett"
   },
   {
     "id": "046",
@@ -66,10 +276,130 @@
     "autore": "mariah carey"
   },
   {
+    "id": "047",
+    "titolo": "BLACK COFFEE",
+    "brano": "black coffee",
+    "autore": "lacy j dalton"
+  },
+  {
+    "id": "048",
+    "titolo": "BLACK COFFEE",
+    "brano": "last christmas",
+    "autore": "taylor swift"
+  },
+  {
+    "id": "049",
+    "titolo": "BLACK COFFEE",
+    "brano": "party for two",
+    "autore": "shania twain feat. billy currington"
+  },
+  {
+    "id": "050",
+    "titolo": "BLACK COFFEE",
+    "brano": "some town somewhere",
+    "autore": "kenny chesney"
+  },
+  {
+    "id": "051",
+    "titolo": "BLACK COFFEE",
+    "brano": "the salt in my tears",
+    "autore": "dolly parton"
+  },
+  {
+    "id": "052",
+    "titolo": "BLACK COFFEE",
+    "brano": "undone",
+    "autore": "dean brody"
+  },
+  {
+    "id": "053",
+    "titolo": "BLACK COFFEE",
+    "brano": "why couldn't be christmas everyday?",
+    "autore": "bianca ryan"
+  },
+  {
+    "id": "054",
+    "titolo": "BOOMERANG",
+    "brano": "i'm still falling",
+    "autore": "slow horses"
+  },
+  {
+    "id": "055",
+    "titolo": "BOOTY TO THE FLOOR",
+    "brano": "daisy dukes and cowboy boots",
+    "autore": "cowboy troy"
+  },
+  {
+    "id": "056",
+    "titolo": "BOOZE CRUISE",
+    "brano": "the booze cruise",
+    "autore": "blackjack billy"
+  },
+  {
+    "id": "057",
+    "titolo": "BORN FREE",
+    "brano": "born free",
+    "autore": "kid rock"
+  },
+  {
+    "id": "058",
+    "titolo": "BORN TO BE GREAT",
+    "brano": "some town somewhere",
+    "autore": "kenny chesney"
+  },
+  {
+    "id": "059",
+    "titolo": "BORROW MY HEART",
+    "brano": "borrow my heart",
+    "autore": "taylor henderson"
+  },
+  {
+    "id": "060",
+    "titolo": "BRING DOWN THE HOUSE",
+    "brano": "bring down the house",
+    "autore": "dean brody"
+  },
+  {
     "id": "061",
     "titolo": "BROKEN HEELS",
     "brano": "broken heels",
     "autore": "alexandra burke"
+  },
+  {
+    "id": "062",
+    "titolo": "BRUNCH",
+    "brano": "good people",
+    "autore": "josh grider"
+  },
+  {
+    "id": "063",
+    "titolo": "BUDDY",
+    "brano": "one step forward",
+    "autore": "desert rose band"
+  },
+  {
+    "id": "064",
+    "titolo": "BUILD A FIRE",
+    "brano": "build a fire",
+    "autore": "the wanderings hearts"
+  },
+  {
+    "id": "065",
+    "titolo": "BURNIN' UP",
+    "brano": "i hope it's me",
+    "autore": "brett kissel"
+  },
+  {
+    "id": "066",
+    "titolo": "BURNING LOVE",
+    "brano": "burning love",
+    "autore": "travis tritt"
+  },
+  {
+    "id": "067",
+    "titolo": "BURNING THE DAY",
+    "brano": "firefly",
+    "autore": "east love"
   },
   {
     "id": "068",
@@ -78,16 +408,106 @@
     "autore": "dean brody"
   },
   {
+    "id": "069",
+    "titolo": "BY AND BY",
+    "brano": "by and by",
+    "autore": "the olson band"
+  },
+  {
+    "id": "070",
+    "titolo": "CABO SAN LUCAS",
+    "brano": "all i want for christmas is a real good than",
+    "autore": "kenny chesney"
+  },
+  {
+    "id": "071",
+    "titolo": "CABO SAN LUCAS",
+    "brano": "cabo san lucas",
+    "autore": "toby keith"
+  },
+  {
     "id": "072",
     "titolo": "CANDY KISSES",
     "brano": "bottoms up",
     "autore": "brantley gilbert"
   },
   {
+    "id": "073",
+    "titolo": "CANDY KISSES",
+    "brano": "kick the dust up",
+    "autore": "luke bryan"
+  },
+  {
+    "id": "074",
+    "titolo": "CANDY KISSES",
+    "brano": "sweet home alabama",
+    "autore": "lynyrd skynyrd"
+  },
+  {
+    "id": "075",
+    "titolo": "CASTAWAY",
+    "brano": "castaway",
+    "autore": "zac brown band"
+  },
+  {
     "id": "076",
     "titolo": "CENTURION",
     "brano": "my heart's broke down",
     "autore": "dean miller"
+  },
+  {
+    "id": "077",
+    "titolo": "CHA CHA SLIDE",
+    "brano": "cha cha slide",
+    "autore": "dj casper"
+  },
+  {
+    "id": "078",
+    "titolo": "CHANGING DANCE BARN DANCE",
+    "brano": "all over again",
+    "autore": "the mavericks"
+  },
+  {
+    "id": "079",
+    "titolo": "CHANGING DANCE BARN DANCE",
+    "brano": "dance the night away",
+    "autore": "the mavericks"
+  },
+  {
+    "id": "080",
+    "titolo": "CHANGING POLKA",
+    "brano": "oh suzanna",
+    "autore": "yamboo"
+  },
+  {
+    "id": "081",
+    "titolo": "CHASING DOWN A GOOD TIME",
+    "brano": "chasing down a good time",
+    "autore": "randy houser"
+  },
+  {
+    "id": "082",
+    "titolo": "CHECK IN",
+    "brano": "stay in your line",
+    "autore": "hinterland"
+  },
+  {
+    "id": "083",
+    "titolo": "CHECK IT OUT",
+    "brano": "check it out",
+    "autore": "on the larceny"
+  },
+  {
+    "id": "084",
+    "titolo": "CHEEK TO CHEEK",
+    "brano": "bailando",
+    "autore": "enrique iglesias"
+  },
+  {
+    "id": "085",
+    "titolo": "CHEEK TO CHEEK",
+    "brano": "stuck like glue",
+    "autore": "sugarland"
   },
   {
     "id": "086",
@@ -102,10 +522,160 @@
     "autore": "kevin denney"
   },
   {
+    "id": "088",
+    "titolo": "CHEYENNE",
+    "brano": "feels just liken a love song",
+    "autore": "sara evans"
+  },
+  {
+    "id": "089",
+    "titolo": "CHEYENNE",
+    "brano": "i'm gonna getcha good",
+    "autore": "shania twain"
+  },
+  {
+    "id": "090",
+    "titolo": "CHEYENNE",
+    "brano": "mamma mia",
+    "autore": "elena feat glance"
+  },
+  {
+    "id": "091",
+    "titolo": "CHEYENNE",
+    "brano": "original ghostbusters theme song",
+    "autore": "ray parker jr"
+  },
+  {
+    "id": "092",
+    "titolo": "CHEYENNE",
+    "brano": "santa's gonna take it all black",
+    "autore": "toby keith"
+  },
+  {
+    "id": "093",
+    "titolo": "CHEYENNE",
+    "brano": "the big one",
+    "autore": "george strait"
+  },
+  {
+    "id": "094",
+    "titolo": "CHEYENNE",
+    "brano": "up",
+    "autore": "shania twain"
+  },
+  {
+    "id": "095",
+    "titolo": "CHEYENNE",
+    "brano": "white christmas",
+    "autore": "giuliano palma"
+  },
+  {
+    "id": "096",
+    "titolo": "CHEYENNE'S ROCK",
+    "brano": "it's late",
+    "autore": "shakin' stevens"
+  },
+  {
     "id": "097",
     "titolo": "CHILL FACTOR",
     "brano": "born it to the ground",
     "autore": "nickelback"
+  },
+  {
+    "id": "098",
+    "titolo": "CHILL FACTOR",
+    "brano": "calling all the monster",
+    "autore": "china anne mcclain"
+  },
+  {
+    "id": "099",
+    "titolo": "CHILL FACTOR",
+    "brano": "last night (line dance party)",
+    "autore": "madison cowboy & dj robbie"
+  },
+  {
+    "id": "100",
+    "titolo": "CHILL FACTOR",
+    "brano": "last night (original version)",
+    "autore": "chris handerson feat dj robbie"
+  },
+  {
+    "id": "101",
+    "titolo": "CHILL FACTOR",
+    "brano": "rock on",
+    "autore": "hunter"
+  },
+  {
+    "id": "102",
+    "titolo": "CHOO CHOO TRAIN",
+    "brano": "baby likes to rock it",
+    "autore": "the tractors"
+  },
+  {
+    "id": "103",
+    "titolo": "CHOP",
+    "brano": "shut up and fish",
+    "autore": "maddie & tae"
+  },
+  {
+    "id": "104",
+    "titolo": "CHOP CHOP",
+    "brano": "chop chop",
+    "autore": "bruno legrizzly"
+  },
+  {
+    "id": "105",
+    "titolo": "CINNAMON AND BLUE",
+    "brano": "creekwater clear",
+    "autore": "charlie worsham with elle king"
+  },
+  {
+    "id": "106",
+    "titolo": "CITY OF MUSIC",
+    "brano": "city of music",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "107",
+    "titolo": "CLICKETY CLACK",
+    "brano": "southbound train",
+    "autore": "travis tritt"
+  },
+  {
+    "id": "108",
+    "titolo": "COASTIN",
+    "brano": "lord of the dance",
+    "autore": "ronan hardiman"
+  },
+  {
+    "id": "109",
+    "titolo": "COFFEE",
+    "brano": "why wouldn't wanna be me",
+    "autore": "keith urban"
+  },
+  {
+    "id": "110",
+    "titolo": "COME MY WAY",
+    "brano": "come my way",
+    "autore": "raynes"
+  },
+  {
+    "id": "111",
+    "titolo": "COME TO DANCE",
+    "brano": "carry me to back virginia",
+    "autore": "old crow medicine show"
+  },
+  {
+    "id": "112",
+    "titolo": "COPPERHEAD ROAD",
+    "brano": "copperhead road",
+    "autore": "steve earle"
+  },
+  {
+    "id": "113",
+    "titolo": "COTTON EYED JOE",
+    "brano": "cotton eye joe",
+    "autore": "rednex"
   },
   {
     "id": "114",
@@ -114,10 +684,70 @@
     "autore": "blondie"
   },
   {
+    "id": "115",
+    "titolo": "COUNTRY AS CAN BE",
+    "brano": "christmas (baby please come home)",
+    "autore": "lady antebellum"
+  },
+  {
+    "id": "116",
+    "titolo": "COUNTRY AS CAN BE",
+    "brano": "country as a boy can be",
+    "autore": "brady seals"
+  },
+  {
+    "id": "117",
+    "titolo": "COUNTRY GIRL SHAKE",
+    "brano": "country girl (shake it for me)",
+    "autore": "luke bryan"
+  },
+  {
+    "id": "118",
+    "titolo": "COUNTRY ROADS",
+    "brano": "country roads",
+    "autore": "hermes house band"
+  },
+  {
     "id": "119",
     "titolo": "COWBOY BIG UP",
     "brano": "cowboy up",
     "autore": "jill johnson"
+  },
+  {
+    "id": "120",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "blue christmas",
+    "autore": "sheryl crow"
+  },
+  {
+    "id": "121",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "cowboy casanova",
+    "autore": "carrie underwood"
+  },
+  {
+    "id": "122",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "must be a woman",
+    "autore": "gord bamford"
+  },
+  {
+    "id": "123",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "true blue",
+    "autore": "madonna"
+  },
+  {
+    "id": "124",
+    "titolo": "COWBOY STRUT",
+    "brano": "my next broken heart",
+    "autore": "brooks & dunn"
+  },
+  {
+    "id": "125",
+    "titolo": "COWBOY UP",
+    "brano": "bury the shovel",
+    "autore": "clay walker"
   },
   {
     "id": "126",
@@ -126,10 +756,70 @@
     "autore": "thomas rhett"
   },
   {
+    "id": "127",
+    "titolo": "CRAZY SONG",
+    "brano": "what a song can do",
+    "autore": "lady a"
+  },
+  {
+    "id": "128",
+    "titolo": "CUPID SHUFFLE",
+    "brano": "down south shuffle",
+    "autore": "r3 feat big robb"
+  },
+  {
+    "id": "129",
+    "titolo": "CUT A RUG",
+    "brano": "roxanne's bayou",
+    "autore": "billy yates"
+  },
+  {
+    "id": "130",
+    "titolo": "CUT AND STRUT",
+    "brano": "suds in the bucket",
+    "autore": "sara evans"
+  },
+  {
+    "id": "131",
+    "titolo": "DADDY'S MONEY",
+    "brano": "daddy's money",
+    "autore": "ricochet"
+  },
+  {
+    "id": "132",
+    "titolo": "DAMN!",
+    "brano": "damn (feat dave mustaine)",
+    "autore": "brett kissel"
+  },
+  {
+    "id": "133",
+    "titolo": "DANCE AGAIN",
+    "brano": "standin' still",
+    "autore": "the clark family experience"
+  },
+  {
     "id": "134",
     "titolo": "DANCING VIOLINS",
     "brano": "duelling violins",
     "autore": "ronan hardiman"
+  },
+  {
+    "id": "135",
+    "titolo": "DARK SIDE",
+    "brano": "hell if i know",
+    "autore": "chase bryant"
+  },
+  {
+    "id": "136",
+    "titolo": "DAWNING",
+    "brano": "new day dawning",
+    "autore": "wynonna judd"
+  },
+  {
+    "id": "137",
+    "titolo": "DAY JOB",
+    "brano": "day job",
+    "autore": "gord bamford"
   },
   {
     "id": "138",
@@ -138,10 +828,148 @@
     "autore": "high valley"
   },
   {
+    "id": "139",
+    "titolo": "DEVIL'S SIDE",
+    "brano": "bad side",
+    "autore": "moonlight social"
+  },
+  {
+    "id": "140",
+    "titolo": "DIANE",
+    "brano": "diane",
+    "autore": "cam"
+  },
+  {
+    "id": "141",
+    "titolo": "DIG YOUR HEELS",
+    "brano": "here's to & I",
+    "autore": "the mc clymons"
+  },
+  {
+    "id": "142",
+    "titolo": "DIM THE LIGHT",
+    "brano": "the kind of love we make",
+    "autore": "luke combos"
+  },
+  {
+    "id": "143",
+    "titolo": "DING DANG DARN IT",
+    "brano": "din dang darn it",
+    "autore": "ken domash"
+  },
+  {
     "id": "144",
     "titolo": "DOCTOR DOCTOR",
     "brano": "bad case of loving you",
     "autore": "robert palmer"
+  },
+  {
+    "id": "145",
+    "titolo": "DON'T DRINK THE WATHER",
+    "brano": "don't drink the wather",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "146",
+    "titolo": "DON'T MAKE ME BEG",
+    "brano": "don't make me beg",
+    "autore": "steve holy"
+  },
+  {
+    "id": "147",
+    "titolo": "DOUBLE DUTCH",
+    "brano": "some beach",
+    "autore": "blake shelton"
+  },
+  {
+    "id": "148",
+    "titolo": "DRIVEN",
+    "brano": "driven",
+    "autore": "casey james"
+  },
+  {
+    "id": "149",
+    "titolo": "DUTY FREE",
+    "brano": "natural disaster",
+    "autore": "zac brown band"
+  },
+  {
+    "id": "150",
+    "titolo": "EASY COME EASY GO",
+    "brano": "hillbilly rock hillibilly roll",
+    "autore": "die campbell"
+  },
+  {
+    "id": "151",
+    "titolo": "EASY TWIST",
+    "brano": "anyone can play",
+    "autore": "gle campbell"
+  },
+  {
+    "id": "152",
+    "titolo": "EASY WAY",
+    "brano": "just be you",
+    "autore": "billy yates"
+  },
+  {
+    "id": "153",
+    "titolo": "EIGHT SECOND RIDE",
+    "brano": "eight second ride",
+    "autore": "jake owen"
+  },
+  {
+    "id": "154",
+    "titolo": "ELECTRIC SLIDE",
+    "brano": "achy breaky heart",
+    "autore": "billy ray"
+  },
+  {
+    "id": "155",
+    "titolo": "ELECTRIC SLIDE",
+    "brano": "jingle bell rock",
+    "autore": "rascal flatts"
+  },
+  {
+    "id": "156",
+    "titolo": "ELECTRIC SLIDE",
+    "brano": "let me be there",
+    "autore": "nathan carter"
+  },
+  {
+    "id": "157",
+    "titolo": "ELECTRIC STOMP",
+    "brano": "long road to nashville",
+    "autore": "the woolpackers"
+  },
+  {
+    "id": "158",
+    "titolo": "ENDLESS",
+    "brano": "less and less",
+    "autore": "travis tritt"
+  },
+  {
+    "id": "159",
+    "titolo": "EVERY STAR",
+    "brano": "even the stars fall for you",
+    "autore": "keith urban"
+  },
+  {
+    "id": "160",
+    "titolo": "FAKE ID",
+    "brano": "fake id",
+    "autore": "big & rich"
+  },
+  {
+    "id": "161",
+    "titolo": "FEEL THE MOMENT",
+    "brano": "walla walla prison",
+    "autore": "scotty alexander"
+  },
+  {
+    "id": "162",
+    "titolo": "FIFTY TWO BEERS AGO",
+    "brano": "beers ago",
+    "autore": "toby keith"
   },
   {
     "id": "163",
@@ -150,10 +978,166 @@
     "autore": "lee dewyze"
   },
   {
+    "id": "164",
+    "titolo": "FINE",
+    "brano": "fine",
+    "autore": "the abrams"
+  },
+  {
+    "id": "165",
+    "titolo": "FIREBALL",
+    "brano": "fireball",
+    "autore": "pitbull"
+  },
+  {
+    "id": "166",
+    "titolo": "FIRST STOMP",
+    "brano": "cotton eyed joe",
+    "autore": "rednex"
+  },
+  {
+    "id": "167",
+    "titolo": "FIRST STOMP",
+    "brano": "old pop in a oak",
+    "autore": "rednex"
+  },
+  {
+    "id": "168",
+    "titolo": "FIVE MINUTES",
+    "brano": "texas as hell",
+    "autore": "miranda lambert"
+  },
+  {
+    "id": "169",
+    "titolo": "FLASHDANCE",
+    "brano": "still in love with you",
+    "autore": "travis tritt"
+  },
+  {
+    "id": "170",
+    "titolo": "FLICK FLAK",
+    "brano": "freag flag",
+    "autore": "alex williams"
+  },
+  {
+    "id": "171",
+    "titolo": "FLOBIE SLIDE",
+    "brano": "i'm holdin'on to love",
+    "autore": "shania twain"
+  },
+  {
+    "id": "172",
+    "titolo": "FLOWERS",
+    "brano": "flowers",
+    "autore": "miley cyrus"
+  },
+  {
+    "id": "173",
+    "titolo": "FOOLISH HEART",
+    "brano": "mary",
+    "autore": "zac brown band"
+  },
+  {
     "id": "174",
     "titolo": "FOOTLOOSE",
     "brano": "footloose",
     "autore": "blake shelton"
+  },
+  {
+    "id": "175",
+    "titolo": "FOR BETTER FOR WORSE",
+    "brano": "for better for worse",
+    "autore": "old man markley"
+  },
+  {
+    "id": "176",
+    "titolo": "FOREVER",
+    "brano": "27 in the checking",
+    "autore": "kendall shaffer"
+  },
+  {
+    "id": "177",
+    "titolo": "FOREVER YOUNG",
+    "brano": "young forever",
+    "autore": "high valley"
+  },
+  {
+    "id": "178",
+    "titolo": "FORGIVE ME FRIEND",
+    "brano": "forgive me friend",
+    "autore": "smith & thell"
+  },
+  {
+    "id": "179",
+    "titolo": "FOUR STAR BOOGIE",
+    "brano": "get over it",
+    "autore": "eagles"
+  },
+  {
+    "id": "180",
+    "titolo": "FRENCH KISS",
+    "brano": "our first kiss",
+    "autore": "jeff wood"
+  },
+  {
+    "id": "181",
+    "titolo": "FRIENDS",
+    "brano": "you've been a friend to me",
+    "autore": "bryan adams"
+  },
+  {
+    "id": "182",
+    "titolo": "FROM A TO Z",
+    "brano": "trip around the sound",
+    "autore": "kenny chesney"
+  },
+  {
+    "id": "183",
+    "titolo": "FUNNY JOKE",
+    "brano": "no night like this",
+    "autore": "cath purcell"
+  },
+  {
+    "id": "184",
+    "titolo": "GALWAY GATHERING",
+    "brano": "games people play",
+    "autore": "tracy bird"
+  },
+  {
+    "id": "185",
+    "titolo": "GAME ON",
+    "brano": "justin sayin",
+    "autore": "james parker band"
+  },
+  {
+    "id": "186",
+    "titolo": "GET ALONG",
+    "brano": "get along",
+    "autore": "surrender hill"
+  },
+  {
+    "id": "187",
+    "titolo": "GET UP !",
+    "brano": "up",
+    "autore": "olly murs"
+  },
+  {
+    "id": "188",
+    "titolo": "GHOST TOWN",
+    "brano": "ghost town",
+    "autore": "sam outlaw"
+  },
+  {
+    "id": "189",
+    "titolo": "GIDDY UP!",
+    "brano": "giddy up!",
+    "autore": "shania twain"
+  },
+  {
+    "id": "190",
+    "titolo": "GIVES ME SHIVERS",
+    "brano": "shivers",
+    "autore": "ed sheeran"
   },
   {
     "id": "191",
@@ -162,9 +1146,201 @@
     "autore": "kilotile"
   },
   {
+    "id": "192",
+    "titolo": "GO CAT GO",
+    "brano": "please mama please",
+    "autore": "go cat go"
+  },
+  {
+    "id": "193",
+    "titolo": "GO HOME",
+    "brano": "you're drunk go home",
+    "autore": "kelsea ballerini"
+  },
+  {
+    "id": "194",
+    "titolo": "GOD IS GOOD",
+    "brano": "god is good",
+    "autore": "paul overstreet"
+  },
+  {
+    "id": "195",
+    "titolo": "GOING GOING GONE",
+    "brano": "going going gone",
+    "autore": "maddie poppe"
+  },
+  {
+    "id": "196",
+    "titolo": "GOLIATH",
+    "brano": "goliath",
+    "autore": "smith & thell"
+  },
+  {
+    "id": "197",
+    "titolo": "GONE FOR YOU",
+    "brano": "gone, gone, gone",
+    "autore": "phillip phillips"
+  },
+  {
+    "id": "198",
+    "titolo": "GOOD THINGS",
+    "brano": "good things",
+    "autore": "keith urban"
+  },
+  {
+    "id": "199",
+    "titolo": "GOTCHA",
+    "brano": "movin' on",
+    "autore": "the crazy bulls band"
+  },
+  {
+    "id": "200",
+    "titolo": "GRAVITY",
+    "brano": "gravity",
+    "autore": "stephen kellog & the sixers"
+  },
+  {
+    "id": "201",
+    "titolo": "GREAT GAMBLE",
+    "brano": "losing at loving",
+    "autore": "blue county"
+  },
+  {
+    "id": "202",
+    "titolo": "GROOVY LOVE",
+    "brano": "if jesus love me",
+    "autore": "saint lanvain"
+  },
+  {
+    "id": "203",
+    "titolo": "GROWING PAINS",
+    "brano": "grawing pains",
+    "autore": "breland"
+  },
+  {
+    "id": "204",
+    "titolo": "WALKIN' THE LINE",
+    "brano": "blown away",
+    "autore": "carrie underwood"
+  },
+  {
     "id": "205",
     "titolo": "HALLELUL Y'ALL",
     "brano": "halleluy'all",
+    "autore": "bomshel"
+  },
+  {
+    "id": "206",
+    "titolo": "HALLELUJAH",
+    "brano": "joy's gonna come",
+    "autore": "the kingsmen"
+  },
+  {
+    "id": "207",
+    "titolo": "HAND SHAKE",
+    "brano": "do you wanna?",
+    "autore": "kyle shobe & the walk 'em boys"
+  },
+  {
+    "id": "208",
+    "titolo": "HEADS OR TAILS",
+    "brano": "she had me (at heads carolina)",
+    "autore": "cole swindell"
+  },
+  {
+    "id": "209",
+    "titolo": "HEADIN WEST",
+    "brano": "headin' west",
+    "autore": "daly stephenson"
+  },
+  {
+    "id": "210",
+    "titolo": "HEART ATTACK",
+    "brano": "heart attack",
+    "autore": "boy named banjo"
+  },
+  {
+    "id": "211",
+    "titolo": "HEAVEN ON DIRT",
+    "brano": "heaven on dirt",
+    "autore": "doc walker"
+  },
+  {
+    "id": "212",
+    "titolo": "HEEL TOE POLKA",
+    "brano": "barn dance",
+    "autore": "mark geslison & geoff groberg"
+  },
+  {
+    "id": "213",
+    "titolo": "HEYDAY TONIGHT",
+    "brano": "heyday tonight",
+    "autore": "aaron watson"
+  },
+  {
+    "id": "214",
+    "titolo": "HILLBILLY GIRL",
+    "brano": "hillbilly girl",
+    "autore": "lisa mchugh"
+  },
+  {
+    "id": "215",
+    "titolo": "HOLD",
+    "brano": "maybe i shouldn't",
+    "autore": "matt borden"
+  },
+  {
+    "id": "216",
+    "titolo": "HOLD ON TO ME",
+    "brano": "hold on to me",
+    "autore": "music travel love"
+  },
+  {
+    "id": "217",
+    "titolo": "HOLD YOUR HORSES",
+    "brano": "hold your horses",
+    "autore": "e type"
+  },
+  {
+    "id": "218",
+    "titolo": "HOLLY'S CHURCH",
+    "brano": "my church",
+    "autore": "maren morris"
+  },
+  {
+    "id": "219",
+    "titolo": "HONEY SWEET HONEY",
+    "brano": "honey honey",
+    "autore": "derek ryan & lisa mchugh"
+  },
+  {
+    "id": "220",
+    "titolo": "HONKY TONK WAY",
+    "brano": "i see country",
+    "autore": "ian munsick"
+  },
+  {
+    "id": "221",
+    "titolo": "HURRY UP SLOW DOWN",
+    "brano": "hurry up, slow down",
+    "autore": "don derby"
+  },
+  {
+    "id": "222",
+    "titolo": "I BELIEVE IN YOU",
+    "brano": "i believe in you",
+    "autore": "ward thomas"
+  },
+  {
+    "id": "223",
+    "titolo": "I TELL YOU WANT",
+    "brano": "i told you so",
+    "autore": "keith urban"
+  },
+  {
+    "id": "224",
+    "titolo": "INFINITY",
+    "brano": "fiddle",
     "autore": "bomshel"
   },
   {
@@ -174,10 +1350,58 @@
     "autore": "sham rock"
   },
   {
+    "id": "226",
+    "titolo": "IRISH SPIRIT",
+    "brano": "celtic rock",
+    "autore": "david king"
+  },
+  {
     "id": "227",
     "titolo": "IRISH STEW",
     "brano": "american land",
     "autore": "bruce springsteen"
+  },
+  {
+    "id": "228",
+    "titolo": "IRISH STEW",
+    "brano": "cowboy yodel song",
+    "autore": "cliona hagan"
+  },
+  {
+    "id": "229",
+    "titolo": "IRISH STEW",
+    "brano": "cowboy's sweetheart",
+    "autore": "leann rimes"
+  },
+  {
+    "id": "230",
+    "titolo": "IRISH STEW",
+    "brano": "irish stew",
+    "autore": "sham rock"
+  },
+  {
+    "id": "231",
+    "titolo": "IRISH STEW",
+    "brano": "the merry christmas polka",
+    "autore": "jim reeves"
+  },
+  {
+    "id": "232",
+    "titolo": "ISLANDS IN THE STREAM",
+    "brano": "islands in the stream",
+    "autore": "dolly parton"
+  },
+  {
+    "id": "233",
+    "titolo": "IT HAPPENS",
+    "brano": "it happens",
+    "autore": "sugarland"
+  },
+  {
+    "id": "234",
+    "titolo": "IT'S ALRIGHT",
+    "brano": "it's alright to be a redneck",
+    "autore": "alan jackson"
   },
   {
     "id": "235",
@@ -186,10 +1410,190 @@
     "autore": "rodney atkins"
   },
   {
+    "id": "236",
+    "titolo": "IT'S EASY",
+    "brano": "you lied to me",
+    "autore": "wynonna judd"
+  },
+  {
+    "id": "237",
+    "titolo": "ITALIAN LINE DANCE",
+    "brano": "italian line dance crowd",
+    "autore": "george mc anthony"
+  },
+  {
+    "id": "238",
+    "titolo": "JACK DANIEL'S",
+    "brano": "favorite state of mind",
+    "autore": "josh gracin"
+  },
+  {
+    "id": "239",
+    "titolo": "JACKET JOE",
+    "brano": "trapper jacket joe",
+    "autore": "george mc anthony"
+  },
+  {
+    "id": "240",
+    "titolo": "JR",
+    "brano": "all you need is me",
+    "autore": "joey + rory"
+  },
+  {
+    "id": "241",
+    "titolo": "JUMPING JAMBOREE",
+    "brano": "dephine",
+    "autore": "ranchhands"
+  },
+  {
+    "id": "242",
+    "titolo": "JUST A GIRL",
+    "brano": "just a girl",
+    "autore": "lady antebellum"
+  },
+  {
+    "id": "243",
+    "titolo": "KENTUCKY CLOVER",
+    "brano": "billy the kid",
+    "autore": "chris ledoux"
+  },
+  {
+    "id": "244",
+    "titolo": "KENTUCKY CLOVER",
+    "brano": "it's not ok",
+    "autore": "zac brown band"
+  },
+  {
     "id": "245",
     "titolo": "KILL THE SPIDERS",
     "brano": "kill the spider",
     "autore": "brad paisley"
+  },
+  {
+    "id": "246",
+    "titolo": "KINDA LIKE NOW",
+    "brano": "kinda like now",
+    "autore": "aaron scherz"
+  },
+  {
+    "id": "247",
+    "titolo": "LALALI",
+    "brano": "this is not goodbye",
+    "autore": "jhonny reid"
+  },
+  {
+    "id": "248",
+    "titolo": "LARGER THAN LIFE",
+    "brano": "larger than life",
+    "autore": "pinkzebra"
+  },
+  {
+    "id": "249",
+    "titolo": "LAST CALL",
+    "brano": "shout mountain music",
+    "autore": "old crow medicine show"
+  },
+  {
+    "id": "250",
+    "titolo": "LAST MINUTE",
+    "brano": "baptized",
+    "autore": "daughtry"
+  },
+  {
+    "id": "251",
+    "titolo": "LAY DOWN AND DANCE",
+    "brano": "baby let's lay down and dance",
+    "autore": "garth brooks"
+  },
+  {
+    "id": "252",
+    "titolo": "LAY LOW",
+    "brano": "lay low",
+    "autore": "josh turner"
+  },
+  {
+    "id": "253",
+    "titolo": "LEAVE IT UP",
+    "brano": "i'm your man",
+    "autore": "bon jovi"
+  },
+  {
+    "id": "254",
+    "titolo": "LEAVE IT UP",
+    "brano": "we got it going on",
+    "autore": "bon jovi"
+  },
+  {
+    "id": "255",
+    "titolo": "TIPSY",
+    "brano": "a bar song (tipsy)",
+    "autore": "shaboozey"
+  },
+  {
+    "id": "256",
+    "titolo": "LEMON SQUEEZY",
+    "brano": "good to go",
+    "autore": "lonis"
+  },
+  {
+    "id": "257",
+    "titolo": "LET'S GET UP",
+    "brano": "you're gonna get back up",
+    "autore": "lisa mchugh"
+  },
+  {
+    "id": "258",
+    "titolo": "LIAR",
+    "brano": "liar",
+    "autore": "jelly roll"
+  },
+  {
+    "id": "259",
+    "titolo": "LIGHTING POLKA",
+    "brano": "the wind",
+    "autore": "zac brown band"
+  },
+  {
+    "id": "260",
+    "titolo": "LIKE IT'S CHRISTMAS",
+    "brano": "like it's christmas",
+    "autore": "jonas brothers"
+  },
+  {
+    "id": "261",
+    "titolo": "LINDI SHUFFLE",
+    "brano": "i need more of you",
+    "autore": "the bellamy brothers"
+  },
+  {
+    "id": "262",
+    "titolo": "LIT",
+    "brano": "lit",
+    "autore": "trace adkins"
+  },
+  {
+    "id": "263",
+    "titolo": "LITTLE BIT LATER ON",
+    "brano": "little bit later on",
+    "autore": "luke bryan"
+  },
+  {
+    "id": "264",
+    "titolo": "LITTLE BURRITO",
+    "brano": "my people",
+    "autore": "james johnston"
+  },
+  {
+    "id": "265",
+    "titolo": "LITTLE WHITE CHURCH",
+    "brano": "little white church",
+    "autore": "little big town"
+  },
+  {
+    "id": "266",
+    "titolo": "LONELY DRUM",
+    "brano": "lonely drum",
+    "autore": "aaron goodvin"
   },
   {
     "id": "267",
@@ -198,10 +1602,58 @@
     "autore": "alan jackson"
   },
   {
+    "id": "268",
+    "titolo": "LOOKIN' FOR ME",
+    "brano": "no stone unterned",
+    "autore": "randy houser"
+  },
+  {
+    "id": "269",
+    "titolo": "LORDY",
+    "brano": "lordy lordy",
+    "autore": "brave giant"
+  },
+  {
+    "id": "270",
+    "titolo": "LOST",
+    "brano": "lost",
+    "autore": "hunter brother"
+  },
+  {
     "id": "271",
     "titolo": "LOST IN ME",
     "brano": "wagon wheel",
     "autore": "nathan carter"
+  },
+  {
+    "id": "272",
+    "titolo": "LOVE IT",
+    "brano": "hard not to love it",
+    "autore": "steve moakler"
+  },
+  {
+    "id": "273",
+    "titolo": "LOVE SOMEONE",
+    "brano": "love someone",
+    "autore": "brett eldredge"
+  },
+  {
+    "id": "274",
+    "titolo": "LOVELINE",
+    "brano": "how i'll always be",
+    "autore": "tim mcgraw"
+  },
+  {
+    "id": "275",
+    "titolo": "LUCKY ME",
+    "brano": "lucky me",
+    "autore": "randy houser"
+  },
+  {
+    "id": "276",
+    "titolo": "MAKE YOU MINE",
+    "brano": "make you mine",
+    "autore": "high valley"
   },
   {
     "id": "277",
@@ -210,10 +1662,208 @@
     "autore": "rainey qualley"
   },
   {
+    "id": "278",
+    "titolo": "MEMORY (Terzoni)",
+    "brano": "slow burn",
+    "autore": "zac brown band"
+  },
+  {
+    "id": "279",
+    "titolo": "MIDNIGHT TRAIN",
+    "brano": "midnight train",
+    "autore": "the washboard union"
+  },
+  {
+    "id": "280",
+    "titolo": "MILKY WAY",
+    "brano": "anywhere you wanna go",
+    "autore": "alan doyle"
+  },
+  {
+    "id": "281",
+    "titolo": "MISS OUR DAYS",
+    "brano": "miss our days",
+    "autore": "aalwoods"
+  },
+  {
+    "id": "282",
+    "titolo": "MONEY ON YOU",
+    "brano": "money on you",
+    "autore": "chad brownlee"
+  },
+  {
+    "id": "283",
+    "titolo": "MR. FUNKY",
+    "brano": "hillibillies",
+    "autore": "hot apple pie"
+  },
+  {
+    "id": "284",
+    "titolo": "MR. LONELY",
+    "brano": "mr lonely",
+    "autore": "midland"
+  },
+  {
+    "id": "285",
+    "titolo": "MR POLICEMAN",
+    "brano": "mr. policeman",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "286",
+    "titolo": "MY BLUE JEANS",
+    "brano": "if you love somebody",
+    "autore": "kevin sharp"
+  },
+  {
+    "id": "287",
+    "titolo": "MY MARIA",
+    "brano": "breakin up thing",
+    "autore": "terri clark"
+  },
+  {
+    "id": "288",
+    "titolo": "MY MARIA",
+    "brano": "crying on a suitcase",
+    "autore": "casey james"
+  },
+  {
+    "id": "289",
+    "titolo": "MY MARIA",
+    "brano": "me and maxine",
+    "autore": "sammy kershaw"
+  },
+  {
+    "id": "290",
+    "titolo": "MY MARIA",
+    "brano": "my maria",
+    "autore": "brooks & dunn"
+  },
+  {
+    "id": "291",
+    "titolo": "MY MARIA",
+    "brano": "need you no",
+    "autore": "lady antebellum"
+  },
+  {
+    "id": "292",
+    "titolo": "MY MARIA",
+    "brano": "that look",
+    "autore": "aaron watson"
+  },
+  {
+    "id": "293",
+    "titolo": "MY MARIA",
+    "brano": "tougher than the rest",
+    "autore": "chris ledoux"
+  },
+  {
+    "id": "294",
+    "titolo": "MY MARIA",
+    "brano": "when your lips are so close",
+    "autore": "gord bamford"
+  },
+  {
+    "id": "295",
+    "titolo": "MYSTERIOUS GIRL",
+    "brano": "99.9% sure",
+    "autore": "the nashville stars"
+  },
+  {
+    "id": "296",
+    "titolo": "NANCY MULLIGAN",
+    "brano": "nancy mulligan",
+    "autore": "ed sheeran"
+  },
+  {
+    "id": "297",
+    "titolo": "NEVERMIND",
+    "brano": "las vegas gold",
+    "autore": "austin whalert"
+  },
+  {
+    "id": "298",
+    "titolo": "NEW TATOO",
+    "brano": "new tattoo",
+    "autore": "tim hicks"
+  },
+  {
+    "id": "299",
+    "titolo": "NEW TRUCK",
+    "brano": "new truck",
+    "autore": "dylan scott"
+  },
+  {
+    "id": "300",
+    "titolo": "NIOLON",
+    "brano": "throwback",
+    "autore": "homegrown band"
+  },
+  {
+    "id": "301",
+    "titolo": "NO BLAME",
+    "brano": "blame",
+    "autore": "james johnston"
+  },
+  {
+    "id": "302",
+    "titolo": "NO TURNING BACK",
+    "brano": "dark horse",
+    "autore": "aaron watson"
+  },
+  {
+    "id": "303",
+    "titolo": "NOTHING BUT YOU",
+    "brano": "nothing but you",
+    "autore": "leaving thomas"
+  },
+  {
+    "id": "304",
+    "titolo": "NOTHING LIKE THIS",
+    "brano": "ain't seen nothing",
+    "autore": "paper kings"
+  },
+  {
+    "id": "305",
+    "titolo": "OLD STUFF",
+    "brano": "the old stuff",
+    "autore": "b thomas"
+  },
+  {
+    "id": "306",
+    "titolo": "ONE MARGARITA",
+    "brano": "one margarita",
+    "autore": "luke bryan"
+  },
+  {
+    "id": "307",
+    "titolo": "ONLY IN AMERICA",
+    "brano": "only in america",
+    "autore": "brooks & dunn"
+  },
+  {
+    "id": "308",
+    "titolo": "OPEN HEART COWBOY",
+    "brano": "little yellow blanket",
+    "autore": "dean brody"
+  },
+  {
     "id": "309",
     "titolo": "OREGON",
     "brano": "getaway truck",
     "autore": "aaron watson"
+  },
+  {
+    "id": "310",
+    "titolo": "OUT OF MY MIND",
+    "brano": "drive out of my mind",
+    "autore": "kassi ashton"
+  },
+  {
+    "id": "311",
+    "titolo": "OVERRATED",
+    "brano": "overrated",
+    "autore": "tim mcgraw"
   },
   {
     "id": "312",
@@ -222,10 +1872,244 @@
     "autore": "wilson fairchild"
   },
   {
+    "id": "313",
+    "titolo": "P8",
+    "brano": "boys in boots",
+    "autore": "tania kernaghan"
+  },
+  {
+    "id": "314",
+    "titolo": "PARIS TENNESSEE",
+    "brano": "paris tennessee",
+    "autore": "tracy lawrence"
+  },
+  {
     "id": "315",
     "titolo": "PATIENT HEART",
     "brano": "patient hearts",
     "autore": "bekka & billy"
+  },
+  {
+    "id": "316",
+    "titolo": "PAY ME MY MONEY DOWN",
+    "brano": "pay me my money down",
+    "autore": "bruce springsteen"
+  },
+  {
+    "id": "317",
+    "titolo": "PERFECT SUNSET",
+    "brano": "better off in love",
+    "autore": "george canyon"
+  },
+  {
+    "id": "318",
+    "titolo": "PETER PAN",
+    "brano": "when im grow up",
+    "autore": "the raging idiots"
+  },
+  {
+    "id": "319",
+    "titolo": "PICK A BALE",
+    "brano": "pick a bale of cotton",
+    "autore": "riverside"
+  },
+  {
+    "id": "320",
+    "titolo": "PIZZA AND BEER",
+    "brano": "dreaming enough to get me by",
+    "autore": "tony ramey"
+  },
+  {
+    "id": "321",
+    "titolo": "POP CORN",
+    "brano": "corn",
+    "autore": "blake shelton"
+  },
+  {
+    "id": "322",
+    "titolo": "POTA",
+    "brano": "kentucky",
+    "autore": "tiziano incani"
+  },
+  {
+    "id": "323",
+    "titolo": "POWERFULL STUFF",
+    "brano": "powerfull stuff",
+    "autore": "rascal flatts"
+  },
+  {
+    "id": "324",
+    "titolo": "PRESS REWIND",
+    "brano": "take it back",
+    "autore": "jef miles"
+  },
+  {
+    "id": "325",
+    "titolo": "PRETTY MAE",
+    "brano": "ballad of pretty mae",
+    "autore": "phill vassar"
+  },
+  {
+    "id": "326",
+    "titolo": "PRISCILLA",
+    "brano": "priscilla",
+    "autore": "miranda lambert"
+  },
+  {
+    "id": "327",
+    "titolo": "PUDDLE OF LOVE",
+    "brano": "puddle of love",
+    "autore": "mason ramsey"
+  },
+  {
+    "id": "328",
+    "titolo": "QUICKLY",
+    "brano": "working on a tan",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "329",
+    "titolo": "QUITTER",
+    "brano": "quitter",
+    "autore": "carrie underwood"
+  },
+  {
+    "id": "330",
+    "titolo": "RADAR LOVE",
+    "brano": "radar love",
+    "autore": "the bunch"
+  },
+  {
+    "id": "331",
+    "titolo": "RAISE SOME HELL",
+    "brano": "raise some hell",
+    "autore": "dirty river boys"
+  },
+  {
+    "id": "332",
+    "titolo": "RAMPAMPAM",
+    "brano": "rampampam",
+    "autore": "minelli"
+  },
+  {
+    "id": "333",
+    "titolo": "READY FOR IT",
+    "brano": "this is it",
+    "autore": "oh the larceny"
+  },
+  {
+    "id": "334",
+    "titolo": "REAL FRIENDS",
+    "brano": "carry you home",
+    "autore": "thomas ward"
+  },
+  {
+    "id": "335",
+    "titolo": "RECREATION LAND",
+    "brano": "recreation land",
+    "autore": "tristan horncastle"
+  },
+  {
+    "id": "336",
+    "titolo": "RECTO VERSO",
+    "brano": "something to die for",
+    "autore": "fiona culley"
+  },
+  {
+    "id": "337",
+    "titolo": "RED CARPET",
+    "brano": "shot in the dark",
+    "autore": "trea landon"
+  },
+  {
+    "id": "338",
+    "titolo": "REDNECK ANGEL",
+    "brano": "brighter than the sun",
+    "autore": "colbie cailat"
+  },
+  {
+    "id": "339",
+    "titolo": "REDNECK ANGEL",
+    "brano": "if today was your last day",
+    "autore": "nickelback"
+  },
+  {
+    "id": "340",
+    "titolo": "REDNECK ANGEL",
+    "brano": "merry go round",
+    "autore": "the janedear girls"
+  },
+  {
+    "id": "341",
+    "titolo": "RESPECT GIRL",
+    "brano": "don't wanna love him",
+    "autore": "adley"
+  },
+  {
+    "id": "342",
+    "titolo": "RHINESTONE",
+    "brano": "rhinestone world",
+    "autore": "dallas smith"
+  },
+  {
+    "id": "343",
+    "titolo": "RIGHT WAY",
+    "brano": "if i knew",
+    "autore": "parker redmond"
+  },
+  {
+    "id": "344",
+    "titolo": "RODEO BLUES",
+    "brano": "sea of cowboy hats",
+    "autore": "chely wright"
+  },
+  {
+    "id": "345",
+    "titolo": "ROOTS",
+    "brano": "roots",
+    "autore": "zac brown band"
+  },
+  {
+    "id": "346",
+    "titolo": "ROUND TABLE RIVAL",
+    "brano": "roundtable rival",
+    "autore": "lindsey stirling"
+  },
+  {
+    "id": "347",
+    "titolo": "RUNAROUND SUE",
+    "brano": "runaround sue",
+    "autore": "the overtones"
+  },
+  {
+    "id": "348",
+    "titolo": "SAILOR BOY",
+    "brano": "sailor boy",
+    "autore": "george mc anthony"
+  },
+  {
+    "id": "349",
+    "titolo": "SALT LIME & TEQUILA",
+    "brano": "salt lime & tequila",
+    "autore": "ryan griffin"
+  },
+  {
+    "id": "350",
+    "titolo": "SCRAPT IT",
+    "brano": "scrap piece of paper",
+    "autore": "paul brandt"
+  },
+  {
+    "id": "351",
+    "titolo": "SELFIE & DRINK",
+    "brano": "in hell i'll be in good company",
+    "autore": "the dead south"
+  },
+  {
+    "id": "352",
+    "titolo": "SET ON",
+    "brano": "drinking all weekend",
+    "autore": "blakjack billy & tim hicks"
   },
   {
     "id": "353",
@@ -240,10 +2124,202 @@
     "autore": "mike denver"
   },
   {
+    "id": "355",
+    "titolo": "SHAKING GROUND",
+    "brano": "i'm not going home",
+    "autore": "jess and the bandits"
+  },
+  {
+    "id": "356",
+    "titolo": "SHHH",
+    "brano": "standing me up",
+    "autore": "shannon hynes"
+  },
+  {
+    "id": "357",
+    "titolo": "SHIMMY",
+    "brano": "thicc as thieves",
+    "autore": "lauren alaina & lainey wilson"
+  },
+  {
+    "id": "358",
+    "titolo": "SHORE THING",
+    "brano": "shore thing",
+    "autore": "luke bryan"
+  },
+  {
+    "id": "359",
+    "titolo": "SHORT TIME",
+    "brano": "chicken pickin",
+    "autore": "cory hargreaves"
+  },
+  {
+    "id": "360",
+    "titolo": "SHOT OF GLORY",
+    "brano": "shot of glory",
+    "autore": "the washboard union"
+  },
+  {
+    "id": "361",
+    "titolo": "SIMPLE",
+    "brano": "simple",
+    "autore": "florida georgia line"
+  },
+  {
+    "id": "362",
+    "titolo": "SIMPLE THINGS",
+    "brano": "simple things",
+    "autore": "alexander cardinale"
+  },
+  {
+    "id": "363",
+    "titolo": "SINGLE MAN",
+    "brano": "single man",
+    "autore": "high valley"
+  },
+  {
+    "id": "364",
+    "titolo": "SINNER",
+    "brano": "sinner",
+    "autore": "andy grammer"
+  },
+  {
+    "id": "365",
+    "titolo": "SKIFFLE TIME",
+    "brano": "mama don't alow",
+    "autore": "the jive aces"
+  },
+  {
+    "id": "366",
+    "titolo": "SNAP TO YOU",
+    "brano": "snap (high and fast)",
+    "autore": "rosa linn"
+  },
+  {
+    "id": "367",
+    "titolo": "SOLDIER",
+    "brano": "soldier",
+    "autore": "high valley"
+  },
+  {
+    "id": "368",
+    "titolo": "SOMEBODY TO YOU",
+    "brano": "somebody to you",
+    "autore": "the vamps"
+  },
+  {
+    "id": "369",
+    "titolo": "SOMETHING FINE",
+    "brano": "something in the water",
+    "autore": "brooke fraser"
+  },
+  {
+    "id": "370",
+    "titolo": "SOMEWHERE ELSE",
+    "brano": "somewhere else",
+    "autore": "toby keith"
+  },
+  {
+    "id": "371",
+    "titolo": "SOMEWHERE IN MY CAR",
+    "brano": "somewhere in my car",
+    "autore": "keith urban"
+  },
+  {
+    "id": "372",
+    "titolo": "SOUTH OF SANTA FE",
+    "brano": "south of santa fe",
+    "autore": "brooks & dunn"
+  },
+  {
+    "id": "373",
+    "titolo": "STAND OUT",
+    "brano": "stand out",
+    "autore": "queeva"
+  },
+  {
     "id": "374",
     "titolo": "START THE CAR",
     "brano": "farm girl strong",
     "autore": "gord bamford"
+  },
+  {
+    "id": "375",
+    "titolo": "START THE CAR",
+    "brano": "i feel lucky",
+    "autore": "mary chapin carpenter"
+  },
+  {
+    "id": "376",
+    "titolo": "START THE CAR",
+    "brano": "kerosene kid",
+    "autore": "jimmy wayne"
+  },
+  {
+    "id": "377",
+    "titolo": "START THE CAR",
+    "brano": "limes",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "378",
+    "titolo": "START THE CAR",
+    "brano": "start the car",
+    "autore": "travis tritt"
+  },
+  {
+    "id": "379",
+    "titolo": "STITCH IT UP",
+    "brano": "elvis medley",
+    "autore": "the deans brother"
+  },
+  {
+    "id": "380",
+    "titolo": "STITCH IT UP",
+    "brano": "jingle bells",
+    "autore": "tracy bird"
+  },
+  {
+    "id": "381",
+    "titolo": "STORM AND STONE",
+    "brano": "run",
+    "autore": "storm & stone"
+  },
+  {
+    "id": "382",
+    "titolo": "STORY",
+    "brano": "story",
+    "autore": "drake white"
+  },
+  {
+    "id": "383",
+    "titolo": "STRONG BOUNDS",
+    "brano": "long goodbye",
+    "autore": "dwight yoakam"
+  },
+  {
+    "id": "384",
+    "titolo": "SUGAR",
+    "brano": "make it sweet",
+    "autore": "old dominion"
+  },
+  {
+    "id": "385",
+    "titolo": "SUMMER FLY",
+    "brano": "summer fly",
+    "autore": "hayley westenra"
+  },
+  {
+    "id": "386",
+    "titolo": "SUNBEAM",
+    "brano": "sunbeam",
+    "autore": "jack county"
+  },
+  {
+    "id": "387",
+    "titolo": "SUNHEART",
+    "brano": "wildfire and whiskey",
+    "autore": "tenille arts"
   },
   {
     "id": "388",
@@ -252,10 +2328,142 @@
     "autore": "taylor swift"
   },
   {
+    "id": "389",
+    "titolo": "SWEET ERIKA",
+    "brano": "small town big time",
+    "autore": "blake shelton"
+  },
+  {
+    "id": "390",
+    "titolo": "SWEET EYES",
+    "brano": "don't close your eyes",
+    "autore": "ritchie remo"
+  },
+  {
+    "id": "391",
+    "titolo": "SWEET PEACHES",
+    "brano": "georgia peaches",
+    "autore": "lauren alaina"
+  },
+  {
+    "id": "392",
+    "titolo": "SWINGIN' THING",
+    "brano": "honey hush",
+    "autore": "scooter lee"
+  },
+  {
+    "id": "393",
+    "titolo": "T-M",
+    "brano": "praise of the lord",
+    "autore": "breland"
+  },
+  {
+    "id": "394",
+    "titolo": "TAG ON",
+    "brano": "too strong to break",
+    "autore": "beccy cole"
+  },
+  {
+    "id": "395",
+    "titolo": "TAKE ME TO NEW YORK",
+    "brano": "long live the night",
+    "autore": "the reklaws"
+  },
+  {
+    "id": "396",
+    "titolo": "TH-GUEST RANCH",
+    "brano": "girl with the fishing rod",
+    "autore": "lisa mchugh"
+  },
+  {
+    "id": "397",
+    "titolo": "THE BEAST",
+    "brano": "somethin' in the water",
+    "autore": "the cheap seats"
+  },
+  {
+    "id": "398",
+    "titolo": "THE COUNTRY FEVER",
+    "brano": "anywhere for you",
+    "autore": "mackenzie porter"
+  },
+  {
+    "id": "399",
+    "titolo": "THE DIFFERENCE",
+    "brano": "the difference",
+    "autore": "carolina jones"
+  },
+  {
+    "id": "400",
+    "titolo": "THE LOVERS",
+    "brano": "year of the young",
+    "autore": "smith & thell"
+  },
+  {
+    "id": "401",
+    "titolo": "THE STORY",
+    "brano": "the story of us",
+    "autore": "taylor swift"
+  },
+  {
+    "id": "402",
+    "titolo": "THE WISH",
+    "brano": "fall into you",
+    "autore": "houses on the hill"
+  },
+  {
+    "id": "403",
+    "titolo": "THE WORLD",
+    "brano": "the world",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "404",
+    "titolo": "THELMA & LOUISE",
+    "brano": "thelma and louise",
+    "autore": "anna bergendahl"
+  },
+  {
+    "id": "405",
+    "titolo": "THERE IS A FIRE",
+    "brano": "there is a fire",
+    "autore": "national park radio"
+  },
+  {
+    "id": "406",
+    "titolo": "THINK OF YOU",
+    "brano": "think of you",
+    "autore": "chris young"
+  },
+  {
+    "id": "407",
+    "titolo": "THIS WORLD IS OUR HOME",
+    "brano": "this world is our home",
+    "autore": "douwe bob"
+  },
+  {
     "id": "408",
     "titolo": "THREE TEACHERS",
     "brano": "head over heels",
     "autore": "the washboard union"
+  },
+  {
+    "id": "409",
+    "titolo": "THROWBACK LOVE",
+    "brano": "throwback love",
+    "autore": "meghan trainor"
+  },
+  {
+    "id": "410",
+    "titolo": "TICK TOCK",
+    "brano": "1 2 mary",
+    "autore": "brooks & dunn"
+  },
+  {
+    "id": "411",
+    "titolo": "TO BE HONEST",
+    "brano": "rude",
+    "autore": "sorbye jennebo"
   },
   {
     "id": "412",
@@ -264,16 +2472,532 @@
     "autore": "rodney atkins"
   },
   {
+    "id": "413",
+    "titolo": "TODAY & TOMORROW",
+    "brano": "country roads",
+    "autore": "holly spears"
+  },
+  {
+    "id": "414",
+    "titolo": "TOES",
+    "brano": "toes",
+    "autore": "zac brown band"
+  },
+  {
+    "id": "415",
+    "titolo": "TOMORROW NEVER COMES",
+    "brano": "tomorrow never comes",
+    "autore": "zac brown band"
+  },
+  {
+    "id": "416",
+    "titolo": "TOO MANY DRUNK",
+    "brano": "i hate you when you're drunk",
+    "autore": "olly murs"
+  },
+  {
+    "id": "417",
+    "titolo": "TOP OF THE WORLD",
+    "brano": "on top of the world",
+    "autore": "tim mcmorris"
+  },
+  {
+    "id": "418",
+    "titolo": "TORNADO",
+    "brano": "tornado",
+    "autore": "little big town"
+  },
+  {
+    "id": "419",
+    "titolo": "TOUR IN MEXICO",
+    "brano": "go to mexico",
+    "autore": "coffey anderson"
+  },
+  {
+    "id": "420",
+    "titolo": "TRAIN",
+    "brano": "train",
+    "autore": "manny blu"
+  },
+  {
+    "id": "421",
+    "titolo": "TRAKTOR'S BELL",
+    "brano": "she cranks me traktor",
+    "autore": "dustin lynch"
+  },
+  {
+    "id": "422",
+    "titolo": "TRAMPOLINE",
+    "brano": "trampoline",
+    "autore": "the unlikely candidates"
+  },
+  {
+    "id": "423",
+    "titolo": "TRESPASSING",
+    "brano": "trespassing",
+    "autore": "adam lambert"
+  },
+  {
+    "id": "424",
+    "titolo": "TRILOGY",
+    "brano": "old dirt roads",
+    "autore": "owen riegling"
+  },
+  {
+    "id": "425",
+    "titolo": "TRIPLE L",
+    "brano": "live laugh and love",
+    "autore": "lonestar"
+  },
+  {
+    "id": "426",
+    "titolo": "TUSH PUSH",
+    "brano": "don't know why i do it",
+    "autore": "mark chesnutt"
+  },
+  {
+    "id": "427",
+    "titolo": "TUSH PUSH",
+    "brano": "honky tonk twist",
+    "autore": "scooter lee"
+  },
+  {
+    "id": "428",
+    "titolo": "TUSH PUSH",
+    "brano": "santa looked a lot like daddy",
+    "autore": "brad paisley"
+  },
+  {
+    "id": "429",
+    "titolo": "TUSH PUSH",
+    "brano": "splish splash",
+    "autore": "scooter lee"
+  },
+  {
+    "id": "430",
+    "titolo": "TUSH PUSH",
+    "brano": "t r o u b l e",
+    "autore": "travis tritt"
+  },
+  {
+    "id": "431",
+    "titolo": "TWO WAYS",
+    "brano": "we didn't have much",
+    "autore": "justin moore"
+  },
+  {
+    "id": "432",
+    "titolo": "UNTAMED",
+    "brano": "untamed",
+    "autore": "cam"
+  },
+  {
     "id": "433",
     "titolo": "URBAN LIFE",
     "brano": "better life",
     "autore": "keith urban"
   },
   {
+    "id": "434",
+    "titolo": "URBAN LIFE",
+    "brano": "gotta be somebody",
+    "autore": "nickelback"
+  },
+  {
+    "id": "435",
+    "titolo": "URBAN LIFE",
+    "brano": "gotta be somebody",
+    "autore": "bucky covington"
+  },
+  {
+    "id": "436",
+    "titolo": "VODKA TIME",
+    "brano": "vodka time",
+    "autore": "urban trad"
+  },
+  {
+    "id": "437",
+    "titolo": "WACKY",
+    "brano": "cut loose",
+    "autore": "blue broussard band"
+  },
+  {
+    "id": "438",
+    "titolo": "WAHO WAHO YEAH YEAH",
+    "brano": "if that ain't love",
+    "autore": "jaida dreyer"
+  },
+  {
+    "id": "439",
+    "titolo": "WALKIN' THE LINE",
+    "brano": "4th of july",
+    "autore": "shooter jennings"
+  },
+  {
+    "id": "440",
+    "titolo": "WALKIN' THE LINE",
+    "brano": "breathless",
+    "autore": "the corrs"
+  },
+  {
+    "id": "441",
+    "titolo": "WALKIN' THE LINE",
+    "brano": "crazy",
+    "autore": "alee"
+  },
+  {
+    "id": "442",
+    "titolo": "WALKIN' THE LINE",
+    "brano": "walk the line",
+    "autore": "dave sheriff"
+  },
+  {
+    "id": "443",
+    "titolo": "WALKIN' THE LINE",
+    "brano": "wild angels",
+    "autore": "martina mcbride"
+  },
+  {
+    "id": "444",
+    "titolo": "WANNA GETCHA",
+    "brano": "getcha",
+    "autore": "matt lang"
+  },
+  {
+    "id": "445",
+    "titolo": "WANNA GO",
+    "brano": "if it gets you where you wanna go",
+    "autore": "dallas smith"
+  },
+  {
+    "id": "446",
+    "titolo": "WE ARE TONIGHT",
+    "brano": "we are tonight",
+    "autore": "billy currington"
+  },
+  {
+    "id": "447",
+    "titolo": "WE DANCED",
+    "brano": "dirt on my boots",
+    "autore": "jon pardi"
+  },
+  {
+    "id": "448",
+    "titolo": "WE WENT",
+    "brano": "we went",
+    "autore": "randy houser"
+  },
+  {
+    "id": "449",
+    "titolo": "WESTERN SHOW",
+    "brano": "young love & saturday nights",
+    "autore": "chris young"
+  },
+  {
+    "id": "450",
+    "titolo": "WESTERN STYLE",
+    "brano": "can't get myself over getting over you",
+    "autore": "the woolpackers"
+  },
+  {
+    "id": "451",
+    "titolo": "WESTERN STYLE",
+    "brano": "louisiana",
+    "autore": "the woolpackers"
+  },
+  {
+    "id": "452",
+    "titolo": "WESTERN STYLE",
+    "brano": "no one needs to know",
+    "autore": "shania twain"
+  },
+  {
+    "id": "453",
+    "titolo": "WESTERN STYLE",
+    "brano": "tell me why",
+    "autore": "wynonna judd"
+  },
+  {
+    "id": "454",
+    "titolo": "WHAT DO I KNOW",
+    "brano": "what do i know",
+    "autore": "ricochet"
+  },
+  {
+    "id": "455",
+    "titolo": "WHEN YOU SMILE",
+    "brano": "when you smile",
+    "autore": "rune rudberg"
+  },
+  {
+    "id": "456",
+    "titolo": "WHISKEY WHISKEY",
+    "brano": "1 2 3 4",
+    "autore": "alan doyle"
+  },
+  {
+    "id": "457",
+    "titolo": "WHISKEY WIGGLE",
+    "brano": "every little thing",
+    "autore": "carlene carter"
+  },
+  {
+    "id": "458",
+    "titolo": "WHITE SOLDIER",
+    "brano": "when i'm gone",
+    "autore": "the wild horses"
+  },
+  {
+    "id": "459",
+    "titolo": "WILD AT HEART",
+    "brano": "wild at heart",
+    "autore": "gloriana"
+  },
+  {
+    "id": "460",
+    "titolo": "WILD NIGHTS",
+    "brano": "wild night",
+    "autore": "martina mcbride"
+  },
+  {
+    "id": "461",
+    "titolo": "WILLIWAW",
+    "brano": "one of a kind",
+    "autore": "nasco brothers"
+  },
+  {
+    "id": "462",
+    "titolo": "WOBBLE",
+    "brano": "wobble",
+    "autore": "v i c"
+  },
+  {
+    "id": "463",
+    "titolo": "WOMAN AMEN",
+    "brano": "woman amen",
+    "autore": "dierks bentley"
+  },
+  {
+    "id": "464",
+    "titolo": "WONDER",
+    "brano": "memory lane",
+    "autore": "old dominion"
+  },
+  {
+    "id": "465",
+    "titolo": "WOOD LEG STOMP",
+    "brano": "doreen",
+    "autore": "kerosene brothers"
+  },
+  {
+    "id": "466",
+    "titolo": "YA COME DOWN",
+    "brano": "wont't ya come down",
+    "autore": "derek ryan"
+  },
+  {
+    "id": "467",
+    "titolo": "YABOY",
+    "brano": "long time gone",
+    "autore": "nathan carter"
+  },
+  {
+    "id": "468",
+    "titolo": "YELLOWSTONE",
+    "brano": "right about now",
+    "autore": "curtis grimes"
+  },
+  {
+    "id": "469",
+    "titolo": "YES",
+    "brano": "yes",
+    "autore": "chad brock"
+  },
+  {
+    "id": "470",
+    "titolo": "YOU GET IT",
+    "brano": "ready to go",
+    "autore": "bryce pallister"
+  },
+  {
+    "id": "471",
+    "titolo": "ZANZARE",
+    "brano": "no hard feelings",
+    "autore": "old dominion"
+  },
+  {
+    "id": "472",
+    "titolo": "ZJOZZYS FUNK",
+    "brano": "bacco perbacco",
+    "autore": "zucchero fornaciari"
+  },
+  {
+    "id": "473",
+    "titolo": "ZORBA",
+    "brano": "zorba's dance",
+    "autore": "lcd"
+  },
+  {
+    "id": "474",
+    "titolo": "MIRACLE",
+    "brano": "miracle",
+    "autore": "tors"
+  },
+  {
+    "id": "475",
+    "titolo": "TIPPIN' IT UP",
+    "brano": "tippin’ it up to nancy",
+    "autore": "sean magee"
+  },
+  {
+    "id": "476",
+    "titolo": "CHA CHA COUNTRY",
+    "brano": "your man",
+    "autore": "josh turner"
+  },
+  {
+    "id": "477",
+    "titolo": "WANDERLUST",
+    "brano": "buzzkill",
+    "autore": "lanie gardner"
+  },
+  {
+    "id": "478",
+    "titolo": "CHANGING DANCE BARN DANCE",
+    "brano": "feliz navidad",
+    "autore": "josè feliciano"
+  },
+  {
+    "id": "479",
+    "titolo": "LOVE SOMEBODY",
+    "brano": "love somebody",
+    "autore": "morgan wallen"
+  },
+  {
+    "id": "480",
+    "titolo": "COUNTRY FRIENDS CRUISE",
+    "brano": "long live the cowboy",
+    "autore": "clay walker"
+  },
+  {
+    "id": "481",
+    "titolo": "NEVERLAND",
+    "brano": "beautiful rose",
+    "autore": "sean mc connell"
+  },
+  {
+    "id": "482",
+    "titolo": "DOUBLE D (DUCK DYNASTY)",
+    "brano": "cut 'em all",
+    "autore": "colt ford ft. willie robertson"
+  },
+  {
+    "id": "483",
+    "titolo": "BEYOND TIME",
+    "brano": "forever and ever amen",
+    "autore": "randy travis"
+  },
+  {
+    "id": "484",
+    "titolo": "COUNTRY STYLE",
+    "brano": "until the money's gone",
+    "autore": "the bellamy brothers"
+  },
+  {
+    "id": "485",
+    "titolo": "HOLY MOLY",
+    "brano": "footloose",
+    "autore": "blake shelton"
+  },
+  {
+    "id": "486",
+    "titolo": "TUSH PUSH",
+    "brano": "be my baby tonight",
+    "autore": "jhon michael montgomery"
+  },
+  {
+    "id": "487",
+    "titolo": "SWEET BOY",
+    "brano": "yeah boy",
+    "autore": "kelsea ballerini"
+  },
+  {
+    "id": "488",
+    "titolo": "MILESTONE",
+    "brano": "your love is a miracle",
+    "autore": "mark chesnutt"
+  },
+  {
+    "id": "489",
+    "titolo": "GUTS",
+    "brano": "authority song",
+    "autore": "chancey williams"
+  },
+  {
+    "id": "490",
+    "titolo": "OLD BOOTS",
+    "brano": "this old boots have roots",
+    "autore": "aaron watson"
+  },
+  {
+    "id": "491",
+    "titolo": "BETTER THAN THIS",
+    "brano": "better than this",
+    "autore": "hunter hayes"
+  },
+  {
+    "id": "492",
+    "titolo": "RENEGADES",
+    "brano": "renegades",
+    "autore": "x ambassador"
+  },
+  {
+    "id": "493",
+    "titolo": "MEMORY (Ghinolfi Piromalli)",
+    "brano": "every other memory",
+    "autore": "ryan hurd"
+  },
+  {
+    "id": "494",
+    "titolo": "KICK IT UP",
+    "brano": "kick it up",
+    "autore": "the mc clymons"
+  },
+  {
+    "id": "495",
+    "titolo": "COWBOY",
+    "brano": "i wanna be your cowboy",
+    "autore": "coffey anderson"
+  },
+  {
+    "id": "496",
+    "titolo": "YOU ARE",
+    "brano": "you are",
+    "autore": "aaron goodvin"
+  },
+  {
+    "id": "497",
+    "titolo": "DAY OF VICTORY",
+    "brano": "listen to your senses",
+    "autore": "slim attraction"
+  },
+  {
     "id": "498",
     "titolo": "DELICIOUS",
     "brano": "didn't I",
     "autore": "dasha"
+  },
+  {
+    "id": "499",
+    "titolo": "MINDSET",
+    "brano": "you'll always find your way back home",
+    "autore": "miley cyrus"
+  },
+  {
+    "id": "500",
+    "titolo": "STILL GONE",
+    "brano": "still gonna be",
+    "autore": "brandon davies"
   },
   {
     "id": "501",
@@ -288,6 +3012,72 @@
     "autore": "michael schulte"
   },
   {
+    "id": "503",
+    "titolo": "HOUSE OF BAMBOO (THIS CITY IS OURS)",
+    "brano": "house of mamboo",
+    "autore": "andy williams"
+  },
+  {
+    "id": "504",
+    "titolo": "6 SHOTS",
+    "brano": "bad decisions",
+    "autore": "dylan schneider"
+  },
+  {
+    "id": "505",
+    "titolo": "WAVE ON WAVE",
+    "brano": "wave on wave",
+    "autore": "pat green"
+  },
+  {
+    "id": "506",
+    "titolo": "ALL DAY",
+    "brano": "all day",
+    "autore": "locash"
+  },
+  {
+    "id": "507",
+    "titolo": "4 COWBOY",
+    "brano": "rough ride for a cowboy",
+    "autore": "mackenzie porter"
+  },
+  {
+    "id": "508",
+    "titolo": "SCOOBY DOO",
+    "brano": "scooby doo",
+    "autore": "redneck rockus 2"
+  },
+  {
+    "id": "509",
+    "titolo": "LEAVE IT UP",
+    "brano": "something in your mouth",
+    "autore": "nickelback"
+  },
+  {
+    "id": "510",
+    "titolo": "MY CINDERELLA",
+    "brano": "cinderella",
+    "autore": "dan davidson"
+  },
+  {
+    "id": "511",
+    "titolo": "CHEYENNE",
+    "brano": "tutta l'italia",
+    "autore": "gabry ponte"
+  },
+  {
+    "id": "512",
+    "titolo": "CHEYENNE",
+    "brano": "old town road",
+    "autore": "lil nas x feat billy ray cyrus"
+  },
+  {
+    "id": "513",
+    "titolo": "GYPSY WOMAN",
+    "brano": "gypsy woman",
+    "autore": "eamonn jackson"
+  },
+  {
     "id": "514",
     "titolo": "WILD",
     "brano": "where the wild things are",
@@ -300,10 +3090,64 @@
     "autore": "tim hicks & dyana reid"
   },
   {
+    "id": "516",
+    "titolo": "TUSH PUSH",
+    "brano": "i like it i love it",
+    "autore": "tim mc graw"
+  },
+  {
+    "id": "517",
+    "titolo": "AARIN'S SPIRIT",
+    "brano": "spirit in the sky",
+    "autore": "kentucky headhunters"
+  },
+  {
+    "id": "518",
+    "titolo": "CHANGING DANCE BARN DANCE",
+    "brano": "all you ever do is bring me down",
+    "autore": "the mavericks"
+  },
+  {
+    "id": "519",
+    "titolo": "CHILL FACTOR",
+    "brano": "i play chicken with the train",
+    "autore": "cowboy troy with big & ritch"
+  },
+  {
+    "id": "520",
+    "titolo": "CHILL FACTOR",
+    "brano": "turn on the radio",
+    "autore": "reba mcentire"
+  },
+  {
+    "id": "521",
+    "titolo": "EYES ON YOU",
+    "brano": "eyes on you",
+    "autore": "trent tomlisson"
+  },
+  {
+    "id": "522",
+    "titolo": "MY MARIA",
+    "brano": "that girl's got a cowboy heart",
+    "autore": "todd fritsch"
+  },
+  {
+    "id": "523",
+    "titolo": "MY MARIA",
+    "brano": "two black cadillacs",
+    "autore": "carrie underwood"
+  },
+  {
     "id": "524",
     "titolo": "OH LOVE",
     "brano": "oh love",
     "autore": "thorstein einarsson"
+  },
+  {
+    "id": "525",
+    "titolo": "LOOP",
+    "brano": "over all over again",
+    "autore": "james barker band"
   },
   {
     "id": "526",
@@ -312,10 +3156,112 @@
     "autore": "smith & thell"
   },
   {
+    "id": "527",
+    "titolo": "WONT' LET GO",
+    "brano": "ex's and oh's",
+    "autore": "saddle up"
+  },
+  {
+    "id": "528",
+    "titolo": "DEAD MAN WALKING",
+    "brano": "the hangman",
+    "autore": "war hippies"
+  },
+  {
+    "id": "529",
+    "titolo": "DANCE WITH EVERYBODY",
+    "brano": "dance with everybody",
+    "autore": "drew holcomb & the neighbors and the national park"
+  },
+  {
+    "id": "530",
+    "titolo": "MY MARIA",
+    "brano": "what the heart want",
+    "autore": "collin raye"
+  },
+  {
+    "id": "531",
+    "titolo": "NICE TO MEET YOU",
+    "brano": "nice to meet you",
+    "autore": "myles smith feat lainey wilson"
+  },
+  {
+    "id": "532",
+    "titolo": "ELECTRIC SLIDE",
+    "brano": "rumor has it",
+    "autore": "clay walker"
+  },
+  {
+    "id": "533",
+    "titolo": "FRESH DELAY",
+    "brano": "work for it",
+    "autore": "daphne willis & lonis"
+  },
+  {
+    "id": "534",
+    "titolo": "MAGIC MOMENT",
+    "brano": "just like magic",
+    "autore": "casey barnes"
+  },
+  {
     "id": "535",
     "titolo": "SOMEWHERE IN SEDONA",
     "brano": "so far so good",
     "autore": "dalton davis"
+  },
+  {
+    "id": "536",
+    "titolo": "ELECTRIC SLIDE",
+    "brano": "no rompas mi corazon",
+    "autore": "caballo dorado"
+  },
+  {
+    "id": "537",
+    "titolo": "MY MARIA",
+    "brano": "choosin' texas",
+    "autore": "ella langley"
+  },
+  {
+    "id": "538",
+    "titolo": "SWISS GUY",
+    "brano": "swiss guy",
+    "autore": "florian fox"
+  },
+  {
+    "id": "539",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "love runs out",
+    "autore": "onerepublic"
+  },
+  {
+    "id": "540",
+    "titolo": "BIG BULL FIDDLE",
+    "brano": "big butch bass bull fiddle",
+    "autore": "corb lund"
+  },
+  {
+    "id": "541",
+    "titolo": "TEXAS HOLD'EM",
+    "brano": "texas hold'em",
+    "autore": "beyoncè"
+  },
+  {
+    "id": "542",
+    "titolo": "OPHELIA",
+    "brano": "ophelia",
+    "autore": "taylor swift"
+  },
+  {
+    "id": "543",
+    "titolo": "ELECTRIC STOMP",
+    "brano": "fast as you",
+    "autore": "dwight yoakam"
+  },
+  {
+    "id": "544",
+    "titolo": "LAKE DARBONNE",
+    "brano": "lake darbonne",
+    "autore": "katie knight"
   },
   {
     "id": "545",
@@ -324,10 +3270,88 @@
     "autore": "oh the lacerny"
   },
   {
+    "id": "546",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "man i feel like a woman",
+    "autore": "shania twain"
+  },
+  {
+    "id": "547",
+    "titolo": "C A R E",
+    "brano": "the last chanty",
+    "autore": "derina harvey band"
+  },
+  {
     "id": "548",
     "titolo": "I SHOWED YOU THE DOOR",
     "brano": "the door",
     "autore": "teddy swims"
+  },
+  {
+    "id": "549",
+    "titolo": "CHEYENNE",
+    "brano": "drunken sailor",
+    "autore": "malinda feat. bobby waters"
+  },
+  {
+    "id": "550",
+    "titolo": "THE THING I LOVE",
+    "brano": "the thing i love",
+    "autore": "max & andy grammer"
+  },
+  {
+    "id": "551",
+    "titolo": "HOT CHOCOLATE",
+    "brano": "bed dreams",
+    "autore": "teddy swims"
+  },
+  {
+    "id": "552",
+    "titolo": "BLUE CHAIRS",
+    "brano": "two blue chairs & you",
+    "autore": "zac brown band"
+  },
+  {
+    "id": "553",
+    "titolo": "MONSTER HOLIDAY",
+    "brano": "(it's a) monsters holiday",
+    "autore": "buck owens and the buckaroos"
+  },
+  {
+    "id": "554",
+    "titolo": "DOODLES",
+    "brano": "doodles",
+    "autore": "rose betts"
+  },
+  {
+    "id": "555",
+    "titolo": "LOVE POTION 666",
+    "brano": "love potion 666",
+    "autore": "djtexx"
+  },
+  {
+    "id": "556",
+    "titolo": "ONE MORE",
+    "brano": "one more for the road",
+    "autore": "ceol"
+  },
+  {
+    "id": "557",
+    "titolo": "GOOD GIRL",
+    "brano": "good girl",
+    "autore": "carrie underwood"
+  },
+  {
+    "id": "570",
+    "titolo": "AUDIO VIDEO TESTER",
+    "brano": "tsunami",
+    "autore": "dvbbs & borgeus"
+  },
+  {
+    "id": "571",
+    "titolo": "PROMO MONSTER",
+    "brano": "ANNO 2023",
+    "autore": ""
   },
   {
     "id": "EXTRA1",
