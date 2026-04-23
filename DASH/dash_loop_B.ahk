@@ -294,7 +294,7 @@ BuildStartupGui() {
     StartupGui.AddText(, "Directory base (dove sono salvati i file):")
     BaseDirEdit := StartupGui.AddEdit("w500", BaseDir)
     browseBase := StartupGui.AddButton("x+m", "Sfoglia...")
-    browseBase.OnEvent("Click", (*)) => {
+    browseBase.OnEvent("Click", (*) => {
         dir := DirSelect("Seleziona directory base", 1, BaseDir ? BaseDir : A_ScriptDir)
         if dir {
             BaseDir := dir

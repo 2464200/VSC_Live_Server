@@ -6,25 +6,69 @@ const aggiuntiveState = {
 };
 
 async function loadCoreografieAggiuntive() {
-  try {
-    const response = await fetch('/eventi/Coreografie_Aggiuntive.csv?t=' + Date.now(), { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`CSV non trovato (${response.status})`);
+  const paths = [
+    '/Eventi/Coreografie_Aggiuntive.csv',
+    '/eventi/Coreografie_Aggiuntive.csv'
+  ];
+
+  for (const basePath of paths) {
+    try {
+      const response = await fetch(`${basePath}?t=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) {
+        continue;
+      }
+      const text = await response.text();
+      return parseCoreografieCSV(text);
+    } catch (error) {
+      console.warn(`Tentativo fallito per ${basePath}:`, error.message);
     }
-    const text = await response.text();
-    return parseCoreografieCSV(text);
-  } catch (error) {
-    console.error('Errore caricamento CSV:', error);
-    return [];
   }
+
+  console.error('Errore caricamento CSV: file Coreografie_Aggiuntive.csv non trovato in nessun percorso valido');
+  return [];
+}
+
+function parseCSVLine(line, delimiter = ',') {
+  const result = [];
+  let current = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === delimiter && !insideQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current.trim());
+  return result;
 }
 
 function parseCoreografieCSV(text) {
   const lines = text.split('\n').slice(1).filter(line => line.trim());
   const coreografie = [];
 
+  if (lines.length === 0) {
+    return coreografie;
+  }
+
+  const sample = lines.find(line => line.trim()) || '';
+  const delimiter = sample.includes(',') && (!sample.includes(';') || sample.indexOf(',') < sample.indexOf(';')) ? ',' : ';';
+
   lines.forEach((line, index) => {
-    const parts = line.split(';').map(part => part.replace(/^"|"$/g, '').trim());
+    const parts = parseCSVLine(line, delimiter).map(part => part.replace(/^"|"$/g, '').trim());
     if (parts.length > 2 && parts[2]) {
       coreografie.push({
         id: parts[2],

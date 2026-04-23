@@ -15,7 +15,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const os = require('os');
 const QRCodeLib = require('qrcode');
-const { syncBraniJson, appendExtraBrano, updateExtraBrano, EXTRA_CSV_NAME } = require('./Eventi/brani-utils');
+const { syncBraniJson, appendExtraBrano, updateExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 
 const app = express();
 const PORT = process.env.UNIFIED_PORT || 5500;
@@ -140,8 +140,21 @@ function isPidRunning(pid) {
     }
 }
 
+function detectCsvDelimiter(line) {
+    if (typeof line !== 'string' || line.trim() === '') {
+        return ';';
+    }
+    const commaCount = (line.match(/,/g) || []).length;
+    const semicolonCount = (line.match(/;/g) || []).length;
+    if (commaCount === 0 && semicolonCount === 0) {
+        return ',';
+    }
+    return commaCount >= semicolonCount ? ',' : ';';
+}
+
 function syncBraniOnStartupV2() {
     try {
+        ensureExtraCsvFile();
         const { stats } = syncBraniJson(pathBrani);
         console.log(`Startup sync: ${stats.total} brani caricati dai CSV`);
         console.log(`   - Principale: ${stats.baseCount}`);
@@ -153,7 +166,7 @@ function syncBraniOnStartupV2() {
 
 function syncBraniOnStartup() {
     try {
-        const csvPath = path.join(__dirname, 'Eventi', 'Elenco_Brani_statico.csv');
+        const csvPath = path.join(__dirname, 'Eventi', 'display.csv');
 
         if (!fs.existsSync(csvPath)) {
             console.warn('⚠️  CSV non trovato, brani non sincronizzati');
@@ -162,17 +175,19 @@ function syncBraniOnStartup() {
 
         const csvContent = fs.readFileSync(csvPath, 'utf-8');
         const lines = csvContent.replace(/\r/g, '').split('\n');
+        const headerLine = lines.slice(3).find(l => l.trim()) || '';
+        const delimiter = (headerLine.match(/,/g) || []).length >= (headerLine.match(/;/g) || []).length ? ',' : ';';
         const brani = [];
 
-        for (let i = 1; i < lines.length; i++) {
+        for (let i = 3; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
 
-            const cols = line.split(';');
-            const id = cols[2]?.trim();
-            const titolo = cols[3]?.trim();
-            const brano = cols[4]?.trim();
-            const autore = cols[5]?.trim();
+            const cols = line.split(delimiter);
+            const id = cols[1]?.trim();
+            const titolo = cols[2]?.trim();
+            const brano = cols[3]?.trim();
+            const autore = cols[4]?.trim();
 
             if (id && titolo) {
                 brani.push({ id, titolo, brano: brano || '', autore: autore || '' });
@@ -669,6 +684,7 @@ router.get('/log.csv', (req, res) => {
 
 router.get('/sync-brani', (req, res) => {
     try {
+        ensureExtraCsvFile();
         const { stats } = syncBraniJson(pathBrani);
         res.json({
             ok: true,
@@ -688,7 +704,7 @@ router.get('/sync-brani', (req, res) => {
 // Sync brani da CSV
 router.get('/sync-brani-legacy', (req, res) => {
     try {
-        const csvPath = path.join(__dirname, 'Eventi', 'Elenco_Brani_statico.csv');
+        const csvPath = path.join(__dirname, 'Eventi', 'display.csv');
 
         if (!fs.existsSync(csvPath)) {
             return res.status(404).json({ error: 'CSV file not found' });
@@ -696,17 +712,19 @@ router.get('/sync-brani-legacy', (req, res) => {
 
         const csvContent = fs.readFileSync(csvPath, 'utf-8');
         const lines = csvContent.replace(/\r/g, '').split('\n');
+        const headerLine = lines.slice(3).find(l => l.trim()) || '';
+        const delimiter = (headerLine.match(/,/g) || []).length >= (headerLine.match(/;/g) || []).length ? ',' : ';';
         const brani = [];
 
-        for (let i = 1; i < lines.length; i++) {
+        for (let i = 3; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
 
-            const cols = line.split(';');
-            const id = cols[2]?.trim();
-            const titolo = cols[3]?.trim();
-            const brano = cols[4]?.trim();
-            const autore = cols[5]?.trim();
+            const cols = line.split(delimiter);
+            const id = cols[1]?.trim();
+            const titolo = cols[2]?.trim();
+            const brano = cols[3]?.trim();
+            const autore = cols[4]?.trim();
 
             if (id && titolo) {
                 brani.push({

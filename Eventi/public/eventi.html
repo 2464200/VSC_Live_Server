@@ -5,6 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EVENTI - Selezione Coreografie</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Tastiera Virtuale */
+    .virtual-keyboard {
+      display: none;
+      background: #1a1a1a;
+      border: 2px solid #ff7f00;
+      border-radius: 5px;
+      padding: 10px;
+      margin-top: 15px;
+      box-shadow: 0 0 15px rgba(255, 127, 0, 0.3);
+    }
+
+    .virtual-keyboard.active {
+      display: block;
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .key {
+      background: #333;
+      border: 1px solid #555;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      min-width: 30px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .key:hover {
+      background: #ff7f00;
+      color: #000;
+      border-color: #ff7f00;
+    }
+
+    .key:active {
+      background: #dd6600;
+    }
+
+    .key.space {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .key.backspace {
+      background: #dc3545;
+    }
+
+    .key.backspace:hover {
+      background: #ff5555;
+    }
+
+    .key.enter {
+      background: #28a745;
+      min-width: 80px;
+    }
+
+    .key.enter:hover {
+      background: #52b844;
+    }
+
+    .key.shift {
+      background: #555;
+      min-width: 60px;
+    }
+
+    .key.shift.active {
+      background: #ff7f00;
+      color: #000;
+    }
+  </style>
   <script defer src="event-navigation.js"></script>
   <script defer src="inactivity-return.js"></script>
   <script defer src="api-helper.js"></script>
@@ -56,6 +135,7 @@
       <div id="extra-coreo-status" class="lista-empty" hidden></div>
       <div class="extra-coreo-actions">
         <button id="btn-save-coreo">Salva nuova coreografia</button>
+        <button id="btn-open-aggiuntive" type="button" onclick="goEventiPage('coreografie-aggiuntive.html')">Apri elenco aggiuntive</button>
         <button id="btn-cancel-coreo" type="button">Chiudi</button>
       </div>
     </div>
@@ -79,6 +159,10 @@
   <div class="tools-row">
     <input id="search-input" type="text" placeholder="Cerca per titolo o ID..." />
     <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
+  </div>
+
+  <div class="virtual-keyboard" id="keyboard">
+    <!-- Tastiera virtuale qui -->
   </div>
 
   <div id="summary-cards" class="summary-cards"></div>

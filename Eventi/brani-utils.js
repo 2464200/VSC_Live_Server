@@ -1,16 +1,56 @@
 const fs = require('fs');
 const path = require('path');
 
-const BASE_CSV_NAME = 'Elenco_Brani_statico.csv';
+const BASE_CSV_NAME = 'display.csv';
 const EXTRA_CSV_NAME = 'Coreografie_Aggiuntive.csv';
 
-const BASE_CSV_PATH = path.join(__dirname, BASE_CSV_NAME);
+const BASE_CSV_PATH = path.join(__dirname, '..', BASE_CSV_NAME);
 const EXTRA_CSV_PATH = path.join(__dirname, EXTRA_CSV_NAME);
 const BRANI_JSON_PATH = path.join(__dirname, 'data', 'brani.json');
-const EXTRA_CSV_HEADER = 'Colonna 1;Colonna 2;ID;coreografia;brano;autore;richieste;info livello;info coreo 1;info coreo 2;studiate;coreografo;collaboratori;descrizione coreo';
+const EXTRA_CSV_HEADER = 'Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info coreo 1,info coreo 2,studiate,coreografo,collaboratori,descrizione coreo';
+
+function detectCsvDelimiter(line) {
+  if (typeof line !== 'string' || line.trim() === '') {
+    return ',';
+  }
+  const commaCount = (line.match(/,/g) || []).length;
+  const semicolonCount = (line.match(/;/g) || []).length;
+  if (commaCount === 0 && semicolonCount === 0) {
+    return ',';
+  }
+  return commaCount >= semicolonCount ? ',' : ';';
+}
+
+function parseCSVLine(line, delimiter = ',') {
+  const result = [];
+  let current = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+    } else if (char === delimiter && !insideQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current.trim());
+  return result;
+}
 
 function normalizeValue(value) {
-  return (value || '').trim();
+  return (value || '').trim().replace(/^"|"$/g, '');
 }
 
 function normalizeKey(value) {
@@ -37,7 +77,7 @@ function buildStableExtraId({ titolo, brano, autore }, rowNumber) {
 }
 
 function parseCsvRows(csvPath, sourceName, options = {}) {
-  const { optional = false } = options;
+  const { optional = false, skipLines = 1 } = options;
 
   if (!fs.existsSync(csvPath)) {
     if (optional) {
@@ -51,21 +91,35 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
   const rows = [];
   let skipped = 0;
 
-  for (let i = 1; i < lines.length; i += 1) {
+  for (let i = skipLines; i < lines.length; i += 1) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    const cols = line.split(';');
-    const titolo = normalizeValue(cols[3]);
-    const brano = normalizeValue(cols[4]);
-    const autore = normalizeValue(cols[5]);
+    const cols = parseCSVLine(line, sourceName === 'base' ? ',' : delimiter).map(c => normalizeValue(c));
+
+    let idIndex, titoloIndex, branoIndex, autoreIndex;
+    if (sourceName === 'base') {
+      idIndex = 1;
+      titoloIndex = 2;
+      branoIndex = 3;
+      autoreIndex = 4;
+    } else {
+      idIndex = 2;
+      titoloIndex = 3;
+      branoIndex = 4;
+      autoreIndex = 5;
+    }
+
+    const titolo = cols[titoloIndex];
+    const brano = cols[branoIndex];
+    const autore = cols[autoreIndex];
 
     if (!titolo) {
       skipped += 1;
       continue;
     }
 
-    let id = normalizeValue(cols[2]);
+    let id = cols[idIndex];
     if (!id && sourceName === 'extra') {
       id = buildStableExtraId({ titolo, brano, autore }, i + 1);
     }
@@ -88,8 +142,8 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
 }
 
 function loadBraniFromSources() {
-  const base = parseCsvRows(BASE_CSV_PATH, 'base');
-  const extra = parseCsvRows(EXTRA_CSV_PATH, 'extra', { optional: true });
+  const base = parseCsvRows(BASE_CSV_PATH, 'base', { skipLines: 3 });
+  const extra = parseCsvRows(EXTRA_CSV_PATH, 'extra', { optional: true, skipLines: 1 });
 
   const seenIds = new Set();
   const seenTitles = new Set();
@@ -195,6 +249,8 @@ function appendExtraBrano(payload, jsonPath = BRANI_JSON_PATH) {
 
   ensureExtraCsvFile();
 
+  const csvContent = fs.readFileSync(EXTRA_CSV_PATH, 'utf-8');
+  const delimiter = detectCsvDelimiter(csvContent.split('\n')[0] || '');
   const extraCols = [
     '',
     '',
@@ -212,8 +268,8 @@ function appendExtraBrano(payload, jsonPath = BRANI_JSON_PATH) {
     sanitizeCsvCell(payload?.descrizione)
   ];
 
-  const prefix = fs.readFileSync(EXTRA_CSV_PATH, 'utf-8').endsWith('\n') ? '' : '\n';
-  fs.appendFileSync(EXTRA_CSV_PATH, `${prefix}${extraCols.join(';')}\n`, 'utf-8');
+  const prefix = csvContent.endsWith('\n') ? '' : '\n';
+  fs.appendFileSync(EXTRA_CSV_PATH, `${prefix}${extraCols.join(delimiter)}\n`, 'utf-8');
 
   const syncResult = syncBraniJson(jsonPath);
   return {
@@ -240,26 +296,28 @@ function updateExtraBrano(id, payload = {}, csvPath = EXTRA_CSV_PATH) {
 
   const csvContent = fs.readFileSync(csvPath, 'utf-8');
   const lines = csvContent.replace(/\r/g, '').split('\n');
+  const delimiter = detectCsvDelimiter(lines[0] || lines[1] || '');
 
   let found = false;
   const updatedLines = lines.map((line, lineIndex) => {
     if (lineIndex === 0) return line; // header
+    if (!line.trim()) return line;
 
-    const cols = line.split(';');
+    const cols = parseCSVLine(line, delimiter);
     const rowId = normalizeValue(cols[2]);
 
     if (rowId === id) {
       found = true;
-      const newCoreografia = sanitizeCsvCell(payload.coreografia || cols[3] || '');
-      const newBrano = sanitizeCsvCell(payload.brano || cols[4] || '');
-      const newAutore = sanitizeCsvCell(payload.autore || cols[5] || '');
+      const newCoreografia = sanitizeCsvCell(payload.coreografia || normalizeValue(cols[3]) || '');
+      const newBrano = sanitizeCsvCell(payload.brano || normalizeValue(cols[4]) || '');
+      const newAutore = sanitizeCsvCell(payload.autore || normalizeValue(cols[5]) || '');
 
       // Ricostruisci la riga con i dati aggiornati
       cols[3] = newCoreografia;
       cols[4] = newBrano;
       cols[5] = newAutore;
 
-      return cols.join(';');
+      return cols.join(delimiter);
     }
 
     return line;

@@ -281,6 +281,9 @@ function bindSearch() {
     pageState.query = input.value;
     applySearchAndRender();
   });
+  if (isTouchDevice()) {
+    input.addEventListener('click', showKeyboard);
+  }
 }
 
 function bindExtraCoreoControls() {
@@ -368,6 +371,7 @@ async function carica() {
   try {
     await caricaDJList();
     bindSearch();
+    createKeyboard();
     bindExtraCoreoControls();
 
     const exportBtn = document.getElementById('btn-export');
@@ -420,6 +424,118 @@ async function carica() {
     console.error('Errore caricamento iniziale:', error);
     showListaMessage('lista-brani', 'Errore caricamento coreografie: ' + (error.message || 'Controlla la connessione con il server.'), true);
   }
+}
+
+let shiftActive = false;
+
+// Tastiera virtuale
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
+function createKeyboard() {
+  const keyboard = document.getElementById('keyboard');
+  const rows = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+  ];
+
+  let html = '';
+  
+  // Righe lettere
+  rows.forEach((row, idx) => {
+    html += '<div class="keyboard-row">';
+    if (idx === 2) html += '<button class="key shift" data-action="shift">MAIUSC</button>';
+    
+    row.forEach(key => {
+      html += '<button class="key" data-char="' + key + '">' + key + '</button>';
+    });
+    
+    if (idx === 2) html += '<button class="key backspace" data-action="backspace">⌫</button>';
+    html += '</div>';
+  });
+
+  // Riga spazio + invio
+  html += '<div class="keyboard-row">';
+  html += '<button class="key space" data-char=" ">SPAZIO</button>';
+  html += '<button class="key enter" data-action="submit">INVIO</button>';
+  html += '</div>';
+
+  // Numeri
+  html += '<div class="keyboard-row">';
+  for (let i = 0; i <= 9; i++) {
+    html += '<button class="key" data-char="' + i + '">' + i + '</button>';
+  }
+  html += '</div>';
+
+  keyboard.innerHTML = html;
+
+  // Event listeners - con controlli di sicurezza
+  document.querySelectorAll('[data-char]').forEach(btn => {
+    btn.addEventListener('click', () => addChar(btn.dataset.char));
+  });
+  
+  const shiftBtn = document.querySelector('[data-action="shift"]');
+  if (shiftBtn) {
+    shiftBtn.addEventListener('click', toggleShift);
+  }
+  
+  const backspaceBtn = document.querySelector('[data-action="backspace"]');
+  if (backspaceBtn) {
+    backspaceBtn.addEventListener('click', backspace);
+  }
+  
+  const submitBtn = document.querySelector('[data-action="submit"]');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', () => {
+      // Per la ricerca, invio chiude la tastiera
+      document.getElementById('keyboard').classList.remove('active');
+    });
+  }
+}
+
+function showKeyboard() {
+  document.getElementById('keyboard').classList.toggle('active');
+  if (document.getElementById('keyboard').classList.contains('active')) {
+    document.getElementById('search-input').focus();
+  }
+}
+
+function toggleShift() {
+  shiftActive = !shiftActive;
+  const keys = document.querySelectorAll('.key:not(.shift):not(.backspace):not(.space):not(.enter)');
+  keys.forEach(key => {
+    if (key.textContent.length === 1) {
+      key.textContent = shiftActive ? key.textContent.toUpperCase() : key.textContent.toLowerCase();
+    }
+  });
+  const shiftBtn = document.querySelector('.shift');
+  if (shiftBtn) {
+    shiftBtn.classList.toggle('active');
+  }
+}
+
+function addChar(char) {
+  const input = document.getElementById('search-input');
+  if (shiftActive && char.match(/[a-z]/i)) {
+    input.value += char.toUpperCase();
+    // Disattiva shift dopo un carattere
+    if (shiftActive) toggleShift();
+  } else {
+    input.value += char;
+  }
+  input.focus();
+  // Trigger input event to update search
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function backspace() {
+  const input = document.getElementById('search-input');
+  input.value = input.value.slice(0, -1);
+  input.focus();
+  // Trigger input event
+  input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 window.addEventListener('DOMContentLoaded', carica);
