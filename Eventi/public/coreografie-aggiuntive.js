@@ -295,11 +295,83 @@ async function renderCoreografieAggiuntive() {
     if (modal) {
       modal.hidden = true;
     }
+    renderAlfabetoFilterAggiuntive();
+    evidenziaBtnAggiuntive('ALL');
   } catch (error) {
     console.error('Errore renderCoreografieAggiuntive:', error);
     container.innerHTML = `<div class="lista-empty">Errore caricamento dati: ${error.message}</div>`;
   }
 }
+
+// --- FILTRO ALFABETICO/NUMERICO ---
+function renderAlfabetoFilterAggiuntive() {
+  const container = document.getElementById('alfabeto-filter');
+  if (!container) return;
+  const lettere = [
+    { label: '0-9', value: 'NUM' },
+    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ label: l, value: l })),
+    { label: 'TUTTE', value: 'ALL' }
+  ];
+  container.innerHTML = '';
+  lettere.forEach(({ label, value }) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'alfabeto-btn';
+    btn.setAttribute('data-value', value);
+    btn.onclick = () => {
+      setAlfabetoFilterAggiuntive(value);
+      evidenziaBtnAggiuntive(value);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function setAlfabetoFilterAggiuntive(val) {
+  aggiuntiveState.alfabetoFilter = val;
+  applySearchAggiuntive();
+}
+
+function evidenziaBtnAggiuntive(val) {
+  document.querySelectorAll('.alfabeto-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.getAttribute('data-value') === val);
+  });
+}
+
+// Event listener globale per fallback statico
+document.addEventListener('DOMContentLoaded', function() {
+  const alfafilter = document.getElementById('alfabeto-filter');
+  if (alfafilter) {
+    alfafilter.addEventListener('click', function(e) {
+      if (e.target.classList.contains('alfabeto-btn')) {
+        setAlfabetoFilterAggiuntive(e.target.getAttribute('data-value'));
+        evidenziaBtnAggiuntive(e.target.getAttribute('data-value'));
+      }
+    });
+  }
+});
+
+// Override rendering per filtro
+const _oldApplySearchAggiuntive = applySearchAggiuntive;
+applySearchAggiuntive = function() {
+  let coreografie = aggiuntiveState.allCoreografie;
+  const query = aggiuntiveState.query ? aggiuntiveState.query.toLowerCase() : '';
+  if (query) {
+    coreografie = coreografie.filter(item => {
+      const haystack = `${item.coreografia || ''} ${item.brano || ''} ${item.autore || ''}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+  if (aggiuntiveState.alfabetoFilter && aggiuntiveState.alfabetoFilter !== 'ALL') {
+    if (aggiuntiveState.alfabetoFilter === 'NUM') {
+      coreografie = coreografie.filter(b => /^[0-9]/.test(b.coreografia));
+    } else {
+      const letter = aggiuntiveState.alfabetoFilter;
+      coreografie = coreografie.filter(b => (b.coreografia || '').toUpperCase().startsWith(letter));
+    }
+  }
+  aggiuntiveState.visibleCoreografie = coreografie;
+  renderCoreografie(document.getElementById('lista-render'), coreografie);
+};
 
 function setupModalEventListeners() {
   const btnSave = document.getElementById('btn-save-edit');

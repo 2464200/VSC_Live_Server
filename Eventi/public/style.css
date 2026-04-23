@@ -23,6 +23,59 @@ body {
     linear-gradient(180deg, #f9fbfd 0%, #edf2f8 100%);
 }
 
+.alfabeto-filter {
+  max-width: 1220px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.alfabeto-btn {
+  padding: 5px 8px;
+  margin: 0 1px 0 0;
+  border-radius: 8px;
+  border: 1px solid #ff7f00;
+  background: #fff;
+  color: #ff7f00;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 15px;
+  min-width: 32px;
+  transition: background 0.2s, color 0.2s;
+}
+.alfabeto-btn.selected, .alfabeto-btn:active {
+  background: #ff7f00;
+  color: #fff;
+}
+:root {
+  --primary: #0b72ff;
+  --primary-soft: #e8f1ff;
+  --accent: #ff7f00;
+  --ok: #28a745;
+  --surface: #ffffff;
+  --surface-soft: #f6f8fb;
+  --border: #dde5ee;
+  --text: #14212b;
+  --muted: #607080;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 22px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 20px;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(11, 114, 255, 0.10), transparent 24%),
+    linear-gradient(180deg, #f9fbfd 0%, #edf2f8 100%);
+}
+
 h1 {
   margin: 0 auto 14px;
   max-width: 1220px;

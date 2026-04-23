@@ -202,4 +202,78 @@ async function renderLista(filtro) {
   }
 }
 
+// --- FILTRO ALFABETICO/NUMERICO ---
+function renderAlfabetoFilter() {
+  const container = document.getElementById('alfabeto-filter');
+  if (!container) return;
+  const lettere = [
+    { label: '0-9', value: 'NUM' },
+    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ label: l, value: l })),
+    { label: 'TUTTE', value: 'ALL' }
+  ];
+  container.innerHTML = '';
+  lettere.forEach(({ label, value }) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'alfabeto-btn';
+    btn.setAttribute('data-value', value);
+    btn.onclick = () => {
+      setAlfabetoFilter(value);
+      evidenziaBtn(value);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function setAlfabetoFilter(val) {
+  renderState.alfabetoFilter = val;
+  applySearchAndRender();
+}
+
+function evidenziaBtn(val) {
+  document.querySelectorAll('.alfabeto-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.getAttribute('data-value') === val);
+  });
+}
+
+// Event listener globale per fallback statico
+document.addEventListener('DOMContentLoaded', function() {
+  const alfafilter = document.getElementById('alfabeto-filter');
+  if (alfafilter) {
+    alfafilter.addEventListener('click', function(e) {
+      if (e.target.classList.contains('alfabeto-btn')) {
+        setAlfabetoFilter(e.target.getAttribute('data-value'));
+        evidenziaBtn(e.target.getAttribute('data-value'));
+      }
+    });
+  }
+});
+
+// Override rendering per filtro
+const _oldApplySearchAndRender = applySearchAndRender;
+applySearchAndRender = function() {
+  let brani = EventiState.searchBrani(renderState.allBrani, renderState.query);
+  if (renderState.alfabetoFilter && renderState.alfabetoFilter !== 'ALL') {
+    if (renderState.alfabetoFilter === 'NUM') {
+      brani = brani.filter(b => /^[0-9]/.test(b.titolo));
+    } else {
+      const letter = renderState.alfabetoFilter;
+      brani = brani.filter(b => (b.titolo || '').toUpperCase().startsWith(letter));
+    }
+  }
+  renderState.visibleBrani = brani;
+  renderRows(document.getElementById('lista-render'), brani, {
+    filtro: renderState.filtro,
+    interactive: renderState.filtro === 'prenotati' || renderState.filtro === 'spuntati'
+  });
+};
+
+// Inizializza barra filtro all'avvio
+const _oldRenderLista = renderLista;
+renderLista = async function(filtro) {
+  renderAlfabetoFilter();
+  await _oldRenderLista.apply(this, arguments);
+  evidenziaBtn('ALL');
+};
+
 window.renderLista = renderLista;

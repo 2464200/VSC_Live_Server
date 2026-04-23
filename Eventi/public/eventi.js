@@ -1,3 +1,39 @@
+// --- FILTRO ALFABETICO/NUMERICO ---
+// Event listener globale per fallback statico
+document.addEventListener('DOMContentLoaded', function() {
+  const alfafilter = document.getElementById('alfabeto-filter');
+  if (alfafilter) {
+    alfafilter.addEventListener('click', function(e) {
+      if (e.target.classList.contains('alfabeto-btn')) {
+        setAlfabetoFilter(e.target.getAttribute('data-value'));
+        evidenziaBtn(e.target.getAttribute('data-value'));
+      }
+    });
+  }
+});
+
+function renderAlfabetoFilter() {
+  const container = document.getElementById('alfabeto-filter');
+  if (!container) return;
+  const lettere = [
+    { label: '0-9', value: 'NUM' },
+    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ label: l, value: l })),
+    { label: 'TUTTE', value: 'ALL' }
+  ];
+  container.innerHTML = '';
+  lettere.forEach(({ label, value }) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'alfabeto-btn';
+    btn.setAttribute('data-value', value);
+    btn.style = 'padding:7px 13px;margin:0 2px 0 0;border-radius:8px;border:1px solid #ff7f00;background:#fff;color:#ff7f00;font-weight:700;cursor:pointer;transition:background 0.2s;';
+    btn.onclick = () => {
+      setAlfabetoFilter(value);
+      evidenziaBtn(value);
+    };
+    container.appendChild(btn);
+  });
+}
 function salvaDJLocal(name) {
   localStorage.setItem('EVENTI_DJ', name || '');
   const saveBadge = document.getElementById('dj-saved');
@@ -539,3 +575,63 @@ function backspace() {
 }
 
 window.addEventListener('DOMContentLoaded', carica);
+
+// --- FILTRO ALFABETICO/NUMERICO ---
+function renderAlfabetoFilter() {
+  const container = document.getElementById('alfabeto-filter');
+  if (!container) return;
+  const lettere = [
+    { label: '0-9', value: 'NUM' },
+    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => ({ label: l, value: l })),
+    { label: 'TUTTE', value: 'ALL' }
+  ];
+  container.innerHTML = '';
+  lettere.forEach(({ label, value }) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.className = 'alfabeto-btn';
+    btn.setAttribute('data-value', value);
+    btn.style = 'padding:7px 13px;margin:0 2px 0 0;border-radius:8px;border:1px solid #ff7f00;background:#fff;color:#ff7f00;font-weight:700;cursor:pointer;transition:background 0.2s;';
+    btn.onclick = () => {
+      setAlfabetoFilter(value);
+      evidenziaBtn(value);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function setAlfabetoFilter(val) {
+  pageState.alfabetoFilter = val;
+  applySearchAndRender();
+}
+
+function evidenziaBtn(val) {
+  document.querySelectorAll('.alfabeto-btn').forEach(btn => {
+    btn.style.background = (btn.getAttribute('data-value') === val) ? '#ff7f00' : '#fff';
+    btn.style.color = (btn.getAttribute('data-value') === val) ? '#fff' : '#ff7f00';
+  });
+}
+
+// Override rendering per filtro
+const _oldApplySearchAndRender = applySearchAndRender;
+applySearchAndRender = function() {
+  let brani = EventiState.searchBrani(pageState.allBrani, pageState.query);
+  if (pageState.alfabetoFilter && pageState.alfabetoFilter !== 'ALL') {
+    if (pageState.alfabetoFilter === 'NUM') {
+      brani = brani.filter(b => /^[0-9]/.test(b.titolo));
+    } else {
+      const letter = pageState.alfabetoFilter;
+      brani = brani.filter(b => (b.titolo || '').toUpperCase().startsWith(letter));
+    }
+  }
+  pageState.visibleBrani = brani;
+  renderRows(brani);
+};
+
+// Inizializza barra filtro all'avvio
+const _oldCarica = carica;
+carica = async function() {
+  renderAlfabetoFilter();
+  _oldCarica.apply(this, arguments);
+  evidenziaBtn('ALL');
+};
