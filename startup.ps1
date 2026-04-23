@@ -146,8 +146,13 @@ function Stop-NodeListenersOnPort {
 
 function Start-UnifiedServer {
     $serverScript = Join-Path $RootPath 'unified-server.js'
+    $runnerScript = Join-Path $RootPath 'run-unified-server.ps1'
     if (-not (Test-Path $serverScript)) {
         Write-Host "ERRORE FATALE: unified-server.js non trovato" -ForegroundColor Red
+        exit 1
+    }
+    if (-not (Test-Path $runnerScript)) {
+        Write-Host "ERRORE FATALE: run-unified-server.ps1 non trovato" -ForegroundColor Red
         exit 1
     }
 
@@ -160,14 +165,21 @@ function Start-UnifiedServer {
 
     Write-Host "Avvio Unified Server..."
     try {
-        $proc = Start-Process -FilePath node `
+        $proc = Start-Process -FilePath powershell.exe `
             -ArgumentList @(
-                $serverScript
+                '-ExecutionPolicy',
+                'Bypass',
+                '-File',
+                $runnerScript,
+                '-RootPath',
+                $RootPath,
+                '-StdoutLog',
+                $stdoutLog,
+                '-StderrLog',
+                $stderrLog
             ) `
             -WorkingDirectory $RootPath `
             -WindowStyle Hidden `
-            -RedirectStandardOutput $stdoutLog `
-            -RedirectStandardError $stderrLog `
             -PassThru
 
         if (-not $proc) {

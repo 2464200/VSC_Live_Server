@@ -345,6 +345,55 @@ function updateExtraBrano(id, payload = {}, csvPath = EXTRA_CSV_PATH) {
   };
 }
 
+function deleteExtraBrano(id, csvPath = EXTRA_CSV_PATH) {
+  if (!fs.existsSync(csvPath)) {
+    throw new Error(`File CSV non trovato: ${csvPath}`);
+  }
+
+  const csvContent = fs.readFileSync(csvPath, 'utf-8');
+  const lines = csvContent.replace(/\r/g, '').split('\n');
+  const delimiter = detectCsvDelimiter(lines[0] || lines[1] || '');
+
+  if (lines.length === 0) {
+    throw new Error(`File CSV vuoto: ${csvPath}`);
+  }
+
+  let removed = null;
+  const remainingLines = lines.filter((line, lineIndex) => {
+    if (lineIndex === 0) return true; // header
+    if (!line.trim()) return false;
+
+    const cols = parseCSVLine(line, delimiter);
+    const rowId = normalizeValue(cols[2]);
+
+    if (rowId === id) {
+      removed = {
+        id: rowId,
+        coreografia: normalizeValue(cols[3]),
+        brano: normalizeValue(cols[4]),
+        autore: normalizeValue(cols[5])
+      };
+      return false;
+    }
+
+    return true;
+  });
+
+  if (!removed) {
+    throw new Error(`Coreografia con ID ${id} non trovata`);
+  }
+
+  fs.writeFileSync(csvPath, `${remainingLines.join('\n')}\n`, 'utf-8');
+
+  const syncResult = syncBraniJson();
+
+  return {
+    ok: true,
+    deleted: removed,
+    stats: syncResult.stats
+  };
+}
+
 module.exports = {
   BASE_CSV_NAME,
   EXTRA_CSV_NAME,
@@ -355,6 +404,7 @@ module.exports = {
   ensureExtraCsvFile,
   appendExtraBrano,
   updateExtraBrano,
+  deleteExtraBrano,
   loadBraniFromSources,
   saveBraniJson,
   syncBraniJson

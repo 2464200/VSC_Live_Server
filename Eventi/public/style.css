@@ -651,6 +651,22 @@ hr {
   transform: translateY(-1px);
 }
 
+.delete-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #bb2d3b;
+  transform: translateY(-1px);
+}
+
 .riga-brano.aggiuntiva {
   border-left-color: var(--accent);
   background: #fff8f1;

@@ -2,7 +2,8 @@ const aggiuntiveState = {
   allCoreografie: [],
   visibleCoreografie: [],
   query: '',
-  editingId: null
+  editingId: null,
+  searchBound: false
 };
 
 async function loadCoreografieAggiuntive() {
@@ -96,16 +97,24 @@ function renderCoreografie(container, coreografie) {
     row.className = 'riga-brano aggiuntiva';
     row.dataset.coreoId = item.id;
 
-    const button = document.createElement('button');
-    button.className = 'edit-btn';
-    button.textContent = 'Modifica';
-    button.addEventListener('click', () => {
+    const editButton = document.createElement('button');
+    editButton.className = 'edit-btn';
+    editButton.textContent = 'Modifica';
+    editButton.addEventListener('click', () => {
       openEditModal(item.id, item.coreografia, item.brano, item.autore);
     });
 
-    const label = document.createElement('label');
-    label.className = 'action-inline';
-    label.appendChild(button);
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-btn';
+    deleteButton.textContent = 'Elimina';
+    deleteButton.addEventListener('click', () => {
+      deleteCoreografia(item);
+    });
+
+    const actionGroup = document.createElement('div');
+    actionGroup.className = 'action-inline';
+    actionGroup.appendChild(editButton);
+    actionGroup.appendChild(deleteButton);
 
     const titolo = document.createElement('span');
     titolo.className = 'titolo';
@@ -120,7 +129,7 @@ function renderCoreografie(container, coreografie) {
 
     row.appendChild(pill);
     row.appendChild(titolo);
-    row.appendChild(label);
+    row.appendChild(actionGroup);
 
     container.appendChild(row);
   });
@@ -163,12 +172,9 @@ async function saveEdit() {
   statusDiv.hidden = false;
 
   const payload = { id, coreografia, brano, autore };
-  const url = '/eventi/api/aggiuntive/update';
-
-  console.log('POST to:', url, 'Payload:', payload);
 
   try {
-    const response = await fetch(url, {
+    const response = await eventiFetch('/aggiuntive/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -196,6 +202,49 @@ async function saveEdit() {
   }
 }
 
+async function deleteCoreografia(item) {
+  const conferma = window.confirm(`Vuoi eliminare la coreografia aggiuntiva "${item.coreografia}"?`);
+  if (!conferma) {
+    return;
+  }
+
+  try {
+    let response;
+
+    try {
+      response = await eventiFetch('/aggiuntive/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id })
+      });
+    } catch (postError) {
+      console.warn('Fallback DELETE dopo POST non riuscito:', postError.message);
+      response = await eventiFetch(`/aggiuntive/${encodeURIComponent(item.id)}`, {
+        method: 'DELETE'
+      });
+    }
+
+    if (!response.ok) {
+      let message = `Errore eliminazione (${response.status})`;
+      try {
+        const errorBody = await response.json();
+        if (errorBody?.error) {
+          message = errorBody.error;
+        }
+      } catch (_error) {
+        // Mantieni il messaggio di fallback se la risposta non è JSON.
+      }
+      throw new Error(message);
+    }
+
+    await response.json();
+    await renderCoreografieAggiuntive();
+  } catch (error) {
+    console.error('Errore deleteCoreografia:', error.message);
+    window.alert(`Errore durante l'eliminazione: ${error.message}`);
+  }
+}
+
 function showEditStatus(message, isError) {
   const statusDiv = document.getElementById('edit-status');
   statusDiv.textContent = message;
@@ -205,11 +254,12 @@ function showEditStatus(message, isError) {
 
 function bindSearchAggiuntive() {
   const input = document.getElementById('search-input');
-  if (!input) return;
+  if (!input || aggiuntiveState.searchBound) return;
   input.addEventListener('input', () => {
     aggiuntiveState.query = input.value;
     applySearchAggiuntive();
   });
+  aggiuntiveState.searchBound = true;
 }
 
 function applySearchAggiuntive() {

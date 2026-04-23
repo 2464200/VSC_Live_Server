@@ -2,7 +2,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { syncBraniJson, appendExtraBrano, updateExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
+const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
 
 const router = express.Router();
 
@@ -106,6 +106,36 @@ router.post('/aggiuntive/update', (req, res) => {
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message || 'Errore aggiornamento coreografia' });
+  }
+});
+
+router.delete('/aggiuntive/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: 'ID non fornito' });
+    }
+
+    const result = deleteExtraBrano(id);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message || 'Errore eliminazione coreografia' });
+  }
+});
+
+router.post('/aggiuntive/delete', (req, res) => {
+  try {
+    const { id } = req.body || {};
+
+    if (!id) {
+      return res.status(400).json({ error: 'ID non fornito' });
+    }
+
+    const result = deleteExtraBrano(id);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message || 'Errore eliminazione coreografia' });
   }
 });
 

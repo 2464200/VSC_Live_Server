@@ -15,7 +15,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const os = require('os');
 const QRCodeLib = require('qrcode');
-const { syncBraniJson, appendExtraBrano, updateExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
+const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 
 const app = express();
 const PORT = process.env.UNIFIED_PORT || 5500;
@@ -601,6 +601,38 @@ router.post('/aggiuntive/update', (req, res) => {
         res.json(result);
     } catch (e) {
         res.status(400).json({ error: e.message || 'Errore aggiornamento coreografia' });
+    }
+});
+
+router.delete('/aggiuntive/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID non fornito' });
+        }
+
+        const result = deleteExtraBrano(id);
+        res.json(result);
+        broadcastEventiUpdate({ type: 'brano-deleted', id });
+    } catch (e) {
+        res.status(400).json({ error: e.message || 'Errore eliminazione coreografia' });
+    }
+});
+
+router.post('/aggiuntive/delete', (req, res) => {
+    try {
+        const { id } = req.body || {};
+
+        if (!id) {
+            return res.status(400).json({ error: 'ID non fornito' });
+        }
+
+        const result = deleteExtraBrano(id);
+        res.json(result);
+        broadcastEventiUpdate({ type: 'brano-deleted', id });
+    } catch (e) {
+        res.status(400).json({ error: e.message || 'Errore eliminazione coreografia' });
     }
 });
 
