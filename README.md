@@ -77,6 +77,78 @@ VSC_Live_Server/
 - `3010` resta solo come percorso legacy per `Eventi` standalone
 - `3000` e `8765` non sono richieste nel flusso standard unificato
 
+## Commit e GitHub
+Un `commit` e' un salvataggio versionato dello stato del progetto dentro Git. Serve per fissare un punto stabile, descrivere cosa e' cambiato e poter poi sincronizzare tutto con GitHub.
+
+Flusso base consigliato:
+
+```powershell
+git status
+git add .
+git commit -m "messaggio chiaro e breve"
+```
+
+### Configurazione locale prima
+Se vuoi che nome ed email valgano solo per questo repository, usa la configurazione locale:
+
+```powershell
+git config user.name "Il Tuo Nome"
+git config user.email "tuamail@example.com"
+```
+
+Questo e' l'approccio migliore quando vuoi un setup "privato" o limitato al solo progetto corrente.
+
+### Configurazione globale dopo
+Se in futuro vuoi riutilizzare gli stessi dati su tutti i repository del computer, imposta i valori globali:
+
+```powershell
+git config --global user.name "Il Tuo Nome"
+git config --global user.email "tuamail@example.com"
+```
+
+### Push verso GitHub
+Per collegare il repository locale a GitHub:
+
+```powershell
+git remote add origin https://github.com/<utente>/<repo>.git
+git branch -M main
+git push -u origin main
+```
+
+Dopo il primo push, in genere basta:
+
+```powershell
+git push
+```
+
+### Nota importante su privato e pubblico
+`git push` non rende da solo un repository `private` o `public`: la visibilita' si decide nelle impostazioni del repository su GitHub.
+
+Schema pratico:
+- prima crea o usa un repository GitHub `private` se vuoi pubblicare il codice solo in modo riservato
+- poi esegui `git push -u origin main`
+- in futuro, se vorrai renderlo pubblico, cambia la visibilita' del repository direttamente su GitHub da `private` a `public`
+
+In altre parole:
+- `git config ...` controlla identita' e ambito locale o globale
+- `git remote ...` controlla dove fai push
+- GitHub controlla la visibilita' reale del repository
+
+### Parametri utili da ricordare
+- `--global`: applica nome/email a tutti i repository del computer
+- senza `--global`: applica nome/email solo al repository corrente
+- `-u` in `git push -u origin main`: salva il branch remoto di riferimento per i push successivi
+- `origin`: nome standard del repository remoto GitHub
+- `main`: branch principale
+
+### Verifiche rapide
+```powershell
+git config user.name
+git config user.email
+git remote -v
+git status
+```
+
 ## Documentazione
 - [Automazione Completa](AUTOMAZIONE_COMPLETA.md)
 - [README Eventi](Eventi/README_EVENTI.md)
