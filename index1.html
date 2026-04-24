@@ -130,7 +130,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     async function caricaCSV() {
       try {
-        const response = await fetch("display.csv");
+        const response = await fetch("display.csv?t=" + Date.now(), { cache: "no-store" });
         const text = await response.text();
 
         const righe = text.trim().split("\n").slice(3); 
@@ -163,7 +163,7 @@
     // Carico NextCoreo.csv e gestisco lampeggio + fade-out
     async function mostraNextCoreo() {
       try {
-        const response = await fetch("NextCoreo.csv");
+        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { cache: "no-store" });
         const text = await response.text();
 
         const primaRiga = text.trim().split("\n")[0];

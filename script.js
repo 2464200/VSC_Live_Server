@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastStepTime = 0; // timestamp dell'ultimo passo di scroll
   let rafId = null;
   const MAX_ROWS = 600; // limite per evitare OOM su smartTV con dataset molto grande
-  const REFRESH_MS = 200000; // 200s
+  const REFRESH_MS = 120000; // 120s
   let refreshTimeoutId = null;
 
   // --- Indicatori visivi ---
