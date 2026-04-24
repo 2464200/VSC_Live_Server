@@ -4,7 +4,7 @@ Write-Host 'TEST COMPLETO API' -ForegroundColor Cyan
 Write-Host '=====================================================' -ForegroundColor Cyan
 Write-Host ''
 
-$baseUrl = 'http://localhost:8765'
+$baseUrl = 'http://localhost:5500'
 $allTestsPassed = $true
 
 # Test 1: API /api/pdf-list

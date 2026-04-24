@@ -42,8 +42,12 @@ const EVENTI_API_CANDIDATES = (() => {
   }
 
   pushBase(`${protocol}//${host}:5500/eventi/api`);
-  pushBase(`http://localhost:5500/eventi/api`);
-  pushBase(`http://127.0.0.1:5500/eventi/api`);
+  if (host !== 'localhost') {
+    pushBase(`${protocol}//localhost:5500/eventi/api`);
+  }
+  if (host !== '127.0.0.1') {
+    pushBase(`${protocol}//127.0.0.1:5500/eventi/api`);
+  }
 
   return bases;
 })();

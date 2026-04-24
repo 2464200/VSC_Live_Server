@@ -201,7 +201,7 @@ Sub TestConessione()
     On Error GoTo ErrHandler
     
     Set xmlHTTP = CreateObject("MSXML2.XMLHTTP")
-    url = "http://localhost:8765/api/pdf-list"
+    url = "http://localhost:5500/api/pdf-list"
     
     xmlHTTP.Open "GET", url, False
     xmlHTTP.Send

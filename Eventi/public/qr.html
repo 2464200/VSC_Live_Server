@@ -156,9 +156,10 @@
       try {
         const protocol = window.location.protocol || 'http:';
         const port = window.location.port;
+        const host = window.location.hostname || '127.0.0.1';
         const apiOrigin = (window.location.protocol === 'file:' || (port && port !== '5500'))
-          ? 'http://127.0.0.1:5500'
-          : window.location.origin || `${protocol}//${window.location.hostname || '127.0.0.1'}${port ? `:${port}` : ''}`;
+          ? `${protocol}//${host}:5500`
+          : window.location.origin || `${protocol}//${host}${port ? `:${port}` : ''}`;
 
         const response = await fetch(`${apiOrigin}/eventi/api/qr?ts=${Date.now()}`, { cache: 'no-store' });
         if (!response.ok) throw new Error('Impossibile recuperare il QR dal server');

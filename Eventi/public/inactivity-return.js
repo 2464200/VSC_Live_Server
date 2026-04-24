@@ -11,11 +11,8 @@
     const hostname = window.location.hostname || '127.0.0.1';
     const port = window.location.port;
 
-    if (port && port !== '5500') {
-      return `${protocol}//127.0.0.1:5500/eventi/eventi.html`;
-    }
-
-    const portPart = port ? `:${port}` : '';
+    const targetPort = port === '5500' ? port : '5500';
+    const portPart = targetPort ? `:${targetPort}` : '';
     return `${protocol}//${hostname}${portPart}/eventi/eventi.html`;
   }
 

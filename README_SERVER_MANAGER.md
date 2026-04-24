@@ -32,6 +32,12 @@ cd C:\VSC_Live_Server
 
 Poi apri le pagine direttamente su `http://localhost:5500/...`
 
+### Nota pratica
+
+- per l'uso corrente usa solo `http://localhost:5500`
+- considera `3000`, `3010` e `8765` come riferimenti storici
+- riattiva la stack legacy solo per debug o confronto
+
 ## Architettura Legacy (STORICA)
 
 Il sistema funziona con una **architettura a tre livelli**:

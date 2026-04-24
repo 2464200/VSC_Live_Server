@@ -80,7 +80,7 @@ cd Eventi
 node server-eventi.js
 ```
 
-Solo in quel caso useresti `http://localhost:3010/eventi/eventi.html`.
+Solo in quel caso useresti `http://localhost:3010/eventi/eventi.html`, ma non e' il percorso consigliato del progetto.
 
 ## API
 Base URL:

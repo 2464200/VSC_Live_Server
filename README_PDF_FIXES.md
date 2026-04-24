@@ -2,6 +2,9 @@
 
 # Fix PDF Server & Viewers - 9 Aprile 2026
 
+> Stato attuale: il percorso standard usa `unified-server.js` su `http://localhost:5500`.
+> I riferimenti a `8765` in questo documento descrivono il fix storico precedente all'unificazione.
+
 ## Problemi Risolti
 
 ### 1. âœ… Endpoint Mancanti

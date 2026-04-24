@@ -35,8 +35,21 @@ button:active { background: #dd6600; }
 </style>
 <!-- Config del server API -->
 <script>
-const pdfOrigin = window.location.origin || (window.location.protocol + '//' + window.location.host);
-window.PDF_SERVER_HOST = pdfOrigin;
+const CANONICAL_PROJECT_PORT = '5500';
+
+function getCanonicalProjectOrigin() {
+    const protocol = window.location.protocol === 'file:' ? 'http:' : (window.location.protocol || 'http:');
+    const host = window.location.hostname || 'localhost';
+    const port = window.location.port || '';
+
+    if (window.location.origin && window.location.origin !== 'null' && port === CANONICAL_PROJECT_PORT) {
+        return window.location.origin;
+    }
+
+    return `${protocol}//${host}:${CANONICAL_PROJECT_PORT}`;
+}
+
+window.PDF_SERVER_HOST = getCanonicalProjectOrigin();
 window.PDF_SERVER_TIMEOUT = 8000;  // 8 secondi timeout
 window.PDF_SERVER_RETRIES = 2;     // 2 retry
 </script>
@@ -91,96 +104,16 @@ window.PDF_SERVER_RETRIES = 2;     // 2 retry
 let pdfList = [];
 let currentIndex = 0;
 let serverReady = false;
-let serverAutoStarted = false;
-
-const MANAGER_HOST = 'http://localhost:3000';
-const PDF_SERVER_PORT = 8765;
 
 function getPdfServerHost() {
-    return window.PDF_SERVER_HOST || `http://localhost:${PDF_SERVER_PORT}`;
-}
-
-function getManagerUrl(path = '') {
-    return `${MANAGER_HOST}${path}`;
-}
-
-async function ensureManagerRunning() {
-    try {
-        const response = await fetch(getManagerUrl('/api/manager/health'), { method: 'GET' });
-        return response.ok;
-    } catch (err) {
-        console.warn('⚠️ Manager non raggiungibile:', err.message);
-        return false;
-    }
-}
-
-async function startPdfServerViaManager() {
-    try {
-        const response = await fetch(getManagerUrl('/api/manager/start'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) {
-            const body = await response.text();
-            console.warn('⚠️ Manager start non OK:', response.status, body);
-            return false;
-        }
-        const data = await response.json();
-        if (data && data.success) {
-            console.log('✅ PDF Server avviato via manager', data);
-            serverAutoStarted = true;
-            return true;
-        }
-        return false;
-    } catch (err) {
-        console.error('❌ Errore avvio PDF Server via manager:', err.message);
-        return false;
-    }
-}
-
-async function stopPdfServerViaManager() {
-    try {
-        const response = await fetch(getManagerUrl('/api/manager/stop'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) {
-            const body = await response.text();
-            console.warn('⚠️ Manager stop non OK:', response.status, body);
-            return false;
-        }
-
-        const data = await response.json();
-        if (data && data.success) {
-            console.log('✅ PDF Server fermato via manager');
-            serverAutoStarted = false;
-            return true;
-        }
-        return false;
-    } catch (err) {
-        console.error('❌ Errore stop PDF Server via manager:', err.message);
-        return false;
-    }
-}
-
-async function waitForPdfServerReady(timeoutMs = 15000) {
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-        if (await checkPdfServer()) return true;
-        await new Promise(r => setTimeout(r, 500));
-    }
-    return false;
+    return window.PDF_SERVER_HOST || getCanonicalProjectOrigin();
 }
 
 /**
  * INIZIALIZZAZIONE - Eseguita al caricamento della pagina
  */
 window.addEventListener("beforeunload", async function() {
-    // Prima di chiudere la pagina, log scarico
     console.log("🔌 Chiusura pagina...");
-    if (serverAutoStarted) {
-        await stopPdfServerViaManager();
-    }
 });
 
 // Funzione semplice per contattare il server PDF
@@ -217,32 +150,12 @@ async function checkPdfServer() {
 
 document.addEventListener("DOMContentLoaded", async function() {
     console.log("🚀 Inizializzazione pagina...");
-    console.log("📍 PDF Server (fallback): " + getPdfServerHost());
-    console.log("📍 Server Manager: " + MANAGER_HOST);
+    console.log("📍 PDF Server unificato: " + getPdfServerHost());
     
     updateStatus("Verifica connessione server...", "loading");
     
     try {
-        let serverOk = await checkPdfServer();
-        let managerOk = false;
-
-        if (!serverOk) {
-            managerOk = await ensureManagerRunning();
-            if (managerOk) {
-                updateStatus("Manager trovato, avvio PDF Server...", "loading");
-                const started = await startPdfServerViaManager();
-                if (started) {
-                    const ready = await waitForPdfServerReady(15000);
-                    if (ready) {
-                        serverOk = true;
-                    } else {
-                        console.warn('⚠️ PDF Server non pronto dopo avvio manager');
-                    }
-                }
-            } else {
-                console.warn('⚠️ Manager non disponibile per avvio PDF');
-            }
-        }
+        const serverOk = await checkPdfServer();
 
         if (serverOk) {
             console.log("✅ Server PDF disponibile");
@@ -252,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         } else {
             console.error("❌ Server PDF non raggiungibile");
             updateStatus("❌ Server non raggiungibile", "error");
-            showMessage("❌ PDF Server non disponibile\n\n💡 Esegui: .\\start-server-manager.ps1 e poi .\\launch-all.ps1\n💡 Oppure: node pdf-server-simple.js", "error");
+            showMessage("❌ Unified Server non disponibile su porta 5500\n\n💡 Esegui: .\\startup.ps1\n💡 Oppure: node unified-server.js", "error");
         }
         
     } catch (error) {
@@ -331,7 +244,7 @@ async function loadPdfData() {
         console.error("   Message:", msg);
         
         updateStatus(`Errore: ${msg}`, "error");
-        showMessage(`❌ ${msg}\n\n💡 Se il server non è avviato, esegui:\nnode pdf-server-simple.js`, "error");
+        showMessage(`❌ ${msg}\n\n💡 Se il server non è avviato, esegui:\nnode unified-server.js`, "error");
     }
 }
 
@@ -553,9 +466,8 @@ function saveAdobePath() {
 }
 
 // LOG INIZIALE
-console.log("📍 ScriptPDF1 - Gestione automatica server");
-console.log("   💡 Il server PDF si avvia/spegne AUTOMATICAMENTE");
-console.log("   💡 Assicurati che server-manager.js sia avviato: node server-manager.js");
+console.log("📍 ScriptPDF1 - Server unificato");
+console.log("   💡 Endpoint PDF serviti da unified-server.js sulla porta 5500");
 
 </script>
 

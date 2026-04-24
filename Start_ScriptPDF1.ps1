@@ -1,6 +1,6 @@
 # Script PowerShell per avviare ScriptPDF1.html
 # Questo script:
-# 1. Avvia il server Node.js (pdf-server.js)
+# 1. Avvia il server Node.js unificato
 # 2. Apre la pagina HTML in Chrome (modalità Kiosk) sul monitor secondario
 # 3. Chiude tutto quando viene chiuso Excel
 
@@ -9,8 +9,8 @@ param(
 )
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$serverScript = Join-Path $scriptPath "pdf-server.js"
-$htmlUrl = "http://localhost:8765/Prova/ScriptPDF1.html"
+$serverScript = Join-Path $scriptPath "unified-server.js"
+$htmlUrl = "http://localhost:5500/Prova/ScriptPDF1.html"
 
 # Verifica che Node.js sia installato
 try {
@@ -44,7 +44,7 @@ if (-not (Test-Path $pdfFolder)) {
 }
 
 # Avvia il server Node.js in background
-Write-Host "Avvio del server PDF..."
+Write-Host "Avvio del server unificato..."
 $serverProcess = Start-Process -FilePath "node" -ArgumentList $serverScript -PassThru -WindowStyle Hidden -NoNewWindow
 
 # Aspetta che il server sia pronto
@@ -55,7 +55,7 @@ $retries = 10
 $serverReady = $false
 while ($retries -gt 0) {
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:8765/api/pdf-list" -UseBasicParsing -ErrorAction Stop
+        $response = Invoke-WebRequest -Uri "http://localhost:5500/api/pdf-list" -UseBasicParsing -ErrorAction Stop
         if ($response.StatusCode -eq 200) {
             $serverReady = $true
             Write-Host "✓ Server avviato e pronto"

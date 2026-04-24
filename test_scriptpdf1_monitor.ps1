@@ -7,7 +7,7 @@
 # Esecuzione: powershell -File test_scriptpdf1_monitor.ps1
 
 param(
-    [string]$ServerUrl = "http://localhost:8765"
+    [string]$ServerUrl = "http://localhost:5500"
 )
 
 # Colori per output  
@@ -44,7 +44,7 @@ function Test-ServerConnectivity {
     } catch {
         Write-ColorOutput "❌ Errore di connessione al server!" "Error"
         Write-ColorOutput "   Assicurati che il server stia eseguendo:" "Error"
-        Write-ColorOutput "   cd C:\VSC_Live_Server; node pdf-server.js" "Error"
+        Write-ColorOutput "   cd C:\VSC_Live_Server; node unified-server.js" "Error"
         Write-ColorOutput "   Errore: $($_.Exception.Message)" "Error"
         return $false
     }
@@ -228,7 +228,7 @@ function Show-Summary {
     Write-ColorOutput "╚════════════════════════════════════════════════════════╝" "Section"
     
     Write-ColorOutput "`n✅ COSA VERIFICARE MANUALMENTE:" "Success"
-    Write-ColorOutput "   1. Apri http://localhost:8765/Prova/ScriptPDF1.html" "Info"
+    Write-ColorOutput "   1. Apri http://localhost:5500/Prova/ScriptPDF1.html" "Info"
     Write-ColorOutput "   2. Seleziona un PDF dalla ComboBox" "Info"
     Write-ColorOutput "   3. Clicca 'Successivo ▶' o 'Precedente ◀'" "Info"
     Write-ColorOutput "   4. Chrome dovrebbe aprirsi sul monitor SECONDARIO" "Info"
@@ -236,7 +236,7 @@ function Show-Summary {
     
     Write-ColorOutput "`n📊 COORDINATE MONITOR:" "Info"
     Write-ColorOutput "   Se le coordinate sono diverse da quelle previste," "Info"
-    Write-ColorOutput "   modifica il file pdf-server.js nella funzione" "Info"
+    Write-ColorOutput "   modifica il file unified-server.js nella logica" "Info"
     Write-ColorOutput "   getSecondaryMonitorInfo() alla riga ~50" "Info"
     
     Write-ColorOutput "`n❓ DOMANDE FREQUENTI:" "Info"
@@ -275,7 +275,7 @@ $isConnected = Test-ServerConnectivity
 if (-not $isConnected) {
     Write-ColorOutput "`n❌ I test sono stati interrotti perché il server non è disponibile." "Error"
     Write-ColorOutput "   Avvia il server e riprova:" "Error"
-    Write-ColorOutput "   cd C:\VSC_Live_Server && node pdf-server.js" "Error"
+    Write-ColorOutput "   cd C:\VSC_Live_Server && node unified-server.js" "Error"
     exit 1
 }
 

@@ -4,9 +4,21 @@
  */
 
 // Configurazione global
+function getCanonicalProjectOrigin() {
+    const protocol = window.location.protocol === "file:" ? "http:" : (window.location.protocol || "http:");
+    const host = window.location.hostname || "127.0.0.1";
+    const port = window.location.port || "";
+
+    if (window.location.origin && window.location.origin !== "null" && port === "5500") {
+        return window.location.origin;
+    }
+
+    return `${protocol}//${host}:5500`;
+}
+
 window.AppConfig = {
-    PDF_SERVER_URL: "http://127.0.0.1:8765",
-    LIVE_SERVER_URL: "http://127.0.0.1:5500",
+    PDF_SERVER_URL: getCanonicalProjectOrigin(),
+    LIVE_SERVER_URL: getCanonicalProjectOrigin(),
     FETCH_TIMEOUT: 10000,
     FETCH_RETRIES: 2,
     DEBUG: true

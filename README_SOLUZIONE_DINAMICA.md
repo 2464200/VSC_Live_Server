@@ -2,6 +2,9 @@
 
 # âœ… SOLUZIONE STABILE E FUNZIONANTE - ScriptPDF1
 
+> Stato attuale: `ScriptPDF1` usa il server unificato su `http://localhost:5500`.
+> I fallback su `8765` e `3000` in questa pagina descrivono la soluzione storica precedente.
+
 ## ðŸ“‹ Cosa Ã¨ stato RISOLTO
 
 ### âœï¸ **Nuovi file creati:**

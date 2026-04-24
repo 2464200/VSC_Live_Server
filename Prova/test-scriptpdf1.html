@@ -42,6 +42,12 @@ nav a:hover { text-decoration: underline; }
 <div id="tests"></div>
 
 <script>
+const BASE_URL = (() => {
+    const protocol = window.location.protocol === 'file:' ? 'http:' : (window.location.protocol || 'http:');
+    const host = window.location.hostname || 'localhost';
+    return `${protocol}//${host}:5500`;
+})();
+
 async function runTests() {
     const testsContainer = document.getElementById('tests');
     let testCount = 0;
@@ -66,16 +72,16 @@ async function runTests() {
     }
 
     // Test 1: Server è raggiungibile
-    await addTest('Server è raggiungibile su localhost:8765', async () => {
-        const response = await fetch('http://localhost:8765/');
-        if (response.status !== 404) {
-            throw new Error(`Status atteso 404 ma ricevuto ${response.status}`);
+    await addTest('Server è raggiungibile su porta 5500', async () => {
+        const response = await fetch(`${BASE_URL}/`);
+        if (response.status !== 200) {
+            throw new Error(`Status atteso 200 ma ricevuto ${response.status}`);
         }
     });
 
     // Test 2: API /api/pdf-list è disponibile
     await addTest('API /api/pdf-list risponde', async () => {
-        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const response = await fetch(`${BASE_URL}/api/pdf-list`);
         if (response.status !== 200) {
             throw new Error(`Status ${response.status} - atteso 200`);
         }
@@ -83,7 +89,7 @@ async function runTests() {
 
     // Test 3: API ritorna JSON valido
     await addTest('API ritorna JSON valido', async () => {
-        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const response = await fetch(`${BASE_URL}/api/pdf-list`);
         const data = await response.json();
         if (!data.success) {
             throw new Error(data.error || 'success è false');
@@ -92,7 +98,7 @@ async function runTests() {
 
     // Test 4: API ha proprietà corrette
     await addTest('API ha tutte le proprietà richieste', async () => {
-        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const response = await fetch(`${BASE_URL}/api/pdf-list`);
         const data = await response.json();
         if (!data.files) throw new Error('Manca proprietà files');
         if (!Array.isArray(data.files)) throw new Error('files non è un array');
@@ -102,7 +108,7 @@ async function runTests() {
 
     // Test 5: Lista PDF caricata
     await addTest('Cartella C:\\VSC_SCRIPT_PDF contiene file PDF', async () => {
-        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const response = await fetch(`${BASE_URL}/api/pdf-list`);
         const data = await response.json();
         if (data.files.length === 0) {
             throw new Error('Nessun file PDF trovato in C:\\VSC_SCRIPT_PDF');
@@ -111,7 +117,7 @@ async function runTests() {
 
     // Test 6: Ogni file ha proprietà complete
     await addTest('Ogni file PDF ha tutte le proprietà', async () => {
-        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const response = await fetch(`${BASE_URL}/api/pdf-list`);
         const data = await response.json();
         data.files.forEach((file, index) => {
             if (!file.name) throw new Error(`File ${index}: manca name`);
@@ -123,7 +129,7 @@ async function runTests() {
 
     // Test 7: Pagina ScriptPDF1.html è accessibile
     await addTest('Pagina ScriptPDF1.html è accessibile', async () => {
-        const response = await fetch('http://localhost:8765/Prova/ScriptPDF1.html');
+        const response = await fetch(`${BASE_URL}/Prova/ScriptPDF1.html`);
         if (response.status !== 200) {
             throw new Error(`Status ${response.status} - atteso 200`);
         }
@@ -131,7 +137,7 @@ async function runTests() {
 
     // Test 8: CORS è abilitato
     await addTest('CORS è abilitato (Access-Control-Allow-Origin)', async () => {
-        const response = await fetch('http://localhost:8765/api/pdf-list');
+        const response = await fetch(`${BASE_URL}/api/pdf-list`);
         const corsHeader = response.headers.get('Access-Control-Allow-Origin');
         if (!corsHeader) {
             throw new Error('Header Access-Control-Allow-Origin non trovato');
