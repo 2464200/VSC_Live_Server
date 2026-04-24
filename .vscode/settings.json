@@ -3,7 +3,7 @@
     "task.autoDetect": "off",
     "task.problemMatchers.neverPrompt": true,
     "task.quickOpen.showAll": true,
-    "liveServer.settings.port": 5600,
+    "liveServer.settings.port": 5501,
     "liveServer.settings.host": "127.0.0.1",
     "files.exclude": {
         "**/.startup-pids.json": true,
