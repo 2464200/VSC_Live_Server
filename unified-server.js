@@ -27,29 +27,74 @@ let chromeProcess = null;
 let openedViewers = {};
 const OPENED_VIEWERS_FILE = path.join(__dirname, 'pdf', 'config', 'opened-viewers.json');
 
+// ===== CONFIGURAZIONE SSE =====
+const SSE_CONFIG = {
+    heartbeatInterval: 15000,    // Heartbeat ogni 15 secondi
+    clientTimeout: 60000,         // Timeout client inattivo 60 secondi
+    maxClients: 50,                // Numero massimo di client connessi
+    retryDelay: 3000              // Retry delay per il client (ms)
+};
+
 // SSE Eventi: client connessi per refresh in tempo reale
 const eventiClients = [];
 let eventiHeartbeatInterval = null;
+let eventiCleanupInterval = null;
 
 function registerEventiClient(res) {
+    // Limita il numero massimo di client
+    if (eventiClients.length >= SSE_CONFIG.maxClients) {
+        console.warn(`Raggiunto limite massimo client (${SSE_CONFIG.maxClients}), rifiuto nuova connessione`);
+        res.status(503).json({ error: 'Server sovraccarico, riprova più tardi' });
+        return;
+    }
+
+    // Aggiungi timestamp per tracking
+    res._connectedAt = Date.now();
+    res._lastHeartbeat = Date.now();
     eventiClients.push(res);
 
     res.on('close', () => {
         const index = eventiClients.indexOf(res);
-        if (index !== -1) eventiClients.splice(index, 1);
+        if (index !== -1) {
+            eventiClients.splice(index, 1);
+            console.log(`Client SSE disconnesso. Client attivi: ${eventiClients.length}`);
+        }
     });
 
     if (!eventiHeartbeatInterval) {
         eventiHeartbeatInterval = setInterval(() => {
-            const heartbeat = `event: heartbeat\ndata: ${JSON.stringify({ time: new Date().toISOString() })}\n\n`;
+            const heartbeat = `event: heartbeat\ndata: ${JSON.stringify({ 
+                time: new Date().toISOString(), 
+                clients: eventiClients.length,
+                uptime: Math.floor(process.uptime())
+            })}\n\n`;
             eventiClients.forEach(client => {
                 try {
+                    client._lastHeartbeat = Date.now();
                     client.write(heartbeat);
                 } catch (err) {
                     console.warn('Errore SSE heartbeat Eventi:', err.message);
                 }
             });
-        }, 20000);
+        }, SSE_CONFIG.heartbeatInterval);
+    }
+
+    // Avvia cleanup periodico per client inattivi
+    if (!eventiCleanupInterval) {
+        eventiCleanupInterval = setInterval(() => {
+            const now = Date.now();
+            const stale = eventiClients.filter(c => 
+                c._lastHeartbeat && (now - c._lastHeartbeat > SSE_CONFIG.clientTimeout)
+            );
+            stale.forEach(c => {
+                try { c.end(); } catch (e) {}
+                const idx = eventiClients.indexOf(c);
+                if (idx > -1) eventiClients.splice(idx, 1);
+            });
+            if (stale.length > 0) {
+                console.log(`Rimossi ${stale.length} client SSE stale`);
+            }
+        }, SSE_CONFIG.clientTimeout / 2);
     }
 }
 
@@ -548,16 +593,18 @@ app.get('/eventi/api/qr', async (req, res) => {
 app.get('/eventi/api/stream', (req, res) => {
     res.set({
         'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-        'Access-Control-Allow-Origin': '*'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'X-Accel-Buffering': 'no'  // Disabilita buffering nginx
     });
 
     if (typeof res.flushHeaders === 'function') {
         res.flushHeaders();
     }
 
-    res.write('retry: 3000\n\n');
+    // Retry configurabile lato client
+    res.write(`retry: ${SSE_CONFIG.retryDelay}\n\n`);
     registerEventiClient(res);
 });
 

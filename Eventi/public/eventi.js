@@ -362,21 +362,46 @@ function startPolling() {
   }, 15000);
 }
 
+// ===== CONFIGURAZIONE SSE CLIENT =====
+const SSE_CLIENT_CONFIG = {
+    maxRetries: 5,           // Numero massimo di retry prima di passare al polling
+    initialRetryDelay: 3000, // Delay iniziale tra retry (ms)
+    maxRetryDelay: 30000,    // Delay massimo tra retry (ms)
+    heartbeatTimeout: 45000, // Timeout per heartbeat (ms) - deve essere > del server
+    enablePollingFallback: true
+};
+
+let sseRetryCount = 0;
+let sseLastError = null;
+let sseReconnectTimer = null;
+
 function startEventiStream() {
   if (typeof EventSource === 'undefined') {
     console.warn('EventSource non supportato dal browser; usiamo polling');
+    if (SSE_CLIENT_CONFIG.enablePollingFallback) {
+      console.log('Attivazione polling di fallback...');
+      startPolling();
+    }
     return;
   }
 
+  // Chiudi eventuale connessione precedente
   if (pageState.eventSource) {
-    pageState.eventSource.close();
+    try {
+      pageState.eventSource.close();
+    } catch (e) {}
+    pageState.eventSource = null;
   }
 
   const url = `/eventi/api/stream?ts=${Date.now()}`;
+  console.log(`🔌 Connessione SSE a: ${url}`);
+  
   const source = new EventSource(url);
   pageState.eventSource = source;
 
+  // Listener per eventi refresh dal server
   source.addEventListener('refresh', async () => {
+    console.log('📥 Evento refresh ricevuto via SSE');
     if (!EventiState.shouldRefresh()) return;
     try {
       await refreshPageData();
@@ -385,14 +410,79 @@ function startEventiStream() {
     }
   });
 
-  source.addEventListener('error', () => {
-    console.warn('Connessione SSE persa, riconnessione in corso...');
+  // Listener per heartbeat dal server
+  source.addEventListener('heartbeat', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      console.log(`💓 Heartbeat SSE: client attivi=${data.clients}, uptime=${data.uptime}s`);
+    } catch (e) {
+      console.log('💓 Heartbeat SSE ricevuto');
+    }
+  });
+
+  // Gestione errori con retry intelligente
+  source.addEventListener('error', (event) => {
+    const status = event.target.readyState;
+    let errorMsg = 'Connessione SSE chiusa';
+    
+    if (status === EventSource.CLOSED) {
+      errorMsg = 'Connessione SSE chiusa (CLOSED)';
+    } else if (status === EventSource.CONNECTING) {
+      errorMsg = 'Connessione SSE in corso (CONNECTING)';
+    } else if (status === 0) {
+      errorMsg = 'Connessione SSE interrotta (status 0)';
+    }
+    
+    console.warn(`⚠️ ${errorMsg}, tentativo ${sseRetryCount + 1}/${SSE_CLIENT_CONFIG.maxRetries}`);
+    sseLastError = errorMsg;
+    
+    // Chiudi la sorgente
     if (pageState.eventSource) {
-      pageState.eventSource.close();
+      try {
+        pageState.eventSource.close();
+      } catch (e) {}
       pageState.eventSource = null;
     }
-    setTimeout(startEventiStream, 3000);
+    
+    // Calcola delay crescente per retry
+    const retryDelay = Math.min(
+      SSE_CLIENT_CONFIG.initialRetryDelay * Math.pow(2, sseRetryCount),
+      SSE_CLIENT_CONFIG.maxRetryDelay
+    );
+    
+    if (sseRetryCount < SSE_CLIENT_CONFIG.maxRetries) {
+      sseRetryCount++;
+      console.log(`⏳ Riconnessione SSE tra ${retryDelay}ms...`);
+      
+      // Cancella timer precedente
+      if (sseReconnectTimer) clearTimeout(sseReconnectTimer);
+      
+      sseReconnectTimer = setTimeout(() => {
+        startEventiStream();
+      }, retryDelay);
+    } else {
+      // Superato il numero massimo di retry
+      console.error(`❌ Superati ${SSE_CLIENT_CONFIG.maxRetries} tentativi di riconnessione SSE`);
+      
+      if (SSE_CLIENT_CONFIG.enablePollingFallback) {
+        console.log('🔄 Attivazione polling di fallback...');
+        startPolling();
+      } else {
+        showListaMessage('lista-brani', 'Connessione al server persa. Ricarica la pagina per riprovare.', true);
+      }
+    }
   });
+
+  // Connessione stabilita
+  source.onopen = () => {
+    console.log('✅ Connessione SSE stabilita');
+    sseRetryCount = 0;
+    sseLastError = null;
+    if (sseReconnectTimer) {
+      clearTimeout(sseReconnectTimer);
+      sseReconnectTimer = null;
+    }
+  };
 }
 
 async function carica() {
