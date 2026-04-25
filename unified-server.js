@@ -638,13 +638,13 @@ router.post('/brani-extra', (req, res) => {
 // Aggiorna coreografia aggiuntiva
 router.post('/aggiuntive/update', (req, res) => {
     try {
-        const { id, coreografia, brano, autore } = req.body;
+        const { id, coreografia, brano, compositore, autore, durata } = req.body;
         
         if (!id) {
             return res.status(400).json({ error: 'ID non fornito' });
         }
         
-        const result = updateExtraBrano(id, { coreografia, brano, autore });
+        const result = updateExtraBrano(id, { coreografia, brano, compositore, autore, durata });
         res.json(result);
     } catch (e) {
         res.status(400).json({ error: e.message || 'Errore aggiornamento coreografia' });
@@ -762,9 +762,9 @@ function getBraniDetails(id, braniJson, extraCsvPath) {
         return {
             titolo: brano.titolo || '',
             autore: brano.autore || '',
-            compositore: '',
-            performer: '',
-            durata: ''
+            compositore: brano.compositore || '',
+            performer: brano.brano || '',
+            durata: brano.durata || ''
         };
     }
     
@@ -775,13 +775,13 @@ function getBraniDetails(id, braniJson, extraCsvPath) {
         for (const line of extraLines) {
             if (!line.trim()) continue;
             const cols = line.split(',');
-            if (cols.length >= 3 && cols[2] === id) {
+            if (cols.length >= 8 && cols[2] === id) {
                 return {
                     titolo: cols[3] || '', // coreografia
-                    autore: cols[5] || '', // autore
-                    compositore: '',
-                    performer: '',
-                    durata: ''
+                    autore: cols[6] || '', // autore (colonna 7)
+                    compositore: cols[5] || '', // compositore (colonna 6)
+                    performer: cols[4] || '', // brano (colonna 5)
+                    durata: cols[7] || ''  // durata (colonna 8)
                 };
             }
         }
