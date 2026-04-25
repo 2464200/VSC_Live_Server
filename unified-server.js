@@ -757,17 +757,42 @@ router.get('/export-csv', (req, res) => {
             else if (r.stato === 'prenotato') statoCsv = '2';
             return `${r.timestamp};${r.id};${statoCsv};${r.dj ?? ''}`;
         }).join('\n');
-        fs.writeFileSync(pathCsv, header + rows);
-        res.json({ ok: true, csv: '/eventi/api/log.csv' });
+        
+        // Determina il nome del file CSV
+        let csvPath;
+        if (req.query.siae === '1') {
+            // Formato GG-MM-AAAA-HHHH_SIAE.csv
+            const now = new Date();
+            const gg = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const aaaa = now.getFullYear();
+            const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+            const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE.csv`;
+            csvPath = path.join(eventiDataDir, siaeFileName);
+        } else {
+            csvPath = pathCsv;
+        }
+        
+        fs.writeFileSync(csvPath, header + rows);
+        res.json({ ok: true, csv: '/eventi/api/' + path.basename(csvPath) });
     } catch (e) {
         res.status(500).json({ error: 'Errore export CSV' });
     }
 });
 
-// Download CSV
+// Download CSV (supporta sia log.csv che file SIAE)
 router.get('/log.csv', (req, res) => {
-    if (!fs.existsSync(pathCsv)) return res.status(404).send('CSV non generato');
-    res.download(pathCsv);
+    // Se esiste il file log.csv originale, servilo
+    if (fs.existsSync(pathCsv)) {
+        return res.download(pathCsv);
+    }
+    // Altrimenti cerca l'ultimo file SIAE
+    const files = fs.readdirSync(eventiDataDir).filter(f => f.endsWith('_SIAE.csv'));
+    if (files.length > 0) {
+        files.sort();
+        return res.download(path.join(eventiDataDir, files[files.length - 1]));
+    }
+    return res.status(404).send('CSV non generato');
 });
 
 router.get('/sync-brani', (req, res) => {

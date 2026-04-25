@@ -1,0 +1,14 @@
+[
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-04-25T06:47:25.876Z",
+    "dj": "DJ Daniel West"
+  },
+  {
+    "id": "008",
+    "stato": "eseguito",
+    "timestamp": "2026-04-25T06:47:43.563Z",
+    "dj": "DJ Daniel West"
+  }
+]

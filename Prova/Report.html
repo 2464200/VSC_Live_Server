@@ -26,13 +26,14 @@ th{background:#333;color:#fff}
 <div class='container'>
 <h1>Coreografie - Report Statistico</h1>
 <p>Eseguite in totale: <strong>0 </strong>
-<p>Richieste con QR: <strong>2</strong> di cui non eseguite: <strong>0</strong></p>
-<p>Coreografia piu' richiesta: <strong>MILES ON IT</strong> (1 volte)</p>
-<h2>Top 2 Coreografie</h2>
+<p>Richieste con QR: <strong>3</strong> di cui non eseguite: <strong>0</strong></p>
+<p>Coreografia piu' richiesta: <strong>XXX</strong> (1 volte)</p>
+<h2>Top 3 Coreografie</h2>
 <table>
 <tr><th>#</th><th>Coreografia</th><th>Richieste</th></tr>
-<tr><td>1</td><td>MILES ON IT</td><td>1</td></tr>
-<tr><td>2</td><td>BOOTS BACK</td><td>1</td></tr>
+<tr><td>1</td><td>XXX</td><td>1</td></tr>
+<tr><td>2</td><td>MILES ON IT</td><td>1</td></tr>
+<tr><td>3</td><td>BOOTS BACK</td><td>1</td></tr>
 </table>
 <div class='charts-row'>
 <div class='chart-pie'><canvas id='pie'></canvas></div>
@@ -41,9 +42,11 @@ th{background:#333;color:#fff}
 <script>
 new Chart(pie,{type:'pie',data:{labels:['Eseguite','Non eseguite'],datasets:[{data:[0,0],backgroundColor:['#28A745','#DC3545']}]} });
 new Chart(bar,{type:'bar',data:{labels:[
+'XXX',
 'MILES ON IT',
 'BOOTS BACK'
 ],datasets:[{data:[
+1,
 1,
 1
 ],backgroundColor:'#007BFF'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});

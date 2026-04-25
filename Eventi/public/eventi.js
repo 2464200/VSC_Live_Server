@@ -504,11 +504,11 @@ async function carica() {
     if (exportBtn) {
       exportBtn.addEventListener('click', async () => {
         try {
-          const result = await fetchJSON(`/export-csv?ts=${Date.now()}`);
-          alert('CSV generato. URL: ' + result.csv);
+          const result = await fetchJSON(`/export-csv?siae=1&ts=${Date.now()}`);
+          alert('CSV SIAE generato. URL: ' + result.csv);
         } catch (error) {
-          console.error('Errore export CSV:', error);
-          alert('Errore durante export CSV.');
+          console.error('Errore export CSV SIAE:', error);
+          alert('Errore durante export CSV SIAE.');
         }
       });
     }
