@@ -74,8 +74,10 @@ function makeSlug(value) {
 }
 
 function buildStableExtraId({ titolo, brano, autore }, rowNumber) {
-  const seed = [titolo, brano, autore].map(makeSlug).filter(Boolean).join('-');
-  return `EXTRA-${seed || `riga-${rowNumber}`}`.toUpperCase();
+  // Formato snello: EXTRA1, EXTRA2, EXTRA3, etc.
+  // Se l'operatore inserisce un ID personalizzato, usa quello
+  // Altrimenti genera un ID basato sul numero di riga
+  return `EXTRA${rowNumber}`;
 }
 
 function resolveBaseCsvSource() {
