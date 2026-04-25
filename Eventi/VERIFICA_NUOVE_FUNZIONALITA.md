@@ -148,7 +148,110 @@ La nuova pagina e funzionalitÃ :
 | Funzione backend delete | `Eventi/brani-utils.js#deleteExtraBrano()` | âœ… Presente |
 | Endpoint API | `Eventi/eventi-server.js#POST /aggiuntive/update` e `POST /aggiuntive/delete` | âœ… Presenti |
 | Stile CSS | `Eventi/public/style.css` | âœ… Aggiunto `.modal*`, `.riga-brano.aggiuntiva`, `.delete-btn` |
-| Docs | `Eventi/README_EVENTI.md` | âœ… Aggiornato |
+---
+
+# Modifiche 25 Aprile 2026 - Export CSV SIAE e Miglioramenti UI
+
+**Data**: 25 Aprile 2026  
+**Status**: ✅ Implementato
+
+## 1. Export CSV per SIAE
+
+### Funzionalità
+- **Bottone**: "Esporta CSV per SIAE" in `eventi.html`
+- **Protezione**: Richiede password `0000` prima dell'esportazione
+- **Nome file**: `GG-MM-AAAA-HHHH_SIAE.csv` (es. `25-04-2026-1654_SIAE.csv`)
+- **Percorso**: `c:\VSC_SIAE\` (creata automaticamente se manca)
+
+### Formato CSV SIAE
+```csv
+Titolo,Autore,Compositore,Performer,Durata
+3 FLICKS,ann tayler,,
+Big,Trace Adkins,,
+```
+
+### Caratteristiche
+- ✅ Solo brani con stato `eseguito` inclusi
+- ✅ Ordinamento alfabetico (supporto accenti, numeri, simboli)
+- ✅ Escape campi con virgole/virgolette
+- ✅ Codifica UTF-8
+
+### File modificati
+| File | Modifica |
+|------|----------|
+| `Eventi/public/eventi.html` | Bottone rinominato |
+| `Eventi/public/eventi.js` | Parametro `siae=1` + verifica password |
+| `unified-server.js` | Nuova logica export con formato 5 campi |
+
+## 2. Normalizzazione ID Extra
+
+### Prima
+- `EXTRA-PROVA4-PROVA4-PROVA4`
+- `EXTRA-PROVA5-PROVA5-PROVA5`
+
+### Dopo
+- `EXTRA4`
+- `EXTRA5`
+
+### File modificati
+| File | Modifica |
+|------|----------|
+| `Eventi/brani-utils.js` | `buildStableExtraId()` → `EXTRA${rowNumber}` |
+| `Eventi/Coreografie_Aggiuntive.csv` | EXTRA4, EXTRA5 |
+| `Eventi/data/brani.json` | EXTRA4, EXTRA5 |
+| `Eventi/data/log.json` | EXTRA5 |
+
+## 3. Protezione Password
+
+### Azioni protette
+- **Esporta CSV per SIAE**
+- **Reset date e orari**
+
+### Comportamento
+- Password richiesta: `0000`
+- Se errata: alert + redirect a `eventi.html`
+
+### Codice
+```javascript
+function verifyPassword(actionType) {
+  const password = prompt('Inserisci password per confermare: ' + actionType);
+  if (password === null || password !== '0000') {
+    alert('Password errata. Verrai reindirizzato alla pagina principale.');
+    goEventiPage('eventi.html');
+    return false;
+  }
+  return true;
+}
+```
+
+## 4. Bottone "Torna a inserimento"
+
+### Ubicazione
+- `coreografie-aggiuntive.html` - dopo "Apri visualizer"
+
+### Stile
+```html
+<button onclick="goEventiPage('eventi.html#inserimento')" 
+        style="background:#ffc107;color:#000;font-weight:700;">
+  Torna a inserimento
+</button>
+```
+
+### Funzionamento
+1. Redirect a `eventi.html#inserimento`
+2. Apertura automatica pannello inserimento coreografie
+
+## 5. Miglioramento Visibilità Bottoni
+
+### Bottoni aggiornati (colore giallo #ffca28)
+- "Salva nuova coreografia"
+- "Apri elenco aggiuntive"
+- "Chiudi"
+
+### Stile applicato
+```html
+style="background:#ffca28;color:#000;font-weight:700;"
+```| Docs | `Eventi/README_EVENTI.md` | âœ… Aggiornato |
 
 ## 9. Test di DisponibilitÃ 
 
