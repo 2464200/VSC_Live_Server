@@ -12,6 +12,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// Funzione per verifica password
+function verifyPassword(actionType) {
+  const password = prompt('Inserisci password per confermare: ' + actionType);
+  if (password === null) {
+    // Utente ha premuto Annulla
+    return false;
+  }
+  if (password !== '0000') {
+    alert('Password errata. Verrai reindirizzato alla pagina principale.');
+    goEventiPage('eventi.html');
+    return false;
+  }
+  return true;
+}
+
 function renderAlfabetoFilter() {
   const container = document.getElementById('alfabeto-filter');
   if (!container) return;
@@ -503,6 +518,10 @@ async function carica() {
     const exportBtn = document.getElementById('btn-export');
     if (exportBtn) {
       exportBtn.addEventListener('click', async () => {
+        // Verifica password prima di procedere
+        if (!verifyPassword('Esporta CSV per SIAE')) {
+          return;
+        }
         try {
           const result = await fetchJSON(`/export-csv?siae=1&ts=${Date.now()}`);
           alert('CSV SIAE generato. URL: ' + result.csv);
@@ -516,6 +535,11 @@ async function carica() {
     const resetBtn = document.getElementById('btn-reset-times');
     if (resetBtn) {
       resetBtn.addEventListener('click', async () => {
+        // Verifica password prima di procedere
+        if (!verifyPassword('Reset date e orari')) {
+          return;
+        }
+
         const confirmed = window.confirm(
           'Vuoi resettare date e orari del modulo Eventi per iniziare un nuovo evento?\n\n' +
           "L'operazione azzera la cronologia corrente delle coreografie eseguite/prenotate e riporta la lista alla situazione iniziale."
