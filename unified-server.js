@@ -761,14 +761,21 @@ router.get('/export-csv', (req, res) => {
         // Determina il nome del file CSV
         let csvPath;
         if (req.query.siae === '1') {
-            // Formato GG-MM-AAAA-HHHH_SIAE.csv
+            // Formato GG-MM-AAAA-HHHH_SIAE.csv in c:\VSC_SIAE\
             const now = new Date();
             const gg = String(now.getDate()).padStart(2, '0');
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const aaaa = now.getFullYear();
             const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
             const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE.csv`;
-            csvPath = path.join(eventiDataDir, siaeFileName);
+            const siaeDir = 'c:\\VSC_SIAE';
+            
+            // Crea la cartella se non esiste
+            if (!fs.existsSync(siaeDir)) {
+                fs.mkdirSync(siaeDir, { recursive: true });
+            }
+            
+            csvPath = path.join(siaeDir, siaeFileName);
         } else {
             csvPath = pathCsv;
         }
@@ -782,15 +789,19 @@ router.get('/export-csv', (req, res) => {
 
 // Download CSV (supporta sia log.csv che file SIAE)
 router.get('/log.csv', (req, res) => {
+    const siaeDir = 'c:\\VSC_SIAE';
+    
     // Se esiste il file log.csv originale, servilo
     if (fs.existsSync(pathCsv)) {
         return res.download(pathCsv);
     }
-    // Altrimenti cerca l'ultimo file SIAE
-    const files = fs.readdirSync(eventiDataDir).filter(f => f.endsWith('_SIAE.csv'));
-    if (files.length > 0) {
-        files.sort();
-        return res.download(path.join(eventiDataDir, files[files.length - 1]));
+    // Altrimenti cerca l'ultimo file SIAE in c:\VSC_SIAE\
+    if (fs.existsSync(siaeDir)) {
+        const files = fs.readdirSync(siaeDir).filter(f => f.endsWith('_SIAE.csv'));
+        if (files.length > 0) {
+            files.sort();
+            return res.download(path.join(siaeDir, files[files.length - 1]));
+        }
     }
     return res.status(404).send('CSV non generato');
 });
