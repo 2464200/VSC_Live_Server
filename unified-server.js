@@ -746,17 +746,117 @@ router.post('/log/reset-times', (req, res) => {
     }
 });
 
-// Export CSV
+// Funzione helper per normalizzazione ordinamento (gestisce numeri, accentate, spazi, simboli)
+function normalizeForSort(str) {
+    if (!str) return '';
+    return str.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // rimuove accenti
+        .replace(/[^a-z0-9\s]/g, ''); // mantiene solo lettere, numeri, spazi
+}
+
+// Funzione per ottenere i dettagli di un brano dall'archivio
+function getBraniDetails(id, braniJson, extraCsvPath) {
+    // Cerca prima nei brani normali
+    const brano = braniJson.find(b => b.id === id);
+    if (brano) {
+        return {
+            titolo: brano.titolo || '',
+            autore: brano.autore || '',
+            compositore: '',
+            performer: '',
+            durata: ''
+        };
+    }
+    
+    // Cerca nelle coreografie aggiuntive
+    if (fs.existsSync(extraCsvPath)) {
+        const extraContent = fs.readFileSync(extraCsvPath, 'utf-8');
+        const extraLines = extraContent.split('\n').slice(1); // skip header
+        for (const line of extraLines) {
+            if (!line.trim()) continue;
+            const cols = line.split(',');
+            if (cols.length >= 3 && cols[2] === id) {
+                return {
+                    titolo: cols[3] || '', // coreografia
+                    autore: cols[5] || '', // autore
+                    compositore: '',
+                    performer: '',
+                    durata: ''
+                };
+            }
+        }
+    }
+    
+    return null;
+}
+
+// Export CSV per SIAE
 router.get('/export-csv', (req, res) => {
     try {
         const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
-        const header = 'timestamp;id_brano;stato;dj\n';
-        const rows = log.map(r => {
-            let statoCsv = '0';
-            if (r.stato === 'eseguito' || r.stato === true) statoCsv = '1';
-            else if (r.stato === 'prenotato') statoCsv = '2';
-            return `${r.timestamp};${r.id};${statoCsv};${r.dj ?? ''}`;
-        }).join('\n');
+        
+        // Filtra solo i brani eseguiti (una sola volta per ID)
+        const eseguitiMap = new Map();
+        for (const entry of log) {
+            if (entry.stato === 'eseguito' || entry.stato === true) {
+                if (!eseguitiMap.has(entry.id)) {
+                    eseguitiMap.set(entry.id, entry);
+                }
+            }
+        }
+        const eseguiti = Array.from(eseguitiMap.values());
+        
+        // Leggi i brani dall'archivio
+        const braniJson = JSON.parse(fs.readFileSync(pathBrani, 'utf-8'));
+        const extraCsvPath = path.join(__dirname, 'Eventi', 'Coreografie_Aggiuntive.csv');
+        
+        // Costruisci i record con i dati disponibili
+        const records = [];
+        for (const entry of eseguiti) {
+            const details = getBraniDetails(entry.id, braniJson, extraCsvPath);
+            if (details) {
+                records.push(details);
+            } else {
+                // Brano non trovato, inserisci con ID come titolo
+                records.push({
+                    titolo: entry.id,
+                    autore: '',
+                    compositore: '',
+                    performer: '',
+                    durata: ''
+                });
+            }
+        }
+        
+        // Ordina alfabeticamente (gestisce numeri, accentate, spazi, simboli)
+        records.sort((a, b) => {
+            const normA = normalizeForSort(a.titolo);
+            const normB = normalizeForSort(b.titolo);
+            return normA.localeCompare(normB, 'it');
+        });
+        
+        // Costruisci il CSV in formato SIAE
+        const siaeHeader = 'Titolo,Autore,Compositore,Performer,Durata';
+        const siaeRows = records.map(r => {
+            // Funzione per escapare campi con virgole, virgolette, etc.
+            const escapeCsv = (val) => {
+                if (!val) return '';
+                const str = String(val);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            };
+            return [
+                escapeCsv(r.titolo),
+                escapeCsv(r.autore),
+                escapeCsv(r.compositore),
+                escapeCsv(r.performer),
+                escapeCsv(r.durata)
+            ].join(',');
+        });
+        
+        const csvContent = [siaeHeader, ...siaeRows].join('\n');
         
         // Determina il nome del file CSV
         let csvPath;
@@ -780,10 +880,12 @@ router.get('/export-csv', (req, res) => {
             csvPath = pathCsv;
         }
         
-        fs.writeFileSync(csvPath, header + rows);
-        res.json({ ok: true, csv: '/eventi/api/' + path.basename(csvPath) });
+        // Scrivi in UTF-8
+        fs.writeFileSync(csvPath, csvContent, 'utf-8');
+        res.json({ ok: true, csv: '/eventi/api/' + path.basename(csvPath), count: records.length });
     } catch (e) {
-        res.status(500).json({ error: 'Errore export CSV' });
+        console.error('Errore export CSV SIAE:', e);
+        res.status(500).json({ error: 'Errore export CSV: ' + e.message });
     }
 });
 
