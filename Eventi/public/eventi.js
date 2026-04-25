@@ -508,7 +508,15 @@ async function carica() {
     showListaMessage('lista-brani', 'Server Eventi non raggiungibile. Verifica che l’applicazione sia servita dall’indirizzo corretto e apri la diagnostica Eventi in rete.', true);
     return;
   }
-
+  // Se l'URL contiene #inserimento, apri automaticamente il pannello di inserimento
+  if (window.location.hash === '#inserimento') {
+    const panel = document.getElementById('extra-coreo-panel');
+    if (panel) {
+      panel.hidden = false;
+    }
+    // Rimuovi l'hash per evitare riapertura dopo refresh
+    history.replaceState(null, '', window.location.pathname);
+  }
   try {
     await caricaDJList();
     bindSearch();
