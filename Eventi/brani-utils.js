@@ -128,27 +128,35 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
         : detectCsvDelimiter(line);
     const cols = parseCSVLine(line, delimiter).map(c => normalizeValue(c));
 
-    let idIndex, titoloIndex, branoIndex, autoreIndex;
+    let idIndex, titoloIndex, branoIndex, compositoreIndex, autoreIndex, durataIndex;
     if (sourceName === 'base-static') {
       idIndex = 2;
       titoloIndex = 3;
       branoIndex = 4;
-      autoreIndex = 5;
+      compositoreIndex = 5;
+      autoreIndex = 6;
+      durataIndex = 7;
     } else if (sourceName === 'base-legacy') {
       idIndex = 1;
       titoloIndex = 2;
       branoIndex = 3;
-      autoreIndex = 4;
+      compositoreIndex = 4;
+      autoreIndex = 5;
+      durataIndex = 6;
     } else {
       idIndex = 2;
       titoloIndex = 3;
       branoIndex = 4;
-      autoreIndex = 5;
+      compositoreIndex = 5;
+      autoreIndex = 6;
+      durataIndex = 7;
     }
 
     const titolo = cols[titoloIndex];
     const brano = cols[branoIndex];
+    const compositore = cols[compositoreIndex];
     const autore = cols[autoreIndex];
+    const durata = cols[durataIndex];
 
     if (!titolo) {
       skipped += 1;
@@ -169,7 +177,9 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
       id,
       titolo,
       brano: brano || '',
+      compositore: compositore || '',
       autore: autore || '',
+      durata: durata || '',
       _source: sourceName
     });
   }
@@ -266,7 +276,9 @@ function ensureExtraCsvFile() {
 function appendExtraBrano(payload, jsonPath = BRANI_JSON_PATH) {
   const titolo = sanitizeCsvCell(payload?.titolo);
   const brano = sanitizeCsvCell(payload?.brano);
+  const compositore = sanitizeCsvCell(payload?.compositore);
   const autore = sanitizeCsvCell(payload?.autore);
+  const durata = sanitizeCsvCell(payload?.durata);
   const requestedId = sanitizeCsvCell(payload?.id);
 
   if (!titolo) {
@@ -295,8 +307,9 @@ function appendExtraBrano(payload, jsonPath = BRANI_JSON_PATH) {
     id,
     titolo,
     brano,
+    compositore,
     autore,
-    '',
+    durata,
     '',
     '',
     '',
@@ -315,7 +328,9 @@ function appendExtraBrano(payload, jsonPath = BRANI_JSON_PATH) {
       id,
       titolo,
       brano,
-      autore
+      compositore,
+      autore,
+      durata
     },
     stats: syncResult.stats
   };

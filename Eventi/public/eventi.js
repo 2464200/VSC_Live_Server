@@ -108,7 +108,9 @@ function getExtraCoreoElements() {
     status: document.getElementById('extra-coreo-status'),
     titolo: document.getElementById('extra-titolo'),
     brano: document.getElementById('extra-brano'),
+    compositore: document.getElementById('extra-compositore'),
     autore: document.getElementById('extra-autore'),
+    durata: document.getElementById('extra-durata'),
     id: document.getElementById('extra-id'),
     saveBtn: document.getElementById('btn-save-coreo')
   };
@@ -130,10 +132,12 @@ function clearExtraCoreoStatus() {
 }
 
 function clearExtraCoreoForm() {
-  const { titolo, brano, autore, id } = getExtraCoreoElements();
+  const { titolo, brano, compositore, autore, durata, id } = getExtraCoreoElements();
   if (titolo) titolo.value = '';
   if (brano) brano.value = '';
+  if (compositore) compositore.value = '';
   if (autore) autore.value = '';
+  if (durata) durata.value = '';
   if (id) id.value = '';
   clearExtraCoreoStatus();
 }
@@ -155,11 +159,13 @@ function toggleExtraCoreoPanel(forceOpen) {
 }
 
 async function salvaNuovaCoreografia() {
-  const { titolo, brano, autore, id, saveBtn } = getExtraCoreoElements();
+  const { titolo, brano, compositore, autore, durata, id, saveBtn } = getExtraCoreoElements();
   const payload = {
     titolo: titolo?.value || '',
     brano: brano?.value || '',
+    compositore: compositore?.value || '',
     autore: autore?.value || '',
+    durata: durata?.value || '',
     id: id?.value || ''
   };
 

@@ -96,13 +96,13 @@ router.post('/brani-extra', (req, res) => {
 // ============================
 router.post('/aggiuntive/update', (req, res) => {
   try {
-    const { id, coreografia, brano, autore } = req.body;
+    const { id, coreografia, brano, compositore, autore, durata } = req.body;
     
     if (!id) {
       return res.status(400).json({ error: 'ID non fornito' });
     }
     
-    const result = updateExtraBrano(id, { coreografia, brano, autore });
+    const result = updateExtraBrano(id, { coreografia, brano, compositore, autore, durata });
     res.json(result);
   } catch (e) {
     res.status(400).json({ error: e.message || 'Errore aggiornamento coreografia' });
