@@ -3,3384 +3,4512 @@
     "id": "001",
     "titolo": "101",
     "brano": "lost in the shuffle",
-    "autore": "michael peterson"
+    "autore": "michael peterson",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "002",
     "titolo": "1540",
     "brano": "what the heaven",
-    "autore": "kyle park"
+    "autore": "kyle park",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "003",
     "titolo": "16 BARS",
     "brano": "16 bars",
-    "autore": "the southern gothic"
+    "autore": "the southern gothic",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "004",
     "titolo": "16 STEPS",
     "brano": "crime of the century",
-    "autore": "shania twain"
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "005",
     "titolo": "16 TONS",
     "brano": "sixteen tons",
-    "autore": "tennessee ernie ford"
+    "autore": "tennessee ernie ford",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "006",
     "titolo": "19 FOREVER",
     "brano": "19 forever",
-    "autore": "granger smith"
+    "autore": "granger smith",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "007",
     "titolo": "1929",
     "brano": "1929",
-    "autore": "tara oram"
+    "autore": "tara oram",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "008",
     "titolo": "3 FLICKS",
     "brano": "1 2 3",
-    "autore": "ann tayler"
+    "autore": "ann tayler",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "009",
     "titolo": "3 G",
     "brano": "get it got it god",
-    "autore": "billy gilman"
+    "autore": "billy gilman",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "010",
     "titolo": "3 M",
     "brano": "miss me more",
-    "autore": "kelsea ballerini"
+    "autore": "kelsea ballerini",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "011",
     "titolo": "3 TEQUILA FLOOR",
     "brano": "3 tequila floor",
-    "autore": "josiah siska"
+    "autore": "josiah siska",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "012",
     "titolo": "50 SHOTS",
     "brano": "shoulda",
-    "autore": "kylie morgan"
+    "autore": "kylie morgan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "013",
     "titolo": "8 BALLS",
     "brano": "outback booty call",
-    "autore": "8 ball aitken"
+    "autore": "8 ball aitken",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "014",
     "titolo": "99 BOTTLES",
     "brano": "99 bottles",
-    "autore": "zane williams"
+    "autore": "zane williams",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "015",
     "titolo": "A BAR SONG",
     "brano": "a bar song (tipsy)",
-    "autore": "shaboozey"
+    "autore": "shaboozey",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "016",
     "titolo": "A DIFFERENT SUMMER",
     "brano": "nothing that a beer can't fix",
-    "autore": "thomas rhett"
+    "autore": "thomas rhett",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "017",
     "titolo": "A SWING TO QUIT",
     "brano": "whole lotta quit",
-    "autore": "randy houser"
+    "autore": "randy houser",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "018",
     "titolo": "AA",
     "brano": "aa",
-    "autore": "walker hayes"
+    "autore": "walker hayes",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "019",
     "titolo": "AFTER MIDNIGHT",
     "brano": "walkin' after midnight",
-    "autore": "the groovegrass boyz"
+    "autore": "the groovegrass boyz",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "020",
     "titolo": "AFTERGLOW",
     "brano": "paradise",
-    "autore": "thomas rhett"
+    "autore": "thomas rhett",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "021",
     "titolo": "ALL NIGHT LONG",
     "brano": "you shock me all night long",
-    "autore": "steve' n' seagulls"
+    "autore": "steve' n' seagulls",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "022",
     "titolo": "ALL SHOOK UP",
     "brano": "all shook up",
-    "autore": "billy joel"
+    "autore": "billy joel",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "023",
     "titolo": "ALL TO MYSELF",
     "brano": "all to myself",
-    "autore": "dan + shy"
+    "autore": "dan + shy",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "024",
     "titolo": "ALTITUDE",
     "brano": "altitude",
-    "autore": "jarrod morris"
+    "autore": "jarrod morris",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "025",
     "titolo": "AMERICAN KIDS",
     "brano": "american kids",
-    "autore": "kenny chesney"
+    "autore": "kenny chesney",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "026",
     "titolo": "ANGEL & CORONA",
     "brano": "look what gone god gave her",
-    "autore": "thomas rhett"
+    "autore": "thomas rhett",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "027",
     "titolo": "ANTHEM",
     "brano": "anthem",
-    "autore": "brett kissel"
+    "autore": "brett kissel",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "028",
     "titolo": "ANYWAY",
     "brano": "she loves me anyway",
-    "autore": "chancey williams"
+    "autore": "chancey williams",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "029",
     "titolo": "AROUND THE FIRE",
     "brano": "old country barn",
-    "autore": "james johnston"
+    "autore": "james johnston",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "030",
     "titolo": "ASKIN' QUESTIONS",
     "brano": "askin' questions",
-    "autore": "brady seals"
+    "autore": "brady seals",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "031",
     "titolo": "AUSTIN",
     "brano": "austin",
-    "autore": "dasha"
+    "autore": "dasha",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "032",
     "titolo": "AUTHORITY",
     "brano": "authority song",
-    "autore": "chancey williams"
+    "autore": "chancey williams",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "033",
     "titolo": "AW NAW",
     "brano": "aw naw",
-    "autore": "chris young"
+    "autore": "chris young",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "034",
     "titolo": "BACK DOWN",
     "brano": "break it back down",
-    "autore": "pat green"
+    "autore": "pat green",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "035",
     "titolo": "BAD",
     "brano": "bad bad leroy brown",
-    "autore": "jim croce"
+    "autore": "jim croce",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "036",
     "titolo": "BEAUTIFUL DRUG",
     "brano": "beautiful drug",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "037",
     "titolo": "BEER FOR MY HORSES",
     "brano": "beer for my horses",
-    "autore": "toby keith & willie nelson"
+    "autore": "toby keith & willie nelson",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "038",
     "titolo": "BEETHOVEN'S BOOGIE",
     "brano": "boogie and beethoven",
-    "autore": "the gatlin brothers band"
+    "autore": "the gatlin brothers band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "039",
     "titolo": "BEST ADVENTURE",
     "brano": "best adventure",
-    "autore": "leaving thomas"
+    "autore": "leaving thomas",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "040",
     "titolo": "BETTER COUNTRY",
     "brano": "better country",
-    "autore": "paul brandt"
+    "autore": "paul brandt",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "041",
     "titolo": "BILL'S BASIC",
     "brano": "i don't need the booze",
-    "autore": "alan jackson"
+    "autore": "alan jackson",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "042",
     "titolo": "BILL'S BASIC",
     "brano": "lord have marcy on a country boy",
-    "autore": "josh turner"
+    "autore": "josh turner",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "043",
     "titolo": "BILL'S BASIC",
     "brano": "somebody take me home",
-    "autore": "kenny chesney"
+    "autore": "kenny chesney",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "044",
     "titolo": "BILL'S BASIC",
     "brano": "winter wonderland",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "045",
     "titolo": "BILLBOARD",
     "brano": "name on a billboard",
-    "autore": "charley crockett"
+    "autore": "charley crockett",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "046",
     "titolo": "BLACK COFFEE",
     "brano": "all i want for christmas is you",
-    "autore": "mariah carey"
+    "autore": "mariah carey",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "047",
     "titolo": "BLACK COFFEE",
     "brano": "black coffee",
-    "autore": "lacy j dalton"
+    "autore": "lacy j dalton",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "048",
     "titolo": "BLACK COFFEE",
     "brano": "last christmas",
-    "autore": "taylor swift"
+    "autore": "taylor swift",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "049",
     "titolo": "BLACK COFFEE",
     "brano": "party for two",
-    "autore": "shania twain feat. billy currington"
+    "autore": "shania twain feat. billy currington",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "050",
     "titolo": "BLACK COFFEE",
     "brano": "some town somewhere",
-    "autore": "kenny chesney"
+    "autore": "kenny chesney",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "051",
     "titolo": "BLACK COFFEE",
     "brano": "the salt in my tears",
-    "autore": "dolly parton"
+    "autore": "dolly parton",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "052",
     "titolo": "BLACK COFFEE",
     "brano": "undone",
-    "autore": "dean brody"
+    "autore": "dean brody",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "053",
     "titolo": "BLACK COFFEE",
     "brano": "why couldn't be christmas everyday?",
-    "autore": "bianca ryan"
+    "autore": "bianca ryan",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "054",
     "titolo": "BOOMERANG",
     "brano": "i'm still falling",
-    "autore": "slow horses"
+    "autore": "slow horses",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "055",
     "titolo": "BOOTY TO THE FLOOR",
     "brano": "daisy dukes and cowboy boots",
-    "autore": "cowboy troy"
+    "autore": "cowboy troy",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "056",
     "titolo": "BOOZE CRUISE",
     "brano": "the booze cruise",
-    "autore": "blackjack billy"
+    "autore": "blackjack billy",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "057",
     "titolo": "BORN FREE",
     "brano": "born free",
-    "autore": "kid rock"
+    "autore": "kid rock",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "058",
     "titolo": "BORN TO BE GREAT",
     "brano": "some town somewhere",
-    "autore": "kenny chesney"
+    "autore": "kenny chesney",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "059",
     "titolo": "BORROW MY HEART",
     "brano": "borrow my heart",
-    "autore": "taylor henderson"
+    "autore": "taylor henderson",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "060",
     "titolo": "BRING DOWN THE HOUSE",
     "brano": "bring down the house",
-    "autore": "dean brody"
+    "autore": "dean brody",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "061",
     "titolo": "BROKEN HEELS",
     "brano": "broken heels",
-    "autore": "alexandra burke"
+    "autore": "alexandra burke",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "062",
     "titolo": "BRUNCH",
     "brano": "good people",
-    "autore": "josh grider"
+    "autore": "josh grider",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "063",
     "titolo": "BUDDY",
     "brano": "one step forward",
-    "autore": "desert rose band"
+    "autore": "desert rose band",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "064",
     "titolo": "BUILD A FIRE",
     "brano": "build a fire",
-    "autore": "the wanderings hearts"
+    "autore": "the wanderings hearts",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "065",
     "titolo": "BURNIN' UP",
     "brano": "i hope it's me",
-    "autore": "brett kissel"
+    "autore": "brett kissel",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "066",
     "titolo": "BURNING LOVE",
     "brano": "burning love",
-    "autore": "travis tritt"
+    "autore": "travis tritt",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "067",
     "titolo": "BURNING THE DAY",
     "brano": "firefly",
-    "autore": "east love"
+    "autore": "east love",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "068",
     "titolo": "BUSH PARTY",
     "brano": "bush party",
-    "autore": "dean brody"
+    "autore": "dean brody",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "069",
     "titolo": "BY AND BY",
     "brano": "by and by",
-    "autore": "the olson band"
+    "autore": "the olson band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "070",
     "titolo": "CABO SAN LUCAS",
     "brano": "all i want for christmas is a real good than",
-    "autore": "kenny chesney"
+    "autore": "kenny chesney",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "071",
     "titolo": "CABO SAN LUCAS",
     "brano": "cabo san lucas",
-    "autore": "toby keith"
+    "autore": "toby keith",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "072",
     "titolo": "CANDY KISSES",
     "brano": "bottoms up",
-    "autore": "brantley gilbert"
+    "autore": "brantley gilbert",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "073",
     "titolo": "CANDY KISSES",
     "brano": "kick the dust up",
-    "autore": "luke bryan"
+    "autore": "luke bryan",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "074",
     "titolo": "CANDY KISSES",
     "brano": "sweet home alabama",
-    "autore": "lynyrd skynyrd"
+    "autore": "lynyrd skynyrd",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "075",
     "titolo": "CASTAWAY",
     "brano": "castaway",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "076",
     "titolo": "CENTURION",
     "brano": "my heart's broke down",
-    "autore": "dean miller"
+    "autore": "dean miller",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "077",
     "titolo": "CHA CHA SLIDE",
     "brano": "cha cha slide",
-    "autore": "dj casper"
+    "autore": "dj casper",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "078",
     "titolo": "CHANGING DANCE BARN DANCE",
     "brano": "all over again",
-    "autore": "the mavericks"
+    "autore": "the mavericks",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "079",
     "titolo": "CHANGING DANCE BARN DANCE",
     "brano": "dance the night away",
-    "autore": "the mavericks"
+    "autore": "the mavericks",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "080",
     "titolo": "CHANGING POLKA",
     "brano": "oh suzanna",
-    "autore": "yamboo"
+    "autore": "yamboo",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "081",
     "titolo": "CHASING DOWN A GOOD TIME",
     "brano": "chasing down a good time",
-    "autore": "randy houser"
+    "autore": "randy houser",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "082",
     "titolo": "CHECK IN",
     "brano": "stay in your line",
-    "autore": "hinterland"
+    "autore": "hinterland",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "083",
     "titolo": "CHECK IT OUT",
     "brano": "check it out",
-    "autore": "on the larceny"
+    "autore": "on the larceny",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "084",
     "titolo": "CHEEK TO CHEEK",
     "brano": "bailando",
-    "autore": "enrique iglesias"
+    "autore": "enrique iglesias",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "085",
     "titolo": "CHEEK TO CHEEK",
     "brano": "stuck like glue",
-    "autore": "sugarland"
+    "autore": "sugarland",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "086",
     "titolo": "CHEERLEADER",
     "brano": "cheerleader",
-    "autore": "omi"
+    "autore": "omi",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "087",
     "titolo": "CHEYENNE",
     "brano": "cadillac tears",
-    "autore": "kevin denney"
+    "autore": "kevin denney",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "088",
     "titolo": "CHEYENNE",
     "brano": "feels just liken a love song",
-    "autore": "sara evans"
+    "autore": "sara evans",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "089",
     "titolo": "CHEYENNE",
     "brano": "i'm gonna getcha good",
-    "autore": "shania twain"
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "090",
     "titolo": "CHEYENNE",
     "brano": "mamma mia",
-    "autore": "elena feat glance"
+    "autore": "elena feat glance",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "091",
     "titolo": "CHEYENNE",
     "brano": "original ghostbusters theme song",
-    "autore": "ray parker jr"
+    "autore": "ray parker jr",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "092",
     "titolo": "CHEYENNE",
     "brano": "santa's gonna take it all black",
-    "autore": "toby keith"
+    "autore": "toby keith",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "093",
     "titolo": "CHEYENNE",
     "brano": "the big one",
-    "autore": "george strait"
+    "autore": "george strait",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "094",
     "titolo": "CHEYENNE",
     "brano": "up",
-    "autore": "shania twain"
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "095",
     "titolo": "CHEYENNE",
     "brano": "white christmas",
-    "autore": "giuliano palma"
+    "autore": "giuliano palma",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "096",
     "titolo": "CHEYENNE'S ROCK",
     "brano": "it's late",
-    "autore": "shakin' stevens"
+    "autore": "shakin' stevens",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "097",
     "titolo": "CHILL FACTOR",
     "brano": "born it to the ground",
-    "autore": "nickelback"
+    "autore": "nickelback",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "098",
     "titolo": "CHILL FACTOR",
     "brano": "calling all the monster",
-    "autore": "china anne mcclain"
+    "autore": "china anne mcclain",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "099",
     "titolo": "CHILL FACTOR",
     "brano": "last night (line dance party)",
-    "autore": "madison cowboy & dj robbie"
+    "autore": "madison cowboy & dj robbie",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "100",
     "titolo": "CHILL FACTOR",
     "brano": "last night (original version)",
-    "autore": "chris handerson feat dj robbie"
+    "autore": "chris handerson feat dj robbie",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "101",
     "titolo": "CHILL FACTOR",
     "brano": "rock on",
-    "autore": "hunter"
+    "autore": "hunter",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "102",
     "titolo": "CHOO CHOO TRAIN",
     "brano": "baby likes to rock it",
-    "autore": "the tractors"
+    "autore": "the tractors",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "103",
     "titolo": "CHOP",
     "brano": "shut up and fish",
-    "autore": "maddie & tae"
+    "autore": "maddie & tae",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "104",
     "titolo": "CHOP CHOP",
     "brano": "chop chop",
-    "autore": "bruno legrizzly"
+    "autore": "bruno legrizzly",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "105",
     "titolo": "CINNAMON AND BLUE",
     "brano": "creekwater clear",
-    "autore": "charlie worsham with elle king"
+    "autore": "charlie worsham with elle king",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "106",
     "titolo": "CITY OF MUSIC",
     "brano": "city of music",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "107",
     "titolo": "CLICKETY CLACK",
     "brano": "southbound train",
-    "autore": "travis tritt"
+    "autore": "travis tritt",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "108",
     "titolo": "COASTIN",
     "brano": "lord of the dance",
-    "autore": "ronan hardiman"
+    "autore": "ronan hardiman",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "109",
     "titolo": "COFFEE",
     "brano": "why wouldn't wanna be me",
-    "autore": "keith urban"
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "110",
     "titolo": "COME MY WAY",
     "brano": "come my way",
-    "autore": "raynes"
+    "autore": "raynes",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "111",
     "titolo": "COME TO DANCE",
     "brano": "carry me to back virginia",
-    "autore": "old crow medicine show"
+    "autore": "old crow medicine show",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "112",
     "titolo": "COPPERHEAD ROAD",
     "brano": "copperhead road",
-    "autore": "steve earle"
+    "autore": "steve earle",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "113",
     "titolo": "COTTON EYED JOE",
     "brano": "cotton eye joe",
-    "autore": "rednex"
+    "autore": "rednex",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "114",
     "titolo": "COUNTRY AS CAN BE",
     "brano": "call me",
-    "autore": "blondie"
+    "autore": "blondie",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "115",
     "titolo": "COUNTRY AS CAN BE",
     "brano": "christmas (baby please come home)",
-    "autore": "lady antebellum"
+    "autore": "lady antebellum",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "116",
     "titolo": "COUNTRY AS CAN BE",
     "brano": "country as a boy can be",
-    "autore": "brady seals"
+    "autore": "brady seals",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "117",
     "titolo": "COUNTRY GIRL SHAKE",
     "brano": "country girl (shake it for me)",
-    "autore": "luke bryan"
+    "autore": "luke bryan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "118",
     "titolo": "COUNTRY ROADS",
     "brano": "country roads",
-    "autore": "hermes house band"
+    "autore": "hermes house band",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "119",
     "titolo": "COWBOY BIG UP",
     "brano": "cowboy up",
-    "autore": "jill johnson"
+    "autore": "jill johnson",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "120",
     "titolo": "CASANOVA COWBOY",
     "brano": "blue christmas",
-    "autore": "sheryl crow"
+    "autore": "sheryl crow",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "121",
     "titolo": "CASANOVA COWBOY",
     "brano": "cowboy casanova",
-    "autore": "carrie underwood"
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "122",
     "titolo": "CASANOVA COWBOY",
     "brano": "must be a woman",
-    "autore": "gord bamford"
+    "autore": "gord bamford",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "123",
     "titolo": "CASANOVA COWBOY",
     "brano": "true blue",
-    "autore": "madonna"
+    "autore": "madonna",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "124",
     "titolo": "COWBOY STRUT",
     "brano": "my next broken heart",
-    "autore": "brooks & dunn"
+    "autore": "brooks & dunn",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "125",
     "titolo": "COWBOY UP",
     "brano": "bury the shovel",
-    "autore": "clay walker"
+    "autore": "clay walker",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "126",
     "titolo": "CRASH AND BURN",
     "brano": "crush and burn",
-    "autore": "thomas rhett"
+    "autore": "thomas rhett",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "127",
     "titolo": "CRAZY SONG",
     "brano": "what a song can do",
-    "autore": "lady a"
+    "autore": "lady a",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "128",
     "titolo": "CUPID SHUFFLE",
     "brano": "down south shuffle",
-    "autore": "r3 feat big robb"
+    "autore": "r3 feat big robb",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "129",
     "titolo": "CUT A RUG",
     "brano": "roxanne's bayou",
-    "autore": "billy yates"
+    "autore": "billy yates",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "130",
     "titolo": "CUT AND STRUT",
     "brano": "suds in the bucket",
-    "autore": "sara evans"
+    "autore": "sara evans",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "131",
     "titolo": "DADDY'S MONEY",
     "brano": "daddy's money",
-    "autore": "ricochet"
+    "autore": "ricochet",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "132",
     "titolo": "DAMN!",
     "brano": "damn (feat dave mustaine)",
-    "autore": "brett kissel"
+    "autore": "brett kissel",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "133",
     "titolo": "DANCE AGAIN",
     "brano": "standin' still",
-    "autore": "the clark family experience"
+    "autore": "the clark family experience",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "134",
     "titolo": "DANCING VIOLINS",
     "brano": "duelling violins",
-    "autore": "ronan hardiman"
+    "autore": "ronan hardiman",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "135",
     "titolo": "DARK SIDE",
     "brano": "hell if i know",
-    "autore": "chase bryant"
+    "autore": "chase bryant",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "136",
     "titolo": "DAWNING",
     "brano": "new day dawning",
-    "autore": "wynonna judd"
+    "autore": "wynonna judd",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "137",
     "titolo": "DAY JOB",
     "brano": "day job",
-    "autore": "gord bamford"
+    "autore": "gord bamford",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "138",
     "titolo": "DEAR LIFE",
     "brano": "dear life",
-    "autore": "high valley"
+    "autore": "high valley",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "139",
     "titolo": "DEVIL'S SIDE",
     "brano": "bad side",
-    "autore": "moonlight social"
+    "autore": "moonlight social",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "140",
     "titolo": "DIANE",
     "brano": "diane",
-    "autore": "cam"
+    "autore": "cam",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "141",
     "titolo": "DIG YOUR HEELS",
     "brano": "here's to & I",
-    "autore": "the mc clymons"
+    "autore": "the mc clymons",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "142",
     "titolo": "DIM THE LIGHT",
     "brano": "the kind of love we make",
-    "autore": "luke combos"
+    "autore": "luke combos",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "143",
     "titolo": "DING DANG DARN IT",
     "brano": "din dang darn it",
-    "autore": "ken domash"
+    "autore": "ken domash",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "144",
     "titolo": "DOCTOR DOCTOR",
     "brano": "bad case of loving you",
-    "autore": "robert palmer"
+    "autore": "robert palmer",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "145",
     "titolo": "DON'T DRINK THE WATHER",
     "brano": "don't drink the wather",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "146",
     "titolo": "DON'T MAKE ME BEG",
     "brano": "don't make me beg",
-    "autore": "steve holy"
+    "autore": "steve holy",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "147",
     "titolo": "DOUBLE DUTCH",
     "brano": "some beach",
-    "autore": "blake shelton"
+    "autore": "blake shelton",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "148",
     "titolo": "DRIVEN",
     "brano": "driven",
-    "autore": "casey james"
+    "autore": "casey james",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "149",
     "titolo": "DUTY FREE",
     "brano": "natural disaster",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "150",
     "titolo": "EASY COME EASY GO",
     "brano": "hillbilly rock hillibilly roll",
-    "autore": "die campbell"
+    "autore": "die campbell",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "151",
     "titolo": "EASY TWIST",
     "brano": "anyone can play",
-    "autore": "gle campbell"
+    "autore": "gle campbell",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "152",
     "titolo": "EASY WAY",
     "brano": "just be you",
-    "autore": "billy yates"
+    "autore": "billy yates",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "153",
     "titolo": "EIGHT SECOND RIDE",
     "brano": "eight second ride",
-    "autore": "jake owen"
+    "autore": "jake owen",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "154",
     "titolo": "ELECTRIC SLIDE",
     "brano": "achy breaky heart",
-    "autore": "billy ray"
+    "autore": "billy ray",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "155",
     "titolo": "ELECTRIC SLIDE",
     "brano": "jingle bell rock",
-    "autore": "rascal flatts"
+    "autore": "rascal flatts",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "156",
     "titolo": "ELECTRIC SLIDE",
     "brano": "let me be there",
-    "autore": "nathan carter"
+    "autore": "nathan carter",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "157",
     "titolo": "ELECTRIC STOMP",
     "brano": "long road to nashville",
-    "autore": "the woolpackers"
+    "autore": "the woolpackers",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "158",
     "titolo": "ENDLESS",
     "brano": "less and less",
-    "autore": "travis tritt"
+    "autore": "travis tritt",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "159",
     "titolo": "EVERY STAR",
     "brano": "even the stars fall for you",
-    "autore": "keith urban"
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "160",
     "titolo": "FAKE ID",
     "brano": "fake id",
-    "autore": "big & rich"
+    "autore": "big & rich",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "161",
     "titolo": "FEEL THE MOMENT",
     "brano": "walla walla prison",
-    "autore": "scotty alexander"
+    "autore": "scotty alexander",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "162",
     "titolo": "FIFTY TWO BEERS AGO",
     "brano": "beers ago",
-    "autore": "toby keith"
+    "autore": "toby keith",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "163",
     "titolo": "FIGHT",
     "brano": "fight!",
-    "autore": "lee dewyze"
+    "autore": "lee dewyze",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "164",
     "titolo": "FINE",
     "brano": "fine",
-    "autore": "the abrams"
+    "autore": "the abrams",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "165",
     "titolo": "FIREBALL",
     "brano": "fireball",
-    "autore": "pitbull"
+    "autore": "pitbull",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "166",
     "titolo": "FIRST STOMP",
     "brano": "cotton eyed joe",
-    "autore": "rednex"
+    "autore": "rednex",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "167",
     "titolo": "FIRST STOMP",
     "brano": "old pop in a oak",
-    "autore": "rednex"
+    "autore": "rednex",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "168",
     "titolo": "FIVE MINUTES",
     "brano": "texas as hell",
-    "autore": "miranda lambert"
+    "autore": "miranda lambert",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "169",
     "titolo": "FLASHDANCE",
     "brano": "still in love with you",
-    "autore": "travis tritt"
+    "autore": "travis tritt",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "170",
     "titolo": "FLICK FLAK",
     "brano": "freag flag",
-    "autore": "alex williams"
+    "autore": "alex williams",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "171",
     "titolo": "FLOBIE SLIDE",
     "brano": "i'm holdin'on to love",
-    "autore": "shania twain"
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "172",
     "titolo": "FLOWERS",
     "brano": "flowers",
-    "autore": "miley cyrus"
+    "autore": "miley cyrus",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "173",
     "titolo": "FOOLISH HEART",
     "brano": "mary",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "174",
     "titolo": "FOOTLOOSE",
     "brano": "footloose",
-    "autore": "blake shelton"
+    "autore": "blake shelton",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "175",
     "titolo": "FOR BETTER FOR WORSE",
     "brano": "for better for worse",
-    "autore": "old man markley"
+    "autore": "old man markley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "176",
     "titolo": "FOREVER",
     "brano": "27 in the checking",
-    "autore": "kendall shaffer"
+    "autore": "kendall shaffer",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "177",
     "titolo": "FOREVER YOUNG",
     "brano": "young forever",
-    "autore": "high valley"
+    "autore": "high valley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "178",
     "titolo": "FORGIVE ME FRIEND",
     "brano": "forgive me friend",
-    "autore": "smith & thell"
+    "autore": "smith & thell",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "179",
     "titolo": "FOUR STAR BOOGIE",
     "brano": "get over it",
-    "autore": "eagles"
+    "autore": "eagles",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "180",
     "titolo": "FRENCH KISS",
     "brano": "our first kiss",
-    "autore": "jeff wood"
+    "autore": "jeff wood",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "181",
     "titolo": "FRIENDS",
     "brano": "you've been a friend to me",
-    "autore": "bryan adams"
+    "autore": "bryan adams",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "182",
     "titolo": "FROM A TO Z",
     "brano": "trip around the sound",
-    "autore": "kenny chesney"
+    "autore": "kenny chesney",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "183",
     "titolo": "FUNNY JOKE",
     "brano": "no night like this",
-    "autore": "cath purcell"
+    "autore": "cath purcell",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "184",
     "titolo": "GALWAY GATHERING",
     "brano": "games people play",
-    "autore": "tracy bird"
+    "autore": "tracy bird",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "185",
     "titolo": "GAME ON",
     "brano": "justin sayin",
-    "autore": "james parker band"
+    "autore": "james parker band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "186",
     "titolo": "GET ALONG",
     "brano": "get along",
-    "autore": "surrender hill"
+    "autore": "surrender hill",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "187",
     "titolo": "GET UP !",
     "brano": "up",
-    "autore": "olly murs"
+    "autore": "olly murs",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "188",
     "titolo": "GHOST TOWN",
     "brano": "ghost town",
-    "autore": "sam outlaw"
+    "autore": "sam outlaw",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "189",
     "titolo": "GIDDY UP!",
     "brano": "giddy up!",
-    "autore": "shania twain"
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "190",
     "titolo": "GIVES ME SHIVERS",
     "brano": "shivers",
-    "autore": "ed sheeran"
+    "autore": "ed sheeran",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "191",
     "titolo": "GLASS OF WINE",
     "brano": "cry to me",
-    "autore": "kilotile"
+    "autore": "kilotile",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "192",
     "titolo": "GO CAT GO",
     "brano": "please mama please",
-    "autore": "go cat go"
+    "autore": "go cat go",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "193",
     "titolo": "GO HOME",
     "brano": "you're drunk go home",
-    "autore": "kelsea ballerini"
+    "autore": "kelsea ballerini",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "194",
     "titolo": "GOD IS GOOD",
     "brano": "god is good",
-    "autore": "paul overstreet"
+    "autore": "paul overstreet",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "195",
     "titolo": "GOING GOING GONE",
     "brano": "going going gone",
-    "autore": "maddie poppe"
+    "autore": "maddie poppe",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "196",
     "titolo": "GOLIATH",
     "brano": "goliath",
-    "autore": "smith & thell"
+    "autore": "smith & thell",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "197",
     "titolo": "GONE FOR YOU",
     "brano": "gone, gone, gone",
-    "autore": "phillip phillips"
+    "autore": "phillip phillips",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "198",
     "titolo": "GOOD THINGS",
     "brano": "good things",
-    "autore": "keith urban"
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "199",
     "titolo": "GOTCHA",
     "brano": "movin' on",
-    "autore": "the crazy bulls band"
+    "autore": "the crazy bulls band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "200",
     "titolo": "GRAVITY",
     "brano": "gravity",
-    "autore": "stephen kellog & the sixers"
+    "autore": "stephen kellog & the sixers",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "201",
     "titolo": "GREAT GAMBLE",
     "brano": "losing at loving",
-    "autore": "blue county"
+    "autore": "blue county",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "202",
     "titolo": "GROOVY LOVE",
     "brano": "if jesus love me",
-    "autore": "saint lanvain"
+    "autore": "saint lanvain",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "203",
     "titolo": "GROWING PAINS",
     "brano": "grawing pains",
-    "autore": "breland"
+    "autore": "breland",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "204",
     "titolo": "WALKIN' THE LINE",
     "brano": "blown away",
-    "autore": "carrie underwood"
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "205",
     "titolo": "HALLELUL Y'ALL",
     "brano": "halleluy'all",
-    "autore": "bomshel"
+    "autore": "bomshel",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "206",
     "titolo": "HALLELUJAH",
     "brano": "joy's gonna come",
-    "autore": "the kingsmen"
+    "autore": "the kingsmen",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "207",
     "titolo": "HAND SHAKE",
     "brano": "do you wanna?",
-    "autore": "kyle shobe & the walk 'em boys"
+    "autore": "kyle shobe & the walk 'em boys",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "208",
     "titolo": "HEADS OR TAILS",
     "brano": "she had me (at heads carolina)",
-    "autore": "cole swindell"
+    "autore": "cole swindell",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "209",
     "titolo": "HEADIN WEST",
     "brano": "headin' west",
-    "autore": "daly stephenson"
+    "autore": "daly stephenson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "210",
     "titolo": "HEART ATTACK",
     "brano": "heart attack",
-    "autore": "boy named banjo"
+    "autore": "boy named banjo",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "211",
     "titolo": "HEAVEN ON DIRT",
     "brano": "heaven on dirt",
-    "autore": "doc walker"
+    "autore": "doc walker",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "212",
     "titolo": "HEEL TOE POLKA",
     "brano": "barn dance",
-    "autore": "mark geslison & geoff groberg"
+    "autore": "mark geslison & geoff groberg",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "213",
     "titolo": "HEYDAY TONIGHT",
     "brano": "heyday tonight",
-    "autore": "aaron watson"
+    "autore": "aaron watson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "214",
     "titolo": "HILLBILLY GIRL",
     "brano": "hillbilly girl",
-    "autore": "lisa mchugh"
+    "autore": "lisa mchugh",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "215",
     "titolo": "HOLD",
     "brano": "maybe i shouldn't",
-    "autore": "matt borden"
+    "autore": "matt borden",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "216",
     "titolo": "HOLD ON TO ME",
     "brano": "hold on to me",
-    "autore": "music travel love"
+    "autore": "music travel love",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "217",
     "titolo": "HOLD YOUR HORSES",
     "brano": "hold your horses",
-    "autore": "e type"
+    "autore": "e type",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "218",
     "titolo": "HOLLY'S CHURCH",
     "brano": "my church",
-    "autore": "maren morris"
+    "autore": "maren morris",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "219",
     "titolo": "HONEY SWEET HONEY",
     "brano": "honey honey",
-    "autore": "derek ryan & lisa mchugh"
+    "autore": "derek ryan & lisa mchugh",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "220",
     "titolo": "HONKY TONK WAY",
     "brano": "i see country",
-    "autore": "ian munsick"
+    "autore": "ian munsick",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "221",
     "titolo": "HURRY UP SLOW DOWN",
     "brano": "hurry up, slow down",
-    "autore": "don derby"
+    "autore": "don derby",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "222",
     "titolo": "I BELIEVE IN YOU",
     "brano": "i believe in you",
-    "autore": "ward thomas"
+    "autore": "ward thomas",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "223",
     "titolo": "I TELL YOU WANT",
     "brano": "i told you so",
-    "autore": "keith urban"
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "224",
     "titolo": "INFINITY",
     "brano": "fiddle",
-    "autore": "bomshel"
+    "autore": "bomshel",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "225",
     "titolo": "IRISH CHANGE",
     "brano": "tell me ma",
-    "autore": "sham rock"
+    "autore": "sham rock",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "226",
     "titolo": "IRISH SPIRIT",
     "brano": "celtic rock",
-    "autore": "david king"
+    "autore": "david king",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "227",
     "titolo": "IRISH STEW",
     "brano": "american land",
-    "autore": "bruce springsteen"
+    "autore": "bruce springsteen",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "228",
     "titolo": "IRISH STEW",
     "brano": "cowboy yodel song",
-    "autore": "cliona hagan"
+    "autore": "cliona hagan",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "229",
     "titolo": "IRISH STEW",
     "brano": "cowboy's sweetheart",
-    "autore": "leann rimes"
+    "autore": "leann rimes",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "230",
     "titolo": "IRISH STEW",
     "brano": "irish stew",
-    "autore": "sham rock"
+    "autore": "sham rock",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "231",
     "titolo": "IRISH STEW",
     "brano": "the merry christmas polka",
-    "autore": "jim reeves"
+    "autore": "jim reeves",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "232",
     "titolo": "ISLANDS IN THE STREAM",
     "brano": "islands in the stream",
-    "autore": "dolly parton"
+    "autore": "dolly parton",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "233",
     "titolo": "IT HAPPENS",
     "brano": "it happens",
-    "autore": "sugarland"
+    "autore": "sugarland",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "234",
     "titolo": "IT'S ALRIGHT",
     "brano": "it's alright to be a redneck",
-    "autore": "alan jackson"
+    "autore": "alan jackson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "235",
     "titolo": "IT'S AMERICA",
     "brano": "it's america",
-    "autore": "rodney atkins"
+    "autore": "rodney atkins",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "236",
     "titolo": "IT'S EASY",
     "brano": "you lied to me",
-    "autore": "wynonna judd"
+    "autore": "wynonna judd",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "237",
     "titolo": "ITALIAN LINE DANCE",
     "brano": "italian line dance crowd",
-    "autore": "george mc anthony"
+    "autore": "george mc anthony",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "238",
     "titolo": "JACK DANIEL'S",
     "brano": "favorite state of mind",
-    "autore": "josh gracin"
+    "autore": "josh gracin",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "239",
     "titolo": "JACKET JOE",
     "brano": "trapper jacket joe",
-    "autore": "george mc anthony"
+    "autore": "george mc anthony",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "240",
     "titolo": "JR",
     "brano": "all you need is me",
-    "autore": "joey + rory"
+    "autore": "joey + rory",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "241",
     "titolo": "JUMPING JAMBOREE",
     "brano": "dephine",
-    "autore": "ranchhands"
+    "autore": "ranchhands",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "242",
     "titolo": "JUST A GIRL",
     "brano": "just a girl",
-    "autore": "lady antebellum"
+    "autore": "lady antebellum",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "243",
     "titolo": "KENTUCKY CLOVER",
     "brano": "billy the kid",
-    "autore": "chris ledoux"
+    "autore": "chris ledoux",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "244",
     "titolo": "KENTUCKY CLOVER",
     "brano": "it's not ok",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "245",
     "titolo": "KILL THE SPIDERS",
     "brano": "kill the spider",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "246",
     "titolo": "KINDA LIKE NOW",
     "brano": "kinda like now",
-    "autore": "aaron scherz"
+    "autore": "aaron scherz",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "247",
     "titolo": "LALALI",
     "brano": "this is not goodbye",
-    "autore": "jhonny reid"
+    "autore": "jhonny reid",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "248",
     "titolo": "LARGER THAN LIFE",
     "brano": "larger than life",
-    "autore": "pinkzebra"
+    "autore": "pinkzebra",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "249",
     "titolo": "LAST CALL",
     "brano": "shout mountain music",
-    "autore": "old crow medicine show"
+    "autore": "old crow medicine show",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "250",
     "titolo": "LAST MINUTE",
     "brano": "baptized",
-    "autore": "daughtry"
+    "autore": "daughtry",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "251",
     "titolo": "LAY DOWN AND DANCE",
     "brano": "baby let's lay down and dance",
-    "autore": "garth brooks"
+    "autore": "garth brooks",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "252",
     "titolo": "LAY LOW",
     "brano": "lay low",
-    "autore": "josh turner"
+    "autore": "josh turner",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "253",
     "titolo": "LEAVE IT UP",
     "brano": "i'm your man",
-    "autore": "bon jovi"
+    "autore": "bon jovi",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "254",
     "titolo": "LEAVE IT UP",
     "brano": "we got it going on",
-    "autore": "bon jovi"
+    "autore": "bon jovi",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "255",
     "titolo": "TIPSY",
     "brano": "a bar song (tipsy)",
-    "autore": "shaboozey"
+    "autore": "shaboozey",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "256",
     "titolo": "LEMON SQUEEZY",
     "brano": "good to go",
-    "autore": "lonis"
+    "autore": "lonis",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "257",
     "titolo": "LET'S GET UP",
     "brano": "you're gonna get back up",
-    "autore": "lisa mchugh"
+    "autore": "lisa mchugh",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "258",
     "titolo": "LIAR",
     "brano": "liar",
-    "autore": "jelly roll"
+    "autore": "jelly roll",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "259",
     "titolo": "LIGHTING POLKA",
     "brano": "the wind",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "260",
     "titolo": "LIKE IT'S CHRISTMAS",
     "brano": "like it's christmas",
-    "autore": "jonas brothers"
+    "autore": "jonas brothers",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "261",
     "titolo": "LINDI SHUFFLE",
     "brano": "i need more of you",
-    "autore": "the bellamy brothers"
+    "autore": "the bellamy brothers",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "262",
     "titolo": "LIT",
     "brano": "lit",
-    "autore": "trace adkins"
+    "autore": "trace adkins",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "263",
     "titolo": "LITTLE BIT LATER ON",
     "brano": "little bit later on",
-    "autore": "luke bryan"
+    "autore": "luke bryan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "264",
     "titolo": "LITTLE BURRITO",
     "brano": "my people",
-    "autore": "james johnston"
+    "autore": "james johnston",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "265",
     "titolo": "LITTLE WHITE CHURCH",
     "brano": "little white church",
-    "autore": "little big town"
+    "autore": "little big town",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "266",
     "titolo": "LONELY DRUM",
     "brano": "lonely drum",
-    "autore": "aaron goodvin"
+    "autore": "aaron goodvin",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "267",
     "titolo": "LONG LONG WAY",
     "brano": "long long way",
-    "autore": "alan jackson"
+    "autore": "alan jackson",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "268",
     "titolo": "LOOKIN' FOR ME",
     "brano": "no stone unterned",
-    "autore": "randy houser"
+    "autore": "randy houser",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "269",
     "titolo": "LORDY",
     "brano": "lordy lordy",
-    "autore": "brave giant"
+    "autore": "brave giant",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "270",
     "titolo": "LOST",
     "brano": "lost",
-    "autore": "hunter brother"
+    "autore": "hunter brother",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "271",
     "titolo": "LOST IN ME",
     "brano": "wagon wheel",
-    "autore": "nathan carter"
+    "autore": "nathan carter",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "272",
     "titolo": "LOVE IT",
     "brano": "hard not to love it",
-    "autore": "steve moakler"
+    "autore": "steve moakler",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "273",
     "titolo": "LOVE SOMEONE",
     "brano": "love someone",
-    "autore": "brett eldredge"
+    "autore": "brett eldredge",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "274",
     "titolo": "LOVELINE",
     "brano": "how i'll always be",
-    "autore": "tim mcgraw"
+    "autore": "tim mcgraw",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "275",
     "titolo": "LUCKY ME",
     "brano": "lucky me",
-    "autore": "randy houser"
+    "autore": "randy houser",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "276",
     "titolo": "MAKE YOU MINE",
     "brano": "make you mine",
-    "autore": "high valley"
+    "autore": "high valley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "277",
     "titolo": "ME AND JOHNNY CASH",
     "brano": "me and jhonny cash",
-    "autore": "rainey qualley"
+    "autore": "rainey qualley",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "278",
     "titolo": "MEMORY (Terzoni)",
     "brano": "slow burn",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "279",
     "titolo": "MIDNIGHT TRAIN",
     "brano": "midnight train",
-    "autore": "the washboard union"
+    "autore": "the washboard union",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "280",
     "titolo": "MILKY WAY",
     "brano": "anywhere you wanna go",
-    "autore": "alan doyle"
+    "autore": "alan doyle",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "281",
     "titolo": "MISS OUR DAYS",
     "brano": "miss our days",
-    "autore": "aalwoods"
+    "autore": "aalwoods",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "282",
     "titolo": "MONEY ON YOU",
     "brano": "money on you",
-    "autore": "chad brownlee"
+    "autore": "chad brownlee",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "283",
     "titolo": "MR. FUNKY",
     "brano": "hillibillies",
-    "autore": "hot apple pie"
+    "autore": "hot apple pie",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "284",
     "titolo": "MR. LONELY",
     "brano": "mr lonely",
-    "autore": "midland"
+    "autore": "midland",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "285",
     "titolo": "MR POLICEMAN",
     "brano": "mr. policeman",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "286",
     "titolo": "MY BLUE JEANS",
     "brano": "if you love somebody",
-    "autore": "kevin sharp"
+    "autore": "kevin sharp",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "287",
     "titolo": "MY MARIA",
     "brano": "breakin up thing",
-    "autore": "terri clark"
+    "autore": "terri clark",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "288",
     "titolo": "MY MARIA",
     "brano": "crying on a suitcase",
-    "autore": "casey james"
+    "autore": "casey james",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "289",
     "titolo": "MY MARIA",
     "brano": "me and maxine",
-    "autore": "sammy kershaw"
+    "autore": "sammy kershaw",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "290",
     "titolo": "MY MARIA",
     "brano": "my maria",
-    "autore": "brooks & dunn"
+    "autore": "brooks & dunn",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "291",
     "titolo": "MY MARIA",
     "brano": "need you no",
-    "autore": "lady antebellum"
+    "autore": "lady antebellum",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "292",
     "titolo": "MY MARIA",
     "brano": "that look",
-    "autore": "aaron watson"
+    "autore": "aaron watson",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "293",
     "titolo": "MY MARIA",
     "brano": "tougher than the rest",
-    "autore": "chris ledoux"
+    "autore": "chris ledoux",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "294",
     "titolo": "MY MARIA",
     "brano": "when your lips are so close",
-    "autore": "gord bamford"
+    "autore": "gord bamford",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "295",
     "titolo": "MYSTERIOUS GIRL",
     "brano": "99.9% sure",
-    "autore": "the nashville stars"
+    "autore": "the nashville stars",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "296",
     "titolo": "NANCY MULLIGAN",
     "brano": "nancy mulligan",
-    "autore": "ed sheeran"
+    "autore": "ed sheeran",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "297",
     "titolo": "NEVERMIND",
     "brano": "las vegas gold",
-    "autore": "austin whalert"
+    "autore": "austin whalert",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "298",
     "titolo": "NEW TATOO",
     "brano": "new tattoo",
-    "autore": "tim hicks"
+    "autore": "tim hicks",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "299",
     "titolo": "NEW TRUCK",
     "brano": "new truck",
-    "autore": "dylan scott"
+    "autore": "dylan scott",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "300",
     "titolo": "NIOLON",
     "brano": "throwback",
-    "autore": "homegrown band"
+    "autore": "homegrown band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "301",
     "titolo": "NO BLAME",
     "brano": "blame",
-    "autore": "james johnston"
+    "autore": "james johnston",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "302",
     "titolo": "NO TURNING BACK",
     "brano": "dark horse",
-    "autore": "aaron watson"
+    "autore": "aaron watson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "303",
     "titolo": "NOTHING BUT YOU",
     "brano": "nothing but you",
-    "autore": "leaving thomas"
+    "autore": "leaving thomas",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "304",
     "titolo": "NOTHING LIKE THIS",
     "brano": "ain't seen nothing",
-    "autore": "paper kings"
+    "autore": "paper kings",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "305",
     "titolo": "OLD STUFF",
     "brano": "the old stuff",
-    "autore": "b thomas"
+    "autore": "b thomas",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "306",
     "titolo": "ONE MARGARITA",
     "brano": "one margarita",
-    "autore": "luke bryan"
+    "autore": "luke bryan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "307",
     "titolo": "ONLY IN AMERICA",
     "brano": "only in america",
-    "autore": "brooks & dunn"
+    "autore": "brooks & dunn",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "308",
     "titolo": "OPEN HEART COWBOY",
     "brano": "little yellow blanket",
-    "autore": "dean brody"
+    "autore": "dean brody",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "309",
     "titolo": "OREGON",
     "brano": "getaway truck",
-    "autore": "aaron watson"
+    "autore": "aaron watson",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "310",
     "titolo": "OUT OF MY MIND",
     "brano": "drive out of my mind",
-    "autore": "kassi ashton"
+    "autore": "kassi ashton",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "311",
     "titolo": "OVERRATED",
     "brano": "overrated",
-    "autore": "tim mcgraw"
+    "autore": "tim mcgraw",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "312",
     "titolo": "P3",
     "brano": "take it or break it",
-    "autore": "wilson fairchild"
+    "autore": "wilson fairchild",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "313",
     "titolo": "P8",
     "brano": "boys in boots",
-    "autore": "tania kernaghan"
+    "autore": "tania kernaghan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "314",
     "titolo": "PARIS TENNESSEE",
     "brano": "paris tennessee",
-    "autore": "tracy lawrence"
+    "autore": "tracy lawrence",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "315",
     "titolo": "PATIENT HEART",
     "brano": "patient hearts",
-    "autore": "bekka & billy"
+    "autore": "bekka & billy",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "316",
     "titolo": "PAY ME MY MONEY DOWN",
     "brano": "pay me my money down",
-    "autore": "bruce springsteen"
+    "autore": "bruce springsteen",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "317",
     "titolo": "PERFECT SUNSET",
     "brano": "better off in love",
-    "autore": "george canyon"
+    "autore": "george canyon",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "318",
     "titolo": "PETER PAN",
     "brano": "when im grow up",
-    "autore": "the raging idiots"
+    "autore": "the raging idiots",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "319",
     "titolo": "PICK A BALE",
     "brano": "pick a bale of cotton",
-    "autore": "riverside"
+    "autore": "riverside",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "320",
     "titolo": "PIZZA AND BEER",
     "brano": "dreaming enough to get me by",
-    "autore": "tony ramey"
+    "autore": "tony ramey",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "321",
     "titolo": "POP CORN",
     "brano": "corn",
-    "autore": "blake shelton"
+    "autore": "blake shelton",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "322",
     "titolo": "POTA",
     "brano": "kentucky",
-    "autore": "tiziano incani"
+    "autore": "tiziano incani",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "323",
     "titolo": "POWERFULL STUFF",
     "brano": "powerfull stuff",
-    "autore": "rascal flatts"
+    "autore": "rascal flatts",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "324",
     "titolo": "PRESS REWIND",
     "brano": "take it back",
-    "autore": "jef miles"
+    "autore": "jef miles",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "325",
     "titolo": "PRETTY MAE",
     "brano": "ballad of pretty mae",
-    "autore": "phill vassar"
+    "autore": "phill vassar",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "326",
     "titolo": "PRISCILLA",
     "brano": "priscilla",
-    "autore": "miranda lambert"
+    "autore": "miranda lambert",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "327",
     "titolo": "PUDDLE OF LOVE",
     "brano": "puddle of love",
-    "autore": "mason ramsey"
+    "autore": "mason ramsey",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "328",
     "titolo": "QUICKLY",
     "brano": "working on a tan",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "329",
     "titolo": "QUITTER",
     "brano": "quitter",
-    "autore": "carrie underwood"
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "330",
     "titolo": "RADAR LOVE",
     "brano": "radar love",
-    "autore": "the bunch"
+    "autore": "the bunch",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "331",
     "titolo": "RAISE SOME HELL",
     "brano": "raise some hell",
-    "autore": "dirty river boys"
+    "autore": "dirty river boys",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "332",
     "titolo": "RAMPAMPAM",
     "brano": "rampampam",
-    "autore": "minelli"
+    "autore": "minelli",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "333",
     "titolo": "READY FOR IT",
     "brano": "this is it",
-    "autore": "oh the larceny"
+    "autore": "oh the larceny",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "334",
     "titolo": "REAL FRIENDS",
     "brano": "carry you home",
-    "autore": "thomas ward"
+    "autore": "thomas ward",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "335",
     "titolo": "RECREATION LAND",
     "brano": "recreation land",
-    "autore": "tristan horncastle"
+    "autore": "tristan horncastle",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "336",
     "titolo": "RECTO VERSO",
     "brano": "something to die for",
-    "autore": "fiona culley"
+    "autore": "fiona culley",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "337",
     "titolo": "RED CARPET",
     "brano": "shot in the dark",
-    "autore": "trea landon"
+    "autore": "trea landon",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "338",
     "titolo": "REDNECK ANGEL",
     "brano": "brighter than the sun",
-    "autore": "colbie cailat"
+    "autore": "colbie cailat",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "339",
     "titolo": "REDNECK ANGEL",
     "brano": "if today was your last day",
-    "autore": "nickelback"
+    "autore": "nickelback",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "340",
     "titolo": "REDNECK ANGEL",
     "brano": "merry go round",
-    "autore": "the janedear girls"
+    "autore": "the janedear girls",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "341",
     "titolo": "RESPECT GIRL",
     "brano": "don't wanna love him",
-    "autore": "adley"
+    "autore": "adley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "342",
     "titolo": "RHINESTONE",
     "brano": "rhinestone world",
-    "autore": "dallas smith"
+    "autore": "dallas smith",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "343",
     "titolo": "RIGHT WAY",
     "brano": "if i knew",
-    "autore": "parker redmond"
+    "autore": "parker redmond",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "344",
     "titolo": "RODEO BLUES",
     "brano": "sea of cowboy hats",
-    "autore": "chely wright"
+    "autore": "chely wright",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "345",
     "titolo": "ROOTS",
     "brano": "roots",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "346",
     "titolo": "ROUND TABLE RIVAL",
     "brano": "roundtable rival",
-    "autore": "lindsey stirling"
+    "autore": "lindsey stirling",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "347",
     "titolo": "RUNAROUND SUE",
     "brano": "runaround sue",
-    "autore": "the overtones"
+    "autore": "the overtones",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "348",
     "titolo": "SAILOR BOY",
     "brano": "sailor boy",
-    "autore": "george mc anthony"
+    "autore": "george mc anthony",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "349",
     "titolo": "SALT LIME & TEQUILA",
     "brano": "salt lime & tequila",
-    "autore": "ryan griffin"
+    "autore": "ryan griffin",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "350",
     "titolo": "SCRAPT IT",
     "brano": "scrap piece of paper",
-    "autore": "paul brandt"
+    "autore": "paul brandt",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "351",
     "titolo": "SELFIE & DRINK",
     "brano": "in hell i'll be in good company",
-    "autore": "the dead south"
+    "autore": "the dead south",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "352",
     "titolo": "SET ON",
     "brano": "drinking all weekend",
-    "autore": "blakjack billy & tim hicks"
+    "autore": "blakjack billy & tim hicks",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "353",
     "titolo": "SETTLE DOWN",
     "brano": "settle down",
-    "autore": "the mc clymons"
+    "autore": "the mc clymons",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "354",
     "titolo": "SEVEN",
     "brano": "seven drunken nights",
-    "autore": "mike denver"
+    "autore": "mike denver",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "355",
     "titolo": "SHAKING GROUND",
     "brano": "i'm not going home",
-    "autore": "jess and the bandits"
+    "autore": "jess and the bandits",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "356",
     "titolo": "SHHH",
     "brano": "standing me up",
-    "autore": "shannon hynes"
+    "autore": "shannon hynes",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "357",
     "titolo": "SHIMMY",
     "brano": "thicc as thieves",
-    "autore": "lauren alaina & lainey wilson"
+    "autore": "lauren alaina & lainey wilson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "358",
     "titolo": "SHORE THING",
     "brano": "shore thing",
-    "autore": "luke bryan"
+    "autore": "luke bryan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "359",
     "titolo": "SHORT TIME",
     "brano": "chicken pickin",
-    "autore": "cory hargreaves"
+    "autore": "cory hargreaves",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "360",
     "titolo": "SHOT OF GLORY",
     "brano": "shot of glory",
-    "autore": "the washboard union"
+    "autore": "the washboard union",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "361",
     "titolo": "SIMPLE",
     "brano": "simple",
-    "autore": "florida georgia line"
+    "autore": "florida georgia line",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "362",
     "titolo": "SIMPLE THINGS",
     "brano": "simple things",
-    "autore": "alexander cardinale"
+    "autore": "alexander cardinale",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "363",
     "titolo": "SINGLE MAN",
     "brano": "single man",
-    "autore": "high valley"
+    "autore": "high valley",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "364",
     "titolo": "SINNER",
     "brano": "sinner",
-    "autore": "andy grammer"
+    "autore": "andy grammer",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "365",
     "titolo": "SKIFFLE TIME",
     "brano": "mama don't alow",
-    "autore": "the jive aces"
+    "autore": "the jive aces",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "366",
     "titolo": "SNAP TO YOU",
     "brano": "snap (high and fast)",
-    "autore": "rosa linn"
+    "autore": "rosa linn",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "367",
     "titolo": "SOLDIER",
     "brano": "soldier",
-    "autore": "high valley"
+    "autore": "high valley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "368",
     "titolo": "SOMEBODY TO YOU",
     "brano": "somebody to you",
-    "autore": "the vamps"
+    "autore": "the vamps",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "369",
     "titolo": "SOMETHING FINE",
     "brano": "something in the water",
-    "autore": "brooke fraser"
+    "autore": "brooke fraser",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "370",
     "titolo": "SOMEWHERE ELSE",
     "brano": "somewhere else",
-    "autore": "toby keith"
+    "autore": "toby keith",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "371",
     "titolo": "SOMEWHERE IN MY CAR",
     "brano": "somewhere in my car",
-    "autore": "keith urban"
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "372",
     "titolo": "SOUTH OF SANTA FE",
     "brano": "south of santa fe",
-    "autore": "brooks & dunn"
+    "autore": "brooks & dunn",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "373",
     "titolo": "STAND OUT",
     "brano": "stand out",
-    "autore": "queeva"
+    "autore": "queeva",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "374",
     "titolo": "START THE CAR",
     "brano": "farm girl strong",
-    "autore": "gord bamford"
+    "autore": "gord bamford",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "375",
     "titolo": "START THE CAR",
     "brano": "i feel lucky",
-    "autore": "mary chapin carpenter"
+    "autore": "mary chapin carpenter",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "376",
     "titolo": "START THE CAR",
     "brano": "kerosene kid",
-    "autore": "jimmy wayne"
+    "autore": "jimmy wayne",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "377",
     "titolo": "START THE CAR",
     "brano": "limes",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "378",
     "titolo": "START THE CAR",
     "brano": "start the car",
-    "autore": "travis tritt"
+    "autore": "travis tritt",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "379",
     "titolo": "STITCH IT UP",
     "brano": "elvis medley",
-    "autore": "the deans brother"
+    "autore": "the deans brother",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "380",
     "titolo": "STITCH IT UP",
     "brano": "jingle bells",
-    "autore": "tracy bird"
+    "autore": "tracy bird",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "381",
     "titolo": "STORM AND STONE",
     "brano": "run",
-    "autore": "storm & stone"
+    "autore": "storm & stone",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "382",
     "titolo": "STORY",
     "brano": "story",
-    "autore": "drake white"
+    "autore": "drake white",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "383",
     "titolo": "STRONG BOUNDS",
     "brano": "long goodbye",
-    "autore": "dwight yoakam"
+    "autore": "dwight yoakam",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "384",
     "titolo": "SUGAR",
     "brano": "make it sweet",
-    "autore": "old dominion"
+    "autore": "old dominion",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "385",
     "titolo": "SUMMER FLY",
     "brano": "summer fly",
-    "autore": "hayley westenra"
+    "autore": "hayley westenra",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "386",
     "titolo": "SUNBEAM",
     "brano": "sunbeam",
-    "autore": "jack county"
+    "autore": "jack county",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "387",
     "titolo": "SUNHEART",
     "brano": "wildfire and whiskey",
-    "autore": "tenille arts"
+    "autore": "tenille arts",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "388",
     "titolo": "SUNSET",
     "brano": "you belong with me",
-    "autore": "taylor swift"
+    "autore": "taylor swift",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "389",
     "titolo": "SWEET ERIKA",
     "brano": "small town big time",
-    "autore": "blake shelton"
+    "autore": "blake shelton",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "390",
     "titolo": "SWEET EYES",
     "brano": "don't close your eyes",
-    "autore": "ritchie remo"
+    "autore": "ritchie remo",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "391",
     "titolo": "SWEET PEACHES",
     "brano": "georgia peaches",
-    "autore": "lauren alaina"
+    "autore": "lauren alaina",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "392",
     "titolo": "SWINGIN' THING",
     "brano": "honey hush",
-    "autore": "scooter lee"
+    "autore": "scooter lee",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "393",
     "titolo": "T-M",
     "brano": "praise of the lord",
-    "autore": "breland"
+    "autore": "breland",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "394",
     "titolo": "TAG ON",
     "brano": "too strong to break",
-    "autore": "beccy cole"
+    "autore": "beccy cole",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "395",
     "titolo": "TAKE ME TO NEW YORK",
     "brano": "long live the night",
-    "autore": "the reklaws"
+    "autore": "the reklaws",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "396",
     "titolo": "TH-GUEST RANCH",
     "brano": "girl with the fishing rod",
-    "autore": "lisa mchugh"
+    "autore": "lisa mchugh",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "397",
     "titolo": "THE BEAST",
     "brano": "somethin' in the water",
-    "autore": "the cheap seats"
+    "autore": "the cheap seats",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "398",
     "titolo": "THE COUNTRY FEVER",
     "brano": "anywhere for you",
-    "autore": "mackenzie porter"
+    "autore": "mackenzie porter",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "399",
     "titolo": "THE DIFFERENCE",
     "brano": "the difference",
-    "autore": "carolina jones"
+    "autore": "carolina jones",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "400",
     "titolo": "THE LOVERS",
     "brano": "year of the young",
-    "autore": "smith & thell"
+    "autore": "smith & thell",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "401",
     "titolo": "THE STORY",
     "brano": "the story of us",
-    "autore": "taylor swift"
+    "autore": "taylor swift",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "402",
     "titolo": "THE WISH",
     "brano": "fall into you",
-    "autore": "houses on the hill"
+    "autore": "houses on the hill",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "403",
     "titolo": "THE WORLD",
     "brano": "the world",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "404",
     "titolo": "THELMA & LOUISE",
     "brano": "thelma and louise",
-    "autore": "anna bergendahl"
+    "autore": "anna bergendahl",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "405",
     "titolo": "THERE IS A FIRE",
     "brano": "there is a fire",
-    "autore": "national park radio"
+    "autore": "national park radio",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "406",
     "titolo": "THINK OF YOU",
     "brano": "think of you",
-    "autore": "chris young"
+    "autore": "chris young",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "407",
     "titolo": "THIS WORLD IS OUR HOME",
     "brano": "this world is our home",
-    "autore": "douwe bob"
+    "autore": "douwe bob",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "408",
     "titolo": "THREE TEACHERS",
     "brano": "head over heels",
-    "autore": "the washboard union"
+    "autore": "the washboard union",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "409",
     "titolo": "THROWBACK LOVE",
     "brano": "throwback love",
-    "autore": "meghan trainor"
+    "autore": "meghan trainor",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "410",
     "titolo": "TICK TOCK",
     "brano": "1 2 mary",
-    "autore": "brooks & dunn"
+    "autore": "brooks & dunn",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "411",
     "titolo": "TO BE HONEST",
     "brano": "rude",
-    "autore": "sorbye jennebo"
+    "autore": "sorbye jennebo",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "412",
     "titolo": "2 HELL AND BACK",
     "brano": "if you're going through hell",
-    "autore": "rodney atkins"
+    "autore": "rodney atkins",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "413",
     "titolo": "TODAY & TOMORROW",
     "brano": "country roads",
-    "autore": "holly spears"
+    "autore": "holly spears",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "414",
     "titolo": "TOES",
     "brano": "toes",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "415",
     "titolo": "TOMORROW NEVER COMES",
     "brano": "tomorrow never comes",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "416",
     "titolo": "TOO MANY DRUNK",
     "brano": "i hate you when you're drunk",
-    "autore": "olly murs"
+    "autore": "olly murs",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "417",
     "titolo": "TOP OF THE WORLD",
     "brano": "on top of the world",
-    "autore": "tim mcmorris"
+    "autore": "tim mcmorris",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "418",
     "titolo": "TORNADO",
     "brano": "tornado",
-    "autore": "little big town"
+    "autore": "little big town",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "419",
     "titolo": "TOUR IN MEXICO",
     "brano": "go to mexico",
-    "autore": "coffey anderson"
+    "autore": "coffey anderson",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "420",
     "titolo": "TRAIN",
     "brano": "train",
-    "autore": "manny blu"
+    "autore": "manny blu",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "421",
     "titolo": "TRAKTOR'S BELL",
     "brano": "she cranks me traktor",
-    "autore": "dustin lynch"
+    "autore": "dustin lynch",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "422",
     "titolo": "TRAMPOLINE",
     "brano": "trampoline",
-    "autore": "the unlikely candidates"
+    "autore": "the unlikely candidates",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "423",
     "titolo": "TRESPASSING",
     "brano": "trespassing",
-    "autore": "adam lambert"
+    "autore": "adam lambert",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "424",
     "titolo": "TRILOGY",
     "brano": "old dirt roads",
-    "autore": "owen riegling"
+    "autore": "owen riegling",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "425",
     "titolo": "TRIPLE L",
     "brano": "live laugh and love",
-    "autore": "lonestar"
+    "autore": "lonestar",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "426",
     "titolo": "TUSH PUSH",
     "brano": "don't know why i do it",
-    "autore": "mark chesnutt"
+    "autore": "mark chesnutt",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "427",
     "titolo": "TUSH PUSH",
     "brano": "honky tonk twist",
-    "autore": "scooter lee"
+    "autore": "scooter lee",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "428",
     "titolo": "TUSH PUSH",
     "brano": "santa looked a lot like daddy",
-    "autore": "brad paisley"
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "429",
     "titolo": "TUSH PUSH",
     "brano": "splish splash",
-    "autore": "scooter lee"
+    "autore": "scooter lee",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "430",
     "titolo": "TUSH PUSH",
     "brano": "t r o u b l e",
-    "autore": "travis tritt"
+    "autore": "travis tritt",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "431",
     "titolo": "TWO WAYS",
     "brano": "we didn't have much",
-    "autore": "justin moore"
+    "autore": "justin moore",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "432",
     "titolo": "UNTAMED",
     "brano": "untamed",
-    "autore": "cam"
+    "autore": "cam",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "433",
     "titolo": "URBAN LIFE",
     "brano": "better life",
-    "autore": "keith urban"
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "434",
     "titolo": "URBAN LIFE",
     "brano": "gotta be somebody",
-    "autore": "nickelback"
+    "autore": "nickelback",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "435",
     "titolo": "URBAN LIFE",
     "brano": "gotta be somebody",
-    "autore": "bucky covington"
+    "autore": "bucky covington",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "436",
     "titolo": "VODKA TIME",
     "brano": "vodka time",
-    "autore": "urban trad"
+    "autore": "urban trad",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "437",
     "titolo": "WACKY",
     "brano": "cut loose",
-    "autore": "blue broussard band"
+    "autore": "blue broussard band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "438",
     "titolo": "WAHO WAHO YEAH YEAH",
     "brano": "if that ain't love",
-    "autore": "jaida dreyer"
+    "autore": "jaida dreyer",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "439",
     "titolo": "WALKIN' THE LINE",
     "brano": "4th of july",
-    "autore": "shooter jennings"
+    "autore": "shooter jennings",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "440",
     "titolo": "WALKIN' THE LINE",
     "brano": "breathless",
-    "autore": "the corrs"
+    "autore": "the corrs",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "441",
     "titolo": "WALKIN' THE LINE",
     "brano": "crazy",
-    "autore": "alee"
+    "autore": "alee",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "442",
     "titolo": "WALKIN' THE LINE",
     "brano": "walk the line",
-    "autore": "dave sheriff"
+    "autore": "dave sheriff",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "443",
     "titolo": "WALKIN' THE LINE",
     "brano": "wild angels",
-    "autore": "martina mcbride"
+    "autore": "martina mcbride",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "444",
     "titolo": "WANNA GETCHA",
     "brano": "getcha",
-    "autore": "matt lang"
+    "autore": "matt lang",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "445",
     "titolo": "WANNA GO",
     "brano": "if it gets you where you wanna go",
-    "autore": "dallas smith"
+    "autore": "dallas smith",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "446",
     "titolo": "WE ARE TONIGHT",
     "brano": "we are tonight",
-    "autore": "billy currington"
+    "autore": "billy currington",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "447",
     "titolo": "WE DANCED",
     "brano": "dirt on my boots",
-    "autore": "jon pardi"
+    "autore": "jon pardi",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "448",
     "titolo": "WE WENT",
     "brano": "we went",
-    "autore": "randy houser"
+    "autore": "randy houser",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "449",
     "titolo": "WESTERN SHOW",
     "brano": "young love & saturday nights",
-    "autore": "chris young"
+    "autore": "chris young",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "450",
     "titolo": "WESTERN STYLE",
     "brano": "can't get myself over getting over you",
-    "autore": "the woolpackers"
+    "autore": "the woolpackers",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "451",
     "titolo": "WESTERN STYLE",
     "brano": "louisiana",
-    "autore": "the woolpackers"
+    "autore": "the woolpackers",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "452",
     "titolo": "WESTERN STYLE",
     "brano": "no one needs to know",
-    "autore": "shania twain"
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "453",
     "titolo": "WESTERN STYLE",
     "brano": "tell me why",
-    "autore": "wynonna judd"
+    "autore": "wynonna judd",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "454",
     "titolo": "WHAT DO I KNOW",
     "brano": "what do i know",
-    "autore": "ricochet"
+    "autore": "ricochet",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "455",
     "titolo": "WHEN YOU SMILE",
     "brano": "when you smile",
-    "autore": "rune rudberg"
+    "autore": "rune rudberg",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "456",
     "titolo": "WHISKEY WHISKEY",
     "brano": "1 2 3 4",
-    "autore": "alan doyle"
+    "autore": "alan doyle",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "457",
     "titolo": "WHISKEY WIGGLE",
     "brano": "every little thing",
-    "autore": "carlene carter"
+    "autore": "carlene carter",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "458",
     "titolo": "WHITE SOLDIER",
     "brano": "when i'm gone",
-    "autore": "the wild horses"
+    "autore": "the wild horses",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "459",
     "titolo": "WILD AT HEART",
     "brano": "wild at heart",
-    "autore": "gloriana"
+    "autore": "gloriana",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "460",
     "titolo": "WILD NIGHTS",
     "brano": "wild night",
-    "autore": "martina mcbride"
+    "autore": "martina mcbride",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "461",
     "titolo": "WILLIWAW",
     "brano": "one of a kind",
-    "autore": "nasco brothers"
+    "autore": "nasco brothers",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "462",
     "titolo": "WOBBLE",
     "brano": "wobble",
-    "autore": "v i c"
+    "autore": "v i c",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "463",
     "titolo": "WOMAN AMEN",
     "brano": "woman amen",
-    "autore": "dierks bentley"
+    "autore": "dierks bentley",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "464",
     "titolo": "WONDER",
     "brano": "memory lane",
-    "autore": "old dominion"
+    "autore": "old dominion",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "465",
     "titolo": "WOOD LEG STOMP",
     "brano": "doreen",
-    "autore": "kerosene brothers"
+    "autore": "kerosene brothers",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "466",
     "titolo": "YA COME DOWN",
     "brano": "wont't ya come down",
-    "autore": "derek ryan"
+    "autore": "derek ryan",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "467",
     "titolo": "YABOY",
     "brano": "long time gone",
-    "autore": "nathan carter"
+    "autore": "nathan carter",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "468",
     "titolo": "YELLOWSTONE",
     "brano": "right about now",
-    "autore": "curtis grimes"
+    "autore": "curtis grimes",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "469",
     "titolo": "YES",
     "brano": "yes",
-    "autore": "chad brock"
+    "autore": "chad brock",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "470",
     "titolo": "YOU GET IT",
     "brano": "ready to go",
-    "autore": "bryce pallister"
+    "autore": "bryce pallister",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "471",
     "titolo": "ZANZARE",
     "brano": "no hard feelings",
-    "autore": "old dominion"
+    "autore": "old dominion",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "472",
     "titolo": "ZJOZZYS FUNK",
     "brano": "bacco perbacco",
-    "autore": "zucchero fornaciari"
+    "autore": "zucchero fornaciari",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "473",
     "titolo": "ZORBA",
     "brano": "zorba's dance",
-    "autore": "lcd"
+    "autore": "lcd",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "474",
     "titolo": "MIRACLE",
     "brano": "miracle",
-    "autore": "tors"
+    "autore": "tors",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "475",
     "titolo": "TIPPIN' IT UP",
     "brano": "tippin’ it up to nancy",
-    "autore": "sean magee"
+    "autore": "sean magee",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "476",
     "titolo": "CHA CHA COUNTRY",
     "brano": "your man",
-    "autore": "josh turner"
+    "autore": "josh turner",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "477",
     "titolo": "WANDERLUST",
     "brano": "buzzkill",
-    "autore": "lanie gardner"
+    "autore": "lanie gardner",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "478",
     "titolo": "CHANGING DANCE BARN DANCE",
     "brano": "feliz navidad",
-    "autore": "josè feliciano"
+    "autore": "josè feliciano",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "479",
     "titolo": "LOVE SOMEBODY",
     "brano": "love somebody",
-    "autore": "morgan wallen"
+    "autore": "morgan wallen",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "480",
     "titolo": "COUNTRY FRIENDS CRUISE",
     "brano": "long live the cowboy",
-    "autore": "clay walker"
+    "autore": "clay walker",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "481",
     "titolo": "NEVERLAND",
     "brano": "beautiful rose",
-    "autore": "sean mc connell"
+    "autore": "sean mc connell",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "482",
     "titolo": "DOUBLE D (DUCK DYNASTY)",
     "brano": "cut 'em all",
-    "autore": "colt ford ft. willie robertson"
+    "autore": "colt ford ft. willie robertson",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "483",
     "titolo": "BEYOND TIME",
     "brano": "forever and ever amen",
-    "autore": "randy travis"
+    "autore": "randy travis",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "484",
     "titolo": "COUNTRY STYLE",
     "brano": "until the money's gone",
-    "autore": "the bellamy brothers"
+    "autore": "the bellamy brothers",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "485",
     "titolo": "HOLY MOLY",
     "brano": "footloose",
-    "autore": "blake shelton"
+    "autore": "blake shelton",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "486",
     "titolo": "TUSH PUSH",
     "brano": "be my baby tonight",
-    "autore": "jhon michael montgomery"
+    "autore": "jhon michael montgomery",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "487",
     "titolo": "SWEET BOY",
     "brano": "yeah boy",
-    "autore": "kelsea ballerini"
+    "autore": "kelsea ballerini",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "488",
     "titolo": "MILESTONE",
     "brano": "your love is a miracle",
-    "autore": "mark chesnutt"
+    "autore": "mark chesnutt",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "489",
     "titolo": "GUTS",
     "brano": "authority song",
-    "autore": "chancey williams"
+    "autore": "chancey williams",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "490",
     "titolo": "OLD BOOTS",
     "brano": "this old boots have roots",
-    "autore": "aaron watson"
+    "autore": "aaron watson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "491",
     "titolo": "BETTER THAN THIS",
     "brano": "better than this",
-    "autore": "hunter hayes"
+    "autore": "hunter hayes",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "492",
     "titolo": "RENEGADES",
     "brano": "renegades",
-    "autore": "x ambassador"
+    "autore": "x ambassador",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "493",
     "titolo": "MEMORY (Ghinolfi Piromalli)",
     "brano": "every other memory",
-    "autore": "ryan hurd"
+    "autore": "ryan hurd",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "494",
     "titolo": "KICK IT UP",
     "brano": "kick it up",
-    "autore": "the mc clymons"
+    "autore": "the mc clymons",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "495",
     "titolo": "COWBOY",
     "brano": "i wanna be your cowboy",
-    "autore": "coffey anderson"
+    "autore": "coffey anderson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "496",
     "titolo": "YOU ARE",
     "brano": "you are",
-    "autore": "aaron goodvin"
+    "autore": "aaron goodvin",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "497",
     "titolo": "DAY OF VICTORY",
     "brano": "listen to your senses",
-    "autore": "slim attraction"
+    "autore": "slim attraction",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "498",
     "titolo": "DELICIOUS",
     "brano": "didn't I",
-    "autore": "dasha"
+    "autore": "dasha",
+    "compositore": "",
+    "durata": "AVANZATO 2"
   },
   {
     "id": "499",
     "titolo": "MINDSET",
     "brano": "you'll always find your way back home",
-    "autore": "miley cyrus"
+    "autore": "miley cyrus",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "500",
     "titolo": "STILL GONE",
     "brano": "still gonna be",
-    "autore": "brandon davies"
+    "autore": "brandon davies",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "501",
     "titolo": "LIQUOR TALKING",
     "brano": "liquor talkin'",
-    "autore": "don luis"
+    "autore": "don luis",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "502",
     "titolo": "BACK TO THE START",
     "brano": "back to the start",
-    "autore": "michael schulte"
+    "autore": "michael schulte",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "503",
     "titolo": "HOUSE OF BAMBOO (THIS CITY IS OURS)",
     "brano": "house of mamboo",
-    "autore": "andy williams"
+    "autore": "andy williams",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "504",
     "titolo": "6 SHOTS",
     "brano": "bad decisions",
-    "autore": "dylan schneider"
+    "autore": "dylan schneider",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "505",
     "titolo": "WAVE ON WAVE",
     "brano": "wave on wave",
-    "autore": "pat green"
+    "autore": "pat green",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "506",
     "titolo": "ALL DAY",
     "brano": "all day",
-    "autore": "locash"
+    "autore": "locash",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "507",
     "titolo": "4 COWBOY",
     "brano": "rough ride for a cowboy",
-    "autore": "mackenzie porter"
+    "autore": "mackenzie porter",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "508",
     "titolo": "SCOOBY DOO",
     "brano": "scooby doo",
-    "autore": "redneck rockus 2"
+    "autore": "redneck rockus 2",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "509",
     "titolo": "LEAVE IT UP",
     "brano": "something in your mouth",
-    "autore": "nickelback"
+    "autore": "nickelback",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "510",
     "titolo": "MY CINDERELLA",
     "brano": "cinderella",
-    "autore": "dan davidson"
+    "autore": "dan davidson",
+    "compositore": "",
+    "durata": "AVANZATO 1"
   },
   {
     "id": "511",
     "titolo": "CHEYENNE",
     "brano": "tutta l'italia",
-    "autore": "gabry ponte"
+    "autore": "gabry ponte",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "512",
     "titolo": "CHEYENNE",
     "brano": "old town road",
-    "autore": "lil nas x feat billy ray cyrus"
+    "autore": "lil nas x feat billy ray cyrus",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "513",
     "titolo": "GYPSY WOMAN",
     "brano": "gypsy woman",
-    "autore": "eamonn jackson"
+    "autore": "eamonn jackson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "514",
     "titolo": "WILD",
     "brano": "where the wild things are",
-    "autore": "luke combs"
+    "autore": "luke combs",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "515",
     "titolo": "CARRY YOU",
     "brano": "carry you home",
-    "autore": "tim hicks & dyana reid"
+    "autore": "tim hicks & dyana reid",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 1+2"
   },
   {
     "id": "516",
     "titolo": "TUSH PUSH",
     "brano": "i like it i love it",
-    "autore": "tim mc graw"
+    "autore": "tim mc graw",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "517",
     "titolo": "AARIN'S SPIRIT",
     "brano": "spirit in the sky",
-    "autore": "kentucky headhunters"
+    "autore": "kentucky headhunters",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "518",
     "titolo": "CHANGING DANCE BARN DANCE",
     "brano": "all you ever do is bring me down",
-    "autore": "the mavericks"
+    "autore": "the mavericks",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "519",
     "titolo": "CHILL FACTOR",
     "brano": "i play chicken with the train",
-    "autore": "cowboy troy with big & ritch"
+    "autore": "cowboy troy with big & ritch",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "520",
     "titolo": "CHILL FACTOR",
     "brano": "turn on the radio",
-    "autore": "reba mcentire"
+    "autore": "reba mcentire",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "521",
     "titolo": "EYES ON YOU",
     "brano": "eyes on you",
-    "autore": "trent tomlisson"
+    "autore": "trent tomlisson",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "522",
     "titolo": "MY MARIA",
     "brano": "that girl's got a cowboy heart",
-    "autore": "todd fritsch"
+    "autore": "todd fritsch",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "523",
     "titolo": "MY MARIA",
     "brano": "two black cadillacs",
-    "autore": "carrie underwood"
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "524",
     "titolo": "OH LOVE",
     "brano": "oh love",
-    "autore": "thorstein einarsson"
+    "autore": "thorstein einarsson",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "525",
     "titolo": "LOOP",
     "brano": "over all over again",
-    "autore": "james barker band"
+    "autore": "james barker band",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "526",
     "titolo": "RETRO",
     "brano": "i feel it in the wind",
-    "autore": "smith & thell"
+    "autore": "smith & thell",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "527",
     "titolo": "WONT' LET GO",
     "brano": "ex's and oh's",
-    "autore": "saddle up"
+    "autore": "saddle up",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "528",
     "titolo": "DEAD MAN WALKING",
     "brano": "the hangman",
-    "autore": "war hippies"
+    "autore": "war hippies",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "529",
     "titolo": "DANCE WITH EVERYBODY",
     "brano": "dance with everybody",
-    "autore": "drew holcomb & the neighbors and the national park"
+    "autore": "drew holcomb & the neighbors and the national park",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "530",
     "titolo": "MY MARIA",
     "brano": "what the heart want",
-    "autore": "collin raye"
+    "autore": "collin raye",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "531",
     "titolo": "NICE TO MEET YOU",
     "brano": "nice to meet you",
-    "autore": "myles smith feat lainey wilson"
+    "autore": "myles smith feat lainey wilson",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "532",
     "titolo": "ELECTRIC SLIDE",
     "brano": "rumor has it",
-    "autore": "clay walker"
+    "autore": "clay walker",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "533",
     "titolo": "FRESH DELAY",
     "brano": "work for it",
-    "autore": "daphne willis & lonis"
+    "autore": "daphne willis & lonis",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "534",
     "titolo": "MAGIC MOMENT",
     "brano": "just like magic",
-    "autore": "casey barnes"
+    "autore": "casey barnes",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "535",
     "titolo": "SOMEWHERE IN SEDONA",
     "brano": "so far so good",
-    "autore": "dalton davis"
+    "autore": "dalton davis",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "536",
     "titolo": "ELECTRIC SLIDE",
     "brano": "no rompas mi corazon",
-    "autore": "caballo dorado"
+    "autore": "caballo dorado",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "537",
     "titolo": "MY MARIA",
     "brano": "choosin' texas",
-    "autore": "ella langley"
+    "autore": "ella langley",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "538",
     "titolo": "SWISS GUY",
     "brano": "swiss guy",
-    "autore": "florian fox"
+    "autore": "florian fox",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "539",
     "titolo": "CASANOVA COWBOY",
     "brano": "love runs out",
-    "autore": "onerepublic"
+    "autore": "onerepublic",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "540",
     "titolo": "BIG BULL FIDDLE",
     "brano": "big butch bass bull fiddle",
-    "autore": "corb lund"
+    "autore": "corb lund",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "541",
     "titolo": "TEXAS HOLD'EM",
     "brano": "texas hold'em",
-    "autore": "beyoncè"
+    "autore": "beyoncè",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "542",
     "titolo": "OPHELIA",
     "brano": "ophelia",
-    "autore": "taylor swift"
+    "autore": "taylor swift",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "543",
     "titolo": "ELECTRIC STOMP",
     "brano": "fast as you",
-    "autore": "dwight yoakam"
+    "autore": "dwight yoakam",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "544",
     "titolo": "LAKE DARBONNE",
     "brano": "lake darbonne",
-    "autore": "katie knight"
+    "autore": "katie knight",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "545",
     "titolo": "MAN ON A MISSION",
     "brano": "man on a mission",
-    "autore": "oh the lacerny"
+    "autore": "oh the lacerny",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "546",
     "titolo": "CASANOVA COWBOY",
     "brano": "man i feel like a woman",
-    "autore": "shania twain"
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "INTERMEDIO"
   },
   {
     "id": "547",
     "titolo": "C A R E",
     "brano": "the last chanty",
-    "autore": "derina harvey band"
+    "autore": "derina harvey band",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "548",
     "titolo": "I SHOWED YOU THE DOOR",
     "brano": "the door",
-    "autore": "teddy swims"
+    "autore": "teddy swims",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "549",
     "titolo": "CHEYENNE",
     "brano": "drunken sailor",
-    "autore": "malinda feat. bobby waters"
+    "autore": "malinda feat. bobby waters",
+    "compositore": "",
+    "durata": "BASE"
   },
   {
     "id": "550",
     "titolo": "THE THING I LOVE",
     "brano": "the thing i love",
-    "autore": "max & andy grammer"
+    "autore": "max & andy grammer",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "551",
     "titolo": "HOT CHOCOLATE",
     "brano": "bed dreams",
-    "autore": "teddy swims"
+    "autore": "teddy swims",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "552",
     "titolo": "BLUE CHAIRS",
     "brano": "two blue chairs & you",
-    "autore": "zac brown band"
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "553",
     "titolo": "MONSTER HOLIDAY",
     "brano": "(it's a) monsters holiday",
-    "autore": "buck owens and the buckaroos"
+    "autore": "buck owens and the buckaroos",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "554",
     "titolo": "DOODLES",
     "brano": "doodles",
-    "autore": "rose betts"
+    "autore": "rose betts",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "555",
     "titolo": "LOVE POTION 666",
     "brano": "love potion 666",
-    "autore": "djtexx"
+    "autore": "djtexx",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "556",
     "titolo": "ONE MORE",
     "brano": "one more for the road",
-    "autore": "ceol"
+    "autore": "ceol",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "557",
     "titolo": "GOOD GIRL",
     "brano": "good girl",
-    "autore": "carrie underwood"
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "558",
     "titolo": "MILES ON IT",
     "brano": "miles on it",
-    "autore": "marshmello & kane brown"
+    "autore": "marshmello & kane brown",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "559",
     "titolo": "BOOTS BACK",
     "brano": "boots back",
-    "autore": "jeorgia rose"
+    "autore": "jeorgia rose",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "570",
     "titolo": "AUDIO VIDEO TESTER",
     "brano": "tsunami",
-    "autore": "dvbbs & borgeus"
+    "autore": "dvbbs & borgeus",
+    "compositore": "",
+    "durata": ""
   },
   {
     "id": "571",
     "titolo": "PROMO MONSTER",
     "brano": "ANNO 2023",
-    "autore": ""
+    "autore": "",
+    "compositore": "",
+    "durata": ""
   },
   {
     "id": "EXTRA1",
     "titolo": "Big",
     "brano": "Big",
-    "autore": "Trace Adkins"
+    "autore": "Trace Adkins",
+    "compositore": "",
+    "durata": ""
   },
   {
     "id": "EXTRA2",
     "titolo": "Kind of Love",
     "brano": "What Kind of Love Are You On",
-    "autore": "Greg Hanna"
+    "autore": "Greg Hanna",
+    "compositore": "",
+    "durata": ""
   },
   {
     "id": "EXTRA1777129374557",
     "titolo": "Amici x sempre",
     "brano": "Amici x sempre",
-    "autore": "Stefano D'Orazio"
+    "autore": "Stefano D'Orazio",
+    "compositore": "",
+    "durata": ""
   }
 ]
