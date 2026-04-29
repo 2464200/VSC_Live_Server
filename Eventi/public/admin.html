@@ -224,7 +224,8 @@
 
 <div class="nav">
   <a href="/eventi/eventi.html">Torna a Eventi</a>
-  <a href="/eventi/dj-manager.html">DJ Manager</a>
+  <a href="/eventi/dj-manager.html">Gestisci DJ</a>
+  <a href="/eventi/qr.html" target="_blank">QR Eventi</a>
 </div>
 
 <div class="container">
@@ -294,6 +295,16 @@
     <button onclick="scaricaDJ()">Scarica DJ (JSON)</button>
     <div id="dj-count" class="info-box" style="margin-top: 15px;">
       Caricamento...
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>QR Code & Link</h2>
+    <p>Genera e visualizza il QR Code per l'accesso rapido alla pagina Eventi.</p>
+    <button onclick="window.open('/eventi/qr.html', '_blank');">Apri QR Eventi</button>
+    <div class="info-box" style="margin-top: 15px;">
+      <strong>URL diretto:</strong><br>
+      <code id="eventi-url">/eventi/eventi.html</code>
     </div>
   </div>
 
