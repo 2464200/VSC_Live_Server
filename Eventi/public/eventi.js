@@ -581,6 +581,17 @@ async function carica() {
       });
     }
 
+    // Gestione pulsante Impostazioni con verifica password
+    const impostazioniBtn = document.getElementById('btn-impostazioni');
+    if (impostazioniBtn) {
+      impostazioniBtn.addEventListener('click', () => {
+        if (!verifyPassword('Accesso Impostazioni')) {
+          return;
+        }
+        goEventiPage('admin.html');
+      });
+    }
+
     await refreshPageData();
     startEventiStream();
     startPolling();
