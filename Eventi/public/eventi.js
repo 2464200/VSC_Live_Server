@@ -71,6 +71,32 @@ const pageState = {
 };
 
 async function salvaStato(id, stato, addTimestamp = false) {
+  // Verifica limite prenotazioni per prenotato
+  if (stato === 'prenotato') {
+    const dj = getDJLocal();
+    if (dj) {
+      try {
+        const checkRes = await eventiFetch('/check-prenotazione-limit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dj })
+        });
+        const check = await checkRes.json();
+        
+        if (!check.canPrenot) {
+          alert(`⚠️ LIMITE RAGGIUNTO!\n\nHai già prenotato ${check.prenotazioni} coreografie.\nIl limite per te è di ${check.limite} prenotazioni.\n\nNon puoi prenotare altre coreografie.`);
+          setTimeout(() => {
+            goEventiPage('eventi.html');
+          }, 3000);
+          throw new Error('Limite prenotazioni raggiunto');
+        }
+      } catch (e) {
+        if (e.message === 'Limite prenotazioni raggiunto') throw e;
+        console.error('Errore verifica limite:', e);
+      }
+    }
+  }
+  
   const timestamp = new Date().toISOString();
   const response = await eventiFetch('/log', {
     method: 'POST',

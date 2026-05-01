@@ -76,5 +76,11 @@
     "stato": "eseguito",
     "timestamp": "2026-04-25T17:33:12.472Z",
     "dj": "DJ Daniel West"
+  },
+  {
+    "id": "412",
+    "stato": "prenotato",
+    "timestamp": "2026-05-01T08:31:47.347Z",
+    "dj": null
   }
 ]

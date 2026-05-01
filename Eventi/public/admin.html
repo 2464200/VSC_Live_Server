@@ -316,6 +316,42 @@
       Caricamento...
     </div>
   </div>
+
+  <div class="section section-extra">
+    <h2>Limite Prenotazioni per DJ</h2>
+    <p>Imposta il numero massimo di coreografie che ogni DJ può prenotare. Il limite è <strong>individuale</strong> per ciascun DJ.</p>
+    
+    <div style="display: flex; gap: 10px; align-items: flex-end; margin: 20px 0; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 200px;">
+        <label style="display: block; margin-bottom: 5px; color: #aaa; font-size: 12px;">Seleziona DJ</label>
+        <select id="dj-limit-select" style="width: 100%; padding: 10px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555;">
+          <option value="">-- Seleziona DJ --</option>
+        </select>
+      </div>
+      <div style="flex: 0 0 120px;">
+        <label style="display: block; margin-bottom: 5px; color: #aaa; font-size: 12px;">Max prenotazioni</label>
+        <input id="dj-limit-input" type="number" min="0" max="50" value="0" style="width: 100%; padding: 10px; border-radius: 5px; background: #333; color: #fff; border: 1px solid #555;" />
+      </div>
+      <button id="btn-set-limit" onclick="impostaLimiteDJ()" style="background: #28a745; color: #fff;">Imposta Limite</button>
+    </div>
+
+    <div id="limit-status" class="status"></div>
+
+    <div class="info-box">
+      <strong>Come funziona:</strong><br>
+      • Ogni DJ ha un limite indipendente di prenotazioni<br>
+      • Quando un DJ tenta di prenotare più coreografie del consentito, riceve un avviso<br>
+      • Dopo 3 secondi viene reindirizzato alla pagina principale<br>
+      • <code>0</code> = nessun limite (illimitato)
+    </div>
+
+    <div id="dj-limits-list" style="margin-top: 20px;">
+      <h3 style="color: #28a745; margin-top: 0;">Limiti attuali</h3>
+      <div id="limits-table" style="background: #1a1a1a; border-radius: 5px; padding: 15px;">
+        Caricamento...
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="api-helper.js"></script>
@@ -436,8 +472,116 @@ function downloadJSON(data, filename) {
 
 window.addEventListener('DOMContentLoaded', () => {
   caricaStats();
+  caricaDJPerLimiti();
+  caricaLimitiDJ();
 });
-</script>
+
+// ============================
+//   GESTIONE LIMITI PRENOTAZIONI DJ
+// ============================
+const LIMITS_FILE = 'data/dj-limits.json';
+
+async function caricaDJPerLimiti() {
+  try {
+    const res = await eventiFetch('/dj');
+    if (!res.ok) {
+      throw new Error(`Errore API: ${res.status}`);
+    }
+    const djList = await res.json();
+    const select = document.getElementById('dj-limit-select');
+    select.innerHTML = '<option value="">-- Seleziona DJ --</option>';
+    
+    if (!Array.isArray(djList) || djList.length === 0) {
+      select.innerHTML = '<option value="">Nessun DJ trovato</option>';
+      return;
+    }
+    
+    djList.forEach(dj => {
+      const opt = document.createElement('option');
+      const nomeDJ = typeof dj === 'string' ? dj : (dj.nome || dj.name || '');
+      if (nomeDJ) {
+        opt.value = nomeDJ;
+        opt.textContent = nomeDJ;
+        select.appendChild(opt);
+      }
+    });
+  } catch (e) {
+    console.error('Errore caricamento DJ:', e);
+    const select = document.getElementById('dj-limit-select');
+    if (select) {
+      select.innerHTML = '<option value="">Errore: ' + e.message + '</option>';
+    }
+  }
+}
+
+async function caricaLimitiDJ() {
+  try {
+    const res = await eventiFetch('/dj-limits');
+    const limits = await res.json();
+    const container = document.getElementById('limits-table');
+    
+    if (!limits || Object.keys(limits).length === 0) {
+      container.innerHTML = '<div style="color: #aaa; text-align: center;">Nessun limite impostato</div>';
+      return;
+    }
+
+    let html = '<table style="width: 100%; border-collapse: collapse;"><thead><tr style="border-bottom: 1px solid #555;"><th style="text-align: left; padding: 8px; color: #ff7f00;">DJ</th><th style="text-align: center; padding: 8px; color: #ff7f00;">Limite</th><th style="text-align: center; padding: 8px; color: #ff7f00;">Prenotazioni</th><th style="text-align: center; padding: 8px; color: #ff7f00;">Disponibili</th></tr></thead><tbody>';
+    
+    for (const [dj, data] of Object.entries(limits)) {
+      const limite = data.limite === 0 ? '∞' : data.limite;
+      const prenotati = data.prenotazioni || 0;
+      const disponibili = data.limite === 0 ? '∞' : Math.max(0, data.limite - prenotati);
+      const rowColor = data.limite > 0 && prenotati >= data.limite ? '#ff4444' : '#fff';
+      html += `<tr style="border-bottom: 1px solid #333;"><td style="padding: 8px;">${dj}</td><td style="text-align: center; padding: 8px;">${limite}</td><td style="text-align: center; padding: 8px; color: ${rowColor};">${prenotati}</td><td style="text-align: center; padding: 8px;">${disponibili}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    document.getElementById('limits-table').innerHTML = '<div style="color: #aaa;">Errore caricamento limiti</div>';
+  }
+}
+
+async function impostaLimiteDJ() {
+  const dj = document.getElementById('dj-limit-select').value;
+  const limite = parseInt(document.getElementById('dj-limit-input').value, 10);
+  const statusDiv = document.getElementById('limit-status');
+
+  if (!dj) {
+    statusDiv.className = 'status error';
+    statusDiv.textContent = 'Seleziona un DJ prima di impostare il limite.';
+    statusDiv.style.display = 'block';
+    return;
+  }
+
+  if (isNaN(limite) || limite < 0) {
+    statusDiv.className = 'status error';
+    statusDiv.textContent = 'Inserisci un limite valido (numero >= 0).';
+    statusDiv.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await eventiFetch('/dj-limits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dj, limite })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      statusDiv.className = 'status success';
+      statusDiv.textContent = `Limite di ${limite} prenotazioni impostato per ${dj}.`;
+    } else {
+      throw new Error(data.error);
+    }
+  } catch (e) {
+    statusDiv.className = 'status error';
+    statusDiv.textContent = `Errore: ${e.message}`;
+  }
+
+  statusDiv.style.display = 'block';
+  caricaLimitiDJ();
+}
 
 </body>
 </html>

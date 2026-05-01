@@ -9,6 +9,7 @@ const router = express.Router();
 const pathBrani = path.join(__dirname, 'data', 'brani.json');
 const pathLog   = path.join(__dirname, 'data', 'log.json');
 const pathDj    = path.join(__dirname, 'data', 'dj.json');
+const pathDjLimits = path.join(__dirname, 'data', 'dj-limits.json');
 const pathCsv   = path.join(__dirname, 'data', 'log.csv');
 
 // Assicurati che i file esistano
@@ -278,6 +279,112 @@ router.delete('/dj/:id', (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Errore rimozione DJ' });
+  }
+});
+
+// ============================
+//    GET: LIMITI PRENOTAZIONI DJ
+// ============================
+router.get('/dj-limits', (req, res) => {
+  try {
+    let limits = {};
+    if (fs.existsSync(pathDjLimits)) {
+      limits = JSON.parse(fs.readFileSync(pathDjLimits, 'utf-8'));
+    }
+    
+    // Conta prenotazioni per ogni DJ dal log
+    const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
+    const prenotazioniPerDJ = {};
+    
+    log.forEach(entry => {
+      if (entry.stato === 'prenotato' && entry.dj) {
+        prenotazioniPerDJ[entry.dj] = (prenotazioniPerDJ[entry.dj] || 0) + 1;
+      }
+    });
+    
+    // Unisci con conteggio prenotazioni
+    const result = {};
+    for (const dj of Object.keys(limits)) {
+      result[dj] = {
+        limite: limits[dj]?.limite ?? 0,
+        prenotazioni: prenotazioniPerDJ[dj] || 0
+      };
+    }
+    // Aggiungi anche DJ con prenotazioni ma senza limite
+    for (const dj of Object.keys(prenotazioniPerDJ)) {
+      if (!result[dj]) {
+        result[dj] = { limite: 0, prenotazioni: prenotazioniPerDJ[dj] };
+      }
+    }
+    
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: 'Impossibile leggere limiti DJ' });
+  }
+});
+
+// ============================
+//    POST: IMPOSTA LIMITE DJ
+// ============================
+router.post('/dj-limits', (req, res) => {
+  try {
+    const { dj, limite } = req.body;
+    
+    if (!dj || typeof dj !== 'string') {
+      return res.status(400).json({ error: 'Nome DJ non valido' });
+    }
+    
+    if (typeof limite !== 'number' || limite < 0) {
+      return res.status(400).json({ error: 'Limite non valido' });
+    }
+    
+    let limits = {};
+    if (fs.existsSync(pathDjLimits)) {
+      limits = JSON.parse(fs.readFileSync(pathDjLimits, 'utf-8'));
+    }
+    
+    limits[dj] = { limite };
+    fs.writeFileSync(pathDjLimits, JSON.stringify(limits, null, 2));
+    
+    res.json({ ok: true, dj, limite });
+  } catch (e) {
+    res.status(500).json({ error: 'Errore salvataggio limite DJ' });
+  }
+});
+
+// ============================
+//    POST: VERIFICA LIMITE PRENOTAZIONE
+// ============================
+router.post('/check-prenotazione-limit', (req, res) => {
+  try {
+    const { dj } = req.body;
+    
+    if (!dj) {
+      return res.status(400).json({ error: 'DJ non specificato' });
+    }
+    
+    let limits = {};
+    if (fs.existsSync(pathDjLimits)) {
+      limits = JSON.parse(fs.readFileSync(pathDjLimits, 'utf-8'));
+    }
+    
+    const limite = limits[dj]?.limite ?? 0;
+    
+    // Conta prenotazioni attuali
+    const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
+    const prenotazioni = log.filter(e => e.stato === 'prenotato' && e.dj === dj).length;
+    
+    const canPrenot = limite === 0 || prenotazioni < limite;
+    
+    res.json({
+      canPrenot,
+      dj,
+      limite,
+      prenotazioni,
+      remaining: limite === 0 ? null : Math.max(0, limite - prenotazioni)
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Errore verifica limite' });
   }
 });
 
