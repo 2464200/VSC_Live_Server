@@ -1125,22 +1125,6 @@ router.post('/check-prenotazione-limit', (req, res) => {
   }
 });
 
-        const effectiveHost = (requestedHost === 'localhost' || requestedHost === '127.0.0.1' || requestedHost === '::1')
-            ? getLocalIP()
-            : requestedHost;
-        const targetUrl = `http://${effectiveHost}:${PORT}/eventi/eventi.html`;
-        const dataUrl = await QRCodeLib.toDataURL(targetUrl, {
-            margin: 2,
-            width: 320
-        });
-
-        res.json({ ok: true, url: targetUrl, dataUrl });
-    } catch (error) {
-        console.error('Errore generazione QR Eventi:', error);
-        res.status(500).json({ ok: false, error: 'Impossibile generare il QR per Eventi' });
-    }
-});
-
 // Mount Eventi API router
 app.use('/eventi/api', router);
 
