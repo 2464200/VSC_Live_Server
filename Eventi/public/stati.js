@@ -11,10 +11,14 @@
 
   function buildLastStateMap(log) {
     const byId = new Map();
-    (log || []).forEach(entry => {
+    (log || []).forEach((entry, index) => {
       const previous = byId.get(entry.id);
-      const current = { ...entry, stato: normalizeState(entry.stato) };
-      if (!previous || new Date(entry.timestamp || 0) > new Date(previous.timestamp || 0)) {
+      const current = {
+        ...entry,
+        stato: normalizeState(entry.stato),
+        __order: index
+      };
+      if (!previous || current.__order > previous.__order) {
         byId.set(entry.id, current);
       }
     });

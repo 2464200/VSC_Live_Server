@@ -1040,8 +1040,17 @@ router.get('/dj-limits', (req, res) => {
     }
 
     const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
+    const lastStateById = new Map();
+    log.forEach((entry, index) => {
+      const timestamp = new Date(entry.timestamp || 0).getTime();
+      const previous = lastStateById.get(entry.id);
+      if (!previous || timestamp > previous.timestamp || (timestamp === previous.timestamp && index > previous.__order)) {
+        lastStateById.set(entry.id, { ...entry, timestamp, __order: index });
+      }
+    });
+
     const prenotazioniPerDJ = {};
-    log.forEach(entry => {
+    lastStateById.forEach(entry => {
       if (entry.stato === 'prenotato' && entry.dj) {
         prenotazioniPerDJ[entry.dj] = (prenotazioniPerDJ[entry.dj] || 0) + 1;
       }
@@ -1110,7 +1119,15 @@ router.post('/check-prenotazione-limit', (req, res) => {
 
     const limite = limits[dj]?.limite ?? 0;
     const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
-    const prenotazioni = log.filter(e => e.stato === 'prenotato' && e.dj === dj).length;
+    const lastStateById = new Map();
+    log.forEach((entry, index) => {
+      const timestamp = new Date(entry.timestamp || 0).getTime();
+      const previous = lastStateById.get(entry.id);
+      if (!previous || timestamp > previous.timestamp || (timestamp === previous.timestamp && index > previous.__order)) {
+        lastStateById.set(entry.id, { ...entry, timestamp, __order: index });
+      }
+    });
+    const prenotazioni = Array.from(lastStateById.values()).filter(e => e.stato === 'prenotato' && e.dj === dj).length;
     const canPrenot = limite === 0 || prenotazioni < limite;
 
     res.json({

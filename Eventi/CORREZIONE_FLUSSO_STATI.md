@@ -50,8 +50,7 @@ async function salvaStato(id, stato, addTimestamp = false) {
 **Note**:
 - `addTimestamp = true` SOLO quando lo stato diventa "eseguito"
 - Per gli altri stati, timestamp rimane `null`
-- Il DJ viene sempre salvato (dalla localStorage)
-
+- Il DJ viene sempre salvato (dalla localStorage)- Il limite di prenotazione DJ verifica esclusivamente i brani attualmente in stato `prenotato`; i brani già `eseguito` o riportati a `disponibile` non vengono conteggiati.
 ---
 
 ### 2. **Funzione `renderRows()` - Completamente Rivista**

@@ -343,7 +343,9 @@
     <div class="info-box">
       <strong>Come funziona:</strong><br>
       • Ogni DJ ha un limite indipendente di prenotazioni<br>
-      • Inserisci il numero massimo di coreografie prenotabili per ciascun DJ<br>
+      • Il conteggio considera solo le coreografie attualmente nello stato <strong>prenotato</strong><br>
+      • In pratica il valore "Prenotati" mostra le coreografie attive in <code>prenotati.html</code><br>
+      • Quando un DJ esegue o annulla prenotazioni, il conteggio diminuisce e può prenotare nuovamente fino al limite<br>
       • Quando un DJ tenta di prenotare più coreografie del consentito, riceve un avviso<br>
       • Dopo 3 secondi viene reindirizzato alla pagina principale<br>
       • <code>0</code> = nessun limite (illimitato)
@@ -599,6 +601,11 @@ async function impostaLimiteSingolo(input) {
 window.addEventListener('DOMContentLoaded', () => {
   caricaStats();
   safeCaricaDJPerLimitiTentativi();
+  
+  // Aggiorna automaticamente la tabella limiti ogni 10 secondi
+  setInterval(() => {
+    caricaTabellaDJLimiti();
+  }, 10000);
 });
 </script>
 </body>

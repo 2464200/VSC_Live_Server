@@ -70,10 +70,10 @@ const pageState = {
   eventSource: null
 };
 
-async function salvaStato(id, stato, addTimestamp = false) {
+async function salvaStato(id, stato, addTimestamp = false, djOverride = null) {
   // Verifica limite prenotazioni per prenotato
   if (stato === 'prenotato') {
-    const dj = getDJLocal();
+    const dj = djOverride !== null ? djOverride : getDJLocal();
     if (dj) {
       try {
         const checkRes = await eventiFetch('/check-prenotazione-limit', {
@@ -84,7 +84,7 @@ async function salvaStato(id, stato, addTimestamp = false) {
         const check = await checkRes.json();
         
         if (!check.canPrenot) {
-          alert(`⚠️ LIMITE RAGGIUNTO!\n\nHai già prenotato ${check.prenotazioni} coreografie.\nIl limite per te è di ${check.limite} prenotazioni.\n\nNon puoi prenotare altre coreografie.`);
+          alert(`⚠️ LIMITE RAGGIUNTO!\n\nHai già prenotato ${check.prenotazioni} coreografie attualmente in stato prenotato.\nIl limite per te è di ${check.limite} prenotazioni.\n\nNon puoi prenotare altre coreografie finché non esegui o annulli alcune prenotazioni.`);
           setTimeout(() => {
             goEventiPage('eventi.html');
           }, 3000);
@@ -98,13 +98,14 @@ async function salvaStato(id, stato, addTimestamp = false) {
   }
   
   const timestamp = new Date().toISOString();
+  const djToSave = djOverride !== null ? djOverride : (getDJLocal() || null);
   const response = await eventiFetch('/log', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       id,
       stato,
-      dj: getDJLocal() || null,
+      dj: djToSave,
       timestamp
     })
   });
@@ -582,7 +583,7 @@ async function carica() {
 
         const confirmed = window.confirm(
           'Vuoi resettare date e orari del modulo Eventi per iniziare un nuovo evento?\n\n' +
-          "L'operazione azzera la cronologia corrente delle coreografie eseguite/prenotate e riporta la lista alla situazione iniziale."
+          "L'operazione azzera la cronologia corrente delle coreografie eseguite/prenotate, riporta la lista alla situazione iniziale e resetta anche il conteggio delle prenotazioni DJ attive."
         );
 
         if (!confirmed) {

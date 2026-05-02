@@ -94,6 +94,7 @@
 **Icona**: ðŸŸ   
 **Checkbox UI**: Unchecked (negli altri brani), ma questo ha checkbox "Eseguito"  
 **Significato**: Brano PRENOTATO - Nessun altro DJ puÃ² selezionarlo  
+**Nota limite prenotazioni**: il conteggio per DJ usa solo i brani attualmente in stato `prenotato`; i brani `eseguito` non vengono contati.  
 
 ðŸ‘‡ **Utente clicca "Eseguito" in prenotati.html**
 

@@ -8,16 +8,18 @@ const renderState = {
   refreshTimer: null
 };
 
-async function salvaStato(id, stato, dj) {
+async function salvaStato(id, stato, addTimestamp = false, dj = null) {
+  const payload = {
+    id,
+    stato,
+    dj: dj || null,
+    timestamp: addTimestamp && stato === 'eseguito' ? new Date().toISOString() : null
+  };
+
   const response = await eventiFetch('/log', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id,
-      stato,
-      timestamp: new Date().toISOString(),
-      dj: dj || null
-    })
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -88,7 +90,7 @@ function renderRows(container, brani, opts = {}) {
         cbEseguito.addEventListener('change', async () => {
           cbEseguito.disabled = true;
           try {
-            await salvaStato(item.id, 'eseguito', item.dj);
+            await salvaStato(item.id, 'eseguito', true, item.dj);
             await refreshData();
           } catch (error) {
             cbEseguito.disabled = false;
@@ -101,7 +103,7 @@ function renderRows(container, brani, opts = {}) {
         cbAnnulla.addEventListener('change', async () => {
           cbAnnulla.disabled = true;
           try {
-            await salvaStato(item.id, 'disponibile', item.dj);
+            await salvaStato(item.id, 'disponibile', false, null); // Annulla prenotazione: riporta a disponibile senza DJ
             await refreshData();
           } catch (error) {
             cbAnnulla.disabled = false;
@@ -114,7 +116,7 @@ function renderRows(container, brani, opts = {}) {
         cb.addEventListener('change', async () => {
           cb.disabled = true;
           try {
-            await salvaStato(item.id, 'disponibile', item.dj);
+            await salvaStato(item.id, 'disponibile', false, null); // Annulla esecuzione: riporta a disponibile senza DJ
             await refreshData();
           } catch (error) {
             cb.disabled = false;
@@ -175,7 +177,7 @@ function startPolling() {
     } catch (error) {
       console.error('Errore autorefresh:', error);
     }
-  }, 15000);
+  }, 1000);
 }
 
 async function renderLista(filtro) {

@@ -20,6 +20,7 @@ Il server standalone `Eventi/server-eventi.js` e' solo legacy e non serve nel fl
 - export CSV
 - visualizer live read-only
 - statistiche DJ con media per DJ formattata a 2 decimali
+- limite prenotazioni DJ basato sui brani attualmente in stato `prenotato` (non sui brani già eseguiti)
 - reset cronologia date/orari per avvio nuovo evento
 - ritorno automatico alla home Eventi dopo 60 secondi di inattivita'
 
@@ -102,12 +103,14 @@ Endpoint:
 - `POST /aggiuntive/delete` (elimina coreografia da CSV aggiuntivo)
 - `DELETE /aggiuntive/:id` (fallback equivalente per eliminazione)
 - `POST /aggiuntive/update` (aggiorna coreografia da CSV aggiuntivo)
+- `POST /check-prenotazione-limit` (verifica se un DJ può prenotare una nuova coreografia in base ai prenotati correnti)
 
 ## Note operative
 - In tutte le pagine HTML del modulo `Eventi`, dopo 60 secondi senza interazioni utente si torna automaticamente a `eventi.html`.
-- Nella home `eventi.html` e' presente il pulsante `Reset date e orari`, che azzera la cronologia corrente del modulo per iniziare un nuovo evento.
+- Nella home `eventi.html` e' presente il pulsante `Reset date e orari`, che azzera la cronologia corrente del modulo per iniziare un nuovo evento e resetta anche il conteggio delle prenotazioni DJ attive.
 - Il reset salva prima una copia del log precedente in `Eventi/data/archive/`.
 - Nella vista `prenotati.html` e' disponibile un checkbox `Annulla` che riporta il brano a stato `disponibile`, come avviene nella vista `spuntati.html`.
+- Il conteggio del limite di prenotazione DJ considera solo i brani attualmente in stato `prenotato`; i brani già `eseguito` non influiscono sul conteggio. Quando il numero di prenotati diminuisce (esecuzione o annullamento), il DJ può prenotare nuovamente fino al limite assegnato.
 - La pagina `coreografie-aggiuntive.html` consente di visualizzare l'elenco delle coreografie contenute in `Coreografie_Aggiuntive.csv`. La maschera di modifica rimane nascosta al caricamento della pagina e si apre solo quando l'utente clicca il pulsante "Modifica" su un brano specifico.
 - Nella stessa pagina e' disponibile anche il pulsante `Elimina`, che rimuove la coreografia sia dall'elenco mostrato sia dal file `Coreografie_Aggiuntive.csv`.
 - La sincronizzazione brani usa come sorgente principale `Eventi/Elenco_Brani_statico.csv`; `display.csv` resta solo come fallback legacy/compatibilita' se il file completo non e' disponibile.
