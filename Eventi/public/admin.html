@@ -351,8 +351,10 @@
   </div>
 </div>
 
-<script defer src="api-helper.js"></script>
+<script src="api-helper.js"></script>
 <script>
+console.log('[ADMIN] Pagina caricata, inizializzazione...');
+
 // Fallback eventiFetch se api-helper.js non è caricato
 window.eventiFetch = window.eventiFetch || async function(path, options = {}) {
   const bases = [
@@ -598,6 +600,6 @@ window.addEventListener('DOMContentLoaded', () => {
   caricaStats();
   safeCaricaDJPerLimitiTentativi();
 });
-
+</script>
 </body>
 </html>

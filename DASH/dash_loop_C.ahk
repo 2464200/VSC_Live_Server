@@ -3,6 +3,17 @@
 ; Simple, robust kiosk presentation loop
 ; =========================
 
+
+; Lo slideshow ha una sequenza fissa di 4 elementi, che viene ripetuta in loop continuo:
+; 1) Pagina HTML 1
+; 2) Immagine
+; 3) Pagina HTML 2
+; 4) Pagina remota
+; → poi riparte dal punto 1
+
+; Ogni elemento viene mostrato per un tempo prefissato (10 secondi ciascuno).
+
+
 #Requires AutoHotkey v2.0
 Persistent
 

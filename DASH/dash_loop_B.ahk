@@ -4,6 +4,21 @@
 ; Single-Edge navigation, fullscreen images, 4 generic slots with persistence
 ; =========================
 
+
+; Lo slideshow è basato su 4 slot uguali.
+; Ogni slot può contenere:
+; un file locale HTML
+; un URL web
+; un’immagine locale
+; oppure essere vuoto
+
+; Il ciclo è sempre:
+; Slot 1 → Slot 2 → Slot 3 → Slot 4 → (riparte da Slot 1)
+
+; Questo ciclo continua all’infinito finché non viene fermato.
+
+
+
 #Requires AutoHotkey v2.0
 Persistent
 

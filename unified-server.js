@@ -122,6 +122,7 @@ const eventiDataDir = path.join(__dirname, 'Eventi', 'data');
 const pathBrani = path.join(eventiDataDir, 'brani.json');
 const pathLog = path.join(eventiDataDir, 'log.json');
 const pathDj = path.join(eventiDataDir, 'dj.json');
+const pathDjLimits = path.join(eventiDataDir, 'dj-limits.json');
 const pathCsv = path.join(eventiDataDir, 'log.csv');
 
 // ===== INIZIALIZZAZIONE =====
@@ -132,6 +133,7 @@ function initializeEventiFiles() {
     if (!fs.existsSync(pathBrani)) fs.writeFileSync(pathBrani, '[]');
     if (!fs.existsSync(pathLog)) fs.writeFileSync(pathLog, '[]');
     if (!fs.existsSync(pathDj)) fs.writeFileSync(pathDj, '[]');
+    if (!fs.existsSync(pathDjLimits)) fs.writeFileSync(pathDjLimits, '{}');
 }
 
 function loadOpenedViewersFromFile() {
@@ -1027,13 +1029,102 @@ router.delete('/dj/:id', (req, res) => {
     }
 });
 
-// Mount Eventi API router
-app.use('/eventi/api', router);
+// ============================
+//    GET: LIMITI PRENOTAZIONI DJ
+// ============================
+router.get('/dj-limits', (req, res) => {
+  try {
+    let limits = {};
+    if (fs.existsSync(pathDjLimits)) {
+      limits = JSON.parse(fs.readFileSync(pathDjLimits, 'utf-8'));
+    }
 
-router.get('/qr', async (req, res) => {
-    try {
-        const hostHeader = req.headers.host || `127.0.0.1:${PORT}`;
-        const [requestedHost] = hostHeader.split(':');
+    const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
+    const prenotazioniPerDJ = {};
+    log.forEach(entry => {
+      if (entry.stato === 'prenotato' && entry.dj) {
+        prenotazioniPerDJ[entry.dj] = (prenotazioniPerDJ[entry.dj] || 0) + 1;
+      }
+    });
+
+    const result = {};
+    for (const dj of Object.keys(limits)) {
+      result[dj] = {
+        limite: limits[dj]?.limite ?? 0,
+        prenotazioni: prenotazioniPerDJ[dj] || 0
+      };
+    }
+    for (const dj of Object.keys(prenotazioniPerDJ)) {
+      if (!result[dj]) {
+        result[dj] = { limite: 0, prenotazioni: prenotazioniPerDJ[dj] };
+      }
+    }
+
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: 'Impossibile leggere limiti DJ' });
+  }
+});
+
+// ============================
+//    POST: IMPOSTA LIMITE DJ
+// ============================
+router.post('/dj-limits', (req, res) => {
+  try {
+    const { dj, limite } = req.body;
+    if (!dj || typeof dj !== 'string') {
+      return res.status(400).json({ error: 'Nome DJ non valido' });
+    }
+    if (typeof limite !== 'number' || limite < 0) {
+      return res.status(400).json({ error: 'Limite non valido' });
+    }
+
+    let limits = {};
+    if (fs.existsSync(pathDjLimits)) {
+      limits = JSON.parse(fs.readFileSync(pathDjLimits, 'utf-8'));
+    }
+
+    limits[dj] = { limite };
+    fs.writeFileSync(pathDjLimits, JSON.stringify(limits, null, 2));
+
+    res.json({ ok: true, dj, limite });
+  } catch (e) {
+    res.status(500).json({ error: 'Errore salvataggio limite DJ' });
+  }
+});
+
+// ============================
+//    POST: VERIFICA LIMITE PRENOTAZIONE
+// ============================
+router.post('/check-prenotazione-limit', (req, res) => {
+  try {
+    const { dj } = req.body;
+    if (!dj) {
+      return res.status(400).json({ error: 'DJ non specificato' });
+    }
+
+    let limits = {};
+    if (fs.existsSync(pathDjLimits)) {
+      limits = JSON.parse(fs.readFileSync(pathDjLimits, 'utf-8'));
+    }
+
+    const limite = limits[dj]?.limite ?? 0;
+    const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
+    const prenotazioni = log.filter(e => e.stato === 'prenotato' && e.dj === dj).length;
+    const canPrenot = limite === 0 || prenotazioni < limite;
+
+    res.json({
+      canPrenot,
+      dj,
+      limite,
+      prenotazioni,
+      remaining: limite === 0 ? null : Math.max(0, limite - prenotazioni)
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Errore verifica limite' });
+  }
+});
+
         const effectiveHost = (requestedHost === 'localhost' || requestedHost === '127.0.0.1' || requestedHost === '::1')
             ? getLocalIP()
             : requestedHost;
@@ -1049,6 +1140,9 @@ router.get('/qr', async (req, res) => {
         res.status(500).json({ ok: false, error: 'Impossibile generare il QR per Eventi' });
     }
 });
+
+// Mount Eventi API router
+app.use('/eventi/api', router);
 
 loadOpenedViewersFromFile();
 syncBraniOnStartupV2();

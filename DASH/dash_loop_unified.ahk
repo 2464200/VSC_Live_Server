@@ -3,6 +3,28 @@
 ; Unisce le funzionalità di dash_loop_A.ahk, dash_loop_B.ahk e dash_loop_C.ahk
 ; =========================
 
+
+; Lo slideshow è basato su una lista di slot sequenziali.
+; Esempio tipico:
+; Slot 1 → Slot 2 → Slot 3 → Slot 4 → Slot 5 → loop
+
+; Gli slot vengono mostrati uno alla volta
+; Ognuno per una durata fissa. Alla fine, il ciclo riparte dall’inizio
+; Il loop continua finché non viene fermato
+; Se VLC è in esecuzione:
+;     lo slideshow non parte
+;     la GUI non viene mostrata
+;     il sistema aspetta che il video finisca
+;     attende 10 secondi
+;     poi mostra la GUI
+;     oppure avvia automaticamente lo slideshow
+;     Questo permette di:
+;     ✅ mostrare prima un video fullscreen
+;     ✅ passare poi allo slideshow informativo
+;     ✅ evitare sovrapposizioni
+
+
+
 #Requires AutoHotkey v2.0
 Persistent
 

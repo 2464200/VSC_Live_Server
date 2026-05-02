@@ -3,6 +3,29 @@
 ; Simple, robust kiosk presentation loop
 ; =========================
 
+
+; Ogni ciclo segue sempre questo ordine:
+; Pagina HTML locale o web
+; http://localhost:5500/Index.html
+; mostrata per 10 secondi
+
+; Immagine a schermo
+; C:\VSC_Live_Server\DASH\assets\foto.jpg
+; mostrata per 10 secondi
+
+; Seconda pagina HTML
+; http://localhost:5500/NextCoreo1.html
+; mostrata per 10 secondi
+
+; Pagina “remota”
+; stesso URL della 3ª, ma:
+; viene mostrata solo se il server risponde al ping
+; altrimenti lo script attende senza mostrare nulla
+
+; 👉 Terminato il punto 4, il ciclo riparte dal punto 1.
+
+
+
 #Requires AutoHotkey v2.0
 Persistent
 
