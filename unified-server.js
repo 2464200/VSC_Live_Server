@@ -863,13 +863,13 @@ router.get('/export-csv', (req, res) => {
         // Determina il nome del file CSV
         let csvPath;
         if (req.query.siae === '1') {
-            // Formato GG-MM-AAAA-HHHH_SIAE.csv in c:\VSC_SIAE\
+            // Formato GG-MM-AAAA-HHHH_SIAE_VSC.csv in c:\VSC_SIAE\
             const now = new Date();
             const gg = String(now.getDate()).padStart(2, '0');
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const aaaa = now.getFullYear();
             const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
-            const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE.csv`;
+            const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE_VSC.csv`;
             const siaeDir = 'c:\\VSC_SIAE';
             
             // Crea la cartella se non esiste
@@ -906,7 +906,7 @@ router.get('/log.csv', (req, res) => {
     }
     // Altrimenti cerca l'ultimo file SIAE in c:\VSC_SIAE\
     if (fs.existsSync(siaeDir)) {
-        const files = fs.readdirSync(siaeDir).filter(f => f.endsWith('_SIAE.csv'));
+        const files = fs.readdirSync(siaeDir).filter(f => f.endsWith('_SIAE_VSC.csv'));
         if (files.length > 0) {
             files.sort();
             return res.download(path.join(siaeDir, files[files.length - 1]));

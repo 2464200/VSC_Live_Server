@@ -160,7 +160,7 @@ La nuova pagina e funzionalitÃ :
 ### Funzionalità
 - **Bottone**: "Esporta CSV per SIAE" in `eventi.html`
 - **Protezione**: Richiede password `0000` prima dell'esportazione
-- **Nome file**: `GG-MM-AAAA-HHHH_SIAE.csv` (es. `25-04-2026-1654_SIAE.csv`)
+- **Nome file**: `GG-MM-AAAA-HHHH_SIAE_VSC.csv` (es. `25-04-2026-1654_SIAE_VSC.csv`)
 - **Percorso**: `c:\VSC_SIAE\` (creata automaticamente se manca)
 
 ### Formato CSV SIAE
