@@ -141,8 +141,8 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
       titoloIndex = 2;
       branoIndex = 3;
       autoreIndex = 4;
-      compositoreIndex = 5;
-      durataIndex = 6;
+      compositoreIndex = undefined;
+      durataIndex = undefined;
     } else {
       idIndex = 2;
       titoloIndex = 3;

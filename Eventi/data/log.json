@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": "412",
+    "stato": "prenotato",
+    "timestamp": "2026-05-03T09:18:05.549Z",
+    "dj": null
+  },
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-05-03T09:18:09.166Z",
+    "dj": null
+  },
+  {
+    "id": "015",
+    "stato": "prenotato",
+    "timestamp": "2026-05-03T09:18:14.630Z",
+    "dj": null
+  },
+  {
+    "id": "481",
+    "stato": "prenotato",
+    "timestamp": "2026-05-03T09:18:21.526Z",
+    "dj": null
+  },
+  {
+    "id": "481",
+    "stato": "eseguito",
+    "timestamp": "2026-05-03T09:18:25.272Z",
+    "dj": null
+  },
+  {
+    "id": "015",
+    "stato": "eseguito",
+    "timestamp": "2026-05-03T09:18:26.348Z",
+    "dj": null
+  },
+  {
+    "id": "008",
+    "stato": "eseguito",
+    "timestamp": "2026-05-03T09:18:27.568Z",
+    "dj": null
+  },
+  {
+    "id": "412",
+    "stato": "eseguito",
+    "timestamp": "2026-05-03T09:18:28.163Z",
+    "dj": null
+  }
+]

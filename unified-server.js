@@ -762,11 +762,11 @@ function getBraniDetails(id, braniJson, extraCsvPath) {
     const brano = braniJson.find(b => b.id === id);
     if (brano) {
         return {
-            titolo: brano.titolo || '',
+            titolo: brano.brano || brano.titolo || '',
             autore: brano.autore || '',
-            compositore: brano.compositore || '',
-            performer: brano.brano || '',
-            durata: brano.durata || ''
+            compositore: '',
+            performer: '',
+            durata: ''
         };
     }
     
@@ -779,11 +779,11 @@ function getBraniDetails(id, braniJson, extraCsvPath) {
             const cols = line.split(',');
             if (cols.length >= 8 && cols[2] === id) {
                 return {
-                    titolo: cols[3] || '', // coreografia
+                    titolo: cols[4] || '', // brano (colonna 5)
                     autore: cols[6] || '', // autore (colonna 7)
-                    compositore: cols[5] || '', // compositore (colonna 6)
-                    performer: cols[4] || '', // brano (colonna 5)
-                    durata: cols[7] || ''  // durata (colonna 8)
+                    compositore: '',
+                    performer: '',
+                    durata: ''
                 };
             }
         }
@@ -868,7 +868,7 @@ router.get('/export-csv', (req, res) => {
             const gg = String(now.getDate()).padStart(2, '0');
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const aaaa = now.getFullYear();
-            const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+            const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
             const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE.csv`;
             const siaeDir = 'c:\\VSC_SIAE';
             
@@ -884,7 +884,8 @@ router.get('/export-csv', (req, res) => {
         
         // Scrivi in UTF-8
         fs.writeFileSync(csvPath, csvContent, 'utf-8');
-        res.json({ ok: true, csv: '/eventi/api/' + path.basename(csvPath), count: records.length });
+        const downloadUrl = '/eventi/api/download-siae/' + encodeURIComponent(path.basename(csvPath)) + '?t=' + Date.now();
+        res.json({ ok: true, csv: downloadUrl, count: records.length });
     } catch (e) {
         console.error('Errore export CSV SIAE:', e);
         res.status(500).json({ error: 'Errore export CSV: ' + e.message });
@@ -894,6 +895,10 @@ router.get('/export-csv', (req, res) => {
 // Download CSV (supporta sia log.csv che file SIAE)
 router.get('/log.csv', (req, res) => {
     const siaeDir = 'c:\\VSC_SIAE';
+    
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     
     // Se esiste il file log.csv originale, servilo
     if (fs.existsSync(pathCsv)) {
@@ -908,6 +913,26 @@ router.get('/log.csv', (req, res) => {
         }
     }
     return res.status(404).send('CSV non generato');
+});
+
+router.get('/download-siae/:fileName', (req, res) => {
+    const siaeDir = 'c:\\\\VSC_SIAE';
+    const fileName = path.basename(req.params.fileName || '');
+
+    if (!fileName) {
+        return res.status(400).send('Nome file non valido');
+    }
+
+    const filePath = path.join(siaeDir, fileName);
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).send('File SIAE non trovato');
+    }
+
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
+    return res.download(filePath);
 });
 
 router.get('/sync-brani', (req, res) => {
