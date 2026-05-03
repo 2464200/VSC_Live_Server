@@ -3,14 +3,9 @@ Data: 03/05/2026   |   File: Borderò - ver 13.1.68_con AutoHotkey da sistemare
 ?,ID,Coreografia,Brano,Autore,Coreografo
 ,011,3 TEQUILA FLOOR,3 tequila floor,josiah siska,Maddison Glover
 ,015,A BAR SONG,a bar song (tipsy),shaboozey,Ben Murphy
-,023,ALL TO MYSELF,all to myself,dan + shy,Séverine Fillion
 ,040,BETTER COUNTRY,better country,paul brandt,Pino Piromalli
 ,046,BLACK COFFEE,all i want for christmas is you,mariah carey,Helen O'Malley
-,060,BRING DOWN THE HOUSE,bring down the house,dean brody,Sthépane Cormier
-,061,BROKEN HEELS,broken heels,alexandra burke,Jo Kinser
-,063,BUDDY,one step forward,desert rose band,Bruno Moggia
 ,072,CANDY KISSES,bottoms up,brantley gilbert,Unknown
-,076,CENTURION,my heart's broke down,dean miller,Rob Fowler
 ,081,CHASING DOWN A GOOD TIME,chasing down a good time,randy houser,Dan Albro
 ,084,CHEEK TO CHEEK,bailando,enrique iglesias,
 ,087,CHEYENNE,cadillac tears,kevin denney,Unknown
@@ -64,5 +59,10 @@ Data: 03/05/2026   |   File: Borderò - ver 13.1.68_con AutoHotkey da sistemare
 ,552,BLUE CHAIRS,two blue chairs & you,zac brown band,Alessandro Boer
 ,555,LOVE POTION 666,love potion 666,djtexx,Rob Fowler
 ,557,GOOD GIRL,good girl,carrie underwood,Simonetta Silvagna
+X,023,ALL TO MYSELF,all to myself,dan + shy,Séverine Fillion
+X,060,BRING DOWN THE HOUSE,bring down the house,dean brody,Sthépane Cormier
+X,061,BROKEN HEELS,broken heels,alexandra burke,Jo Kinser
+X,063,BUDDY,one step forward,desert rose band,Bruno Moggia
+X,076,CENTURION,my heart's broke down,dean miller,Rob Fowler
 ,,,,,
 ,,,,,
