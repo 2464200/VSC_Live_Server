@@ -21,7 +21,7 @@ function Test-PortListening {
     param([int]$Port)
     try {
         $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-        if ($connections -ne $null -and $connections.Count -gt 0) {
+        if ($null -ne $connections -and $connections.Count -gt 0) {
             return $true
         }
     } catch {
@@ -29,7 +29,7 @@ function Test-PortListening {
 
     try {
         $result = & netstat -ano 2>$null | Select-String ":$Port\s" | Select-String "LISTENING"
-        return $result -ne $null
+        return $null -ne $result
     } catch {
         return $false
     }
@@ -63,7 +63,7 @@ function Save-Pids {
     }
 }
 
-function Cleanup-OldProcesses {
+function Clear-OldProcesses {
     Write-Host "Pulizia processi precedenti..."
     $oldPids = @()
     if (Test-Path $PidFile) {
@@ -247,7 +247,7 @@ if (Test-PortListening -Port $UnifiedPort) {
     exit 0
 }
 
-Cleanup-OldProcesses
+Clear-OldProcesses
 Stop-NodeListenersOnPort -Port $UnifiedPort
 
 $startedPids = @()
