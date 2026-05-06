@@ -222,6 +222,31 @@ Write-Host "Progetto: $RootPath"
 Write-Host "Unified Server: porta $UnifiedPort"
 Write-Host ""
 
+# Verifica se il server è già in esecuzione
+if (Test-PortListening -Port $UnifiedPort) {
+    Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
+    Write-Host ""
+    Write-Host "Generazione dati report..."
+    try {
+        $pythonExe = Join-Path $RootPath '.venv\Scripts\python.exe'
+        if (-not (Test-Path $pythonExe)) { $pythonExe = 'python' }
+        & $pythonExe (Join-Path $RootPath 'generate_report_data.py') 2>&1 | Out-Null
+        Write-Host "OK Dati report aggiornati"
+    } catch {
+        Write-Host "AVVISO: Impossibile aggiornare dati report - $_"
+    }
+    Write-Host ""
+    Write-Host "========================================================"
+    Write-Host "        SISTEMA GIÀ OPERATIVO"
+    Write-Host "========================================================"
+    Write-Host ""
+    Write-Host "URL per accesso:"
+    Write-Host "  Homepage:    http://localhost:$UnifiedPort/index.html"
+    Write-Host "  Mobile:      http://localhost:$UnifiedPort/public/mobile1.html"
+    Write-Host ""
+    exit 0
+}
+
 Cleanup-OldProcesses
 Stop-NodeListenersOnPort -Port $UnifiedPort
 
