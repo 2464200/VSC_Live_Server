@@ -10,15 +10,14 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\startup.ps1",
-        "-NoWait"
+        "${workspaceFolder}\\autostart.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "presentation": {
-        "reveal": "never",
-        "panel": "dedicated",
+        "reveal": "silent",
+        "panel": "shared",
         "showReuseMessage": false,
         "clear": false
       },
