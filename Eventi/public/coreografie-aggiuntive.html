@@ -10,6 +10,7 @@
     document.write('<script defer src="event-navigation.js' + cacheBust + '"><\/script>');
     document.write('<script defer src="inactivity-return.js' + cacheBust + '"><\/script>');
     document.write('<script defer src="api-helper.js' + cacheBust + '"><\/script>');
+    document.write('<script defer src="search-utils.js' + cacheBust + '"><\/script>');
     document.write('<script defer src="coreografie-aggiuntive.js' + cacheBust + '"><\/script>');
   </script>
   <script>
@@ -28,7 +29,10 @@
     <button onclick="goEventiPage('eventi.html#inserimento')" style="background:#ffc107;color:#000;font-weight:700;">Torna a inserimento</button>
   </div>
   <div class="tools-row">
-    <input id="search-input" type="text" placeholder="Cerca per coreografia, brano o autore..." />
+    <div class="search-wrapper">
+      <input id="search-input" type="text" placeholder="Cerca per coreografia, brano o autore..." />
+      <button id="search-clear-btn" type="button" class="search-clear-btn hidden" aria-label="Pulisci ricerca">×</button>
+    </div>
     <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
   </div>
   <div id="alfabeto-filter" class="alfabeto-filter"></div>

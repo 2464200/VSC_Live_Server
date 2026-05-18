@@ -9,6 +9,7 @@
   <script defer src="inactivity-return.js"></script>
   <script defer src="api-helper.js"></script>
   <script defer src="stati.js"></script>
+  <script defer src="search-utils.js"></script>
   <script defer src="render.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => renderLista('tutti'));
@@ -25,7 +26,10 @@
     <button onclick="goEventiPage('visualizer.html')">Apri visualizer</button>
   </div>
   <div class="tools-row">
-    <input id="search-input" type="text" placeholder="Cerca per titolo, ID o DJ..." />
+    <div class="search-wrapper">
+      <input id="search-input" type="text" placeholder="Cerca per titolo, ID o DJ..." />
+      <button id="search-clear-btn" type="button" class="search-clear-btn hidden" aria-label="Pulisci ricerca">×</button>
+    </div>
     <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
   </div>
   <div id="summary-cards" class="summary-cards"></div>

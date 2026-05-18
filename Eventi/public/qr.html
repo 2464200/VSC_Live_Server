@@ -115,9 +115,26 @@
     .error {
       color: #ff8a80;
     }
+    /* Pulsante in alto a sinistra (stile coerente con Eventi) */
+    .top-left-btn {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      z-index: 1200;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #10253b;
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(20, 33, 43, 0.06);
+    }
+    .top-left-btn:hover { transform: translateY(-1px); }
   </style>
 </head>
 <body>
+  <button class="top-left-btn" onclick="location.href='eventi.html'">Torna alla pagina principale</button>
   <div class="card">
     <h1>Connessione Eventi</h1>
     <p class="subtitle">Scansiona questo QR Code con un telefono, notebook o tablet collegato alla rete Wi-Fi evento.</p>

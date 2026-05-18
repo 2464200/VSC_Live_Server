@@ -156,10 +156,14 @@ async function refreshDjStats() {
 function bindSearch() {
   const input = document.getElementById('search-input');
   if (!input) return;
-  input.addEventListener('input', () => {
-    djStatsState.query = input.value;
+
+  EventiSearch.bindSearchInput(input, value => {
+    djStatsState.query = value;
     applySearchAndRender();
   });
+}
+
+  updateClearButton();
 }
 
 function startPolling() {

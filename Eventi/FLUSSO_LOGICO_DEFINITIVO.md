@@ -1,4 +1,7 @@
-﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+﻿**⚠️ Nota:** questo file è stato in parte consolidato in `DOCUMENTATION.md`.
+Per la documentazione centralizzata, vedi: `Eventi/DOCUMENTATION.md`.
+
+**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
 # âœ… FLUSSO LOGICO CORRETTO - COREOGRAFIE PER STATI
 
@@ -258,6 +261,8 @@ Quando clicchi "Eseguito" in prenotati.html:
 ---
 
 ## ðŸ“Œ NOTE IMPORTANTI
+
+- Selezione DJ protetta: la scelta del DJ mostrata in `eventi.html` richiede ora la conferma tramite password di sistema (memorizzata in `Eventi/public/config.js` come `window.SYSTEM_PASSWORD`). Se la password inserita è errata o l'operatore annulla, la selezione viene ripristinata al valore precedente e il flusso continua senza modifiche.
 
 1. **Timestamp SOLO a eseguito**: Non Ã¨ salvato quando prenotato
 2. **DJ sempre salvato**: Dal primo click sulla localStorage

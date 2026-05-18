@@ -255,10 +255,15 @@ function showEditStatus(message, isError) {
 function bindSearchAggiuntive() {
   const input = document.getElementById('search-input');
   if (!input || aggiuntiveState.searchBound) return;
-  input.addEventListener('input', () => {
-    aggiuntiveState.query = input.value;
+
+  EventiSearch.bindSearchInput(input, value => {
+    aggiuntiveState.query = value;
     applySearchAggiuntive();
   });
+
+  aggiuntiveState.searchBound = true;
+
+  updateClearButton();
   aggiuntiveState.searchBound = true;
 }
 

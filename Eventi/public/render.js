@@ -162,8 +162,9 @@ async function refreshData() {
 function bindSearch() {
   const input = document.getElementById('search-input');
   if (!input) return;
-  input.addEventListener('input', () => {
-    renderState.query = input.value;
+
+  EventiSearch.bindSearchInput(input, value => {
+    renderState.query = value;
     applySearchAndRender();
   });
 }

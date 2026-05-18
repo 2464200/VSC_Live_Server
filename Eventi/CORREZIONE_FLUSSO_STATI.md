@@ -29,6 +29,9 @@ async function salvaStato(id, stato, addTimestamp = false) {
   const payload = {
     id,
     stato,
+  **⚠️ Nota:** questo file è stato in parte consolidato in `DOCUMENTATION.md`.
+  Per la documentazione centralizzata, vedi: `Eventi/DOCUMENTATION.md`.
+
     dj: getDJLocal() || null
   };
   

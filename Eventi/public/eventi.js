@@ -19,9 +19,19 @@ function verifyPassword(actionType) {
     // Utente ha premuto Annulla
     return false;
   }
-  if (password !== '0000') {
+  if (password !== window.SYSTEM_PASSWORD) {
     alert('Password errata. Verrai reindirizzato alla pagina principale.');
     goEventiPage('eventi.html');
+    return false;
+  }
+  return true;
+}
+// Variante silente della verifica password: non reindirizza, ritorna true/false
+function verifyPasswordSilent(actionType) {
+  const password = prompt('Inserisci password per confermare: ' + actionType);
+  if (password === null) return false; // annulla
+  if (password !== window.SYSTEM_PASSWORD) {
+    alert('Password errata. Selezione annullata.');
     return false;
   }
   return true;
@@ -337,7 +347,20 @@ async function caricaDJList() {
     salvaDJLocal(current);
   }
 
-  djInput.addEventListener('change', () => salvaDJLocal(djInput.value.trim()));
+  // Manteniamo la selezione precedente e chiediamo conferma con password
+  let previousDJ = current || '';
+  djInput.addEventListener('change', () => {
+    const newVal = djInput.value.trim();
+    if (newVal === previousDJ) return; // nessuna variazione
+    const ok = verifyPasswordSilent(`conferma selezione DJ: ${newVal}`);
+    if (ok) {
+      previousDJ = newVal;
+      salvaDJLocal(newVal);
+    } else {
+      // ripristina la selezione precedente
+      djInput.value = previousDJ;
+    }
+  });
 }
 
 async function refreshPageData() {
@@ -361,10 +384,12 @@ async function refreshPageData() {
 function bindSearch() {
   const input = document.getElementById('search-input');
   if (!input) return;
-  input.addEventListener('input', () => {
-    pageState.query = input.value;
+
+  EventiSearch.bindSearchInput(input, value => {
+    pageState.query = value;
     applySearchAndRender();
   });
+
   if (isTouchDevice()) {
     input.addEventListener('click', showKeyboard);
   }

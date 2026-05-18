@@ -85,9 +85,11 @@
     }
   </style>
   <script defer src="event-navigation.js"></script>
+  <script defer src="config.js"></script>
   <script defer src="inactivity-return.js"></script>
   <script defer src="api-helper.js"></script>
   <script defer src="stati.js"></script>
+  <script defer src="search-utils.js"></script>
   <script defer src="eventi.js"></script>
 </head>
 <body>
@@ -142,7 +144,7 @@
       <div id="extra-coreo-status" class="lista-empty" hidden></div>
       <div class="extra-coreo-actions">
         <button id="btn-save-coreo" style="background:#ffca28;color:#000;font-weight:700;">Salva nuova coreografia</button>
-        <button id="btn-open-aggiuntive" type="button" onclick="goEventiPage('coreografie-aggiuntive.html')" style="background:#ffca28;color:#000;font-weight:700;">Apri elenco aggiuntive</button>
+        <button id="btn-open-aggiuntive" type="button" onclick="goEventiPage('coreografie-aggiuntive.html')" style="background:#ffca28;color:#000;font-weight:700;">Apri elenco coreografie aggiuntive</button>
         <button id="btn-cancel-coreo" type="button" style="background:#ffca28;color:#000;font-weight:700;">Chiudi</button>
       </div>
     </div>
@@ -165,7 +167,10 @@
   </div>
 
   <div class="tools-row">
-    <input id="search-input" type="text" placeholder="Cerca per titolo o ID..." />
+    <div class="search-wrapper">
+      <input id="search-input" type="text" placeholder="Cerca per titolo o ID..." />
+      <button id="search-clear-btn" type="button" class="search-clear-btn hidden" aria-label="Pulisci ricerca">×</button>
+    </div>
     <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
   </div>
 

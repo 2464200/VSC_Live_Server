@@ -9,6 +9,7 @@
   <script defer src="inactivity-return.js"></script>
   <script defer src="api-helper.js"></script>
   <script defer src="stati.js"></script>
+  <script defer src="search-utils.js"></script>
   <script defer src="statistiche-dj.js"></script>
 </head>
 <body>
@@ -24,7 +25,10 @@
     Riepilogo dei brani attualmente marcati come eseguiti, raggruppati per DJ.
   </div>
   <div class="tools-row">
-    <input id="search-input" type="text" placeholder="Cerca per DJ, titolo o ID..." />
+    <div class="search-wrapper">
+      <input id="search-input" type="text" placeholder="Cerca per DJ, titolo o ID..." />
+      <button id="search-clear-btn" type="button" class="search-clear-btn hidden" aria-label="Pulisci ricerca">×</button>
+    </div>
     <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
   </div>
   <div id="summary-cards" class="summary-cards"></div>

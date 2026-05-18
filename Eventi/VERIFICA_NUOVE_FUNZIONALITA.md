@@ -1,4 +1,7 @@
-﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+﻿**⚠️ Nota:** questo file è stato in parte consolidato in `DOCUMENTATION.md`.
+Per la documentazione centralizzata, vedi: `Eventi/DOCUMENTATION.md`.
+
+**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
 # Verifica Nuove FunzionalitÃ  - Coreografie Aggiuntive
 
@@ -207,6 +210,10 @@ Big,Trace Adkins,,
 - **Esporta CSV per SIAE**
 - **Reset date e orari**
 
+### Nuova protezione: Selezione DJ
+- **Cambio DJ (eventi.html)**: la selezione di un nuovo DJ richiede ora l'inserimento della password di sistema; se la password è errata o l'operatore annulla l'operazione, la selezione non viene applicata e resta in uso il DJ precedente.
+- **Configurazione**: la password è hardcoded una sola volta in `Eventi/public/config.js` come `window.SYSTEM_PASSWORD` e viene usata da tutte le pagine del modulo.
+
 ### Comportamento
 - Password richiesta: `0000`
 - Se errata: alert + redirect a `eventi.html`
@@ -215,7 +222,7 @@ Big,Trace Adkins,,
 ```javascript
 function verifyPassword(actionType) {
   const password = prompt('Inserisci password per confermare: ' + actionType);
-  if (password === null || password !== '0000') {
+  if (password === null || password !== window.SYSTEM_PASSWORD) {
     alert('Password errata. Verrai reindirizzato alla pagina principale.');
     goEventiPage('eventi.html');
     return false;
