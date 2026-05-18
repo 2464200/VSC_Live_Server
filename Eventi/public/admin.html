@@ -552,7 +552,7 @@ async function caricaTabellaDJLimiti() {
           <td style="padding: 10px; text-align: center; color: ${rowColor};">${prenotati}</td>
           <td style="padding: 10px; text-align: center;">${disponibili}</td>
           <td style="padding: 10px; text-align: center;">
-            <button onclick="impostaLimiteSingolo(this.previousElementSibling)" style="padding:5px 10px;background:#28a745;color:#fff;border:none;border-radius:3px;cursor:pointer;">Salva</button>
+            <button onclick="impostaLimiteSingolo(this)" style="padding:5px 10px;background:#28a745;color:#fff;border:none;border-radius:3px;cursor:pointer;">Salva</button>
           </td>
         </tr>
       `;
@@ -565,11 +565,20 @@ async function caricaTabellaDJLimiti() {
   }
 }
 
-async function impostaLimiteSingolo(input) {
+async function impostaLimiteSingolo(element) {
+  const input = element.tagName === 'INPUT' ? element : element.closest('tr')?.querySelector('input[data-campo="limite"]');
+  const statusDiv = document.getElementById('limit-status');
+
+  if (!input) {
+    statusDiv.className = 'status error';
+    statusDiv.textContent = 'Elemento input limite non trovato';
+    statusDiv.style.display = 'block';
+    return;
+  }
+
   const dj = input.getAttribute('data-dj');
   const limite = parseInt(input.value, 10);
-  const statusDiv = document.getElementById('limit-status');
-  
+
   if (!dj || isNaN(limite) || limite < 0) {
     statusDiv.className = 'status error';
     statusDiv.textContent = 'Dati non validi';
