@@ -588,11 +588,21 @@ async function carica() {
         if (!verifyPassword('Esporta CSV per SIAE')) {
           return;
         }
+
+        // Chiedi all'utente il tipo di ordinamento desiderato
+        const cronologico = window.confirm(
+          'Vuoi che i dati siano ordinati per ordine di esecuzione (cronologico)?\n\nPremi OK per "Cronologico", Annulla per "Alfabetico (per titolo)".'
+        );
+
+        const orderParam = cronologico ? 'cronologico' : 'alfabetico';
+
         try {
-          const result = await fetchJSON(`/export-csv?siae=1&ts=${Date.now()}`);
-          alert('CSV SIAE generato. URL: ' + result.csv);
+          const result = await fetchJSON(`/export-csv?siae=1&order=${orderParam}&ts=${Date.now()}`);
+          if (window.showToast) showToast('CSV SIAE generato: ' + result.csv, 4000);
+          window.open(result.csv, '_blank');
         } catch (error) {
           console.error('Errore export CSV SIAE:', error);
+          if (window.showToast) showToast('Errore durante export CSV SIAE.', 4000);
           alert('Errore durante export CSV SIAE.');
         }
       });

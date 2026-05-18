@@ -3,12 +3,21 @@
     "limite": 0
   },
   "DJ Dany Star": {
-    "limite": 0
+    "limite": 3
   },
   "DJ Daniel West": {
-    "limite": 0
+    "limite": 2
   },
   "LocalHost Server": {
     "limite": 0
+  },
+  "Mr. Pino Piromalli": {
+    "limite": 2
+  },
+  "DJ Micio": {
+    "limite": 2
+  },
+  "DJ Gio": {
+    "limite": 2
   }
 }

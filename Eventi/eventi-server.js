@@ -174,16 +174,50 @@ router.post('/log/reset-times', (req, res) => {
 //      GET: EXPORT CSV
 // ============================
 // Genera/aggiorna log.csv (separatori ; per Excel)
+// Supporta query param `order=cronologico|alfabetico` per cambiare l'ordinamento delle righe
 router.get('/export-csv', (req, res) => {
   try {
     const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
+
+    // Decide l'ordinamento richiesto (default: nessuna modifica, mantiene l'ordine del log)
+    const order = (req.query.order || '').toString().toLowerCase();
+    let rowsArray = Array.isArray(log) ? log.slice() : [];
+
+    if (order === 'cronologico' || order === 'chronological') {
+      // Ordina per timestamp crescente (ordine di esecuzione)
+      rowsArray.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+    } else if (order === 'alfabetico' || order === 'alphabetical') {
+      // Ordina alfabeticamente per titolo, richiede brani.json
+      let brani = [];
+      try {
+        brani = JSON.parse(fs.readFileSync(pathBrani, 'utf-8'));
+      } catch (e) {
+        // se non riesce a leggere i brani, manteniamo l'ordine originale
+        brani = [];
+      }
+      const titleMap = {};
+      (brani || []).forEach(b => {
+        if (b && b.id) titleMap[b.id] = (b.titolo || b.coreografia || b.id).toString();
+      });
+
+      rowsArray.sort((a, b) => {
+        const ta = (titleMap[a.id] || a.id || '').toString().toLowerCase();
+        const tb = (titleMap[b.id] || b.id || '').toString().toLowerCase();
+        if (ta < tb) return -1;
+        if (ta > tb) return 1;
+        // se stesso titolo, ordina per timestamp crescente
+        return new Date(a.timestamp || 0) - new Date(b.timestamp || 0);
+      });
+    }
+
     const header = 'timestamp;id_brano;stato;dj\n';
-    const rows = log.map(r => {
-    let statoCsv = '0';
-    if (r.stato === 'eseguito' || r.stato === true) statoCsv = '1';
-    else if (r.stato === 'prenotato') statoCsv = '2';
-    return `${r.timestamp};${r.id};${statoCsv};${r.dj ?? ''}`;
-  }).join('\n');
+    const rows = rowsArray.map(r => {
+      let statoCsv = '0';
+      if (r.stato === 'eseguito' || r.stato === true) statoCsv = '1';
+      else if (r.stato === 'prenotato') statoCsv = '2';
+      return `${r.timestamp};${r.id};${statoCsv};${r.dj ?? ''}`;
+    }).join('\n');
+
     fs.writeFileSync(pathCsv, header + rows);
     res.json({ ok: true, csv: '/eventi/api/log.csv' });
   } catch (e) {

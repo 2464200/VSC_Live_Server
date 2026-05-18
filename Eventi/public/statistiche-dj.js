@@ -163,9 +163,6 @@ function bindSearch() {
   });
 }
 
-  updateClearButton();
-}
-
 function startPolling() {
   if (djStatsState.refreshTimer) clearInterval(djStatsState.refreshTimer);
   djStatsState.refreshTimer = setInterval(async () => {

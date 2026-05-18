@@ -354,6 +354,7 @@
   </div>
 </div>
 
+<script src="toast.js"></script>
 <script src="api-helper.js"></script>
 <script>
 console.log('[ADMIN] Pagina caricata, inizializzazione...');
@@ -467,15 +468,31 @@ function scaricaLog() {
 
 async function esportaCsv() {
   try {
-    const res = await eventiFetch('/export-csv');
+    // Verifica password
+    if (!verifyPassword || !verifyPassword('Esporta CSV per SIAE')) {
+      return;
+    }
+
+    const cronologico = window.confirm(
+      'Vuoi che i dati siano ordinati per ordine di esecuzione (cronologico)?\n\nPremi OK per "Cronologico", Annulla per "Alfabetico (per titolo)".'
+    );
+    const orderParam = cronologico ? 'cronologico' : 'alfabetico';
+
+    // Mostra un toast informativo sull'ordinamento scelto
+    if (window.showToast) showToast('Export: ' + (cronologico ? 'Cronologico' : 'Alfabetico'));
+
+    const res = await eventiFetch(`/export-csv?siae=1&order=${orderParam}&ts=${Date.now()}`);
     const data = await res.json();
     if (res.ok) {
-      alert('CSV esportato: ' + data.csv);
+      // Mostra risultato e apri CSV
+      if (window.showToast) showToast('CSV generato: ' + data.csv, 4000);
       window.open(data.csv, '_blank');
     } else {
-      alert(data.error);
+      if (window.showToast) showToast('Errore export: ' + (data.error || 'errore'), 4000);
+      alert(data.error || 'Errore export CSV');
     }
   } catch (e) {
+    if (window.showToast) showToast('Errore export CSV', 4000);
     alert('Errore export CSV');
   }
 }

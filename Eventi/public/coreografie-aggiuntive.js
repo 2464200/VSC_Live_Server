@@ -262,9 +262,6 @@ function bindSearchAggiuntive() {
   });
 
   aggiuntiveState.searchBound = true;
-
-  updateClearButton();
-  aggiuntiveState.searchBound = true;
 }
 
 function applySearchAggiuntive() {
