@@ -1,7 +1,48 @@
 ﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
 # âœ… CHANGELOG - Correzioni Applicate per StabilitÃ 
+## Data: 2 Giugno 2026
+## Stato: ✅ STABILE - Miglioramenti UI Prova/Image.html
 
+### ✅ Enhancements Prova/Image.html
+
+#### **Aggiunte**:
+1. **Popup interattivo di selezione immagine** all'apertura della pagina
+   - Permette di selezionare un'immagine personalizzata da caricare
+   - Interfaccia pulita con overlay scuro con bordo arancio neon
+
+2. **Drag & Drop funzionale**
+   - Area drop con feedback visivo (hover con colore arancio)
+   - Supporto per trascinamento diretto da Esplora risorse
+
+3. **Anteprima immagine nel popup**
+   - Mostra preview in tempo reale
+   - Visualizza nome file e dimensione in KB
+   - Aggiorna dinamicamente l'attributo `alt` con nome file selezionato
+
+4. **Sistema di pulsanti color-coded**
+   - Blu: azioni di selezione ("Seleziona immagine")
+   - Verde: conferma ("Conferma")
+   - Rosso: rimozione ("Rimuovi selezione")
+   - Arancio: default ("Mantieni immagine predefinita")
+
+5. **Validazione file**
+   - Controllo tipo file (solo immagini supportate)
+   - Messaggio di errore se file non valido
+   - Pulsante "Conferma" disabilitato fino a selezione valida
+
+6. **Pulsante "Cambia immagine"** in alto a destra
+   - Consente riselezionare un'immagine dopo l'apertura
+   - Stile verde coerente con "Conferma"
+
+7. **Accessibilità migliorata**
+   - Supporto tasto Escape per chiudere popup
+   - Testo alt descrittivo per screen reader
+
+#### **Risultato**:
+✅ UX migliorata per selezione immagini
+✅ Compatibilità mantenuta con stile originale (sfondo scuro, neon borders)
+✅ No breaking changes
 ## Data: 23 Aprile 2026
 ## Stato: âœ… STABILE E FUNZIONANTE - Fix sincronizzazione brani + eliminazione coreografie aggiuntive
 
