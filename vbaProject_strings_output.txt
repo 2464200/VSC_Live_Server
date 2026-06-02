@@ -1,0 +1,617 @@
+=== btnPlayX ===
+btnPlayX, 12, 1, MSForms, CommandButton+
+btnPlayX 
+btnPlayX_Click?
+btnPlayX_DblClick??
+btnPlayXO
+btnPlayX_DblClick
+btnPlayX_Click
+btnPlayX
+btnPlayX
+
+=== btnStopVideo ===
+btnStopVideo, 14, 2, MSForms, CommandButton4h=k??G?iG?V?b#?qM??7I?ji.:??
+btnStopVideo_Click??
+btnStopVideoQ
+btnStopVideo
+btnStopVideo_Click
+btnStopVideo
+
+=== PlayX ===
+PlayX, 12?, MSFo
+btnPlayX, 12, 1, MSForms, CommandButton+
+btnPlayX 
+?.??}!a=??B.? ??PlayX%??:ta?di ?riposo?@WpwsVC??
+btnPlayX_Click?
+btnPlayX_DblClick??
+btnPlayXO
+btnPlayX_DblClick
+btnPlayX_Click
+btnPlayX
+btnPlayX
+
+=== StopVideo ===
+btnStopVideo, 14, 2, MSForms, CommandButton4h=k??G?iG?V?b#?qM??7I?ji.:??
+StopVideo() - errore:  
+btnStopVideo_Click??
+StopVideo?
+btnStopVideoQ
+btnStopVideo
+btnStopVideo_Click
+StopVideo
+btnStopVideo
+
+=== Play ===
+PlayX, 12?, MSFo
+btnPlayX, 12, 1, MSForms, CommandButton+
+C:\VSC_Live_Server\archivio\DISPLAY_index.jpg
+Call ApriDisplaySuMonitorSelezionato
+ CommandButton04.Picture = LoadPicture("C:\VSC_Live_Server\archivio\DISPLAY_index.jpg")
+DISPLAY_?index_+4h+N3H???!?18D
+C:\VSC_Live_Server\archivio\DISPLAY_NextCoreo1.jpg$
+C:\VSC_Live_Server\archivio\DISPLAY_NextCoreo2.jpg$
+CommandButton60.Picture = LoadPicture("C:\VSC_Live_Server\archivio\DISPLAY_index1.jpg")
+CommandButton61.Picture = LoadPicture("C:\VSC_Live_Server\archivio\DISPLAY_index2.jpg")
+C:\VSC_Live_Server\archivio\DISPLAY_servizio.jpg$
+C:\VSC_Live_Server\display.csv?
+C:\VSC_Live_Server\public\display.csv
+Display
+DISPLAY: COREOGRAFIE RICHIESTE9
+Next ru' == ?iga 1: TitqOprinpcipa?q?cWHith/st?1/?@!0??)?P.M8ergX3f?"D?ISPLAY:?
+isplayGrida;s?Fale??GoTo 0
+-E??E?nd If?WA?V?ZbtnPlayHX_C@/k(?Tg
+ BtnPlay_Click?????
+ ResetPulsantePlay?
+ --play-and-exit --fullscreen --no-video-title-show --one-instance
+btnPlay
+NPlay_
+btnPlayX 
+?.??}!a=??B.? ??PlayX%??:ta?di ?riposo?@WpwsVC??
+ --fullscreen --qt-fullscreen-screennumber=1 --no-video-title-show --file-caching=3000 --play-and-exit 
+?Play"V?EOnS ?nd?Moni
+.charts-row{display:flex;gap:20px;align-items:center;margin:20px auto}?
+eet, wsD?isplay
+isplay:f
+--no-video-title-show --play-and-exit "
+HP Display Camera
+(?0:,3+,???#ae'?, `_K?:e??fI`svertedcmd?d??PlayG?f s??~gtL?? ?l`??N?fQ	?pibA???b }	?  ?' Le
+cmdPlay = "
+ TIMER DISPLAY
+        di EsportaDisplayCSV_DoppioPercorso().
+ 4) Costruzione buffer CSV (logica identica al Display)
+ 6) Scrittura file CSV in UTF-8 (stile Display)
+di EV?Display
+btnPlayX_Click?
+btnPlayX_DblClick??
+EsportaDisplayCSV_DoppioPercorso,
+DisplayGridlines??
+BtnPlay_Click?#
+PlayVideoOnSecondMonitor?
+	wsDisplay?
+cmdPlayJ?
+DisplayAlerts??
+btnPlayXO
+EsportaDisplayCSV_DoppioPercorso
+btnPlayX_DblClick
+btnPlayX_Click
+btnPlayX
+BtnPlay_Click
+PlayVideoOnSecondMonitor
+btnPlayX
+?Apri secondo video (Display)?"
+?Display
+?HTML Display Coreografie Richieste
+?HTML Display su Publicie
+?PLAY>K
+
+=== Video ===
+mandButton??? Stop Video? 4, 
+btnStopVideo, 14, 2, MSForms, CommandButton4h=k??G?iG?V?b#?qM??7I?ji.:??
+Trasmette al Videoproiettore il foglio Word con il nome della coreografia
+ Videoproiettore Macro
+ Trasmette al Videoproiettore il foglio Word con il nome della coreografia?
+ Videoproiettore_close Macro
+MsgBox "Errore (OpenPage): " & Err.Description, vbCritical, "VideoClip"
+VideoClip
+VideoClip_ColorOnly
+ VideoClip_C?Onl@y()
+C:\VSC_Live_Server\VideoClip.csv'
+Public Sub VideoClip_OpenPage()
+Call CaricaFileVideoEVerifica
+File?VideoE?(App?2a?5.EnA;Events
+ AvviaVideo
+c:\vsc_videoclip\
+La cartella c:\vsc_videoclip non esiste. 
+Cartella video mancante: 
+\VideoLAN\VLC\vlc.exe
+\Programs\VideoLAN\VLC\vlc.exe
+ RICERCA FILE VIDEO
+ AVVIO VIDEO
+Nessun video trovato per il codice 
+ --play-and-exit --fullscreen --no-video-title-show --one-instance
+Errore avvio video:  
+ STOP VIDEO
+StopVideo() - errore:  
+VERDE ? avvio video
+\kReset!Avvi@aVideog=
+|STOP@ VIDEOZP ublic? S
+topVideo ()
+REGISTRA DA WEBCAM ex "USB Camera" ora GetCameraName(), SALVA IVIDEO, LI RIPRODUCE??? 
+ -f dshow -i video="GetCameraName()" -vcodec libx264 -preset ultrafast "
+"C:\Program Files\VideoLAN\VLC\vlc.exe"
+ Percorso completo del file video
+ --fullscreen --qt-fullscreen-screennumber=1 --no-video-title-show --file-caching=3000 --play-and-exit 
+-i video=""??@c-vc
+C:\Program Files (x86)\VideoLAN\VLC\vlc.exe
+--no-video-title-show --play-and-exit "
+ -video_size 
+ -i video="
+Errore: VLC ? gi? in esecuzione con un altro video.
+ --fullscreen --no-video-title-show 
+MsgBox "Ripresa video terminata. VLC ? stato chiuso.", vbInformation
+Nessuna ripresa video in corso. VLC non ? aperto.
+HKEY_LOCAL_MACHINE\SOFTWARE\VideoLAN\VLC\InstallDir
+HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\VideoLAN\VLC\InstallDir
+C:\Program Files\VideoLAN\VLC\vlc.exe
+=== AUTOTEST STRUMENTI VIDEO/CODICE ===
+o-video-
+ -@rtbufs?6?4M?w_C? ?<?-video_??e?& ?fr`?r?St?-?S
+VIDEO/CO DICE 0" 
+ APRI ULTIMO VIDEO?
+Nessun video trovato.
+??s??= ???????Fl?D?' `fttiva ?feprima??	aSewSS?SQk.acS__RA@] ULTIM?O VIDEO?w?l?
+un video
+ Crea la finestra di cattura video della webcam
+ Avvia l?anteprima video della webcam all?interno di una finestra (handle del parent).
+ Crea la finestra di cattura video?
+ Avvia registrazione video??
+ -f dshow -i video="
+ (OPZIONALE) Apri l'ultimo video in VLC
+Nessun video registrato da aprire. 
+)\VideoLAN\
+ -y -f dshow -i video="
+i video=C
+DirectShow video devices?
+C:\Program Files (x86)\VideoLAN\VLC\vlc.exe???????H
+gram Files (x86)\VideoLAN\VLC\vlc.exe
+VideoGiaAvviato??
+CaricaFileVideo??
+AvviaVideo??
+btnStopVideo_Click??
+StopVideo?
+Videoproiettore? 
+Videoproiettore_close??
+VideoClip_ColorOnly66
+gCartellaVideo??
+InitVideoSystem?6
+GetCartellaVideoh?
+	VideoPath??
+TrovaVideo{?
+videoTrovato?z
+PlayVideoOnSecondMonitor?
+OpenLastVideoDo
+btnStopVideoQ
+C:\Program Files\VideoLAN\VLC\axvlc.dll
+CaricaFileVideo
+AvviaVideo$
+TrovaVideo&
+btnStopVideo
+btnStopVideo_Click
+InitVideoSystem
+GetCartellaVideo
+StopVideo
+VideoClip_ColorOnly&
+Videoproiettore
+Videoproiettore_close
+PlayVideoOnSecondMonitor
+OpenLastVideo
+btnStopVideo
+Trasmette al Videoproiettore il foglio Word con il nome della coreografia
+?Apri secondo video (Display)?"
+?RIPRESA VIDEO
+ RIPRESA VIDEO?
+
+=== Click ===
+_Click()
+Click Yes to highlight matched data, click No to highlight unmatched data  
+Private Sub CommandButton92_Click()
+ BtnPlay_Click?????
+CLICK RILEVATOA@H
+`OZAHZ????)?;?7?+_C@?k5;?	CLICK? RILEV?A?q?8??5h9?.?+!=?y5?0?0??&e ?&???U
+3_Click()
+n4_Click(
+Errore CommandButton249_Click
+ Chiude la finestra di Chrome aperta dal pulsante CommandButton249_Click
+Errore CommandButton239_Click
+63_Click?()
+btnPlayX_Click?
+btnPlayX_DblClick??
+btnStopVideo_Click??
+Worksheet_BeforeDoubleClickft
+CommandButton31_Click??
+CommandButton32_Click??
+Prova_Click?=
+Btn_Prova_click?V
+CommandButton33_Click?
+CommandButton343_Click4?
+CommandButton344_Click??
+CommandButton345_Click?6
+CommandButton346_Click?n
+CommandButton01_Click??
+CommandButton02_Click??
+CommandButton03_Click>)
+CommandButton04_ClickNa
+CommandButton18_Click?`
+CommandButton19_Click	?
+CommandButton20_Click?c
+CommandButton91_ClickC?
+CommandButton93_Click?
+CommandButton94_Click?W
+CommandButton1095_Click??
+CommandButton1096_Click\
+CommandButton1098_Click??
+CommandButton1099_Click
+Image2_Click=
+CommandButton249_Click?K
+CommandButton239_Click,K
+CommandButton41_Click??
+CommandButton42_Click??
+CommandButton43_Click]
+CommandButton44_Click?c
+CommandButton47_Click`
+CommandButton45_Click??
+CommandButton46_Click?
+CommandButton48_ClickpS
+CommandButton49_Click?
+CommandButton60_Click;f
+CommandButton61_ClickK?
+CommandButton62_Click??
+CommandButton63_Click?
+CommandButton64_Click?U
+CommandButton65_ClickN?
+CommandButton661_Clicko?
+cmdTornaIndice_Click2?
+cmdVaiPagina01_ClickC
+cmdVaiPagina02_ClickSE
+cmdVaiPagina03_Click??
+cmdVaiPagina04_Click??
+btnChiudi_Click1
+BtnPlay_Click?#
+CommandButton34_ClickFc
+CommandButton35_ClickV?
+CommandButton36_Click??
+CommandButton37_Click?
+CommandButton38_Click?R
+CommandButton39_ClickY?
+CommandButton40_Click?d
+CommandButton1_Click??
+CommandButton2_Click??
+CommandButton3_ClickFA
+CommandButton4_ClickVy
+CommandButton5_Click??
+CommandButton14_Click?a
+CommandButton1001_Click!?
+CommandButton1002_Clicks'
+CommandButton1003_Click?_
+Btn_Home_Click?E
+Btn_Index1_Click)?
+Btn_Index2_Click?.
+Btn_Servizio2_Click?
+Btn_ScriptPDF1_Click??
+Btn_ReportBlack_ClickN?
+Btn_ReportWhite_Click$?
+Btn_Diagnostica_Click??
+Btn_NextCoreo1_Click?,
+Btn_NextCoreo2_Click?s
+CommandButton1073_Click?T
+CommandButton1074_Click+?
+cmdStartUI_Click?3
+cmdStopUI_Click?
+Click??
+DblClick??
+Image3_Click.u
+btnPlayX_DblClick
+btnPlayX_Click
+btnStopVideo_Click
+CommandButton31_Click
+CommandButton32_Click
+CommandButton33_Click
+CommandButton343_Click
+CommandButton344_Click
+CommandButton345_Click
+CommandButton346_Click
+BtnPlay_Click
+CommandButton249_Click
+CommandButton239_Click
+Btn_Home_Click
+Btn_Index1_Click
+Btn_Index2_Click
+Btn_Servizio2_Click
+Btn_ScriptPDF1_Click
+Btn_ReportBlack_Click
+Btn_ReportWhite_Click
+Btn_Diagnostica_Click
+Btn_NextCoreo1_Click
+Btn_NextCoreo2_Click
+Btn_Prova_click
+CommandButton01_Click
+CommandButton02_Click
+CommandButton03_Click
+CommandButton04_Click
+CommandButton18_Click
+CommandButton19_Click
+CommandButton20_Click
+CommandButton91_Click
+CommandButton93_Click
+CommandButton94_Click
+CommandButton1095_Click
+CommandButton1096_Click
+CommandButton1098_Click
+CommandButton1099_Click
+CommandButton63_Click
+Image2_Click
+CommandButton41_Click
+CommandButton42_Click
+CommandButton43_Click
+CommandButton44_Click
+CommandButton47_Click
+CommandButton45_Click
+CommandButton46_Click
+CommandButton48_Click
+CommandButton49_Click
+CommandButton60_Click
+CommandButton61_Click
+CommandButton62_Click
+CommandButton64_Click
+CommandButton65_Click
+CommandButton661_Click
+Prova_Click
+Image3_Click
+
+=== _Click ===
+_Click()
+Private Sub CommandButton92_Click()
+ BtnPlay_Click?????
+3_Click()
+n4_Click(
+Errore CommandButton249_Click
+ Chiude la finestra di Chrome aperta dal pulsante CommandButton249_Click
+Errore CommandButton239_Click
+63_Click?()
+btnPlayX_Click?
+btnStopVideo_Click??
+CommandButton31_Click??
+CommandButton32_Click??
+Prova_Click?=
+Btn_Prova_click?V
+CommandButton33_Click?
+CommandButton343_Click4?
+CommandButton344_Click??
+CommandButton345_Click?6
+CommandButton346_Click?n
+CommandButton01_Click??
+CommandButton02_Click??
+CommandButton03_Click>)
+CommandButton04_ClickNa
+CommandButton18_Click?`
+CommandButton19_Click	?
+CommandButton20_Click?c
+CommandButton91_ClickC?
+CommandButton93_Click?
+CommandButton94_Click?W
+CommandButton1095_Click??
+CommandButton1096_Click\
+CommandButton1098_Click??
+CommandButton1099_Click
+Image2_Click=
+CommandButton249_Click?K
+CommandButton239_Click,K
+CommandButton41_Click??
+CommandButton42_Click??
+CommandButton43_Click]
+CommandButton44_Click?c
+CommandButton47_Click`
+CommandButton45_Click??
+CommandButton46_Click?
+CommandButton48_ClickpS
+CommandButton49_Click?
+CommandButton60_Click;f
+CommandButton61_ClickK?
+CommandButton62_Click??
+CommandButton63_Click?
+CommandButton64_Click?U
+CommandButton65_ClickN?
+CommandButton661_Clicko?
+cmdTornaIndice_Click2?
+cmdVaiPagina01_ClickC
+cmdVaiPagina02_ClickSE
+cmdVaiPagina03_Click??
+cmdVaiPagina04_Click??
+btnChiudi_Click1
+BtnPlay_Click?#
+CommandButton34_ClickFc
+CommandButton35_ClickV?
+CommandButton36_Click??
+CommandButton37_Click?
+CommandButton38_Click?R
+CommandButton39_ClickY?
+CommandButton40_Click?d
+CommandButton1_Click??
+CommandButton2_Click??
+CommandButton3_ClickFA
+CommandButton4_ClickVy
+CommandButton5_Click??
+CommandButton14_Click?a
+CommandButton1001_Click!?
+CommandButton1002_Clicks'
+CommandButton1003_Click?_
+Btn_Home_Click?E
+Btn_Index1_Click)?
+Btn_Index2_Click?.
+Btn_Servizio2_Click?
+Btn_ScriptPDF1_Click??
+Btn_ReportBlack_ClickN?
+Btn_ReportWhite_Click$?
+Btn_Diagnostica_Click??
+Btn_NextCoreo1_Click?,
+Btn_NextCoreo2_Click?s
+CommandButton1073_Click?T
+CommandButton1074_Click+?
+cmdStartUI_Click?3
+cmdStopUI_Click?
+Image3_Click.u
+btnPlayX_Click
+btnStopVideo_Click
+CommandButton31_Click
+CommandButton32_Click
+CommandButton33_Click
+CommandButton343_Click
+CommandButton344_Click
+CommandButton345_Click
+CommandButton346_Click
+BtnPlay_Click
+CommandButton249_Click
+CommandButton239_Click
+Btn_Home_Click
+Btn_Index1_Click
+Btn_Index2_Click
+Btn_Servizio2_Click
+Btn_ScriptPDF1_Click
+Btn_ReportBlack_Click
+Btn_ReportWhite_Click
+Btn_Diagnostica_Click
+Btn_NextCoreo1_Click
+Btn_NextCoreo2_Click
+Btn_Prova_click
+CommandButton01_Click
+CommandButton02_Click
+CommandButton03_Click
+CommandButton04_Click
+CommandButton18_Click
+CommandButton19_Click
+CommandButton20_Click
+CommandButton91_Click
+CommandButton93_Click
+CommandButton94_Click
+CommandButton1095_Click
+CommandButton1096_Click
+CommandButton1098_Click
+CommandButton1099_Click
+CommandButton63_Click
+Image2_Click
+CommandButton41_Click
+CommandButton42_Click
+CommandButton43_Click
+CommandButton44_Click
+CommandButton47_Click
+CommandButton45_Click
+CommandButton46_Click
+CommandButton48_Click
+CommandButton49_Click
+CommandButton60_Click
+CommandButton61_Click
+CommandButton62_Click
+CommandButton64_Click
+CommandButton65_Click
+CommandButton661_Click
+Prova_Click
+Image3_Click
+
+=== Sub  ===
+Sub MacroColore8()?
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+'Sub Ma
+j ?Sub G_C
+P?? Sub U
+Sub Work
+Sub ordina_autore()
+Sub filt
+Sub avvi
+Sub puli
+Sub Eseg
+Sub stud
+Sub Crea
+Sub Sinc
+Sub Aggi
+Sub Estr
+Public Sub m()
+Sub Vide
+Sub 
+Sub Pull?()
+Sub Clas
+Sub Update.Tabl?e()
+Sub St@artUpd
+Sub Copi
+Private Sub CommandButton92_Click()
+Sub Macr
+Sub Espo
+Sub A
+Sub Av
+Sub Tras
+te Sub A@pplica?D
+Sub Avvi
+Sub Avvia?z()
+Sub Next
+delRRN(cA?qfigli)s8??Sub Ki?lltTreetkxpid?"?64?'? /T`
+Public Sub VideoClip_OpenPage()
+& Sub W
+ Sub Com
+Sub S tartR?()
+Sub Gene
+ Sub Sta
+Sub Comm
+te Sub C
+Routin?eA?autot?? C?, VLC ?e?lC??AFWSub A?T??Tools(?3QVff?s?W vl
+Sub StartFlashREC()
+Sub Com
+ Sub L
+ Sub ApriPaginaInChromeSecondoMonitorFullScreen
+ Sub ChiudiChromeApertoDaMacro
+Sub A
+   Public Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As LongPtr)
+   Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+  Public Sub SpostaAcrobatSuSecondoMonitor()
+    Sub ConfiguraGestorePDF()
+    Sub ApriGestorePDF()
+    Sub ApriGestorePDF_Async()
+    Sub ApriCartellaScriptPDF()
+    Sub TestConessione()
+Explicit$Sub Aud
+
+=== Function  ===
+2    Private Declare Function capCreateCaptureWindow Lib "avicap32.dll" Alias "capCreateCaptureWindowA"        (ByVal caption As String, ByVal dwStyle As Long, ByVal X As Long,         ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long,         ByVal hWndParent As Long, ByVal nID As Long) As Long
+    Private Declare Function SendMessage Lib "user32" Alias "SendMessageA"        (ByVal hWnd As Long, ByVal Msg As Long,         ByVal wParam As Long, ByVal lParam As Long) As Long
+    Private Declare Function DestroyWindow Lib "user32"        (ByVal hWnd As Long) As Long
+    Private Declare Function OpenProcess Lib "kernel32" (        ByVal dwDesiredAccess As Long,        ByVal bInheritHandle As Long,        ByVal dwProcessId As Long) As Long
+    Private Declare Function TerminateProcess Lib "kernel32" (        ByVal hProcess As Long,        ByVal uExitCode As Long) As Long
+    Private Declare Function CloseHandle Lib "kernel32" (        ByVal hObject As Long) As Long
+    Private Declare Function GetSystemMetrics Lib "user32" (        ByVal nIndex As Long) As Long
+
+=== Set  ===
+Set wsBtn = ThisWorkbook.Worksheets("Border?")
+?C?Set wsO??in?ThisW
+Set wb = ThisWorkbook
+PowerPoi?ndSet ??= ?}eS("?.?ration??gC.Visi??[?~?A@Dq9f5s?pecificf>CD@?sent?s?.Open 1??:=0A, Re
+Ah?	Set  9@= This?9book.?:s("=??"?ve
+oWSet = Create?("Scria
+' G???n?C?!???_3`XPulizhia %~ (%?r?oB??$?+???a??'Set ?6= C reate#7("Scri@?ng.???Sys@cen?"
+|Set s
+?rocbU???Set ??x?
+?esiste?LfsoXObje?c??7Set ="te?
+or GoTo 0Fail;?httpObjecC???iSet ?=0 Cre??("?MSXML2.
+ Reset variabili
+ -f dshow -i video="GetCameraName()" -vcodec libx264 -preset ultrafast "
+eset ult?rafast ?l?& ?6??JC???=hell(
+" -c:v libx264 -preset fast -crf 18 -c:a aac -b:a 128k "
+ -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p 
+ libx264 -P?set v
+jWMIServiceObje?ct,1mdL?}???Set ?2??
+.dal?gPistr",W?1o?ws (a?4??ndard ?!??0Set ??Ire???("WScript?}ell"#?%Per?9a `64 bi?%=?
+CO WEBCA?M??]cams?V@Collec!b, CVaria?n?b7Set "
+ -vcodec libx264 -preset ultrafast 
+264 -pre@set ul?Zf?a
+ -vcodec libx264 -preset ultrafast -b:v 
+ Esporta?BgoCSV(@%?<D?BwsWo?rkshee@?Set 
+ExitSub?:?zSet 6
+???r??%r??GC0Set ?a= @CreateCy( "Scri
+

@@ -1,0 +1,32 @@
+In riga:1 car:289
++ ... FmlaMacro|ObjectType|oleObject|ActiveX|control|Caption'; if () { Writ ...
++                                                                  ~
+Condizione mancante nell'istruzione if dopo 'if ('.
+In riga:1 car:335
++ ... |Caption'; if () { Write-Output '=== ' +  + ' ==='; foreach ( in ) {  ...
++                                                                  ~
+Nome di variabile mancante dopo foreach.
+In riga:1 car:291
++ ... aMacro|ObjectType|oleObject|ActiveX|control|Caption'; if () { Write-O ...
++                                                                 ~
+'}' di chiusura mancante nel blocco di istruzioni o nella definizione del tipo.
+In riga:1 car:120
++ ... dItem -Path  -Recurse -Include *.xml -File | ForEach-Object { =.FullN ...
++                                                                 ~
+'}' di chiusura mancante nel blocco di istruzioni o nella definizione del tipo.
+In riga:1 car:339
++ ... ion'; if () { Write-Output '=== ' +  + ' ==='; foreach ( in ) { Write ...
++                                                                 ~
+Token ')' imprevisto nell'espressione o nell'istruzione.
+In riga:1 car:381
++ ...  + ' ==='; foreach ( in ) { Write-Output .Line }; Write-Output '' } }
++                                                                       ~
+Token '}' imprevisto nell'espressione o nell'istruzione.
+In riga:1 car:383
++ ...  + ' ==='; foreach ( in ) { Write-Output .Line }; Write-Output '' } }
++                                                                         ~
+Token '}' imprevisto nell'espressione o nell'istruzione.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordEx 
+   ception
+    + FullyQualifiedErrorId : IfStatementMissingCondition
+ 

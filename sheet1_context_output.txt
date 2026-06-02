@@ -1,0 +1,135 @@
+=== rId4 @ 513781 ===
+c="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr defaultSize="0" autoLine="0" r:id="rId5"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>133350</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>47625</xdr:row
+
+=== rId4 @ 514195 ===
+dr:rowOff>257175</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1036" r:id="rId4" name="btnPlayX"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1038" r:i
+
+=== rId6 @ 514402 ===
+c="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1038" r:id="rId6" name="btnStopVideo"><controlPr defaultSize="0" autoLine="0" r:id="rId7"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>1847850</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>76200</xd
+
+=== rId6 @ 514821 ===
+dr:rowOff>247650</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1038" r:id="rId6" name="btnStopVideo"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1030"
+
+=== control @ 513624 ===
+le="70" pageOrder="overThenDown" orientation="portrait" r:id="rId1"/><drawing r:id="rId2"/><legacyDrawing r:id="rId3"/><controls><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr defaultSize="0" a
+
+=== control @ 513752 ===
+><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr defaultSize="0" autoLine="0" r:id="rId5"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>133350</xdr:colOff><xdr:row>6</xdr:row>
+
+=== control @ 513804 ===
+mlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr defaultSize="0" autoLine="0" r:id="rId5"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>133350</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>47625</xdr:rowOff></from><to><xdr:col>13
+
+=== control @ 514120 ===
+<xdr:col>13</xdr:col><xdr:colOff>1695450</xdr:colOff><xdr:row>8</xdr:row><xdr:rowOff>257175</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1036" r:id="rId4" name="btnPlayX"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-c
+
+=== control @ 514132 ===
+/xdr:col><xdr:colOff>1695450</xdr:colOff><xdr:row>8</xdr:row><xdr:rowOff>257175</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1036" r:id="rId4" name="btnPlayX"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility
+
+=== control @ 514166 ===
+colOff><xdr:row>8</xdr:row><xdr:rowOff>257175</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1036" r:id="rId4" name="btnPlayX"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><
+
+=== control @ 514373 ===
+><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1038" r:id="rId6" name="btnStopVideo"><controlPr defaultSize="0" autoLine="0" r:id="rId7"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>1847850</xdr:colOff><xdr:row>6</xdr
+
+=== control @ 514429 ===
+rmats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1038" r:id="rId6" name="btnStopVideo"><controlPr defaultSize="0" autoLine="0" r:id="rId7"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>1847850</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>76200</xdr:rowOff></from><to><xdr:col>1
+
+=== control @ 514746 ===
+<xdr:col>13</xdr:col><xdr:colOff>3333750</xdr:colOff><xdr:row>8</xdr:row><xdr:rowOff>247650</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1038" r:id="rId6" name="btnStopVideo"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/mark
+
+=== control @ 514758 ===
+/xdr:col><xdr:colOff>3333750</xdr:colOff><xdr:row>8</xdr:row><xdr:rowOff>247650</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1038" r:id="rId6" name="btnStopVideo"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibi
+
+=== control @ 514792 ===
+colOff><xdr:row>8</xdr:row><xdr:rowOff>247650</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1038" r:id="rId6" name="btnStopVideo"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x1
+
+=== control @ 515003 ===
+><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1030" r:id="rId8" name="Button 6"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!AvviaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>12<
+
+=== control @ 515055 ===
+mlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1030" r:id="rId8" name="Button 6"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!AvviaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>12</xdr:col><xdr:colOff>762000</xdr:colOff><xdr:row>0</
+
+=== control @ 515430 ===
+o><xdr:col>13</xdr:col><xdr:colOff>276225</xdr:colOff><xdr:row>5</xdr:row><xdr:rowOff>19050</xdr:rowOff></to></anchor></controlPr></control></mc:Choice></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1031" r:id="rId9"
+
+=== control @ 515442 ===
+3</xdr:col><xdr:colOff>276225</xdr:colOff><xdr:row>5</xdr:row><xdr:rowOff>19050</xdr:rowOff></to></anchor></controlPr></control></mc:Choice></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1031" r:id="rId9" name="Butto
+
+=== control @ 515603 ===
+><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1031" r:id="rId9" name="Button 7"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!FermaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>13<
+
+=== control @ 515655 ===
+mlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1031" r:id="rId9" name="Button 7"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!FermaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>419100</xdr:colOff><xdr:row>0</
+
+=== control @ 516030 ===
+o><xdr:col>13</xdr:col><xdr:colOff>1247775</xdr:colOff><xdr:row>5</xdr:row><xdr:rowOff>9525</xdr:rowOff></to></anchor></controlPr></control></mc:Choice></mc:AlternateContent></controls><extLst><ext uri="{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:dataV
+
+=== control @ 516042 ===
+3</xdr:col><xdr:colOff>1247775</xdr:colOff><xdr:row>5</xdr:row><xdr:rowOff>9525</xdr:rowOff></to></anchor></controlPr></control></mc:Choice></mc:AlternateContent></controls><extLst><ext uri="{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:dataValidations c
+
+=== control @ 516086 ===
+xdr:row>5</xdr:row><xdr:rowOff>9525</xdr:rowOff></to></anchor></controlPr></control></mc:Choice></mc:AlternateContent></controls><extLst><ext uri="{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main"><x14:dataValidations count="9" xmlns:xm="http://schemas.microsoft.
+
+=== drawing @ 257 ===
+ns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac xr xr2 
+
+=== drawing @ 283 ===
+mlformats.org/officeDocument/2006/relationships" xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:x14="http://schemas.microsoft.com/office/spreadsheetml/2009/9/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac xr xr2 xr3" xmlns:x14ac="http://s
+
+=== drawing @ 513574 ===
+eader="0" footer="0"/><pageSetup paperSize="9" scale="70" pageOrder="overThenDown" orientation="portrait" r:id="rId1"/><drawing r:id="rId2"/><legacyDrawing r:id="rId3"/><controls><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="
+
+=== drawing @ 513602 ===
+etup paperSize="9" scale="70" pageOrder="overThenDown" orientation="portrait" r:id="rId1"/><drawing r:id="rId2"/><legacyDrawing r:id="rId3"/><controls><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><contr
+
+=== r:id @ 513560 ===
+78740157483" header="0" footer="0"/><pageSetup paperSize="9" scale="70" pageOrder="overThenDown" orientation="portrait" r:id="rId1"/><drawing r:id="rId2"/><legacyDrawing r:id="rId3"/><controls><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shap
+
+=== r:id @ 513582 ===
+" footer="0"/><pageSetup paperSize="9" scale="70" pageOrder="overThenDown" orientation="portrait" r:id="rId1"/><drawing r:id="rId2"/><legacyDrawing r:id="rId3"/><controls><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4"
+
+=== r:id @ 513610 ===
+erSize="9" scale="70" pageOrder="overThenDown" orientation="portrait" r:id="rId1"/><drawing r:id="rId2"/><legacyDrawing r:id="rId3"/><controls><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr 
+
+=== r:id @ 513775 ===
+mlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr defaultSize="0" autoLine="0" r:id="rId5"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>133350</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>47625</x
+
+=== r:id @ 513843 ===
+"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr defaultSize="0" autoLine="0" r:id="rId5"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>133350</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>47625</xdr:rowOff></from><to><xdr:col>13</xdr:col><xdr:colOff>1695450</xdr:c
+
+=== r:id @ 514189 ===
+row><xdr:rowOff>257175</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1036" r:id="rId4" name="btnPlayX"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="103
+
+=== r:id @ 514396 ===
+mlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1038" r:id="rId6" name="btnStopVideo"><controlPr defaultSize="0" autoLine="0" r:id="rId7"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>1847850</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>762
+
+=== r:id @ 514468 ===
+c:Choice Requires="x14"><control shapeId="1038" r:id="rId6" name="btnStopVideo"><controlPr defaultSize="0" autoLine="0" r:id="rId7"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>1847850</xdr:colOff><xdr:row>6</xdr:row><xdr:rowOff>76200</xdr:rowOff></from><to><xdr:col>13</xdr:col><xdr:colOff>3333750</xdr:
+
+=== r:id @ 514815 ===
+row><xdr:rowOff>247650</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1038" r:id="rId6" name="btnStopVideo"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId=
+
+=== r:id @ 515026 ===
+mlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1030" r:id="rId8" name="Button 6"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!AvviaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>12</xdr:col><xdr:colOff
+
+=== r:id @ 515626 ===
+mlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1031" r:id="rId9" name="Button 7"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!FermaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff
+
+=== shape @ 513760 ===
+ernateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1036" r:id="rId4" name="btnPlayX"><controlPr defaultSize="0" autoLine="0" r:id="rId5"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>133350</xdr:colOff><xdr:row>6</xdr:row><xdr:r
+
+=== shape @ 514174 ===
+xdr:row>8</xdr:row><xdr:rowOff>257175</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1036" r:id="rId4" name="btnPlayX"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><contro
+
+=== shape @ 514381 ===
+ernateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1038" r:id="rId6" name="btnStopVideo"><controlPr defaultSize="0" autoLine="0" r:id="rId7"><anchor moveWithCells="1"><from><xdr:col>13</xdr:col><xdr:colOff>1847850</xdr:colOff><xdr:row>6</xdr:row><
+
+=== shape @ 514800 ===
+xdr:row>8</xdr:row><xdr:rowOff>247650</xdr:rowOff></to></anchor></controlPr></control></mc:Choice><mc:Fallback><control shapeId="1038" r:id="rId6" name="btnStopVideo"/></mc:Fallback></mc:AlternateContent><mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><co
+
+=== shape @ 515011 ===
+ernateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1030" r:id="rId8" name="Button 6"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!AvviaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>12</xdr:c
+
+=== shape @ 515611 ===
+ernateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"><mc:Choice Requires="x14"><control shapeId="1031" r:id="rId9" name="Button 7"><controlPr defaultSize="0" print="0" autoFill="0" autoPict="0" macro="[0]!FermaAggiornamento"><anchor moveWithCells="1" sizeWithCells="1"><from><xdr:col>13</xdr:c
+

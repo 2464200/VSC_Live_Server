@@ -1,0 +1,166 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} INDICE 
+   Caption         =   "INDICE"
+   ClientHeight    =   12420
+   ClientLeft      =   120
+   ClientTop       =   465
+   ClientWidth     =   16755
+   OleObjectBlob   =   "INDICE.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "INDICE"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+' Codice per il form INDICE
+Private Sub CommandButton01_Click()
+    Unload Me
+    PAGINA01.Show
+End Sub
+
+Private Sub CommandButton02_Click()
+    CommandButton02.Picture = LoadPicture("C:\VSC_Live_Server\archivio\PROVA_Logo.jpg")
+    Unload Me
+    PAGINA02.Show
+End Sub
+
+Private Sub CommandButton03_Click()
+    CommandButton03.Picture = LoadPicture("C:\VSC_Live_Server\archivio\PROVA_report.jpg")
+    Unload Me
+    PAGINA03.Show
+End Sub
+
+Private Sub CommandButton04_Click()
+    CommandButton04.Picture = LoadPicture("C:\VSC_Live_Server\archivio\DISPLAY_index.jpg")
+    Unload Me
+    PAGINA04.Show
+End Sub
+
+Private Sub CommandButton32_Click()
+Unload Me
+End Sub
+
+Private Sub CommandButton18_Click()
+    Dim URL As String
+    
+    ' Definisci l'indirizzo URL che desideri aprire
+    URL = "https://docs.google.com/spreadsheets/d/1LfaAi0A5Hfws8sYO_6gapiuQ2na9Lpu3f68slJ35CtE/edit?usp=sharing" ' Sostituisci con il collegamento desiderato
+    
+    ' Usa il comando FollowHyperlink per aprire il collegamento al Modulo 8
+    ThisWorkbook.FollowHyperlink Address:=URL
+End Sub
+
+Private Sub CommandButton19_Click()
+    Dim URL As String
+    
+    ' Definisci l'indirizzo URL che desideri aprire
+    URL = "https://docs.google.com/spreadsheets/d/1LfaAi0A5Hfws8sYO_6gapiuQ2na9Lpu3f68slJ35CtE/edit?gid=1644446046#gid=1644446046" ' Sostituisci con il collegamento desiderato
+    
+    ' Usa il comando FollowHyperlink per aprire il collegamento al Modulo 12
+    ThisWorkbook.FollowHyperlink Address:=URL
+End Sub
+
+Private Sub CommandButton20_Click()
+    Dim pptApp As Object
+    Dim pptPath As String
+    
+    ' Costruisci il percorso completo del file PPT nella stessa cartella di questo Excel:
+    pptPath = ThisWorkbook.path & "\show_LISTA ver 1.0.1.pptm"
+    
+    ' Crea un'istanza di PowerPoint
+    Set pptApp = CreateObject("PowerPoint.Application")
+    pptApp.Visible = True
+    
+    ' Apre il file PPT specificato
+    pptApp.Presentations.Open fileName:=pptPath, ReadOnly:=False, WithWindow:=True
+End Sub
+
+Private Sub CommandButton91_Click()
+    Dim wordApp As Object
+    Dim wordPath As String
+
+    On Error GoTo ErrorHandler
+
+    ' Costruisci il percorso completo del file Word
+    wordPath = ThisWorkbook.path & "\show_slide_word.docx"
+
+    ' Crea un'istanza di Word
+    Set wordApp = CreateObject("Word.Application")
+    wordApp.Visible = True
+
+    ' Apre il file Word specificato
+    wordApp.Documents.Open fileName:=wordPath, ReadOnly:=False
+
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "Errore durante l'apertura del file Word: " & Err.Description, vbCritical
+    If Not wordApp Is Nothing Then
+        wordApp.Quit
+        Set wordApp = Nothing
+    End If
+End Sub
+
+'Private Sub CommandButton92_Click()
+'Unload Me
+'Call ApriDisplaySuMonitorSelezionato
+'End Sub
+
+Private Sub Image1_BeforeDragOver(ByVal Cancel As MSForms.ReturnBoolean, ByVal data As MSForms.DataObject, ByVal X As Single, ByVal Y As Single, ByVal DragState As MSForms.fmDragState, ByVal Effect As MSForms.ReturnEffect, ByVal Shift As Integer)
+' Percorso dell'immagine
+    Dim imgPath As String
+    imgPath = "D:\dj Lucas Berry\LOGO_monster.jpg"
+    
+    ' Carica l'immagine nel controllo Image
+    If Dir(imgPath) <> "" Then
+        Me.Image1.Picture = LoadPicture(imgPath)
+    Else
+        MsgBox "Il file immagine non è stato trovato.", vbExclamation, "Errore"
+    End If
+End Sub
+
+Private Sub CommandButton93_Click()
+    CommandButton93.Picture = LoadPicture("C:\VSC_Live_Server\archivio\PROVA_webcam.jpg")
+    Unload Me
+    PAGINA05.Show
+End Sub
+
+Private Sub CommandButton94_Click()
+    CommandButton93.Picture = LoadPicture("C:\VSC_Live_Server\archivio\PROVA_webcam.jpg")
+    Unload Me
+    PAGINA06.Show
+End Sub
+
+Private Sub UserForm_Initialize()
+    Me.caption = "DJ'S BORDERO' - © 2025 [DJ LUCAS BERRY]"
+End Sub
+
+Private Sub UserForm99_Initialize()
+    MsgBox "© 2025 DJ'S BORDERO'. Tutti i diritti riservati." & vbNewLine & _
+           "Qualsiasi utilizzo non autorizzato è vietato.", _
+           vbInformation, "Informazioni sul Copyright"
+End Sub
+
+Private Sub CommandButton1095_Click()
+    ' CommandButton04.Picture = LoadPicture("C:\VSC_Live_Server\archivio\DISPLAY_index.jpg")
+    Unload Me
+    PAGINA07.Show
+End Sub
+
+Private Sub CommandButton1096_Click()
+    ' CommandButton04.Picture = LoadPicture("C:\VSC_Live_Server\archivio\DISPLAY_index.jpg")
+    Unload Me
+    PAGINA08.Show
+End Sub
+
+Private Sub CommandButton1098_Click()
+    ' CommandButton04.Picture = LoadPicture("C:\VSC_Live_Server\archivio\DISPLAY_index.jpg")
+    Unload Me
+    PAGINA09.Show
+End Sub
+
+Private Sub CommandButton1099_Click()
+    Unload Me
+    PAGINA10.Show
+End Sub

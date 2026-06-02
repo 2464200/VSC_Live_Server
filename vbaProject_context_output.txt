@@ -1,0 +1,636 @@
+=== btnPlayX_Click @ 766579 ===
+   AvviaTimerReport 9    Workbook_BeforeClose??    Cancel??   ?( H   FermaTimer??    FermaTimerReport??    Foglio1?     btnPlayX_Click?    ?( H   MatchAttivo?`   ?( G   AvviaVideo??    btnPlayX_DblClick??    ReturnBoolean?e    btnStopVideo_Click??   ?( G   StopVideo ?   ?(     Worksheet_Change?S    Target?F    Range?     Intersect1?
+
+=== btnPlayX_Click @ 820620 ===
+        ?0????M??Cpw??          D      ?      F                Worksheet                Worksheet_Change                btnPlayX_Click        l   C : \ V S C _ L i v e _ S e r v e r \ E v e n t i \ E l e n c o _ B r a n i _ s t a t i c o _ O L D . c s v                 t e x t x        !?                                   ?A        
+
+=== btnStopVideo_Click @ 766686 ===
+Foglio1?     btnPlayX_Click?    ?( H   MatchAttivo?`   ?( G   AvviaVideo??    btnPlayX_DblClick??    ReturnBoolean?e    btnStopVideo_Click??   ?( G   StopVideo ?   ?(     Worksheet_Change?S    Target?F    Range?     Intersect1?    Application?*    EnableEvents??    cells ?    Row??    Column?i    Now%?    Foglio2?     UserForm_Initializ
+
+=== btnStopVideo_Click @ 822530 ===
+r e a t e F o l d e r             A D O D B . S t r e a m                 T y p e             u t f - 8                 btnStopVideo_Click        , ,   ?               x     `     `     x             ?.-?k? B??t.Yh3`         ?nGr?zI?%?z???          ?? ??%@??>?]7??        ???  ?mC?Q?4/???        ?8a?k??@?r?????                 CommandBut
+
+=== btnPlayX @ 15041 ===
+  ??? ??  ?q M??7I? j i. :        ?      F                    4 h=k??G?iG?V?b#                ????????      ????x     ' btnPlayX, 12, 1, MSForms, CommandButton+ btnStopVideo, 14, 2, MSForms, CommandButton 4 h=k??G?iG?V?b#?q M??7I? j i. :??    ME  ??????    ??    ??      ? ??    h ??????????????????????????    ?????????????????
+
+=== btnPlayX @ 453531 ===
+  ] ?     ] ? 0   ] ? P   ] ? p   ] ? ?   ] ? ?   ? ?   VideoClip   ? % ?   . :   ? ?   Border?   ? % ?   . <     ? ?   btnPlayX  < % D   . *     ?      Stato di riposo  ?   A1  : % v   ! ? ?     ?     ? ? ? ? ? ? $ @     * !   ( F   ? ' f   | ??`   k ??X   ?   000 ?   A1  : % v   ( ?     ?   A1  : % v   ! d ?   $ ?   ' @     
+
+=== btnPlayX @ 766579 ===
+   AvviaTimerReport 9    Workbook_BeforeClose??    Cancel??   ?( H   FermaTimer??    FermaTimerReport??    Foglio1?     btnPlayX_Click?    ?( H   MatchAttivo?`   ?( G   AvviaVideo??    btnPlayX_DblClick??    ReturnBoolean?e    btnStopVideo_Click??   ?( G   StopVideo ?   ?(     Worksheet_Change?S    Target?F    Range?     Inter
+
+=== btnPlayX @ 766644 ===
+H   FermaTimer??    FermaTimerReport??    Foglio1?     btnPlayX_Click?    ?( H   MatchAttivo?`   ?( G   AvviaVideo??    btnPlayX_DblClick??    ReturnBoolean?e    btnStopVideo_Click??   ?( G   StopVideo ?   ?(     Worksheet_Change?S    Target?F    Range?     Intersect1?    Application?*    EnableEvents??    cells ?    Row??    
+
+=== btnPlayX @ 787710 ===
+rcorsoCompleto?]    dati ;    contenutoCSVy?    streamUTF8??    OrdinaArrayPerTitoloR<    tmpTitolo?\    tmpAutorex?    btnPlayX O    btnStopVideoQ    CommandButton1|?   ?  ? ??Open2>?   ?  ?   BeforeClose~;   ?  ?   _Defaultj?    _B_var_LeftQ?    _B_var_UCasea?   ?  ?   Change??    _B_str_LeftV?   ?  ?   Click??   ?  ?   Dbl
+
+=== btnPlayX @ 819003 ===
+     ?f???I  ?x ? 8<?&         m    ?9                        -               W o r k b o o k _ O p e n                 btnPlayX_DblClick        q#????? ?  ??  t         8          ????????S   ?<          0           (         ~                8          ????????"   a>          p                     Z            8          ???
+
+=== btnPlayX @ 820620 ===
+        ?0????M??Cpw??          D      ?      F                Worksheet                Worksheet_Change                btnPlayX_Click        l   C : \ V S C _ L i v e _ S e r v e r \ E v e n t i \ E l e n c o _ B r a n i _ s t a t i c o _ O L D . c s v                 t e x t x        !?                                   ?A  
+
+=== btnPlayX @ 821297 ===
+     8          ?????????   ?o          ?                           btnStopVideo        @2 ?i?? ?w ?  <W                btnPlayX                Image1,         ?                    \          8          ?????????   ?q          0           $         o               8          ????????h   ?s          p                   ?  {l?? 
+
+=== btnPlayX @ 856909 ===
+  !           ?K          p                           Target        1           ao          ?                           btnPlayX        1           ?W          ?                           btnStopVideo        ?           ?;          ?                   ??          q?                              ??          ??          0       
+
+=== btnStopVideo @ 15082 ===
+F                    4 h=k??G?iG?V?b#                ????????      ????x     ' btnPlayX, 12, 1, MSForms, CommandButton+ btnStopVideo, 14, 2, MSForms, CommandButton 4 h=k??G?iG?V?b#?q M??7I? j i. :??    ME  ??????    ??    ??      ? ??    h ??????????????????????????    ??????????????????????????????????????????????????????????????
+
+=== btnStopVideo @ 766686 ===
+Foglio1?     btnPlayX_Click?    ?( H   MatchAttivo?`   ?( G   AvviaVideo??    btnPlayX_DblClick??    ReturnBoolean?e    btnStopVideo_Click??   ?( G   StopVideo ?   ?(     Worksheet_Change?S    Target?F    Range?     Intersect1?    Application?*    EnableEvents??    cells ?    Row??    Column?i    Now%?    Foglio2?     UserForm_Ini
+
+=== btnStopVideo @ 787724 ===
+?]    dati ;    contenutoCSVy?    streamUTF8??    OrdinaArrayPerTitoloR<    tmpTitolo?\    tmpAutorex?    btnPlayX O    btnStopVideoQ    CommandButton1|?   ?  ? ??Open2>?   ?  ?   BeforeClose~;   ?  ?   _Defaultj?    _B_var_LeftQ?    _B_var_UCasea?   ?  ?   Change??    _B_str_LeftV?   ?  ?   Click??   ?  ?   DblClick??    UserFor
+
+=== btnStopVideo @ 821245 ===
+              Z               "             " "          8          ?????????   ?o          ?                           btnStopVideo        @2 ?i?? ?w ?  <W                btnPlayX                Image1,         ?                    \          8          ?????????   ?q          0           $         o               8          ????
+
+=== btnStopVideo @ 822530 ===
+r e a t e F o l d e r             A D O D B . S t r e a m                 T y p e             u t f - 8                 btnStopVideo_Click        , ,   ?               x     `     `     x             ?.-?k? B??t.Yh3`         ?nGr?zI?%?z???          ?? ??%@??>?]7??        ???  ?mC?Q?4/???        ?8a?k??@?r?????                 Comm
+
+=== btnStopVideo @ 856977 ===
+1           ao          ?                           btnPlayX        1           ?W          ?                           btnStopVideo        ?           ?;          ?                   ??          q?                              ??          ??          0                   ??           ?          P                   ?           1?  
+
+=== BackColor @ 779644 ===
+fileswX    countFiles h    tempR?    wsVC??    wsBm?    OLEObjectw?    searchValue?)    matchFound(     OLEObjects?3    BackColor??   ?( H   TimerCheck/?    CommandButton33?B    CommandButton34_ClickFc    CommandButton34?B    CommandButton35_ClickV?    CommandButton35?B    CommandButton36_Click??    CommandButton36?B    Command
+
+=== ForeColor @ 772921 ===
+andButton344_Click??    CommandButton345_Click?6    CommandButton346_Click?n   ?( c   GeneraFileSIAEz?    TextBox1?S    ForeColor      TextBox1_Change=?    UserForm03_Initialize<]    Foglio7?     Modulo35 L   ?( ,   EseguiMacroECambiaFoglio??    Foglio8?     CommandButton01_Click??    CommandButton02_Click??    CommandButton02 
+
+=== vbGreen @ 778750 ===
+ E   VideoClip_ColorOnly66    chiave??    delimiter ~    trovataS?    CheckCSVForPrefixoy    ColorAssociatedButton9?    vbGreen?_    tsL_    primoCampo      FileExists?     OpenTextFile??    AtEndOfStream??    ReadLine??    GetFirstField?     arr u    Split?)    Right      rgbColor86    Fallback2}    callerName/     Foglio16?
+
+=== RGB( @ 112970 ===
+Tr? ? r  ' Gr ?ett oc ? .Hori z` alAligFnAf  xlC`8e?r  ' All??a@Fnto ?   e? al c? r  0Vert@??      v  ?  ?rio r.Col q=  RGB(200,? ? )? `SA e?O sfondo ("g .io ?3ar?o?(I   A ?  !? M?[t?Z? ne? S?iz?P12g / ??(ensb?d  ca?r?Cerec4ap A  n! ' Trov?a l'???M??? ????m?3a?? ??= J???."n(w???K?* unt, "C" ).? (xlUp )A % ?? Xini(zia`Xp Fl
+
+=== RGB( @ 222087 ===
+n?g pD2")? ? DIm??ta   d??zns??? ?  $ e~ F` .S?(? 2 4 ' Puoi? m ?fic???  valore aH se@ da? e  tue esipgenzD?? ?4e Co    RGB(@255, 0@ )?? Cambid%b ?  in a?@5Ts?$?_Ch?#d?' ???a"C.qu??oR2 #? c" ?+?C?Cw?CQ9? ^ ?/???k?/0?3?/ k.cap?X 0 "DJ'S B ORDERO'  - ? 2025  [DJ LUC?A? ERRY]?H                                                
+
+=== RGB( @ 266690 ===
+  u i?0? Ab?ambia?Lo reTextbo,x6au? O ?rr or GoTo ?G 4??eEA ?N?  C? A\?R?;del  t  o nel' =?  _ 6# fr"m?502.D 6. ??eB ?QRGB(?255, 16?  0) 'Aran c? # ? ExitSc?AW  k :? M4sgA "     c ?         ?   ?   t       ?   ?           9???  ??    ?   ? ??      ????    ??? ??  ?Y?h!??O? 2?{??~}  ?F? I?X??(KYj?spE?6tO?D]??Sp?    9U?w? <
+
+=== RGB( @ 327145 ===
+r &   !l?astRow '   nCols  :    = 6 !dic tUn?j? Obj ec o WSet    = Creat e? ("Scria ?ng.D   ?a ry" t ,COL?_HILITE?? ? = RGB(2@55, 16  0    <??= Thi s ?book.S???s(" ?? 9 V ws ?  Disp la?Q' Pul ??e il fo?glio?; d?a?inaz?4e 3?  .cells.C lear wtenDts? Int@?o r. ^orInd ex??xlNonc? ?p= 4A??.'  ?ova ult ima ??a n?e?$o ??  z=G?5 &
+
+=== RGB( @ 334049 ===
+  Di m lastRo6w   7r   #Co nst COL_ BG   = &H 12   $ROW1Y &20?   2?&8?1?   TEXT  ?F    LINE  <40?    r _HIhLIT  : i? =  RGB(255?, 16  0??   ' Impost a stile  base? Wit h??.Range (ws.cell?s(1 !),  ?    @Ws.Coun @j?h)?_?`.In@terior@ l<or@V?Z  B Fo ntJ AE? nam e  "Arial""M SizA 14!  End ?/  E? 'E? al@#n anza rig he ?<ordi?? ?
+
+=== RGB( @ 455126 ===
+?d?? ??? ? C?  ?????? B?< ?Bor ?.??}! a =??B. ?  ?? PlayX % ? ?:ta?di ?riposo? @WpwsVC?? ??6"^""p      .?(.?BackCol?h = RGB(2080, ? (T??= 0Fals?t? Ex I{?Tc . Numb er Q?0`%"00 0???9= Lef t(? t??, 3?? C ?9? ? A^Ea?ch ?AIn`-i%?E?? ! ?)A ?^??l(?? " G ?   ? ??? ?Tru?)? 1 R ? ?W R \@? ?8? # S ?? ? ? ? ? ` 17 6, 80) '? ve@+? A ? 
+
+=== RGB( @ 554664 ===
+E8xitUb? ?AKb ps?ACLng(? C?g?G  ?0?Ha0? ?r^uaA? ? ?' ` 3?? _ t/ t@ ?W? xu<= ?  ? Sx= ?NQp1    "?-?, ,??-? ? .pIePO orP RGB(2?55, 0  ? ? ?' t??& f!~  avviati  dal mod8ulos ?'? Lo?op8 ??? 1 ?#? ?=A"STOP?  #  ?v?? ??? ?"N8ot /#,#?3op?? ??s ? ? = ???? ? ? ?Fl  ?D?  ' `fttiva  ?feprima??   a Sew S S? SQk.ac S_ _ R  A@] ULTIM
+
+=== Caption @ 713 ===
+?9?q                       &                   VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA04      Caption         =   "frmPAGINA04"     ClientHeight    =   9255.001     ClientLeft      =   120     ClientTop       =   465     ClientWidth     =   6930     StartUpPosition =   1  'CenterOwner     TypeInfoVer
+
+=== Caption @ 95090 ===
+ Com? .?AddItem)  ' !LIf? Nex?t? >B2_B_B?g_B9_Bla_BCB?"un?iIt`Ya?C"X?C ws%CF1772?:F2000?C?C?2c1?C?<?C?C?C?C ????01?CMe.?caption?? DJ'S BOR DERO' -  ? 2025 [?DJ LUCA` `ERRY]??f???????????x           %    ?? ?????????????         ( %    ?? ?????????????         ( ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?
+
+=== Caption @ 558169 ===
+ 2     Private Declare Function capCreateCaptureWindow Lib "avicap32.dll" Alias "capCreateCaptureWindowA"        (ByVal caption As String, ByVal dwStyle As Long, ByVal X As Long,         ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long,         ByVal hWndParent As Long, ByVal nID As Long) As Long  ?   *  Invia mes
+
+=== Caption @ 769229 ===
+Y   Btn_Prova_click?V    intervallo??    cella ?    ComboBox1'?    UserForm2_InitializesK    UserForm01_InitializePl    caption x    Foglio5?     Modulo33 L   ?h     GetChromePath,?    wshs?    CreateObject??    RegReadw?   ?(     OpenInChrome??    chromeT?    cmd?~    shellV?    vbNormalFocus??    Modulo17?K   ?(     Request
+
+=== Caption @ 857471 ===
+       fullPath                shapeName                codice                exeName                txt                caption                dwStyle                X                Y                nWidth                nHeight                hWndParent                nID                hWnd                Msg              
+
+=== Caption @ 1171401 ===
+?9?q                                           VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA01      Caption         =   "frmPagina01"     ClientHeight    =   12420     ClientLeft      =   120     ClientTop       =   465     ClientWidth     =   16770     StartUpPosition =   1  'CenterOwner     TypeInfoVer  
+
+=== Caption @ 1174279 ===
+  ?9?q                                           VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} INDICE      Caption         =   "INDICE"     ClientHeight    =   12420     ClientLeft      =   120     ClientTop       =   465     ClientWidth     =   16755     StartUpPosition =   1  'CenterOwner     TypeInfoVer     = 
+
+=== Caption @ 15348105 ===
+?9?q                                           VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA02      Caption         =   "frmPagina02"     ClientHeight    =   12420     ClientLeft      =   120     ClientTop       =   465?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  ?u  
+
+=== Caption @ 16432713 ===
+                                   ?   W       VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA03      Caption         =   "frmPagina03"     ClientHeight    =   12420     ClientLeft      =   120     ClientTop       =   465     ClientWidth     =   16770     StartUpPosition =   1  'CenterOwner     TypeInfoVer  
+
+=== Caption @ 17833545 ===
+                                    ?  RN      VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA06      Caption         =   "frmPagina06"     ClientHeight    =   12420     ClientLeft      =   90     ClientTop       =   435     ClientWidth     =   16770     StartUpPosition =   1  'CenterOwner     TypeInfoVer   
+
+=== Caption @ 17987529 ===
+?9?q                                           VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA05      Caption         =   "frmPagina05"     ClientHeight    =  C o m p O b j                                                     ????1   ????                                    d   a         V B F r a m e         
+
+=== Caption @ 18135753 ===
+?9?q                                           VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA07      Caption         =   "frmPAGINA07"     ClientHeight    =   12420     ClientLeft      =   120     ClientTop       =   465     ClientWidth     =   16770     StartUpPosition =   1  'CenterOwner     TypeInfoVer  
+
+=== Caption @ 18283017 ===
+F1 plus   S   ?       u      ??       Tahoma                                                                   A08      Caption         =   "frmPAGINA08"     ClientHeight    =   12420     ClientLeft      =   120     ClientTop       =   465     ClientWidth     =   16770     StartUpPosition =   1  'CenterOwner     TypeInfoVer  
+
+=== Caption @ 18284489 ===
+?9?q                                           VERSION 5.00  Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA09      Caption         =   "frmPAGINA09"     ClientHeight    =  V B F r a m e                                                     ????????????                                    ?   '       P A G I N A 1 0         
+
+=== Caption @ 18287625 ===
+                                                   ????????????                                    ??  ?       A10      Caption         =   "frmPAGINA10"     ClientHeight    =   12420     ClientLeft      =   120     ClientTop       =   465     ClientWidth     =   16770     StartUpPosition =   1  'CenterOwner     TypeInfoVer  
+
+=== Text @ 61355 ===
+tFields.Add2 Key:='       Range("$F$11:$F$612"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption'        :=xlSortTextAsNumbers     ?   =     With ActiveWorkbook.Worksheets("border?").AutoFilter.Sort ?   ?             .Header = xlYes   ?             .MatchCase = False?   $         .Orientation = xlTopToBottom      ? 
+
+=== Text @ 136697 ===
+       5 ? ( ?       T 5 P ( R     q ???   ?   Testo inserito con Excel    F ! ? B@V       ?   &  WordApp.Selection.typetext Te     ?   ?   ?   ?   ????6   ?           9???  ??        ? ??      ????    ??  ??                                                                      ????????      ????x                           
+
+=== Text @ 141865 ===
+                                                                               xt:=(D7)    ?   2  WordApp.Selection.typetext Text:=Range("d29:d29")?      WordApp.Application.PrintOut     o ???   ? ?     ?       ?      Videoproiettore_close Macro      ?      Chiude Word      ?       ?       ?     Per *uscire* da Word:     ?
+
+=== Text @ 141870 ===
+                                                                          xt:=(D7)    ?   2  WordApp.Selection.typetext Text:=Range("d29:d29")?      WordApp.Application.PrintOut     o ???   ? ?     ?       ?      Videoproiettore_close Macro      ?      Chiude Word      ?       ?       ?     Per *uscire* da Word:     ?     
+
+=== Text @ 264664 ===
+ra      ? % http://127.0.0.1:5500/prova/logo.html A@?   o ???   ? ?     ? < ?   ?   +  Cambia il colore del testo nella TextBox 6       ? ? ? ? ?   $ @     ? ! ? ( F ? 6   Arancione   | ??    ? <     ? ) Errore nel cambiare il colore del testo:    L ! P     R A@H         o ???   ? 0     ? ? ?   ] ? ?     ??! ? ! d ' ? ?   
+
+=== Text @ 265210 ===
+  M  In caso di errore riattiva gli eventi e logga in Finestra Immediata (CTRL+G)     ?   z ( |       [ ? ?   Errore in TextBox6_Change:    L ! N   ?    -      L ! P   ?     o ???   ? ?     ?   L  Apre la pagina in finestra isolata (modalit? app), una sola scheda/finestra      ? # http://127.0.0.1:5500/servizio.html A@?   
+
+=== Text @ 266594 ===
+In ChromeSe?condoMo`P orFullSc reen "ht tp://127 .0  1:550 0/prova/ logo.htm?l` fN?cb 3?b ?    u i?0? Ab?ambia?Lo reTextbo,x6au? O ?rr or GoTo ?G 4??eEA ?N?  C? A\?R?;del  t  o nel' =?  _ 6# fr"m?502.D 6. ??eB ?QRGB(?255, 16?  0) 'Aran c? # ? ExitSc?AW  k :? M4sgA "     c ?         ?   ?   t       ?   ?           9??? 
+
+=== Text @ 283571 ===
+  Ripristina il colore originale     ?   ? ! ? ! F ( @     ?   ;  Recupera il nome della macro dalla propriet? AlternateText         ? ! ? ' ?       ? ?     ?     ?   ?   ?   '   ? !     ?   '!NomeMacro     z B@?         L ! N ?     ? ? ) Errore durante l'esecuzione della macro '   ?   ?   '.    ? A@H     k ??(   ?       d
+
+=== Text @ 283854 ===
+?   ?   '.    ? A@H     k ??(   ?       d ??    ? U Non ? stato trovato alcun nome della macro nella propriet? AlternateText della forma    ? !       R A@H     k ???   o ???   ? ?     ] ? 0   ] ? P   ?   .  Scorre tutti i fogli della cartella di lavoro        ?     ? ! ? ?       ?   !  Scorre tutte le forme del foglio     
+
+=== Text @ 284270 ===
+  ? ! ? ?       ? ! ? ?   MacroWrapper    ?     ?   F  Memorizza il nome della macro originale nella propriet? AlternateText      ? ! ?   ? ( ? ?   8  Imposta il nome della macro da eseguire a: MacroWrapper  ?   MacroWrapper  ? ( ? k ???       ?   ?           ?   ?       ? @ Le forme sono state aggiornate in modo da utiliz
+
+=== Text @ 323542 ===
+   ?   ,  Scrive il file in UTF-8 usando ADODB.Stream      ? ?   ADODB.Stream$ ?   . ?         ? ? ?   9 l ?      adTypeText       ?   utf-8 9 ?   C@        ? C@?           ? ?   C@?   ? $    adSaveCreateOverWrite      C@B     q ??@   ? ? . ?     ?   ?       ?     ???   u MsgBox "Esportazione completata nei percorsi:" & vb
+
+=== Text @ 334004 ===
+et,  ,nC?ol 2Long ( first  Is A 4Boolea n)     Di m lastRo6w   7r   #Co nst COL_ BG   = &H 12   $ROW1Y &20?   2?&8?1?   TEXT  ?F    LINE  <40?    r _HIhLIT  : i? =  RGB(255?, 16  0??   ' Impost a stile  base? Wit h??.Range (ws.cell?s(1 !),  ?    @Ws.Coun @j?h)?_?`.In@terior@ l<or@V?Z  B Fo ntJ AE? nam e  "Arial""M SizA 14!
+
+=== Text @ 368957 ===
+   ] ? X   ] ? ?   ?      Stream testo -> bytes UTF-8      ? ?   ADODB.Stream$ ?   . ^         ^ ? ?   9 l ?      adTypeText       ?   utf-8 9 ?   C@        \ C@?         ?   9 f ?   9 l ?      adTypeBinary     5 6 ' b ?      bytes UTF-8      C@B     q ??(   ?      Scrivi BOM + dati? ?   ADODB.Stream$ ?   . `         ` ? ?
+
+=== Text @ 371508 ===
+'?q F ?i?J? g ? ?b(i?M? ? ? ??? T ? ?  ???    U ? .SaveT?o?Uv?, 2 q  ? ?DOveI? rWrite  ?   .Clos x End With    |Set s tmText =  Nothing  4Ou 2 ?Sub  ~                                                                                                                                                                              
+
+=== Text @ 389025 ===
+=6' L? '?u { E ach p In=?"s? !*`?H pu ? ?&e`?Nul?l?<c?yno `Q inga vuo @'?' sicurNe 1? 0"In?O(@1, (p.? &?!/0 ? p ), ?$??0Text  p? 0) > }%? Te?rmi?Zi ? ? ? ?0??? 5 p.t .t 1E y%N?  p s S ' ?oFal@lback:?5 ?%-?Cp=?! (n     ?   ?   ?   ?   ?????   ?           9? "  ??        ? ??      ????    ??  ??                            
+
+=== Text @ 392382 ===
+ preferisci UTF-8 senza BOM o accodare, dimmelo.       ] ? X   ? ?   ADODB.Stream$ ?   . ?         ? ? ?   9 l ? !    adText   ?   utf-8 9 ?   C@          ?   C@?   ? ! @  0=adWriteChar; 1=adWriteLine se vuoi aggiungere CRLF automatico        ?   C@?   ? ! &  2=adSaveCreateOverWrite (sovrascrive)      C@B     q ???   o ???
+
+=== Text @ 484811 ===
+ src='https://cdn.jsdelivr.net/npm/chart.js'></script> ?       ?   ? ?   <style> ?     ?   ? ? E body{font-family:Arial;text-align:center;background:#f4f4f4;margin:0} ?          ?   ?   ?   ?   ????@   ?/          9?2?  ??        ? ??      ????    ??  ??                                                                      
+
+=== Text @ 490075 ===
+    ?      ?    ?      ???? ?  ?   ? ? ! nav{background:#333;padding:10px} ?   ?   ? ? E nav a{color:#fff;margin:0 15px;text-decoration:none;font-weight:bold} ?       ?   ? ? ( .container{max-width:1000px;margin:auto}?     ?   ? ? K table{border-collapse:collapse;margin:20px auto;width:100%;background:#fff} ?         ?   ?
+
+=== Text @ 549496 ===
+ A ddItem "?640x480??  6K   800x6 0  1280x7 2] 920x10 T ListIndtex??0?-C C<F|PSL:@  9? ?.1?5?6? 2? 3J1A  I&2O&BITRA TE? TextB?itr?K.t`    "25b() CAR ICA ELEN CO WEBCA?M? ?]cams?V@Collec!b,  C  Varia?n?b 7Set "  = GetWeb? A gFE;c ?&?L ?Each? In? ?#  B? ?*C# N  ??^! IfAhbO? ?  Count > ?0 Then1 ?=?? C??ra??? !) ? LabelNoDme?
+
+=== Text @ 577454 ===
+Recor der    O ption Ex@plicit $P$ub   C ?ra! ?As S ?ng    8 ?PID   6Lo 2Outp?utFile   6  8Bitrate Kbps :FPS?  Resolu ?pText   R TSDub ?art KiPng()?d   D?im fol w   ? ? = Ensu?reTrail   Backslas h(SAVE_F`OLDER ' o= ?+& "REC_ " & Form at(Now,  "y  -mm-d d_hh-nn- ss")  ".mdp4 ?   C Pc?md?N  ??"" + FMPEG_PAlTH?   _? ?!   " -y
+
+=== Text @ 621138 ===
+to UTF-8 con BOM (compatibile Excel/Windows)   ? ?     ] ? X   ? ?   ADODB.Stream$ ?   . ?     ?     ? ( l ? !    adTypeText   ?   utf-8   ? ( ?         ? B@                ? B@?         ?     ? B@?   ? !    adSaveCreateOverWrite    ? B@B         ? ? . ? o ??(   ????    ????   ?? Attribut e VB_Nam e = "Mod ulo63"   ' ESPOR
+
+=== Text @ 622059 ===
+' Legg i i?Bstaz @?e (A11: D11) e d     2:D6121 @hea?? AVa@riant,? a   ? ? = ;.Ra nge("? ")?.Value2  ?@ a@jws?   ? ?C ?/texta ?h<: ?  ? W? ' ?Riga dk c  @/?Mk/? Buil?d?>Line(? /? !a? m)D?%:  ap!?a pad d?:a 3 ci@fre al?_t erza?Plon@na (co  C? `l f?=?,i? ?Long, jE A? For i &1  To UBou?nd(a(, 1? ? <@ ?K (S?e?@ sEmptyRo w  i` 
+
+=== Text @ 701321 ===
+: dalla colonna D (4) alla colonna N (14) i dati vengono sempre     ?   R         trattati come TESTO (lettura tramite .Text, nessuna conversione numerica).?   U  ==================================================================================== ?   ?       ? < ?   ?   z (         ?   z ( |       ?   1  ---------------- 
+
+=== Text @ 704234 ===
+======================================     ? ?     ] ?     ? ?   ADODB.Stream$ ?   . ?         ? ? ?   9 l ?      adTypeText       ?   utf-8 9 ?   C@          C@?             ?   C@?   ?      adSaveCreateOverWrite      C@B     q ???   o ???   ?   U  ==========================================================================
+
+=== Text @ 706674 ===
+oppioP ercorso( ).  NOVIT@?: dal +c olonna D  (4)   N  (1? i? ti  vengono @sempre?'t?rat [ co ? TESTO (l?ettura    mi??.Text(, n?au?6co nvers ?e ?numer?i R?? Pub@y Sub- K_ ^?]SC]_I?n?N()???VO@? rror GoT o Ges ?eEg? ??A Ap ??lo n.ScreenHUpd? ng ?F als? EnabHleE?StsG  " ? ' -   C ONFIGURA`ZIONE? ? DPim n@_F ?AHs S ?ngG p!??O
+
+=== Text @ 708616 ===
+ d     ?End If? ? ?? ?? ? $??    ? ?  ' =P ?   nve un f  n di tes to in UT F-8 usan d@?DODB.S t@}m?# 3  P riv@??? Wr?iteTextA? Utf8(ByVLal?)??, C ta  Cont??R?s|tmM??aA?  M?A? =??Wi??  C A? .Type ?2 p' ad  A-? C hars ?= "@utf-8"? O8pen?  =?axt  3? SaveTos!"? ,   A ?rv er    Clos?e? ?J? ?LN< !E R?Jva il  se datore  dalla p 
+
+=== Text @ 712828 ===
+ "?  a  o ? :" & vb0CrLf  ? .D?escriB?," ?itical?M?!!/STOP_/n3?4? _/iv?p4_/?nJ/Ferm_/b5?S/ ?p?/?/{ ? ?)!?^AGGI??ME NTO TEXT?BOX (UI?_ ? 7   i]cmd?StartUI-Ck-? Text@WTpimer_]?1?.i?o?f?.?.?.?'o   ?  ? ?.? ? ?     ?? top?  ???Ezr4ESP ? oEb e!?-ore ?-UI?? ? ? ? ?     ?  AVVIO AU TOMATICO p  QUANDO  IL m SI HAPR?}??? E pH ER 
+
+=== Text @ 712869 ===
+?itical?M?!!/STOP_/n3?4? _/iv?p4_/?nJ/Ferm_/b5?S/ ?p?/?/{ ? ?)!?^AGGI??ME NTO TEXT?BOX (UI?_ ? 7   i]cmd?StartUI-Ck-? Text@WTpimer_]?1?.i?o?f?.?.?.?'o   ?  ? ?.? ? ?     ?? top?  ???Ezr4ESP ? oEb e!?-ore ?-UI?? ? ? ? ?     ?  AVVIO AU TOMATICO p  QUANDO  IL m SI HAPR?}??? E pH ER L P EZZO MAN?CANT??      ? UserFor m_In
+
+=== Text @ 714089 ===
+anno:   ?   "     - Start Dash  -> AvviaDashLoop?   "     - Stop Dash   -> FermaDashLoop?   &     - Start UI    -> StartTextBoxTimer    ?   %     - Stop UI     -> StopTextBoxTimer     ?   =  ============================================================     ?      ========rU        @       @       @              ~x         
+
+=== Text @ 714136 ===
+p?   "     - Stop Dash   -> FermaDashLoop?   &     - Start UI    -> StartTextBoxTimer    ?   %     - Stop UI     -> StopTextBoxTimer     ?   =  ============================================================     ?      ========rU        @       @       @              ~x                                            3           
+
+=== Text @ 719458 ===
+            ????  ????=================?      === VARIABILI GLOBALI ===?      =========================?      --- Timer TextBox ---    ] ? ?   ] ?     ?      --- Timer Dash Loop ---  ]@?     ]@? H   ?      =========================?      === COSTANTI SISTEMA === ?      =========================]D? / C:\Program Files\AutoHo
+
+=== Text @ 725032 ===
+     ? A@H   o ??    ?   =  ------------------------------------------------------------     ?   !  START AGGIORNAMENTO TEXTBOX (UI) ?   =  ------------------------------------------------------------     ? `     ? < @   A@"     | ??0   ? < (   ?   Errore avvio UI:  J     L ! P     ? A@H     o ???   ?   =  ----------------
+
+=== Text @ 725311 ===
+    ? A@H     o ???   ?   =  ------------------------------------------------------------     ?      STOP AGGIORNAMENTO TEXTBOX (UI)  ?   =  ------------------------------------------------------------     ? ?     ? < (   A@&     | ??    ? <     ?   Errore stop UI:   J     L ! P     ? A@H     o ???   ?   =  ---------------
+
+=== Text @ 727335 ===
+  k ??    o ???   ?   =  ============================================================     ?   =  === START / STOP TIMER TEXTBOX (USERFORM) ==================     ?   =  ============================================================     ? ?       , ? G | j     ? ' ,   A@T     o ???   ?       ?   ?   ? ' ,     r ?   AggiornaTe
+
+=== Text @ 727537 ===
+===========================     ? ?       , ? G | j     ? ' ,   A@T     o ???   ?       ?   ?   ? ' ,     r ?   AggiornaTextBox4?   z B@?       o ???   ? x     ? < ?     ,   ? G | j   ?   PAGINA10$ V     ? G | j     ?         8   6   ? % ?   % v   ! ?   ? ! X ( ?   ? ?   ?     @ $ z     ' r       r ?   AggiornaTextBox4  z 
+
+=== Text @ 727729 ===
+NA10$ V     ? G | j     ?         8   6   ? % ?   % v   ! ?   ? ! X ( ?   ? ?   ?     @ $ z     ' r       r ?   AggiornaTextBox4  z B@?         | ???   ? < ?   ? ' ,   o ???   ?   =  ============================================================     ?   =  === UTILITY ================================================     ?   
+
+=== Text @ 734271 ===
+ ========================================================o:? ?1 - Start  Dash  ->@ Avvia? L?oop  op?   ?Ferm  ?$?y?+ > ,TextBo?xTimer?&? ??&Stop? ??\z  "  ?_RIABI LI GLOBA?? @   @ ?   --T- B4 ?- @  ? Pub?? N?<?Upda??As M?te? I9 ?iv ? s Boolea n? ?dAaD riv ? g_  Run ?G ? B%  R ?6????  ?TI SIST?EMA ??DPD  ? st AHK_E?XE_PATHA
+
+=== Text @ 735687 ===
+e(CELL_I NDICATOR ).Value  = "?"      wsIndic a ?Font.C olor vvbR ed zEnd I f    Sub "   ' =8     ? START  /  OP TIM ER TEXTB OX (USER?FORM) i ??@ ?`Public  ?h StartT extBoxTi mer() }If    Attivo  Then Ex it    ? = T rue  Aggi?orna  4 ? D,op %?CO?7rr  ?Resume ?N?U <FalsE  pp@9ation .On 7  Upd@ate, "M&"|, D ?{?(M ?(G?oTo Ge
+
+=== Text @ 740354 ===
+ura file CSV UTF-8 ?     -----------------------------     ? ?   ADODB.Stream$ ?   . r         r ? ?   9 l ?      adTypeText       ?   utf-8 9 ?   C@        p C@?           l ?   C@?     C@B     q ??P   ? ? . r ?       ? , File SIAE generato e ordinato correttamente:  J     l       ?   Operazione completata A@H   | ???   ?
+
+=== Text @ 748642 ===
+ong, j? G  tmp /? Str~i?   ?A  C C F or@ = LBo und(? , 1@) To UK -, 1C  ` A j ?=@ + 1       K If ?&ComRp  (i? ,?<( j? vbText    ?) > 0 ?ThenK ? !   ?=" ?   G"? 2?,?! i   ?#  @ a " ?? 2)? ? ! f   ?f ? @ ? f ? + Ax,Ifk ? N@. j ? b ???~                                                                                           
+
+=== Text @ 765818 ===
+  ?? L?? L?0?L??`?????    ?????   ?           4        ?  ?   b  Q  ?  ?   f  s  ?  ?   line  ?  ?  ?   name  ?  ?  ?   text  ?  ?  ?   width  Excel?+    VBA??    Win16?~    Win32     Win64x    Mac??    VBA6?#    VBA7?#    VBAProject??    stdole?`    Office u    MSFormsC     AccessibilityCplAdminLib??    Acrobat?E    Acr
+
+=== Text @ 767777 ===
+   SortFields??    Add2??    Key??    SortOn?q    xlSortOnValues?k    Order?A    xlAscending`?    DataOption[?    xlSortTextAsNumbers?     header?M    xlYes?     MatchCase??    Orientation w    xlTopToBottom ?    SortMethod??    xlPinYinbt    Apply,?    xlSortOnCellColor w   ?(     ordina_titolo??   ?(     torna_inizio%.  
+
+=== Text @ 770736 ===
+Doc??    Documents?     Visible??    Underline??    ParagraphFormat?    Alignment?I    wdAlignParagraphCenterl?    typetext??   ?(     Videoproiettore_close??    WordWasNotRunning ?    Quit9?    Modulo26?K   ?(     EstraiBraniOrdinati4 ?    tuttiEstratti??    WorksheetFunction?&    Min??    Modulo32 L   ?(     EstraiBrani
+
+=== Text @ 772907 ===
+lick4?    CommandButton344_Click??    CommandButton345_Click?6    CommandButton346_Click?n   ?( c   GeneraFileSIAEz?    TextBox1?S    ForeColor      TextBox1_Change=?    UserForm03_Initialize<]    Foglio7?     Modulo35 L   ?( ,   EseguiMacroECambiaFoglio??    Foglio8?     CommandButton01_Click??    CommandButton02_Click?? 
+
+=== Text @ 772936 ===
+ick??    CommandButton345_Click?6    CommandButton346_Click?n   ?( c   GeneraFileSIAEz?    TextBox1?S    ForeColor      TextBox1_Change=?    UserForm03_Initialize<]    Foglio7?     Modulo35 L   ?( ,   EseguiMacroECambiaFoglio??    Foglio8?     CommandButton01_Click??    CommandButton02_Click??    CommandButton02 B    Pictu
+
+=== Text @ 774259 ===
+ ColumnHeads??    ColumnWidths?i    Image2_Click =  *?( U   ApriPaginaInChromeSecondoMonitorFullScreenKW    CambiaColoreTextbox6kp    frmPagina02?1    TextBox6?S    TextBox6_Change ?    ErrHandler }    frase?    ?( B   WritePhraseToCsv??    CommandButton249_Click?K    CommandButton239_Click,K   ?( U   ChiudiChromeApertoDaM
+
+=== Text @ 774290 ===
+i    Image2_Click =  *?( U   ApriPaginaInChromeSecondoMonitorFullScreenKW    CambiaColoreTextbox6kp    frmPagina02?1    TextBox6?S    TextBox6_Change ?    ErrHandler }    frase?    ?( B   WritePhraseToCsv??    CommandButton249_Click?K    CommandButton239_Click,K   ?( U   ChiudiChromeApertoDaMacro??    Modulo36 L   ?( 1   M
+
+=== Text @ 774304 ===
+ick =  *?( U   ApriPaginaInChromeSecondoMonitorFullScreenKW    CambiaColoreTextbox6kp    frmPagina02?1    TextBox6?S    TextBox6_Change ?    ErrHandler }    frase?    ?( B   WritePhraseToCsv??    CommandButton249_Click?K    CommandButton239_Click,K   ?( U   ChiudiChromeApertoDaMacro??    Modulo36 L   ?( 1   MacroWrapper ` 
+
+=== Text @ 774621 ===
+pper `    coloreOriginale]Q    nuovoColoreqL    timeout?     nomeMacro r    Caller?=    Fill,?    Timer?X    AlternativeText?b    Run_?   ?( 1   SetupShapesb?    OnAction??    Foglio11?(    Modulo41?L   ?( 3   EsportaDatiInWord_100_Corretto?G    valoreD7+?    valoreD9-?    testoColonnaN??    rigaTrovata|c    filePath?O    
+
+=== Text @ 776331 ===
+untA38    IsErrorU?    IsNull??    Trim@?    IsNumeric$*    InStrRev??    vbDirectoryg?    MkDir ?    CharsetQ#    WriteText??    SaveToFile _    Cleanup??    Modulo44BL    wsDest?    rDest?/    dictUnici?t    COL_HILITE?~    valoreG)     valoreA#     UCase5     chiaveUnicaOL    Mergeq_    RowHeight?     ApplicaTemaDarkSe
+
+=== Text @ 776613 ===
+ergeq_    RowHeight?     ApplicaTemaDarkSelettivo_DJ2??    firstColIsA?     COL_BG|?    COL_ROW1?d    COL_ROW2?d    COL_TEXT3?    COL_LINE??    BordersC"    xlEdgeBottom      LineStyle?w    xlContinuous[?    Weight1?    xlHairline?4    DisplayGridlines??    Modulo37 L   ?( <   pidLiveServer c   ?( <   pidChrome?d   ?( <   
+
+=== Text @ 777781 ===
+     vbCr $    vbLfT%    Replacef     vm     folderPath%?    parentPath?_    GetParentFolderNameo?    CreateFolder??    textLine ?    stmTextd:    stmOut?T    dataUtf8*?    bomBytes?\    Position ?    Modulo46DL   ?( A   gChromePID?u    pg    ?( A   OpenInChrome2?f    Fallisci E    tk    ?( A   FindChromePidByUrl?     svc?
+
+=== Text @ 777798 ===
+LfT%    Replacef     vm     folderPath%?    parentPath?_    GetParentFolderNameo?    CreateFolder??    textLine ?    stmTextd:    stmOut?T    dataUtf8*?    bomBytes?\    Position ?    Modulo46DL   ?( A   gChromePID?u    pg    ?( A   OpenInChrome2?f    Fallisci E    tk    ?( A   FindChromePidByUrl?     svc??    procsL     E
+
+=== Text @ 778049 ===
+ Fallisci E    tk    ?( A   FindChromePidByUrl?     svc??    procsL     ExecQuery?D    foundPid??    CommandLine ?    vbTextCompare Q    ProcessID?%   ?( A   KillProcessTree?w    pid??    Modulo47EL    phraseS?    csvPath?+    WriteTextUtf8$?    Modulo48FL    gUserDataDir?     p1?^    p2?^    Raise ?   ?( C   OpenInChrome_
+
+=== Text @ 778161 ===
+ ?    vbTextCompare Q    ProcessID?%   ?( A   KillProcessTree?w    pid??    Modulo47EL    phraseS?    csvPath?+    WriteTextUtf8$?    Modulo48FL    gUserDataDir?     p1?^    p2?^    Raise ?   ?( C   OpenInChrome_IsolatedApp%?    args C   ?( C   CloseIsolatedChrome?l    CleanExit ?    vbNullString??    TerminateyL    Modulo
+
+=== Text @ 778807 ===
+trovataS?    CheckCSVForPrefixoy    ColorAssociatedButton9?    vbGreen?_    tsL_    primoCampo      FileExists?     OpenTextFile??    AtEndOfStream??    ReadLine??    GetFirstField?     arr u    Split?)    Right      rgbColor86    Fallback2}    callerName/     Foglio16?(   ?( G   gBtnAbilitato ?    Modulo51dL    gCartellaV
+
+=== Text @ 781831 ===
+vscPath??    report$     RecTimer??    IsRecording?     FlashState??    ComboBoxResol??    ListIndex?Q    ComboFPS;r    TextBitrate??    camswt   ?( R   GetWebcamListV     ComboBoxWebcam??    ListCount6    ?( Q   CameraNamey?    LabelNomeCam??   ?( P   StartPreview??    picPreview??    hWnd/?    LabelStatow?    LabelREC?? 
+
+=== Text @ 782187 ===
+m_Change??   ?( P   StopPreview6T    CommandButton1001_Click!?   ?( Q   BitrateKbps-{   ?( Q   FPS?   ?( Q   ResolutionTexta   ?( O   StartRecording1000??   ?( T   TimerLoop?B   ?( T   FlashRec?3    CommandButton1002_Clicks'   ?( O   StopRecording1000??    CommandButton1003_Click?_    folder?Q   ?( S   EnsureTrailingBack
+
+=== Text @ 782469 ===
+?_    folder?Q   ?( S   EnsureTrailingBackslash m   ?( S   SAVE_FOLDERIq    newest)     ff9]    d[     GetFoldern?    GetExtensionName ?    DateLastModified??   ?( S   VLC_PATHU?    StartTimerLoop y    Modulo56iL   ?( S   FFMPEG_PATH ?    CAMERA_NAME 4   ?h O   OutputFile9i   ?( O   OpenLastVideoDo    Modulo57jL    capCrea
+
+=== Text @ 785437 ===
+CodeMod}O    ProcDict?q    CallDict?@    ModuleLines{u    ProcName      ProcKind(?    StartLine ?    ProcLines O    LineTextB?    wsProcEg    wsCall3     wsModv6    rProc??    rCall?S    rMod?I    VBProjectOh    VBComponents '    CodeModule?     CountOfLines!\    ProcOfLine??    ProcStartLine?$    ProcCountLines ?    kb   
+
+=== Text @ 786078 ===
+rget h    testo d    folderOut?     RilevaSeparatoreDaFile??    UltimaRigaSuNColonnei\    ContaRigheFileTesto*     WriteTextFileUtf8C?    Pulizia??    textContentF    defaultSep??    candidati?'    cnt+    bestCnt?     vbTabc9    ContaOccorrenze??    delimitatoreP?    pos??    startPosG?    vbBinaryCompare??    nCol??   
+
+=== Text @ 786109 ===
+     RilevaSeparatoreDaFile??    UltimaRigaSuNColonnei\    ContaRigheFileTesto*     WriteTextFileUtf8C?    Pulizia??    textContentF    defaultSep??    candidati?'    cnt+    bestCnt?     vbTabc9    ContaOccorrenze??    delimitatoreP?    pos??    startPosG?    vbBinaryCompare??    nCol??   ?( b   AvviaDashLoop?e   ?( b  
+
+=== Text @ 786366 ===
+G?    vbBinaryCompare??    nCol??   ?( b   AvviaDashLoop?e   ?( b   FermaDashLoop1?    cmdStartUI_Click?3   ?( b   StartTextBoxTimer9?    cmdStopUI_Click?    ?( b   StopTextBoxTimer??   ?+ ?7^??? ?????7??E?? ?9?i? ]?ybK??d?? g????????;? ?^???jde8??'???7 <???j?? ???b? ?d???4??%?????%??????uH?l[C _?W?$ ? w?`?? ????? I ??????
+
+=== Text @ 786415 ===
+ashLoop?e   ?( b   FermaDashLoop1?    cmdStartUI_Click?3   ?( b   StartTextBoxTimer9?    cmdStopUI_Click?    ?( b   StopTextBoxTimer??   ?+ ?7^??? ?????7??E?? ?9?i? ]?ybK??d?? g????????;? ?^???jde8??'???7 <???j?? ???b? ?d???4??%?????%??????uH?l[C _?W?$ ? w?`?? ????? I ??????ZY?? ?? ?I??c?_2?o??}?x?m ??Z]?? Xm?E?????B . V? 
+
+=== Text @ 786989 ===
+??[? ???? ??z???w??mp5F? ??zX2  ? U\ \? 8#??k??/R?^b???$k  ^????? ???'??EN UserForm_TerminatelD    Modulo69?L   ?( b   TextBoxTimerAttivo      g_NextRun??    g_TimerDashAttivo z    AHK_EXE_PATH?'    AHK_SCRIPT_PATH ?    SHEET_STATUS??    CELL_STATUS??    SHEET_INDICATORC?    CELL_INDICATOR??    DASH_TIMER_SECONDS_I    UI_
+
+=== Text @ 787418 ===
+  FermaTimerDash??    PianificaDash??   ?( b   TimerAggiornaStatoDashMN    wsStatusc?    wsIndicator=    ?( b   AggiornaTextBox4??   ?( b   IsUserFormLoaded?~    TextBox4?S    objWMI ?    colProc?w    NomeForm?\    frm??    UserFormsK?    Modulo70?L    wsSorgente ?    ne     nomeFile?;    percorsoCompleto?]    dati ;    co
+
+=== Text @ 787460 ===
+ b   TimerAggiornaStatoDashMN    wsStatusc?    wsIndicator=    ?( b   AggiornaTextBox4??   ?( b   IsUserFormLoaded?~    TextBox4?S    objWMI ?    colProc?w    NomeForm?\    frm??    UserFormsK?    Modulo70?L    wsSorgente ?    ne     nomeFile?;    percorsoCompleto?]    dati ;    contenutoCSVy?    streamUTF8??    OrdinaArra
+
+=== Text @ 787985 ===
+ange??    _B_str_LeftV?   ?  ?   Click??   ?  ?   DblClick??    UserFormN     CommandButton32B    CommandButton31~B    TextBox5?S    CommandButton343G     CommandButton344H     CommandButton345I     TextBox7?S    TextBox8?S    CommandButton346J     TextBox9?S   ?  ?   Initialize?N   ?  ? ??_B_var_ProssimaEsecuzione?X    _
+
+=== Text @ 788065 ===
+mmandButton32B    CommandButton31~B    TextBox5?S    CommandButton343G     CommandButton344H     CommandButton345I     TextBox7?S    TextBox8?S    CommandButton346J     TextBox9?S   ?  ?   Initialize?N   ?  ? ??_B_var_ProssimaEsecuzione?X    _B_str_Environ??    _B_str_Trim??    _B_var_TrimmT    ELENCO_BOX_LISTA?     DJ_na
+
+=== Text @ 788079 ===
+B    CommandButton31~B    TextBox5?S    CommandButton343G     CommandButton344H     CommandButton345I     TextBox7?S    TextBox8?S    CommandButton346J     TextBox9?S   ?  ?   Initialize?N   ?  ? ??_B_var_ProssimaEsecuzione?X    _B_str_Environ??    _B_str_Trim??    _B_var_TrimmT    ELENCO_BOX_LISTA?     DJ_name?;    DJ?\  
+
+=== Text @ 788115 ===
+    CommandButton343G     CommandButton344H     CommandButton345I     TextBox7?S    TextBox8?S    CommandButton346J     TextBox9?S   ?  ?   Initialize?N   ?  ? ??_B_var_ProssimaEsecuzione?X    _B_str_Environ??    _B_str_Trim??    _B_var_TrimmT    ELENCO_BOX_LISTA?     DJ_name?;    DJ?\    TextBox2?S    Luogo?     Evento0  
+
+=== Text @ 788285 ===
+rossimaEsecuzione?X    _B_str_Environ??    _B_str_Trim??    _B_var_TrimmT    ELENCO_BOX_LISTA?     DJ_name?;    DJ?\    TextBox2?S    Luogo?     Evento0     CommandButton18;B    CommandButton01 B    CommandButton19<B    CommandButton20XB    CommandButton91\C    CommandButton92]C    TextBox10??    TextBox11??    CommandButt
+
+=== Text @ 788448 ===
+dButton18;B    CommandButton01 B    CommandButton19<B    CommandButton20XB    CommandButton91\C    CommandButton92]C    TextBox10??    TextBox11??    CommandButton94_C    CommandButton1095?w    CommandButton1096?w    TextBox12??    TextBox13??    CommandButton1098?w    TextBox14??    TextBox15??    CommandButton1099?w   ? 
+
+=== Text @ 788463 ===
+CommandButton01 B    CommandButton19<B    CommandButton20XB    CommandButton91\C    CommandButton92]C    TextBox10??    TextBox11??    CommandButton94_C    CommandButton1095?w    CommandButton1096?w    TextBox12??    TextBox13??    CommandButton1098?w    TextBox14??    TextBox15??    CommandButton1099?w   ?  ?   BeforeDrag
+
+=== Text @ 788545 ===
+  CommandButton92]C    TextBox10??    TextBox11??    CommandButton94_C    CommandButton1095?w    CommandButton1096?w    TextBox12??    TextBox13??    CommandButton1098?w    TextBox14??    TextBox15??    CommandButton1099?w   ?  ?   BeforeDragOver ?    CommandButton63?B    Label1?,    CommandButton239?     CommandButton249?
+
+=== Text @ 788560 ===
+92]C    TextBox10??    TextBox11??    CommandButton94_C    CommandButton1095?w    CommandButton1096?w    TextBox12??    TextBox13??    CommandButton1098?w    TextBox14??    TextBox15??    CommandButton1099?w   ?  ?   BeforeDragOver ?    CommandButton63?B    Label1?,    CommandButton239?     CommandButton249?     Label2?,  
+
+=== Text @ 788598 ===
+CommandButton94_C    CommandButton1095?w    CommandButton1096?w    TextBox12??    TextBox13??    CommandButton1098?w    TextBox14??    TextBox15??    CommandButton1099?w   ?  ?   BeforeDragOver ?    CommandButton63?B    Label1?,    CommandButton239?     CommandButton249?     Label2?,    Label3?,    Image2`     CommandButto
+
+=== Text @ 788613 ===
+_C    CommandButton1095?w    CommandButton1096?w    TextBox12??    TextBox13??    CommandButton1098?w    TextBox14??    TextBox15??    CommandButton1099?w   ?  ?   BeforeDragOver ?    CommandButton63?B    Label1?,    CommandButton239?     CommandButton249?     Label2?,    Label3?,    Image2`     CommandButton41?B    Comman
+
+=== Text @ 788890 ===
+l3?,    Image2`     CommandButton41?B    CommandButton42?B    MultiPage14?    CommandButton60?B    CommandButton61?B    TextBox60??    TextBox61??    TextBox3?S    TextBox62??    TextBox63??    CommandButton64?B    CommandButton65?B    CommandButton661?'    TextBox64??    CommandButton0{?    Next_Coreo.?    Testo_Next_Core
+
+=== Text @ 788905 ===
+     CommandButton41?B    CommandButton42?B    MultiPage14?    CommandButton60?B    CommandButton61?B    TextBox60??    TextBox61??    TextBox3?S    TextBox62??    TextBox63??    CommandButton64?B    CommandButton65?B    CommandButton661?'    TextBox64??    CommandButton0{?    Next_Coreo.?    Testo_Next_Coreo"L    ImageMod
+
+=== Text @ 788920 ===
+ton41?B    CommandButton42?B    MultiPage14?    CommandButton60?B    CommandButton61?B    TextBox60??    TextBox61??    TextBox3?S    TextBox62??    TextBox63??    CommandButton64?B    CommandButton65?B    CommandButton661?'    TextBox64??    CommandButton0{?    Next_Coreo.?    Testo_Next_Coreo"L    ImageMod8?_    Label4?,
+
+=== Text @ 788934 ===
+mandButton42?B    MultiPage14?    CommandButton60?B    CommandButton61?B    TextBox60??    TextBox61??    TextBox3?S    TextBox62??    TextBox63??    CommandButton64?B    CommandButton65?B    CommandButton661?'    TextBox64??    CommandButton0{?    Next_Coreo.?    Testo_Next_Coreo"L    ImageMod8?_    Label4?,    Image3a   
+
+=== Text @ 788949 ===
+   MultiPage14?    CommandButton60?B    CommandButton61?B    TextBox60??    TextBox61??    TextBox3?S    TextBox62??    TextBox63??    CommandButton64?B    CommandButton65?B    CommandButton661?'    TextBox64??    CommandButton0{?    Next_Coreo.?    Testo_Next_Coreo"L    ImageMod8?_    Label4?,    Image3a     Image3_Click.
+
+=== Text @ 789028 ===
+tBox61??    TextBox3?S    TextBox62??    TextBox63??    CommandButton64?B    CommandButton65?B    CommandButton661?'    TextBox64??    CommandButton0{?    Next_Coreo.?    Testo_Next_Coreo"L    ImageMod8?_    Label4?,    Image3a     Image3_Click.u   ??  L   ? . ? M +   O ,   S -   ? Z   ????????????????????????_ 0   ???????
+
+=== Text @ 818477 ===
+                                 Esporta_ElencoBraniStatico_InCSV                EnsureFolderExists                WriteTextFileUtf8                RilevaSeparatoreDaFile                ContaOccorrenze                ContaRigheFileTesto                UltimaRigaSuNColonne"       ?   E r r o r e   d u r a n t e   l ' e s e 
+
+=== Text @ 822915 ===
+  ????????        ?????????           ?                         ??YL&i  ??   e??          ??B?? ?  ? ` ?                TextBox1        ???[qJ  ??   e??                UserForm        [?_8 ?"B?W?"??F?                F3Dynamic            D         a?          ????????        ??????????          ?                            
+
+=== Text @ 823186 ===
+    ??????????          ?                                 CommandButton32                CommandButton31                TextBox5                CommandButton343                CommandButton344                CommandButton345                TextBox6                TextBox7                TextBox8                CommandButto
+
+=== Text @ 823306 ===
+TextBox5                CommandButton343                CommandButton344                CommandButton345                TextBox6                TextBox7                TextBox8                CommandButton346                TextBox9                CommandButton31_Click                CommandButton32_Click                Co
+
+=== Text @ 823330 ===
+CommandButton343                CommandButton344                CommandButton345                TextBox6                TextBox7                TextBox8                CommandButton346                TextBox9                CommandButton31_Click                CommandButton32_Click                CommandButton33_Click     
+
+=== Text @ 823354 ===
+        CommandButton344                CommandButton345                TextBox6                TextBox7                TextBox8                CommandButton346                TextBox9                CommandButton31_Click                CommandButton32_Click                CommandButton33_Click                AvviaTimerRep
+
+=== Text @ 823410 ===
+                TextBox6                TextBox7                TextBox8                CommandButton346                TextBox9                CommandButton31_Click                CommandButton32_Click                CommandButton33_Click                AvviaTimerReport                SleepMs                FermaTimerRepo
+
+=== Text @ 823819 ===
+         CommandButton345_Click                CommandButton346_Click                UserForm_Initialize                TextBox1_Change                UserForm03_Initialize              ?               $         f   Q?                      P u b l i s h e r - S h o w             D 2 &         m    ??                    ??B
+
+=== Text @ 826357 ===
+               TimerAggiornaStatoDash                PianificaDash                AggiornaStatoDash                StartTextBoxTimer                StopTextBoxTimer                AggiornaTextBox4                IsAutoHotkeyRunning                IsUserFormLoaded              (                       ??H?Zz>J?????? ?       
+
+=== Text @ 826389 ===
+oDash                PianificaDash                AggiornaStatoDash                StartTextBoxTimer                StopTextBoxTimer                AggiornaTextBox4                IsAutoHotkeyRunning                IsUserFormLoaded              (                       ??H?Zz>J?????? ?        <??c???H??A`?  ?               
+
+=== Text @ 826425 ===
+              AggiornaStatoDash                StartTextBoxTimer                StopTextBoxTimer                AggiornaTextBox4                IsAutoHotkeyRunning                IsUserFormLoaded              (                       ??H?Zz>J?????? ?        <??c???H??A`?  ?                VideoClip_ColorOnly&         m    ?
+
+=== Text @ 834857 ===
+      2 ??B?? ?  ? ` ?                ComboBox2                ComboBox1                ELENCO_BOX_LISTA                TextBox2                Luogo                Evento                CommandButton18                CommandButton01                CommandButton19                CommandButton20                CommandButton
+
+=== Text @ 835110 ===
+andButton19                CommandButton20                CommandButton91                CommandButton92                TextBox10                TextBox11                CommandButton94                CommandButton93                CommandButton1096                TextBox4                TextBox12                TextBox13 
+
+=== Text @ 835135 ===
+  CommandButton20                CommandButton91                CommandButton92                TextBox10                TextBox11                CommandButton94                CommandButton93                CommandButton1096                TextBox4                TextBox12                TextBox13                CommandBut
+
+=== Text @ 835255 ===
+TextBox11                CommandButton94                CommandButton93                CommandButton1096                TextBox4                TextBox12                TextBox13                CommandButton1095                CommandButton1098                TextBox14                TextBox15                CommandButton1
+
+=== Text @ 835279 ===
+ CommandButton94                CommandButton93                CommandButton1096                TextBox4                TextBox12                TextBox13                CommandButton1095                CommandButton1098                TextBox14                TextBox15                CommandButton1099                Comma
+
+=== Text @ 835304 ===
+       CommandButton93                CommandButton1096                TextBox4                TextBox12                TextBox13                CommandButton1095                CommandButton1098                TextBox14                TextBox15                CommandButton1099                CommandButton01_Click         
+
+=== Text @ 835395 ===
+    TextBox12                TextBox13                CommandButton1095                CommandButton1098                TextBox14                TextBox15                CommandButton1099                CommandButton01_Click                CommandButton02_Click                CommandButton03_Click                CommandBut
+
+=== Text @ 835420 ===
+    TextBox13                CommandButton1095                CommandButton1098                TextBox14                TextBox15                CommandButton1099                CommandButton01_Click                CommandButton02_Click                CommandButton03_Click                CommandButton04_Click              
+
+=== Text @ 836915 ===
+h i v i o \ P R O V A _ L o g o . j p g                 oleaut32.dll                OleLoadPictureFileEx                TextBox6_Change               ?"           #              1$          ?!          0         ?       &         m    a                           UserForm98_Initialize                Image2_Click           
+
+=== Text @ 837136 ===
+&         m    a                           UserForm98_Initialize                Image2_Click                CambiaColoreTextbox6&         m    ?W                  b? ?1Y?I?V???5?/        >_V??? N???z?/?K        ??J? ??A??;O ???        ???WD??D?? #????        ??~  ?H?U?8?U0                 CommandButton239                C
+
+=== Text @ 837892 ===
+. e x e         T   A p r i P a g i n a I n C h r o m e S e c o n d o M o n i t o r F u l l S c r e e n                 TextBox3                CommandButton41                CommandButton42        ?  {l?? ?F ? WJO                MultiPage1        DY5???TJ?![????q*       ?   I m p o s s i b i l e   t r o v a r e   c h r o 
+
+=== Text @ 838491 ===
+ r e   C h r o m e   t r a m i t e   S h e l l .         ?? ?j-?H??[j[X@?                CommandButton62                TextBox64                TextBox614       ?   S i   ?   v e r i f i c a t o   u n   e r r o r e   d u r a n t e   l ' a p e r t u r a   d e l l a   p a g i n a   i n   C h r o m e   ( s e c o n d o   m o 
+
+=== Text @ 838516 ===
+a m i t e   S h e l l .         ?? ?j-?H??[j[X@?                CommandButton62                TextBox64                TextBox614       ?   S i   ?   v e r i f i c a t o   u n   e r r o r e   d u r a n t e   l ' a p e r t u r a   d e l l a   p a g i n a   i n   C h r o m e   ( s e c o n d o   m o n i t o r ,   f u l l   s
+
+=== Text @ 839516 ===
+  m    !?                      N E X T C O R E O             A 1 0                 WritePhraseToCsv                WriteTextUtf8        6   E r r o r e   i n   T e x t B o x 6 _ C h a n g e :               \ s e r v i z i o . c s v         8   E r r o r e   i n   W r i t e P h r a s e T o C s v :           ?b???(?H????????
+
+=== Text @ 839896 ===
+    ??????????           #                                CommandButton60                CommandButton61                TextBox60                CommandButton43                TextBox62                TextBox63                CommandButton44                CommandButton47                CommandButton64                Comma
+
+=== Text @ 839952 ===
+  CommandButton60                CommandButton61                TextBox60                CommandButton43                TextBox62                TextBox63                CommandButton44                CommandButton47                CommandButton64                CommandButton45                CommandButton65               
+
+=== Text @ 839977 ===
+        CommandButton61                TextBox60                CommandButton43                TextBox62                TextBox63                CommandButton44                CommandButton47                CommandButton64                CommandButton45                CommandButton65                CommandButton46         
+
+=== Text @ 856615 ===
+        a2          0                           Cancel                folderPath                filePath                textContent                defaultSep                testo                delimitatore                ws                nCol        !            Z          P                   !           ?K          p   
+
+=== Text @ 857931 ===
+    H                CamIndex                p                NomeForm                s                v                textLine                147770475        !       Aggiorna la query delle richieste        I       Trasmette al Videoproiettore il foglio Word con il nome della coreografia                Chiude Word      
+
+=== Text @ 1170451 ===
+                                                                                                           ?    4       TextBox1?   1     ( ?      ?    2   4       DJ_name1?   ?     $ ?      ?    2   4       DJho?   ?     , ?      ?    8       CommandButton32A.h   Q    ( ?      ?    8       ComboBox1tto;   ?     $ ?      ?
+
+=== Text @ 1170667 ===
+?     , ?      ?    8       CommandButton32A.h   Q    ( ?      ?    8       ComboBox1tto;   ?     $ ?      ?    4       TextBox2;   ?     ( ?      ?    2   8       Luogo   ?         ( ?      ?    2   8       Evento  ?   ;     $ ?      ?    4       TextBox4;   ;     ( ?      ?    8       ComboBox2tto;         , ?      ?    
+
+=== Text @ 1170795 ===
+;   ?     ( ?      ?    2   8       Luogo   ?         ( ?      ?    2   8       Evento  ?   ;     $ ?      ?    4       TextBox4;   ;     ( ?      ?    8       ComboBox2tto;         , ?      ?    @       CommandButton31An]   Q    ( ?      ?    2   <       Label1  ?   ?     , ?      ?    2   <       Next_Coreoto{   !/    , 
+
+=== Text @ 1171107 ===
+{   !/    , ?      ?    4       Testo_Next_Coreo?   M.    $ ?      ?    ?2      Image1  .h  ?     $ ?      ?    t       TextBox5?   ?Q    ( ?      ?    P?      ImageMod8t_C?H              ?  ?                      ??    ????                    Microsoft Forms 2.0 Form     Embedded Object     ?9?q                          
+
+=== Text @ 1171859 ===
+  , ?      ?    8       ELENCO_BOX_LISTAr???????  , ?      ?    @       CommandButton1a ????@???  $ ?      ?    4       TextBox1-???@???  ( ?      ?    2   4       DJ_name Z???????  $ ?      ?    2   4       DJhoZ??? ???  ( ?    f                                                                   ????????????               
+
+=== Text @ 1172539 ===
+ ????????????                                    ?   !         ?    8       ComboBox1 L ????????  $ ?      ?    4       TextBox2???? ???  ( ?      ?    2   8       LuogoED Z???'???  ( ?      ?    2   8       Evento04Z???J???  $ ?      ?    4       TextBox4????J???  ( ?      ?    8       ComboBox2 o ????'???  , ?      ?    
+
+=== Text @ 1172667 ===
+???? ???  ( ?      ?    2   8       LuogoED Z???'???  ( ?      ?    2   8       Evento04Z???J???  $ ?      ?    4       TextBox4????J???  ( ?      ?    8       ComboBox2 o ????'???  , ?      ?    `       CommandButton18 ?>  ?     , ?      ?    8       CommandButton01 ?   ?     , ?      ?    8       CommandButton02 ?   E   
+
+=== Text @ 1173079 ===
+Zg  4P    , ?      ?    `       CommandButton19 ?>  ?     $ ?      ?        &   Image1  ?`  ?     $ ?      ?    t       TextBox5{    Q    $ ?      ?    h       TextBox6   ?     $ ?      ?    T       TextBox7   E     $ ?      ?    D       TextBox8   ?     , ?      ?    D       CommandButton20 ??  ?,    , ?      ?    @   
+
+=== Text @ 1173119 ===
+utton19 ?>  ?     $ ?      ?        &   Image1  ?`  ?     $ ?      ?    t       TextBox5{    Q    $ ?      ?    h       TextBox6   ?     $ ?      ?    T       TextBox7   E     $ ?      ?    D       TextBox8   ?     , ?      ?    D       CommandButton20 ??  ?,    , ?      ?    @       CommandButton91 ??  ?4    , ?      ?
+
+=== Text @ 1173159 ===
+Image1  ?`  ?     $ ?      ?    t       TextBox5{    Q    $ ?      ?    h       TextBox6   ?     $ ?      ?    T       TextBox7   E     $ ?      ?    D       TextBox8   ?     , ?      ?    D       CommandButton20 ??  ?,    , ?      ?    @       CommandButton91 ??  ?4    , ?      ?"   L       CommandButton92 ??  /=    , 
+
+=== Text @ 1173199 ===
+TextBox5{    Q    $ ?      ?    h       TextBox6   ?     $ ?      ?    T       TextBox7   E     $ ?      ?    D       TextBox8   ?     , ?      ?    D       CommandButton20 ??  ?,    , ?      ?    @       CommandButton91 ??  ?4    , ?      ?"   L       CommandButton92 ??  /=    , ?      ?#   ?sk     CommandButton04 ?   
+
+=== Text @ 1173431 ===
+  , ?      ?"   L       CommandButton92 ??  /=    , ?      ?#   ?sk     CommandButton04 ?        $ ?      ?$   <       TextBox9        , ?      ?%   B k     CommandButton93 ?         ( ?      ?&   @       TextBox10 I          ( ?      ?'   D       TextBox11 o    ?"    , ?      ?(   8       CommandButton94 ?   ?"    0 
+
+=== Text @ 1173519 ===
+?        $ ?      ?$   <       TextBox9        , ?      ?%   B k     CommandButton93 ?         ( ?      ?&   @       TextBox10 I          ( ?      ?'   D       TextBox11 o    ?"    , ?      ?(   8       CommandButton94 ?   ?"    0 ?      ?)   8       CommandButton1095 ?.?   W)    0 ?      ?*   8       CommandButton109
+
+=== Text @ 1173563 ===
+     , ?      ?%   B k     CommandButton93 ?         ( ?      ?&   @       TextBox10 I          ( ?      ?'   D       TextBox11 o    ?"    , ?      ?(   8       CommandButton94 ?   ?"    0 ?      ?)   8       CommandButton1095 ?.?   W)    0 ?      ?*   8       CommandButton1096?C/?   ?/    ( ?      ?+   X       TextBox1
+
+=== Text @ 1173759 ===
+   ?)   8       CommandButton1095 ?.?   W)    0 ?      ?*   8       CommandButton1096?C/?   ?/    ( ?      ?+   X       TextBox12tto   W)    ( ?      ?,   T   !   TextBox13 o    ?/    0 ?      ?-   8   "   CommandButton1098 ?.?   ?6    ( ?      ?.   T   #   TextBox14 o    ?6    ( ?      ?/   X   $   TextBox15tto   /=  
+
+=== Text @ 1173803 ===
+  0 ?      ?*   8       CommandButton1096?C/?   ?/    ( ?      ?+   X       TextBox12tto   W)    ( ?      ?,   T   !   TextBox13 o    ?/    0 ?      ?-   8   "   CommandButton1098 ?.?   ?6    ( ?      ?.   T   #   TextBox14 o    ?6    ( ?      ?/   X   $   TextBox15tto   /=    0 ?      ?0   8   %   CommandButton1099 ?.
+
+=== Text @ 1173899 ===
+  ( ?      ?,   T   !   TextBox13 o    ?/    0 ?      ?-   8   "   CommandButton1098 ?.?   ?6    ( ?      ?.   T   #   TextBox14 o    ?6    ( ?      ?/   X   $   TextBox15tto   /=    0 ?      ?0   8   %   CommandButton1099 ?.?   /=          ?  ?                                                      ??    ????           
+
+=== Text @ 1173943 ===
+  0 ?      ?-   8   "   CommandButton1098 ?.?   ?6    ( ?      ?.   T   #   TextBox14 o    ?6    ( ?      ?/   X   $   TextBox15tto   /=    0 ?      ?0   8   %   CommandButton1099 ?.?   /=          ?  ?                                                      ??    ????                    Microsoft Forms 2.0 Form     Embedd
+
+=== Text @ 15347451 ===
+.h   Q    , ?      ?    8       CommandButton31 n]   Q    $ ?      ?    ?2      Image1x4Zg  ?     $ ?      ?    t       TextBox5?   ?Q    ( ?      ?    2   ?       Label1  ?   ?     $ ?      ?    T       TextBox6?   ]     , ?      ?    4       CommandButton239?   +*    , ?      ?    8       CommandButton249?   +*    ( ?   
+
+=== Text @ 15347535 ===
+e1x4Zg  ?     $ ?      ?    t       TextBox5?   ?Q    ( ?      ?    2   ?       Label1  ?   ?     $ ?      ?    T       TextBox6?   ]     , ?      ?    4       CommandButton239?   +*    , ?      ?    8       CommandButton249?   +*    ( ?      ?    2   h       Label2x4?   ?     ( ?      ?    2   @       Label3x6u    L    $ 
+
+=== Text @ 15959379 ===
+  , ?      ?    8       CommandButton32 [g   Q    , ?      ?    8       CommandButton31 ?\   Q    $ ?      ?    t       TextBox5?   ?Q    , ?      ?    L       CommandButton33 {   {     $ ?      ?    4       TextBox15%  {     , ?      ?    [?      CommandButton343O   ?     $ ?      ?    ?2      Image1  Zg  ?     , ?      ?
+
+=== Text @ 15959467 ===
+?\   Q    $ ?      ?    t       TextBox5?   ?Q    , ?      ?    L       CommandButton33 {   {     $ ?      ?    4       TextBox15%  {     , ?      ?    [?      CommandButton343O   ?     $ ?      ?    ?2      Image1  Zg  ?     , ?      ?    S?      CommandButton344I   ?     , ?      ?    ??      CommandButton345p2  ?     $ 
+
+=== Text @ 15959691 ===
+  , ?      ?    S?      CommandButton344I   ?     , ?      ?    ??      CommandButton345p2  ?     $ ?      ?    @       TextBox6O    !    $ ?      ?    D       TextBox7I    !    $ ?      ?    D       TextBox8p2   !    , ?      ?    @       CommandButton346O   ?6    $ ?      ?    H       TextBox9O   ~@          ?  ?       
+
+=== Text @ 15959731 ===
+I   ?     , ?      ?    ??      CommandButton345p2  ?     $ ?      ?    @       TextBox6O    !    $ ?      ?    D       TextBox7I    !    $ ?      ?    D       TextBox8p2   !    , ?      ?    @       CommandButton346O   ?6    $ ?      ?    H       TextBox9O   ~@          ?  ?                                               
+
+=== Text @ 15959771 ===
+utton345p2  ?     $ ?      ?    @       TextBox6O    !    $ ?      ?    D       TextBox7I    !    $ ?      ?    D       TextBox8p2   !    , ?      ?    @       CommandButton346O   ?6    $ ?      ?    H       TextBox9O   ~@          ?  ?                                                  ??    ????                    Microso
+
+=== Text @ 15959859 ===
+I    !    $ ?      ?    D       TextBox8p2   !    , ?      ?    @       CommandButton346O   ?6    $ ?      ?    H       TextBox9O   ~@          ?  ?                                                  ??    ????                    Microsoft Forms 2.0 Form     Embedded Object     ?9?q                                          
+
+=== Text @ 16449292 ===
+    ?      ?   @;       ?   Tahoma            $ H   )    ?       }  <,  ?2              H    ? m  ( ?      ?"   ?       TextBox63 o ?   {     ( ?      ?#   <       ComboBox1   ?   ;     , ?      ?$   @       CommandButton63 ?   ?     , ?      ?%   @       CommandButton64     ?     , ?      ?&   @       CommandButton65 ?   
+
+=== Text @ 16449572 ===
+  , ?      ?&   @       CommandButton65 ?   ?     , ?      ?'   l       CommandButton661?   ?+    ( ?      ?)   X       TextBox64 o {   ?           ??  ?                                                             ??    ?????i*?? ? ?? ? WJO    Microsoft Forms 2.0 Form     Embedded Object     Forms.Form.1 ?9?q              
+
+=== Text @ 16449868 ===
+ms.Form.1 ?9?q                                $ H        ?       }  <,  ?2                   ? &  $ ?      ?    ?       TextBox3?   a$    , ?      ?    ??      CommandButton47 ?   a$    $ ?      ?    ?       TextBox2?        , ?      ?    ??      CommandButton44 ?        , ?      ?    ?O      Comm?????????????????}  ?}  
+
+=== Text @ 16449956 ===
+     ? &  $ ?      ?    ?       TextBox3?   a$    , ?      ?    ??      CommandButton47 ?   a$    $ ?      ?    ?       TextBox2?        , ?      ?    ??      CommandButton44 ?        , ?      ?    ?O      Comm?????????????????}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  ?}  
+
+=== Text @ 16705580 ===
+                                                                            andButton62 ?   ?     ( ?      ?    ?       TextBox62   ?   ?     ??    ?????i*?? ? ?? ? WJO    Microsoft Forms 2.0 Form     Embedded Object     Forms.Form.1 ?9?q                                $ H        ?       }  <,  ?2              d    ? &  , 
+
+=== Text @ 16705996 ===
+  , ?      ?    ?Y      CommandButton48 ?   '     , ?      ?    ?Y      CommandButton49 ?   ?!    $ ?      ?    ?       TextBox4S   ?!    $ ?      ?    ?       TextBox5S   ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  
+
+=== Text @ 16706036 ===
+?   '     , ?      ?    ?Y      CommandButton49 ?   ?!    $ ?      ?    ?       TextBox4S   ?!    $ ?      ?    ?       TextBox5S   ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  
+
+=== Text @ 16799772 ===
+ione) e prossima coreografia che lampeggia      5      ??       Tahoma                      g     $ ?      ?    ?       TextBox6S   ?     $ ?      ?    ?       TextBox7S   '           ??  ?                                 ??    ?????i*?? ? ?? ? WJO    Microsoft Forms 2.0 Form     Embedded Object     Forms.Form.1 ?9?q      
+
+=== Text @ 16799812 ===
+ia      5      ??       Tahoma                      g     $ ?      ?    ?       TextBox6S   ?     $ ?      ?    ?       TextBox7S   '           ??  ?                                 ??    ?????i*?? ? ?? ? WJO    Microsoft Forms 2.0 Form     Embedded Object     Forms.Form.1 ?9?q                                $ H        ?  
+
+=== Text @ 16800220 ===
+  , ?      ?    %?      CommandButton60 ?   ?     , ?      ?    .?      CommandButton61 ?   ?"    $ ?      ?    ?       TextBox1?   ?     ( ?      ?    ?   ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  ??  
+
+=== Text @ 16981508 ===
+                                                                                                                        TextBox60   ?   ?     ( ?      ?    ?       TextBox61tto?   ?"          ??  ?                                               ce  ?   O       u      ??       Tahomax5    (      ?CHIUDI  ?   O       u      ?
+
+=== Text @ 16981552 ===
+                                                                            TextBox60   ?   ?     ( ?      ?    ?       TextBox61tto?   ?"          ??  ?                                               ce  ?   O       u      ??       Tahomax5    (      ?CHIUDI  ?   O       u      ??       Tahomax5                            
+
+=== Text @ 17987247 ===
+.h   Q    $ ?      ?    ?2      Image2  Zg  ?     , ?      ?    L       CommandButton14 C3  1     $ ?      ?    X       TextBox1?   ?           ?  ?                                                      ??    ????                    Microsoft Forms 2.0 Form     Embedded Object     ?9?q                                      
+
+=== Text @ 18135079 ===
+iA?b*??l  B?]5 * T4?iP???CJ?? * Tt??*  AQ? ????   ??                             omboFPS?   ?'    ( ?      ?    8       TextBitrateoRA  ?'    , ?      ?    8       ComboBoxWebcam00?1  ?'    ( ?      ?    2   8       LabelREC?   ?9    , ?      ?    2   8       LabelStatobc?   ?5    , ?      ?    2   8       LabelTimerbc?   
+
+=== Text @ 18135359 ===
+  , ?      ?    2   8       LabelTimerbc?   ?>    , ?      ?    2   8       LabelNomeCam?   %B    $ ?      ?    X       TextBox1E   ?     , ?      ?    8       CommandButton310n]   Q    , ?      ?    8       CommandButton320.h   Q    $ ?      ?    ?2      Image9  .h  ?           ?  ?                              ??    ???
+
+=== Text @ 18286659 ===
+  , ?      ?    8       CommandButton31 n]   Q    , ?      ?    8       CommandButton32 .h   Q    $ ?      ?    t       TextBox1"         $ ?      ?    X       TextBox2{   ?     , ?      ?    D       CommandButton33 "    !    , ?      ?    D       CommandButton34 ?    !    $ ?      ?    4       TextBox4 4   !    ( ?      ?
+
+=== Text @ 18286699 ===
+n]   Q    , ?      ?    8       CommandButton32 .h   Q    $ ?      ?    t       TextBox1"         $ ?      ?    X       TextBox2{   ?     , ?      ?    D       CommandButton33 "    !    , ?      ?    D       CommandButton34 ?    !    $ ?      ?    4       TextBox4 4   !    ( ?      ?    2   8       Label1   4  k           
+
+=== Text @ 18286835 ===
+  , ?      ?    D       CommandButton33 "    !    , ?      ?    D       CommandButton34 ?    !    $ ?      ?    4       TextBox4 4   !    ( ?      ?    2   8       Label1   4  k           ?  ?      ??    ????                    Microsoft Forms 2.0 Form     Embedded Object     ?9?q                                          
+
+=== Text @ 18293254 ===
+??????????????????????????????????????????????????????????????????????????????????????????????????????????????????elpContextID="0"  VersionCompatible32="393222000"  CMG="7C7EA4C4A452A852A852A852A8"  DPB="0E0CD676FA9A8D9B8D9B8D"  GC="A0A2787B797B7984"    [Host Extender Info]  &H00000001={3832D640-CF90-11CF-8E43-00A0C911005A
+
+=== Text @ 18297414 ===
+ Module=Modulo68  BaseClass=PAGINA10  Module=Modulo69  Module=Modulo70  HelpFile="147770475"  Name="VBAProject"  HelpContextID="0"  VersionCompatible32="393222000"  CMG="7C7EA4C4A452A852A852A852A8"  DPB="0E0CD676FA9A8D9B8D9B8D"  GC="A0A2787B797B7984"    [Host Extender Info]  &H00000001={3832D640-CF90-11CF-8E43-00A0C911005A
+
+=== Visible @ 548761 ===
+ ?     Sub StartFlashREC()       ?     If IsRecording Then       ?     FlashState = Not FlashState       ?     LabelREC.Visible = FlashState     ?   I Application.OnTime Now + TimeValue("0:00:00.5"), "PAGINA07.StartFlashREC" ?     End If    ?     End Sub   ????    ????   ?? Attribut e VB_Nam e = "PAG INA07"    ?Bas |0{A 8F1CF
+
+=== Visible @ 770640 ===
+iungiBranoOrdinatoz?    Foglio12?(    Modulo20?K   ?(     Videoproiettore?     wordApp??    wordDoc??    Documents?     Visible??    Underline??    ParagraphFormat?    Alignment?I    wdAlignParagraphCenterl?    typetext??   ?(     Videoproiettore_close??    WordWasNotRunning ?    Quit9?    Modulo26?K   ?(     EstraiBraniOrdi
+
+=== Interior @ 3213 ===
+ows(Target.Row), Range("$B$12:$B$612")).ClearContents   ?   V        Intersect(Rows(Target.Row), Range("$B$12:$B$612")).Interior.ColorIndex = xlNone    ?            Select Case Target.Column  ?               Case 7  ?   -               Target.Interior.Color = 5287936     ?                Case 8 ?   )               Target.Inter
+
+=== Interior @ 3336 ===
+erior.ColorIndex = xlNone    ?            Select Case Target.Column  ?               Case 7  ?   -               Target.Interior.Color = 5287936     ?                Case 8 ?   )               Target.Interior.Color = 255 ?                Case 9 ?   0                 Target.Interior.Color = 15773696  ?             End Select?  
+
+=== Interior @ 3416 ===
+     Case 7  ?   -               Target.Interior.Color = 5287936     ?                Case 8 ?   )               Target.Interior.Color = 255 ?                Case 9 ?   0                 Target.Interior.Color = 15773696  ?             End Select?             Target.Value = "X"?            Target.Font.Bold = True    ?         E
+
+=== Interior @ 3490 ===
+            Case 8 ?   )               Target.Interior.Color = 255 ?                Case 9 ?   0                 Target.Interior.Color = 15773696  ?             End Select?             Target.Value = "X"?            Target.Font.Bold = True    ?         End If?     End Sub   ????    ????   ?? Attribut e VB_Nam e = "Mod ulo1"   
+
+=== Interior @ 767327 ===
+se??    CutCopyMode?     ActiveWorkbook ?    Save??    Modulo3?     Worksheet_BeforeDoubleClickft    ClearContents{?    Interior;?    ColorIndex??    Worksheet_SelectionChange?4    Count0v    Rows?U    Color2F    FontU     Bold??    Modulo4?    ?? ?   $A$11:$A$612?    Offset??    ADESSO??    Foglio4?     Modulo5?    ?(     va
+
+=== Green @ 778752 ===
+   VideoClip_ColorOnly66    chiave??    delimiter ~    trovataS?    CheckCSVForPrefixoy    ColorAssociatedButton9?    vbGreen?_    tsL_    primoCampo      FileExists?     OpenTextFile??    AtEndOfStream??    ReadLine??    GetFirstField?     arr u    Split?)    Right      rgbColor86    Fallback2}    callerName/     Foglio16?
+
