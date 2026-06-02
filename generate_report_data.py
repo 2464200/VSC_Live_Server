@@ -41,27 +41,28 @@ except Exception as e:
 # Foglio borderò
 bordero_sheet = wb['borderò']
 
-# 1. Totale coreografie eseguite: conta 'x' minuscole e maiuscole in A12:A612
+# 1. Totale coreografie eseguite: conta le righe attive in D12:D612
+#    (qui la colonna D è il marker di presenza dati)
 total_eseguite = 0
 for row in range(12, 613):  # 12 a 612
-    cell_value = bordero_sheet[f'A{row}'].value
-    if cell_value and str(cell_value).lower() == 'x':
+    cell_value = bordero_sheet[f'D{row}'].value
+    if cell_value is not None and str(cell_value).strip() != '':
         total_eseguite += 1
 
-# 2. Coreografie eseguite con valore in colonna G: conta 'x' con G != 0
+# 2. Coreografie eseguite con valore in colonna G: conta righe con D non vuota e G != 0
 eseguite_con_valore = 0
 for row in range(12, 613):
-    cell_a = bordero_sheet[f'A{row}'].value
+    cell_d = bordero_sheet[f'D{row}'].value
     cell_g = bordero_sheet[f'G{row}'].value
-    if cell_a and str(cell_a).lower() == 'x' and cell_g and cell_g != 0:
+    if cell_d is not None and str(cell_d).strip() != '' and cell_g and cell_g != 0:
         eseguite_con_valore += 1
 
-# Non eseguite: conta celle vuote in A12:A612 con G != 0
+# Non eseguite: conta righe con D vuota e G != 0
 non_eseguite = 0
 for row in range(12, 613):
-    cell_a = bordero_sheet[f'A{row}'].value
+    cell_d = bordero_sheet[f'D{row}'].value
     cell_g = bordero_sheet[f'G{row}'].value
-    if (cell_a is None or str(cell_a).strip() == '') and cell_g and cell_g != 0:
+    if (cell_d is None or str(cell_d).strip() == '') and cell_g and cell_g != 0:
         non_eseguite += 1
 
 # ============= DATI DAL FOGLIO "Accoda 8+12" =============
