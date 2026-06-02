@@ -1,0 +1,241 @@
+Attribute VB_Name = "Modulo68"
+Attribute VB_Name = "Modulo68"
+Option Explicit
+
+' ====================================================================================
+' Macro: esporta il foglio "Elenco Brani (statico)" in CSV usando la stessa logica
+'        di EsportaDisplayCSV_DoppioPercorso().
+'        NOVIT?: dalla colonna D (4) alla colonna N (14) i dati vengono sempre
+'        trattati come TESTO (lettura tramite .Text, nessuna conversione numerica).
+' ====================================================================================
+Public Sub Esporta_ElencoBraniStatico_InCSV()
+
+    On Error GoTo GestioneErrore
+    Application.ScreenUpdating = False
+    Application.EnableEvents = False
+
+    ' ---------------- CONFIGURAZIONE ----------------
+    Dim nomeFoglio As String
+    Dim percorsoOut As String
+    Dim percorsoOld As String
+    Dim nCols As Long
+    
+    nomeFoglio = "Elenco Brani (statico)"
+    percorsoOut = "C:\VSC_Live_Server\Eventi\Elenco_Brani_statico.csv"
+    percorsoOld = "C:\VSC_Live_Server\Eventi\Elenco_Brani_statico_OLD.csv"
+    nCols = 14   ' A..N
+    ' ------------------------------------------------
+
+    ' ---------------- VARIABILI ----------------
+    Dim ws As Worksheet
+    Dim separatore As String
+    Dim ultimaRigaFoglio As Long
+    Dim righeStorico As Long
+    Dim ultimaRigaTarget As Long
+    
+    Dim buffer As String
+    Dim linea As String
+    Dim valore As Variant
+    Dim testo As String
+    Dim r As Long, C As Long
+    
+    Dim folderOut As String
+    ' --------------------------------------------
+
+    Set ws = ThisWorkbook.Worksheets(nomeFoglio)
+
+    ' 1) Separatore identico al file storico
+    separatore = RilevaSeparatoreDaFile(percorsoOld, ";")
+
+    ' 2) Ultima riga realmente valorizzata sul foglio (prime 14 colonne)
+    ultimaRigaFoglio = UltimaRigaSuNColonne(ws, nCols)
+    If ultimaRigaFoglio < 1 Then ultimaRigaFoglio = 1
+
+    ' 3) Numero righe del file storico (per mantenere struttura)
+    righeStorico = ContaRigheFileTesto(percorsoOld)
+    ultimaRigaTarget = ultimaRigaFoglio
+    If righeStorico > ultimaRigaTarget Then ultimaRigaTarget = righeStorico
+
+    ' 4) Costruzione buffer CSV (logica identica al Display)
+    buffer = vbNullString
+
+    For r = 1 To ultimaRigaTarget
+        linea = vbNullString
+
+        For C = 1 To nCols
+
+            ' --- LETTURA CELLA ---
+            If r <= ws.Rows.Count Then
+                If C >= 4 And C <= 14 Then
+                    ' >>> D..N SEMPRE TESTO <<<
+                    testo = ws.cells(r, C).text
+                Else
+                    valore = ws.cells(r, C).Value
+                    If IsError(valore) Or IsNull(valore) Then
+                        testo = vbNullString
+                    Else
+                        testo = CStr(valore)
+                    End If
+                End If
+            Else
+                testo = vbNullString
+            End If
+
+            ' Escape minimale (come file storico)
+            testo = Replace$(testo, """", """""")
+
+            linea = linea & testo
+            If C < nCols Then linea = linea & separatore
+
+        Next C
+
+        buffer = buffer & linea & vbCrLf
+    Next r
+
+    ' 5) Assicura cartella di destinazione
+    folderOut = Left$(percorsoOut, InStrRev(percorsoOut, "\") - 1)
+    EnsureFolderExists folderOut
+
+    ' 6) Scrittura file CSV in UTF-8 (stile Display)
+    WriteTextFileUtf8 percorsoOut, buffer
+
+Pulizia:
+    Application.ScreenUpdating = True
+    Application.EnableEvents = True
+    Exit Sub
+
+GestioneErrore:
+    ' In caso di errore: messaggio e ripristino stato Excel
+    MsgBox "Errore durante l'esportazione CSV: " & Err.Number & " - " & Err.Description, _
+           vbCritical, "Export Elenco Brani"
+    Resume Pulizia
+
+End Sub
+
+' ====================================================================================
+' Crea una cartella e tutte le eventuali sotto-cartelle mancanti
+' ====================================================================================
+Private Sub EnsureFolderExists(ByVal folderPath As String)
+    Dim fso As Object
+    Dim parentPath As String
+    
+    If Len(folderPath) = 0 Then Exit Sub
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    If fso.FolderExists(folderPath) Then Exit Sub
+    
+    parentPath = fso.GetParentFolderName(folderPath)
+    If Len(parentPath) > 0 Then
+        If Not fso.FolderExists(parentPath) Then
+            EnsureFolderExists parentPath
+        End If
+    End If
+    
+    fso.CreateFolder folderPath
+End Sub
+
+' ====================================================================================
+' Scrive un file di testo in UTF-8 usando ADODB.Stream
+' ====================================================================================
+Private Sub WriteTextFileUtf8(ByVal filePath As String, ByVal textContent As String)
+    Dim stm As Object
+    
+    Set stm = CreateObject("ADODB.Stream")
+    With stm
+        .Type = 2 ' adTypeText
+        .Charset = "utf-8"
+        .Open
+        .WriteText textContent
+        .SaveToFile filePath, 2 ' adSaveCreateOverWrite
+        .Close
+    End With
+End Sub
+
+' ====================================================================================
+' Rileva il separatore dalla prima riga del file di riferimento
+' ====================================================================================
+Private Function RilevaSeparatoreDaFile(ByVal filePath As String, ByVal defaultSep As String) As String
+    Dim fso As Object, ts As Object
+    Dim header As String
+    Dim candidati As Variant
+    Dim i As Long, cnt As Long, bestCnt As Long
+    
+    On Error GoTo Fallback
+    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    If Not fso.FileExists(filePath) Then GoTo Fallback
+    
+    Set ts = fso.OpenTextFile(filePath, 1, False, -1)
+    If ts.AtEndOfStream Then GoTo Fallback
+    header = ts.ReadLine
+    ts.Close
+    
+    candidati = Array(";", ",", vbTab, "|")
+    RilevaSeparatoreDaFile = defaultSep
+    bestCnt = 0
+    
+    For i = LBound(candidati) To UBound(candidati)
+        cnt = ContaOccorrenze(header, candidati(i))
+        If cnt > bestCnt Then
+            bestCnt = cnt
+            RilevaSeparatoreDaFile = candidati(i)
+        End If
+    Next i
+    Exit Function
+
+Fallback:
+    RilevaSeparatoreDaFile = defaultSep
+End Function
+
+' ====================================================================================
+' Conta quante volte compare un delimitatore in una stringa
+' ====================================================================================
+Private Function ContaOccorrenze(ByVal testo As String, ByVal delimitatore As String) As Long
+    Dim pos As Long, startPos As Long
+    startPos = 1
+    Do
+        pos = InStr(startPos, testo, delimitatore, vbBinaryCompare)
+        If pos = 0 Then Exit Do
+        ContaOccorrenze = ContaOccorrenze + 1
+        startPos = pos + Len(delimitatore)
+    Loop
+End Function
+
+' ====================================================================================
+' Conta le righe di un file di testo
+' ====================================================================================
+Private Function ContaRigheFileTesto(ByVal filePath As String) As Long
+    Dim fso As Object, ts As Object
+    
+    On Error GoTo Fallback
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    If Not fso.FileExists(filePath) Then Exit Function
+    
+    Set ts = fso.OpenTextFile(filePath, 1, False, -1)
+    Do While Not ts.AtEndOfStream
+        ts.ReadLine
+        ContaRigheFileTesto = ContaRigheFileTesto + 1
+    Loop
+    ts.Close
+    Exit Function
+
+Fallback:
+    ContaRigheFileTesto = 0
+End Function
+
+' ====================================================================================
+' Ultima riga valorizzata nelle prime N colonne
+' ====================================================================================
+Private Function UltimaRigaSuNColonne(ByVal ws As Worksheet, ByVal nCol As Long) As Long
+    Dim r As Long
+    For r = ws.Rows.Count To 1 Step -1
+        If Application.WorksheetFunction.CountA(ws.Range(ws.cells(r, 1), ws.cells(r, nCol))) > 0 Then
+            UltimaRigaSuNColonne = r
+            Exit Function
+        End If
+    Next r
+    UltimaRigaSuNColonne = 0
+End Function
+
+
+

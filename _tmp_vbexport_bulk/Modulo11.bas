@@ -5,7 +5,7 @@ Sub avvia_ricerca()
 '
 
 '
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=4, Criteria1:=Range("$d$7:$d$7"), _
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=4, Criteria1:=Range("$d$7:$d$7"), _
         Operator:=xlAnd
     Range("$d$7").Select
 End Sub
@@ -16,8 +16,9 @@ Sub cancella_ricerca()
 
 '
     ActiveSheet.AutoFilterMode = False
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=4
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=4
     Range("$D$7").Select
     Selection.ClearContents
 End Sub
+
 

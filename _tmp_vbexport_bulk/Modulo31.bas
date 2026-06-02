@@ -7,10 +7,12 @@ Attribute pulisci_richieste.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     Sheets("Modulo 8").Select
-    Range("$A$2:$AI$612").Select
-    Selection.ClearContents
+    Dim lastRowModulo8 As Long
+    lastRowModulo8 = Cells(Rows.Count, "A").End(xlUp).Row
+    If lastRowModulo8 < 2 Then lastRowModulo8 = 2
+    Range("$A$2:$AI$" & lastRowModulo8).ClearContents
     Range("$A$2").Select
-    Sheets("borderò").Select
+    Sheets("borderï¿½").Select
     ActiveWindow.ScrollRow = 496
     ActiveWindow.ScrollRow = 495
     ActiveWindow.ScrollRow = 493

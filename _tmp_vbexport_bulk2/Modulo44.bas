@@ -1,0 +1,146 @@
+Attribute VB_Name = "Modulo44"
+Option Explicit
+
+Public Sub TrasferisciDaBorderoConTema_DJ2()
+    Dim wsOrigine As Worksheet, wsDest As Worksheet
+    Dim r As Long, rDest As Long
+    Dim lastRow As Long
+    Dim nCols As Long: nCols = 6
+    Dim dictUnici As Object
+    Set dictUnici = CreateObject("Scripting.Dictionary")
+
+    Dim COL_HILITE As Long: COL_HILITE = RGB(255, 165, 0)
+
+    Set wsOrigine = ThisWorkbook.Sheets("Borderò")
+    Set wsDest = ThisWorkbook.Sheets("Display")
+
+    ' Pulisce il foglio di destinazione
+    wsDest.cells.ClearContents
+    wsDest.cells.Interior.ColorIndex = xlNone
+    rDest = 4
+
+    ' Trova ultima riga nel foglio origine
+    lastRow = wsOrigine.cells(wsOrigine.Rows.Count, 7).End(xlUp).Row
+    If lastRow < 12 Then Exit Sub
+
+    ' Ciclo sulle righe del foglio Borderò
+    For r = 12 To lastRow
+        Dim valoreG As String
+        valoreG = Trim$(CStr(wsOrigine.cells(r, 7).Value)) ' Colonna G
+
+        If valoreG <> "" Then
+            Dim valoreA As String
+            valoreA = UCase(Trim$(CStr(wsOrigine.cells(r, 1).Value))) ' Colonna A
+
+            Dim chiaveUnica As String
+            chiaveUnica = UCase(Trim$(CStr(wsOrigine.cells(r, 4).Value))) ' Colonna D = "Brano"
+
+            ' Se c'è "X" in colonna A ? importa sempre
+            ' Altrimenti importa solo se non è già stato importato (controllo duplicati su colonna D)
+            If valoreA = "X" Or Not dictUnici.Exists(chiaveUnica) Then
+                If valoreA <> "X" Then dictUnici.Add chiaveUnica, True
+
+                ' Colonna A ? colonna 1
+                wsDest.cells(rDest, 1).Value = wsOrigine.cells(r, 1).Value
+                wsDest.cells(rDest, 1).Interior.Color = COL_HILITE
+
+                ' Colonne C:F ? colonne 2–5
+                wsDest.cells(rDest, 2).Value = wsOrigine.cells(r, 3).Value
+                wsDest.cells(rDest, 3).Value = wsOrigine.cells(r, 4).Value
+                wsDest.cells(rDest, 4).Value = wsOrigine.cells(r, 5).Value
+                wsDest.cells(rDest, 5).Value = wsOrigine.cells(r, 6).Value
+                wsDest.Range(wsDest.cells(rDest, 2), wsDest.cells(rDest, 5)).Interior.Color = COL_HILITE
+
+                ' Colonne L:M ? colonne 6–7
+                wsDest.cells(rDest, 6).Value = wsOrigine.cells(r, 12).Value
+                wsDest.cells(rDest, 7).Value = wsOrigine.cells(r, 13).Value
+                wsDest.Range(wsDest.cells(rDest, 6), wsDest.cells(rDest, 7)).Interior.Color = COL_HILITE
+
+                rDest = rDest + 1
+            End If
+        End If
+    Next r
+
+    ' === Riga 1: Titolo principale ===
+    With wsDest.Range(wsDest.cells(1, 1), wsDest.cells(1, nCols))
+        .Merge
+        .Value = "DISPLAY: COREOGRAFIE RICHIESTE"
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .Font.Bold = True
+        .Font.Size = 16
+        .Font.Color = RGB(255, 255, 255)
+        .Interior.Color = RGB(30, 30, 30)
+        .RowHeight = 30
+    End With
+
+    ' === Riga 2: Informazioni dinamiche ===
+    With wsDest.Range(wsDest.cells(2, 1), wsDest.cells(2, nCols))
+        .Merge
+        .Value = "Data: " & Format(Date, "dd/mm/yyyy") & "   |   File: " & ThisWorkbook.name & "   |   Origine: " & wsOrigine.name
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .Font.Bold = True
+        .Font.Size = 12
+        .Font.Color = RGB(255, 255, 255)
+        .Interior.Color = RGB(50, 50, 50)
+        .RowHeight = 20
+    End With
+
+    ' === Riga 3: Intestazione colonne personalizzata ===
+    wsDest.Range(wsDest.cells(3, 1), wsDest.cells(3, nCols)).Value = Array("?", "ID", "Coreografia", "Brano", "Autore", "Coreografo")
+    With wsDest.Range(wsDest.cells(3, 1), wsDest.cells(3, nCols))
+        .Interior.Color = RGB(45, 45, 45)
+        .Font.Bold = True
+        .Font.Color = RGB(255, 255, 255)
+        .RowHeight = 20
+    End With
+
+    ' Applica tema dark selettivo con evidenziazione "X" in colonna A
+    Call ApplicaTemaDarkSelettivo_DJ2(wsDest, nCols, True)
+End Sub
+
+' ====== Tema dark selettivo (DJ2) ======
+Private Sub ApplicaTemaDarkSelettivo_DJ2(ByVal ws As Worksheet, ByVal nCols As Long, ByVal firstColIsA As Boolean)
+    Dim lastRow As Long, r As Long
+    Const COL_BG As Long = &H121212
+    Const COL_ROW1 As Long = &H202020
+    Const COL_ROW2 As Long = &H181818
+    Const COL_TEXT As Long = &HFFFFFF
+    Const COL_LINE As Long = &H404040
+    Dim COL_HILITE As Long: COL_HILITE = RGB(255, 165, 0)
+
+    ' Imposta stile base
+    With ws.Range(ws.cells(1, 1), ws.cells(ws.Rows.Count, nCols))
+        .Interior.Color = COL_BG
+        .Font.Color = COL_TEXT
+        .Font.name = "Arial"
+        .Font.Size = 14
+    End With
+
+    ' Applica alternanza righe e bordi
+    lastRow = ws.cells(ws.Rows.Count, 1).End(xlUp).Row
+    If lastRow < 4 Then Exit Sub
+
+    For r = 4 To lastRow
+        With ws.Range(ws.cells(r, 1), ws.cells(r, nCols))
+            .Borders(xlEdgeBottom).LineStyle = xlContinuous
+            .Borders(xlEdgeBottom).Color = COL_LINE
+            .Borders(xlEdgeBottom).Weight = xlHairline
+            .Interior.Color = IIf(r Mod 2 = 0, COL_ROW1, COL_ROW2)
+        End With
+
+        If firstColIsA Then
+            If UCase(Trim(CStr(ws.cells(r, 1).Value))) = "X" Then
+                With ws.Range(ws.cells(r, 1), ws.cells(r, nCols))
+                    .Interior.Color = COL_HILITE
+                    .Font.Bold = True
+                End With
+            End If
+        End If
+    Next r
+
+    On Error Resume Next
+    ActiveWindow.DisplayGridlines = False
+    On Error GoTo 0
+End Sub

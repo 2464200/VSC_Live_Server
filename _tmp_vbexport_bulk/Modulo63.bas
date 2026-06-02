@@ -4,7 +4,7 @@ Attribute VB_Name = "Modulo63"
 Option Explicit
 
 ' === CONFIGURAZIONE ===
-Private Const SHEET_NAME As String = "borderò"
+Private Const SHEET_NAME As String = "borderï¿½"
 Private Const OUT_FOLDER As String = "C:\VSC_Live_Server\Prova\"
 Private Const OUT_FILENAME As String = "EXPORT_TOT_COREO_ESEGUITE.csv"
 Private Const delim As String = ";"          ' Usa ";" per Excel/IT, "," se preferisci la virgola
@@ -19,10 +19,10 @@ Public Sub EsportaBorderoCSV()
         Exit Sub
     End If
 
-    ' Leggi intestazione (A11:D11) e dati (A12:D612)
+    ' Leggi intestazione (A11:D11) e dati (A12:D..)
     Dim header As Variant, data As Variant
     header = ws.Range("A11:D11").Value2
-    data = ws.Range("A12:D612").Value2
+    data = ws.Range("A12:D" & LastRowBorder()).Value2
 
     Dim text As String: text = ""
 
@@ -74,9 +74,9 @@ Private Function ToStr(v As Variant) As String
 End Function
 
 ' Padding a 3 cifre:
-' - Se il valore è numerico intero (es. 12 o 12,0) ? "012", "012"
-' - Mantiene gli zeri iniziali già presenti (es. "7" ? "007"; "045" resta "045")
-' - Se è vuoto ? stringa vuota
+' - Se il valore ï¿½ numerico intero (es. 12 o 12,0) ? "012", "012"
+' - Mantiene gli zeri iniziali giï¿½ presenti (es. "7" ? "007"; "045" resta "045")
+' - Se ï¿½ vuoto ? stringa vuota
 Private Function PadTo3(val As Variant) As String
     Dim s As String
     s = Trim(ToStr(val))
@@ -109,7 +109,7 @@ Private Function BuildCSVLine(cells As Variant, delim As String) As String
     BuildCSVLine = Join(parts, delim)
 End Function
 
-' Costruisce una riga CSV da un array di stringhe già pronte (1..4)
+' Costruisce una riga CSV da un array di stringhe giï¿½ pronte (1..4)
 Private Function BuildCSVLineFromStrings(arr() As String, delim As String) As String
     Dim parts() As String, j As Long
     ReDim parts(1 To UBound(arr))
@@ -130,7 +130,7 @@ Private Function EscapeCSVField(s As String, delim As String) As String
     End If
 End Function
 
-' Verifica se la riga i (tra le colonne firstCol..lastCol) è completamente vuota
+' Verifica se la riga i (tra le colonne firstCol..lastCol) ï¿½ completamente vuota
 Private Function IsEmptyRow(data As Variant, i As Long, firstCol As Long, lastCol As Long) As Boolean
     Dim j As Long
     For j = firstCol To lastCol

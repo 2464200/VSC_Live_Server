@@ -9,34 +9,23 @@ Sub pulisci_foglio()
     ActiveWindow.ScrollColumn = 3
     ActiveWindow.ScrollColumn = 2
     ActiveWindow.ScrollColumn = 1
-    Range("$A$12:$B$612").Select
-    Range("$A$612").Activate
-    Selection.ClearContents
-    Range("$B$612").Select
-            
-    Range("B12:B" & LastRowBorder()").Select
-    Range("$B$612").Activate
-    Selection.ClearContents
-    
-    Selection.End(xlUp).Select
-    ActiveWindow.SmallScroll Down:=-6
-    Selection.ClearContents
-    Range("$A$11:$N$11").Select
-    Range(Selection, Selection.End(xlDown)).Select
-    Range(Selection, Selection.End(xlUp)).Select
-    Range("$A12:$N$612").Select
-    ActiveWorkbook.Worksheets("borderò").Sort.SortFields.Clear
-    ActiveWorkbook.Worksheets("borderò").Sort.SortFields.Add2 Key:=Range( _
-        "$C$12:$C$612"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
-        xlSortNormal
-    With ActiveWorkbook.Worksheets("borderò").Sort
-        .SetRange Range("A12:N" & LastRowBorder()")
-        .header = xlGuess
-        .MatchCase = False
-        .Orientation = xlTopToBottom
-        .SortMethod = xlPinYin
-        .Apply
-    End With
+    If LastRowBorder() >= 12 Then
+        Range("$A$12:$B$" & LastRowBorder()).ClearContents
+        Range("$B$12:$B$" & LastRowBorder()).ClearContents
+        Range("$A$12:$N$" & LastRowBorder()).Select
+        ActiveWorkbook.Worksheets("borderï¿½").Sort.SortFields.Clear
+        ActiveWorkbook.Worksheets("borderï¿½").Sort.SortFields.Add2 Key:=Range( _
+            "$C$12:$C$" & LastRowBorder()), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
+            xlSortNormal
+        With ActiveWorkbook.Worksheets("borderï¿½").Sort
+            .SetRange Range("A12:N" & LastRowBorder())
+            .header = xlGuess
+            .MatchCase = False
+            .Orientation = xlTopToBottom
+            .SortMethod = xlPinYin
+            .Apply
+        End With
+    End If
 '
 ' Pilisce contenuto caselle identificative dell'evento
 '
@@ -49,4 +38,5 @@ Sub pulisci_foglio()
     Selection.ClearContents
 
 End Sub
+
 

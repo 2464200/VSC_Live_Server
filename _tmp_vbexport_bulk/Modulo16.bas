@@ -6,13 +6,13 @@ Sub filtra_base()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=6
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=9
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=10
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=11
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=7
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=12
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=8, Criteria1:="BASE"
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=6
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=9
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=10
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=11
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=7
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=12
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=8, Criteria1:="BASE"
 End Sub
 Sub filtra_avanzato()
 '
@@ -21,13 +21,13 @@ Sub filtra_avanzato()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=6
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=9
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=10
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=11
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=7
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=12
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=6
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=9
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=10
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=11
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=7
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=12
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=8, Criteria1:= _
         "=AVANZATO 1", Operator:=xlOr, Criteria2:="=AVANZATO 2"
 End Sub
 Sub filtra_intermedio()
@@ -37,13 +37,13 @@ Sub filtra_intermedio()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=6
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=9
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=10
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=11
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=7
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=12
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=6
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=9
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=10
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=11
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=7
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=12
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=8, Criteria1:= _
         "INTERMEDIO"
 End Sub
 Sub filtra_superavanzato()
@@ -53,7 +53,7 @@ Sub filtra_superavanzato()
     
     Set ws = ActiveSheet
     
-    ' Trova l’ultima riga piena nella colonna A
+    ' Trova lï¿½ultima riga piena nella colonna A
     lastRow = ws.cells(ws.Rows.Count, 1).End(xlUp).Row
     Set rng = ws.Range("A11:N" & lastRow)
     
@@ -81,13 +81,13 @@ Sub filtra_gold()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=6
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=9
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=10
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=11
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=7
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=12
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=6
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=9
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=10
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=11
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=7
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=12
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=8, Criteria1:= _
         "GOLD"
 End Sub
 Sub filtra_altrecoreo()
@@ -97,13 +97,13 @@ Sub filtra_altrecoreo()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=6
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=9
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=10
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=11
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=7
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=12
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=6
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=9
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=10
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=11
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=7
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=12
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=8, Criteria1:= _
         "ALTRE COREO"
 End Sub
 Sub filtra_request()
@@ -113,13 +113,14 @@ Sub filtra_request()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=6
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=8
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=9
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=10
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=11
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=12
-    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=7, Criteria1:= _
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=6
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=8
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=9
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=10
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=11
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=12
+    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=7, Criteria1:= _
         "<>"
 End Sub
+
 

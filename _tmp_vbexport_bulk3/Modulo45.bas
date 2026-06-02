@@ -1,0 +1,143 @@
+Attribute VB_Name = "Modulo45"
+Attribute VB_Name = "Modulo45"
+Option Explicit
+
+' Esporta A1,B1,C1,D1 in due .CSV identici (UTF-8 con BOM)
+' Quoting: A1 e B1 non quotate; D1 quotata solo se necessario
+Sub EsportaNextCoreoCSV()
+    On Error GoTo ErrHandler
+    Application.ScreenUpdating = False
+    Application.EnableEvents = False
+
+    Dim filePath1 As String, filePath2 As String
+    Dim folderPath1 As String, folderPath2 As String
+    Dim ws As Worksheet
+    Dim vA As String, vB As String, vC As String, vD As String
+    Dim csvLine As String
+
+    ' --- CONFIGURAZIONE ---
+    filePath1 = "C:\VSC_Live_Server\NextCoreo.csv"
+    filePath2 = "C:\VSC_Live_Server\Public\NextCoreo.csv"
+    ' -----------------------
+
+    folderPath1 = Left(filePath1, InStrRev(filePath1, "\") - 1)
+    folderPath2 = Left(filePath2, InStrRev(filePath2, "\") - 1)
+
+    ' Garantisci che le cartelle esistano
+    EnsureFolderExists folderPath1
+    EnsureFolderExists folderPath2
+
+    Set ws = ThisWorkbook.Worksheets("NextCoreo")
+
+    ' Leggi valori (gestione Null/Error)
+    vA = CStr(Nz(ws.Range("A1").Value))
+    vB = CStr(Nz(ws.Range("B1").Value))
+    vC = CStr(Nz(ws.Range("C1").Value))
+    vD = CStr(Nz(ws.Range("D1").Value))
+
+    ' Quoting condizionale solo su D1
+    If NeedsQuote(vD) Then
+        vD = AlwaysQuote(vD)
+    End If
+
+    csvLine = vA & "," & vB & "," & vC & "," & vD
+
+    ' Scrivi su entrambi i file con UTF-8 + BOM
+    WriteUtf8WithBOM filePath1, csvLine
+    WriteUtf8WithBOM filePath2, csvLine
+
+    ' MsgBox "Esportazione completata:" & vbCrLf & filePath1 & vbCrLf & filePath2, vbInformation
+
+Cleanup:
+    On Error Resume Next
+    Application.ScreenUpdating = True
+    Application.EnableEvents = True
+    Exit Sub
+
+ErrHandler:
+    MsgBox "Errore: " & Err.Number & " - " & Err.Description, vbCritical
+    Resume Cleanup
+End Sub
+
+' --- Helper: quoting condizionale ---
+Private Function NeedsQuote(ByVal s As String) As Boolean
+    NeedsQuote = (InStr(s, ",") > 0 Or InStr(s, """") > 0 _
+                  Or InStr(s, vbCr) > 0 Or InStr(s, vbLf) > 0)
+End Function
+
+Private Function AlwaysQuote(ByVal s As String) As String
+    s = Replace(s, """", """""")
+    AlwaysQuote = """" & s & """"
+End Function
+
+' --- Helper: gestione Null/Error ---
+Private Function Nz(v As Variant) As Variant
+    If IsError(v) Then
+        Nz = ""
+    ElseIf IsNull(v) Then
+        Nz = ""
+    Else
+        Nz = v
+    End If
+End Function
+
+' --- Helper: assicurare cartella (ricorsivo, crea gerarchia) ---
+Private Sub EnsureFolderExists(ByVal folderPath As String)
+    Dim fso As Object
+    Dim parentPath As String
+    Set fso = CreateObject("Scripting.FileSystemObject")
+
+    If Len(folderPath) = 0 Then Exit Sub
+    If fso.FolderExists(folderPath) Then Exit Sub
+
+    parentPath = fso.GetParentFolderName(folderPath)
+    If Len(parentPath) > 0 And Not fso.FolderExists(parentPath) Then
+        EnsureFolderExists parentPath
+    End If
+    fso.CreateFolder folderPath
+End Sub
+
+' --- Helper: scrittura UTF-8 con BOM (EF BB BF) ---
+Private Sub WriteUtf8WithBOM(ByVal filePath As String, ByVal textLine As String)
+    Dim stmText As Object, stmOut As Object
+    Dim dataUtf8 As Variant
+    Dim bomBytes As Variant
+    Dim b() As Byte
+    Dim i As Long
+
+    ' Stream testo -> bytes UTF-8
+    Set stmText = CreateObject("ADODB.Stream")
+    With stmText
+        .Type = 2              ' adTypeText
+        .Charset = "utf-8"
+        .Open
+        .WriteText textLine
+        .Position = 0
+        .Type = 1              ' adTypeBinary
+        dataUtf8 = .Read       ' bytes UTF-8
+        .Close
+    End With
+
+    ' Scrivi BOM + dati
+    Set stmOut = CreateObject("ADODB.Stream")
+    With stmOut
+        .Type = 1              ' binary
+        .Open
+        bomBytes = Array(&HEF, &HBB, &HBF) ' EF BB BF
+        ReDim b(0 To UBound(bomBytes)) As Byte
+        For i = 0 To UBound(bomBytes)
+            b(i) = bomBytes(i)
+        Next i
+        .Write b
+        .Write dataUtf8
+        .SaveToFile filePath, 2 ' adSaveCreateOverWrite
+        .Close
+    End With
+
+    Set stmText = Nothing
+    Set stmOut = Nothing
+End Sub
+
+
+
+

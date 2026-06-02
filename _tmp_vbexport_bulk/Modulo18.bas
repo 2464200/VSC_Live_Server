@@ -28,7 +28,7 @@ Dim coreografia As Variant
     ' Aggiungi intestazioni
     wsDestinazione.cells(1, 1).Value = "Nome"
     wsDestinazione.cells(1, 2).Value = "Coreografia"
-    wsDestinazione.cells(1, 4).Value = "la coreografia più richiesta di oggi"
+    wsDestinazione.cells(1, 4).Value = "la coreografia piï¿½ richiesta di oggi"
 
     ' Formatta la riga delle intestazioni
     With wsDestinazione.Rows(1)
@@ -105,13 +105,16 @@ Dim coreografia As Variant
     Set wsOrigine = ThisWorkbook.Worksheets("Publisher-Show")
     
     ' Formatta i dati della colonna B come testo
-    With wsOrigine.Range("$B$2:$B$612")
+    Dim lastRowB As Long
+    lastRowB = wsOrigine.Cells(wsOrigine.Rows.Count, "B").End(xlUp).Row
+    If lastRowB < 2 Then lastRowB = 2
+    With wsOrigine.Range("$B$2:$B$" & lastRowB)
         .NumberFormat = "@"
     End With
     
     'MsgBox "I dati della colonna B (da B2 a B612) sono stati formattati come testo."
 
-' Trova la coreografia più richiesta
+' Trova la coreografia piï¿½ richiesta
 
 coreografiaPiuRichiesta = ""
 maxRichieste = 0
@@ -125,7 +128,7 @@ Next coreografia
 
 Sheets("Publisher-Show").Range("$D$2").Value = coreografiaPiuRichiesta
     
-    ' Inserisci la coreografia più richiesta nella cella D2
+    ' Inserisci la coreografia piï¿½ richiesta nella cella D2
     wsDestinazione.cells(2, 4).Value = coreografiaPiuRichiesta
 
     ' Formatta il testo nella cella D2 al centro

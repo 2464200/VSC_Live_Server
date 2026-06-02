@@ -1,10 +1,10 @@
 Attribute VB_Name = "Modulo6"
 Sub ordina_id()
     '
-    ' Ordina per ID e sposta i brani già eseguiti alla fine dell'elenco.
+    ' Ordina per ID e sposta i brani giï¿½ eseguiti alla fine dell'elenco.
     '
     Dim ws As Worksheet
-    Set ws = ActiveWorkbook.Worksheets("borderò")
+    Set ws = ActiveWorkbook.Worksheets("borderï¿½")
     
     ' Verifica che il filtro sia attivo
     If Not ws.AutoFilterMode Then ws.Rows("10:10").AutoFilter
@@ -14,7 +14,7 @@ Sub ordina_id()
     
     ' Ordina per ID (colonna C)
     ws.AutoFilter.Sort.SortFields.Add2 Key:= _
-        ws.Range("$C$11:$C$612"), SortOn:=xlSortOnValues, Order:=xlAscending, _
+        ws.Range("$C$11:$C" & LastRowBorder()), SortOn:=xlSortOnValues, Order:=xlAscending, _
         DataOption:=xlSortTextAsNumbers
     With ws.AutoFilter.Sort
         .header = xlYes
@@ -27,7 +27,7 @@ Sub ordina_id()
     ' Aggiungi un secondo ordinamento (se necessario) per colore
     ws.AutoFilter.Sort.SortFields.Clear
     ws.AutoFilter.Sort.SortFields.Add2 Key:= _
-        ws.Range("$C$11:$C$612"), SortOn:=xlSortOnCellColor, Order:=xlAscending
+        ws.Range("$C$11:$C" & LastRowBorder()), SortOn:=xlSortOnCellColor, Order:=xlAscending
     With ws.AutoFilter.Sort
         .header = xlYes
         .MatchCase = False
@@ -38,30 +38,30 @@ Sub ordina_id()
 End Sub
 
 Sub ordina_titolo()
-Attribute ordina_titolo.VB_Description = "ordina per TITOLO e metti i brani già eseguiti alla fine dell'elenco"
+Attribute ordina_titolo.VB_Description = "ordina per TITOLO e metti i brani giï¿½ eseguiti alla fine dell'elenco"
 Attribute ordina_titolo.VB_ProcData.VB_Invoke_Func = " \n14"
 '
 ' ordina_titolo Macro
-' ordina per COREOGRAFIA e metti i brani già eseguiti alla fine dell'elenco
+' ordina per COREOGRAFIA e metti i brani giï¿½ eseguiti alla fine dell'elenco
 '
 
 '
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Clear
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Add2 Key:= _
-        Range("$D$11:$D$612"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Add2 Key:= _
+        Range("$D$11:$D" & LastRowBorder()), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
         :=xlSortTextAsNumbers
-    With ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort
+    With ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort
         .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
         .SortMethod = xlPinYin
         .Apply
     End With
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Clear
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Add2 Key:= _
-        Range("$D$11:$D$612"), SortOn:=xlSortOnCellColor, Order:=xlAscending, _
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Add2 Key:= _
+        Range("$D$11:$D" & LastRowBorder()), SortOn:=xlSortOnCellColor, Order:=xlAscending, _
         DataOption:=xlSortTextAsNumbers
-    With ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort
+    With ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort
         .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom

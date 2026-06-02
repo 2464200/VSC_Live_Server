@@ -1,6 +1,6 @@
 Attribute VB_Name = "Modulo3"
 Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
-    If Not Intersect(Target, Range("$G$11:$N$612")) Is Nothing Then
+    If Not Intersect(Target, Range("$G$11:$N" & LastRowBorder())) Is Nothing Then
         If Target.Value = "X" Then
             Target.ClearContents
             Target.Interior.ColorIndex = xlNone
@@ -10,9 +10,9 @@ Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean
 End Sub
 
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
-    If Not Intersect(Target, Range("$G$11:$N$612")) Is Nothing And Target.cells.Count = 1 Then
-        Intersect(Rows(Target.Row), Range("$G$11:$N$612")).ClearContents
-        Intersect(Rows(Target.Row), Range("$G$11:$N$612")).Interior.ColorIndex = xlNone
+    If Not Intersect(Target, Range("$G$11:$N" & LastRowBorder())) Is Nothing And Target.cells.Count = 1 Then
+        Intersect(Rows(Target.Row), Range("$G$11:$N" & LastRowBorder())).ClearContents
+        Intersect(Rows(Target.Row), Range("$G$11:$N" & LastRowBorder())).Interior.ColorIndex = xlNone
         Select Case Target.Column
             Case 7
                 Target.Interior.Color = 5287936

@@ -1,0 +1,107 @@
+Attribute VB_Name = "Modulo52"
+Attribute VB_Name = "Modulo52"
+Option Explicit
+
+Public NextCheckTime As Date
+Public VideoGiaAvviato As Boolean
+Public MatchAttivo As Boolean
+
+Public Sub CaricaFileVideo()
+    Dim ws As Worksheet
+    Dim folderPath As String
+    Dim fileName As String
+    Dim files() As String
+    Dim i As Long, countFiles As Long
+    
+    Set ws = ThisWorkbook.Worksheets("VideoClip")
+    folderPath = "c:\vsc_videoclip\"
+    
+    ws.Range("A10:A210").ClearContents
+    
+    fileName = Dir(folderPath & "*.*")
+    Do While fileName <> ""
+        countFiles = countFiles + 1
+        ReDim Preserve files(1 To countFiles)
+        files(countFiles) = fileName
+        fileName = Dir
+    Loop
+    
+    If countFiles = 0 Then Exit Sub
+    
+    ' Ordina alfabeticamente
+    Dim j As Long, temp As String
+    For i = 1 To countFiles - 1
+        For j = i + 1 To countFiles
+            If UCase(files(i)) > UCase(files(j)) Then
+                temp = files(i)
+                files(i) = files(j)
+                files(j) = temp
+            End If
+        Next j
+    Next i
+    
+    ' Scrittura in Excel
+    For i = 1 To countFiles
+        ws.cells(9 + i, 1).Value = files(i)
+    Next i
+End Sub
+
+Public Sub VerificaMatch()
+    Dim wsVC As Worksheet
+    Dim wsB As Worksheet
+    Dim btn As OLEObject
+    Dim searchValue As String
+    Dim cell As Range
+    Dim matchFound As Boolean
+    
+    Set wsVC = ThisWorkbook.Worksheets("VideoClip")
+    Set wsB = ThisWorkbook.Worksheets("Border?")
+    Set btn = wsB.OLEObjects("btnPlayX")
+    
+    ' Stato di riposo
+    If wsVC.Range("A1").Value = "" Then
+        btn.Object.BackColor = RGB(200, 200, 200)
+        MatchAttivo = False
+        Exit Sub
+    End If
+    
+    wsVC.Range("A1").NumberFormat = "000"
+    searchValue = Left(wsVC.Range("A1").text, 3)
+    
+    matchFound = False
+    
+    For Each cell In wsVC.Range("A10:A210")
+        If cell.Value <> "" Then
+            If Left(cell.Value, 3) = searchValue Then
+                matchFound = True
+                Exit For
+            End If
+        End If
+    Next cell
+    
+    If matchFound Then
+        btn.Object.BackColor = RGB(0, 176, 80) ' verde
+        MatchAttivo = True
+    Else
+        btn.Object.BackColor = RGB(255, 0, 0) ' rosso
+        MatchAttivo = False
+    End If
+End Sub
+
+Public Sub AvviaTimer()
+    ' ogni 2 secondi
+    NextCheckTime = Now + TimeSerial(0, 0, 2)
+    Application.OnTime NextCheckTime, "TimerCheck"
+End Sub
+
+Public Sub FermaTimer()
+    On Error Resume Next
+    Application.OnTime NextCheckTime, "TimerCheck", , False
+End Sub
+
+Public Sub TimerCheck()
+    Call VerificaMatch
+    Call AvviaTimer
+End Sub
+
+

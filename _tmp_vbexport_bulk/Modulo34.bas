@@ -31,7 +31,7 @@ Sub CopiaERifila(criterio As String)
     End If
 
     ' Copia il primo intervallo
-    Set rng1 = wsElencoBrani.Range("$B$2:$D601$")
+    Set rng1 = wsElencoBrani.Range("$B$2:$D$601")
     rng1.Copy Destination:=wsLista.Range("$B$8")
 
     ' Copia il secondo intervallo
@@ -40,9 +40,12 @@ Sub CopiaERifila(criterio As String)
 
     ' Inizializza il Dictionary
     Set dict = CreateObject("Scripting.Dictionary")
+    Dim lastRowLista As Long
+    lastRowLista = wsLista.Cells(wsLista.Rows.Count, "D").End(xlUp).Row
+    If lastRowLista < 8 Then lastRowLista = 8
     
-    ' Leggi i dati dall'intervallo "D8:D612" del foglio Lista per serata
-    Set rng1 = wsLista.Range("$D$8:$D$612")
+    ' Leggi i dati dall'intervallo "D8:D" & lastRowLista del foglio Lista per serata
+    Set rng1 = wsLista.Range("$D$8:$D$" & lastRowLista)
     
     ' Aggiungi i valori univoci al Dictionary
     For Each cell In rng1
@@ -61,11 +64,18 @@ Sub CopiaERifila(criterio As String)
     Next Key
     
     ' Rimuove i dati duplicati residui nella colonna D
-    wsLista.Range("D" & OutputRow & ":D612").ClearContents
+    Dim finalRowLista As Long
+    finalRowLista = wsLista.Cells(wsLista.Rows.Count, "D").End(xlUp).Row
+    If OutputRow <= finalRowLista Then
+        wsLista.Range("D" & OutputRow & ":D" & finalRowLista).ClearContents
+    End If
     
     ' Applica il filtro
     With wsLista
-        .Range("$A$7:$G4508").AutoFilter Field:=5, Criteria1:=criterio
+        Dim filterLastRow As Long
+        filterLastRow = .Cells(.Rows.Count, "A").End(xlUp).Row
+        If filterLastRow < 7 Then filterLastRow = 7
+        .Range("$A$7:$G" & filterLastRow).AutoFilter Field:=5, Criteria1:=criterio
     End With
     
     ' MsgBox "Operazione completata con successo!", vbInformation
@@ -100,7 +110,10 @@ Attribute Lista_CANC.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     ActiveSheet.AutoFilterMode = False
-    ActiveSheet.Range("$A$7:$G$612").AutoFilter Field:=5
+    Dim lastRowListaC As Long
+    lastRowListaC = ActiveSheet.Cells(ActiveSheet.Rows.Count, "A").End(xlUp).Row
+    If lastRowListaC < 7 Then lastRowListaC = 7
+    ActiveSheet.Range("$A$7:$G" & lastRowListaC).AutoFilter Field:=5
 End Sub
 Sub StampaFoglioAttivoA4()
     Dim ws As Worksheet
@@ -124,5 +137,6 @@ Sub StampaFoglioAttivoA4()
     ' Mostra la finestra di dialogo di stampa
     Application.Dialogs(xlDialogPrint).Show
 End Sub
+
 
 

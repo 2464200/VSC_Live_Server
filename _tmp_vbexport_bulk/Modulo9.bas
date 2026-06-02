@@ -6,22 +6,22 @@ Sub ordina_brano()
 
 '
     Call cancella_filtro
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Clear
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Add2 Key:= _
-        Range("$E$11:$E$612"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Add2 Key:= _
+        Range("$E$11:$E" & LastRowBorder()), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
         :=xlSortTextAsNumbers
-    With ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort
+    With ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort
         .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
         .SortMethod = xlPinYin
         .Apply
     End With
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Clear
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Add2 Key:= _
-        Range("$E$11:$E$612"), SortOn:=xlSortOnCellColor, Order:=xlAscending, _
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Add2 Key:= _
+        Range("$E$11:$E" & LastRowBorder()), SortOn:=xlSortOnCellColor, Order:=xlAscending, _
         DataOption:=xlSortTextAsNumbers
-    With ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort
+    With ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort
         .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
@@ -38,18 +38,18 @@ End Sub
 
 '
 '    Call cancella_filtro
-'    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Clear
-'    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Add2 Key:= _
+'    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Clear
+'    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Add2 Key:= _
 '       Range("$F$11:$F$612"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
 '        :=xlSortTextAsNumbers
-'    With ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort
+'    With ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort
 '        .Header = xlYes
 '        .MatchCase = False
 '        .Orientation = xlTopToBottom
 '        .SortMethod = xlPinYin
 '        .Apply
 '    End With
-'    ActiveSheet.Range("A11:N" & LastRowBorder()").AutoFilter Field:=6, Criteria1:="<>"
+'    ActiveSheet.Range("A11:N" & LastRowBorder()).AutoFilter Field:=6, Criteria1:="<>"
 'End Sub
 
 
@@ -60,22 +60,22 @@ Sub ordina_autore()
 
 '
     Call cancella_filtro
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Clear
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Add2 Key:= _
-        Range("$F$11:$F$612"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Add2 Key:= _
+        Range("$F$11:$F" & LastRowBorder()), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
         :=xlSortTextAsNumbers
-    With ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort
+    With ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort
         .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
         .SortMethod = xlPinYin
         .Apply
     End With
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Clear
-    ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort.SortFields.Add2 Key:= _
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort.SortFields.Add2 Key:= _
         Range("$F$11:$F$612"), SortOn:=xlSortOnCellColor, Order:=xlAscending, _
         DataOption:=xlSortTextAsNumbers
-    With ActiveWorkbook.Worksheets("borderò").AutoFilter.Sort
+    With ActiveWorkbook.Worksheets("borderï¿½").AutoFilter.Sort
         .header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
@@ -83,5 +83,6 @@ Sub ordina_autore()
         .Apply
     End With
 End Sub
+
 
 

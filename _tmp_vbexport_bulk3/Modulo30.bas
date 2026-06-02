@@ -1,0 +1,70 @@
+Attribute VB_Name = "Modulo30"
+Attribute VB_Name = "Modulo30"
+' NON FUNZIONA
+Sub EstraiBraniOrdinati2()
+    Dim wsLista As Worksheet
+    Dim wsRisultati As Worksheet
+    Dim ultimaRigaLista As Long
+    Dim ultimaRigaRisultati As Long
+    Dim riga As Long
+    Dim criterio As String
+    Dim brano As String
+    Dim criteri As Variant
+    Dim conteggioCriteri As Object
+    Dim braniEstratti As Collection
+    Dim i As Integer
+    
+    ' Crea un dizionario per il conteggio dei criteri
+    Set conteggioCriteri = CreateObject("Scripting.Dictionary")
+    conteggioCriteri.Add "BASE", 0
+    conteggioCriteri.Add "INTERMEDIO", 0
+    conteggioCriteri.Add "AVANZATO 1", 0
+    conteggioCriteri.Add "AVANZATO 2", 0
+    conteggioCriteri.Add "SUPER AVANZATO 2", 0
+    
+    ' Ordine dei criteri
+    criteri = Array("BASE", "INTERMEDIO", "AVANZATO 1", "AVANZATO 2", "SUPER AVANZATO 2")
+    
+    ' Imposta i fogli
+    Set wsLista = ThisWorkbook.Sheets("Lista per serata")
+    Set wsRisultati = ThisWorkbook.Sheets("Risultati")
+    
+    ' Trova l'ultima riga del foglio "Lista per serata"
+    ultimaRigaLista = wsLista.cells(wsLista.Rows.Count, "D").End(xlUp).Row
+    
+    ' Cancella il contenuto precedente nel foglio "Risultati"
+    wsRisultati.cells.ClearContents
+    
+    ' Inizia dalla riga 1 nel foglio "Risultati"
+    ultimaRigaRisultati = 1
+    
+    ' Collezione per memorizzare i brani estratti
+    Set braniEstratti = New Collection
+    
+' Itera attraverso i criteri nell'ordine stabilito
+For i = LBound(criteri) To UBound(criteri)
+    For riga = 7 To ultimaRigaLista ' Presume che la riga 6 sia l'intestazione
+        brano = wsLista.cells(riga, "D").Value
+        criterio = wsLista.cells(riga, "E").Value
+        
+        ' Controlla se il criterio corrisponde e rispetta i limiti
+        If criterio = criteri(i) Then
+            If Not braniEstratti.Contains(brano) Then
+                AggiungiBranoOrdinato wsRisultati, ultimaRigaRisultati, brano, criterio
+                braniEstratti.Add brano
+                conteggioCriteri(criterio) = conteggioCriteri(criterio) + 1
+            End If
+        End If
+    Next riga
+Next i
+    
+    ' Messaggio di completamento
+    MsgBox "Estrazione completata e ordinata!", vbInformation
+End Sub
+
+Sub AggiungiBranoOrdinato(wsRisultati As Worksheet, ByRef ultimaRigaRisultati As Long, brano As String, criterio As String)
+    wsRisultati.cells(ultimaRigaRisultati, "A").Value = brano
+    wsRisultati.cells(ultimaRigaRisultati, "B").Value = criterio
+    ultimaRigaRisultati = ultimaRigaRisultati + 1
+End Sub
+
