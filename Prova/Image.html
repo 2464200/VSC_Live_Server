@@ -30,6 +30,23 @@
         #close-button:hover {
             background: #ffaa33;
         }
+        #change-image-button {
+            position: fixed;
+            top: 12px;
+            left: 130px;
+            padding: 10px 16px;
+            background: #3cb043;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            z-index: 999;
+        }
+        #change-image-button:hover {
+            background: #2e8b3b;
+        }
         .logo-container {
             display: flex;
             justify-content: center;
@@ -48,6 +65,143 @@
             height: 500px;
             filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.6));
         }
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 1000;
+        }
+        .popup-box {
+            width: min(460px, calc(100% - 40px));
+            padding: 28px 26px;
+            border-radius: 20px;
+            border: 2px solid #ffa200;
+            background: rgba(17, 17, 17, 0.98);
+            box-shadow: 0 0 30px rgba(255, 162, 0, 0.32);
+            text-align: center;
+        }
+        .popup-box h2 {
+            margin: 0 0 14px;
+            color: #fff;
+            font-size: 1.6rem;
+        }
+        .popup-box p {
+            color: #ddd;
+            margin: 0 0 22px;
+            line-height: 1.55;
+            font-size: 0.98rem;
+        }
+        .popup-dropzone {
+            margin: 18px auto 24px;
+            width: min(420px, calc(100% - 30px));
+            min-height: 160px;
+            padding: 18px 16px;
+            border-radius: 18px;
+            border: 2px dashed rgba(255, 255, 255, 0.28);
+            background: rgba(255, 255, 255, 0.03);
+            color: #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .popup-dropzone.dragover {
+            border-color: #ff7f00;
+            background: rgba(255, 127, 0, 0.08);
+        }
+        .popup-dropzone span {
+            display: block;
+            color: #bbb;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            max-width: 100%;
+        }
+        .popup-preview {
+            width: 100%;
+            display: none;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            overflow: hidden;
+            background: #111;
+        }
+        .popup-preview img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            max-height: 260px;
+        }
+        .popup-file-info {
+            margin: 12px 0 0;
+            color: #ccc;
+            font-size: 0.95rem;
+            text-align: left;
+            padding: 0 8px 10px;
+            line-height: 1.4;
+        }
+        .popup-error {
+            color: #ffb3a6;
+            font-size: 0.95rem;
+            min-height: 20px;
+            text-align: center;
+        }
+        .popup-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+        .popup-button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #fff;
+            background: #444;
+            transition: background 0.2s ease;
+        }
+        .popup-button--default {
+            background: #ff7f00;
+            color: #111;
+        }
+        .popup-button--default:hover {
+            background: #ffaa33;
+        }
+        .popup-button--select {
+            background: #1e88e5;
+            color: #fff;
+        }
+        .popup-button--select:hover {
+            background: #1565c0;
+        }
+        .popup-button--confirm {
+            background: #3cb043;
+            color: #fff;
+        }
+        .popup-button--confirm:hover {
+            background: #2e8b3b;
+        }
+        .popup-button--remove {
+            background: #d64545;
+            color: #fff;
+        }
+        .popup-button--remove:hover {
+            background: #b73939;
+        }
+        .popup-button:hover {
+            background: #666;
+        }
+        .popup-input {
+            display: none;
+        }
         @keyframes neonPulse {
             0% { box-shadow: 0 0 8px #ffa200; }
             50% { box-shadow: 0 0 25px #ffcc66; }
@@ -56,16 +210,171 @@
     </style>
 </head>
 <body>
+    <div id="file-popup" class="popup-overlay">
+        <div class="popup-box">
+            <h2>Carica un'immagine</h2>
+            <p>Seleziona un file immagine dal tuo PC. Verrà caricato al posto di MonsterCountryGroup_grey.png.</p>
+            <div id="popup-dropzone" class="popup-dropzone" onclick="openFileSelector()">
+                <span>Trascina un'immagine qui oppure clicca per selezionarla dal PC.</span>
+                <div class="popup-preview" id="popup-preview">
+                    <img id="preview-image" src="" alt="Anteprima immagine selezionata">
+                    <div class="popup-file-info" id="popup-file-info"></div>
+                </div>
+                <div class="popup-error" id="popup-error"></div>
+            </div>
+            <div class="popup-actions">
+                <button class="popup-button popup-button--select" onclick="openFileSelector()">Seleziona immagine</button>
+                <button id="confirm-button" class="popup-button popup-button--confirm" onclick="confirmSelection()" type="button" disabled>Conferma</button>
+                <button class="popup-button popup-button--remove" onclick="resetSelection()" type="button">Rimuovi selezione</button>
+                <button class="popup-button popup-button--default" onclick="skipFileSelection()" type="button">Mantieni immagine predefinita</button>
+            </div>
+            <input id="image-file-input" class="popup-input" type="file" accept="image/*" onchange="loadSelectedImage(event)">
+        </div>
+    </div>
+
     <button id="close-button" onclick="closePage()">Chiudi</button>
+    <button id="change-image-button" onclick="reopenPopup()">Cambia immagine</button>
 
     <h1 style="font-size:40px;">Monster Country Group</h1>
-    <p style="font-size:12px;">Chiudi la pagina per tornare a Excel.</p>
 
     <div class="logo-container">
         <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group" class="logo-image">
     </div>
 
     <script>
+        const popup = document.getElementById('file-popup');
+        const imageElement = document.querySelector('.logo-image');
+        const fileInput = document.getElementById('image-file-input');
+        const confirmButton = document.getElementById('confirm-button');
+        const previewContainer = document.getElementById('popup-preview');
+        const previewImage = document.getElementById('preview-image');
+        const fileInfo = document.getElementById('popup-file-info');
+        const errorMessage = document.getElementById('popup-error');
+        const dropzone = document.getElementById('popup-dropzone');
+
+        let selectedImageUrl = null;
+        let selectedFile = null;
+
+        function openFileSelector() {
+            fileInput.click();
+        }
+
+        function resetSelection() {
+            selectedImageUrl = null;
+            selectedFile = null;
+            fileInput.value = '';
+            previewImage.src = '';
+            previewImage.alt = 'Anteprima immagine selezionata';
+            previewContainer.style.display = 'none';
+            confirmButton.disabled = true;
+            fileInfo.textContent = '';
+            errorMessage.textContent = '';
+            dropzone.classList.remove('dragover');
+        }
+
+        function validateFile(file) {
+            if (!file) {
+                return 'Nessun file selezionato.';
+            }
+            if (!file.type || !file.type.startsWith('image/')) {
+                return 'Seleziona un file immagine valido.';
+            }
+            return '';
+        }
+
+        function loadSelectedImage(event) {
+            const file = event.target.files?.[0];
+            handleSelectedFile(file);
+        }
+
+        function handleSelectedFile(file) {
+            const validationError = validateFile(file);
+            if (validationError) {
+                errorMessage.textContent = validationError;
+                resetSelection();
+                return;
+            }
+            const url = URL.createObjectURL(file);
+            selectedImageUrl = url;
+            selectedFile = file;
+            previewImage.src = url;
+            previewImage.alt = file.name;
+            previewContainer.style.display = 'block';
+            confirmButton.disabled = false;
+            fileInfo.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB`;
+            errorMessage.textContent = '';
+        }
+
+        function confirmSelection() {
+            if (selectedImageUrl) {
+                imageElement.src = selectedImageUrl;
+                imageElement.alt = selectedFile?.name || 'Immagine selezionata';
+            }
+            closePopup();
+        }
+
+        function skipFileSelection() {
+            resetSelection();
+            closePopup();
+        }
+
+        function closePopup() {
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+
+        function openDefaultFolder() {
+            const defaultPath = 'file:///C:/VSC_Live_Server/';
+            try {
+                const opened = window.open(defaultPath, '_blank');
+                if (!opened) {
+                    throw new Error('Apertura bloccata dal browser');
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Impossibile aprire automaticamente la cartella predefinita. Usa il selettore manuale o copia questo percorso in Esplora risorse: C:\\VSC_Live_Server';
+            }
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            dropzone.classList.remove('dragover');
+            const file = event.dataTransfer?.files?.[0];
+            handleSelectedFile(file);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            dropzone.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            dropzone.classList.remove('dragover');
+        }
+
+        dropzone.addEventListener('dragover', handleDragOver);
+        dropzone.addEventListener('dragleave', handleDragLeave);
+        dropzone.addEventListener('drop', handleDrop);
+
+        resetSelection();
+
+        function reopenPopup() {
+            resetSelection();
+            if (popup) {
+                popup.style.display = 'flex';
+            }
+        }
+
+        function closePopup() {
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+
         function closePage() {
             window.close();
             try {
@@ -74,6 +383,12 @@
                 console.warn('Chiusura della finestra non supportata dal browser.', e);
             }
         }
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closePopup();
+            }
+        });
     </script>
 
 </body>
