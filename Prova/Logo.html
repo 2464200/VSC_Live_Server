@@ -5,16 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NextCoreo</title>
     <style>
-        /* 📍 MENU DI NAVIGAZIONE */
-        nav { background: #222; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
-        nav a { color: #ff7f00; margin: 0 12px; text-decoration: none; font-weight: bold; font-size: 13px; }
-        nav a:hover { text-decoration: underline; }
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
             background-color: #111;
             color: white;
             text-align: center;
+        }
+        #close-button {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            padding: 10px 16px;
+            background: #ff7f00;
+            border: none;
+            border-radius: 6px;
+            color: #111;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            z-index: 999;
+        }
+        #close-button:hover {
+            background: #ffaa33;
         }
         .logo-container {
             display: flex;
@@ -42,15 +55,25 @@
     </style>
 </head>
 <body>
-    <div id="global-nav-container"></div>
-<script src="/nav.js"></script>
+    <button id="close-button" onclick="closePage()">Chiudi</button>
 
     <h1 style="font-size:40px;">Monster Country Group</h1>
-    <p style="font-size:12px;">naviga tra le pagine usando il menu sopra.</p>
+    <p style="font-size:12px;">Chiudi la pagina per tornare a Excel.</p>
 
     <div class="logo-container">
         <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group" class="logo-image">
     </div>
+
+    <script>
+        function closePage() {
+            window.close();
+            try {
+                window.open('', '_self').close();
+            } catch (e) {
+                console.warn('Chiusura della finestra non supportata dal browser.', e);
+            }
+        }
+    </script>
 
 </body>
 </html>

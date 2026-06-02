@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextCoreo</title>
+    <style>
+        /* 📍 MENU DI NAVIGAZIONE */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #111;
+            color: white;
+            text-align: center;
+        }
+        #close-button {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            padding: 10px 16px;
+            background: #ff7f00;
+            border: none;
+            border-radius: 6px;
+            color: #111;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+            z-index: 999;
+        }
+        #close-button:hover {
+            background: #ffaa33;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 60px;
+            padding: 30px;
+            border: 4px solid #ffa200;
+            border-radius: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            animation: neonPulse 2s infinite ease-in-out;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        .logo-image {
+            height: 500px;
+            filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.6));
+        }
+        @keyframes neonPulse {
+            0% { box-shadow: 0 0 8px #ffa200; }
+            50% { box-shadow: 0 0 25px #ffcc66; }
+            100% { box-shadow: 0 0 8px #ffa200; }
+        }
+    </style>
+</head>
+<body>
+    <button id="close-button" onclick="closePage()">Chiudi</button>
+
+    <h1 style="font-size:40px;">Monster Country Group</h1>
+    <p style="font-size:12px;">Chiudi la pagina per tornare a Excel.</p>
+
+    <div class="logo-container">
+        <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group" class="logo-image">
+    </div>
+
+    <script>
+        function closePage() {
+            window.close();
+            try {
+                window.open('', '_self').close();
+            } catch (e) {
+                console.warn('Chiusura della finestra non supportata dal browser.', e);
+            }
+        }
+    </script>
+
+</body>
+</html>
