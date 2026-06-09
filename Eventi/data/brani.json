@@ -906,8 +906,8 @@
   {
     "id": "114",
     "titolo": "COUNTRY AS CAN BE",
-    "brano": "call me",
-    "autore": "blondie",
+    "brano": "hooked on country music",
+    "autore": "djtexx",
     "compositore": "",
     "durata": "BASE"
   },
@@ -4369,7 +4369,7 @@
   },
   {
     "id": "547",
-    "titolo": "CARE CONSTANTLY ANNOYING REALLY",
+    "titolo": "CARE (CONSTANTLY ANNOYING REALLY)",
     "brano": "the last shanty",
     "autore": "derina harvey band",
     "compositore": "",
@@ -4521,14 +4521,6 @@
   },
   {
     "id": "566",
-    "titolo": "COUNTRY AS CAN BE",
-    "brano": "hooked on country music",
-    "autore": "djtexx",
-    "compositore": "",
-    "durata": "BASE"
-  },
-  {
-    "id": "567",
     "titolo": "POT OF GOLD",
     "brano": "dance above the rainbow",
     "autore": "ronan hardiman",
@@ -4536,18 +4528,26 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "599",
-    "titolo": "AUDIO VIDEO TESTER",
-    "brano": "tsunami",
-    "autore": "dvbbs & borgeus",
+    "id": "567",
+    "titolo": "KINGDOM OF FEAR",
+    "brano": "kingdom of fear",
+    "autore": "cameron whitcomb",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
+  },
+  {
+    "id": "598",
+    "titolo": "PROMO MONSTER",
+    "brano": "ANNO 2023",
+    "autore": "",
     "compositore": "",
     "durata": ""
   },
   {
-    "id": "600",
-    "titolo": "PROMO MONSTER",
-    "brano": "ANNO 2023",
-    "autore": "",
+    "id": "599",
+    "titolo": "AUDIO VIDEO TESTER",
+    "brano": "tsunami",
+    "autore": "dvbbs & borgeus",
     "compositore": "",
     "durata": ""
   },
