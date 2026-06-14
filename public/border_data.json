@@ -1,30 +1,18 @@
 {
   "totale_eseguite": 0,
   "eseguite": 0,
-  "non_eseguite": 120,
-  "richieste_qr": 64,
-  "coreografia_piu_richiesta": "CENTURION",
-  "conteggio_piu_richiesta": 3,
+  "non_eseguite": 2,
+  "richieste_qr": 3,
+  "coreografia_piu_richiesta": "Johnny Rossato",
+  "conteggio_piu_richiesta": 1,
   "top_5": [
     {
-      "nome": "CENTURION",
-      "conteggio": 3
+      "nome": "Johnny Rossato",
+      "conteggio": 1
     },
     {
-      "nome": "A BAR SONG",
-      "conteggio": 2
-    },
-    {
-      "nome": "CASANOVA COWBOY",
-      "conteggio": 2
-    },
-    {
-      "nome": "RETRO",
-      "conteggio": 2
-    },
-    {
-      "nome": "DELICIOUS",
-      "conteggio": 2
+      "nome": "KINGDOM OF FEAR",
+      "conteggio": 1
     }
   ]
 }
