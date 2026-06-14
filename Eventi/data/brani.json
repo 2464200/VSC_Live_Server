@@ -4536,18 +4536,18 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "599",
-    "titolo": "AUDIO VIDEO TESTER",
-    "brano": "tsunami",
-    "autore": "dvbbs & borgeus",
+    "id": "598",
+    "titolo": "PROMO MONSTER",
+    "brano": "ANNO 2023",
+    "autore": "",
     "compositore": "",
     "durata": ""
   },
   {
-    "id": "600",
-    "titolo": "PROMO MONSTER",
-    "brano": "ANNO 2023",
-    "autore": "",
+    "id": "599",
+    "titolo": "AUDIO VIDEO TESTER",
+    "brano": "tsunami",
+    "autore": "dvbbs & borgeus",
     "compositore": "",
     "durata": ""
   },
@@ -4566,5 +4566,13 @@
     "autore": "Greg Hanna",
     "compositore": "",
     "durata": ""
+  },
+  {
+    "id": "EXTRA1781452804234",
+    "titolo": "The Sphinx",
+    "brano": "Medellin (Offer Nissim Madame X In The Sphinx Mix) (2022 Remaster)",
+    "autore": "Madonna & Maluma",
+    "compositore": "Madonna & Maluma",
+    "durata": "06:40"
   }
 ]
