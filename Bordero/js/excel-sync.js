@@ -181,7 +181,11 @@ class ExcelSync {
       // Salva in cache
       Storage.set('BORDERO_BRANI_DATA', data);
       logger.info(`✅ Sincronizzati ${data.length} brani in cache localStorage`);
-      Toast.success(`✅ ${data.length} brani sincronizzati`);
+      
+      // Sincronizza su disco via server Node.js
+      await this.syncToDisk('brani', data);
+      
+      Toast.success(`✅ ${data.length} brani sincronizzati su disco`);
 
       return true;
     } catch (error) {
@@ -254,7 +258,11 @@ class ExcelSync {
       // Salva in cache
       Storage.set('BORDERO_COMUNI_DATA', data);
       logger.info(`✅ Sincronizzati ${data.length} comuni in cache localStorage`);
-      Toast.success(`✅ ${data.length} comuni sincronizzati`);
+      
+      // Sincronizza su disco via server Node.js
+      await this.syncToDisk('comuni', data);
+      
+      Toast.success(`✅ ${data.length} comuni sincronizzati su disco`);
 
       return true;
     } catch (error) {
@@ -327,7 +335,11 @@ class ExcelSync {
       // Salva in cache
       Storage.set('BORDERO_DBASE_DATA', data);
       logger.info(`✅ Sincronizzati ${data.length} DJ in cache localStorage`);
-      Toast.success(`✅ ${data.length} DJ sincronizzati`);
+      
+      // Sincronizza su disco via server Node.js
+      await this.syncToDisk('dbase', data);
+      
+      Toast.success(`✅ ${data.length} DJ sincronizzati su disco`);
 
       return true;
     } catch (error) {
@@ -375,6 +387,37 @@ class ExcelSync {
     // TODO: Implementare endpoint Node.js per scrivere file
     // Per ora i dati sono in cache e il frontend li usa da lì
     logger.debug(`Salvataggio CSV (cache): ${path}`);
+  }
+
+  /**
+   * Sincronizza i dati su disco via API Node.js
+   */
+  async syncToDisk(dataType, data) {
+    try {
+      const SYNC_SERVER = 'http://localhost:5501';
+      const endpoint = `${SYNC_SERVER}/api/sync/${dataType}`;
+
+      logger.info(`🌐 POST a ${endpoint}`);
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      logger.info(`✅ Server risposta: ${result.message}`);
+      logger.info(`📁 File salvato: ${result.file}`);
+
+    } catch (error) {
+      logger.warn(`⚠️ Non è possibile sincronizzare su disco. Server Node.js su :5501 non disponibile.`);
+      logger.warn(`   Dati rimangono in cache localStorage.`);
+      logger.warn(`   Avvia il sync-server: node Bordero/server/sync-server.js`);
+    }
   }
 
   /**
