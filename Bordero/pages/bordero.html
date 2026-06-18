@@ -1,20 +1,30 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BORDERÒ - Tabella Principale</title>
+  <title>BORDERÃ’ - Tabella Principale</title>
   
   <!-- Style dalle carte Eventi -->
   <link rel="stylesheet" href="../assets/css/style.css" />
   
-  <!-- Style Borderò personalizzato -->
+  <!-- Style BorderÃ² personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
   <link rel="stylesheet" href="bordero.css" />
   
   <!-- XLSX Library per lettura file Excel -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Verifica caricamento XLSX -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
   
   <!-- Config globale -->
   <script defer src="../js/config.js"></script>
@@ -30,7 +40,7 @@
     <!-- HEADER -->
     <header class="header">
       <div class="header-content">
-        <h1 class="app-title">🎭 BORDERÒ - Tabella Principale</h1>
+        <h1 class="app-title">ðŸŽ­ BORDERÃ’ - Tabella Principale</h1>
         <p class="app-subtitle">Gestione Brani e Coreografie</p>
       </div>
     </header>
@@ -73,29 +83,29 @@
       <div class="toolbar-section">
         <h3>COMANDI SORT</h3>
         <button id="btn-sort-id" class="btn btn-sort" title="Ordina per ID progressivo">
-          📊 ORDINA PER ID
+          ðŸ“Š ORDINA PER ID
         </button>
         <button id="btn-sort-genere" class="btn btn-sort" title="Ordina per genere musicale">
-          🎵 ORDINA PER GENERE
+          ðŸŽµ ORDINA PER GENERE
         </button>
         <button id="btn-sort-autore" class="btn btn-sort" title="Ordina per autore">
-          👤 ORDINA PER AUTORE
+          ðŸ‘¤ ORDINA PER AUTORE
         </button>
       </div>
 
       <div class="toolbar-section">
         <h3>COMANDI FILTRI</h3>
         <button id="btn-filter-coreografia" class="btn btn-filter btn-filter-blue" title="Filtra per categoria COREOGRAFIA">
-          🎭 COREOGRAFIA
+          ðŸŽ­ COREOGRAFIA
         </button>
         <button id="btn-filter-genere" class="btn btn-filter btn-filter-green" title="Filtra per genere">
-          🎵 GENERE
+          ðŸŽµ GENERE
         </button>
-        <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" title="Filtra per livello difficoltà">
-          📈 LIVELLO
+        <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" title="Filtra per livello difficoltÃ ">
+          ðŸ“ˆ LIVELLO
         </button>
         <button id="btn-filter-altro" class="btn btn-filter btn-filter-yellow" title="Filtro aggiuntivo">
-          ⭐ ALTRO
+          â­ ALTRO
         </button>
       </div>
 
@@ -105,26 +115,26 @@
           type="text" 
           id="search-box" 
           class="search-input" 
-          placeholder="🔍 Cerca titolo, autore, coreografo..."
+          placeholder="ðŸ” Cerca titolo, autore, coreografo..."
         />
         <button id="btn-reset-filters" class="btn btn-secondary" title="Resetta filtri e ricerca">
-          🔄 RESET
+          ðŸ”„ RESET
         </button>
       </div>
 
       <div class="toolbar-section">
         <h3>AZIONI</h3>
         <button id="btn-userform" class="btn btn-primary" title="Aggiungi/modifica brano">
-          ➕ USERFORM
+          âž• USERFORM
         </button>
         <button id="btn-export" class="btn btn-secondary" title="Esporta tabella a CSV (formato SIAE)">
-          💾 EXPORT SIAE
+          ðŸ’¾ EXPORT SIAE
         </button>
         <button id="btn-print" class="btn btn-secondary" title="Stampa tabella">
-          🖨️ STAMPA
+          ðŸ–¨ï¸ STAMPA
         </button>
         <button id="btn-finish-serata" class="btn btn-danger" title="Termina e archivia la serata corrente">
-          🏁 FINISCI SERATA
+          ðŸ FINISCI SERATA
         </button>
       </div>
     </section>
@@ -174,24 +184,24 @@
       </div>
 
       <div id="empty-state" class="empty-state" style="display: none;">
-        <p class="empty-icon">📭</p>
+        <p class="empty-icon">ðŸ“­</p>
         <p class="empty-text">Nessun brano trovato con i filtri applicati</p>
         <button id="btn-reset-filters-empty" class="btn btn-secondary">
-          🔄 Resetta Filtri
+          ðŸ”„ Resetta Filtri
         </button>
       </div>
     </section>
 
     <!-- PAGINATION (opzionale) -->
     <section class="pagination">
-      <button id="btn-prev-page" class="btn btn-small">← Precedente</button>
+      <button id="btn-prev-page" class="btn btn-small">â† Precedente</button>
       <span id="pagination-info" class="pagination-info">Pagina 1</span>
-      <button id="btn-next-page" class="btn btn-small">Prossima →</button>
+      <button id="btn-next-page" class="btn btn-small">Prossima â†’</button>
     </section>
 
     <!-- FOOTER -->
     <footer class="footer">
-      <p>BORDERÒ DJ Manager © 2026</p>
+      <p>BORDERÃ’ DJ Manager Â© 2026</p>
       <p id="footer-status">Ready</p>
     </footer>
   </div>

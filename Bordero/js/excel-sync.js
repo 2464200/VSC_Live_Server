@@ -13,6 +13,32 @@ class ExcelSync {
     this.excelFile = null;
     this.lastSync = null;
     this.initFileDialog();
+    this.waitForXLSX();
+  }
+
+  /**
+   * Aspetta che XLSX sia disponibile (max 10 secondi)
+   */
+  async waitForXLSX() {
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const maxAttempts = 100; // 10 secondi (100ms x 100)
+      
+      const checkXLSX = setInterval(() => {
+        if (typeof XLSX !== 'undefined') {
+          clearInterval(checkXLSX);
+          logger.info('✅ XLSX.js disponibile');
+          resolve(true);
+        }
+        
+        attempts++;
+        if (attempts >= maxAttempts) {
+          clearInterval(checkXLSX);
+          logger.warn('⚠️ XLSX.js non caricato dopo 10 secondi');
+          resolve(false);
+        }
+      }, 100);
+    });
   }
 
   /**
@@ -70,9 +96,17 @@ class ExcelSync {
     logger.info('ExcelSync: Iniziando sincronizzazione da Excel...');
 
     try {
-      // Verifica che XLSX sia disponibile
+      // Aspetta che XLSX sia disponibile
+      const xlsxReady = await this.waitForXLSX();
+      if (!xlsxReady) {
+        logger.error('❌ XLSX.js non è caricato. Controlla la connessione CDN.');
+        Toast.error('❌ Libreria XLSX non disponibile');
+        return false;
+      }
+
+      // Verifica che XLSX sia effettivamente disponibile
       if (typeof XLSX === 'undefined') {
-        logger.error('XLSX.js non è caricato. Installa la libreria XLSX.');
+        logger.error('❌ XLSX non trovato dopo attesa');
         Toast.error('❌ Libreria XLSX non disponibile');
         return false;
       }

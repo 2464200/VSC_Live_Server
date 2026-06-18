@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BORDERÒ - Prossimo Brano</title>
+  <title>BORDERÃ’ - Prossimo Brano</title>
   
   <!-- Styles -->
   <link rel="stylesheet" href="../assets/css/style.css" />
@@ -12,7 +12,17 @@
   
   <!-- Config globale -->
   <!-- XLSX Library per lettura file Excel -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Verifica caricamento XLSX -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
   
   <script defer src="../js/config.js"></script>
   <script defer src="../js/utils.js"></script>
@@ -95,7 +105,7 @@
         <!-- EMPTY STATE -->
         <div class="empty-state" id="empty-state">
           <div class="empty-content">
-            <div class="empty-icon">🎭</div>
+            <div class="empty-icon">ðŸŽ­</div>
             <p class="empty-text">Nessun brano da suonare</p>
             <p class="empty-subtext">Seleziona un brano dalla tabella principale</p>
           </div>
@@ -105,7 +115,7 @@
       <!-- STATISTICHE LIVE -->
       <aside class="stats-sidebar">
         <div class="stats-box">
-          <h3>📊 STATISTICHE</h3>
+          <h3>ðŸ“Š STATISTICHE</h3>
           <div class="stat-row">
             <span class="stat-label">Totale:</span>
             <span class="stat-value" id="stat-total">0</span>
@@ -126,7 +136,7 @@
 
         <!-- TEMPO DECORRSO -->
         <div class="stats-box">
-          <h3>⏱️ TIMING</h3>
+          <h3>â±ï¸ TIMING</h3>
           <div class="stat-row">
             <span class="stat-label">Ore:</span>
             <span class="stat-value" id="stat-ore">00</span>
@@ -143,9 +153,9 @@
 
         <!-- CONTROLLI -->
         <div class="controls-box">
-          <button id="btn-refresh" class="btn btn-secondary" title="Aggiorna display">🔄</button>
-          <button id="btn-fullscreen" class="btn btn-primary" title="Fullscreen">⛶</button>
-          <button id="btn-back" class="btn btn-secondary" title="Torna alla tabella">← Indietro</button>
+          <button id="btn-refresh" class="btn btn-secondary" title="Aggiorna display">ðŸ”„</button>
+          <button id="btn-fullscreen" class="btn btn-primary" title="Fullscreen">â›¶</button>
+          <button id="btn-back" class="btn btn-secondary" title="Torna alla tabella">â† Indietro</button>
         </div>
       </aside>
     </main>

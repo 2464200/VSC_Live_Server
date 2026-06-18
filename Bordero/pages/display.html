@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BORDERÒ - Monitor Secondario</title>
+  <title>BORDERÃ’ - Monitor Secondario</title>
   
   <!-- Styles -->
   <link rel="stylesheet" href="../assets/css/style.css" />
@@ -12,7 +12,17 @@
   
   <!-- Config globale -->
   <!-- XLSX Library per lettura file Excel -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Verifica caricamento XLSX -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
   
   <script defer src="../js/config.js"></script>
   <script defer src="../js/utils.js"></script>
@@ -48,7 +58,7 @@
       <table class="brani-table">
         <thead>
           <tr>
-            <th class="col-flag">✓</th>
+            <th class="col-flag">âœ“</th>
             <th class="col-id">ID</th>
             <th class="col-titolo">Titolo</th>
             <th class="col-autore">Autore</th>
@@ -65,7 +75,7 @@
       <!-- EMPTY STATE -->
       <div class="empty-state" id="empty-state">
         <div class="empty-content">
-          <div class="empty-icon">📊</div>
+          <div class="empty-icon">ðŸ“Š</div>
           <p>Nessun dato da visualizzare</p>
         </div>
       </div>

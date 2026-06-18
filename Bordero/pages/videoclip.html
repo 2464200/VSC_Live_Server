@@ -1,16 +1,26 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BORDERÒ - VideoClip Manager</title>
+  <title>BORDERÃ’ - VideoClip Manager</title>
   
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="videoclip.css" />
   
   <!-- XLSX Library per lettura file Excel -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Verifica caricamento XLSX -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
   
   <script defer src="../js/config.js"></script>
   <script defer src="../js/utils.js"></script>
@@ -23,7 +33,7 @@
   <div class="container">
     <header class="header">
       <div class="header-content">
-        <h1 class="app-title">🎬 BORDERÒ - VideoClip Manager</h1>
+        <h1 class="app-title">ðŸŽ¬ BORDERÃ’ - VideoClip Manager</h1>
         <p class="app-subtitle">Gestione Video per Coreografie</p>
       </div>
     </header>
@@ -42,7 +52,7 @@
           Il tuo browser non supporta i video HTML5
         </video>
         <div id="no-video" class="no-video-placeholder">
-          <p>🎬 Nessun video selezionato</p>
+          <p>ðŸŽ¬ Nessun video selezionato</p>
           <small>Seleziona una coreografia dalla tabella per riprodurre il video</small>
         </div>
       </div>
@@ -55,24 +65,24 @@
           <span id="video-genere">Genere: --</span>
         </div>
         <div class="video-controls">
-          <button id="btn-play" class="btn btn-primary">▶️ PLAY</button>
-          <button id="btn-pause" class="btn btn-secondary">⏸️ PAUSA</button>
-          <button id="btn-stop" class="btn btn-secondary">⏹️ FERMA</button>
-          <button id="btn-fullscreen" class="btn btn-secondary">⛶ FULLSCREEN</button>
+          <button id="btn-play" class="btn btn-primary">â–¶ï¸ PLAY</button>
+          <button id="btn-pause" class="btn btn-secondary">â¸ï¸ PAUSA</button>
+          <button id="btn-stop" class="btn btn-secondary">â¹ï¸ FERMA</button>
+          <button id="btn-fullscreen" class="btn btn-secondary">â›¶ FULLSCREEN</button>
         </div>
       </div>
     </section>
 
     <!-- VIDEO LIBRARY -->
     <section class="library-section">
-      <h3>📚 Libreria Video (Coreografie Disponibili)</h3>
+      <h3>ðŸ“š Libreria Video (Coreografie Disponibili)</h3>
       
       <div class="search-filter-row">
         <input 
           type="text" 
           id="video-search" 
           class="search-input" 
-          placeholder="🔍 Cerca per titolo, autore, coreografo..."
+          placeholder="ðŸ” Cerca per titolo, autore, coreografo..."
         />
         <select id="genere-filter" class="filter-select">
           <option value="">Tutti i Generi</option>
@@ -86,8 +96,8 @@
 
     <!-- QUICK ACTIONS -->
     <section class="quick-actions">
-      <button id="btn-back" class="btn btn-secondary">← INDIETRO</button>
-      <button id="btn-bordero" class="btn btn-primary">📋 TORNA A BORDERO</button>
+      <button id="btn-back" class="btn btn-secondary">â† INDIETRO</button>
+      <button id="btn-bordero" class="btn btn-primary">ðŸ“‹ TORNA A BORDERO</button>
     </section>
   </div>
 </body>
