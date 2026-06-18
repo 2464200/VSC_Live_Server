@@ -114,24 +114,60 @@ class ExcelSync {
 
   /**
    * Sincronizza il foglio "Elenco Brani (statico)" → brani.csv
+   * ROBUSTA: Se foglio non trovato, usa il PRIMO foglio per i brani
    */
   async syncBrani(workbook) {
     try {
-      const sheetName = 'Elenco Brani (statico)';
+      let sheetName = 'Elenco Brani (statico)';
       logger.info(`📖 Cercando foglio: "${sheetName}"`);
       logger.info(`📋 Fogli disponibili: ${workbook.SheetNames.join(', ')}`);
       
+      // Se foglio esatto non trovato, cerca alternative o usa il primo
       if (!workbook.SheetNames.includes(sheetName)) {
-        logger.error(`❌ Foglio "${sheetName}" NON trovato in Excel`);
-        logger.error(`   Fogli trovati: ${workbook.SheetNames.join(', ')}`);
-        Toast.warning(`⚠️ Foglio "${sheetName}" non trovato`);
-        return false;
+        logger.warn(`⚠️ Foglio "${sheetName}" NON trovato`);
+        
+        // Prova varianti comuni
+        const alternatives = [
+          'Elenco Brani',
+          'ELENCO BRANI',
+          'Brani',
+          'BRANI',
+          'Songs',
+          'Sheet1'
+        ];
+        
+        const found = alternatives.find(alt => workbook.SheetNames.includes(alt));
+        if (found) {
+          sheetName = found;
+          logger.info(`✅ Trovato foglio alternativo: "${sheetName}"`);
+        } else {
+          // Se nulla trovato, usa il PRIMO foglio
+          sheetName = workbook.SheetNames[0];
+          logger.warn(`📌 Nessun foglio Brani trovato. Usando primo: "${sheetName}"`);
+        }
       }
 
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet);
+      if (!worksheet) {
+        logger.error(`❌ Worksheet NULL per foglio "${sheetName}"`);
+        Toast.error(`❌ Errore accesso foglio "${sheetName}"`);
+        return false;
+      }
+
+      // Leggi i dati con opzioni robuste
+      let data = XLSX.utils.sheet_to_json(worksheet, {
+        defval: '',
+        blankrows: false,
+        raw: false
+      });
 
       logger.info(`📊 Dati letti dal foglio: ${data.length} righe`);
+
+      // Se prima riga è tutta vuota, rimuovila
+      if (data.length > 0 && Object.values(data[0]).every(v => !v || v === '')) {
+        logger.warn('⚠️ Prima riga vuota, rimuovendo...');
+        data = data.slice(1);
+      }
 
       if (data.length === 0) {
         logger.warn('⚠️ Nessun dato nel foglio Elenco Brani');
@@ -139,12 +175,8 @@ class ExcelSync {
         return false;
       }
 
-      // Log primo elemento per verificare structure
+      // Log primo elemento
       logger.info(`📝 Primo brano: ${JSON.stringify(data[0])}`);
-
-      // Converti a CSV
-      const csv = this.jsonToCSV(data);
-      logger.info(`📄 CSV convertito: ${csv.split('\n').length} righe`);
 
       // Salva in cache
       Storage.set('BORDERO_BRANI_DATA', data);
@@ -154,6 +186,7 @@ class ExcelSync {
       return true;
     } catch (error) {
       logger.error('❌ Errore sync Brani', error);
+      logger.error('   Stack:', error.stack);
       Toast.error(`❌ Errore sincronizzazione Brani: ${error.message}`);
       return false;
     }
@@ -161,22 +194,54 @@ class ExcelSync {
 
   /**
    * Sincronizza il foglio "Comuni Italia" → comuni_italia.csv
+   * ROBUSTA: Se foglio non trovato, usa il SECONDO foglio o alternativa
    */
   async syncComuni(workbook) {
     try {
-      const sheetName = 'Comuni Italia';
+      let sheetName = 'Comuni Italia';
       logger.info(`📖 Cercando foglio: "${sheetName}"`);
       
       if (!workbook.SheetNames.includes(sheetName)) {
-        logger.error(`❌ Foglio "${sheetName}" NON trovato in Excel`);
-        Toast.warning(`⚠️ Foglio "${sheetName}" non trovato`);
-        return false;
+        logger.warn(`⚠️ Foglio "${sheetName}" NON trovato`);
+        
+        // Prova varianti comuni
+        const alternatives = [
+          'Comuni',
+          'COMUNI',
+          'Italia',
+          'Locations',
+          'Sheet2'
+        ];
+        
+        const found = alternatives.find(alt => workbook.SheetNames.includes(alt));
+        if (found) {
+          sheetName = found;
+          logger.info(`✅ Trovato foglio alternativo: "${sheetName}"`);
+        } else {
+          // Se nulla, usa il SECONDO foglio (se esiste)
+          sheetName = workbook.SheetNames[1] || workbook.SheetNames[0];
+          logger.warn(`📌 Usando foglio: "${sheetName}"`);
+        }
       }
 
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet);
+      if (!worksheet) {
+        logger.error(`❌ Worksheet NULL per foglio "${sheetName}"`);
+        return false;
+      }
+
+      let data = XLSX.utils.sheet_to_json(worksheet, {
+        defval: '',
+        blankrows: false,
+        raw: false
+      });
 
       logger.info(`📊 Dati letti dal foglio: ${data.length} righe`);
+
+      // Se prima riga vuota, rimuovi
+      if (data.length > 0 && Object.values(data[0]).every(v => !v || v === '')) {
+        data = data.slice(1);
+      }
 
       if (data.length === 0) {
         logger.warn('⚠️ Nessun dato nel foglio Comuni Italia');
@@ -185,9 +250,6 @@ class ExcelSync {
       }
 
       logger.info(`📝 Primo comune: ${JSON.stringify(data[0])}`);
-
-      // Converti a CSV
-      const csv = this.jsonToCSV(data);
 
       // Salva in cache
       Storage.set('BORDERO_COMUNI_DATA', data);
@@ -204,22 +266,55 @@ class ExcelSync {
 
   /**
    * Sincronizza il foglio "dBase" → dBase.csv
+   * ROBUSTA: Se foglio non trovato, usa il TERZO foglio o alternativa
    */
   async syncDBase(workbook) {
     try {
-      const sheetName = 'dBase';
+      let sheetName = 'dBase';
       logger.info(`📖 Cercando foglio: "${sheetName}"`);
       
       if (!workbook.SheetNames.includes(sheetName)) {
-        logger.error(`❌ Foglio "${sheetName}" NON trovato in Excel`);
-        Toast.warning(`⚠️ Foglio "${sheetName}" non trovato`);
-        return false;
+        logger.warn(`⚠️ Foglio "${sheetName}" NON trovato`);
+        
+        // Prova varianti comuni
+        const alternatives = [
+          'Database',
+          'DATABASE',
+          'DJ',
+          'DJs',
+          'Performers',
+          'Sheet3'
+        ];
+        
+        const found = alternatives.find(alt => workbook.SheetNames.includes(alt));
+        if (found) {
+          sheetName = found;
+          logger.info(`✅ Trovato foglio alternativo: "${sheetName}"`);
+        } else {
+          // Se nulla, usa il TERZO foglio (se esiste)
+          sheetName = workbook.SheetNames[2] || workbook.SheetNames[0];
+          logger.warn(`📌 Usando foglio: "${sheetName}"`);
+        }
       }
 
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet);
+      if (!worksheet) {
+        logger.error(`❌ Worksheet NULL per foglio "${sheetName}"`);
+        return false;
+      }
+
+      let data = XLSX.utils.sheet_to_json(worksheet, {
+        defval: '',
+        blankrows: false,
+        raw: false
+      });
 
       logger.info(`📊 Dati letti dal foglio: ${data.length} righe`);
+
+      // Se prima riga vuota, rimuovi
+      if (data.length > 0 && Object.values(data[0]).every(v => !v || v === '')) {
+        data = data.slice(1);
+      }
 
       if (data.length === 0) {
         logger.warn('⚠️ Nessun dato nel foglio dBase');
@@ -228,9 +323,6 @@ class ExcelSync {
       }
 
       logger.info(`📝 Primo DJ: ${JSON.stringify(data[0])}`);
-
-      // Converti a CSV
-      const csv = this.jsonToCSV(data);
 
       // Salva in cache
       Storage.set('BORDERO_DBASE_DATA', data);
