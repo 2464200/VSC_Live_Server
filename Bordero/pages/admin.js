@@ -86,44 +86,86 @@ class AdminPanel {
 
     updateStatus();
 
+    // Pulsante: Sincronizza BRANI
     document.getElementById('btn-sync-brani').addEventListener('click', async () => {
-      this.log('Syncing Brani...', 'warn');
-      await excelSync.syncBrani(await this.loadExcel());
-      updateStatus();
-      this.log('✓ Brani synced', 'success');
+      this.log('🔄 Sincronizzando Brani dal file Excel selezionato...', 'warn');
+      if (!excelSync.excelFile) {
+        this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        Toast.warning('Seleziona il file Excel prima');
+        return;
+      }
+      try {
+        const arrayBuffer = await excelSync.excelFile.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        await excelSync.syncBrani(workbook);
+        updateStatus();
+        this.log('✓ Brani sincronizzati con successo', 'success');
+        Toast.success('✓ Brani sincronizzati');
+      } catch (error) {
+        this.log(`❌ Errore sync Brani: ${error.message}`, 'error');
+        Toast.error('Errore sincronizzazione Brani');
+      }
     });
 
+    // Pulsante: Sincronizza COMUNI
     document.getElementById('btn-sync-comuni').addEventListener('click', async () => {
-      this.log('Syncing Comuni...', 'warn');
-      await excelSync.syncComuni(await this.loadExcel());
-      updateStatus();
-      this.log('✓ Comuni synced', 'success');
+      this.log('🔄 Sincronizzando Comuni dal file Excel selezionato...', 'warn');
+      if (!excelSync.excelFile) {
+        this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        Toast.warning('Seleziona il file Excel prima');
+        return;
+      }
+      try {
+        const arrayBuffer = await excelSync.excelFile.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        await excelSync.syncComuni(workbook);
+        updateStatus();
+        this.log('✓ Comuni sincronizzati con successo', 'success');
+        Toast.success('✓ Comuni sincronizzati');
+      } catch (error) {
+        this.log(`❌ Errore sync Comuni: ${error.message}`, 'error');
+        Toast.error('Errore sincronizzazione Comuni');
+      }
     });
 
+    // Pulsante: Sincronizza DBASE (DJ)
     document.getElementById('btn-sync-dbase').addEventListener('click', async () => {
-      this.log('Syncing dBase...', 'warn');
-      await excelSync.syncDBase(await this.loadExcel());
-      updateStatus();
-      this.log('✓ dBase synced', 'success');
+      this.log('🔄 Sincronizzando dBase dal file Excel selezionato...', 'warn');
+      if (!excelSync.excelFile) {
+        this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        Toast.warning('Seleziona il file Excel prima');
+        return;
+      }
+      try {
+        const arrayBuffer = await excelSync.excelFile.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        await excelSync.syncDBase(workbook);
+        updateStatus();
+        this.log('✓ dBase sincronizzato con successo', 'success');
+        Toast.success('✓ dBase sincronizzato');
+      } catch (error) {
+        this.log(`❌ Errore sync dBase: ${error.message}`, 'error');
+        Toast.error('Errore sincronizzazione dBase');
+      }
     });
 
+    // Pulsante: Sincronizza TUTTO
     document.getElementById('btn-sync-all').addEventListener('click', async () => {
-      this.log('Syncing ALL from Excel...', 'warn');
-      await excelSync.syncFromExcel();
-      updateStatus();
-      this.log('✓ All data synced', 'success');
+      this.log('🔄 Sincronizzando TUTTI i dati dal file Excel...', 'warn');
+      if (!excelSync.excelFile) {
+        this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        Toast.warning('Seleziona il file Excel prima');
+        return;
+      }
+      try {
+        await excelSync.syncFromExcel();
+        updateStatus();
+        this.log('✓ Tutti i dati sincronizzati con successo!', 'success');
+      } catch (error) {
+        this.log(`❌ Errore sync totale: ${error.message}`, 'error');
+        Toast.error('Errore sincronizzazione');
+      }
     });
-  }
-
-  async loadExcel() {
-    try {
-      const response = await fetch('./Excel/Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm', { cache: 'no-store' });
-      const arrayBuffer = await response.arrayBuffer();
-      return XLSX.read(arrayBuffer, { type: 'array' });
-    } catch (error) {
-      this.log(`Error loading Excel: ${error.message}`, 'error');
-      return null;
-    }
   }
 
   /* ========== DATA VIEWER ========== */
