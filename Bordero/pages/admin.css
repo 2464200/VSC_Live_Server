@@ -1,0 +1,270 @@
+/**
+ * BORDERÒ - Admin CSS
+ */
+
+.admin-section {
+  background-color: #222;
+  border: 2px solid var(--primary-orange);
+  border-radius: 8px;
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+.admin-section h2 {
+  color: var(--primary-orange);
+  font-size: 1.3em;
+  margin: 0 0 20px 0;
+  border-bottom: 2px solid var(--primary-orange);
+  padding-bottom: 10px;
+}
+
+/* STATUS GRID */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.status-item {
+  background-color: rgba(255, 127, 0, 0.1);
+  border: 1px solid var(--primary-orange);
+  border-radius: 5px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-item .label {
+  color: #aaa;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.status-item .value {
+  color: var(--primary-orange);
+  font-size: 1.1em;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+}
+
+/* SYNC PANEL */
+.sync-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.sync-item {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sync-item h3 {
+  color: var(--text-light);
+  font-size: 1em;
+  margin: 0;
+}
+
+.sync-item p {
+  color: #999;
+  font-size: 0.85em;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+}
+
+.sync-item .btn {
+  padding: 10px;
+  font-size: 0.9em;
+}
+
+/* DATA VIEWER */
+.viewer-controls {
+  margin-bottom: 15px;
+}
+
+.select {
+  width: 100%;
+  padding: 12px;
+  background-color: #1a1a1a;
+  border: 2px solid var(--border-color);
+  color: #ccc;
+  font-size: 0.95em;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+}
+
+.data-viewer {
+  background-color: #1a1a1a;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85em;
+  color: #0f0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* CACHE CONTROLS */
+.cache-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.cache-controls .btn {
+  padding: 12px;
+  font-size: 0.9em;
+}
+
+/* IMPORT/EXPORT */
+.import-export {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.import-export .btn {
+  padding: 12px;
+  font-size: 0.9em;
+}
+
+/* CONSOLE PANEL */
+.console-panel {
+  background-color: #000;
+  border: 2px solid #0f0;
+  border-radius: 5px;
+  padding: 15px;
+  font-family: 'Courier New', monospace;
+}
+
+.console-output {
+  background-color: #0a0a0a;
+  border: 1px solid #0f0;
+  border-radius: 3px;
+  padding: 12px;
+  margin-bottom: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  color: #0f0;
+  font-size: 0.85em;
+  line-height: 1.4;
+  min-height: 100px;
+}
+
+.console-output .log {
+  margin-bottom: 5px;
+}
+
+.console-output .log.success {
+  color: #00ff00;
+}
+
+.console-output .log.error {
+  color: #ff3333;
+}
+
+.console-output .log.warn {
+  color: #ffaa00;
+}
+
+.console-input {
+  display: flex;
+  gap: 10px;
+}
+
+.input {
+  flex: 1;
+  padding: 10px;
+  background-color: #1a1a1a;
+  border: 1px solid #0f0;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  border-radius: 3px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #00ff00;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.console-input .btn {
+  padding: 10px 15px;
+  font-size: 0.85em;
+}
+
+/* NAV BUTTONS */
+.nav-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.nav-buttons .btn {
+  padding: 12px;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.nav-buttons .btn:hover {
+  transform: translateY(-2px);
+}
+
+/* FOOTER ACTION */
+.footer-action {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.footer-action .btn {
+  padding: 15px 40px;
+  font-size: 1em;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .admin-section {
+    padding: 15px;
+  }
+
+  .sync-panel,
+  .cache-controls,
+  .import-export,
+  .nav-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .console-panel {
+    padding: 10px;
+  }
+
+  .data-viewer {
+    max-height: 300px;
+    font-size: 0.75em;
+  }
+}

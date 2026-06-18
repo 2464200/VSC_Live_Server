@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Admin Panel</title>
+  
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="admin.css" />
+  
+  <!-- XLSX Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-file-manager.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="admin.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">⚙️ BORDERÒ - Admin Panel</h1>
+        <p class="app-subtitle">Debug, Testing & System Configuration</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Admin</span>
+    </nav>
+
+    <!-- SYSTEM STATUS -->
+    <section class="admin-section">
+      <h2>🔍 System Status</h2>
+      <div class="status-grid">
+        <div class="status-item">
+          <span class="label">Browser:</span>
+          <span class="value" id="status-browser">--</span>
+        </div>
+        <div class="status-item">
+          <span class="label">localStorage:</span>
+          <span class="value" id="status-storage">--</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Last Sync:</span>
+          <span class="value" id="status-sync">--</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Cache Size:</span>
+          <span class="value" id="status-cache">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DATA SYNC -->
+    <section class="admin-section">
+      <h2>📊 Data Synchronization</h2>
+      
+      <!-- Excel File Selection -->
+      <div style="margin-bottom: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+        <h3>📁 Selezione File Excel</h3>
+        <p id="excel-file-status" style="margin: 10px 0; font-size: 14px; color: #666;">
+          Nessun file selezionato - Clicca il pulsante per scegliere il file Excel
+        </p>
+        <button id="btn-select-excel" class="btn btn-warning" style="width: 100%;">
+          📁 Seleziona File Excel...
+        </button>
+        <small style="display: block; margin-top: 10px; color: #999;">
+          Seleziona il file Excel da C:\VSC_Live_Server - WEB\Excel\
+        </small>
+      </div>
+
+      <div class="sync-panel">
+        <div class="sync-item">
+          <h3>Brani (Songs)</h3>
+          <p id="sync-brani-status">Checking...</p>
+          <button id="btn-sync-brani" class="btn btn-primary">🔄 Sync Brani</button>
+        </div>
+        <div class="sync-item">
+          <h3>Comuni Italia (Locations)</h3>
+          <p id="sync-comuni-status">Checking...</p>
+          <button id="btn-sync-comuni" class="btn btn-primary">🔄 Sync Comuni</button>
+        </div>
+        <div class="sync-item">
+          <h3>dBase (DJ)</h3>
+          <p id="sync-dbase-status">Checking...</p>
+          <button id="btn-sync-dbase" class="btn btn-primary">🔄 Sync dBase</button>
+        </div>
+      </div>
+      <button id="btn-sync-all" class="btn btn-secondary" style="margin-top: 15px; width: 100%;">
+        🔄 Sincronizza Tutto da Excel
+      </button>
+    </section>
+
+    <!-- DATA VIEWER -->
+    <section class="admin-section">
+      <h2>📋 Data Viewer</h2>
+      <div class="viewer-controls">
+        <select id="data-viewer-select" class="select">
+          <option value="">-- Select Data --</option>
+          <option value="brani">Brani (Songs)</option>
+          <option value="comuni">Comuni Italia</option>
+          <option value="dbase">dBase (DJ)</option>
+          <option value="serata">Current Serata</option>
+          <option value="history">Serata History</option>
+          <option value="localstorage">All localStorage Keys</option>
+        </select>
+      </div>
+      <div id="data-viewer-output" class="data-viewer"></div>
+    </section>
+
+    <!-- CACHE MANAGEMENT -->
+    <section class="admin-section">
+      <h2>💾 Cache Management</h2>
+      <div class="cache-controls">
+        <button id="btn-clear-brani-cache" class="btn btn-warning">Clear Brani Cache</button>
+        <button id="btn-clear-comuni-cache" class="btn btn-warning">Clear Comuni Cache</button>
+        <button id="btn-clear-dbase-cache" class="btn btn-warning">Clear dBase Cache</button>
+        <button id="btn-clear-serata-cache" class="btn btn-danger">Clear Serata Data</button>
+        <button id="btn-clear-all-cache" class="btn btn-danger" style="width: 100%; margin-top: 10px;">
+          🗑️ Clear ALL Cache
+        </button>
+      </div>
+    </section>
+
+    <!-- EXPORT/IMPORT -->
+    <section class="admin-section">
+      <h2>💿 Export / Import</h2>
+      <div class="import-export">
+        <button id="btn-export-all" class="btn btn-primary">💾 Export All Data to JSON</button>
+        <button id="btn-export-csv-brani" class="btn btn-secondary">📄 Export Brani as CSV</button>
+        <button id="btn-import-file" class="btn btn-info">📂 Import JSON File</button>
+        <input type="file" id="import-file-input" accept=".json" style="display: none;" />
+      </div>
+    </section>
+
+    <!-- TEST CONSOLE -->
+    <section class="admin-section">
+      <h2>🖥️ Test Console</h2>
+      <div class="console-panel">
+        <div class="console-output" id="console-output"></div>
+        <div class="console-input">
+          <input type="text" id="console-input" placeholder="console.log(...)" class="input">
+          <button id="btn-console-execute" class="btn btn-primary">Execute</button>
+          <button id="btn-console-clear" class="btn btn-secondary">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICK NAVIGATION -->
+    <section class="admin-section">
+      <h2>🚀 Quick Navigation</h2>
+      <div class="nav-buttons">
+        <a href="../index.html" class="btn btn-primary">🏠 Home</a>
+        <a href="bordero.html" class="btn btn-primary">📋 Bordero (Main)</a>
+        <a href="next-coreo.html" class="btn btn-secondary">🎬 NextCoreo</a>
+        <a href="display.html" class="btn btn-secondary">📺 Monitor</a>
+        <a href="lista-serata.html" class="btn btn-secondary">📊 Lista Serata</a>
+        <a href="risultati.html" class="btn btn-secondary">📈 Risultati</a>
+        <a href="videoclip.html" class="btn btn-secondary">🎥 VideoClip</a>
+      </div>
+    </section>
+
+    <!-- BACK BUTTON -->
+    <div class="footer-action">
+      <a href="../index.html" class="btn btn-secondary">← Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - DJ Manager</title>
+  
+  <!-- Style dalle carte Eventi -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+  
+  <!-- Style Borderò personalizzato -->
+  <link rel="stylesheet" href="assets/css/bordero.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+  
+  <!-- XLSX Library per lettura file Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  
+  <!-- Config globale -->
+  <script defer src="js/config.js"></script>
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/excel-sync.js"></script>
+  <script defer src="js/data-loader.js"></script>
+  <script defer src="js/index.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">🎭 BORDERÒ - DJ Manager</h1>
+        <p class="app-subtitle">Gestione Brani e Coreografie</p>
+      </div>
+    </header>
+
+    <!-- NAVIGAZIONE PRINCIPALE -->
+    <nav class="nav-main">
+      <ul class="nav-list">
+        <li><a href="pages/bordero.html" class="nav-link active">Bordero (Principale)</a></li>
+        <li><a href="pages/display.html" class="nav-link">Display (Monitor)</a></li>
+        <li><a href="pages/next-coreo.html" class="nav-link">NextCoreo</a></li>
+        <li><a href="pages/videoclip.html" class="nav-link">Video Player</a></li>
+        <li><a href="pages/lista-serata.html" class="nav-link">Lista Serata</a></li>
+        <li><a href="pages/risultati.html" class="nav-link">Risultati</a></li>
+        <li class="nav-divider"></li>
+        <li><a href="pages/admin.html" class="nav-link">⚙️ Admin</a></li>
+      </ul>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <section class="hero">
+        <h2>Benvenuto nel BORDERÒ!</h2>
+        <p>Sistema di gestione brani e coreografie per DJ</p>
+      </section>
+
+      <!-- STATISTICHE RAPIDE -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <h3>Brani Totali</h3>
+          <p class="stat-value" id="stat-total">-</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <h3>Brani Eseguiti</h3>
+          <p class="stat-value" id="stat-completed">-</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <h3>In Sospeso</h3>
+          <p class="stat-value" id="stat-pending">-</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <h3>Ultima Sincronizzazione</h3>
+          <p class="stat-value" id="stat-sync">-</p>
+        </div>
+      </section>
+
+      <!-- PULSANTI AZIONI RAPIDE -->
+      <section class="quick-actions">
+        <h3>Azioni Rapide</h3>
+        <div class="action-buttons">
+          <a href="pages/bordero.html" class="btn btn-primary">
+            📋 Vai a Bordero Principale
+          </a>
+          <button id="btn-sync" class="btn btn-secondary">
+            🔄 Sincronizza Dati
+          </button>
+          <button id="btn-clear-cache" class="btn btn-secondary">
+            🗑️ Pulisci Cache
+          </button>
+          <button id="btn-export" class="btn btn-secondary">
+            💾 Esporta CSV
+          </button>
+        </div>
+      </section>
+
+      <!-- INFO PROGETTO -->
+      <section class="info-section">
+        <h3>📖 Informazioni Progetto</h3>
+        <div class="info-grid">
+          <div class="info-card">
+            <h4>Foglio Principale</h4>
+            <p><strong>bordero.html</strong> - Tabella completa brani con filtri, ricerca, ordinamento</p>
+          </div>
+          <div class="info-card">
+            <h4>Monitor Esterno</h4>
+            <p><strong>display.html</strong> - Proiezione lista su monitor secondario per DJ</p>
+          </div>
+          <div class="info-card">
+            <h4>Prossimo Brano</h4>
+            <p><strong>next-coreo.html</strong> - Visualizza il prossimo brano da eseguire</p>
+          </div>
+          <div class="info-card">
+            <h4>Video Player</h4>
+            <p><strong>videoclip.html</strong> - Gestione e riproduzione video coreografia</p>
+          </div>
+          <div class="info-card">
+            <h4>Lista Serata</h4>
+            <p><strong>lista-serata.html</strong> - Report completo brani eseguiti nella serata</p>
+          </div>
+          <div class="info-card">
+            <h4>Risultati</h4>
+            <p><strong>risultati.html</strong> - Statistiche e grafici esecuzione</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ISTRUZIONI RAPIDE -->
+      <section class="instructions">
+        <h3>⚡ Quick Start</h3>
+        <ol class="instruction-list">
+          <li>Clicca su <strong>"Vai a Bordero Principale"</strong> per aprire la tabella brani</li>
+          <li>Usa <strong>filtri e ricerca</strong> per trovare i brani desiderati</li>
+          <li>Seleziona un brano e fai click per <strong>marcare come eseguito</strong> (flag ✓)</li>
+          <li>Apri <strong>Display</strong> su un secondo monitor per il DJ</li>
+          <li>Usa <strong>NextCoreo</strong> per visualizzare il prossimo brano</li>
+          <li>Riproduci video su <strong>VideoClip</strong> se necessario</li>
+        </ol>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p>BORDERÒ DJ Manager v<span id="version">1.0.0</span> © 2026</p>
+      <p>
+        <a href="#" class="footer-link">Documentazione</a> | 
+        <a href="#" class="footer-link">Info</a> | 
+        <a href="#" class="footer-link">Supporto</a>
+      </p>
+    </footer>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+</body>
+
+</html>

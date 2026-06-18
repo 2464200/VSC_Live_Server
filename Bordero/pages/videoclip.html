@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - VideoClip Manager</title>
+  
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="videoclip.css" />
+  
+  <!-- XLSX Library per lettura file Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="videoclip.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">🎬 BORDERÒ - VideoClip Manager</h1>
+        <p class="app-subtitle">Gestione Video per Coreografie</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">VideoClip</span>
+    </nav>
+
+    <!-- CURRENT VIDEO PLAYER -->
+    <section class="player-section">
+      <div class="video-player">
+        <video id="main-video" width="100%" height="auto" controls>
+          <source id="video-source" src="" type="video/mp4" />
+          Il tuo browser non supporta i video HTML5
+        </video>
+        <div id="no-video" class="no-video-placeholder">
+          <p>🎬 Nessun video selezionato</p>
+          <small>Seleziona una coreografia dalla tabella per riprodurre il video</small>
+        </div>
+      </div>
+
+      <div class="video-info">
+        <h2 id="video-title">--</h2>
+        <div class="video-meta">
+          <span id="video-autore">Autore: --</span>
+          <span id="video-coreo">Coreografo: --</span>
+          <span id="video-genere">Genere: --</span>
+        </div>
+        <div class="video-controls">
+          <button id="btn-play" class="btn btn-primary">▶️ PLAY</button>
+          <button id="btn-pause" class="btn btn-secondary">⏸️ PAUSA</button>
+          <button id="btn-stop" class="btn btn-secondary">⏹️ FERMA</button>
+          <button id="btn-fullscreen" class="btn btn-secondary">⛶ FULLSCREEN</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIDEO LIBRARY -->
+    <section class="library-section">
+      <h3>📚 Libreria Video (Coreografie Disponibili)</h3>
+      
+      <div class="search-filter-row">
+        <input 
+          type="text" 
+          id="video-search" 
+          class="search-input" 
+          placeholder="🔍 Cerca per titolo, autore, coreografo..."
+        />
+        <select id="genere-filter" class="filter-select">
+          <option value="">Tutti i Generi</option>
+        </select>
+      </div>
+
+      <div class="videos-list" id="videos-list">
+        <!-- Dinamico -->
+      </div>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <section class="quick-actions">
+      <button id="btn-back" class="btn btn-secondary">← INDIETRO</button>
+      <button id="btn-bordero" class="btn btn-primary">📋 TORNA A BORDERO</button>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Prossimo Brano</title>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="next-coreo.css" />
+  
+  <!-- Config globale -->
+  <!-- XLSX Library per lettura file Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="next-coreo.js"></script>
+</head>
+
+<body class="fullscreen-display">
+  <div class="next-coreo-container">
+    <!-- HEADER SERATA INFO -->
+    <header class="serata-header">
+      <div class="serata-info-bar">
+        <div class="info-item">
+          <span class="label">DJ:</span>
+          <span class="value" id="header-dj">--</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Data:</span>
+          <span class="value" id="header-data">--</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Luogo:</span>
+          <span class="value" id="header-luogo">--</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Brani Eseguiti:</span>
+          <span class="value" id="header-completed">0/0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN DISPLAY -->
+    <main class="next-coreo-main">
+      <!-- PROSSIMO BRANO GRANDE -->
+      <section class="next-brano-display">
+        <div class="brano-card" id="next-brano-card">
+          <div class="card-content">
+            <!-- Numero ordine -->
+            <div class="brano-numero" id="brano-numero">--</div>
+
+            <!-- TITOLO GRANDE -->
+            <div class="brano-titolo-box">
+              <h1 class="brano-titolo" id="brano-titolo">-- SELEZIONARE SERATA --</h1>
+            </div>
+
+            <!-- AUTORE -->
+            <div class="brano-autore-box">
+              <p class="brano-autore" id="brano-autore">Autore</p>
+            </div>
+
+            <!-- GRID INFO -->
+            <div class="brano-info-grid">
+              <div class="info-box">
+                <span class="info-label">Coreografo</span>
+                <span class="info-value" id="brano-coreografo">--</span>
+              </div>
+              <div class="info-box">
+                <span class="info-label">Genere</span>
+                <span class="info-value" id="brano-genere">--</span>
+              </div>
+              <div class="info-box">
+                <span class="info-label">Livello</span>
+                <span class="info-value" id="brano-livello">--</span>
+              </div>
+              <div class="info-box">
+                <span class="info-label">Categoria</span>
+                <span class="info-value" id="brano-categoria">--</span>
+              </div>
+            </div>
+
+            <!-- COLLABORATORI -->
+            <div class="brano-collaboratori-box">
+              <span class="label">Collaboratori:</span>
+              <span class="value" id="brano-collaboratori">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" id="empty-state">
+          <div class="empty-content">
+            <div class="empty-icon">🎭</div>
+            <p class="empty-text">Nessun brano da suonare</p>
+            <p class="empty-subtext">Seleziona un brano dalla tabella principale</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATISTICHE LIVE -->
+      <aside class="stats-sidebar">
+        <div class="stats-box">
+          <h3>📊 STATISTICHE</h3>
+          <div class="stat-row">
+            <span class="stat-label">Totale:</span>
+            <span class="stat-value" id="stat-total">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Eseguiti:</span>
+            <span class="stat-value stat-completed" id="stat-completed">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Mancano:</span>
+            <span class="stat-value stat-pending" id="stat-pending">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Percentuale:</span>
+            <span class="stat-value stat-percent" id="stat-percent">0%</span>
+          </div>
+        </div>
+
+        <!-- TEMPO DECORRSO -->
+        <div class="stats-box">
+          <h3>⏱️ TIMING</h3>
+          <div class="stat-row">
+            <span class="stat-label">Ore:</span>
+            <span class="stat-value" id="stat-ore">00</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Minuti:</span>
+            <span class="stat-value" id="stat-minuti">00</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Secondi:</span>
+            <span class="stat-value" id="stat-secondi">00</span>
+          </div>
+        </div>
+
+        <!-- CONTROLLI -->
+        <div class="controls-box">
+          <button id="btn-refresh" class="btn btn-secondary" title="Aggiorna display">🔄</button>
+          <button id="btn-fullscreen" class="btn btn-primary" title="Fullscreen">⛶</button>
+          <button id="btn-back" class="btn btn-secondary" title="Torna alla tabella">← Indietro</button>
+        </div>
+      </aside>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p id="footer-status">Sincronizzazione in tempo reale con tabella principale...</p>
+    </footer>
+  </div>
+</body>
+</html>

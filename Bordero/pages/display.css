@@ -1,0 +1,318 @@
+/**
+ * BORDERÒ - Display Monitor Secondario CSS
+ * Stile per monitor secondario (tabella live, read-only)
+ */
+
+.display-body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  overflow: hidden;
+}
+
+.display-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ========== HEADER ========== */
+.display-header {
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  border-bottom: 3px solid var(--primary-orange);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  align-items: center;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.serata-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  background-color: rgba(255, 127, 0, 0.1);
+  border: 1px solid var(--primary-orange);
+  border-radius: 5px;
+}
+
+.badge-label {
+  font-size: 0.85em;
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-value {
+  font-size: 1em;
+  color: var(--primary-orange);
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}
+
+.badge-value.completed {
+  color: var(--success-green);
+}
+
+/* ========== TABLE LIVE ========== */
+.table-live {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.brani-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+  background-color: var(--bg-dark);
+}
+
+.brani-table thead {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border-bottom: 2px solid var(--primary-orange);
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.brani-table th {
+  padding: 12px 15px;
+  text-align: left;
+  color: var(--primary-orange);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9em;
+  border-right: 1px solid var(--border-color);
+}
+
+.brani-table th:last-child {
+  border-right: none;
+}
+
+.brani-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+  height: 40px;
+}
+
+.brani-table tbody tr:hover {
+  background-color: rgba(255, 127, 0, 0.1);
+}
+
+.brani-table tbody tr.completed {
+  background-color: rgba(40, 167, 69, 0.15);
+  opacity: 0.7;
+}
+
+.brani-table tbody tr.completed:hover {
+  background-color: rgba(40, 167, 69, 0.25);
+}
+
+.brani-table td {
+  padding: 10px 15px;
+  border-right: 1px solid var(--border-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-word;
+}
+
+.brani-table td:last-child {
+  border-right: none;
+}
+
+.brani-table td.col-flag {
+  text-align: center;
+  width: 50px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.brani-table td.col-flag.completed {
+  color: var(--success-green);
+  font-weight: bold;
+}
+
+.brani-table td.col-id {
+  width: 60px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--primary-orange);
+}
+
+.brani-table td.col-titolo {
+  font-weight: 600;
+  color: var(--text-light);
+  width: 250px;
+}
+
+.brani-table td.col-autore {
+  width: 180px;
+  color: #ccc;
+}
+
+.brani-table td.col-coreografo {
+  width: 180px;
+  color: #999;
+}
+
+.brani-table td.col-genere {
+  width: 120px;
+  color: #bbb;
+}
+
+.brani-table td.col-livello {
+  width: 130px;
+  color: #aaa;
+  font-size: 0.9em;
+}
+
+/* ========== EMPTY STATE ========== */
+.empty-state {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 5;
+}
+
+.empty-state.show {
+  display: block;
+}
+
+.empty-content {
+  background-color: rgba(26, 26, 26, 0.95);
+  border: 2px dashed var(--primary-orange);
+  border-radius: 10px;
+  padding: 40px 80px;
+}
+
+.empty-icon {
+  font-size: 4em;
+  margin-bottom: 15px;
+}
+
+.empty-content p {
+  color: #888;
+  font-size: 1.2em;
+  margin: 10px 0;
+}
+
+/* ========== FOOTER ========== */
+.display-footer {
+  background-color: #1a1a1a;
+  border-top: 2px solid var(--primary-orange);
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85em;
+  color: #888;
+}
+
+#footer-status {
+  font-weight: 600;
+  color: var(--primary-orange);
+}
+
+.timestamp {
+  font-style: italic;
+  font-family: 'Courier New', monospace;
+}
+
+/* ========== SCROLLBAR CUSTOM ========== */
+.table-live::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-live::-webkit-scrollbar-track {
+  background: rgba(255, 127, 0, 0.1);
+}
+
+.table-live::-webkit-scrollbar-thumb {
+  background: var(--primary-orange);
+  border-radius: 4px;
+}
+
+.table-live::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .display-header {
+    gap: 15px;
+  }
+
+  .serata-badge {
+    padding: 6px 10px;
+    font-size: 0.9em;
+  }
+
+  .brani-table {
+    font-size: 0.85em;
+  }
+
+  .brani-table th,
+  .brani-table td {
+    padding: 8px 10px;
+  }
+
+  .brani-table tbody tr {
+    height: 35px;
+  }
+
+  .brani-table td.col-titolo {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .display-header {
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .serata-badge {
+    padding: 4px 8px;
+    font-size: 0.8em;
+  }
+
+  .brani-table {
+    font-size: 0.75em;
+  }
+
+  .brani-table th,
+  .brani-table td {
+    padding: 6px 8px;
+  }
+
+  .brani-table tbody tr {
+    height: 30px;
+  }
+
+  .brani-table td.col-titolo {
+    width: 150px;
+  }
+
+  .brani-table td.col-autore {
+    width: 120px;
+  }
+
+  .brani-table td.col-coreografo {
+    width: 120px;
+  }
+}

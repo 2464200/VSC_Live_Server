@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Monitor Secondario</title>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="display.css" />
+  
+  <!-- Config globale -->
+  <!-- XLSX Library per lettura file Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="display.js"></script>
+</head>
+
+<body class="display-body">
+  <div class="display-container">
+    <!-- HEADER SERATA -->
+    <header class="display-header">
+      <div class="serata-badge">
+        <span class="badge-label">DJ:</span>
+        <span class="badge-value" id="header-dj">--</span>
+      </div>
+      <div class="serata-badge">
+        <span class="badge-label">Data:</span>
+        <span class="badge-value" id="header-data">--</span>
+      </div>
+      <div class="serata-badge">
+        <span class="badge-label">Luogo:</span>
+        <span class="badge-value" id="header-luogo">--</span>
+      </div>
+      <div class="serata-badge">
+        <span class="badge-label">Brani Eseguiti:</span>
+        <span class="badge-value completed" id="header-completed">0/0</span>
+      </div>
+    </header>
+
+    <!-- TABELLA LIVE -->
+    <section class="table-live">
+      <table class="brani-table">
+        <thead>
+          <tr>
+            <th class="col-flag">✓</th>
+            <th class="col-id">ID</th>
+            <th class="col-titolo">Titolo</th>
+            <th class="col-autore">Autore</th>
+            <th class="col-coreografo">Coreografo</th>
+            <th class="col-genere">Genere</th>
+            <th class="col-livello">Livello</th>
+          </tr>
+        </thead>
+        <tbody id="display-tbody">
+          <!-- Rows dinamiche -->
+        </tbody>
+      </table>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-content">
+          <div class="empty-icon">📊</div>
+          <p>Nessun dato da visualizzare</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATUS BAR -->
+    <footer class="display-footer">
+      <span id="footer-status">Sincronizzazione...</span>
+      <span class="timestamp" id="footer-timestamp">Ultimo aggiornamento: --</span>
+    </footer>
+  </div>
+</body>
+</html>
