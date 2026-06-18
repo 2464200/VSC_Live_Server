@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BORDERO - Data Loader & Sync
  * Gestisce il caricamento dei dati da CSV e sincronizzazione con Excel
  */
@@ -22,7 +22,7 @@ class DataLoader {
       
       if (excelSynced) {
         // Se Excel sync OK, i dati sono in cache
-        logger.info('✓ Dati sincronizzati da Excel');
+        logger.info('Dati sincronizzati da Excel');
         return;
       } else {
         // Fallback a CSV locale
@@ -72,8 +72,8 @@ class DataLoader {
       this.lastSync = DateUtils.now();
       Storage.set(BORDERO_CONFIG.CACHE_KEY_SYNC, this.lastSync);
 
-      logger.info(`✓ Caricati ${this.brani.length} brani da CSV`);
-      Toast.success(`✓ ${this.brani.length} brani caricati`);
+      logger.info(`Caricati ${this.brani.length} brani da CSV`);
+      Toast.success(`${this.brani.length} brani caricati`);
 
       return this.brani;
     } catch (error) {
@@ -107,7 +107,7 @@ class DataLoader {
       
       // Salva in cache
       Storage.set('BORDERO_COMUNI_DATA', comuni);
-      logger.info(`✓ Caricati ${comuni.length} comuni da CSV`);
+      logger.info(`Caricati ${comuni.length} comuni da CSV`);
       return comuni;
     } catch (error) {
       logger.error('Errore caricamento Comuni', error);
@@ -135,47 +135,11 @@ class DataLoader {
       
       // Salva in cache
       Storage.set('BORDERO_DBASE_DATA', dj);
-      logger.info(`✓ Caricati ${dj.length} DJ da CSV`);
+      logger.info(`Caricati ${dj.length} DJ da CSV`);
       return dj;
     } catch (error) {
       logger.error('Errore caricamento DJ', error);
       return [];
-    }
-  }
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!data.values) {
-        throw new Error('Nessun dato nel foglio');
-      }
-
-      // Converti Google Sheets format a nostro formato
-      const headers = data.values[0].map(h => h.toLowerCase().replace(/\s+/g, '_'));
-      const brani = [];
-
-      for (let i = 1; i < data.values.length; i++) {
-        const row = data.values[i];
-        if (!row || !row[0]) continue;
-
-        const brano = {};
-        headers.forEach((header, idx) => {
-          brano[header] = row[idx] || '';
-        });
-        brani.push(brano);
-      }
-
-      this.brani = brani;
-      Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.brani);
-      this.lastSync = DateUtils.now();
-      Storage.set(BORDERO_CONFIG.CACHE_KEY_SYNC, this.lastSync);
-
-      logger.info(`✓ Sincronizzati ${brani.length} brani da Google Sheets`);
-      Toast.success(`✓ Sincronizzati ${brani.length} brani`);
-    } catch (error) {
-      logger.error('Errore sincronizzazione Google Sheets', error);
-      Toast.error('Errore sincronizzazione: ' + error.message);
-    } finally {
-      this.isSyncing = false;
     }
   }
 
@@ -411,7 +375,7 @@ class DataLoader {
     Storage.set(BORDERO_CONFIG.CACHE_KEY_SERATA_HISTORY, history);
 
     logger.info(`Serata archiviata (totale: ${history.length})`);
-    Toast.success(`✓ Serata archiviata (${braniWithFlags.filter(b => b.flag === 'X').length} brani eseguiti)`);
+    Toast.success(`Serata archiviata (${braniWithFlags.filter(b => b.flag === 'X').length} brani eseguiti)`);
     
     return serata;
   }
@@ -439,39 +403,9 @@ class DataLoader {
     logger.warn(`Serata non trovata: ${serataId}`);
     return null;
   }
-
-  /**
-   * Carica DJ da dBase.csv
-   */
-  async loadDJ() {
-    try {
-      const csvContent = await Network.fetchCSV('./data/dBase.csv');
-      const dj = CSVParser.parse(csvContent);
-      logger.info(`✓ Caricati ${dj.length} DJ`);
-      return dj;
-    } catch (error) {
-      logger.error('Errore caricamento DJ', error);
-      return [];
-    }
-  }
-
-  /**
-   * Carica Comuni da comuni_italia.csv
-   */
-  async loadComuni() {
-    try {
-      const csvContent = await Network.fetchCSV('./data/comuni_italia.csv');
-      const comuni = CSVParser.parse(csvContent);
-      logger.info(`✓ Caricati ${comuni.length} comuni`);
-      return comuni;
-    } catch (error) {
-      logger.error('Errore caricamento comuni', error);
-      return [];
-    }
-  }
 }
 
 // Istanza globale
 const dataLoader = new DataLoader();
 
-logger.info('✓ DataLoader.js caricato');
+logger.info('DataLoader.js caricato');
