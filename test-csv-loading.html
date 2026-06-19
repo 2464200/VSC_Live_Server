@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Test CSV Loading</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+    .test-result { margin: 20px 0; padding: 15px; border-radius: 5px; }
+    .success { background: #d4edda; border: 1px solid #28a745; color: #155724; }
+    .error { background: #f8d7da; border: 1px solid #dc3545; color: #721c24; }
+    .info { background: #d1ecf1; border: 1px solid #17a2b8; color: #0c5460; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background: #f8f9fa; font-weight: bold; }
+    tr:hover { background: #f5f5f5; }
+    h2 { color: #333; margin-top: 30px; border-bottom: 2px solid #ff7f00; padding-bottom: 10px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    .stat-card { background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #ff7f00; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #ff7f00; }
+    .stat-label { color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎭 BORDERÒ - Test Caricamento CSV</h1>
+  
+  <div id="results"></div>
+</div>
+
+<script>
+  const resultsDiv = document.getElementById('results');
+
+  function addResult(title, content, type = 'info') {
+    const div = document.createElement('div');
+    div.className = `test-result ${type}`;
+    div.innerHTML = `<strong>${title}:</strong><br>${content}`;
+    resultsDiv.appendChild(div);
+  }
+
+  /**
+   * CSV Parser semplice
+   */
+  function parseCSV(csvContent) {
+    const lines = csvContent.trim().split('\n');
+    if (lines.length === 0) return [];
+
+    const headers = lines[0].split(',').map(h => h.trim());
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const obj = {};
+      const values = lines[i].split(',');
+      headers.forEach((header, idx) => {
+        obj[header] = values[idx] ? values[idx].trim() : '';
+      });
+      data.push(obj);
+    }
+
+    return data;
+  }
+
+  /**
+   * Test caricamento CSV
+   */
+  async function testCSVLoading() {
+    try {
+      addResult('🔄 Test 1: Caricamento brani.csv', 'In corso...', 'info');
+      
+      const response = await fetch('./Bordero/data/brani.csv');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const csvContent = await response.text();
+      const brani = parseCSV(csvContent);
+
+      if (brani.length === 0) {
+        addResult('❌ Test 1: Caricamento brani.csv', 'File caricato ma nessun dato trovato', 'error');
+        return;
+      }
+
+      addResult('✅ Test 1: Caricamento brani.csv', 
+        `<strong>${brani.length} brani caricati</strong><br>
+         Colonne: ${Object.keys(brani[0]).length}<br>
+         Primo brano: "${brani[0].Titolo}" (ID: ${brani[0].ID})<br>
+         Genere: ${brani[0].Genere} | Livello: ${brani[0].Info_Livello}`, 
+        'success');
+
+      // Mostra tabella dei primi 5 brani
+      let tableHTML = '<table><tr><th>ID</th><th>Titolo</th><th>Autore</th><th>Genere</th><th>Livello</th></tr>';
+      for (let i = 0; i < Math.min(5, brani.length); i++) {
+        tableHTML += `<tr>
+          <td>${brani[i].ID}</td>
+          <td>${brani[i].Titolo}</td>
+          <td>${brani[i].Autore}</td>
+          <td>${brani[i].Genere}</td>
+          <td>${brani[i].Info_Livello}</td>
+        </tr>`;
+      }
+      tableHTML += '</table>';
+      
+      const div = document.createElement('div');
+      div.innerHTML = `<h3>Primi 5 brani:</h3>${tableHTML}`;
+      resultsDiv.appendChild(div);
+
+      // Statistiche
+      const generi = {};
+      const livelli = {};
+      brani.forEach(b => {
+        generi[b.Genere] = (generi[b.Genere] || 0) + 1;
+        livelli[b.Info_Livello] = (livelli[b.Info_Livello] || 0) + 1;
+      });
+
+      let statsHTML = '<div class="stats">';
+      statsHTML += `<div class="stat-card"><div class="stat-value">${brani.length}</div><div class="stat-label">Totale Brani</div></div>`;
+      statsHTML += `<div class="stat-card"><div class="stat-value">${Object.keys(generi).length}</div><div class="stat-label">Generi Unici</div></div>`;
+      statsHTML += `<div class="stat-card"><div class="stat-value">${Object.keys(livelli).length}</div><div class="stat-label">Livelli Difficoltà</div></div>`;
+      statsHTML += '</div>';
+
+      const statsDiv = document.createElement('div');
+      statsDiv.innerHTML = `<h3>📊 Statistiche:</h3>${statsHTML}`;
+      resultsDiv.appendChild(statsDiv);
+
+      // Generi breakdown
+      let generiHTML = '<h4>Distribuzione Generi:</h4><ul>';
+      Object.entries(generi).sort((a, b) => b[1] - a[1]).forEach(([genere, count]) => {
+        generiHTML += `<li><strong>${genere}</strong>: ${count} brani</li>`;
+      });
+      generiHTML += '</ul>';
+
+      const generiDiv = document.createElement('div');
+      generiDiv.innerHTML = generiHTML;
+      resultsDiv.appendChild(generiDiv);
+
+      return brani;
+
+    } catch (error) {
+      addResult('❌ Test 1: Caricamento brani.csv', `Errore: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Test caricamento comuni_italia.csv
+   */
+  async function testComuniLoading() {
+    try {
+      addResult('🔄 Test 2: Caricamento comuni_italia.csv', 'In corso...', 'info');
+      
+      const response = await fetch('./Bordero/data/comuni_italia.csv');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const csvContent = await response.text();
+      const comuni = parseCSV(csvContent);
+
+      if (comuni.length === 0) {
+        addResult('❌ Test 2: Caricamento comuni_italia.csv', 'File caricato ma nessun dato trovato', 'error');
+        return;
+      }
+
+      addResult('✅ Test 2: Caricamento comuni_italia.csv', 
+        `<strong>${comuni.length} comuni caricati</strong>`, 
+        'success');
+
+      return comuni;
+
+    } catch (error) {
+      addResult('❌ Test 2: Caricamento comuni_italia.csv', `Errore: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Test caricamento dBase.csv
+   */
+  async function testDBaseLoading() {
+    try {
+      addResult('🔄 Test 3: Caricamento dBase.csv', 'In corso...', 'info');
+      
+      const response = await fetch('./Bordero/data/dBase.csv');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const csvContent = await response.text();
+      const dbase = parseCSV(csvContent);
+
+      if (dbase.length === 0) {
+        addResult('❌ Test 3: Caricamento dBase.csv', 'File caricato ma nessun dato trovato', 'error');
+        return;
+      }
+
+      addResult('✅ Test 3: Caricamento dBase.csv', 
+        `<strong>${dbase.length} DJ caricati</strong>`, 
+        'success');
+
+      return dbase;
+
+    } catch (error) {
+      addResult('❌ Test 3: Caricamento dBase.csv', `Errore: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * Esegui tutti i test
+   */
+  async function runAllTests() {
+    addResult('🚀 Inizio Test', `Timestamp: ${new Date().toLocaleString('it-IT')}`, 'info');
+    
+    const brani = await testCSVLoading();
+    await testComuniLoading();
+    await testDBaseLoading();
+
+    if (brani && brani.length > 0) {
+      addResult('✅ TUTTI I TEST SUPERATI!', 
+        'I CSV sono caricati correttamente e il frontend può accedere ai dati. 🎉', 
+        'success');
+    }
+  }
+
+  // Esegui test al caricamento
+  runAllTests();
+</script>
+
+</body>
+</html>
