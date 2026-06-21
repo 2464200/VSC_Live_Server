@@ -76,13 +76,6 @@ class DataLoader {
       return normalized;
     }
 
-    // Se offline, usa cache fallback
-    if (!Network.isOnline()) {
-      logger.warn('OFFLINE: Nessuna cache disponibile');
-      Toast.warning('Sei offline! Usando cache (potrebbe essere non aggiornata)');
-      return [];
-    }
-
     // Carica da CSV locale
     try {
       const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_BRANI);
@@ -112,29 +105,84 @@ class DataLoader {
   /**
    * Carica Comuni da cache Excel o CSV
    */
+  parseComuniLombardia(csvContent) {
+   const parsed = CSVParser.parse(csvContent);
+   if (!parsed || parsed.length === 0) {
+     return [];
+   }
+
+   const matches = parsed
+     .filter(row => {
+       const provincia = String(row.denominazione_provincia || row.provincia || row['denominazione provincia'] || '').trim();
+       return provincia.toLowerCase().includes('bergamo');
+     })
+     .map(row => {
+       return String(row.denominazione_in_italiano || row.denominazione_in_italiano || row['denominazione in italiano'] || row.nome || row.name || '').trim();
+     })
+     .filter(name => name.length > 0);
+
+   return [...new Set(matches)];
+  }
+
   async loadComuni() {
-    logger.info('DataLoader.loadComuni()');
+   logger.info('DataLoader.loadComuni()');
 
-    try {
-      // Prova cache Excel prima
-      const cachedFromExcel = Storage.get('BORDERO_COMUNI_DATA');
-      if (cachedFromExcel && cachedFromExcel.length > 0) {
-        logger.info(`Comuni caricati da cache Excel (${cachedFromExcel.length})`);
-        return cachedFromExcel;
-      }
+   try {
+     // Prova cache Excel prima
+     const cachedFromExcel = Storage.get('BORDERO_COMUNI_DATA');
+     if (cachedFromExcel && cachedFromExcel.length > 0) {
+       logger.info(`Comuni caricati da cache Excel (${cachedFromExcel.length})`);
+       return cachedFromExcel;
+     }
 
-      // Fallback a CSV
-      const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_COMUNI);
-      const comuni = CSVParser.parse(csvContent);
-      
-      // Salva in cache
-      Storage.set('BORDERO_COMUNI_DATA', comuni);
-      logger.info(`Caricati ${comuni.length} comuni da CSV`);
-      return comuni;
-    } catch (error) {
-      logger.error('Errore caricamento Comuni', error);
+     // Carica CSV Lombardia e filtra per provincia Bergamo
+     const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_COMUNI_LOMBARDIA);
+     const comuniNames = this.parseComuniLombardia(csvContent);
+     const comuni = comuniNames.map(name => ({ nome: name, name }));
+
+     // Salva in cache
+     Storage.set('BORDERO_COMUNI_DATA', comuni);
+     logger.info(`Caricati ${comuni.length} comuni da CSV Lombardia`);
+     return comuni;
+   } catch (error) {
+     logger.error('Errore caricamento Comuni', error);
+     return [];
+   }
+  }
+ 
+  /**
+   * Estrae i nomi DJ da dBase.csv.
+   * Supporta sia CSV con intestazione sia CSV senza header.
+   */
+  parseDJNamesFromCsv(csvContent) {
+    const lines = csvContent
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    if (lines.length === 0) {
       return [];
     }
+
+    // Prima prova a interpretare il CSV come oggetti con header
+    try {
+      const parsed = CSVParser.parse(csvContent);
+      if (parsed.length > 0) {
+        const firstRow = parsed[0];
+        const hasHeader = Object.keys(firstRow).some(key => /^(nome|name|dj|deejay)$/i.test(key));
+        if (hasHeader) {
+          return parsed.map(row => row.nome || row.name || row.dj || row.deejay || Object.values(row)[0] || '').filter(Boolean);
+        }
+      }
+    } catch (e) {
+      logger.warn('parseDJNamesFromCsv: impossibile usare header', e.message);
+    }
+
+    // Fallback: prendi le prime tre righe e usa la prima colonna non vuota
+    return lines.map(line => {
+      const cols = CSVParser.parseCSVLine(line);
+      return cols.find(col => col && col.trim().length > 0)?.trim() || '';
+    }).filter(Boolean);
   }
 
   /**
@@ -142,7 +190,7 @@ class DataLoader {
    */
   async loadDJ() {
     logger.info('DataLoader.loadDJ()');
-
+ 
     try {
       // Prova cache Excel prima
       const cachedFromExcel = Storage.get('BORDERO_DBASE_DATA');
@@ -150,15 +198,17 @@ class DataLoader {
         logger.info(`DJ caricati da cache Excel (${cachedFromExcel.length})`);
         return cachedFromExcel;
       }
-
-      // Fallback a CSV
+ 
+      // Carica CSV locale
       const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_DBASE);
-      const dj = CSVParser.parse(csvContent);
-      
+      const names = this.parseDJNamesFromCsv(csvContent)
+        .slice(0, 3)
+        .map(name => ({ nome: name, name }));
+       
       // Salva in cache
-      Storage.set('BORDERO_DBASE_DATA', dj);
-      logger.info(`Caricati ${dj.length} DJ da CSV`);
-      return dj;
+      Storage.set('BORDERO_DBASE_DATA', names);
+      logger.info(`Caricati ${names.length} DJ da CSV`);
+      return names;
     } catch (error) {
       logger.error('Errore caricamento DJ', error);
       return [];

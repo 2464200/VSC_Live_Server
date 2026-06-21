@@ -18,7 +18,7 @@ const QRCodeLib = require('qrcode');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 
 const app = express();
-const PORT = process.env.UNIFIED_PORT || 5500;
+let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
 const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 
 // ===== STATO GLOBALE =====
@@ -1186,18 +1186,46 @@ function getLocalIP() {
     return 'localhost';
 }
 
-app.listen(PORT, () => {
-    const localIP = getLocalIP();
-    console.log('\n' + '='.repeat(80));
-    console.log('🚀 UNIFIED SERVER - Server consolidato avviato');
-    console.log('='.repeat(80));
-    console.log(`📍 Server: http://localhost:${PORT}`);
-    console.log(`📍 Rete:   http://${localIP}:${PORT}`);
-    console.log(`\n📌 Accesso:`);
-    console.log(`   🌐 Web:     http://localhost:${PORT}/`);
-    console.log(`   📄 PDF API: http://localhost:${PORT}/api/pdf-list`);
-    console.log(`   🎵 Eventi:  http://localhost:${PORT}/eventi/eventi.html`);
-    console.log('='.repeat(80) + '\n');
+function startServer(port, maxRetries = 5) {
+    return new Promise((resolve, reject) => {
+        const server = app.listen(port, () => {
+            const localIP = getLocalIP();
+            console.log('\n' + '='.repeat(80));
+            console.log('🚀 UNIFIED SERVER - Server consolidato avviato');
+            console.log('='.repeat(80));
+            console.log(`📍 Server: http://localhost:${port}`);
+            console.log(`📍 Rete:   http://${localIP}:${port}`);
+            console.log(`\n📌 Accesso:`);
+            console.log(`   🌐 Web:     http://localhost:${port}/`);
+            console.log(`   📄 PDF API: http://localhost:${port}/api/pdf-list`);
+            console.log(`   🎵 Eventi:  http://localhost:${port}/eventi/eventi.html`);
+            console.log('='.repeat(80) + '\n');
+            PORT = port;
+            resolve(server);
+        });
+
+        server.on('error', async (err) => {
+            if (err.code === 'EADDRINUSE' && maxRetries > 0) {
+                const nextPort = port + 1;
+                console.warn(`⚠️ Porta ${port} occupata, provo porta ${nextPort}...`);
+                setTimeout(() => {
+                    startServer(nextPort, maxRetries - 1)
+                        .then(resolve)
+                        .catch(reject);
+                }, 250);
+                return;
+            }
+            reject(err);
+        });
+    });
+}
+
+startServer(PORT).catch((err) => {
+    console.error('❌ Impossibile avviare il server:', err.message);
+    if (err.code === 'EADDRINUSE') {
+        console.error(`   La porta ${PORT} è già in uso. Chiudi l'altra applicazione o imposta UNIFIED_PORT su una porta libera.`);
+    }
+    process.exit(1);
 });
 
 // Graceful shutdown
