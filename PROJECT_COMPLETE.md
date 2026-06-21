@@ -1,5 +1,8 @@
 # ✅ BORDERÒ PROJECT - COMPLETION REPORT
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 **Date:** 2026-06-18  
 **Status:** 🎉 **FULLY COMPLETE & READY FOR PRODUCTION**  
 **Total Session Time:** 8+ hours  
@@ -475,3 +478,4 @@ This project successfully demonstrates:
 ---
 
 *This document serves as final project documentation and completion report for the Borderò DJ Manager Web Application conversion project.*
+

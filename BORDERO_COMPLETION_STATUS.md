@@ -1,5 +1,8 @@
 # 🎭 BORDERÒ - VERIFICATION & COMPLETION SUMMARY
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## ✅ PROGETTO COMPLETATO CON SUCCESSO
 
 ### 📊 Statistiche Finali:
@@ -324,3 +327,4 @@ The application is running on http://localhost:8000 and ready for comprehensive 
 **Last Updated:** 2026-04-25  
 **Version:** 1.0.0  
 **Status:** Production Ready ✅
+

@@ -1,5 +1,8 @@
 # 🚀 BORDERÒ - QUICK START GUIDE
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## ⚡ Come Avviare il Progetto
 
 ### **OPZIONE 1: Python (Consigliato - Più Rapido)**
@@ -221,3 +224,4 @@ Bordero/
 Se qualcosa non funziona, controlla la console (F12) per errori specifici.
 
 **Buon lavoro! 🚀**
+

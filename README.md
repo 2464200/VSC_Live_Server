@@ -1,157 +1,148 @@
-﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+# VSC Live Server — Guida unificata del progetto
 
-# VSC Live Server
+Questa è la guida principale per il progetto **VSC Live Server**, che include la soluzione completo per la sincronizzazione Google Sheets / CSV, il frontend Borderò e il sistema Eventi.
 
-Sistema locale per gestione pagine web, PDF ed Eventi con avvio e arresto automatizzati.
+## Indice
 
-## Modello attuale
-Il progetto gira normalmente con un solo server:
+- [Overview](#overview)
+- [Architettura progetto](#architettura-progetto)
+- [Server e pagine principali](#server-e-pagine-principali)
+- [Bordero e sincronizzazione CSV](#bordero-e-sincronizzazione-csv)
+- [Eventi e pagine collegate](#eventi-e-pagine-collegate)
+- [Documentazione completa](#documentazione-completa)
+- [Link rapidi ai file](#link-rapidi-ai-file)
+- [Uso operativo](#uso-operativo)
+- [Git e versionamento](#git-e-versionamento)
+- [Note aggiuntive](#note-aggiuntive)
 
-- `unified-server.js`
-- porta `5500`
+## Overview
 
-Questo server espone:
-- frontend statico
-- API PDF
-- API Eventi
+Il progetto si basa su un unico punto di riferimento per la documentazione: questo file `README.md` nella radice del repository. Qui trovi le indicazioni per l'intera soluzione e i link per navigare nelle singole sezioni.
 
-## URL principali
+## Architettura progetto
+
+- Root repository: `VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion`
+- `Bordero/`: applicazione DJ Manager basata su HTML/CSS/JS e sincronizzazione CSV/Google Sheets.
+- `Eventi/`: modulo Eventi, con pagine web per gestione eventi, visualizer e API.
+- `server/`: server di sincronizzazione e setup backend per Bordero.
+- `pdf/`: documentazione e risorse PDF.
+
+## Server e pagine principali
+
+Il flusso standard utilizza ora un singolo server unificato o, in caso di test locali, un server statico semplice.
+
+- Portale principale: `http://localhost:5500/index.html`
+- Borderò locale statico: `http://localhost:5501/Bordero/pages/bordero.html` (test)
+- API sync Borderò: `http://localhost:5501/api/status` se il server di sync è avviato sulla porta `5501` o `5500` a seconda della configurazione.
+
+## Bordero e sincronizzazione CSV
+
+La cartella `Bordero/` contiene:
+
+- `Bordero/pages/`: le pagine HTML principali come `bordero.html`, `display.html`, `next-coreo.html`, `videoclip.html`, `lista-serata.html`, `risultati.html`.
+- `Bordero/js/`: logica JavaScript per caricamento CSV, filtro, ordinamento, sincronizzazione e UX.
+- `Bordero/data/`: file CSV locali come `brani.csv`, `comuni_italia.csv`, `dBase.csv`.
+- `Bordero/server/google-sheets-sync.js`: script per sincronizzare i CSV da Google Sheets.
+
+## Eventi e pagine collegate
+
+La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
+
+- `Eventi/README_EVENTI.md`: documentazione principale per Eventi.
+- `Eventi/DOCUMENTATION*.md`: documenti specifici per amministrazione, sviluppo e operazioni.
+- `Eventi/FLUSSO_LOGICO_DEFINITIVO.md`: dettaglio del flusso definitivo.
+
+## Documentazione completa
+
+### Documenti principali della radice
+
+- [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md)
+- [GUIDA_SELEZIONE_EXCEL.md](GUIDA_SELEZIONE_EXCEL.md)
+- [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)
+- [QUICK_START.md](QUICK_START.md)
+- [WORKFLOW_AUTOMATICO_README.md](WORKFLOW_AUTOMATICO_README.md)
+- [README_SERVER_MANAGER.md](README_SERVER_MANAGER.md)
+- [README_SETUP_STABILE.md](README_SETUP_STABILE.md)
+- [README_BORDERÒ.md](README_BORDERÒ.md)
+- [README_PDF_FIXES.md](README_PDF_FIXES.md)
+- [README_ScriptPDF1.md](README_ScriptPDF1.md)
+- [README_SOLUZIONE_DINAMICA.md](README_SOLUZIONE_DINAMICA.md)
+- [PROJECT_COMPLETE.md](PROJECT_COMPLETE.md)
+- [PROJECT_STATUS.md](PROJECT_STATUS.md)
+- [FINAL_SOLUTION.md](FINAL_SOLUTION.md)
+- [SOLUZIONE_DEFINITIVA.md](SOLUZIONE_DEFINITIVA.md)
+- [SOLUTION_SUMMARY.md](SOLUTION_SUMMARY.md)
+- [CHANGELOG.md](CHANGELOG.md)
+- [AUTOMAZIONE_COMPLETA.md](AUTOMAZIONE_COMPLETA.md)
+- [FIX_COMPLETE_SUMMARY.md](FIX_COMPLETE_SUMMARY.md)
+- [FIX_ROBUSTNESS.md](FIX_ROBUSTNESS.md)
+- [DEBUG_EXCEL_SYNC.md](DEBUG_EXCEL_SYNC.md)
+- [EVENTI_SERVER_SETUP.md](EVENTI_SERVER_SETUP.md)
+- [BORDERO_SYNC_SERVER_SETUP.md](BORDERO_SYNC_SERVER_SETUP.md)
+- [BORDERO_COMPLETION_STATUS.md](BORDERO_COMPLETION_STATUS.md)
+- [GITHUB_COMMIT_SUMMARY.md](GITHUB_COMMIT_SUMMARY.md)
+- [CONSOLE_TEST_SCRIPT.md](CONSOLE_TEST_SCRIPT.md)
+- [INTEGRITY_CHECK_20260409.md](INTEGRITY_CHECK_20260409.md)
+- [HAI_RICEVUTO.md](HAI_RICEVUTO.md)
+
+### Documenti Bordero
+
+- [Bordero/README.md](Bordero/README.md)
+- [Bordero/GOOGLE_SHEETS_API_SETUP.md](Bordero/GOOGLE_SHEETS_API_SETUP.md)
+- [Bordero/PROJECT_COMPLETION_REPORT.md](Bordero/PROJECT_COMPLETION_REPORT.md)
+- [Bordero/PROJECT_STATUS.md](Bordero/PROJECT_STATUS.md)
+
+### Documenti Eventi
+
+- [Eventi/README_EVENTI.md](Eventi/README_EVENTI.md)
+- [Eventi/DOCUMENTATION.md](Eventi/DOCUMENTATION.md)
+- [Eventi/DOCUMENTATION_ADMIN.md](Eventi/DOCUMENTATION_ADMIN.md)
+- [Eventi/DOCUMENTATION_DEVELOPMENT.md](Eventi/DOCUMENTATION_DEVELOPMENT.md)
+- [Eventi/DOCUMENTATION_OPERATIONS.md](Eventi/DOCUMENTATION_OPERATIONS.md)
+- [Eventi/FLUSSO_LOGICO_DEFINITIVO.md](Eventi/FLUSSO_LOGICO_DEFINITIVO.md)
+- [Eventi/RISOLUZIONE_PROBLEMA_CONTAINER.md](Eventi/RISOLUZIONE_PROBLEMA_CONTAINER.md)
+- [Eventi/CORREZIONE_FLUSSO_STATI.md](Eventi/CORREZIONE_FLUSSO_STATI.md)
+- [Eventi/VERIFICA_NUOVE_FUNZIONALITA.md](Eventi/VERIFICA_NUOVE_FUNZIONALITA.md)
+- [Eventi/archive/README_EVENTI.md](Eventi/archive/README_EVENTI.md)
+- [Eventi/archive/FLUSSO_LOGICO_DEFINITIVO.md](Eventi/archive/FLUSSO_LOGICO_DEFINITIVO.md)
+- [Eventi/archive/RISOLUZIONE_PROBLEMA_CONTAINER.md](Eventi/archive/RISOLUZIONE_PROBLEMA_CONTAINER.md)
+- [Eventi/archive/CORREZIONE_FLUSSO_STATI.md](Eventi/archive/CORREZIONE_FLUSSO_STATI.md)
+
+### Altri documenti
+
+- [pdf/README.md](pdf/README.md)
+
+## Link rapidi ai file
+
+- [Bordero/pages/bordero.html](Bordero/pages/bordero.html)
+- [Bordero/js/data-loader.js](Bordero/js/data-loader.js)
+- [Bordero/js/config.js](Bordero/js/config.js)
+- [Bordero/server/google-sheets-sync.js](Bordero/server/google-sheets-sync.js)
+- [Bordero/data/brani.csv](Bordero/data/brani.csv)
+- [Eventi/eventi/eventi.html](Eventi/eventi/eventi.html)
+
+## Uso operativo
+
+### Avvio principale
+
+1. Apri il progetto in VS Code.
+2. Se stai usando il server unificato, avvia `node unified-server.js` dalla radice.
+3. Se stai usando il server Bordero statico per test, avvia un server HTTP locale nella cartella `Bordero`.
+
+### URL utili
+
 - Home: `http://localhost:5500/index.html`
-- Diagnostica: `http://localhost:5500/diagnostica.html`
-- PDF: `http://localhost:5500/Prova/ScriptPDF1.html`
+- Borderò: `http://localhost:5500/Bordero/pages/bordero.html`
 - Eventi: `http://localhost:5500/eventi/eventi.html`
-- DJ Manager: `http://localhost:5500/eventi/dj-manager.html`
-- Admin Eventi: `http://localhost:5500/eventi/admin.html`
-- Visualizer: `http://localhost:5500/eventi/visualizer.html`
 
-## Avvio
-Flusso consigliato:
+## Git e versionamento
 
-1. apri la cartella `VSC_Live_Server` in VS Code
-2. lascia partire `startup.ps1`
-3. usa le pagine via `http://localhost:5500/...`
+- `git status` per controllare le modifiche
+- `git add .` per preparare il commit
+- `git commit -m "messaggio chiaro"` per salvare le modifiche
+- `git push` per inviare i cambiamenti su remoto
 
-Comandi manuali:
+## Note aggiuntive
 
-```powershell
-.\startup.ps1 -NoWait
-.\shutdown.ps1
-node test-system.js
-```
-
-## Architettura
-```text
-VSC_Live_Server/
-|- unified-server.js         # Server principale su 5500 (UNICO ATTIVO)
-|- startup.ps1               # Avvio automatico (solo unified-server)
-|- shutdown.ps1              # Arresto automatico + consolidamento Git
-|- test-system.js            # Test integritÃ  del server unificato
-|- pdf/                      # Sistema PDF dedicato
-|  |- servers/               # Server PDF standalone
-|  |- scripts/               # Script gestione PDF
-|  |- viewers/               # Interfacce web PDF
-|  |- config/                # Configurazione PDF
-|  â””â”€ README.md              # Documentazione PDF
-|- Eventi/
-|  |- eventi-server.js       # Router API Eventi (integrato in unified)
-|  |- server-eventi.js       # Standalone legacy (non avviato)
-|- DASH/                     # Script AutoHotkey per kiosk
-|- public/                   # File deployati su Firebase
-```
-
-### Note su Server e Porte
-- **Porta unica 5500**: Tutto centralizzato su `localhost:5500` per semplicitÃ  e performance
-- **Sistema PDF**: Integrato in unified-server, organizzato in `pdf/` con viewer dedicati
-- **Server legacy rimossi**: `static-server.js`, `simple-server.js`, `pdf-server.js` eliminati (duplicati inutilizzati)
-- **Server standalone**: `pdf/servers/pdf-server-simple.js`, `server-manager.js`, `server-eventi.js` mantenuti per compatibilitÃ  ma NON avviati automaticamente
-- **Unificazione localhost**: Tutti i server ora ascoltano su `localhost` invece di IP specifici per portabilitÃ 
-|  |- data/
-|  |- public/
-|- Prova/
-|- public/
-|- .vscode/
-```
-
-## Note importanti
-- `5500` e' la porta di riferimento del progetto
-- `3010` resta solo come percorso legacy per `Eventi` standalone
-- `3000` e `8765` non sono richieste nel flusso standard unificato
-
-## Commit e GitHub
-Un `commit` e' un salvataggio versionato dello stato del progetto dentro Git. Serve per fissare un punto stabile, descrivere cosa e' cambiato e poter poi sincronizzare tutto con GitHub.
-
-Flusso base consigliato:
-
-```powershell
-git status
-git add .
-git commit -m "messaggio chiaro e breve"
-```
-
-### Configurazione locale prima
-Se vuoi che nome ed email valgano solo per questo repository, usa la configurazione locale:
-
-```powershell
-git config user.name "Il Tuo Nome"
-git config user.email "tuamail@example.com"
-```
-
-Questo e' l'approccio migliore quando vuoi un setup "privato" o limitato al solo progetto corrente.
-
-### Configurazione globale dopo
-Se in futuro vuoi riutilizzare gli stessi dati su tutti i repository del computer, imposta i valori globali:
-
-```powershell
-git config --global user.name "Il Tuo Nome"
-git config --global user.email "tuamail@example.com"
-```
-
-### Push verso GitHub
-Per collegare il repository locale a GitHub:
-
-```powershell
-git remote add origin https://github.com/<utente>/<repo>.git
-git branch -M main
-git push -u origin main
-```
-
-Dopo il primo push, in genere basta:
-
-```powershell
-git push
-```
-
-### Nota importante su privato e pubblico
-`git push` non rende da solo un repository `private` o `public`: la visibilita' si decide nelle impostazioni del repository su GitHub.
-
-Schema pratico:
-- prima crea o usa un repository GitHub `private` se vuoi pubblicare il codice solo in modo riservato
-- poi esegui `git push -u origin main`
-- in futuro, se vorrai renderlo pubblico, cambia la visibilita' del repository direttamente su GitHub da `private` a `public`
-
-In altre parole:
-- `git config ...` controlla identita' e ambito locale o globale
-- `git remote ...` controlla dove fai push
-- GitHub controlla la visibilita' reale del repository
-
-### Parametri utili da ricordare
-- `--global`: applica nome/email a tutti i repository del computer
-- senza `--global`: applica nome/email solo al repository corrente
-- `-u` in `git push -u origin main`: salva il branch remoto di riferimento per i push successivi
-- `origin`: nome standard del repository remoto GitHub
-- `main`: branch principale
-
-### Verifiche rapide
-```powershell
-git config user.name
-git config user.email
-git remote -v
-git status
-```
-
-## Documentazione
-- [Automazione Completa](AUTOMAZIONE_COMPLETA.md)
-- [README Eventi](Eventi/README_EVENTI.md)
-- [README Server Manager](README_SERVER_MANAGER.md)
-
-
+- Questo file è la guida unica per il progetto. Tutti i documenti `.md` collegati sono elencati nella sezione [Documentazione completa](#documentazione-completa).
+- Se modifichi altri file di documentazione, aggiorna qui i link principali.

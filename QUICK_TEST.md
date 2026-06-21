@@ -1,5 +1,8 @@
 # ✅ BORDERÒ - Quick Test Guide
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## 🧪 Come Testare il Sistema Fisso
 
 ### **Test 1: Admin Panel File Selection (5 min)**
@@ -292,3 +295,4 @@ Se c'è un problema, fornisci:
 **Status:** ✅ **Test Completo**  
 **Data:** 2026-06-18  
 **Tempo Totale Test:** ~15-20 minuti
+

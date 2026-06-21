@@ -1,4 +1,7 @@
-﻿# Documentazione centralizzata — Eventi
+# Documentazione centralizzata — Eventi
+
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
 
 Indice della Documentazione:
 - [Operazioni](#operazioni)
@@ -37,3 +40,4 @@ File archiviati:
 ---
 
 Per tornare all'indice del progetto o ad altri documenti, apri `Eventi/DOCUMENTATION.md`.
+

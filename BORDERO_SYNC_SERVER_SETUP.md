@@ -1,5 +1,8 @@
 # 🚀 BORDERO SYNC SERVER - Setup & Usage
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## Cosa Fa
 
 Il **Sync Server** è un server Node.js che riceve i dati Excel dal browser e li sincronizza direttamente nei file CSV su disco.
@@ -278,3 +281,4 @@ Bordero/
 ---
 
 **Nota:** Il Sync Server deve rimanere in esecuzione per tutta la durata del lavoro con Bordero. Se lo chiudi, il browser non potrà più sincronizzare i dati su disco.
+

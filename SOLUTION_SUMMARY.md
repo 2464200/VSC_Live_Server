@@ -1,4 +1,6 @@
-﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
 # âœ… SOLUTION SUMMARY - Sistema Auto-Start/Stop PDF Server
 
@@ -652,5 +654,6 @@ http://localhost:5500/Prova/ScriptPDF1.html
 ---
 
 > âœ¨ **Problema risolto:** Ãˆ ora possibile aprire ScriptPDF1.html e il PDF Server si avvia e arresta **completamente automaticamente**.
+
 
 

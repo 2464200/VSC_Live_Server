@@ -1,5 +1,8 @@
 # Setup Google Sheets API - Guida Rapida
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
+
 ## ⚡ Passaggi (5 minuti)
 
 ### 1️⃣ Crea un Google Cloud Project
@@ -90,3 +93,4 @@ Questo scarica tutti i dati in CSV:
 
 - [Google Sheets API Docs](https://developers.google.com/sheets/api/guides/values/read)
 - [API Key Setup](https://cloud.google.com/docs/authentication/api-keys)
+

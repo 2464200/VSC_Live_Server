@@ -1,5 +1,8 @@
 # 🎭 BORDERÒ - PROGETTO COMPLETATO ✅
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
+
 ## 📊 STATO PROGETTO: COMPLETAMENTO AL 100%
 
 ### 📦 Files Creati
@@ -337,3 +340,4 @@ Bordero/
 Data: 2026-04-25  
 Versione: 1.0.0  
 Status: Production Ready
+

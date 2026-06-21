@@ -1,5 +1,8 @@
 # Documentazione Amministrativa — Eventi
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
+
 Torna all'indice generale: [DOCUMENTATION.md](DOCUMENTATION.md)
 
 Indice:
@@ -31,3 +34,4 @@ Indice:
 ## Sezioni correlate
 - [Operazioni quotidiane](DOCUMENTATION_OPERATIONS.md)
 - [Architettura e API](DOCUMENTATION_DEVELOPMENT.md)
+
