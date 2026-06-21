@@ -63,10 +63,10 @@ node google-sheets-sync.js
 ```
 
 Questo scarica tutti i dati in CSV:
-- `Bordero/data/brani.csv`
-- `Bordero/data/comuni.csv`
-- `Bordero/data/dbase.csv`
 
+- `Bordero/data/brani.csv`
+- `Bordero/data/comuni_italia.csv`
+- `Bordero/data/dbase.csv`
 ---
 
 ## ❓ Problemi?
@@ -78,6 +78,7 @@ Questo scarica tutti i dati in CSV:
 **"Sheet non trovato"**
 - Verifica che la sheet sia condivisa in lettura
 - Controlla l'ID della sheet (copia il link della Google Sheet, estrai l'ID dalla URL)
+- Se la sheet è pubblicata con "Pubblica sul web", puoi anche usare un URL CSV/TSV pubblico nel file `Bordero/config/.env`
 
 **"Quota superato"**
 - Non dovrebbe accadere con il piano gratuito

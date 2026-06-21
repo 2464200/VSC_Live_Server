@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const CONFIG_DIR = path.join(__dirname, '..', 'config');
+const CONFIG_DIR = path.join(__dirname, 'Bordero', 'config');
 const ENV_FILE = path.join(CONFIG_DIR, '.env');
 
 // Create config directory if it doesn't exist
