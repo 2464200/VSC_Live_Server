@@ -11,6 +11,25 @@ class DataLoader {
   }
 
   /**
+   * Normalizza i campi dei brani importati dai CSV/Excel
+   */
+  normalizeBrani(brani) {
+    return brani.map(brano => {
+      const normalized = { ...brano };
+      if (!normalized.titolo) {
+        normalized.titolo = normalized.coreografia || normalized.brano || '';
+      }
+      if (!normalized.coreografia) {
+        normalized.coreografia = normalized.titolo || normalized.brano || '';
+      }
+      if (!normalized.brano) {
+        normalized.brano = normalized.titolo || normalized.coreografia || '';
+      }
+      return normalized;
+    });
+  }
+
+  /**
    * Inizializza il data loader con sincronizzazione da Excel
    */
   async initialize() {
@@ -42,17 +61,19 @@ class DataLoader {
     // Prova cache Excel prima
     const cachedFromExcel = Storage.get('BORDERO_BRANI_DATA');
     if (cachedFromExcel && cachedFromExcel.length > 0) {
-      logger.info(`Dati caricati da cache Excel (${cachedFromExcel.length} brani)`);
-      this.brani = cachedFromExcel;
-      return cachedFromExcel;
+      const normalized = this.normalizeBrani(cachedFromExcel);
+      logger.info(`Dati caricati da cache Excel (${normalized.length} brani)`);
+      this.brani = normalized;
+      return normalized;
     }
 
     // Poi prova cache generale
     const cached = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI);
     if (cached && cached.length > 0) {
-      logger.info(`Dati caricati da cache CSV (${cached.length} brani)`);
-      this.brani = cached;
-      return cached;
+      const normalized = this.normalizeBrani(cached);
+      logger.info(`Dati caricati da cache CSV (${normalized.length} brani)`);
+      this.brani = normalized;
+      return normalized;
     }
 
     // Se offline, usa cache fallback
@@ -65,7 +86,8 @@ class DataLoader {
     // Carica da CSV locale
     try {
       const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_BRANI);
-      this.brani = CSVParser.parse(csvContent);
+      const parsedBrani = CSVParser.parse(csvContent);
+      this.brani = this.normalizeBrani(parsedBrani);
       
       // Salva in cache
       Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.brani);
@@ -82,8 +104,8 @@ class DataLoader {
       
       // Fallback a cache anche in caso di errore
       const fallback = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
-      this.brani = fallback;
-      return fallback;
+      this.brani = this.normalizeBrani(fallback);
+      return this.brani;
     }
   }
 
@@ -151,7 +173,7 @@ class DataLoader {
 
     // Applica ricerca full-text
     if (searchTerm) {
-      const searchFields = ['titolo', 'autore', 'coreografo', 'collaboratori'];
+      const searchFields = ['titolo', 'brano', 'coreografia', 'autore', 'coreografo', 'collaboratori'];
       result = ObjectUtils.searchMultiField(result, searchTerm, searchFields);
     }
 

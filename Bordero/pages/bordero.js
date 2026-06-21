@@ -34,7 +34,7 @@ class BorderoTableManager {
       await dataLoader.initialize();
 
       // Poi carica dati
-      this.allBrani = await dataLoader.loadBrani();
+      this.allBrani = this.ensureOriginalIndices(await dataLoader.loadBrani());
       this.filteredBrani = [...this.allBrani];
 
       // Setup UI
@@ -173,8 +173,10 @@ class BorderoTableManager {
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
 
     // Pagination
+    document.getElementById('btn-first-page')?.addEventListener('click', () => this.firstPage());
     document.getElementById('btn-prev-page')?.addEventListener('click', () => this.prevPage());
     document.getElementById('btn-next-page')?.addEventListener('click', () => this.nextPage());
+    document.getElementById('btn-last-page')?.addEventListener('click', () => this.lastPage());
   }
 
   /**
@@ -237,7 +239,7 @@ class BorderoTableManager {
 
     // Applica ricerca
     if (this.currentSearch) {
-      const searchFields = ['titolo', 'autore', 'coreografo', 'collaboratori'];
+      const searchFields = ['titolo', 'brano', 'coreografia', 'autore', 'coreografo', 'collaboratori'];
       this.filteredBrani = ObjectUtils.searchMultiField(this.filteredBrani, this.currentSearch, searchFields);
     }
 
@@ -307,9 +309,9 @@ class BorderoTableManager {
 
     // Event listeners per click righe
     tbody.querySelectorAll('.brani-row').forEach(row => {
-      row.addEventListener('click', (e) => {
+      row.addEventListener('click', () => {
         const branoId = row.dataset.branoId;
-        this.markAsCompleted(branoId);
+        this.toggleCompleted(branoId);
       });
     });
 
@@ -333,7 +335,8 @@ class BorderoTableManager {
         </td>
         <td class="col-id">${brano.id}</td>
         <td class="col-timestamp">${timestamp}</td>
-        <td class="col-titolo">${brano.titolo}</td>
+        <td class="col-titolo">${brano.titolo || '-'}</td>
+        <td class="col-brano">${brano.brano || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
         <td class="col-genere">${brano.genere || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
@@ -345,39 +348,10 @@ class BorderoTableManager {
   }
 
   /**
-   * Marca brano come completato (X) e fa scivolare al fondo
+   * Alias per compatibilità: toggle lo stato di completamento del brano
    */
   markAsCompleted(branoId) {
-    const brano = this.allBrani.find(b => String(b.id) === String(branoId));
-    if (!brano) return;
-
-    // Marca flag X
-    brano.flag = 'X';
-    // Aggiungi timestamp automatico
-    brano.timestamp = DateUtils.formatDate(new Date());
-
-    // Move to bottom
-    const index = this.allBrani.indexOf(brano);
-    if (index > -1) {
-      this.allBrani.splice(index, 1);
-      this.allBrani.push(brano);
-    }
-
-    // Salva in storage
-    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
-
-    // Auto-save serata
-    this.autoSaveSerata();
-
-    // Update last action
-    this.lastActionTime = new Date();
-    this.updateLastActionTime();
-
-    logger.info(`Brano ${branoId} marcato come completato`);
-    Toast.success(`✓ "${brano.titolo}" completato`);
-
-    // Re-render mantenendo filtri
-    this.applyFilters();
+    this.toggleCompleted(branoId);
   }
 
   /**
@@ -428,8 +402,10 @@ class BorderoTableManager {
     }
 
     // Disable buttons
+    document.getElementById('btn-first-page').disabled = this.currentPage === 1;
     document.getElementById('btn-prev-page').disabled = this.currentPage === 1;
     document.getElementById('btn-next-page').disabled = this.currentPage === totalPages;
+    document.getElementById('btn-last-page').disabled = this.currentPage === totalPages;
   }
 
   prevPage() {
@@ -440,13 +416,30 @@ class BorderoTableManager {
     }
   }
 
+  firstPage() {
+   if (this.currentPage !== 1) {
+     this.currentPage = 1;
+     this.renderTable();
+     window.scrollTo({ top: 0, behavior: 'smooth' });
+   }
+  }
+
   nextPage() {
-    const totalPages = Math.ceil(this.filteredBrani.length / this.itemsPerPage);
-    if (this.currentPage < totalPages) {
-      this.currentPage++;
-      this.renderTable();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+   const totalPages = Math.ceil(this.filteredBrani.length / this.itemsPerPage);
+   if (this.currentPage < totalPages) {
+     this.currentPage++;
+     this.renderTable();
+     window.scrollTo({ top: 0, behavior: 'smooth' });
+   }
+  }
+
+  lastPage() {
+   const totalPages = Math.ceil(this.filteredBrani.length / this.itemsPerPage);
+   if (this.currentPage !== totalPages) {
+     this.currentPage = totalPages || 1;
+     this.renderTable();
+     window.scrollTo({ top: 0, behavior: 'smooth' });
+   }
   }
 
   /**
@@ -456,12 +449,59 @@ class BorderoTableManager {
     const total = this.filteredBrani.length;
     const completed = this.filteredBrani.filter(b => b.flag === 'X').length;
     const pending = total - completed;
-
+ 
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
   }
-
+ 
+  ensureOriginalIndices(brani) {
+    return brani.map((brano, index) => ({
+      ...brano,
+      originalIndex: typeof brano.originalIndex === 'number' ? brano.originalIndex : index,
+    }));
+  }
+ 
+  reorderBrani() {
+    this.allBrani.sort((a, b) => {
+      const aCompleted = a.flag === 'X';
+      const bCompleted = b.flag === 'X';
+      if (aCompleted !== bCompleted) {
+        return aCompleted ? 1 : -1;
+      }
+      return (a.originalIndex || 0) - (b.originalIndex || 0);
+    });
+  }
+ 
+  toggleCompleted(branoId) {
+    const brano = this.allBrani.find(b => String(b.id) === String(branoId));
+    if (!brano) return;
+ 
+    const wasCompleted = brano.flag === 'X';
+    if (wasCompleted) {
+      brano.flag = '';
+      brano.timestamp = '';
+      Toast.info(`"${brano.titolo}" è di nuovo disponibile`);
+      logger.info(`Brano ${branoId} resettato disponibile`);
+    } else {
+      brano.flag = 'X';
+      brano.timestamp = DateUtils.formatDate(new Date());
+      Toast.success(`✓ "${brano.titolo}" completato`);
+      logger.info(`Brano ${branoId} marcato come completato`);
+    }
+ 
+    this.reorderBrani();
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+ 
+    if (!wasCompleted) {
+      this.autoSaveSerata();
+    }
+ 
+    this.lastActionTime = new Date();
+    this.updateLastActionTime();
+    this.applyFilters();
+  }
+ 
   updateLastActionTime() {
     const el = document.getElementById('stat-last-action');
     if (el && this.lastActionTime) {
