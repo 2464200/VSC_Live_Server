@@ -127,12 +127,66 @@ function fetchSheetData(spreadsheetId, range) {
 }
 
 /**
- * Sincronizza un foglio
+ * Fallback: scarica CSV usando l'export pubblico di Google Sheets
+ */
+function fetchCSVExport(spreadsheetId, gid, maxRedirects = 5) {
+  const urlModule = require('url');
+  const httpLib = require('http');
+
+  return new Promise((resolve, reject) => {
+    let redirects = 0;
+
+    function getUrl(u) {
+      const parsed = urlModule.parse(u);
+      const lib = parsed.protocol === 'http:' ? httpLib : https;
+
+      const req = lib.get(u, (res) => {
+        // Follow redirects
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          if (redirects >= maxRedirects) {
+            reject(new Error('Too many redirects'));
+            return;
+          }
+          redirects++;
+          const nextUrl = urlModule.resolve(u, res.headers.location);
+          // consume and discard response before following
+          res.resume();
+          getUrl(nextUrl);
+          return;
+        }
+
+        if (res.statusCode !== 200) {
+          reject(new Error(`HTTP ${res.statusCode}`));
+          return;
+        }
+
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => resolve(data));
+      });
+
+      req.on('error', reject);
+    }
+
+    const startUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+    getUrl(startUrl);
+  });
+}
+
+/**
+ * Sincronizza un foglio (usa API v4, se bloccata prova export CSV pubblico)
  */
 async function syncSheet(sheet) {
+  console.log(`\n📋 Scaricando ${sheet.name}...`);
+
+  // Determine gid for fallback export
+  let gid = 0;
+  if (sheet.output === 'brani.csv') gid = process.env.GOOGLE_SHEET_BRANI_GID || 0;
+  if (sheet.output === 'comuni.csv' || sheet.output === 'comuni_italia.csv') gid = process.env.GOOGLE_SHEET_COMUNI_GID || 0;
+  if (sheet.output === 'dbase.csv') gid = process.env.GOOGLE_SHEET_DBASE_GID || 0;
+
   try {
-    console.log(`\n📋 Scaricando ${sheet.name}...`);
-    
+    // Try API first
     const values = await fetchSheetData(sheet.id, sheet.range);
 
     if (!values || values.length === 0) {
@@ -140,18 +194,31 @@ async function syncSheet(sheet) {
       return { success: false, error: 'Foglio vuoto' };
     }
 
-    // Converti a CSV
     const csv = valuesToCSV(values);
-
-    // Salva file
     const filePath = path.join(OUTPUT_DIR, sheet.output);
     fs.writeFileSync(filePath, csv, 'utf8');
 
-    console.log(`   ✅ ${sheet.output} (${values.length} righe)`);
+    console.log(`   ✅ ${sheet.output} (${values.length} righe) [API]`);
     return { success: true, rows: values.length, file: sheet.output };
-  } catch (error) {
-    console.log(`   ❌ Errore: ${error.message}`);
-    return { success: false, error: error.message };
+  } catch (apiError) {
+    console.log(`   ⚠️ API error: ${apiError.message}. Provo fallback CSV export...`);
+
+    // If configured to allow public export fallback or always attempt fallback on API error
+    try {
+      const csvContent = await fetchCSVExport(sheet.id, gid);
+      // Convert raw CSV to values array using quick parser (split lines)
+      const rows = csvContent.split(/\r?\n/).filter(l => l.trim() !== '');
+      const values = rows.map(r => r.split(','));
+
+      const filePath = path.join(OUTPUT_DIR, sheet.output);
+      fs.writeFileSync(filePath, csvContent, 'utf8');
+
+      console.log(`   ✅ ${sheet.output} (${rows.length - 1} righe) [Export CSV]`);
+      return { success: true, rows: rows.length - 1, file: sheet.output };
+    } catch (exportError) {
+      console.log(`   ❌ Errore fallback CSV: ${exportError.message}`);
+      return { success: false, error: exportError.message };
+    }
   }
 }
 
