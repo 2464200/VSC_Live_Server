@@ -10,7 +10,9 @@ const BORDERO_CONFIG = {
   APP_AUTHOR: 'Copilot',
   
   // ========== DATI & STORAGE ==========
-  CSV_BRANI: './data/brani.csv',
+  CSV_BRANI: (typeof window !== 'undefined' && window.location.pathname.startsWith('/pages/')) ? '../data/brani.csv' : './data/brani.csv',
+  CSV_COMUNI: (typeof window !== 'undefined' && window.location.pathname.startsWith('/pages/')) ? '../data/comuni_italia.csv' : './data/comuni_italia.csv',
+  CSV_DBASE: (typeof window !== 'undefined' && window.location.pathname.startsWith('/pages/')) ? '../data/dBase.csv' : './data/dBase.csv',
   CACHE_KEY_BRANI: 'bordero_brani',
   CACHE_KEY_FILTERS: 'bordero_filters',
   CACHE_KEY_SYNC: 'bordero_lastSync',

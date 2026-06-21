@@ -102,7 +102,7 @@ class DataLoader {
       }
 
       // Fallback a CSV
-      const csvContent = await Network.fetchCSV('./data/comuni_italia.csv');
+      const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_COMUNI);
       const comuni = CSVParser.parse(csvContent);
       
       // Salva in cache
@@ -130,7 +130,7 @@ class DataLoader {
       }
 
       // Fallback a CSV
-      const csvContent = await Network.fetchCSV('./data/dBase.csv');
+      const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_DBASE);
       const dj = CSVParser.parse(csvContent);
       
       // Salva in cache
