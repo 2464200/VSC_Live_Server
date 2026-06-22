@@ -414,7 +414,9 @@ class DataLoader {
    * SERATA MANAGEMENT
    * Salva lo stato della serata corrente (brani + metadata)
    */
-  saveCurrentSerata(serataMetadata, braniWithFlags) {
+  saveCurrentSerata(serataMetadata, braniWithFlags, options = {}) {
+    const { silent = false } = options;
+
     const serata = {
       id: DateUtils.now(),
       metadata: serataMetadata,
@@ -424,7 +426,9 @@ class DataLoader {
 
     Storage.set(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA, serata);
     logger.info(`Serata salvata: DJ=${serataMetadata.dj}, Data=${serataMetadata.data}`);
-    Toast.success('Serata salvata automaticamente');
+    if (!silent) {
+      Toast.success('Serata salvata automaticamente');
+    }
     return serata;
   }
 

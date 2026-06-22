@@ -39,7 +39,7 @@ class BorderoTableManager {
 
       // Setup UI
       this.setupEventListeners();
-      this.setupSerataMeta();
+      await this.setupSerataMeta();
       this.renderTable();
 
       logger.info(`✓ Inizializzato con ${this.allBrani.length} brani`);
@@ -53,27 +53,42 @@ class BorderoTableManager {
   /**
    * Setup serata metadata (D2:D5)
    */
-  setupSerataMeta() {
-    // Data è fresh ogni volta (oggi)
-    document.getElementById('data-serata').valueAsDate = new Date();
+  async setupSerataMeta() {
+    const currentSerata = dataLoader.getCurrentSerata();
+
+    if (currentSerata?.metadata) {
+      this.serata = {
+        ...this.serata,
+        ...currentSerata.metadata,
+      };
+    } else {
+      // Data è fresh ogni volta (oggi) solo quando non esiste una serata in corso
+      this.serata.data = new Date().toISOString().split('T')[0];
+    }
 
     // DJ dropdown da dBase
-    this.populateDJSelect();
+    await this.populateDJSelect();
 
     // Data
     document.getElementById('data-serata').addEventListener('change', (e) => {
       this.serata.data = e.target.value;
       logger.debug('Data serata:', this.serata.data);
+      this.persistSerataMeta(true);
     });
 
     // Luogo dropdown da Comuni Italia
-    this.populateComuniSelect();
+    await this.populateComuniSelect();
+
+    this.syncSerataMetaToForm();
 
     // Evento libero
-    document.getElementById('evento-text').addEventListener('change', (e) => {
+    document.getElementById('evento-text').addEventListener('input', (e) => {
       this.serata.evento = e.target.value;
       logger.debug('Evento:', this.serata.evento);
+      this.persistSerataMeta(true);
     });
+
+    this.persistSerataMeta(true);
   }
 
   /**
@@ -96,6 +111,7 @@ class BorderoTableManager {
       djSelect.addEventListener('change', (e) => {
         this.serata.dj = e.target.value;
         logger.debug('DJ selezionato:', this.serata.dj);
+        this.persistSerataMeta(true);
       });
 
       logger.debug(`DJ select popolato con ${dj.length} opzioni`);
@@ -124,6 +140,7 @@ class BorderoTableManager {
       comuniSelect.addEventListener('change', (e) => {
         this.serata.luogo = e.target.value;
         logger.debug('Luogo selezionato:', this.serata.luogo);
+        this.persistSerataMeta(true);
       });
 
       logger.debug(`Comuni select popolato con ${comuni.length} opzioni`);
@@ -138,6 +155,8 @@ class BorderoTableManager {
   setupEventListeners() {
     // Sort buttons (esclusivi)
     document.getElementById('btn-sort-id')?.addEventListener('click', () => this.sortBy('id'));
+    document.getElementById('btn-sort-titolo')?.addEventListener('click', () => this.sortBy('titolo'));
+    document.getElementById('btn-sort-brano')?.addEventListener('click', () => this.sortBy('brano'));
     document.getElementById('btn-sort-genere')?.addEventListener('click', () => this.sortBy('genere'));
     document.getElementById('btn-sort-autore')?.addEventListener('click', () => this.sortBy('autore'));
 
@@ -150,6 +169,9 @@ class BorderoTableManager {
     );
     document.getElementById('btn-filter-livello')?.addEventListener('click', () =>
       this.quickFilter('info_livello', 'AVANZATO') // Adatta al tuo livello
+    );
+    document.getElementById('btn-filter-altro')?.addEventListener('click', () =>
+      this.quickFilter('info_coreo', 'ALTRE COREO')
     );
 
     // Search
@@ -200,6 +222,8 @@ class BorderoTableManager {
 
     // Update UI
     this.updateSortButtons();
+    this.removeEmptyRowsIfSorted();
+    this.keepCompletedAtBottom();
     this.renderTable();
 
     Toast.info(`Ordinato per ${field}`);
@@ -247,6 +271,9 @@ class BorderoTableManager {
     if (this.currentSort) {
       this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, this.currentSort, true);
     }
+
+    this.removeEmptyRowsIfSorted();
+    this.keepCompletedAtBottom();
 
     // Reset pagina
     this.currentPage = 1;
@@ -358,7 +385,7 @@ class BorderoTableManager {
    * Update buttons stato
    */
   updateSortButtons() {
-    const buttons = ['btn-sort-id', 'btn-sort-genere', 'btn-sort-autore'];
+    const buttons = ['btn-sort-id', 'btn-sort-titolo', 'btn-sort-brano', 'btn-sort-genere', 'btn-sort-autore'];
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
       const fieldName = btnId.replace('btn-sort-', '');
@@ -472,6 +499,30 @@ class BorderoTableManager {
       return (a.originalIndex || 0) - (b.originalIndex || 0);
     });
   }
+
+  keepCompletedAtBottom() {
+    const pending = this.filteredBrani.filter(brano => brano.flag !== 'X');
+    const completed = this.filteredBrani.filter(brano => brano.flag === 'X');
+    this.filteredBrani = [...pending, ...completed];
+  }
+
+  removeEmptyRowsIfSorted() {
+    if (!this.currentSort) {
+      return;
+    }
+
+    this.filteredBrani = this.filteredBrani.filter(brano => !this.isEmptyBrano(brano));
+  }
+
+  isEmptyBrano(brano) {
+    if (!brano) {
+      return true;
+    }
+
+    return Object.entries(brano)
+      .filter(([key]) => key !== 'originalIndex')
+      .every(([, value]) => String(value ?? '').trim() === '');
+  }
  
   toggleCompleted(branoId) {
     const brano = this.allBrani.find(b => String(b.id) === String(branoId));
@@ -568,6 +619,34 @@ class BorderoTableManager {
     };
     
     dataLoader.saveCurrentSerata(serataData, this.allBrani);
+  }
+
+  /**
+   * Salva il metadata della serata corrente senza disturbare l'utente.
+   */
+  persistSerataMeta(silent = false) {
+    if (!this.allBrani || this.allBrani.length === 0) {
+      return;
+    }
+
+    const serataData = {
+      dj: this.serata.dj,
+      data: this.serata.data,
+      luogo: this.serata.luogo,
+      evento: this.serata.evento,
+    };
+
+    dataLoader.saveCurrentSerata(serataData, this.allBrani, { silent });
+  }
+
+  /**
+   * Sincronizza i metadata serata nella UI.
+   */
+  syncSerataMetaToForm() {
+    document.getElementById('dj-select').value = this.serata.dj || '';
+    document.getElementById('data-serata').value = this.serata.data || new Date().toISOString().split('T')[0];
+    document.getElementById('luogo-select').value = this.serata.luogo || '';
+    document.getElementById('evento-text').value = this.serata.evento || '';
   }
 
   /**
