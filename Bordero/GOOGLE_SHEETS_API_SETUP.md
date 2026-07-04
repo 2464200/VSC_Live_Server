@@ -67,6 +67,8 @@ Questo scarica tutti i dati in CSV:
 - `Bordero/data/comuni.csv`
 - `Bordero/data/dbase.csv`
 
+> Nota: il file `Bordero/config/.env` viene letto dallo script per `GOOGLE_API_KEY`. Se non è presente, lo script prova comunque un fallback pubblico via export TSV o `gviz/tq`.
+
 ---
 
 ## ❓ Problemi?

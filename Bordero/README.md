@@ -200,6 +200,10 @@ const BORDERO_CONFIG = {
 };
 ```
 
+> Nota: il sync server-side usa anche `Bordero/config/.env` per la variabile `GOOGLE_API_KEY`.
+> Se il file `.env` non esiste, `Bordero/server/google-sheets-sync.js` proverà comunque il fallback pubblico via export/`gviz/tq`.
+
+
 ### CSV Format (data/brani.csv)
 
 ```csv
@@ -341,7 +345,13 @@ Vedi console per log dettagliati.
 ### Dati non sincronizzano
 - Verifica Google Sheets API key
 - Controlla connessione internet
+- Controlla che `Bordero/config/.env` contenga `GOOGLE_API_KEY`
+- Se non usi API key, lo script può comunque usare il fallback pubblico via `export?format=tsv` o `gviz/tq`
 - Vedi console per errore specifico
+
+### Log aggiuntivo
+- `Bordero/server/google-sheets-sync.js` ora stampa anche i file generati alla fine dello script
+- Questo è utile per verificare rapidamente quali CSV sono stati creati
 
 ### Offline mode non funziona
 - localStorage deve essere abilitato

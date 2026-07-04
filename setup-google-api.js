@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const CONFIG_DIR = path.join(__dirname, '..', 'config');
+// Save configuration under Bordero/config relative to repository root
+const CONFIG_DIR = path.join(__dirname, 'Bordero', 'config');
 const ENV_FILE = path.join(CONFIG_DIR, '.env');
 
 // Create config directory if it doesn't exist
@@ -63,6 +64,9 @@ OUTPUT_DIR=../data
 `;
 
   try {
+    if (!fs.existsSync(CONFIG_DIR)) {
+      fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    }
     fs.writeFileSync(ENV_FILE, envContent);
     console.log('');
     console.log('✅ Configurazione salvata in: Bordero/config/.env');
