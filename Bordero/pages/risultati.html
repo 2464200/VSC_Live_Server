@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÃ’ - Risultati Serata</title>
+  
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="risultati.css" />
+  
+  <!-- XLSX Library per lettura file Excel -->
+    <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Verifica caricamento XLSX -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
+  
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="risultati.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">ðŸŽ­ BORDERÃ’ - Risultati Serata</h1>
+        <p class="app-subtitle">Statistiche Finali</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Risultati</span>
+    </nav>
+
+    <!-- SERATA INFO -->
+    <section class="serata-summary">
+      <h2>ðŸ“‹ Serata del <span id="result-data">--</span></h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">DJ:</span>
+          <span class="value" id="result-dj">--</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Luogo:</span>
+          <span class="value" id="result-luogo">--</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Evento:</span>
+          <span class="value" id="result-evento">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATISTICHE PRINCIPALI -->
+    <section class="stats-grid">
+      <div class="stat-card large">
+        <div class="stat-icon">ðŸ“Š</div>
+        <div class="stat-text">
+          <h3>Brani Totali</h3>
+          <span class="stat-number" id="result-total">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card large success">
+        <div class="stat-icon">âœ…</div>
+        <div class="stat-text">
+          <h3>Brani Eseguiti</h3>
+          <span class="stat-number" id="result-executed">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card large">
+        <div class="stat-icon">ðŸ“ˆ</div>
+        <div class="stat-text">
+          <h3>Percentuale Completamento</h3>
+          <span class="stat-number percent" id="result-percent">0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- GENERI SUONATI -->
+    <section class="chart-section">
+      <h3>ðŸŽµ Generi Suonati</h3>
+      <div class="chart-container">
+        <div id="generi-chart" class="chart"></div>
+      </div>
+    </section>
+
+    <!-- LIVELLI DIFFICOLTÃ€ -->
+    <section class="chart-section">
+      <h3>ðŸ“Š Livelli di DifficoltÃ </h3>
+      <div class="chart-container">
+        <div id="livelli-chart" class="chart"></div>
+      </div>
+    </section>
+
+    <!-- TOP COREOGRAFI -->
+    <section class="list-section">
+      <h3>ðŸŽ­ Top Coreografi Utilizzati</h3>
+      <ul class="stats-list" id="coreografi-list">
+        <!-- Dinamico -->
+      </ul>
+    </section>
+
+    <!-- AZIONI FINALI -->
+    <section class="final-actions">
+      <button id="btn-download" class="btn btn-primary">â¬‡ï¸ SCARICA REPORT</button>
+      <button id="btn-new-serata" class="btn btn-secondary">ðŸ†• NUOVA SERATA</button>
+      <button id="btn-back" class="btn btn-secondary">â† INDIETRO</button>
+    </section>
+  </div>
+</body>
+</html>

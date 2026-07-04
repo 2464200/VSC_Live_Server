@@ -1,0 +1,491 @@
+/**
+ * BORDERÒ - Tabella Principale Styles
+ */
+
+/* ========== NAVIGATION ========== */
+.nav-breadcrumb {
+  background-color: #222;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  font-size: 0.95em;
+  color: #aaa;
+}
+
+.nav-breadcrumb a {
+  color: var(--primary-orange);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-breadcrumb a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.breadcrumb-sep {
+  color: #666;
+  margin: 0 10px;
+}
+
+.breadcrumb-current {
+  color: #ccc;
+}
+
+/* ========== SERATA INFO (D2:D5) ========== */
+.serata-info {
+  background-color: #222;
+  border: 2px solid var(--primary-orange);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.info-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-field label {
+  font-size: 0.9em;
+  text-transform: uppercase;
+  color: var(--primary-orange);
+  margin-bottom: 8px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.select-input,
+.input-date,
+.input-text {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 1em;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.select-input:focus,
+.input-date:focus,
+.input-text:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 8px rgba(255, 127, 0, 0.3);
+  background-color: #3a3a3a;
+}
+
+.select-input option {
+  background-color: #333;
+  color: #fff;
+}
+
+/* ========== TOOLBAR ========== */
+.toolbar {
+  background-color: #222;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.toolbar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toolbar-section h3 {
+  font-size: 0.85em;
+  text-transform: uppercase;
+  color: var(--primary-orange);
+  margin-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.btn-sort,
+.btn-filter {
+  padding: 10px 15px;
+  font-size: 0.9em;
+  border: 1px solid var(--border-color);
+  background-color: #333;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-sort:hover,
+.btn-filter:hover {
+  background-color: var(--primary-orange);
+  color: var(--text-dark);
+  border-color: var(--primary-orange);
+  transform: scale(1.02);
+}
+
+.btn-sort.active,
+.btn-filter.active {
+  background-color: var(--primary-orange);
+  color: var(--text-dark);
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 10px rgba(255, 127, 0, 0.5);
+}
+
+.btn-filter-blue { border-left: 3px solid #2196F3; }
+.btn-filter-green { border-left: 3px solid #4CAF50; }
+.btn-filter-orange { border-left: 3px solid #ff7f00; }
+.btn-filter-yellow { border-left: 3px solid #FFD700; }
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 0.95em;
+  background-color: #333;
+  color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: #888;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 8px rgba(255, 127, 0, 0.3);
+  background-color: #3a3a3a;
+}
+
+/* ========== LIVE STATS ========== */
+.live-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: rgba(255, 127, 0, 0.05);
+  border: 1px solid var(--primary-orange);
+  border-radius: 8px;
+}
+
+.stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  background-color: #333;
+  border-radius: 5px;
+  border-left: 3px solid var(--primary-orange);
+}
+
+.stat-label {
+  color: #aaa;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: var(--primary-orange);
+  font-weight: bold;
+  font-size: 1.1em;
+  font-family: 'Courier New', monospace;
+}
+
+.stat-completed {
+  color: var(--success-green);
+}
+
+.stat-pending {
+  color: var(--warning-orange);
+}
+
+/* ========== TABLE ========== */
+.table-section {
+  background-color: #222;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.brani-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #222;
+}
+
+.table-header-row {
+  background-color: #1a1a1a;
+  border-bottom: 2px solid var(--primary-orange);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brani-table th {
+  padding: 12px 10px;
+  text-align: left;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  color: var(--primary-orange);
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  border-right: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.brani-table th:last-child {
+  border-right: none;
+}
+
+.brani-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.brani-table tbody tr:hover {
+  background-color: rgba(255, 127, 0, 0.1);
+}
+
+.brani-table tbody tr.completed {
+  background-color: #4a4a4a;
+  color: #999;
+}
+
+.brani-table tbody tr.completed td {
+  color: #888;
+}
+
+.brani-table td {
+  padding: 12px 10px;
+  font-size: 0.95em;
+  border-right: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.brani-table td:last-child {
+  border-right: none;
+}
+
+.col-flag {
+  width: 50px;
+  text-align: center;
+}
+
+.col-id {
+  width: 60px;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  font-weight: bold;
+}
+
+.col-timestamp {
+  width: 140px;
+  font-size: 0.85em;
+  color: #888;
+}
+
+.col-titolo {
+  width: 180px;
+  min-width: 150px;
+}
+
+.col-autore {
+  width: 120px;
+  min-width: 100px;
+}
+
+.col-genere {
+  width: 100px;
+}
+
+.col-livello {
+  width: 100px;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.col-coreo {
+  width: 130px;
+  font-size: 0.9em;
+}
+
+.col-coreografo {
+  width: 120px;
+  font-size: 0.9em;
+}
+
+.col-collaboratori {
+  width: 150px;
+  font-size: 0.85em;
+}
+
+/* Flag Icon */
+.flag-icon {
+  display: inline-block;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--flag-yellow);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Empty State */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #888;
+}
+
+.empty-icon {
+  font-size: 4em;
+  margin-bottom: 20px;
+}
+
+.empty-text {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+  color: #aaa;
+}
+
+/* ========== PAGINATION ========== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: #222;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.pagination-info {
+  color: #aaa;
+  font-size: 0.95em;
+  min-width: 100px;
+  text-align: center;
+}
+
+.btn-small {
+  padding: 8px 15px;
+  font-size: 0.9em;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1200px) {
+  .toolbar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .table-wrapper {
+    font-size: 0.9em;
+  }
+
+  .brani-table td,
+  .brani-table th {
+    padding: 8px 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .serata-info {
+    padding: 15px;
+  }
+
+  .info-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .toolbar {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
+
+  .toolbar-section h3 {
+    margin-top: 10px;
+  }
+
+  .toolbar-section:first-child h3 {
+    margin-top: 0;
+  }
+
+  .live-stats {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-badge {
+    width: 100%;
+  }
+
+  .table-wrapper {
+    font-size: 0.85em;
+  }
+
+  .brani-table td,
+  .brani-table th {
+    padding: 8px 5px;
+  }
+
+  .col-collaboratori,
+  .col-coreografo {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .serata-info {
+    padding: 12px;
+  }
+
+  .toolbar {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .table-wrapper {
+    font-size: 0.75em;
+  }
+
+  .brani-table td,
+  .brani-table th {
+    padding: 6px 3px;
+  }
+
+  .col-timestamp,
+  .col-genere,
+  .col-livello,
+  .col-coreo,
+  .col-coreografo,
+  .col-collaboratori {
+    display: none;
+  }
+
+  .live-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

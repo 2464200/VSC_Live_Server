@@ -1,0 +1,257 @@
+/**
+ * BORDERÒ - Lista Serata CSS
+ */
+
+.serata-info-box {
+  background-color: #222;
+  border: 2px solid var(--primary-orange);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.serata-info-box .info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.serata-info-box .info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serata-info-box .info-field label {
+  color: #aaa;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.serata-info-box .info-field span {
+  color: var(--primary-orange);
+  font-size: 1.1em;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}
+
+/* ========== STATS ========== */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #222, #1a1a1a);
+  border: 2px solid var(--primary-orange);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 2.5em;
+}
+
+.stat-content h3 {
+  color: #aaa;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-size: 2.2em;
+  font-weight: bold;
+  color: var(--primary-orange);
+  font-family: 'Courier New', monospace;
+}
+
+.stat-completed {
+  color: var(--success-green);
+}
+
+.stat-pending {
+  color: #ff6b6b;
+}
+
+.stat-percent {
+  color: var(--warning-orange);
+}
+
+/* ========== LIST SECTION ========== */
+.list-section {
+  background-color: #222;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  padding: 25px;
+  margin-bottom: 30px;
+  overflow-x: auto;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--primary-orange);
+}
+
+.section-header h2 {
+  color: var(--primary-orange);
+  font-size: 1.5em;
+  margin: 0;
+}
+
+.section-header .count {
+  background-color: rgba(255, 127, 0, 0.2);
+  color: var(--primary-orange);
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.brani-list {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+.brani-list thead {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border-bottom: 2px solid var(--primary-orange);
+}
+
+.brani-list th {
+  padding: 12px;
+  text-align: left;
+  color: var(--primary-orange);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9em;
+  border-right: 1px solid var(--border-color);
+}
+
+.brani-list th:last-child {
+  border-right: none;
+}
+
+.brani-list tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.brani-list tbody tr:hover {
+  background-color: rgba(255, 127, 0, 0.1);
+}
+
+.brani-list td {
+  padding: 12px;
+  border-right: 1px solid var(--border-color);
+}
+
+.brani-list td:last-child {
+  border-right: none;
+}
+
+.brani-list td.col-number {
+  font-weight: 600;
+  color: var(--primary-orange);
+  width: 50px;
+  text-align: center;
+}
+
+.brani-list td.col-titolo {
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.brani-list td.col-autore,
+.brani-list td.col-coreografo,
+.brani-list td.col-genere {
+  color: #ccc;
+}
+
+.brani-list td.col-timestamp {
+  font-family: 'Courier New', monospace;
+  color: var(--success-green);
+}
+
+.empty-state {
+  display: none;
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  font-style: italic;
+}
+
+.empty-state.show {
+  display: block;
+}
+
+/* ========== ACTIONS ========== */
+.actions-section {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.actions-section .btn {
+  padding: 12px 30px;
+  font-size: 1em;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .brani-list {
+    font-size: 0.9em;
+  }
+
+  .brani-list th,
+  .brani-list td {
+    padding: 8px;
+  }
+
+  .list-section {
+    padding: 15px;
+  }
+}
+
+@media print {
+  .actions-section,
+  .nav-breadcrumb {
+    display: none;
+  }
+
+  .list-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

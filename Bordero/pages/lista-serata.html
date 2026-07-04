@@ -1,0 +1,169 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÃ’ - Lista Serata</title>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="lista-serata.css" />
+  
+  <!-- Config globale -->
+  <!-- XLSX Library per lettura file Excel -->
+    <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  
+  <!-- Verifica caricamento XLSX -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
+  
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="lista-serata.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">ðŸŽ­ BORDERÃ’ - Lista Serata</h1>
+        <p class="app-subtitle">Riepilogo Brani Eseguiti</p>
+      </div>
+    </header>
+
+    <!-- NAVIGAZIONE -->
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="bordero.html">Bordero</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Lista Serata</span>
+    </nav>
+
+    <!-- SERATA INFO -->
+    <section class="serata-info-box">
+      <div class="info-row">
+        <div class="info-field">
+          <label>DJ</label>
+          <span id="info-dj">--</span>
+        </div>
+        <div class="info-field">
+          <label>Data Serata</label>
+          <span id="info-data">--</span>
+        </div>
+        <div class="info-field">
+          <label>Luogo</label>
+          <span id="info-luogo">--</span>
+        </div>
+        <div class="info-field">
+          <label>Evento</label>
+          <span id="info-evento">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATISTICHE -->
+    <section class="stats-section">
+      <div class="stat-card">
+        <div class="stat-icon">ðŸ“Š</div>
+        <div class="stat-content">
+          <h3>Totale Brani</h3>
+          <span class="stat-value" id="stat-total">0</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">âœ…</div>
+        <div class="stat-content">
+          <h3>Eseguiti</h3>
+          <span class="stat-value stat-completed" id="stat-executed">0</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">â³</div>
+        <div class="stat-content">
+          <h3>Non Eseguiti</h3>
+          <span class="stat-value stat-pending" id="stat-pending">0</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">ðŸ“ˆ</div>
+        <div class="stat-content">
+          <h3>Percentuale</h3>
+          <span class="stat-value stat-percent" id="stat-percent">0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABELLA ESEGUITI -->
+    <section class="list-section">
+      <div class="section-header">
+        <h2>ðŸŽ¶ Brani Eseguiti</h2>
+        <span class="count" id="executed-count">0 brani</span>
+      </div>
+
+      <table class="brani-list">
+        <thead>
+          <tr>
+            <th class="col-number">#</th>
+            <th class="col-titolo">Titolo</th>
+            <th class="col-autore">Autore</th>
+            <th class="col-coreografo">Coreografo</th>
+            <th class="col-timestamp">Orario</th>
+          </tr>
+        </thead>
+        <tbody id="executed-tbody">
+          <!-- Rows dinamiche -->
+        </tbody>
+      </table>
+
+      <div class="empty-state" id="empty-executed">
+        <p>Nessun brano eseguito</p>
+      </div>
+    </section>
+
+    <!-- TABELLA NON ESEGUITI -->
+    <section class="list-section">
+      <div class="section-header">
+        <h2>â³ Brani Non Eseguiti</h2>
+        <span class="count" id="pending-count">0 brani</span>
+      </div>
+
+      <table class="brani-list">
+        <thead>
+          <tr>
+            <th class="col-number">#</th>
+            <th class="col-titolo">Titolo</th>
+            <th class="col-autore">Autore</th>
+            <th class="col-coreografo">Coreografo</th>
+            <th class="col-genere">Genere</th>
+          </tr>
+        </thead>
+        <tbody id="pending-tbody">
+          <!-- Rows dinamiche -->
+        </tbody>
+      </table>
+
+      <div class="empty-state" id="empty-pending">
+        <p>Tutti i brani sono stati eseguiti</p>
+      </div>
+    </section>
+
+    <!-- AZIONI -->
+    <section class="actions-section">
+      <button id="btn-export" class="btn btn-primary" title="Esporta lista a PDF">ðŸ“„ ESPORTA PDF</button>
+      <button id="btn-print" class="btn btn-secondary" title="Stampa lista">ðŸ–¨ï¸ STAMPA</button>
+      <button id="btn-back" class="btn btn-secondary" title="Torna al bordero">â† BORDERO</button>
+    </section>
+  </div>
+</body>
+</html>
