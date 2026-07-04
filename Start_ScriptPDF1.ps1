@@ -14,7 +14,9 @@ $htmlUrl = "http://localhost:5500/Prova/ScriptPDF1.html"
 
 # Verifica che Node.js sia installato
 try {
-    $nodeVersion = node --version 2>$null
+$helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+if (Test-Path $helpers) { . $helpers }
+$serverProcess = Start-ProcessSafe -FilePath "node" -ArgumentList $serverScript -PassThru -WindowStyle Hidden -NoNewWindow
     if (-not $nodeVersion) {
         Write-Host "❌ Node.js non è installato o non è nel PATH"
         Write-Host "   Installa Node.js da: https://nodejs.org/"
@@ -44,8 +46,10 @@ if (-not (Test-Path $pdfFolder)) {
 }
 
 # Avvia il server Node.js in background
-Write-Host "Avvio del server unificato..."
-$serverProcess = Start-Process -FilePath "node" -ArgumentList $serverScript -PassThru -WindowStyle Hidden -NoNewWindow
+    Write-Host "Avvio del server unificato..."
+    $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+    if (Test-Path $helpers) { . $helpers }
+    $serverProcess = Start-ProcessSafe -FilePath "node" -ArgumentList $serverScript -PassThru -WindowStyle Hidden -NoNewWindow
 
 # Aspetta che il server sia pronto
 Start-Sleep -Seconds 3
@@ -73,7 +77,7 @@ while ($retries -gt 0) {
 if (-not $serverReady) {
     Write-Host "❌ Il server non è riuscito ad avviarsi"
     $serverProcess | Stop-Process -Force
-    exit 1
+$chromeProcess = Start-ProcessSafe -FilePath "chrome" -ArgumentList $chromeArgs -PassThru
 }
 
 # Determina la posizione dello schermo secondario
@@ -110,7 +114,7 @@ $chromeArgs = @(
 
 # Avvia Chrome in modalità Kiosk
 Write-Host "Apertura di Chrome in modalità Kiosk..."
-$chromeProcess = Start-Process -FilePath "chrome" -ArgumentList $chromeArgs -PassThru
+$chromeProcess = Start-ProcessSafe -FilePath "chrome" -ArgumentList $chromeArgs -PassThru
 
 # Aspetta che Chrome si chiuda
 $chromeProcess | Wait-Process

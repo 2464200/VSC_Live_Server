@@ -1,5 +1,5 @@
 {
-    "task.allowAutomaticTasks": "always",
+    "task.allowAutomaticTasks": "on",
     "task.autoDetect": "off",
     "task.problemMatchers.neverPrompt": true,
     "task.quickOpen.showAll": true,

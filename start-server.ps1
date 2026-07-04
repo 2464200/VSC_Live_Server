@@ -51,7 +51,14 @@ Write-Host "🌐 Step 3: Avviando server HTTP sulla porta $port..." -ForegroundC
 Write-Host ""
 
 cd $projectRoot
-$pythonProcess = Start-Process python -ArgumentList "-m http.server $port" -PassThru -NoNewWindow
+# Load helper
+$helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+if (Test-Path $helpers) { . $helpers }
+if (Get-Command -Name Start-ProcessSafe -ErrorAction SilentlyContinue) {
+  $pythonProcess = Start-ProcessSafe -FilePath python -ArgumentList "-m http.server $port" -PassThru -NoNewWindow
+} else {
+  $pythonProcess = Start-Process python -ArgumentList "-m http.server $port" -PassThru -NoNewWindow
+}
 
 Write-Host "✅ Server avviato (PID: $($pythonProcess.Id))" -ForegroundColor Green
 Write-Host "📡 URL: http://localhost:$port/Bordero/" -ForegroundColor Cyan
@@ -82,7 +89,11 @@ Write-Host ""
 
 # Step 5: Apri il browser
 Write-Host "🌐 Step 5: Aprendo il browser..." -ForegroundColor Yellow
-Start-Process "http://localhost:$port/Bordero/"
+if (Get-Command -Name Start-ProcessSafe -ErrorAction SilentlyContinue) {
+  Start-ProcessSafe -FilePath "http://localhost:$port/Bordero/"
+} else {
+  Start-Process "http://localhost:$port/Bordero/"
+}
 Write-Host "✅ Browser aperto a http://localhost:$port/Bordero/" -ForegroundColor Green
 
 Write-Host ""

@@ -31,7 +31,9 @@ $httpRunning = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -ma
 if (-not $httpRunning) {
     $pythonExe = "C:\VSC_Live_Server\.venv\Scripts\python.exe"
     if (-not (Test-Path $pythonExe)) { $pythonExe = "python" }
-    Start-Process -FilePath $pythonExe -ArgumentList '-m','http.server','8000' -WorkingDirectory $root -WindowStyle Hidden | Out-Null
+    $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+    if (Test-Path $helpers) { . $helpers }
+    Start-ProcessSafe -FilePath $pythonExe -ArgumentList '-m','http.server','8000' -WorkingDirectory $root -WindowStyle Hidden | Out-Null
     Start-Sleep -Seconds 1
 }
 
@@ -41,10 +43,10 @@ $url = "http://localhost:8000/servizio.html"
 $chromePaths = @("C:\Program Files\Google\Chrome\Application\chrome.exe", "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
 $chrome = $chromePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
 
-if ($chrome) {
-    $proc = Start-Process -FilePath $chrome -ArgumentList '--new-window', $url -PassThru
+    if ($chrome) {
+        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', $url -PassThru
 } else {
-    $proc = Start-Process -FilePath $url -PassThru
+    $proc = Start-ProcessSafe -FilePath $url -PassThru
 }
 
 # Attendi handle finestra

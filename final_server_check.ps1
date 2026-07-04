@@ -33,7 +33,13 @@ while ($attempts -lt $maxAttempts) {
 if ($attempts -ge $maxAttempts) {
   Write-Host '[WARNING] Server non raggiungibile dopo 3 tentativi' -ForegroundColor Yellow
   Write-Host 'Avviando il server...' -ForegroundColor Yellow
-  Start-Process cmd.exe -ArgumentList '/c node unified-server.js' -WindowStyle Hidden
+  $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+  if (Test-Path $helpers) { . $helpers }
+  if (Get-Command -Name Start-ProcessSafe -ErrorAction SilentlyContinue) {
+    Start-ProcessSafe -FilePath cmd.exe -ArgumentList '/c node unified-server.js' -WindowStyle Hidden
+  } else {
+    Start-Process cmd.exe -ArgumentList '/c node unified-server.js' -WindowStyle Hidden
+  }
   Start-Sleep -Seconds 2
   Write-Host '[OK] Server avviato' -ForegroundColor Green
 }

@@ -25,7 +25,10 @@
       "runOptions": {
         "runOn": "folderOpen"
       },
-      "group": "build"
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     },
     {
       "label": "Auto-shutdown all servers",

@@ -25,7 +25,10 @@ $bounds = $secondary.Bounds
 # Avvia HTTP server (in background)
 $pythonExe = "C:\VSC_Live_Server\.venv\Scripts\python.exe"
 if (-not (Test-Path $pythonExe)) { $pythonExe = "python" }
-$server = Start-Process -FilePath $pythonExe -ArgumentList "-m","http.server","8000" -WorkingDirectory "C:\VSC_Live_Server" -WindowStyle Hidden -PassThru
+ $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+ if (Test-Path $helpers) { . $helpers }
+ $server = Start-ProcessSafe -FilePath $pythonExe -ArgumentList "-m","http.server","8000" -WorkingDirectory "C:\VSC_Live_Server" -WindowStyle Hidden -PassThru
+ if ($chrome) { $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList "--new-window","--start-maximized",$url -PassThru } else { $proc = Start-ProcessSafe -FilePath $url -PassThru }
 Start-Sleep -Seconds 1
 
 $urls = @(
@@ -40,9 +43,9 @@ $chrome = $chromePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 foreach ($url in $urls) {
     if ($chrome) {
-        $proc = Start-Process -FilePath $chrome -ArgumentList "--new-window","--start-maximized",$url -PassThru
+        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList "--new-window","--start-maximized",$url -PassThru
     } else {
-        $proc = Start-Process -FilePath $url -PassThru
+        $proc = Start-ProcessSafe -FilePath $url -PassThru
     }
 
     # Attendi che la finestra sia pronta

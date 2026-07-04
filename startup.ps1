@@ -17,6 +17,10 @@ $UnifiedPort = 5500
 $PidFile = Join-Path $RootPath '.startup-pids.json'
 $LogsDir = Join-Path $RootPath 'logs'
 
+# Load helpers
+$helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+if (Test-Path $helpers) { . $helpers }
+
 function Test-PortListening {
     param([int]$Port)
     try {
@@ -165,8 +169,7 @@ function Start-UnifiedServer {
 
     Write-Host "Avvio Unified Server..."
     try {
-        $proc = Start-Process -FilePath powershell.exe `
-            -ArgumentList @(
+        $proc = Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
                 '-ExecutionPolicy',
                 'Bypass',
                 '-File',
@@ -177,10 +180,7 @@ function Start-UnifiedServer {
                 $stdoutLog,
                 '-StderrLog',
                 $stderrLog
-            ) `
-            -WorkingDirectory $RootPath `
-            -WindowStyle Hidden `
-            -PassThru
+            ) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
 
         if (-not $proc) {
             Write-Host "ERRORE FATALE: impossibile avviare il processo host PowerShell" -ForegroundColor Red

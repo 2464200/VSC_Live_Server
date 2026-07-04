@@ -30,6 +30,10 @@ function Test-PortListening {
 
 Write-Log "Wrapper autostart in esecuzione."
 
+# Load safe Start-Process helper if available
+$helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+if (Test-Path $helpers) { . $helpers }
+
 if (-not (Test-Path $StartupScript)) {
     Write-Log "ERRORE: script di startup non trovato: $StartupScript"
     exit 0
@@ -40,23 +44,23 @@ if (Test-PortListening -Port $UnifiedPort) {
     exit 0
 }
 
-try {
-    $proc = Start-Process -FilePath powershell.exe -ArgumentList @(
-        '-NoProfile',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-File',
-        $StartupScript,
-        '-NoWait'
-    ) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
+    try {
+        $proc = Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
+            '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-File',
+            $StartupScript,
+            '-NoWait'
+        ) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
 
-    if ($proc -ne $null) {
-        Write-Log "Startup avviato con successo. PID wrapper: $($proc.Id)."
-    } else {
-        Write-Log "ERRORE: Start-Process non ha restituito un processo valido."
+        if ($proc -ne $null) {
+            Write-Log "Startup avviato con successo. PID wrapper: $($proc.Id)."
+        } else {
+            Write-Log "ERRORE: Start-ProcessSafe non ha restituito un processo valido."
+        }
+    } catch {
+        Write-Log "ERRORE: impossibile avviare lo startup automatico: $_"
     }
-} catch {
-    Write-Log "ERRORE: impossibile avviare lo startup automatico: $_"
-}
 
 exit 0

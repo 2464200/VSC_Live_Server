@@ -24,7 +24,9 @@ if (-not $IsAdmin) {
   Write-Host "Servono privilegi elevati per creare symlink (a meno di Developer Mode)."
   Write-Host "Rilancio lo script come Amministratore..."
   $argsLine = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
-  Start-Process -FilePath "powershell.exe" -ArgumentList $argsLine -Verb RunAs
+  $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+  if (Test-Path $helpers) { . $helpers }
+  Start-ProcessSafe -FilePath "powershell.exe" -ArgumentList $argsLine -Verb RunAs
   exit
 }
 

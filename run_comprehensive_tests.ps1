@@ -14,7 +14,13 @@ try {
 } catch {
   Write-Host '[WARNING] Server non raggiungibile' -ForegroundColor Yellow
   Write-Host 'Avviando il server...' -ForegroundColor Yellow
-  Start-Process cmd.exe -ArgumentList '/c node unified-server.js' -WindowStyle Hidden
+  $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+  if (Test-Path $helpers) { . $helpers }
+  if (Get-Command -Name Start-ProcessSafe -ErrorAction SilentlyContinue) {
+    Start-ProcessSafe -FilePath cmd.exe -ArgumentList '/c node unified-server.js' -WindowStyle Hidden
+  } else {
+    Start-Process cmd.exe -ArgumentList '/c node unified-server.js' -WindowStyle Hidden
+  }
   Start-Sleep -Seconds 3
   $isServerRunning = $false
 }

@@ -144,11 +144,14 @@ public class WindowManager {
     # Helper to start process
     function Start-Viewer($exePath, $cmdParams) {
         try {
-            if ($cmdParams -and $cmdParams.Count -gt 0) {
+            $helpers = Join-Path $PSScriptRoot '..\..\scripts\ps_helpers.ps1'
+            if (-not (Test-Path $helpers)) { $helpers = Join-Path $PSScriptRoot '..\scripts\ps_helpers.ps1' }
+            if (Test-Path $helpers) { . $helpers }
+                if ($cmdParams -and $cmdParams.Count -gt 0) {
                 Log "   Argomenti: $($cmdParams -join ' | ')"
-                return Start-Process -FilePath $exePath -ArgumentList $cmdParams -PassThru -WindowStyle Normal
+                return Start-ProcessSafe -FilePath $exePath -ArgumentList $cmdParams -PassThru -WindowStyle Normal
             } else {
-                return Start-Process -FilePath $exePath -PassThru -WindowStyle Normal
+                return Start-ProcessSafe -FilePath $exePath -PassThru -WindowStyle Normal
             }
         } catch {
             try { Log ("ERRORE avvio processo " + $exePath + ": " + $_.ToString()) } catch { }

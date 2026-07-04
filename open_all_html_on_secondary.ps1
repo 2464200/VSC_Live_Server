@@ -24,10 +24,12 @@ $bounds = $secondary.Bounds
 
 # verifica se http.server è in esecuzione
 $httpRunning = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'http\.server' -or $_.CommandLine -match 'SimpleHTTPServer' }
-if (-not $httpRunning) {
+    if (-not $httpRunning) {
     $pythonExe = "C:\VSC_Live_Server\.venv\Scripts\python.exe"
     if (-not (Test-Path $pythonExe)) { $pythonExe = "python" }
-    Start-Process -FilePath $pythonExe -ArgumentList '-m','http.server','8000' -WorkingDirectory $root -WindowStyle Hidden | Out-Null
+    $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
+    if (Test-Path $helpers) { . $helpers }
+    Start-ProcessSafe -FilePath $pythonExe -ArgumentList '-m','http.server','8000' -WorkingDirectory $root -WindowStyle Hidden | Out-Null
     Start-Sleep -Seconds 1
 }
 
@@ -43,9 +45,9 @@ foreach ($file in $files) {
     $url = "http://localhost:8000/" + [System.Uri]::EscapeUriString($relative)
 
     if ($chrome) {
-        $proc = Start-Process -FilePath $chrome -ArgumentList '--new-window', '--start-maximized', $url -PassThru
+        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', '--start-maximized', $url -PassThru
     } else {
-        $proc = Start-Process -FilePath $url -PassThru
+        $proc = Start-ProcessSafe -FilePath $url -PassThru
     }
 
     # aspetta che la finestra sia pronta
