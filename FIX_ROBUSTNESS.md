@@ -1,5 +1,8 @@
 # 🔧 FIX ROBUSTEZZA - Excel Sync Upgrade
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## ✅ Miglioramenti Apportati
 
 Ho reso il sistema **molto più robusto** per gestire file Excel con nomi diversi.
@@ -261,3 +264,4 @@ VERSIONE 2.0 - Robustness Update
 ---
 
 **TESTA SUBITO:** http://localhost:8000/Bordero/pages/admin.html 🚀
+

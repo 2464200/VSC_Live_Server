@@ -1,5 +1,8 @@
 # 🎭 BORDERÒ - Guida alla Selezione del File Excel
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## 🔧 Come Funziona il Nuovo Sistema
 
 Il sistema ora **chiede all'utente di selezionare il file Excel** invece di cercarlo automaticamente. Questo risolve il problema "excel non è definito" e rende il processo più trasparente.
@@ -293,3 +296,4 @@ Se sposti il file Excel a un nuovo PC:
 
 **Status:** ✅ **Sistema Completo e Funzionante**  
 **Data:** 2026-06-18
+

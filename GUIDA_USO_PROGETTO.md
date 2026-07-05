@@ -1,5 +1,8 @@
 # Guida d'uso del progetto VSC Live Server
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## Panoramica
 Questo progetto usa il server unificato `unified-server.js` sulla porta standard `5500`. Tutte le pagine principali del progetto e i mock API Eventi sono servite da questo server.
 
@@ -116,3 +119,4 @@ Get-NetTCPConnection -LocalPort 5500 | Select-Object -ExpandProperty OwningProce
 
 - Se il browser mostra `Cannot GET /eventi/eventi.html`, significa che il server unificato non sta girando su `5500` o che un altro processo occupa la porta.
 - Se ti serve un percorso diretto per il modulo Eventi, usa sempre `http://localhost:5500/eventi/eventi.html`.
+

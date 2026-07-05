@@ -1,286 +1,297 @@
 #!/usr/bin/env node
 /**
- * Google Sheets API v4 - Download CSV data
- * Usa Google Sheets API v4 (autenticata) per scaricare i dati
- * 
- * Vantaggi:
- * - ✅ Funziona con Google Sheets pubblici
- * - ✅ Nessuna dipendenza da XLSX.js
- * - ✅ Dati sempre aggiornati
- * - ✅ API stabile di Google
+ * Google Sheets Sync - Download CSV data from Google Sheets.
+ *
+ * Supports:
+ * - Service Account JSON credentials (preferred)
+ * - Google API Key fallback
+ * - Public CSV export fallback
  */
 
-const https = require('https');
 const fs = require('fs');
 const path = require('path');
-
-// Carica variabili di ambiente (se presenti)
+const https = require('https');
+const http = require('http');
+const { URL } = require('url');
+const { google } = require('googleapis');
 const dotenv = require('dotenv');
+
 const envPath = path.join(__dirname, '..', 'config', '.env');
-
-if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath });
-} else {
-  console.warn('⚠️  File Bordero/config/.env non trovato: procederò con il fallback pubblico (se disponibile).');
+if (!fs.existsSync(envPath)) {
+  console.error('❌ File .env non trovato!');
+  console.error('   Crea Bordero/config/.env o copia Bordero/config/.env.template');
+  process.exit(1);
 }
 
-const API_KEY = process.env.GOOGLE_API_KEY || null;
-if (!API_KEY) {
-  console.warn('⚠️  GOOGLE_API_KEY non configurata: verrà usato il fallback pubblico quando possibile.');
-}
+dotenv.config({ path: envPath });
 
-// Configurazione sheets
+const API_KEY = process.env.GOOGLE_API_KEY?.trim();
+const SERVICE_ACCOUNT_KEY_FILE = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE?.trim();
+const SERVICE_ACCOUNT_KEY_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON?.trim();
+const OUTPUT_DIR = path.join(__dirname, '..', 'data');
+
 const SHEETS = [
   {
     name: 'Brani',
     id: process.env.GOOGLE_SHEET_BRANI,
-    gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
     range: "'Elenco Coreo (statico)'!A:Z",
-    output: 'brani.csv'
+    output: 'brani.csv',
+    gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
+    publicUrl: process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
   },
   {
     name: 'Comuni',
     id: process.env.GOOGLE_SHEET_COMUNI,
-    gid: process.env.GOOGLE_SHEET_COMUNI_GID || '0',
     range: 'Sheet1!A:Z',
-    output: 'comuni.csv'
+    output: 'comuni_italia.csv',
+    gid: process.env.GOOGLE_SHEET_COMUNI_GID || '0',
+    publicUrl: process.env.GOOGLE_SHEET_COMUNI_PUBLIC_URL?.trim()
   },
   {
     name: 'DJ/dBase',
     id: process.env.GOOGLE_SHEET_DBASE,
-    gid: process.env.GOOGLE_SHEET_DBASE_GID || '0',
     range: 'dBase!A:Z',
-    output: 'dbase.csv'
+    output: 'dbase.csv',
+    gid: process.env.GOOGLE_SHEET_DBASE_GID || '0',
+    publicUrl: process.env.GOOGLE_SHEET_DBASE_PUBLIC_URL?.trim()
   }
 ];
 
-const OUTPUT_DIR = path.join(__dirname, '..', 'data');
-
-// Assicura che la directory esista
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
-/**
- * Escape CSV values
- */
 function escapeCSV(field) {
   if (field === null || field === undefined) return '';
-  
   const str = String(field).trim();
-  
-  // Se contiene virgola, virgolette o newline, wrappa in virgolette e escape le internal quotes
   if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return '"' + str.replace(/"/g, '""') + '"';
   }
-  
   return str;
 }
 
-/**
- * Converti Google Sheets values a CSV
- */
 function valuesToCSV(values) {
-  if (!values || values.length === 0) {
-    return '';
-  }
-
-  return values
-    .map(row => row.map(escapeCSV).join(','))
-    .join('\n');
+  if (!values || values.length === 0) return '';
+  return values.map(row => row.map(escapeCSV).join(',')).join('\n');
 }
 
-/**
- * Fetch data da Google Sheets API
- */
-function fetchSheetData(spreadsheetId, range) {
+function httpGet(url, redirectCount = 0) {
   return new Promise((resolve, reject) => {
+    if (redirectCount > 10) {
+      return reject(new Error('Too many redirects'));
+    }
+
+    const parsedUrl = new URL(url);
+    const lib = parsedUrl.protocol === 'http:' ? http : https;
+
+    const req = lib.get(parsedUrl, (res) => {
+      if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
+        const location = res.headers.location;
+        if (!location) {
+          return reject(new Error(`Redirect without location header: ${res.statusCode}`));
+        }
+        res.resume();
+        return resolve(httpGet(new URL(location, parsedUrl).toString(), redirectCount + 1));
+      }
+
+      if (res.statusCode !== 200) {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          reject(new Error(`HTTP ${res.statusCode}: ${data.substring(0, 200)}`));
+        });
+        return;
+      }
+
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    });
+
+    req.on('error', reject);
+  });
+}
+
+function fetchSheetDataKey(spreadsheetId, range) {
+  return new Promise((resolve, reject) => {
+    if (!API_KEY) {
+      return reject(new Error('GOOGLE_API_KEY mancante')); 
+    }
+
     const encodedRange = encodeURIComponent(range);
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}?key=${API_KEY}`;
 
     https.get(url, (res) => {
       let data = '';
-
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-
+      res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-
           if (res.statusCode !== 200) {
             const errorMsg = json.error?.message || `HTTP ${res.statusCode}`;
             reject(new Error(errorMsg));
             return;
           }
-
-          const values = json.values || [];
-          resolve({ values, source: 'API' });
-        } catch (e) {
-          reject(new Error(`Parse error: ${e.message}`));
+          resolve(json.values || []);
+        } catch (err) {
+          reject(new Error(`Parse error: ${err.message}`));
         }
       });
     }).on('error', reject);
   });
 }
 
-/**
- * Fetch public export (TSV) fallback from Google Sheets (docs export)
- */
-function parseTSVData(data) {
-  const lines = data.replace(/\r\n/g, '\n').split('\n');
-  return lines.map(line => line.split('\t').map(cell => cell === '' ? '' : cell));
-}
+async function getServiceAccountAuth() {
+  let credentials = null;
 
-function parseGvizResponse(data) {
-  const trimmed = data.trim();
-  if (!trimmed.includes('google.visualization.Query.setResponse')) {
-    throw new Error('Not a gviz response');
-  }
-
-  const match = trimmed.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s);
-  if (!match || !match[1]) {
-    throw new Error('Unable to parse gviz response');
-  }
-
-  const json = JSON.parse(match[1]);
-  const cols = json.table?.cols || [];
-  const rows = json.table?.rows || [];
-  const headerRow = cols.map(col => col.label || '');
-  const values = [headerRow];
-
-  for (const row of rows) {
-    const cells = (row.c || []).map(cell => {
-      if (cell === null || cell === undefined) return '';
-      return cell.v !== undefined ? String(cell.v) : (cell.f !== undefined ? String(cell.f) : '');
-    });
-    while (cells.length < headerRow.length) {
-      cells.push('');
-    }
-    values.push(cells);
-  }
-
-  return values;
-}
-
-function parseSheetExport(data) {
-  const trimmed = data.trim();
-  if (trimmed.startsWith('/*O_o*/') || trimmed.includes('google.visualization.Query.setResponse')) {
-    return parseGvizResponse(data);
-  }
-  return parseTSVData(data);
-}
-
-function fetchSheetDataFallback(spreadsheetId, gid) {
-  const startUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=tsv&gid=${gid}`;
-  const altUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:tsv&gid=${gid}`;
-  const maxRedirects = 5;
-
-  function fetchUrl(url, redirectsLeft) {
-    return new Promise((resolve, reject) => {
-      https.get(url, (res) => {
-        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirectsLeft > 0) {
-          const next = res.headers.location.startsWith('http') ? res.headers.location : `https://docs.google.com${res.headers.location}`;
-          res.resume();
-          fetchUrl(next, redirectsLeft - 1).then(resolve).catch(reject);
-          return;
-        }
-
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-          resolve({ statusCode: res.statusCode, data, url });
-        });
-      }).on('error', (err) => {
-        reject(err);
-      });
-    });
-  }
-
-  return new Promise(async (resolve, reject) => {
-    const urls = [startUrl, altUrl];
-    let lastError = null;
-
-    for (const url of urls) {
-      try {
-        const { statusCode, data } = await fetchUrl(url, maxRedirects);
-        if (statusCode !== 200) {
-          lastError = new Error(`HTTP ${statusCode} from ${url}`);
-          continue;
-        }
-
-        try {
-          const values = parseSheetExport(data);
-          if (!values || values.length === 0) {
-            lastError = new Error(`No data parsed from ${url}`);
-            continue;
-          }
-          return resolve({ values, source: `Public export (${url.includes('/gviz/tq') ? 'gviz/tq' : 'export'})` });
-        } catch (parseError) {
-          lastError = new Error(`Parse failed from ${url}: ${parseError.message}`);
-          continue;
-        }
-      } catch (err) {
-        lastError = err;
-        continue;
-      }
-    }
-
-    reject(lastError || new Error('Fallback public export failed'));
-  });
-}
-
-/**
- * Sincronizza un foglio
- */
-async function syncSheet(sheet) {
-  try {
-    console.log(`\n📋 Scaricando ${sheet.name}...`);
-    
-    let result;
+  if (SERVICE_ACCOUNT_KEY_JSON) {
     try {
-      result = await fetchSheetData(sheet.id, sheet.range);
-      console.log(`   ✅ Dati caricati da API`);
-    } catch (primaryError) {
-      console.log(`   ⚠️  API error: ${primaryError.message}`);
-      console.log('   Provo fallback esportazione pubblica...');
-      try {
-        result = await fetchSheetDataFallback(sheet.id, sheet.gid || '0');
-        console.log(`   ✅ Fallback pubblico riuscito: ${result.source}`);
-      } catch (fallbackError) {
-        console.log(`   ❌ Fallback fallito: ${fallbackError.message}`);
-        throw primaryError;
-      }
+      credentials = JSON.parse(SERVICE_ACCOUNT_KEY_JSON);
+    } catch (err) {
+      throw new Error(`Impossibile leggere GOOGLE_SERVICE_ACCOUNT_KEY_JSON: ${err.message}`);
     }
+  }
 
-    const values = result.values || result;
+  if (!credentials && SERVICE_ACCOUNT_KEY_FILE) {
+    if (!fs.existsSync(SERVICE_ACCOUNT_KEY_FILE)) {
+      throw new Error(`File service account non trovato: ${SERVICE_ACCOUNT_KEY_FILE}`);
+    }
+    try {
+      credentials = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_KEY_FILE, 'utf8'));
+    } catch (err) {
+      throw new Error(`Impossibile leggere GOOGLE_SERVICE_ACCOUNT_KEY_FILE: ${err.message}`);
+    }
+  }
+
+  if (!credentials) {
+    return null;
+  }
+
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+  });
+
+  return auth;
+}
+
+async function fetchSheetDataServiceAccount(spreadsheetId, range) {
+  const auth = await getServiceAccountAuth();
+  if (!auth) {
+    throw new Error('Service Account non configurato');
+  }
+
+  const client = await auth.getClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
+  const response = await sheets.spreadsheets.values.get({ spreadsheetId, range });
+  return response.data.values || [];
+}
+
+async function fetchSheetData(spreadsheetId, range) {
+  if (SERVICE_ACCOUNT_KEY_JSON || SERVICE_ACCOUNT_KEY_FILE) {
+    try {
+      return await fetchSheetDataServiceAccount(spreadsheetId, range);
+    } catch (err) {
+      console.warn(`⚠️ Service Account fallito: ${err.message}`);
+    }
+  }
+
+  if (API_KEY) {
+    return await fetchSheetDataKey(spreadsheetId, range);
+  }
+
+  throw new Error('Nessuna autenticazione Google configurata');
+}
+
+function buildCSVExportUrls(spreadsheetId, gid) {
+  return [
+    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`,
+    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/pub?output=csv&gid=${gid}`,
+    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/pub?gid=${gid}&single=true&output=csv`
+  ];
+}
+
+async function fetchCSVExport(spreadsheetId, gid) {
+  const urls = buildCSVExportUrls(spreadsheetId, gid);
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      return await httpGet(url);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error('CSV export failed');
+}
+
+function normalizeDelimitedTextToCSV(text) {
+  if (!text) return '';
+  const rows = text.trim().split(/\r?\n/);
+  const hasTab = rows.some(line => line.includes('\t'));
+  if (!hasTab) {
+    return text.trim();
+  }
+
+  const values = rows.map(row => row.split('\t'));
+  return valuesToCSV(values);
+}
+
+async function fetchPublicUrl(textUrl) {
+  const csv = await httpGet(textUrl);
+  return normalizeDelimitedTextToCSV(csv);
+}
+
+async function syncSheet(sheet) {
+  console.log(`\n📋 Scaricando ${sheet.name}...`);
+
+  try {
+    const values = await fetchSheetData(sheet.id, sheet.range);
     if (!values || values.length === 0) {
-      console.log(`   ⚠️  Foglio vuoto`);
+      console.log('   ⚠️  Foglio vuoto');
       return { success: false, error: 'Foglio vuoto' };
     }
 
-    // Converti a CSV
     const csv = valuesToCSV(values);
-
-    // Salva file
     const filePath = path.join(OUTPUT_DIR, sheet.output);
     fs.writeFileSync(filePath, csv, 'utf8');
 
-    console.log(`   ✅ ${sheet.output} (${values.length} righe)`);
-    return { success: true, rows: values.length, file: sheet.output };
-  } catch (error) {
-    console.log(`   ❌ Errore: ${error.message}`);
-    return { success: false, error: error.message };
+    console.log(`   ✅ ${sheet.output} (${values.length} righe) [Google Sheets API]`);
+    return { success: true, rows: values.length, file: filePath };
+  } catch (apiError) {
+    console.warn(`   ⚠️ API error: ${apiError.message}. Provo fallback CSV export...`);
+
+    try {
+      const csvContent = await fetchCSVExport(sheet.id, sheet.gid);
+      const filePath = path.join(OUTPUT_DIR, sheet.output);
+      fs.writeFileSync(filePath, csvContent, 'utf8');
+      const rows = csvContent.trim().split(/\r?\n/).filter(line => line.trim() !== '').length - 1;
+      console.log(`   ✅ ${sheet.output} (${rows} righe) [Export CSV]`);
+      return { success: true, rows, file: filePath };
+    } catch (fallbackError) {
+      if (sheet.publicUrl) {
+        try {
+          console.warn(`   ⚠️ Fallback da URL pubblico: ${sheet.publicUrl}`);
+          const csvContent = await fetchPublicUrl(sheet.publicUrl);
+          const filePath = path.join(OUTPUT_DIR, sheet.output);
+          fs.writeFileSync(filePath, csvContent, 'utf8');
+          const rows = csvContent.trim().split(/\r?\n/).filter(line => line.trim() !== '').length - 1;
+          console.log(`   ✅ ${sheet.output} (${rows} righe) [Public URL]`);
+          return { success: true, rows, file: filePath };
+        } catch (publicError) {
+          console.log(`   ❌ Errore public URL: ${publicError.message}`);
+          return { success: false, error: publicError.message };
+        }
+      }
+
+      console.log(`   ❌ Errore fallback CSV: ${fallbackError.message}`);
+      return { success: false, error: fallbackError.message };
+    }
   }
 }
 
-/**
- * Sincronizza tutti i fogli
- */
 async function syncAll() {
   console.log('\n╔════════════════════════════════════════════════════════════════╗');
-  console.log('║     Google Sheets API v4 - Download Dati                      ║');
+  console.log('║     Google Sheets Sync - Download Dati                       ║');
   console.log('╚════════════════════════════════════════════════════════════════╝');
   console.log(`\n📁 Output: ${OUTPUT_DIR}`);
 
@@ -288,8 +299,14 @@ async function syncAll() {
   const results = [];
 
   for (const sheet of SHEETS) {
+    if (!sheet.id) {
+      console.log(`   ❌ ID mancante per sheet ${sheet.name}, salto`);
+      results.push({ success: false, error: 'ID mancante', sheet: sheet.name });
+      continue;
+    }
+
     const result = await syncSheet(sheet);
-    results.push(result);
+    results.push({ sheet: sheet.name, ...result });
     if (result.success) successCount++;
   }
 
@@ -297,18 +314,12 @@ async function syncAll() {
   console.log(`║ ✅ Completato: ${successCount}/${SHEETS.length} fogli scaricati`);
   console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
-  console.log(`📁 File generati in: ${OUTPUT_DIR}`);
-  for (const result of results.filter(r => r.success && r.file)) {
-    console.log(`   - ${result.file}`);
-  }
-
   if (successCount < SHEETS.length) {
     process.exit(1);
   }
 }
 
-// Avvia sync
-syncAll().catch((err) => {
+syncAll().catch(err => {
   console.error('❌ Errore fatale:', err.message);
   process.exit(1);
 });

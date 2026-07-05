@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BORDERO’ - Tabella Principale</title>
+  <title>BORDERÃ’ - Tabella Principale</title>
   
   <!-- Style dalle carte Eventi -->
   <link rel="stylesheet" href="../assets/css/style.css" />
   
-  <!-- Style Borderò personalizzato -->
+  <!-- Style BorderÃ² personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
   <link rel="stylesheet" href="bordero.css" />
@@ -49,7 +49,7 @@
     <nav class="nav-breadcrumb">
       <a href="../index.html">Home</a>
       <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-current">Bordero Principale</span>
+      <span class="breadcrumb-current">Borderò Principale</span>
     </nav>
 
     <!-- SERATA INFO (D2:D5) -->
@@ -85,6 +85,12 @@
         <button id="btn-sort-id" class="btn btn-sort" title="Ordina per ID progressivo">
           ORDINA PER ID
         </button>
+        <button id="btn-sort-titolo" class="btn btn-sort" title="Ordina per titolo">
+          ORDINA PER TITOLO
+        </button>
+        <button id="btn-sort-brano" class="btn btn-sort" title="Ordina per brano">
+          ORDINA PER BRANO
+        </button>
         <button id="btn-sort-genere" class="btn btn-sort" title="Ordina per genere musicale">
           ORDINA PER GENERE
         </button>
@@ -111,44 +117,30 @@
 
       <div class="toolbar-section">
         <h3>RICERCA & AZIONI</h3>
-        <div class="search-group">
-          <label class="search-label">RICERCA GENERALE</label>
-          <input 
-            type="text" 
-            id="search-box" 
-            class="search-input" 
-            placeholder="🔍 Cerca titolo, autore, coreografo..."
-          />
-        </div>
-        <div class="search-actions">
-          <button id="btn-search-general" class="btn btn-secondary" title="Ricerca generale su titolo, autore, genere, livello e coreografia">
-            🔎 RICERCA GENERALE
-          </button>
-          <button id="btn-search-title" class="btn btn-secondary" title="Ricerca solo per titolo">
-            🔎 RICERCA PER TITOLO
-          </button>
-          <button id="btn-search-id" class="btn btn-secondary" title="Ricerca solo per ID">
-            🔎 RICERCA PER ID
-          </button>
-        </div>
+        <input 
+          type="text" 
+          id="search-box" 
+          class="search-input" 
+          placeholder="Cerca titolo, autore, coreografo..."
+        />
         <button id="btn-reset-filters" class="btn btn-secondary" title="Resetta filtri e ricerca">
-          🔄 RESET
+          RESET FILTRI
         </button>
       </div>
 
       <div class="toolbar-section">
         <h3>AZIONI</h3>
         <button id="btn-userform" class="btn btn-primary" title="Aggiungi/modifica brano">
-          🖋️ USERFORM
+          USERFORM
         </button>
         <button id="btn-export" class="btn btn-secondary" title="Esporta tabella a CSV (formato SIAE)">
-          📥 EXPORT SIAE
+          EXPORT FILE PER SIAE
         </button>
         <button id="btn-print" class="btn btn-secondary" title="Stampa tabella">
-          🖨️ STAMPA
+          STAMPA
         </button>
         <button id="btn-finish-serata" class="btn btn-danger" title="Termina e archivia la serata corrente">
-          🕒 FINISCI SERATA
+          TERMINA E FINALIZZA SERATA/EVENTO
         </button>
       </div>
     </section>
@@ -183,6 +175,7 @@
               <th class="col-id" data-col="id">ID</th>
               <th class="col-timestamp" data-col="timestamp">Timestamp</th>
               <th class="col-titolo" data-col="titolo">Titolo</th>
+              <th class="col-brano" data-col="brano">Brano</th>
               <th class="col-autore" data-col="autore">Autore</th>
               <th class="col-genere" data-col="genere">Genere</th>
               <th class="col-livello" data-col="info_livello">Info Livello</th>
@@ -198,19 +191,21 @@
       </div>
 
       <div id="empty-state" class="empty-state" style="display: none;">
-        <p class="empty-icon">🔍</p>
+        <p class="empty-icon">­</p>
         <p class="empty-text">Nessun brano trovato con i filtri applicati</p>
         <button id="btn-reset-filters-empty" class="btn btn-secondary">
-          🔄 Resetta Filtri
+          Resetta Filtri
         </button>
       </div>
     </section>
 
     <!-- PAGINATION (opzionale) -->
     <section class="pagination">
-      <button id="btn-prev-page" class="btn btn-small">← Precedente</button>
+      <button id="btn-first-page" class="btn btn-small">Prima Pagina</button>
+      <button id="btn-prev-page" class="btn btn-small">Precedente</button>
       <span id="pagination-info" class="pagination-info">Pagina 1</span>
-      <button id="btn-next-page" class="btn btn-small">Prossima →</button>
+      <button id="btn-next-page" class="btn btn-small">Prossima</button>
+      <button id="btn-last-page" class="btn btn-small">Ultima Pagina</button>
     </section>
 
     <!-- FOOTER -->

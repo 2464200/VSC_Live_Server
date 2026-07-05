@@ -1,5 +1,8 @@
 # 🎭 BORDERÒ - DJ Manager Web Application
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 **Status:** ✅ **PRODUCTION READY**  
 **Version:** 1.0.0  
 **Last Updated:** 2026-06-18  
@@ -444,3 +447,4 @@ BORDERÒ è una web application completa, fully functional, pronta per la produz
 **Version:** 1.0.0  
 **Status:** ✅ Production Ready  
 **Date:** 2026-06-18
+

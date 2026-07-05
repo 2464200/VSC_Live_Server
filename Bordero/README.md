@@ -1,4 +1,7 @@
 # 🎭 BORDERÒ - DJ Manager
+
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
 ## Sistema di Gestione Brani e Coreografie
 
 Versione: **1.0.0**  
@@ -431,3 +434,4 @@ Copyleft 2026 - Progetto Borderò
 
 Per domande dettagliate sul progetto, controlla il file di estrazione:  
 👉 `../REPORT_ESTRAZIONE_BORDERO.md`
+

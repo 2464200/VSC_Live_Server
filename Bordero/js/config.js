@@ -3,6 +3,9 @@
  * Contiene tutte le impostazioni, costanti, e API endpoints
  */
 
+const isPagePath = typeof window !== 'undefined' && /\/pages\//i.test(window.location.pathname);
+const dataBasePath = isPagePath ? '../data/' : './data/';
+
 const BORDERO_CONFIG = {
   // ========== APPLICAZIONE ==========
   APP_NAME: 'BORDERÒ DJ Manager',
@@ -10,7 +13,10 @@ const BORDERO_CONFIG = {
   APP_AUTHOR: 'Copilot',
   
   // ========== DATI & STORAGE ==========
-  CSV_BRANI: './data/brani.csv',
+  CSV_BRANI: dataBasePath + 'brani.csv',
+  CSV_COMUNI: dataBasePath + 'comuni_italia.csv',
+  CSV_COMUNI_LOMBARDIA: dataBasePath + 'comuni_lombardia.csv',
+  CSV_DBASE: dataBasePath + 'dBase.csv',
   CACHE_KEY_BRANI: 'bordero_brani',
   CACHE_KEY_FILTERS: 'bordero_filters',
   CACHE_KEY_SYNC: 'bordero_lastSync',

@@ -1,5 +1,8 @@
 # Documentazione Operativa — Eventi
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
+
 Torna all'indice generale: [DOCUMENTATION.md](DOCUMENTATION.md)
 
 Indice:
@@ -46,3 +49,4 @@ Avvio consigliato:
 ## Sezioni correlate
 - [Gestione DJ e Sicurezza](DOCUMENTATION_ADMIN.md)
 - [Architettura e API](DOCUMENTATION_DEVELOPMENT.md)
+

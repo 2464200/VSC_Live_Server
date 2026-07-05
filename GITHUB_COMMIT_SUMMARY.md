@@ -1,5 +1,8 @@
 # 📤 BORDERÒ PROJECT - GitHub Commit Summary
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## ✅ Commit Completato
 
 **Data:** 2026-06-18 17:26  
@@ -268,3 +271,4 @@ Puoi deployare direttamente da GitHub:
 **Data:** 2026-06-18  
 **Status:** ✅ **COMPLETATO**  
 **Prossimo Passo:** Selezionare il file Excel e testare il progetto
+

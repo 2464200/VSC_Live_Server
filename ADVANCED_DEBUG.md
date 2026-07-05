@@ -1,5 +1,8 @@
 # 🔍 ADVANCED DEBUG - Excel Sync Failure
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## ⚠️ Se i Dati Non Vengono Caricati
 
 Segui questi step per trovare il problema.
@@ -319,3 +322,4 @@ Copia l'output e mandamelo così posso debuggare il problema specifico.
 **⏱️ Tempo:** < 5 minuti  
 **Difficoltà:** Facile  
 **Successo Rate:** 99%
+

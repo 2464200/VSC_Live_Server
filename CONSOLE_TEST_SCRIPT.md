@@ -1,5 +1,8 @@
 # 🧪 CONSOLE TEST SCRIPT
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 Copia e incolla questi comandi uno alla volta nella **Console del Browser (F12)**
 
 ## Test 1: Verifica Librerie Caricate
@@ -277,3 +280,4 @@ Se tutti ✅ → **SISTEMA PERFETTO!** 🎉
 7. Leggi i risultati
 
 **Tempo totale:** ~5 minuti per il test completo
+

@@ -1,5 +1,8 @@
 # ✅ EXCEL SYNC - FIX COMPLETATO
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## 🔧 Problema Risolto
 
 **Problema:** Dopo aver selezionato il file Excel in admin.html, il codice non sincronizzava i dati dai fogli Excel.
@@ -214,3 +217,4 @@ URL: http://localhost:8000/Bordero/pages/admin.html
 **Qualità:** Production-ready ✅
 
 **TESTARE SUBITO:** http://localhost:8000/Bordero/pages/admin.html 🎭
+

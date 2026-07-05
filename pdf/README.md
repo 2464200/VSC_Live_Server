@@ -1,4 +1,6 @@
-﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
+**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
 # PDF Management System
 
@@ -42,4 +44,5 @@ Il sistema PDF Ã¨ integrato nel **unified-server.js** (porta 5500) avviato aut
 - I PDF sono letti dalla cartella `C:\VSC_SCRIPT_PDF`
 - I viewer si aprono in modalitÃ  kiosk sul monitor secondario
 - Stato dei viewer tracciato in `config/opened-viewers.json`
+
 

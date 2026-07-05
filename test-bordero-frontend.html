@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Bordero Frontend</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: #fff; }
+    .container { max-width: 1200px; margin: 0 auto; background: #2a2a2a; padding: 20px; border-radius: 8px; }
+    .test-result { margin: 20px 0; padding: 15px; border-radius: 5px; border-left: 4px solid #ff7f00; }
+    .success { background: #1a4d1a; border-left-color: #28a745; }
+    .error { background: #4d1a1a; border-left-color: #dc3545; }
+    .info { background: #1a3a4d; border-left-color: #17a2b8; }
+    .warning { background: #4d3a1a; border-left-color: #ff7f00; }
+    h1 { color: #ff7f00; border-bottom: 2px solid #ff7f00; padding-bottom: 10px; }
+    h2 { color: #ff9933; margin-top: 30px; }
+    button { background: #ff7f00; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #ff9933; }
+    .loader { border: 4px solid #ff7f00; border-top: 4px solid transparent; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .bordered-iframe { border: 2px solid #ff7f00; border-radius: 8px; margin: 20px 0; width: 100%; height: 600px; background: #111; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎭 Test Frontend Bordero</h1>
+  
+  <div id="tests"></div>
+  
+  <h2>📺 Preview Frontend Bordero</h2>
+  <p>Caricamento anteprima in tempo reale:</p>
+  <iframe class="bordered-iframe" src="./Bordero/index.html" allow="clipboard-read; clipboard-write"></iframe>
+</div>
+
+<script>
+  const testsDiv = document.getElementById('tests');
+
+  function addResult(title, content, type = 'info') {
+    const div = document.createElement('div');
+    div.className = `test-result ${type}`;
+    div.innerHTML = `<strong>${title}</strong><br>${content}`;
+    testsDiv.appendChild(div);
+  }
+
+  async function testBorderoLoading() {
+    addResult('🔄 Test 1: Caricamento Bordero/index.html', 'In corso...', 'info');
+    
+    try {
+      const response = await fetch('./Bordero/index.html');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const html = await response.text();
+      
+      // Verifica se contiene i necessari script e configurazioni
+      const checks = {
+        'Script config.js': html.includes('config.js'),
+        'Script data-loader.js': html.includes('data-loader.js'),
+        'Script index.js': html.includes('index.js'),
+        'Elemento container': html.includes('container'),
+        'Elemento tabella': html.includes('table') || html.includes('tbody'),
+      };
+
+      let allPassed = true;
+      let details = '';
+      
+      Object.entries(checks).forEach(([check, passed]) => {
+        details += `<br>  ${passed ? '✅' : '❌'} ${check}`;
+        if (!passed) allPassed = false;
+      });
+
+      if (allPassed) {
+        addResult('✅ Test 1: Caricamento Bordero/index.html', 
+          `HTML caricato correttamente (${html.length} bytes)${details}`, 
+          'success');
+      } else {
+        addResult('⚠️ Test 1: Caricamento Bordero/index.html', 
+          `HTML caricato ma mancano alcuni componenti:${details}`, 
+          'warning');
+      }
+
+    } catch (error) {
+      addResult('❌ Test 1: Caricamento Bordero/index.html', 
+        `Errore: ${error.message}`, 
+        'error');
+    }
+  }
+
+  async function testDataLoaderJS() {
+    addResult('🔄 Test 2: Caricamento data-loader.js', 'In corso...', 'info');
+    
+    try {
+      const response = await fetch('./Bordero/js/data-loader.js');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const js = await response.text();
+      
+      const checks = {
+        'Classe DataLoader': js.includes('class DataLoader'),
+        'Metodo loadBrani': js.includes('loadBrani()'),
+        'Metodo loadComuni': js.includes('loadComuni()'),
+        'Metodo loadDJ': js.includes('loadDJ()'),
+        'Parsing CSV': js.includes('parseCSV') || js.includes('parse'),
+      };
+
+      let allPassed = true;
+      let details = '';
+      
+      Object.entries(checks).forEach(([check, passed]) => {
+        details += `<br>  ${passed ? '✅' : '❌'} ${check}`;
+        if (!passed) allPassed = false;
+      });
+
+      if (allPassed) {
+        addResult('✅ Test 2: Caricamento data-loader.js', 
+          `Script caricato correttamente${details}`, 
+          'success');
+      } else {
+        addResult('⚠️ Test 2: Caricamento data-loader.js', 
+          `Script presente ma alcune funzioni potrebbero essere mancanti:${details}`, 
+          'warning');
+      }
+
+    } catch (error) {
+      addResult('❌ Test 2: Caricamento data-loader.js', 
+        `Errore: ${error.message}`, 
+        'error');
+    }
+  }
+
+  async function testConfigJS() {
+    addResult('🔄 Test 3: Caricamento config.js', 'In corso...', 'info');
+    
+    try {
+      const response = await fetch('./Bordero/js/config.js');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const js = await response.text();
+      
+      const checks = {
+        'Costante BORDERO_CONFIG': js.includes('BORDERO_CONFIG'),
+        'Percorso CSV brani': js.includes('./data/brani.csv') || js.includes('CSV_BRANI'),
+        'Cache key configurato': js.includes('CACHE_KEY'),
+        'Logger configurato': js.includes('logger'),
+      };
+
+      let allPassed = true;
+      let details = '';
+      
+      Object.entries(checks).forEach(([check, passed]) => {
+        details += `<br>  ${passed ? '✅' : '❌'} ${check}`;
+        if (!passed) allPassed = false;
+      });
+
+      if (allPassed) {
+        addResult('✅ Test 3: Caricamento config.js', 
+          `Configurazione caricata correttamente${details}`, 
+          'success');
+      } else {
+        addResult('⚠️ Test 3: Caricamento config.js', 
+          `Configurazione incompleta:${details}`, 
+          'warning');
+      }
+
+    } catch (error) {
+      addResult('❌ Test 3: Caricamento config.js', 
+        `Errore: ${error.message}`, 
+        'error');
+    }
+  }
+
+  async function testCSVs() {
+    addResult('🔄 Test 4: Verifica file CSV', 'In corso...', 'info');
+    
+    const csvFiles = [
+      { name: 'brani.csv', path: './Bordero/data/brani.csv' },
+      { name: 'comuni_italia.csv', path: './Bordero/data/comuni_italia.csv' },
+      { name: 'dBase.csv', path: './Bordero/data/dBase.csv' }
+    ];
+
+    let allFound = true;
+    let details = '';
+
+    for (const csv of csvFiles) {
+      try {
+        const response = await fetch(csv.path);
+        const found = response.ok;
+        details += `<br>  ${found ? '✅' : '❌'} ${csv.name} (HTTP ${response.status})`;
+        if (!found) allFound = false;
+      } catch (error) {
+        details += `<br>  ❌ ${csv.name} (${error.message})`;
+        allFound = false;
+      }
+    }
+
+    if (allFound) {
+      addResult('✅ Test 4: Verifica file CSV', 
+        `Tutti i file CSV trovati:${details}`, 
+        'success');
+    } else {
+      addResult('❌ Test 4: Verifica file CSV', 
+        `Alcuni file CSV mancanti:${details}`, 
+        'error');
+    }
+  }
+
+  async function runAllTests() {
+    addResult('🚀 Inizio Test', `Timestamp: ${new Date().toLocaleString('it-IT')}`, 'info');
+    
+    await testBorderoLoading();
+    await testConfigJS();
+    await testDataLoaderJS();
+    await testCSVs();
+
+    addResult('✅ TEST COMPLETATI', 
+      'Controlla l\'anteprima Bordero qui sotto. Se vedi la tabella carica con i dati, allora tutto funziona correttamente! 🎉', 
+      'success');
+  }
+
+  // Esegui test al caricamento
+  runAllTests();
+</script>
+
+</body>
+</html>

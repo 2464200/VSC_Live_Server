@@ -1,5 +1,8 @@
 # 🔧 DEBUG GUIDE - Excel Data Sync Fixing
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+
+
 ## ✅ Fix Completato
 
 Ho risolto il problema della sincronizzazione dati da Excel. Il problema era nel **admin.js** che:
@@ -234,3 +237,4 @@ Se tutte e 3 OK → **PERFETTO! Sistema funziona!** 🎉
 **Status:** ✅ **Fix Completato**  
 **Data:** 2026-06-18  
 **Testare Subito:** http://localhost:8000/Bordero/pages/admin.html
+

@@ -1,5 +1,8 @@
 # Documentazione Tecnica — Eventi
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
+
 Torna all'indice generale: [DOCUMENTATION.md](DOCUMENTATION.md)
 
 Indice:
@@ -41,3 +44,4 @@ Base: `http://localhost:5500/eventi/api`
 ## Sezioni correlate
 - [Operazioni quotidiane](DOCUMENTATION_OPERATIONS.md)
 - [Gestione DJ e Sicurezza](DOCUMENTATION_ADMIN.md)
+

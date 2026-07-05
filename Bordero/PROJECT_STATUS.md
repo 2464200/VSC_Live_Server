@@ -1,4 +1,7 @@
 # BORDERÒ - PROJECT SUMMARY
+
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
 **Data:** 2026-06-18  
 **Status:** 🚀 FASE 1-2 COMPLETATE - PRONTO PER FASE 3
 
@@ -409,3 +412,4 @@ Per qualunque domanda su features specifiche, controlla:
 ---
 
 **🚀 NEXT PHASE: Tabella Principale (bordero.html)**
+

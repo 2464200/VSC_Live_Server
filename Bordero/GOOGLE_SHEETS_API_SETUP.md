@@ -1,5 +1,8 @@
 # Setup Google Sheets API - Guida Rapida
 
+> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+
+
 ## ⚡ Passaggi (5 minuti)
 
 ### 1️⃣ Crea un Google Cloud Project
@@ -63,12 +66,10 @@ node google-sheets-sync.js
 ```
 
 Questo scarica tutti i dati in CSV:
+
 - `Bordero/data/brani.csv`
-- `Bordero/data/comuni.csv`
+- `Bordero/data/comuni_italia.csv`
 - `Bordero/data/dbase.csv`
-
-> Nota: il file `Bordero/config/.env` viene letto dallo script per `GOOGLE_API_KEY`. Se non è presente, lo script prova comunque un fallback pubblico via export TSV o `gviz/tq`.
-
 ---
 
 ## ❓ Problemi?
@@ -80,6 +81,7 @@ Questo scarica tutti i dati in CSV:
 **"Sheet non trovato"**
 - Verifica che la sheet sia condivisa in lettura
 - Controlla l'ID della sheet (copia il link della Google Sheet, estrai l'ID dalla URL)
+- Se la sheet è pubblicata con "Pubblica sul web", puoi anche usare un URL CSV/TSV pubblico nel file `Bordero/config/.env`
 
 **"Quota superato"**
 - Non dovrebbe accadere con il piano gratuito
@@ -91,3 +93,4 @@ Questo scarica tutti i dati in CSV:
 
 - [Google Sheets API Docs](https://developers.google.com/sheets/api/guides/values/read)
 - [API Key Setup](https://cloud.google.com/docs/authentication/api-keys)
+

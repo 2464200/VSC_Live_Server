@@ -36,7 +36,7 @@
     <!-- NAVIGAZIONE PRINCIPALE -->
     <nav class="nav-main">
       <ul class="nav-list">
-        <li><a href="pages/bordero.html" class="nav-link active">Bordero (Principale)</a></li>
+        <li><a href="pages/bordero.html" class="nav-link active">Borderò (Principale)</a></li>
         <li><a href="pages/display.html" class="nav-link">Display (Monitor)</a></li>
         <li><a href="pages/next-coreo.html" class="nav-link">NextCoreo</a></li>
         <li><a href="pages/videoclip.html" class="nav-link">Video Player</a></li>
@@ -139,6 +139,28 @@
           <li>Usa <strong>NextCoreo</strong> per visualizzare il prossimo brano</li>
           <li>Riproduci video su <strong>VideoClip</strong> se necessario</li>
         </ol>
+      </section>
+
+      <!-- ANTEPRIMA TABELLA BRANI -->
+      <section class="preview-section">
+        <h3>📊 Anteprima Brani Caricati</h3>
+        <div class="table-wrapper">
+          <table id="brani-preview-table" class="preview-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Titolo</th>
+                <th>Autore</th>
+                <th>Genere</th>
+                <th>Livello</th>
+                <th>Coreografo</th>
+              </tr>
+            </thead>
+            <tbody id="brani-preview-tbody">
+              <tr><td colspan="6" class="text-center loading">Caricamento dati...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </main>
 

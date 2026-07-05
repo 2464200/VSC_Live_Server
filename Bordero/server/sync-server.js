@@ -231,6 +231,37 @@ app.get('/api/status', async (req, res) => {
 /**
  * Avvia il server
  */
+// Esegui una sincronizzazione iniziale una tantum all'avvio del server
+const { spawn } = require('child_process');
+const SYNC_SCRIPT = path.join(__dirname, 'google-sheets-sync.js');
+
+function runInitialSync() {
+  try {
+    console.log('\n🔁 Eseguo sync iniziale (una tantum)...');
+    const child = spawn(process.execPath, [SYNC_SCRIPT], {
+      cwd: __dirname,
+      stdio: 'inherit'
+    });
+
+    child.on('exit', (code, signal) => {
+      if (code === 0) {
+        console.log(`\n✅ Sync iniziale completata con successo (code=${code})`);
+      } else {
+        console.warn(`\n⚠️ Sync iniziale terminata con code=${code} signal=${signal}`);
+      }
+    });
+
+    child.on('error', (err) => {
+      console.error('❌ Errore avviando sync iniziale:', err);
+    });
+  } catch (err) {
+    console.error('❌ Exception during initial sync:', err);
+  }
+}
+
+// Avvia sync iniziale in background (non bloccante)
+runInitialSync();
+
 app.listen(PORT, () => {
   console.log('\n╔═══════════════════════════════════════════════╗');
   console.log('║  🚀 BORDERO SYNC SERVER                      ║');
