@@ -11,6 +11,8 @@ class BorderoTableManager {
     this.currentSort = null;
     this.currentFilters = {};
     this.currentSearch = '';
+    this.searchMode = 'general';
+    this.searchMode = 'general';
     this.currentPage = 1;
     this.itemsPerPage = BORDERO_CONFIG.ITEMS_PER_PAGE;
     this.lastActionTime = null;
@@ -40,6 +42,7 @@ class BorderoTableManager {
       // Setup UI
       this.setupEventListeners();
       this.setupSerataMeta();
+      this.updateSearchPlaceholder();
       this.renderTable();
 
       logger.info(`✓ Inizializzato con ${this.allBrani.length} brani`);
@@ -143,18 +146,42 @@ class BorderoTableManager {
 
     // Filter buttons
     document.getElementById('btn-filter-coreografia')?.addEventListener('click', () =>
-      this.quickFilter('info_coreo', 'COREOGRAFIA')
+      this.togglePresenceFilter('info_coreo', 'btn-filter-coreografia')
     );
     document.getElementById('btn-filter-genere')?.addEventListener('click', () =>
-      this.quickFilter('genere', 'COUNTRY') // Adatta al tuo genere
+      this.togglePresenceFilter('genere', 'btn-filter-genere')
     );
     document.getElementById('btn-filter-livello')?.addEventListener('click', () =>
-      this.quickFilter('info_livello', 'AVANZATO') // Adatta al tuo livello
+      this.togglePresenceFilter('info_livello', 'btn-filter-livello')
+    );
+    document.getElementById('btn-filter-altro')?.addEventListener('click', () =>
+      this.togglePresenceFilter(['collaboratori', 'compositore', 'durata', 'info_coreo'], 'btn-filter-altro')
     );
 
     // Search
     document.getElementById('search-box')?.addEventListener('input', (e) => {
       this.currentSearch = e.target.value;
+      this.applyFilters();
+    });
+
+    document.getElementById('btn-search-general')?.addEventListener('click', () => {
+      this.searchMode = 'general';
+      this.updateSearchButtons();
+      this.updateSearchPlaceholder();
+      this.applyFilters();
+    });
+
+    document.getElementById('btn-search-title')?.addEventListener('click', () => {
+      this.searchMode = 'title';
+      this.updateSearchButtons();
+      this.updateSearchPlaceholder();
+      this.applyFilters();
+    });
+
+    document.getElementById('btn-search-id')?.addEventListener('click', () => {
+      this.searchMode = 'id';
+      this.updateSearchButtons();
+      this.updateSearchPlaceholder();
       this.applyFilters();
     });
 
@@ -204,20 +231,24 @@ class BorderoTableManager {
   }
 
   /**
-   * Quick filter per colonna
+   * Toggle filtro presenza dati su un campo o su più campi
    */
-  quickFilter(field, value) {
-    logger.info(`Quick filter: ${field} = ${value}`);
+  togglePresenceFilter(fieldOrFields, buttonId) {
+    const key = Array.isArray(fieldOrFields) ? fieldOrFields.join('|') : fieldOrFields;
+    const current = this.currentFilters[key];
 
-    if (this.currentFilters[field] === value) {
-      // Toggle off
-      delete this.currentFilters[field];
+    if (current && current.mode === 'hasValue') {
+      delete this.currentFilters[key];
     } else {
-      // Apply
-      this.currentFilters[field] = value;
+      this.currentFilters[key] = { mode: 'hasValue', fields: Array.isArray(fieldOrFields) ? fieldOrFields : [fieldOrFields] };
     }
 
     this.applyFilters();
+    this.updateFilterButtons();
+    if (buttonId) {
+      const btn = document.getElementById(buttonId);
+      btn?.classList.toggle('active', Boolean(this.currentFilters[key]));
+    }
   }
 
   /**
@@ -230,14 +261,30 @@ class BorderoTableManager {
     this.filteredBrani = [...this.allBrani];
 
     // Applica filtri
-    Object.keys(this.currentFilters).forEach(field => {
-      const value = this.currentFilters[field];
-      this.filteredBrani = ObjectUtils.filterByField(this.filteredBrani, field, value);
+    Object.entries(this.currentFilters).forEach(([key, config]) => {
+      if (!config || typeof config !== 'object') return;
+
+      if (config.mode === 'hasValue') {
+        const fields = config.fields || [key];
+        this.filteredBrani = this.filteredBrani.filter(item =>
+          fields.some(field => String(item[field] ?? '').trim() !== '')
+        );
+      } else {
+        const value = config.value ?? '';
+        this.filteredBrani = ObjectUtils.filterByField(this.filteredBrani, key, value);
+      }
     });
 
     // Applica ricerca
     if (this.currentSearch) {
-      const searchFields = ['titolo', 'autore', 'coreografo', 'collaboratori'];
+      let searchFields = ['titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
+
+      if (this.searchMode === 'title') {
+        searchFields = ['titolo'];
+      } else if (this.searchMode === 'id') {
+        searchFields = ['id'];
+      }
+
       this.filteredBrani = ObjectUtils.searchMultiField(this.filteredBrani, this.currentSearch, searchFields);
     }
 
@@ -271,6 +318,8 @@ class BorderoTableManager {
     document.getElementById('search-box').value = '';
     this.updateSortButtons();
     this.updateFilterButtons();
+    this.updateSearchButtons();
+    this.updateSearchPlaceholder();
 
     // Render
     this.filteredBrani = [...this.allBrani];
@@ -333,7 +382,7 @@ class BorderoTableManager {
         </td>
         <td class="col-id">${brano.id}</td>
         <td class="col-timestamp">${timestamp}</td>
-        <td class="col-titolo">${brano.titolo}</td>
+        <td class="col-titolo">${brano.titolo || brano.coreografia || brano.brano || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
         <td class="col-genere">${brano.genere || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
@@ -400,21 +449,60 @@ class BorderoTableManager {
 
   updateFilterButtons() {
     const buttons = [
-      { id: 'btn-filter-coreografia', field: 'info_coreo', value: 'COREOGRAFIA' },
-      { id: 'btn-filter-genere', field: 'genere', value: 'COUNTRY' },
-      { id: 'btn-filter-livello', field: 'info_livello', value: 'AVANZATO' },
+      { id: 'btn-filter-coreografia', key: 'info_coreo' },
+      { id: 'btn-filter-genere', key: 'genere' },
+      { id: 'btn-filter-livello', key: 'info_livello' },
+      { id: 'btn-filter-altro', key: ['collaboratori', 'compositore', 'durata', 'info_coreo'].join('|') },
     ];
 
-    buttons.forEach(({ id, field }) => {
+    buttons.forEach(({ id, key }) => {
       const btn = document.getElementById(id);
       if (btn) {
-        if (this.currentFilters[field]) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
+        const isActive = Boolean(this.currentFilters[key]);
+        btn.classList.toggle('active', isActive);
       }
     });
+  }
+
+  updateSearchButtons() {
+    const buttons = [
+      { id: 'btn-search-general', mode: 'general' },
+      { id: 'btn-search-title', mode: 'title' },
+      { id: 'btn-search-id', mode: 'id' },
+    ];
+
+    buttons.forEach(({ id, mode }) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.classList.toggle('active', this.searchMode === mode);
+      }
+    });
+  }
+
+  updateSearchPlaceholder() {
+    const searchBox = document.getElementById('search-box');
+    const searchLabel = document.querySelector('.search-group .search-label');
+    if (!searchBox && !searchLabel) return;
+
+    const labels = {
+      general: 'RICERCA GENERALE',
+      title: 'RICERCA PER TITOLO',
+      id: 'RICERCA PER ID'
+    };
+
+    const placeholders = {
+      general: '🔍 Cerca titolo, autore, genere, livello o coreografia...',
+      title: '🔍 Cerca per titolo...',
+      id: '🔍 Cerca per ID...'
+    };
+
+    if (searchLabel) {
+      searchLabel.textContent = labels[this.searchMode] || labels.general;
+    }
+
+    if (searchBox) {
+      searchBox.placeholder = placeholders[this.searchMode] || placeholders.general;
+    }
   }
 
   /**

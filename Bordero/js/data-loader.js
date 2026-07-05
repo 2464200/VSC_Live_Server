@@ -33,6 +33,47 @@ class DataLoader {
     }
   }
 
+  normalizeBranoRecord(brano) {
+    const normalized = { ...brano };
+
+    const getFirstValue = (...values) => {
+      for (const value of values) {
+        if (value !== null && value !== undefined) {
+          const text = String(value).trim();
+          if (text) return text;
+        }
+      }
+      return '';
+    };
+
+    normalized.id = getFirstValue(brano.id, brano.ID, brano['ID'], brano['id']);
+    normalized.titolo = getFirstValue(
+      brano.titolo,
+      brano.title,
+      brano.coreografia,
+      brano['coreografia'],
+      brano['Titolo'],
+      brano['titolo coreografia'],
+      brano['coreografia titolo']
+    );
+    normalized.brano = getFirstValue(brano.brano, brano.song, brano.canzone, brano['brano']);
+    normalized.autore = getFirstValue(brano.autore, brano.author, brano['autore']);
+    normalized.genere = getFirstValue(brano.genere, brano['genere']);
+    normalized.info_livello = getFirstValue(brano.info_livello, brano['info livello'], brano['info_livello']);
+    normalized.info_coreo = getFirstValue(brano.info_coreo, brano['info coreo'], brano['info coreo 1'], brano['info coreo 2']);
+    normalized.coreografo = getFirstValue(brano.coreografo, brano['coreografo']);
+    normalized.collaboratori = getFirstValue(brano.collaboratori, brano['collaboratori']);
+    normalized.flag = getFirstValue(brano.flag, brano['flag']);
+    normalized.timestamp = getFirstValue(brano.timestamp, brano['timestamp']);
+
+    return normalized;
+  }
+
+  normalizeBraniList(brani) {
+    if (!Array.isArray(brani)) return [];
+    return brani.map(item => this.normalizeBranoRecord(item));
+  }
+
   /**
    * Carica i dati dal CSV (o da cache se offline)
    */
@@ -43,16 +84,16 @@ class DataLoader {
     const cachedFromExcel = Storage.get('BORDERO_BRANI_DATA');
     if (cachedFromExcel && cachedFromExcel.length > 0) {
       logger.info(`Dati caricati da cache Excel (${cachedFromExcel.length} brani)`);
-      this.brani = cachedFromExcel;
-      return cachedFromExcel;
+      this.brani = this.normalizeBraniList(cachedFromExcel);
+      return this.brani;
     }
 
     // Poi prova cache generale
     const cached = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI);
     if (cached && cached.length > 0) {
       logger.info(`Dati caricati da cache CSV (${cached.length} brani)`);
-      this.brani = cached;
-      return cached;
+      this.brani = this.normalizeBraniList(cached);
+      return this.brani;
     }
 
     // Se offline, usa cache fallback
@@ -65,7 +106,7 @@ class DataLoader {
     // Carica da CSV locale
     try {
       const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_BRANI);
-      this.brani = CSVParser.parse(csvContent);
+      this.brani = this.normalizeBraniList(CSVParser.parse(csvContent));
       
       // Salva in cache
       Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.brani);
@@ -82,8 +123,8 @@ class DataLoader {
       
       // Fallback a cache anche in caso di errore
       const fallback = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
-      this.brani = fallback;
-      return fallback;
+      this.brani = this.normalizeBraniList(fallback);
+      return this.brani;
     }
   }
 

@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BORDERÃ’ - Tabella Principale</title>
+  <title>BORDERO’ - Tabella Principale</title>
   
   <!-- Style dalle carte Eventi -->
   <link rel="stylesheet" href="../assets/css/style.css" />
   
-  <!-- Style BorderÃ² personalizzato -->
+  <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
   <link rel="stylesheet" href="bordero.css" />
@@ -40,7 +40,7 @@
     <!-- HEADER -->
     <header class="header">
       <div class="header-content">
-        <h1 class="app-title">ðŸŽ­ BORDERÃ’ - Tabella Principale</h1>
+        <h1 class="app-title">BORDERO’ - Tabella Principale</h1>
         <p class="app-subtitle">Gestione Brani e Coreografie</p>
       </div>
     </header>
@@ -83,58 +83,72 @@
       <div class="toolbar-section">
         <h3>COMANDI SORT</h3>
         <button id="btn-sort-id" class="btn btn-sort" title="Ordina per ID progressivo">
-          ðŸ“Š ORDINA PER ID
+          ORDINA PER ID
         </button>
         <button id="btn-sort-genere" class="btn btn-sort" title="Ordina per genere musicale">
-          ðŸŽµ ORDINA PER GENERE
+          ORDINA PER GENERE
         </button>
         <button id="btn-sort-autore" class="btn btn-sort" title="Ordina per autore">
-          ðŸ‘¤ ORDINA PER AUTORE
+          ORDINA PER AUTORE
         </button>
       </div>
 
       <div class="toolbar-section">
         <h3>COMANDI FILTRI</h3>
         <button id="btn-filter-coreografia" class="btn btn-filter btn-filter-blue" title="Filtra per categoria COREOGRAFIA">
-          ðŸŽ­ COREOGRAFIA
+          COREOGRAFIA
         </button>
         <button id="btn-filter-genere" class="btn btn-filter btn-filter-green" title="Filtra per genere">
-          ðŸŽµ GENERE
+          GENERE
         </button>
         <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" title="Filtra per livello difficoltÃ ">
-          ðŸ“ˆ LIVELLO
+          LIVELLO
         </button>
         <button id="btn-filter-altro" class="btn btn-filter btn-filter-yellow" title="Filtro aggiuntivo">
-          â­ ALTRO
+          ALTRO
         </button>
       </div>
 
       <div class="toolbar-section">
         <h3>RICERCA & AZIONI</h3>
-        <input 
-          type="text" 
-          id="search-box" 
-          class="search-input" 
-          placeholder="ðŸ” Cerca titolo, autore, coreografo..."
-        />
+        <div class="search-group">
+          <label class="search-label">RICERCA GENERALE</label>
+          <input 
+            type="text" 
+            id="search-box" 
+            class="search-input" 
+            placeholder="🔍 Cerca titolo, autore, coreografo..."
+          />
+        </div>
+        <div class="search-actions">
+          <button id="btn-search-general" class="btn btn-secondary" title="Ricerca generale su titolo, autore, genere, livello e coreografia">
+            🔎 RICERCA GENERALE
+          </button>
+          <button id="btn-search-title" class="btn btn-secondary" title="Ricerca solo per titolo">
+            🔎 RICERCA PER TITOLO
+          </button>
+          <button id="btn-search-id" class="btn btn-secondary" title="Ricerca solo per ID">
+            🔎 RICERCA PER ID
+          </button>
+        </div>
         <button id="btn-reset-filters" class="btn btn-secondary" title="Resetta filtri e ricerca">
-          ðŸ”„ RESET
+          🔄 RESET
         </button>
       </div>
 
       <div class="toolbar-section">
         <h3>AZIONI</h3>
         <button id="btn-userform" class="btn btn-primary" title="Aggiungi/modifica brano">
-          âž• USERFORM
+          🖋️ USERFORM
         </button>
         <button id="btn-export" class="btn btn-secondary" title="Esporta tabella a CSV (formato SIAE)">
-          ðŸ’¾ EXPORT SIAE
+          📥 EXPORT SIAE
         </button>
         <button id="btn-print" class="btn btn-secondary" title="Stampa tabella">
-          ðŸ–¨ï¸ STAMPA
+          🖨️ STAMPA
         </button>
         <button id="btn-finish-serata" class="btn btn-danger" title="Termina e archivia la serata corrente">
-          ðŸ FINISCI SERATA
+          🕒 FINISCI SERATA
         </button>
       </div>
     </section>
@@ -184,24 +198,24 @@
       </div>
 
       <div id="empty-state" class="empty-state" style="display: none;">
-        <p class="empty-icon">ðŸ“­</p>
+        <p class="empty-icon">🔍</p>
         <p class="empty-text">Nessun brano trovato con i filtri applicati</p>
         <button id="btn-reset-filters-empty" class="btn btn-secondary">
-          ðŸ”„ Resetta Filtri
+          🔄 Resetta Filtri
         </button>
       </div>
     </section>
 
     <!-- PAGINATION (opzionale) -->
     <section class="pagination">
-      <button id="btn-prev-page" class="btn btn-small">â† Precedente</button>
+      <button id="btn-prev-page" class="btn btn-small">← Precedente</button>
       <span id="pagination-info" class="pagination-info">Pagina 1</span>
-      <button id="btn-next-page" class="btn btn-small">Prossima â†’</button>
+      <button id="btn-next-page" class="btn btn-small">Prossima →</button>
     </section>
 
     <!-- FOOTER -->
     <footer class="footer">
-      <p>BORDERÃ’ DJ Manager Â© 2026</p>
+      <p>BORDERO’ DJ Manager © 2026</p>
       <p id="footer-status">Ready</p>
     </footer>
   </div>
