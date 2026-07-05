@@ -314,8 +314,10 @@ class BorderoTableManager {
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
 
     // Pagination
+    document.getElementById('btn-first-page')?.addEventListener('click', () => this.firstPage());
     document.getElementById('btn-prev-page')?.addEventListener('click', () => this.prevPage());
     document.getElementById('btn-next-page')?.addEventListener('click', () => this.nextPage());
+    document.getElementById('btn-last-page')?.addEventListener('click', () => this.lastPage());
   }
 
   /**
@@ -629,9 +631,29 @@ class BorderoTableManager {
       info.textContent = `Pagina ${this.currentPage} di ${totalPages}`;
     }
 
+    const totalPagesSafe = Math.max(totalPages, 1);
+
     // Disable buttons
-    document.getElementById('btn-prev-page').disabled = this.currentPage === 1;
-    document.getElementById('btn-next-page').disabled = this.currentPage === totalPages;
+    document.getElementById('btn-first-page').disabled = this.currentPage === 1 || totalPages <= 1;
+    document.getElementById('btn-prev-page').disabled = this.currentPage === 1 || totalPages <= 1;
+    document.getElementById('btn-next-page').disabled = this.currentPage === totalPagesSafe || totalPages <= 1;
+    document.getElementById('btn-last-page').disabled = this.currentPage === totalPagesSafe || totalPages <= 1;
+  }
+
+  goToPage(pageNumber) {
+    const totalPages = Math.ceil(this.filteredBrani.length / this.itemsPerPage);
+    if (totalPages <= 0) return;
+
+    const targetPage = Math.min(Math.max(1, pageNumber), totalPages);
+    if (targetPage === this.currentPage) return;
+
+    this.currentPage = targetPage;
+    this.renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  firstPage() {
+    this.goToPage(1);
   }
 
   prevPage() {
@@ -649,6 +671,11 @@ class BorderoTableManager {
       this.renderTable();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }
+
+  lastPage() {
+    const totalPages = Math.ceil(this.filteredBrani.length / this.itemsPerPage);
+    this.goToPage(totalPages);
   }
 
   /**

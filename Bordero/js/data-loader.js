@@ -168,17 +168,36 @@ class DataLoader {
       return '';
     };
 
-    const nome = getFirstValue(
-      comune.nome,
-      comune.name,
-      comune.Nome,
-      comune['Nome'],
-      comune['nome'],
-      comune['luogo'],
-      comune['localita'],
-      comune['Localita'],
-      comune['Comune']
-    );
+    const candidateKeys = [
+      'nome',
+      'name',
+      'Nome',
+      'denominazione_in_italiano',
+      'denominazione',
+      'denominazione_italiana',
+      'denominazione in italiano',
+      'comune',
+      'nome_comune',
+      'luogo',
+      'localita',
+      'località',
+      'Localita',
+      'Comune'
+    ];
+
+    let nome = '';
+    for (const key of candidateKeys) {
+      nome = getFirstValue(comune[key]);
+      if (nome) break;
+    }
+
+    if (!nome) {
+      const fallbackValue = Object.entries(comune)
+        .map(([, value]) => String(value ?? '').trim())
+        .find(value => value && !/^\d+$/.test(value) && !/^[A-Z]{2}$/.test(value) && value.length > 2);
+
+      nome = fallbackValue || '';
+    }
 
     return nome ? { nome, name: nome } : null;
   }
