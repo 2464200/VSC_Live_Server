@@ -10,6 +10,13 @@ class DataLoader {
     this.isSyncing = false;
   }
 
+  resolveDataUrl(relativePath) {
+    if (typeof window !== 'undefined' && window.location) {
+      return new URL(relativePath, window.location.href).href;
+    }
+    return relativePath;
+  }
+
   /**
    * Inizializza il data loader con sincronizzazione da Excel
    */
@@ -74,6 +81,128 @@ class DataLoader {
     return brani.map(item => this.normalizeBranoRecord(item));
   }
 
+  normalizeDjRecord(djRecord) {
+    if (typeof djRecord === 'string') {
+      const nome = djRecord.trim();
+      return nome ? { nome, name: nome } : null;
+    }
+
+    if (!djRecord || typeof djRecord !== 'object') {
+      return null;
+    }
+
+    const getFirstValue = (...values) => {
+      for (const value of values) {
+        if (value !== null && value !== undefined) {
+          const text = String(value).trim();
+          if (text) return text;
+        }
+      }
+      return '';
+    };
+
+    const nome = getFirstValue(
+      djRecord.nome,
+      djRecord.name,
+      djRecord.Nome,
+      djRecord['Nome'],
+      djRecord['nome'],
+      djRecord['DJ'],
+      djRecord['dj'],
+      djRecord['DJ Name'],
+      djRecord['dj name']
+    );
+
+    if (!nome) {
+      const fallbackValues = Object.values(djRecord)
+        .filter(value => typeof value === 'string' || typeof value === 'number')
+        .map(value => String(value).trim())
+        .filter(value => value && !value.startsWith('http'));
+      const fallback = fallbackValues.find(value => value && !/^(x|select|base|intermedio|avanzato|super avanzato|gold|altre coreo|coppi|tre persone|4 persone|two step|halloween|natalizia|stage|contra|sigla chiusura|estate 2021|estate 2022|estate 2023|estate 2024|estate 2025|doppia coreo|tripla coreo)$/i.test(value));
+      if (fallback) {
+        return { nome: fallback, name: fallback };
+      }
+      return null;
+    }
+
+    return { nome, name: nome };
+  }
+
+  normalizeDjList(djList) {
+    if (!Array.isArray(djList)) return [];
+
+    const normalized = djList
+      .map(item => this.normalizeDjRecord(item))
+      .filter(Boolean);
+
+    const unique = [];
+    const seen = new Set();
+    normalized.forEach(item => {
+      const key = item.nome.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(item);
+      }
+    });
+
+    return unique;
+  }
+
+  normalizeComuneRecord(comune) {
+    if (typeof comune === 'string') {
+      const nome = comune.trim();
+      return nome ? { nome, name: nome } : null;
+    }
+
+    if (!comune || typeof comune !== 'object') {
+      return null;
+    }
+
+    const getFirstValue = (...values) => {
+      for (const value of values) {
+        if (value !== null && value !== undefined) {
+          const text = String(value).trim();
+          if (text) return text;
+        }
+      }
+      return '';
+    };
+
+    const nome = getFirstValue(
+      comune.nome,
+      comune.name,
+      comune.Nome,
+      comune['Nome'],
+      comune['nome'],
+      comune['luogo'],
+      comune['localita'],
+      comune['Localita'],
+      comune['Comune']
+    );
+
+    return nome ? { nome, name: nome } : null;
+  }
+
+  normalizeComuniList(comuniList) {
+    if (!Array.isArray(comuniList)) return [];
+
+    const normalized = comuniList
+      .map(item => this.normalizeComuneRecord(item))
+      .filter(Boolean);
+
+    const unique = [];
+    const seen = new Set();
+    normalized.forEach(item => {
+      const key = item.nome.toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(item);
+      }
+    });
+
+    return unique;
+  }
+
   /**
    * Carica i dati dal CSV (o da cache se offline)
    */
@@ -105,7 +234,7 @@ class DataLoader {
 
     // Carica da CSV locale
     try {
-      const csvContent = await Network.fetchCSV(BORDERO_CONFIG.CSV_BRANI);
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl('../data/brani.csv'));
       this.brani = this.normalizeBraniList(CSVParser.parse(csvContent));
       
       // Salva in cache
@@ -139,12 +268,12 @@ class DataLoader {
       const cachedFromExcel = Storage.get('BORDERO_COMUNI_DATA');
       if (cachedFromExcel && cachedFromExcel.length > 0) {
         logger.info(`Comuni caricati da cache Excel (${cachedFromExcel.length})`);
-        return cachedFromExcel;
+        return this.normalizeComuniList(cachedFromExcel);
       }
 
       // Fallback a CSV
-      const csvContent = await Network.fetchCSV('./data/comuni_italia.csv');
-      const comuni = CSVParser.parse(csvContent);
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl('../data/comuni_italia.csv'));
+      const comuni = this.normalizeComuniList(CSVParser.parse(csvContent));
       
       // Salva in cache
       Storage.set('BORDERO_COMUNI_DATA', comuni);
@@ -167,12 +296,12 @@ class DataLoader {
       const cachedFromExcel = Storage.get('BORDERO_DBASE_DATA');
       if (cachedFromExcel && cachedFromExcel.length > 0) {
         logger.info(`DJ caricati da cache Excel (${cachedFromExcel.length})`);
-        return cachedFromExcel;
+        return this.normalizeDjList(cachedFromExcel);
       }
 
       // Fallback a CSV
-      const csvContent = await Network.fetchCSV('./data/dBase.csv');
-      const dj = CSVParser.parse(csvContent);
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl('../data/dBase.csv'));
+      const dj = this.normalizeDjList(this.parseDjFromCsv(csvContent));
       
       // Salva in cache
       Storage.set('BORDERO_DBASE_DATA', dj);
@@ -182,6 +311,32 @@ class DataLoader {
       logger.error('Errore caricamento DJ', error);
       return [];
     }
+  }
+
+  parseDjFromCsv(csvContent) {
+    const lines = String(csvContent || '').split(/\r?\n/);
+    const dj = [];
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
+
+      const values = CSVParser.parseCSVLine(line);
+      const firstValue = values[0]?.trim();
+      if (!firstValue) continue;
+
+      const normalized = firstValue.toLowerCase();
+      if (['x', 'select'].includes(normalized)) break;
+      if (/^(base|intermedio|avanzato|super avanzato|gold|altre coreo|coppi|3 persone|4 persone|two step|halloween|natalizia|stage|contra|sigla chiusura|estate 2021|estate 2022|estate 2023|estate 2024|estate 2025|doppia coreo|tripla coreo)$/i.test(firstValue)) {
+        break;
+      }
+
+      if (!dj.some(item => item.toLowerCase() === normalized)) {
+        dj.push(firstValue);
+      }
+    }
+
+    return dj;
   }
 
   /**

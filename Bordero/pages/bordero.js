@@ -16,6 +16,7 @@ class BorderoTableManager {
     this.currentPage = 1;
     this.itemsPerPage = BORDERO_CONFIG.ITEMS_PER_PAGE;
     this.lastActionTime = null;
+    this.serataMetaStorageKey = 'bordero_serata_meta';
 
     // Serata info
     this.serata = {
@@ -53,19 +54,111 @@ class BorderoTableManager {
     }
   }
 
+  getStoredSerataMeta() {
+    const stored = Storage.get(this.serataMetaStorageKey, null);
+    if (stored && typeof stored === 'object') {
+      return stored;
+    }
+
+    return {
+      dj: Storage.get('bordero_selected_dj', ''),
+      data: Storage.get('bordero_serata_data', ''),
+      luogo: Storage.get('bordero_selected_luogo', ''),
+      evento: Storage.get('bordero_serata_evento', ''),
+    };
+  }
+
+  persistSerataMeta() {
+    Storage.set(this.serataMetaStorageKey, { ...this.serata });
+
+    if (this.serata.dj) {
+      Storage.set('bordero_selected_dj', this.serata.dj);
+    } else {
+      Storage.remove('bordero_selected_dj');
+    }
+
+    if (this.serata.data) {
+      Storage.set('bordero_serata_data', this.serata.data);
+    } else {
+      Storage.remove('bordero_serata_data');
+    }
+
+    if (this.serata.luogo) {
+      Storage.set('bordero_selected_luogo', this.serata.luogo);
+    } else {
+      Storage.remove('bordero_selected_luogo');
+    }
+
+    if (this.serata.evento) {
+      Storage.set('bordero_serata_evento', this.serata.evento);
+    } else {
+      Storage.remove('bordero_serata_evento');
+    }
+  }
+
+  clearPersistedSerataMeta() {
+    Storage.remove(this.serataMetaStorageKey);
+    Storage.remove('bordero_selected_dj');
+    Storage.remove('bordero_selected_luogo');
+    Storage.remove('bordero_serata_data');
+    Storage.remove('bordero_serata_evento');
+  }
+
+  resetSerataMetaFields() {
+    this.serata = {
+      dj: '',
+      data: new Date().toISOString().split('T')[0],
+      luogo: '',
+      evento: '',
+    };
+
+    const dataInput = document.getElementById('data-serata');
+    if (dataInput) {
+      dataInput.value = this.serata.data;
+    }
+
+    const eventoInput = document.getElementById('evento-text');
+    if (eventoInput) {
+      eventoInput.value = '';
+    }
+
+    const djSelect = document.getElementById('dj-select');
+    if (djSelect) {
+      djSelect.value = '';
+    }
+
+    const luogoSelect = document.getElementById('luogo-select');
+    if (luogoSelect) {
+      luogoSelect.value = '';
+    }
+
+    this.clearPersistedSerataMeta();
+  }
+
   /**
    * Setup serata metadata (D2:D5)
    */
   setupSerataMeta() {
-    // Data è fresh ogni volta (oggi)
-    document.getElementById('data-serata').valueAsDate = new Date();
+    const storedMeta = this.getStoredSerataMeta();
+    this.serata = {
+      dj: storedMeta.dj || '',
+      data: storedMeta.data || new Date().toISOString().split('T')[0],
+      luogo: storedMeta.luogo || '',
+      evento: storedMeta.evento || '',
+    };
+
+    const dataInput = document.getElementById('data-serata');
+    if (dataInput) {
+      dataInput.value = this.serata.data;
+    }
 
     // DJ dropdown da dBase
     this.populateDJSelect();
 
     // Data
-    document.getElementById('data-serata').addEventListener('change', (e) => {
+    dataInput?.addEventListener('change', (e) => {
       this.serata.data = e.target.value;
+      this.persistSerataMeta();
       logger.debug('Data serata:', this.serata.data);
     });
 
@@ -73,8 +166,9 @@ class BorderoTableManager {
     this.populateComuniSelect();
 
     // Evento libero
-    document.getElementById('evento-text').addEventListener('change', (e) => {
+    document.getElementById('evento-text')?.addEventListener('input', (e) => {
       this.serata.evento = e.target.value;
+      this.persistSerataMeta();
       logger.debug('Evento:', this.serata.evento);
     });
   }
@@ -90,14 +184,24 @@ class BorderoTableManager {
       djSelect.innerHTML = '<option value="">-- Seleziona DJ --</option>';
       
       dj.forEach(item => {
+        const nome = item.nome || item.name || '';
+        if (!nome) return;
+
         const option = document.createElement('option');
-        option.value = item.nome || item.name || '';
-        option.textContent = item.nome || item.name || '';
+        option.value = nome;
+        option.textContent = nome;
         djSelect.appendChild(option);
       });
 
+      const savedDj = this.serata.dj || '';
+      if (savedDj) {
+        djSelect.value = savedDj;
+      }
+
       djSelect.addEventListener('change', (e) => {
-        this.serata.dj = e.target.value;
+        const value = e.target.value.trim();
+        this.serata.dj = value;
+        this.persistSerataMeta();
         logger.debug('DJ selezionato:', this.serata.dj);
       });
 
@@ -118,14 +222,24 @@ class BorderoTableManager {
       comuniSelect.innerHTML = '<option value="">-- Seleziona Luogo --</option>';
       
       comuni.forEach(item => {
+        const nome = item.nome || item.name || '';
+        if (!nome) return;
+
         const option = document.createElement('option');
-        option.value = item.nome || item.name || '';
-        option.textContent = item.nome || item.name || '';
+        option.value = nome;
+        option.textContent = nome;
         comuniSelect.appendChild(option);
       });
 
+      const savedLuogo = this.serata.luogo || '';
+      if (savedLuogo) {
+        comuniSelect.value = savedLuogo;
+      }
+
       comuniSelect.addEventListener('change', (e) => {
-        this.serata.luogo = e.target.value;
+        const value = e.target.value.trim();
+        this.serata.luogo = value;
+        this.persistSerataMeta();
         logger.debug('Luogo selezionato:', this.serata.luogo);
       });
 
@@ -635,6 +749,8 @@ class BorderoTableManager {
 
       // Esporta SIAE
       this.exportSerataToSIAE();
+
+      this.resetSerataMetaFields();
 
       // Nuova serata
       setTimeout(() => {
