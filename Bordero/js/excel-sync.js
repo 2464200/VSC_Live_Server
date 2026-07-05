@@ -13,7 +13,28 @@ class ExcelSync {
     this.excelFile = null;
     this.lastSync = null;
     this.initFileDialog();
-    this.waitForXLSX();
+    this.ensureXLSXAvailable();
+  }
+
+  async ensureXLSXAvailable() {
+    if (typeof XLSX !== 'undefined') {
+      logger.info('✅ XLSX.js disponibile');
+      return true;
+    }
+
+    try {
+      const script = document.createElement('script');
+      script.src = '../assets/lib/xlsx.min.js';
+      script.async = false;
+      script.onload = () => logger.info('✅ XLSX.js caricato da fallback locale');
+      script.onerror = () => logger.warn('⚠️ XLSX.js non disponibile: uso CSV locale');
+      document.head.appendChild(script);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return typeof XLSX !== 'undefined';
+    } catch (error) {
+      logger.warn('⚠️ XLSX.js non disponibile, fallback a CSV locale', error);
+      return false;
+    }
   }
 
   /**
@@ -22,7 +43,7 @@ class ExcelSync {
   async waitForXLSX() {
     return new Promise((resolve) => {
       let attempts = 0;
-      const maxAttempts = 100; // 10 secondi (100ms x 100)
+      const maxAttempts = 20;
       
       const checkXLSX = setInterval(() => {
         if (typeof XLSX !== 'undefined') {
@@ -34,7 +55,7 @@ class ExcelSync {
         attempts++;
         if (attempts >= maxAttempts) {
           clearInterval(checkXLSX);
-          logger.warn('⚠️ XLSX.js non caricato dopo 10 secondi');
+          logger.warn('⚠️ XLSX.js non caricato dopo 2 secondi, uso fallback locale');
           resolve(false);
         }
       }, 100);
@@ -96,18 +117,9 @@ class ExcelSync {
     logger.info('ExcelSync: Iniziando sincronizzazione da Excel...');
 
     try {
-      // Aspetta che XLSX sia disponibile
       const xlsxReady = await this.waitForXLSX();
-      if (!xlsxReady) {
-        logger.error('❌ XLSX.js non è caricato. Controlla la connessione CDN.');
-        Toast.error('❌ Libreria XLSX non disponibile');
-        return false;
-      }
-
-      // Verifica che XLSX sia effettivamente disponibile
-      if (typeof XLSX === 'undefined') {
-        logger.error('❌ XLSX non trovato dopo attesa');
-        Toast.error('❌ Libreria XLSX non disponibile');
+      if (!xlsxReady || typeof XLSX === 'undefined') {
+        logger.warn('⚠️ XLSX.js non disponibile, salto la sincronizzazione Excel e uso i CSV locali');
         return false;
       }
 

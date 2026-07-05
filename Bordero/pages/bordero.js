@@ -36,8 +36,32 @@ class BorderoTableManager {
       // Prima sincronizza da Excel
       await dataLoader.initialize();
 
-      // Poi carica dati
-      this.allBrani = await dataLoader.loadBrani();
+      // Poi carica dati, mantenendo l’ordine originale e lo stato dei brani eseguiti
+      const allBrani = await dataLoader.loadBrani();
+      const originalBrani = allBrani.map((brano, index) => ({
+        ...brano,
+        originalIndex: index,
+      }));
+
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (currentSerata && Array.isArray(currentSerata.brani) && currentSerata.brani.length > 0) {
+        const executedMap = new Map(currentSerata.brani.map(b => [String(b.id), b]));
+        this.allBrani = originalBrani.map((brano) => {
+          const saved = executedMap.get(String(brano.id));
+          if (saved && String(saved.flag).toUpperCase() === 'X') {
+            return {
+              ...brano,
+              flag: 'X',
+              timestamp: saved.timestamp || brano.timestamp,
+            };
+          }
+          return brano;
+        });
+        this.reorderBraniByOriginalIndex();
+      } else {
+        this.allBrani = originalBrani;
+      }
+
       this.filteredBrani = [...this.allBrani];
 
       // Setup UI
@@ -93,6 +117,10 @@ class BorderoTableManager {
       Storage.set('bordero_serata_evento', this.serata.evento);
     } else {
       Storage.remove('bordero_serata_evento');
+    }
+
+    if (Array.isArray(this.allBrani) && this.allBrani.length > 0) {
+      dataLoader.saveCurrentSerata(this.serata, this.allBrani);
     }
   }
 
@@ -257,6 +285,9 @@ class BorderoTableManager {
     document.getElementById('btn-sort-id')?.addEventListener('click', () => this.sortBy('id'));
     document.getElementById('btn-sort-genere')?.addEventListener('click', () => this.sortBy('genere'));
     document.getElementById('btn-sort-autore')?.addEventListener('click', () => this.sortBy('autore'));
+    document.getElementById('btn-view-executed')?.addEventListener('click', () => {
+      window.location.href = 'brani-eseguiti.html';
+    });
 
     // Filter buttons
     document.getElementById('btn-filter-coreografia')?.addEventListener('click', () =>
@@ -318,6 +349,67 @@ class BorderoTableManager {
     document.getElementById('btn-prev-page')?.addEventListener('click', () => this.prevPage());
     document.getElementById('btn-next-page')?.addEventListener('click', () => this.nextPage());
     document.getElementById('btn-last-page')?.addEventListener('click', () => this.lastPage());
+  }
+
+  setupStorageSync() {
+    window.addEventListener('storage', (event) => {
+      if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
+
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (!currentSerata || !Array.isArray(currentSerata.brani)) return;
+
+      logger.info('Storage event: aggiornamento serata corrente rilevato');
+      this.mergeCurrentSerata(currentSerata.brani);
+    });
+
+    // Anche listener per evento custom (aggiorna nello stesso tab)
+    window.addEventListener('bordero:serata-updated', () => {
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (!currentSerata || !Array.isArray(currentSerata.brani)) return;
+      logger.info('Custom event: aggiornamento serata corrente rilevato');
+      this.mergeCurrentSerata(currentSerata.brani);
+    });
+  }
+
+  mergeCurrentSerata(updatedBrani) {
+    const updatedMap = new Map(updatedBrani.map(brano => [String(brano.id), brano]));
+    let changed = false;
+
+    this.allBrani = this.allBrani.map((brano) => {
+      const updated = updatedMap.get(String(brano.id));
+      if (!updated) return brano;
+
+      const updatedFlag = String(updated.flag || '').toUpperCase() === 'X' ? 'X' : '';
+      const updatedTimestamp = updated.timestamp || '';
+
+      if (updatedFlag !== String(brano.flag || '').toUpperCase() || updatedTimestamp !== (brano.timestamp || '')) {
+        changed = true;
+        return {
+          ...brano,
+          flag: updatedFlag,
+          timestamp: updatedTimestamp,
+        };
+      }
+      return brano;
+    });
+
+    if (!changed) return;
+
+    this.reorderBraniByOriginalIndex();
+    this.applyFilters();
+    this.lastActionTime = new Date();
+    this.updateLastActionTime();
+    Toast.info('Stato Borderò sincronizzato');
+  }
+
+  reorderBraniByOriginalIndex() {
+    const available = this.allBrani
+      .filter(b => String(b.flag || '').toUpperCase() !== 'X')
+      .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+
+    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
+
+    this.allBrani = [...available, ...completed];
   }
 
   /**
@@ -521,12 +613,14 @@ class BorderoTableManager {
     // Aggiungi timestamp automatico
     brano.timestamp = DateUtils.formatDate(new Date());
 
-    // Move to bottom
+    // Move to bottom preserving completed order
     const index = this.allBrani.indexOf(brano);
     if (index > -1) {
       this.allBrani.splice(index, 1);
       this.allBrani.push(brano);
     }
+
+    this.reorderBraniByOriginalIndex();
 
     // Salva in storage
     Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
@@ -682,8 +776,8 @@ class BorderoTableManager {
    * Statistiche live
    */
   updateStats() {
-    const total = this.filteredBrani.length;
-    const completed = this.filteredBrani.filter(b => b.flag === 'X').length;
+    const total = this.allBrani.length;
+    const completed = this.allBrani.filter(b => String(b.flag).toUpperCase() === 'X').length;
     const pending = total - completed;
 
     document.getElementById('stat-total').textContent = total;
@@ -777,12 +871,48 @@ class BorderoTableManager {
       // Esporta SIAE
       this.exportSerataToSIAE();
 
+      // RESET: riporta tutti i brani eseguiti al loro stato disponibile
+      try {
+        this.allBrani = this.allBrani.map(b => {
+          if (String(b.flag || '').toUpperCase() === 'X') {
+            return {
+              ...b,
+              flag: '',
+              timestamp: '',
+            };
+          }
+          return b;
+        });
+
+        // Ripristina ordine originale (brani disponibili prima, eseguiti dopo)
+        if (typeof this.reorderBraniByOriginalIndex === 'function') {
+          this.reorderBraniByOriginalIndex();
+        }
+
+        // Persisti nuovo stato: svuota la serata corrente (metadata verrà resettata sotto)
+        const emptyMeta = { dj: '', data: '', luogo: '', evento: '' };
+        dataLoader.saveCurrentSerata(emptyMeta, this.allBrani);
+        Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+
+        Toast.info('Stato brani ripristinato per nuova serata');
+      } catch (e) {
+        logger.error('Errore durante il reset degli stati dei brani', e);
+        Toast.error('Errore nel reset dei brani: ' + e.message);
+      }
+
+      // Resetta metadata serata (campi input)
       this.resetSerataMetaFields();
 
-      // Nuova serata
+      // Aggiorna UI e statistiche
+      this.applyFilters();
+      this.updateStats();
+      this.lastActionTime = new Date();
+      this.updateLastActionTime();
+
+      // Nuova serata: chiede se iniziare subito e reinizializza se confermato
       setTimeout(() => {
         if (confirm('Avviare una nuova serata?')) {
-          dataLoader.newSerata();
+          dataLoader.newSerata?.();
           this.init();
         }
       }, 1000);
@@ -801,5 +931,10 @@ class BorderoTableManager {
 document.addEventListener('DOMContentLoaded', () => {
   window.tableManager = new BorderoTableManager();
 });
+
+// Espone la classe per test headless e ambienti esterni
+if (typeof window !== 'undefined') {
+  window.BorderoTableManager = BorderoTableManager;
+}
 
 logger.info('✓ Bordero.js caricato');

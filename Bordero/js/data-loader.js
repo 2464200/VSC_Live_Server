@@ -24,17 +24,14 @@ class DataLoader {
     logger.info('DataLoader: Inizializzazione con sync Excel...');
 
     try {
-      // Prima tenta sincronizzazione da Excel
       const excelSynced = await excelSync.syncFromExcel();
       
       if (excelSynced) {
-        // Se Excel sync OK, i dati sono in cache
         logger.info('Dati sincronizzati da Excel');
         return;
-      } else {
-        // Fallback a CSV locale
-        logger.info('Fallback a CSV locale');
       }
+
+      logger.info('Fallback a CSV locale senza errori visibili');
     } catch (error) {
       logger.error('Errore init data loader', error);
     }

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO’ - Brani Eseguiti</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="brani-eseguiti.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="brani-eseguiti.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERO’ - Brani Eseguiti</h1>
+        <p class="app-subtitle">Visualizza solo i brani già eseguiti nella serata corrente</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="bordero.html">Bordero</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Brani Eseguiti</span>
+    </nav>
+
+    <section class="serata-info-box">
+      <div class="info-row">
+        <div class="info-field">
+          <label>DJ</label>
+          <span id="info-dj">--</span>
+        </div>
+        <div class="info-field">
+          <label>Data Serata</label>
+          <span id="info-data">--</span>
+        </div>
+        <div class="info-field">
+          <label>Luogo</label>
+          <span id="info-luogo">--</span>
+        </div>
+        <div class="info-field">
+          <label>Evento</label>
+          <span id="info-evento">--</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <div class="stat-card">
+        <div class="stat-icon">🎧</div>
+        <div class="stat-content">
+          <h3>Brani Eseguiti</h3>
+          <p class="stat-value" id="stat-executed">0</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-content">
+          <h3>Totale Tabella</h3>
+          <p class="stat-value" id="stat-total">0</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-content">
+          <h3>Percentuale</h3>
+          <p class="stat-value stat-percent" id="stat-percent">0%</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="list-section">
+      <div class="section-header">
+        <h2>Elenco Brani Eseguiti</h2>
+        <span class="count" id="executed-count">0 brani</span>
+      </div>
+      <table class="brani-list">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Titolo</th>
+            <th>Autore</th>
+            <th>Coreografo</th>
+            <th>Data</th>
+            <th>Stato</th>
+          </tr>
+        </thead>
+        <tbody id="executed-tbody"></tbody>
+      </table>
+      <div class="empty-state" id="empty-executed">Nessun brano eseguito trovato.</div>
+    </section>
+
+    <section class="final-actions">
+      <button id="btn-back" class="btn btn-secondary">Torna a Eventi</button>
+      <button id="btn-bordero" class="btn btn-primary">Torna al Bordero</button>
+    </section>
+  </div>
+</body>
+</html>
