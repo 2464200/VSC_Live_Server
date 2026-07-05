@@ -17,9 +17,42 @@ $UnifiedPort = 5500
 $PidFile = Join-Path $RootPath '.startup-pids.json'
 $LogsDir = Join-Path $RootPath 'logs'
 
+function Start-ProcessSafe {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)] [string] $FilePath,
+        [Parameter()] [string[]] $ArgumentList,
+        [Parameter()] [string] $WorkingDirectory,
+        [Parameter()] [System.Diagnostics.ProcessWindowStyle] $WindowStyle = 'Hidden',
+        [Parameter()] [Switch] $PassThru,
+        [Parameter()] [string] $Verb
+    )
+
+    try {
+        $splat = @{ FilePath = $FilePath; WindowStyle = $WindowStyle }
+        if ($ArgumentList) { $splat['ArgumentList'] = $ArgumentList }
+        if ($WorkingDirectory) { $splat['WorkingDirectory'] = $WorkingDirectory }
+        if ($PassThru) { $splat['PassThru'] = $true }
+        if ($Verb) { $splat['Verb'] = $Verb }
+        return Start-Process @splat
+    } catch {
+        Write-Warning "Start-ProcessSafe fallback failed: $($_.Exception.Message)"
+        return $null
+    }
+}
+
 # Load helpers
 $helpers = Join-Path $PSScriptRoot 'scripts\ps_helpers.ps1'
-if (Test-Path $helpers) { . $helpers }
+if (Test-Path $helpers) {
+    try {
+        . $helpers
+        if (-not (Get-Command -Name Start-ProcessSafe -ErrorAction SilentlyContinue)) {
+            throw 'helper did not expose Start-ProcessSafe'
+        }
+    } catch {
+        Write-Host "AVVISO: helper PowerShell non disponibile, uso il fallback locale."
+    }
+}
 
 function Test-PortListening {
     param([int]$Port)

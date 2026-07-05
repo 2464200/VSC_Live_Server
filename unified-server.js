@@ -1170,6 +1170,7 @@ router.post('/check-prenotazione-limit', (req, res) => {
 // Mount Eventi API router
 app.use('/eventi/api', router);
 
+initializeEventiFiles();
 loadOpenedViewersFromFile();
 syncBraniOnStartupV2();
 
