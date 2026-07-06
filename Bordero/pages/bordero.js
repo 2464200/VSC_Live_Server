@@ -298,6 +298,7 @@ class BorderoTableManager {
     document.getElementById('btn-sort-id')?.addEventListener('click', () => this.sortBy('id'));
     document.getElementById('btn-sort-genere')?.addEventListener('click', () => this.sortBy('genere'));
     document.getElementById('btn-sort-autore')?.addEventListener('click', () => this.sortBy('autore'));
+    document.getElementById('btn-move-executed-bottom')?.addEventListener('click', () => this.moveExecutedToBottom());
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
       window.location.href = 'brani-eseguiti.html';
     });
@@ -463,6 +464,26 @@ class BorderoTableManager {
     this.renderTable();
 
     Toast.info(`Ordinato per ${field} (${ascending ? 'crescente' : 'decrescente'})`);
+  }
+
+  moveExecutedToBottom() {
+    logger.info('Spostando i brani eseguiti in fondo alla lista...');
+
+    const executed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
+    const pending = this.allBrani.filter(b => String(b.flag || '').toUpperCase() !== 'X');
+
+    this.allBrani = [...pending, ...executed];
+    this.currentSort = null;
+    this.currentSortDirection = 'asc';
+    this.currentPage = 1;
+
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+    this.autoSaveSerata();
+    this.updateSortButtons();
+    this.applyFilters();
+
+    logger.info('Brani eseguiti spostati in fondo');
+    Toast.info('Brani eseguiti spostati in fondo');
   }
 
   /**

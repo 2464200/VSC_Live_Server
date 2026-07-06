@@ -187,6 +187,13 @@
 }
 
 .btn-success {
+  background: linear-gradient(135deg, #5f8f5f, #8cc98c);
+  color: #ffffff;
+  border-color: #6fa56f;
+  box-shadow: 0 0 0 2px rgba(95, 143, 95, 0.2), 0 6px 14px rgba(95, 143, 95, 0.2);
+}
+
+#btn-view-executed {
   background: linear-gradient(135deg, var(--success-green), #6cbb70);
   color: #ffffff;
   border-color: var(--success-green);
