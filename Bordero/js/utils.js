@@ -158,17 +158,19 @@ const ObjectUtils = {
       const aVal = a[field];
       const bVal = b[field];
 
-      if (typeof aVal === 'string') {
-        return ascending 
-          ? aVal.localeCompare(bVal, 'it')
-          : bVal.localeCompare(aVal, 'it');
+      const aNum = Number(aVal);
+      const bNum = Number(bVal);
+      const bothNumeric = !Number.isNaN(aNum) && !Number.isNaN(bNum) && aVal !== '' && bVal !== '';
+
+      if (bothNumeric) {
+        return ascending ? aNum - bNum : bNum - aNum;
       }
 
-      if (typeof aVal === 'number') {
-        return ascending ? aVal - bVal : bVal - aVal;
-      }
-
-      return 0;
+      const aStr = aVal != null ? String(aVal) : '';
+      const bStr = bVal != null ? String(bVal) : '';
+      return ascending
+        ? aStr.localeCompare(bStr, 'it', { numeric: true, sensitivity: 'base' })
+        : bStr.localeCompare(aStr, 'it', { numeric: true, sensitivity: 'base' });
     });
   },
 

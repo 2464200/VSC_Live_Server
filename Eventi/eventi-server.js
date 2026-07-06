@@ -28,6 +28,10 @@ ensureFiles();
 // ============================
 router.get('/brani', (req, res) => {
   try {
+    // Sincronizza sempre i dati dalla sorgente CSV prima di restituire la lista.
+    // In questo modo le coreografie aggiuntive salvate in Coreografie_Aggiuntive.csv
+    // sono immediatamente visibili anche nelle pagine che usano /brani.
+    syncBraniJson(pathBrani);
     const brani = JSON.parse(fs.readFileSync(pathBrani, 'utf-8'));
     res.json(brani);
   } catch (e) {

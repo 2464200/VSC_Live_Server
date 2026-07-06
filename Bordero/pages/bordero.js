@@ -9,6 +9,7 @@ class BorderoTableManager {
     this.filteredBrani = [];
     this.displayedBrani = [];
     this.currentSort = null;
+    this.currentSortDirection = 'asc';
     this.currentFilters = {};
     this.currentSearch = '';
     this.searchMode = 'general';
@@ -63,6 +64,18 @@ class BorderoTableManager {
       }
 
       this.filteredBrani = [...this.allBrani];
+
+      // Apply default sort by ID ascending on first load when no sort is active
+      if (!this.currentSort) {
+        this.currentSort = 'id';
+        this.currentSortDirection = 'asc';
+        try {
+          this.allBrani = ObjectUtils.sortByField(this.allBrani, 'id', true);
+          this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, 'id', true);
+        } catch (e) {
+          logger.debug('Default sort by id failed', e);
+        }
+      }
 
       // Setup UI
       this.setupEventListeners();
@@ -410,6 +423,19 @@ class BorderoTableManager {
     const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
 
     this.allBrani = [...available, ...completed];
+    // If a sort is active, re-apply it so reorder doesn't wipe user sorting
+    if (this.currentSort) {
+      const ascending = this.currentSortDirection !== 'desc';
+      try {
+        this.allBrani = ObjectUtils.sortByField(this.allBrani, this.currentSort, ascending);
+        // keep filtered list in sync when appropriate
+        if (Array.isArray(this.filteredBrani) && this.filteredBrani.length > 0) {
+          this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, this.currentSort, ascending);
+        }
+      } catch (e) {
+        logger.debug('Unable to reapply sort after reorder', e);
+      }
+    }
   }
 
   /**
@@ -419,14 +445,15 @@ class BorderoTableManager {
     logger.info(`Sorting by ${field}`);
 
     if (this.currentSort === field) {
-      // Toggle ascending/descending
-      this.currentSort = field;
-      this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, field, false);
+      this.currentSortDirection = this.currentSortDirection === 'asc' ? 'desc' : 'asc';
     } else {
-      // Nuovo sort
       this.currentSort = field;
-      this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, field, true);
+      this.currentSortDirection = 'asc';
     }
+
+    const ascending = this.currentSortDirection === 'asc';
+    this.allBrani = ObjectUtils.sortByField(this.allBrani, field, ascending);
+    this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, field, ascending);
 
     // Resetta pagina
     this.currentPage = 1;
@@ -435,7 +462,7 @@ class BorderoTableManager {
     this.updateSortButtons();
     this.renderTable();
 
-    Toast.info(`Ordinato per ${field}`);
+    Toast.info(`Ordinato per ${field} (${ascending ? 'crescente' : 'decrescente'})`);
   }
 
   /**
@@ -498,7 +525,8 @@ class BorderoTableManager {
 
     // Re-applica sort
     if (this.currentSort) {
-      this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, this.currentSort, true);
+      const ascending = this.currentSortDirection !== 'desc';
+      this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, this.currentSort, ascending);
     }
 
     // Reset pagina
@@ -520,18 +548,19 @@ class BorderoTableManager {
     this.currentFilters = {};
     this.currentSearch = '';
     this.currentSort = null;
+    this.currentSortDirection = 'asc';
     this.currentPage = 1;
 
     // Reset UI
-    document.getElementById('search-box').value = '';
+    const searchBox = document.getElementById('search-box');
+    if (searchBox) searchBox.value = '';
     this.updateSortButtons();
     this.updateFilterButtons();
     this.updateSearchButtons();
     this.updateSearchPlaceholder();
 
-    // Render
-    this.filteredBrani = [...this.allBrani];
-    this.renderTable();
+    // Rebuild list senza filtri
+    this.applyFilters();
 
     Toast.info('Filtri resettati');
   }
@@ -566,6 +595,18 @@ class BorderoTableManager {
     tbody.querySelectorAll('.brani-row').forEach(row => {
       row.addEventListener('click', (e) => {
         const branoId = row.dataset.branoId;
+        const brano = this.allBrani.find(b => String(b.id) === String(branoId));
+        const clickedFlagCell = Boolean(e.target.closest('.col-flag'));
+
+        if (clickedFlagCell && brano && String(brano.flag || '').toUpperCase() === 'X') {
+          this.markAsAvailable(branoId);
+          return;
+        }
+
+        if (!brano || String(brano.flag || '').toUpperCase() === 'X') {
+          return;
+        }
+
         this.markAsCompleted(branoId);
       });
     });
@@ -636,6 +677,33 @@ class BorderoTableManager {
     Toast.success(`✓ "${brano.titolo}" completato`);
 
     // Re-render mantenendo filtri
+    this.applyFilters();
+  }
+
+  /**
+   * Ripristina brano disponibile annullando la flag X
+   */
+  markAsAvailable(branoId) {
+    const brano = this.allBrani.find(b => String(b.id) === String(branoId));
+    if (!brano) return;
+
+    if (String(brano.flag || '').toUpperCase() !== 'X') {
+      return;
+    }
+
+    brano.flag = '';
+    brano.timestamp = '';
+
+    this.reorderBraniByOriginalIndex();
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+    this.autoSaveSerata();
+
+    this.lastActionTime = new Date();
+    this.updateLastActionTime();
+
+    logger.info(`Brano ${branoId} ripristinato come disponibile`);
+    Toast.info(`✓ "${brano.titolo}" riportato disponibile`);
+
     this.applyFilters();
   }
 

@@ -613,6 +613,7 @@ app.get('/eventi/api/stream', (req, res) => {
 // Lista brani
 router.get('/brani', (req, res) => {
     try {
+        syncBraniJson(pathBrani);
         const brani = JSON.parse(fs.readFileSync(pathBrani, 'utf-8'));
         res.json(brani);
     } catch (e) {
