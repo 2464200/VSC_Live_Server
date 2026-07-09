@@ -13,17 +13,30 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
-const { google } = require('googleapis');
-const dotenv = require('dotenv');
 
-const envPath = path.join(__dirname, '..', 'config', '.env');
-if (!fs.existsSync(envPath)) {
-  console.error('❌ File .env non trovato!');
-  console.error('   Crea Bordero/config/.env o copia Bordero/config/.env.template');
-  process.exit(1);
+let google;
+let dotenv;
+
+try {
+  ({ google } = require('googleapis'));
+} catch (err) {
+  google = null;
+  console.warn('⚠️ googleapis non disponibile: il sync Google verrà saltato e si userà il fallback CSV/URL pubblico.');
 }
 
-dotenv.config({ path: envPath });
+try {
+  dotenv = require('dotenv');
+} catch (err) {
+  dotenv = null;
+  console.warn('⚠️ dotenv non disponibile: si useranno le variabili d’ambiente del sistema.');
+}
+
+const envPath = path.join(__dirname, '..', 'config', '.env');
+if (dotenv && fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else if (!fs.existsSync(envPath)) {
+  console.warn('⚠️ File .env non trovato; si procede con variabili d’ambiente o fallback pubblico.');
+}
 
 const API_KEY = process.env.GOOGLE_API_KEY?.trim();
 const SERVICE_ACCOUNT_KEY_FILE = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE?.trim();
@@ -144,6 +157,10 @@ function fetchSheetDataKey(spreadsheetId, range) {
 async function getServiceAccountAuth() {
   let credentials = null;
 
+  if (!google?.auth?.GoogleAuth) {
+    throw new Error('googleapis non disponibile');
+  }
+
   if (SERVICE_ACCOUNT_KEY_JSON) {
     try {
       credentials = JSON.parse(SERVICE_ACCOUNT_KEY_JSON);
@@ -176,6 +193,10 @@ async function getServiceAccountAuth() {
 }
 
 async function fetchSheetDataServiceAccount(spreadsheetId, range) {
+  if (!google) {
+    throw new Error('googleapis non disponibile');
+  }
+
   const auth = await getServiceAccountAuth();
   if (!auth) {
     throw new Error('Service Account non configurato');
