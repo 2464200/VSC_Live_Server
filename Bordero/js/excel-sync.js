@@ -227,6 +227,7 @@ class ExcelSync {
       // Salva in cache
       Storage.set('BORDERO_BRANI_DATA', data);
       logger.info(`✅ Sincronizzati ${data.length} brani in cache localStorage`);
+      this.notifyDataUpdated('brani');
       
       // Sincronizza su disco via server Node.js
       await this.syncToDisk('brani', data);
@@ -304,6 +305,7 @@ class ExcelSync {
       // Salva in cache
       Storage.set('BORDERO_COMUNI_DATA', data);
       logger.info(`✅ Sincronizzati ${data.length} comuni in cache localStorage`);
+      this.notifyDataUpdated('comuni');
       
       // Sincronizza su disco via server Node.js
       await this.syncToDisk('comuni', data);
@@ -381,6 +383,7 @@ class ExcelSync {
       // Salva in cache
       Storage.set('BORDERO_DBASE_DATA', data);
       logger.info(`✅ Sincronizzati ${data.length} DJ in cache localStorage`);
+      this.notifyDataUpdated('dbase');
       
       // Sincronizza su disco via server Node.js
       await this.syncToDisk('dbase', data);
@@ -463,6 +466,18 @@ class ExcelSync {
       logger.warn(`⚠️ Non è possibile sincronizzare su disco. Server Node.js su :5501 non disponibile.`);
       logger.warn(`   Dati rimangono in cache localStorage.`);
       logger.warn(`   Avvia il sync-server: node Bordero/server/sync-server.js`);
+    }
+  }
+
+  notifyDataUpdated(dataType) {
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('bordero:data-updated', {
+          detail: { type: dataType, source: 'excel-sync' }
+        }));
+      }
+    } catch (error) {
+      logger.warn('Impossibile notificare l\'aggiornamento dati', error);
     }
   }
 

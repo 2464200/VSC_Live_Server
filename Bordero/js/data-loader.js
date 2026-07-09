@@ -196,7 +196,22 @@ class DataLoader {
       nome = fallbackValue || '';
     }
 
-    return nome ? { nome, name: nome } : null;
+    const regione = getFirstValue(
+      comune.regione,
+      comune.denominazione_regione,
+      comune['denominazione regione'],
+      comune['Denominazione regione']
+    );
+
+    const citta = getFirstValue(
+      comune.citta,
+      comune.provincia,
+      comune.denominazione_provincia,
+      comune['denominazione provincia'],
+      comune['Denominazione provincia']
+    );
+
+    return nome ? { nome, name: nome, regione, citta, paese: nome } : null;
   }
 
   normalizeComuniList(comuniList) {
@@ -254,6 +269,7 @@ class DataLoader {
       this.brani = this.normalizeBraniList(CSVParser.parse(csvContent));
       
       // Salva in cache
+      Storage.set('BORDERO_BRANI_DATA', this.brani);
       Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.brani);
       this.lastSync = DateUtils.now();
       Storage.set(BORDERO_CONFIG.CACHE_KEY_SYNC, this.lastSync);

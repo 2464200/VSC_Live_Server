@@ -67,9 +67,35 @@
         </div>
         <div class="info-field">
           <label>Luogo</label>
-          <select id="luogo-select" class="select-input">
-            <option value="">-- Seleziona Luogo --</option>
-          </select>
+          <button type="button" id="luogo-picker-button" class="location-picker-btn" aria-haspopup="dialog" aria-expanded="false">
+            Bergamo
+          </button>
+          <div id="luogo-picker-modal" class="location-picker-modal" role="dialog" aria-modal="true" aria-labelledby="luogo-picker-title" hidden>
+            <div class="location-picker-content">
+              <div class="location-picker-header">
+                <h3 id="luogo-picker-title">Seleziona luogo</h3>
+                <button type="button" id="luogo-picker-close" class="location-picker-close" aria-label="Chiudi">×</button>
+              </div>
+              <div class="location-picker-body">
+                <label class="location-picker-label" for="luogo-regione-select">Regione</label>
+                <select id="luogo-regione-select" class="location-picker-select">
+                  <option value="">-- Seleziona Regione --</option>
+                </select>
+
+                <label class="location-picker-label" for="luogo-citta-select">Città</label>
+                <select id="luogo-citta-select" class="location-picker-select" disabled>
+                  <option value="">-- Seleziona Città --</option>
+                </select>
+
+                <label class="location-picker-label" for="luogo-paese-select">Paese</label>
+                <select id="luogo-paese-select" class="location-picker-select" disabled>
+                  <option value="">-- Seleziona Paese --</option>
+                </select>
+
+                <button type="button" id="luogo-picker-confirm" class="location-picker-confirm">CONFERMA</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="info-field">
           <label>Evento</label>

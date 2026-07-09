@@ -17,13 +17,17 @@ class BorderoTableManager {
     this.itemsPerPage = BORDERO_CONFIG.ITEMS_PER_PAGE;
     this.lastActionTime = null;
     this.serataMetaStorageKey = 'bordero_serata_meta';
+    this.locationData = [];
 
     // Serata info
     this.serata = {
       dj: '',
       data: new Date().toISOString().split('T')[0],
-      luogo: '',
+      luogo: 'Bergamo',
       evento: '',
+      regione: 'Lombardia',
+      citta: 'Bergamo',
+      paese: '',
     };
 
     this.init();
@@ -67,6 +71,7 @@ class BorderoTableManager {
       // Setup UI
       this.setupEventListeners();
       this.setupSerataMeta();
+      this.setupDataRefreshListeners();
       this.updateSearchPlaceholder();
       this.renderTable();
 
@@ -81,7 +86,15 @@ class BorderoTableManager {
   getStoredSerataMeta() {
     const stored = Storage.get(this.serataMetaStorageKey, null);
     if (stored && typeof stored === 'object') {
-      return stored;
+      return {
+        dj: stored.dj || '',
+        data: stored.data || '',
+        luogo: stored.luogo || '',
+        evento: stored.evento || '',
+        regione: stored.regione || '',
+        citta: stored.citta || '',
+        paese: stored.paese || '',
+      };
     }
 
     return {
@@ -89,10 +102,21 @@ class BorderoTableManager {
       data: Storage.get('bordero_serata_data', ''),
       luogo: Storage.get('bordero_selected_luogo', ''),
       evento: Storage.get('bordero_serata_evento', ''),
+      regione: Storage.get('bordero_selected_regione', ''),
+      citta: Storage.get('bordero_selected_citta', ''),
+      paese: Storage.get('bordero_selected_paese', ''),
     };
   }
 
+  getLocationDisplayValue() {
+    if (this.serata.paese) return this.serata.paese;
+    if (this.serata.citta) return this.serata.citta;
+    if (this.serata.regione) return this.serata.regione;
+    return 'Bergamo';
+  }
+
   persistSerataMeta() {
+    this.serata.luogo = this.getLocationDisplayValue();
     Storage.set(this.serataMetaStorageKey, { ...this.serata });
 
     if (this.serata.dj) {
@@ -105,6 +129,24 @@ class BorderoTableManager {
       Storage.set('bordero_serata_data', this.serata.data);
     } else {
       Storage.remove('bordero_serata_data');
+    }
+
+    if (this.serata.regione) {
+      Storage.set('bordero_selected_regione', this.serata.regione);
+    } else {
+      Storage.remove('bordero_selected_regione');
+    }
+
+    if (this.serata.citta) {
+      Storage.set('bordero_selected_citta', this.serata.citta);
+    } else {
+      Storage.remove('bordero_selected_citta');
+    }
+
+    if (this.serata.paese) {
+      Storage.set('bordero_selected_paese', this.serata.paese);
+    } else {
+      Storage.remove('bordero_selected_paese');
     }
 
     if (this.serata.luogo) {
@@ -128,6 +170,9 @@ class BorderoTableManager {
     Storage.remove(this.serataMetaStorageKey);
     Storage.remove('bordero_selected_dj');
     Storage.remove('bordero_selected_luogo');
+    Storage.remove('bordero_selected_regione');
+    Storage.remove('bordero_selected_citta');
+    Storage.remove('bordero_selected_paese');
     Storage.remove('bordero_serata_data');
     Storage.remove('bordero_serata_evento');
   }
@@ -136,8 +181,11 @@ class BorderoTableManager {
     this.serata = {
       dj: '',
       data: new Date().toISOString().split('T')[0],
-      luogo: '',
+      luogo: 'Bergamo',
       evento: '',
+      regione: 'Lombardia',
+      citta: 'Bergamo',
+      paese: '',
     };
 
     const dataInput = document.getElementById('data-serata');
@@ -155,9 +203,27 @@ class BorderoTableManager {
       djSelect.value = '';
     }
 
-    const luogoSelect = document.getElementById('luogo-select');
-    if (luogoSelect) {
-      luogoSelect.value = '';
+    const locationButton = document.getElementById('luogo-picker-button');
+    if (locationButton) {
+      locationButton.textContent = 'Bergamo';
+    }
+
+    const regionSelect = document.getElementById('luogo-regione-select');
+    if (regionSelect) {
+      regionSelect.value = '';
+      regionSelect.disabled = false;
+    }
+
+    const citySelect = document.getElementById('luogo-citta-select');
+    if (citySelect) {
+      citySelect.innerHTML = '<option value="">-- Seleziona Città --</option>';
+      citySelect.disabled = true;
+    }
+
+    const countrySelect = document.getElementById('luogo-paese-select');
+    if (countrySelect) {
+      countrySelect.innerHTML = '<option value="">-- Seleziona Paese --</option>';
+      countrySelect.disabled = true;
     }
 
     this.clearPersistedSerataMeta();
@@ -171,8 +237,11 @@ class BorderoTableManager {
     this.serata = {
       dj: storedMeta.dj || '',
       data: storedMeta.data || new Date().toISOString().split('T')[0],
-      luogo: storedMeta.luogo || '',
+      luogo: storedMeta.luogo || this.getLocationDisplayValue(),
       evento: storedMeta.evento || '',
+      regione: storedMeta.regione || 'Lombardia',
+      citta: storedMeta.citta || 'Bergamo',
+      paese: storedMeta.paese || '',
     };
 
     const dataInput = document.getElementById('data-serata');
@@ -190,8 +259,8 @@ class BorderoTableManager {
       logger.debug('Data serata:', this.serata.data);
     });
 
-    // Luogo dropdown da Comuni Italia
-    this.populateComuniSelect();
+    // Luogo: scelta a cascata
+    this.setupLocationPicker();
 
     // Evento libero
     document.getElementById('evento-text')?.addEventListener('input', (e) => {
@@ -199,6 +268,42 @@ class BorderoTableManager {
       this.persistSerataMeta();
       logger.debug('Evento:', this.serata.evento);
     });
+
+    document.getElementById('luogo-picker-button')?.addEventListener('click', () => this.openLocationPicker());
+    document.getElementById('luogo-picker-close')?.addEventListener('click', () => this.closeLocationPicker());
+    document.getElementById('luogo-picker-modal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'luogo-picker-modal') {
+        this.closeLocationPicker();
+      }
+    });
+
+    document.getElementById('luogo-regione-select')?.addEventListener('change', (e) => {
+      this.updateLocationSelection('regione', e.target.value);
+    });
+
+    document.getElementById('luogo-citta-select')?.addEventListener('change', (e) => {
+      this.updateLocationSelection('citta', e.target.value);
+    });
+
+    document.getElementById('luogo-paese-select')?.addEventListener('change', (e) => {
+      this.updateLocationSelection('paese', e.target.value);
+    });
+
+    document.getElementById('luogo-picker-confirm')?.addEventListener('click', () => {
+      if (!this.serata.paese) {
+        Toast.warning('Seleziona prima il Paese prima di confermare');
+        return;
+      }
+      const confirmButton = document.getElementById('luogo-picker-confirm');
+      if (confirmButton) {
+        confirmButton.classList.add('confirmed');
+      }
+      this.persistSerataMeta();
+      this.updateLocationPickerSelection();
+      this.closeLocationPicker();
+    });
+
+    this.updateLocationPickerSelection();
   }
 
   /**
@@ -226,12 +331,15 @@ class BorderoTableManager {
         djSelect.value = savedDj;
       }
 
-      djSelect.addEventListener('change', (e) => {
-        const value = e.target.value.trim();
-        this.serata.dj = value;
-        this.persistSerataMeta();
-        logger.debug('DJ selezionato:', this.serata.dj);
-      });
+      if (!djSelect.dataset.boundChange) {
+        djSelect.addEventListener('change', (e) => {
+          const value = e.target.value.trim();
+          this.serata.dj = value;
+          this.persistSerataMeta();
+          logger.debug('DJ selezionato:', this.serata.dj);
+        });
+        djSelect.dataset.boundChange = 'true';
+      }
 
       logger.debug(`DJ select popolato con ${dj.length} opzioni`);
     } catch (error) {
@@ -239,41 +347,199 @@ class BorderoTableManager {
     }
   }
 
-  /**
-   * Popola il select dei Comuni
-   */
-  async populateComuniSelect() {
-    const comuniSelect = document.getElementById('luogo-select');
-    
+  async setupLocationPicker() {
+    const regionSelect = document.getElementById('luogo-regione-select');
+    const citySelect = document.getElementById('luogo-citta-select');
+    const countrySelect = document.getElementById('luogo-paese-select');
+
+    if (!regionSelect || !citySelect || !countrySelect) return;
+
     try {
       const comuni = await dataLoader.loadComuni();
-      comuniSelect.innerHTML = '<option value="">-- Seleziona Luogo --</option>';
-      
-      comuni.forEach(item => {
-        const nome = item.nome || item.name || '';
-        if (!nome) return;
+      this.locationData = Array.isArray(comuni) ? comuni : [];
 
-        const option = document.createElement('option');
-        option.value = nome;
-        option.textContent = nome;
-        comuniSelect.appendChild(option);
-      });
+      const regions = [...new Set(this.locationData.map(item => item.regione).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'it'));
 
-      const savedLuogo = this.serata.luogo || '';
-      if (savedLuogo) {
-        comuniSelect.value = savedLuogo;
+      regionSelect.innerHTML = '<option value="">-- Seleziona Regione --</option>' + regions.map(region => `<option value="${region}">${region}</option>`).join('');
+
+      if (this.serata.regione) {
+        regionSelect.value = this.serata.regione;
+      } else {
+        regionSelect.value = 'Lombardia';
+        this.serata.regione = 'Lombardia';
       }
 
-      comuniSelect.addEventListener('change', (e) => {
-        const value = e.target.value.trim();
-        this.serata.luogo = value;
-        this.persistSerataMeta();
-        logger.debug('Luogo selezionato:', this.serata.luogo);
-      });
-
-      logger.debug(`Comuni select popolato con ${comuni.length} opzioni`);
+      this.renderLocationCascades();
+      this.updateLocationPickerSelection();
+      logger.debug(`Location picker popolato con ${this.locationData.length} comuni`);
     } catch (error) {
-      logger.error('Errore popolo comuni', error);
+      logger.error('Errore popolo location picker', error);
+    }
+  }
+
+  renderLocationCascades() {
+    const regionSelect = document.getElementById('luogo-regione-select');
+    const citySelect = document.getElementById('luogo-citta-select');
+    const countrySelect = document.getElementById('luogo-paese-select');
+
+    if (!regionSelect || !citySelect || !countrySelect) return;
+
+    const selectedRegion = this.serata.regione || '';
+    const selectedCity = this.serata.citta || '';
+
+    const cityOptions = [...new Set(this.locationData
+      .filter(item => !selectedRegion || item.regione === selectedRegion)
+      .map(item => item.citta)
+      .filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'it'));
+
+    citySelect.innerHTML = '<option value="">-- Seleziona Città --</option>' + cityOptions.map(city => `<option value="${city}">${city}</option>`).join('');
+    citySelect.disabled = !selectedRegion;
+
+    if (selectedCity && cityOptions.includes(selectedCity)) {
+      citySelect.value = selectedCity;
+    } else {
+      citySelect.value = 'Bergamo';
+      this.serata.citta = 'Bergamo';
+      this.serata.paese = '';
+    }
+
+    const countryOptions = [...new Set(this.locationData
+      .filter(item => (!selectedRegion || item.regione === selectedRegion) && (!selectedCity || item.citta === selectedCity))
+      .map(item => item.nome)
+      .filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'it'));
+
+    countrySelect.innerHTML = '<option value="">-- Seleziona Paese --</option>' + countryOptions.map(paese => `<option value="${paese}">${paese}</option>`).join('');
+    countrySelect.disabled = !selectedCity;
+
+    if (this.serata.paese && countryOptions.includes(this.serata.paese)) {
+      countrySelect.value = this.serata.paese;
+    } else {
+      this.serata.paese = '';
+      countrySelect.value = '';
+    }
+
+    this.updateLocationPickerSelection();
+  }
+
+  updateLocationSelection(field, value) {
+    const trimmedValue = String(value || '').trim();
+    const confirmButton = document.getElementById('luogo-picker-confirm');
+
+    if (confirmButton) {
+      confirmButton.classList.remove('confirmed');
+    }
+
+    if (field === 'regione') {
+      this.serata.regione = trimmedValue;
+      this.serata.citta = '';
+      this.serata.paese = '';
+    } else if (field === 'citta') {
+      this.serata.citta = trimmedValue;
+      this.serata.paese = '';
+    } else if (field === 'paese') {
+      this.serata.paese = trimmedValue;
+    }
+
+    this.persistSerataMeta();
+    this.renderLocationCascades();
+    this.updateLocationPickerSelection();
+
+    if (field === 'paese') {
+      this.updateLocationPickerSelection();
+    }
+  }
+
+  updateLocationPickerSelection() {
+    const button = document.getElementById('luogo-picker-button');
+    const locationText = this.getLocationDisplayValue();
+
+    if (button) {
+      button.textContent = locationText;
+    }
+  }
+
+  openLocationPicker() {
+    const modal = document.getElementById('luogo-picker-modal');
+    const button = document.getElementById('luogo-picker-button');
+    const confirmButton = document.getElementById('luogo-picker-confirm');
+    if (modal) {
+      modal.hidden = false;
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    if (button) {
+      button.setAttribute('aria-expanded', 'true');
+    }
+    if (confirmButton) {
+      confirmButton.classList.remove('confirmed');
+    }
+  }
+
+  closeLocationPicker() {
+    const modal = document.getElementById('luogo-picker-modal');
+    const button = document.getElementById('luogo-picker-button');
+    if (modal) {
+      modal.hidden = true;
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    if (button) {
+      button.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  setupDataRefreshListeners() {
+    window.removeEventListener('bordero:data-updated', this.handleDataRefreshBound);
+    this.handleDataRefreshBound = () => {
+      this.refreshFromCurrentData();
+    };
+    window.addEventListener('bordero:data-updated', this.handleDataRefreshBound);
+
+    window.removeEventListener('storage', this.handleStorageRefreshBound);
+    this.handleStorageRefreshBound = (event) => {
+      if (event.key && event.key.startsWith('BORDERO_')) {
+        this.refreshFromCurrentData();
+      }
+    };
+    window.addEventListener('storage', this.handleStorageRefreshBound);
+  }
+
+  async refreshFromCurrentData() {
+    try {
+      const allBrani = await dataLoader.loadBrani();
+      const originalBrani = allBrani.map((brano, index) => ({
+        ...brano,
+        originalIndex: index,
+      }));
+
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (currentSerata && Array.isArray(currentSerata.brani) && currentSerata.brani.length > 0) {
+        const executedMap = new Map(currentSerata.brani.map(b => [String(b.id), b]));
+        this.allBrani = originalBrani.map((brano) => {
+          const saved = executedMap.get(String(brano.id));
+          if (saved && String(saved.flag).toUpperCase() === 'X') {
+            return {
+              ...brano,
+              flag: 'X',
+              timestamp: saved.timestamp || brano.timestamp,
+            };
+          }
+          return brano;
+        });
+        this.reorderBraniByOriginalIndex();
+      } else {
+        this.allBrani = originalBrani;
+      }
+
+      this.filteredBrani = [...this.allBrani];
+      this.currentPage = 1;
+      await this.populateDJSelect();
+      await this.setupLocationPicker();
+      this.renderTable();
+      logger.info('✓ Dati aggiornati dopo sincronizzazione');
+    } catch (error) {
+      logger.error('Errore aggiornamento dati dopo sincronizzazione', error);
     }
   }
 

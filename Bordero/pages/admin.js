@@ -82,9 +82,16 @@ class AdminPanel {
       document.getElementById('sync-brani-status').textContent = `${braniCount} brani cached`;
       document.getElementById('sync-comuni-status').textContent = `${comuniCount} comuni cached`;
       document.getElementById('sync-dbase-status').textContent = `${dbaseCount} DJ cached`;
+      void this.refreshDataViewer();
     };
 
     updateStatus();
+    window.addEventListener('bordero:data-updated', () => updateStatus());
+    window.addEventListener('storage', (event) => {
+      if (event.key && event.key.startsWith('BORDERO_')) {
+        updateStatus();
+      }
+    });
 
     // Pulsante: Sincronizza BRANI
     document.getElementById('btn-sync-brani').addEventListener('click', async () => {
@@ -171,38 +178,137 @@ class AdminPanel {
   /* ========== DATA VIEWER ========== */
   setupDataViewer() {
     document.getElementById('data-viewer-select').addEventListener('change', (e) => {
-      const type = e.target.value;
-      const output = document.getElementById('data-viewer-output');
-
-      let data = null;
-      switch (type) {
-        case 'brani':
-          data = Storage.get('BORDERO_BRANI_DATA');
-          break;
-        case 'comuni':
-          data = Storage.get('BORDERO_COMUNI_DATA');
-          break;
-        case 'dbase':
-          data = Storage.get('BORDERO_DBASE_DATA');
-          break;
-        case 'serata':
-          data = Storage.get('BORDERO_CURRENT_SERATA');
-          break;
-        case 'history':
-          data = Storage.get('BORDERO_SERATA_HISTORY');
-          break;
-        case 'localstorage':
-          data = {};
-          for (let key in localStorage) {
-            if (key.startsWith('BORDERO_')) {
-              data[key] = '...';
-            }
-          }
-          break;
-      }
-
-      output.textContent = JSON.stringify(data, null, 2) || 'No data';
+      void this.refreshDataViewer(e.target.value);
     });
+  }
+
+  async refreshDataViewer(type = null) {
+    const select = document.getElementById('data-viewer-select');
+    const output = document.getElementById('data-viewer-output');
+    const activeType = type || select?.value || '';
+
+    let data = null;
+    switch (activeType) {
+      case 'brani': {
+        data = Storage.get('BORDERO_BRANI_DATA');
+        if (!Array.isArray(data) || data.length === 0) {
+          if (typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.loadBrani === 'function') {
+            data = await window.dataLoader.loadBrani();
+          } else {
+            const loader = new DataLoader();
+            data = await loader.loadBrani();
+          }
+        }
+        break;
+      }
+      case 'comuni': {
+        data = Storage.get('BORDERO_COMUNI_DATA');
+        if (!Array.isArray(data) || data.length === 0) {
+          if (typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.loadComuni === 'function') {
+            data = await window.dataLoader.loadComuni();
+          } else {
+            const loader = new DataLoader();
+            data = await loader.loadComuni();
+          }
+        }
+        break;
+      }
+      case 'dbase': {
+        data = Storage.get('BORDERO_DBASE_DATA');
+        if (!Array.isArray(data) || data.length === 0) {
+          if (typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.loadDJ === 'function') {
+            data = await window.dataLoader.loadDJ();
+          } else {
+            const loader = new DataLoader();
+            data = await loader.loadDJ();
+          }
+        }
+        break;
+      }
+      case 'serata':
+        data = Storage.get('BORDERO_CURRENT_SERATA');
+        break;
+      case 'history':
+        data = Storage.get('BORDERO_SERATA_HISTORY');
+        break;
+      case 'localstorage':
+        data = {};
+        for (let key in localStorage) {
+          if (key.startsWith('BORDERO_')) {
+            data[key] = '...';
+          }
+        }
+        break;
+    }
+
+    if (output) {
+      output.innerHTML = this.renderViewerContent(activeType, data);
+    }
+  }
+
+  renderViewerContent(type, data) {
+    if (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0)) {
+      return '<div class="data-viewer-empty">Nessun dato disponibile per questa sezione.</div>';
+    }
+
+    if (type === 'brani' && Array.isArray(data)) {
+      const rows = data.slice(0, 30).map((item) => {
+        const id = item.id || item.ID || '';
+        const title = item.titolo || item.brano || item.title || item.coreografia || '';
+        const author = item.autore || item.author || '';
+        const level = item.info_livello || item.livello || '';
+        const coreo = item.info_coreo || item.coreografo || '';
+        return `<tr><td>${this.escapeHtml(id)}</td><td>${this.escapeHtml(title)}</td><td>${this.escapeHtml(author)}</td><td>${this.escapeHtml(level)}</td><td>${this.escapeHtml(coreo)}</td></tr>`;
+      }).join('');
+
+      return `
+        <div class="data-viewer-summary">${data.length} elementi caricati • anteprima 30 righe</div>
+        <table class="data-viewer-table">
+          <thead><tr><th>ID</th><th>Titolo</th><th>Autore</th><th>Livello</th><th>Coreografia</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    if ((type === 'comuni' || type === 'dbase') && Array.isArray(data)) {
+      const rows = data.slice(0, 20).map((item) => {
+        const name = item.nome || item.name || item.Nome || '';
+        const extra = Object.entries(item)
+          .filter(([key, value]) => key !== 'nome' && key !== 'name' && key !== 'Nome' && value !== '' && value !== null && value !== undefined)
+          .slice(0, 3)
+          .map(([key, value]) => `<code>${this.escapeHtml(key)}: ${this.escapeHtml(String(value))}</code>`)
+          .join(' ');
+        return `<tr><td>${this.escapeHtml(name)}</td><td>${extra || '—'}</td></tr>`;
+      }).join('');
+
+      const label = type === 'comuni' ? 'Comuni' : 'DJ';
+      return `
+        <div class="data-viewer-summary">${data.length} ${label.toLowerCase()} caricati • anteprima 20 righe</div>
+        <table class="data-viewer-table">
+          <thead><tr><th>${label}</th><th>Dettagli</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    if (typeof data === 'object' && !Array.isArray(data)) {
+      const rows = Object.entries(data).slice(0, 20).map(([key, value]) => {
+        const displayValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        return `<tr><td>${this.escapeHtml(key)}</td><td>${this.escapeHtml(displayValue)}</td></tr>`;
+      }).join('');
+      return `
+        <div class="data-viewer-summary">Struttura oggetto • anteprima 20 chiavi</div>
+        <table class="data-viewer-table"><thead><tr><th>Chiave</th><th>Valore</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    return `<pre>${this.escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+  }
+
+  escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   /* ========== CACHE MANAGEMENT ========== */
