@@ -290,10 +290,9 @@ class BorderoTableManager {
     });
 
     document.getElementById('luogo-picker-confirm')?.addEventListener('click', () => {
-      if (!this.serata.paese) {
-        Toast.warning('Seleziona prima il Paese prima di confermare');
-        return;
-      }
+      const fallbackLocation = this.serata.paese || this.serata.citta || this.serata.regione || 'Bergamo';
+      this.serata.paese = fallbackLocation;
+
       const confirmButton = document.getElementById('luogo-picker-confirm');
       if (confirmButton) {
         confirmButton.classList.add('confirmed');
@@ -301,8 +300,20 @@ class BorderoTableManager {
       this.persistSerataMeta();
       this.updateLocationPickerSelection();
       this.closeLocationPicker();
+
+      window.setTimeout(() => {
+        this.closeLocationPicker();
+        const modal = document.getElementById('luogo-picker-modal');
+        if (modal) {
+          modal.hidden = true;
+          modal.style.display = 'none';
+        }
+      }, 200);
     });
 
+    window.setTimeout(() => {
+      this.closeLocationPicker();
+    }, 0);
     this.updateLocationPickerSelection();
   }
 
@@ -467,6 +478,7 @@ class BorderoTableManager {
     const confirmButton = document.getElementById('luogo-picker-confirm');
     if (modal) {
       modal.hidden = false;
+      modal.style.display = 'flex';
       modal.setAttribute('aria-hidden', 'false');
     }
     if (button) {
@@ -482,6 +494,7 @@ class BorderoTableManager {
     const button = document.getElementById('luogo-picker-button');
     if (modal) {
       modal.hidden = true;
+      modal.style.display = 'none';
       modal.setAttribute('aria-hidden', 'true');
     }
     if (button) {
