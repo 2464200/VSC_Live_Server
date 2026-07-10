@@ -823,7 +823,8 @@ class BorderoTableManager {
 
     // Applica ricerca
     if (this.currentSearch) {
-      let searchFields = ['titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
+      // Include `id` in the general search fields per request
+      let searchFields = ['id', 'titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
 
       if (this.searchMode === 'title') {
         searchFields = ['titolo'];
@@ -1066,6 +1067,8 @@ class BorderoTableManager {
         btn.classList.toggle('active', this.searchMode === mode);
       }
     });
+    // Update the visible list of fields used by the current search mode
+    this.updateSearchFieldsUI();
   }
 
   updateSearchPlaceholder() {
@@ -1080,7 +1083,7 @@ class BorderoTableManager {
     };
 
     const placeholders = {
-      general: '🔍 Cerca titolo, autore, genere, livello o coreografia...',
+      general: '🔍 Cerca ID, titolo, autore, genere, livello o coreografia...',
       title: '🔍 Cerca per titolo...',
       id: '🔍 Cerca per ID...'
     };
@@ -1092,6 +1095,36 @@ class BorderoTableManager {
     if (searchBox) {
       searchBox.placeholder = placeholders[this.searchMode] || placeholders.general;
     }
+  }
+
+  updateSearchFieldsUI() {
+    const container = document.getElementById('search-fields-info');
+    if (!container) return;
+
+    const mapping = {
+      id: 'ID',
+      titolo: 'Titolo',
+      autore: 'Autore',
+      coreografo: 'Coreografo',
+      collaboratori: 'Collaboratori',
+      genere: 'Genere',
+      info_livello: 'Livello',
+      info_coreo: 'Coreografia',
+      compositore: 'Compositore',
+      durata: 'Durata'
+    };
+
+    let fields = [];
+    if (this.searchMode === 'title') {
+      fields = ['titolo'];
+    } else if (this.searchMode === 'id') {
+      fields = ['id'];
+    } else {
+      fields = ['id', 'titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
+    }
+
+    const readable = fields.map(f => mapping[f] || f).join(', ');
+    container.textContent = `Campi cercati: ${readable}`;
   }
 
   /**

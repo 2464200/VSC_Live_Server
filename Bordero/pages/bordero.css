@@ -213,6 +213,14 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 6px;
 }
+.search-fields-info {
+  color: #666;
+  font-size: 0.78em;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .toolbar-section {
   display: flex;
