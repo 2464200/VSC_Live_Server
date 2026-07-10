@@ -150,6 +150,17 @@
   border-color: var(--primary-orange);
 }
 
+/* Evidenzia la casella di ricerca nella pagina videoclip */
+#video-search {
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(255, 127, 0, 0.12);
+}
+
+#video-search:focus {
+  border-color: #ff7f00;
+  box-shadow: 0 0 0 6px rgba(255, 127, 0, 0.18);
+}
+
 /* ========== VIDEOS LIST ========== */
 .videos-list {
   display: grid;
@@ -177,6 +188,24 @@
 .video-card.active {
   border-color: var(--success-green);
   background: linear-gradient(135deg, rgba(0, 255, 0, 0.1), rgba(0, 255, 0, 0.05));
+}
+
+/* Disponibilità videoclip */
+.video-card.available {
+  border-color: var(--success-green);
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.08);
+}
+
+.video-card.unavailable {
+  opacity: 0.85;
+  filter: grayscale(60%);
+}
+
+.video-card.unavailable .video-card-action .btn {
+  background: #444;
+  color: #999;
+  border-color: #444;
+  cursor: not-allowed;
 }
 
 .video-card-thumb {

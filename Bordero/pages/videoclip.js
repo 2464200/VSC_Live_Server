@@ -8,6 +8,8 @@ class VideoClipManager {
     this.brani = [];
     this.currentBrano = null;
     this.filteredBrani = [];
+    this.availableFiles = []; // elenco file presenti nella cartella locale
+    this.availableMap = new Map(); // id -> filename
 
     this.init();
   }
@@ -18,6 +20,42 @@ class VideoClipManager {
     try {
       this.brani = await dataLoader.loadBrani();
       this.filteredBrani = [...this.brani];
+
+      // Fetch lista file videoclip dal server di sync (try multiple fallbacks)
+      this.availableFiles = [];
+      const attempts = [
+        'http://localhost:5501/api/videoclip/list',
+        window.location.origin.replace(/:\d+$/, '') + ':5501/api/videoclip/list',
+        '/api/videoclip/list'
+      ];
+      for (const url of attempts) {
+        try {
+          const resp = await fetch(url, { cache: 'no-store' });
+          if (!resp.ok) continue;
+          const json = await resp.json();
+          if (json && Array.isArray(json.files) && json.files.length > 0) {
+            this.availableFiles = json.files.map(f => String(f || '').toLowerCase());
+            logger.info('Videoclip list ottenuta da', url, this.availableFiles.length);
+            break;
+          }
+        } catch (err) {
+          logger.debug('Video list fetch failed for', url, err.message || err);
+          continue;
+        }
+      }
+
+      // Pre-costruisci mappa di corrispondenza brano -> file (se trovato)
+      this.availableMap = new Map();
+      // also build basenames list (without extension) for better matching
+      this.availableBasenames = this.availableFiles.map(f => {
+        const idx = f.lastIndexOf('.');
+        return idx > 0 ? f.slice(0, idx) : f;
+      });
+
+      this.brani.forEach(brano => {
+        const matched = this.findMatchingVideoFile(brano);
+        if (matched) this.availableMap.set(String(brano.id), matched);
+      });
 
       this.renderLibrary();
       this.populateGenreFilter();
@@ -48,8 +86,15 @@ class VideoClipManager {
     this.filteredBrani.forEach(brano => {
       const card = document.createElement('div');
       card.className = 'video-card';
+      const matchedFile = this.availableMap.get(String(brano.id)) || null;
+      const isAvailable = Boolean(matchedFile);
       if (this.currentBrano?.id === brano.id) {
         card.classList.add('active');
+      }
+      if (isAvailable) {
+        card.classList.add('available');
+      } else {
+        card.classList.add('unavailable');
       }
 
       card.innerHTML = `
@@ -62,12 +107,20 @@ class VideoClipManager {
             <span>🎵 ${this.escapeHtml(brano.genere || 'Sconosciuto')}</span>
           </div>
           <div class="video-card-action">
-            <button class="btn btn-primary btn-small" data-id="${brano.id}">SELEZIONA</button>
+            <button class="btn btn-primary btn-small" data-id="${brano.id}" ${isAvailable ? '' : 'disabled'}>${isAvailable ? 'SELEZIONA' : 'NON DISPONIBILE'}</button>
           </div>
         </div>
       `;
 
-      card.addEventListener('click', () => this.selectBrano(brano));
+      if (isAvailable) {
+        card.addEventListener('click', () => this.selectBrano(brano));
+      } else {
+        // non selezionabile: disable only the button
+        const btn = card.querySelector('button');
+        if (btn) btn.disabled = true;
+        card.style.opacity = '0.85';
+      }
+
       container.appendChild(card);
     });
 
@@ -98,8 +151,67 @@ class VideoClipManager {
     document.getElementById('video-genere').innerHTML = `<strong>Genere:</strong> ${this.escapeHtml(this.currentBrano.genere || '--')}`;
 
     // TODO: Set video source when actual video files are available
-    // document.getElementById('video-source').src = `/videos/${this.currentBrano.id}.mp4`;
-    // document.getElementById('main-video').load();
+    const matchedFile = this.availableMap.get(String(this.currentBrano.id));
+    if (matchedFile) {
+      try {
+        const syncOrigin = (window.location.protocol + '//' + window.location.hostname + ':5501').replace('://:','://localhost:');
+        const url = syncOrigin + '/videos/' + encodeURIComponent(matchedFile);
+        document.getElementById('video-source').src = url;
+        document.getElementById('main-video').load();
+      } catch (err) {
+        logger.warn('Errore impostando sorgente video', err);
+      }
+    } else {
+      document.getElementById('video-source').src = '';
+      document.getElementById('main-video').load();
+    }
+  }
+
+  /**
+   * Cerca un file video corrispondente al brano nella lista this.availableFiles
+   * Regole: cerca file contenente l'id oppure una versione normalizzata del titolo
+   */
+  findMatchingVideoFile(brano) {
+    if (!Array.isArray(this.availableFiles) || this.availableFiles.length === 0) return null;
+    const idStr = String(brano.id || '').toLowerCase().trim();
+    const title = String(brano.titolo || brano.brano || '').toLowerCase().trim();
+
+    const normalize = (s) => {
+      if (!s) return '';
+      try {
+        // remove diacritics
+        s = s.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+      } catch (e) {
+        s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      }
+      return s.replace(/[^a-z0-9]+/g, ' ').trim();
+    };
+
+    // 1) match by id present in filename or basename
+    if (idStr) {
+      for (let i = 0; i < this.availableFiles.length; i++) {
+        const f = this.availableFiles[i];
+        const base = this.availableBasenames[i] || f;
+        if (f.includes(idStr) || base.includes(idStr)) return this.availableFiles[i];
+        // also check digits-only id match
+        const digits = idStr.replace(/\D+/g, '');
+        if (digits && (f.includes(digits) || base.includes(digits))) return this.availableFiles[i];
+      }
+    }
+
+    // 2) match by normalized title against filename/basename
+    const nTitle = normalize(title);
+    if (nTitle) {
+      for (let i = 0; i < this.availableFiles.length; i++) {
+        const f = this.availableFiles[i];
+        const base = this.availableBasenames[i] || f;
+        const nf = normalize(base);
+        if (!nf) continue;
+        if (nf.includes(nTitle) || nTitle.includes(nf)) return this.availableFiles[i];
+      }
+    }
+
+    return null;
   }
 
   setupListeners() {
