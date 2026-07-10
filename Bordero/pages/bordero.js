@@ -409,8 +409,17 @@ class BorderoTableManager {
 
     if (!regionSelect || !citySelect || !countrySelect) return;
 
-    const selectedRegion = this.serata.regione || '';
-    const selectedCity = this.serata.citta || '';
+    const availableRegions = [...new Set(this.locationData.map(item => item.regione).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'it'));
+
+    const fallbackRegion = availableRegions.includes('Lombardia') ? 'Lombardia' : (availableRegions[0] || '');
+    const selectedRegion = (this.serata.regione && availableRegions.includes(this.serata.regione))
+      ? this.serata.regione
+      : fallbackRegion;
+
+    this.serata.regione = selectedRegion;
+    regionSelect.innerHTML = '<option value="">-- Seleziona Regione --</option>' + availableRegions.map(region => `<option value="${region}">${region}</option>`).join('');
+    regionSelect.value = selectedRegion || '';
 
     const cityOptions = [...new Set(this.locationData
       .filter(item => !selectedRegion || item.regione === selectedRegion)
@@ -418,16 +427,15 @@ class BorderoTableManager {
       .filter(Boolean))]
       .sort((a, b) => a.localeCompare(b, 'it'));
 
+    const fallbackCity = cityOptions.includes('Bergamo') ? 'Bergamo' : (cityOptions[0] || '');
+    const selectedCity = (this.serata.citta && cityOptions.includes(this.serata.citta))
+      ? this.serata.citta
+      : fallbackCity;
+
     citySelect.innerHTML = '<option value="">-- Seleziona Città --</option>' + cityOptions.map(city => `<option value="${city}">${city}</option>`).join('');
     citySelect.disabled = !selectedRegion;
-
-    if (selectedCity && cityOptions.includes(selectedCity)) {
-      citySelect.value = selectedCity;
-    } else {
-      citySelect.value = 'Bergamo';
-      this.serata.citta = 'Bergamo';
-      this.serata.paese = '';
-    }
+    citySelect.value = selectedCity || '';
+    this.serata.citta = selectedCity || '';
 
     const countryOptions = [...new Set(this.locationData
       .filter(item => (!selectedRegion || item.regione === selectedRegion) && (!selectedCity || item.citta === selectedCity))
@@ -435,15 +443,15 @@ class BorderoTableManager {
       .filter(Boolean))]
       .sort((a, b) => a.localeCompare(b, 'it'));
 
+    const fallbackCountry = countryOptions[0] || '';
+    const selectedCountry = (this.serata.paese && countryOptions.includes(this.serata.paese))
+      ? this.serata.paese
+      : fallbackCountry;
+
     countrySelect.innerHTML = '<option value="">-- Seleziona Paese --</option>' + countryOptions.map(paese => `<option value="${paese}">${paese}</option>`).join('');
     countrySelect.disabled = !selectedCity;
-
-    if (this.serata.paese && countryOptions.includes(this.serata.paese)) {
-      countrySelect.value = this.serata.paese;
-    } else {
-      this.serata.paese = '';
-      countrySelect.value = '';
-    }
+    countrySelect.value = selectedCountry || '';
+    this.serata.paese = selectedCountry || '';
 
     this.updateLocationPickerSelection();
   }
@@ -500,6 +508,9 @@ class BorderoTableManager {
     if (confirmButton) {
       confirmButton.classList.remove('confirmed');
     }
+
+    this.renderLocationCascades();
+    this.setupLocationPicker().catch(() => {});
   }
 
   closeLocationPicker() {

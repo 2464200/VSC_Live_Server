@@ -124,7 +124,7 @@
   border: 1px solid var(--primary-orange);
   border-radius: 10px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .location-picker-header {
@@ -154,6 +154,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px;
+  overflow: visible;
 }
 
 .location-picker-label {
