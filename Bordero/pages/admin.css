@@ -250,6 +250,57 @@
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
 }
 
+.sync-feedback {
+  margin-top: 20px;
+  background-color: #101010;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.sync-feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.sync-feedback-output {
+  background-color: #080808;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  color: #ddd;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.sync-log {
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+}
+
+.sync-log.info {
+  color: #7ec0ff;
+}
+
+.sync-log.success {
+  color: #8ae234;
+}
+
+.sync-log.warn {
+  color: #ffdd55;
+}
+
+.sync-log.error {
+  color: #ff6666;
+}
+
 .console-input .btn {
   padding: 10px 15px;
   font-size: 0.85em;

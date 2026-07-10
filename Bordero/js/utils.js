@@ -78,7 +78,16 @@ const CSVParser = {
       if (!line) continue;
 
       const values = CSVParser.parseCSVLine(line);
-      if (values.length !== headers.length) continue;
+
+      // Allow lines with fewer or more columns than headers by padding or merging extras
+      if (values.length < headers.length) {
+        while (values.length < headers.length) values.push('');
+      } else if (values.length > headers.length) {
+        // merge any extra columns into the last header (likely free-form description)
+        const lastIndex = headers.length - 1;
+        values[lastIndex] = values.slice(lastIndex).join(',');
+        values.length = headers.length;
+      }
 
       const obj = {};
       headers.forEach((header, index) => {

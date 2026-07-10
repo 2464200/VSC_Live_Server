@@ -96,8 +96,10 @@ class AdminPanel {
     // Pulsante: Sincronizza BRANI
     document.getElementById('btn-sync-brani').addEventListener('click', async () => {
       this.log('🔄 Sincronizzando Brani dal file Excel selezionato...', 'warn');
+      this.addSyncLog('Avvio sync Brani da file Excel...', 'info');
       if (!excelSync.excelFile) {
         this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        this.addSyncLog('Nessun file Excel selezionato per Brani.', 'error');
         Toast.warning('Seleziona il file Excel prima');
         return;
       }
@@ -107,9 +109,11 @@ class AdminPanel {
         await excelSync.syncBrani(workbook);
         updateStatus();
         this.log('✓ Brani sincronizzati con successo', 'success');
+        this.addSyncLog('Brani sincronizzati con successo.', 'success');
         Toast.success('✓ Brani sincronizzati');
       } catch (error) {
         this.log(`❌ Errore sync Brani: ${error.message}`, 'error');
+        this.addSyncLog(`Errore sync Brani: ${error.message}`, 'error');
         Toast.error('Errore sincronizzazione Brani');
       }
     });
@@ -117,8 +121,10 @@ class AdminPanel {
     // Pulsante: Sincronizza COMUNI
     document.getElementById('btn-sync-comuni').addEventListener('click', async () => {
       this.log('🔄 Sincronizzando Comuni dal file Excel selezionato...', 'warn');
+      this.addSyncLog('Avvio sync Comuni da file Excel...', 'info');
       if (!excelSync.excelFile) {
         this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        this.addSyncLog('Nessun file Excel selezionato per Comuni.', 'error');
         Toast.warning('Seleziona il file Excel prima');
         return;
       }
@@ -128,9 +134,11 @@ class AdminPanel {
         await excelSync.syncComuni(workbook);
         updateStatus();
         this.log('✓ Comuni sincronizzati con successo', 'success');
+        this.addSyncLog('Comuni sincronizzati con successo.', 'success');
         Toast.success('✓ Comuni sincronizzati');
       } catch (error) {
         this.log(`❌ Errore sync Comuni: ${error.message}`, 'error');
+        this.addSyncLog(`Errore sync Comuni: ${error.message}`, 'error');
         Toast.error('Errore sincronizzazione Comuni');
       }
     });
@@ -138,8 +146,10 @@ class AdminPanel {
     // Pulsante: Sincronizza DBASE (DJ)
     document.getElementById('btn-sync-dbase').addEventListener('click', async () => {
       this.log('🔄 Sincronizzando dBase dal file Excel selezionato...', 'warn');
+      this.addSyncLog('Avvio sync dBase da file Excel...', 'info');
       if (!excelSync.excelFile) {
         this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        this.addSyncLog('Nessun file Excel selezionato per dBase.', 'error');
         Toast.warning('Seleziona il file Excel prima');
         return;
       }
@@ -149,9 +159,11 @@ class AdminPanel {
         await excelSync.syncDBase(workbook);
         updateStatus();
         this.log('✓ dBase sincronizzato con successo', 'success');
+        this.addSyncLog('dBase sincronizzato con successo.', 'success');
         Toast.success('✓ dBase sincronizzato');
       } catch (error) {
         this.log(`❌ Errore sync dBase: ${error.message}`, 'error');
+        this.addSyncLog(`Errore sync dBase: ${error.message}`, 'error');
         Toast.error('Errore sincronizzazione dBase');
       }
     });
@@ -159,19 +171,63 @@ class AdminPanel {
     // Pulsante: Sincronizza TUTTO
     document.getElementById('btn-sync-all').addEventListener('click', async () => {
       this.log('🔄 Sincronizzando TUTTI i dati dal file Excel...', 'warn');
+      this.addSyncLog('Avvio sync totale da file Excel...', 'info');
       if (!excelSync.excelFile) {
         this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        this.addSyncLog('Nessun file Excel selezionato per sync totale.', 'error');
         Toast.warning('Seleziona il file Excel prima');
         return;
       }
       try {
-        await excelSync.syncFromExcel();
-        updateStatus();
-        this.log('✓ Tutti i dati sincronizzati con successo!', 'success');
+        const result = await excelSync.syncFromExcel();
+        if (result) {
+          updateStatus();
+          this.log('✓ Tutti i dati sincronizzati con successo!', 'success');
+          this.addSyncLog('Sync totale da file Excel completato con successo.', 'success');
+          Toast.success('✓ Tutti i dati sincronizzati');
+        } else {
+          this.log('❌ Sincronizzazione non completata. Verifica file Excel e XLSX.', 'error');
+          this.addSyncLog('Sincronizzazione totale non completata. Verifica file Excel e libreria XLSX.', 'error');
+          Toast.warning('Sincronizzazione non completata. Verifica file Excel e libreria XLSX');
+        }
       } catch (error) {
         this.log(`❌ Errore sync totale: ${error.message}`, 'error');
+        this.addSyncLog(`Errore sync totale: ${error.message}`, 'error');
         Toast.error('Errore sincronizzazione');
       }
+    });
+
+    // Pulsante: Sync da Google Sheets
+    document.getElementById('btn-sync-google').addEventListener('click', async () => {
+      this.log('🌐 Avvio sync da Google Sheets...', 'warn');
+      this.addSyncLog('Avvio sync da Google Sheets...', 'info');
+      try {
+        const response = await fetch('http://localhost:5501/api/sync/google-sheets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || `HTTP ${response.status}`);
+        }
+
+        updateStatus();
+        this.log(`✓ Sync Google Sheets completato: ${result.message}`, 'success');
+        this.addSyncLog(`Sync Google Sheets completato: ${result.message}`, 'success');
+        Toast.success('✓ Sync da Google Sheets completato');
+
+      } catch (error) {
+        this.log(`❌ Errore sync Google Sheets: ${error.message}`, 'error');
+        this.addSyncLog(`Errore sync Google Sheets: ${error.message}`, 'error');
+        Toast.error('Errore sincronizzazione Google Sheets');
+      }
+    });
+
+    document.getElementById('btn-clear-sync-log').addEventListener('click', () => {
+      const output = document.getElementById('sync-feedback-output');
+      if (output) output.innerHTML = '<div class="sync-log info">Log sincronizzazione pulito.</div>';
+      this.log('✓ Sync log pulito', 'success');
     });
   }
 
@@ -455,6 +511,16 @@ class AdminPanel {
   }
 
   /* ========== LOGGING ========== */
+  addSyncLog(message, type = 'info') {
+    const output = document.getElementById('sync-feedback-output');
+    if (!output) return;
+    const logEl = document.createElement('div');
+    logEl.className = `sync-log ${type}`;
+    logEl.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    output.appendChild(logEl);
+    output.scrollTop = output.scrollHeight;
+  }
+
   log(message, type = 'info') {
     const output = document.getElementById('console-output');
     const logEl = document.createElement('div');

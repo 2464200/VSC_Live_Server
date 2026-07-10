@@ -10,13 +10,17 @@
   <link rel="stylesheet" href="admin.css" />
   
   <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous" onerror="this.onerror=null; this.src='../assets/lib/xlsx.min.js'"></script>
   
   <!-- Fallback locale se CDN non disponibile -->
   <script>
     if (typeof XLSX === 'undefined') {
-      console.warn('⚠️ CDN XLSX.js non disponibile, caricando fallback locale...');
-      // Nota: aggiungere file locale in Bordero/assets/lib/xlsx.min.js se necessario
+      console.warn('⚠️ CDN XLSX.js non disponibile, provo fallback locale...');
+      const script = document.createElement('script');
+      script.src = '../assets/lib/xlsx.min.js';
+      script.onload = () => console.log('✓ XLSX.js caricato dal fallback locale');
+      script.onerror = () => console.error('❌ Impossibile caricare XLSX.js anche dal fallback locale');
+      document.head.appendChild(script);
     } else {
       console.log('✓ XLSX.js caricato dal CDN');
     }
@@ -106,6 +110,19 @@
       <button id="btn-sync-all" class="btn btn-secondary" style="margin-top: 15px; width: 100%;">
         🔄 Sincronizza Tutto da Excel
       </button>
+      <button id="btn-sync-google" class="btn btn-warning" style="margin-top: 15px; width: 100%;">
+        🌐 Sync da Google Sheets
+      </button>
+
+      <div id="sync-feedback" class="sync-feedback">
+        <div class="sync-feedback-header">
+          <span>📡 Sync Live Log</span>
+          <button id="btn-clear-sync-log" class="btn btn-secondary" style="font-size: 0.85em; padding: 8px 10px;">Pulisci log</button>
+        </div>
+        <div id="sync-feedback-output" class="sync-feedback-output">
+          <div class="sync-log info">In attesa di sincronizzazione...</div>
+        </div>
+      </div>
     </section>
 
     <!-- DATA VIEWER -->

@@ -15,12 +15,12 @@
   
   <!-- XLSX Library per lettura file Excel -->
     <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous" onerror="this.onerror=null; this.src='../assets/lib/xlsx.min.js'"></script>
   
   <!-- Verifica caricamento XLSX -->
   <script>
     if (typeof XLSX === 'undefined') {
-      console.warn('⚠️ CDN XLSX.js non disponibile');
+      console.warn('⚠️ CDN XLSX.js non disponibile, provo fallback locale');
     } else {
       console.log('✓ XLSX.js caricato dal CDN');
     }

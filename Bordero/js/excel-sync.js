@@ -26,11 +26,20 @@ class ExcelSync {
       const script = document.createElement('script');
       script.src = '../assets/lib/xlsx.min.js';
       script.async = false;
-      script.onload = () => logger.info('✅ XLSX.js caricato da fallback locale');
-      script.onerror = () => logger.warn('⚠️ XLSX.js non disponibile: uso CSV locale');
-      document.head.appendChild(script);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return typeof XLSX !== 'undefined';
+
+      const available = await new Promise((resolve) => {
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+      });
+
+      if (available && typeof XLSX !== 'undefined') {
+        logger.info('✅ XLSX.js caricato da fallback locale');
+        return true;
+      }
+
+      logger.warn('⚠️ XLSX.js non disponibile: uso CSV locale');
+      return false;
     } catch (error) {
       logger.warn('⚠️ XLSX.js non disponibile, fallback a CSV locale', error);
       return false;

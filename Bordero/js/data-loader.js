@@ -240,34 +240,33 @@ class DataLoader {
   async loadBrani() {
     logger.info('DataLoader.loadBrani() - Iniziando caricamento dati...');
 
-    // Prova cache Excel prima
     const cachedFromExcel = Storage.get('BORDERO_BRANI_DATA');
-    if (cachedFromExcel && cachedFromExcel.length > 0) {
-      logger.info(`Dati caricati da cache Excel (${cachedFromExcel.length} brani)`);
-      this.brani = this.normalizeBraniList(cachedFromExcel);
-      return this.brani;
-    }
-
-    // Poi prova cache generale
     const cached = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI);
-    if (cached && cached.length > 0) {
-      logger.info(`Dati caricati da cache CSV (${cached.length} brani)`);
-      this.brani = this.normalizeBraniList(cached);
-      return this.brani;
-    }
 
-    // Se offline, usa cache fallback
+    // Se siamo offline, usa la cache disponibile
     if (!Network.isOnline()) {
+      if (cachedFromExcel && cachedFromExcel.length > 0) {
+        logger.info(`OFFLINE: usato cache Excel (${cachedFromExcel.length} brani)`);
+        this.brani = this.normalizeBraniList(cachedFromExcel);
+        return this.brani;
+      }
+
+      if (cached && cached.length > 0) {
+        logger.info(`OFFLINE: usato cache CSV (${cached.length} brani)`);
+        this.brani = this.normalizeBraniList(cached);
+        return this.brani;
+      }
+
       logger.warn('OFFLINE: Nessuna cache disponibile');
       Toast.warning('Sei offline! Usando cache (potrebbe essere non aggiornata)');
       return [];
     }
 
-    // Carica da CSV locale
+    // Online: preferisci il CSV aggiornato e usa la cache come fallback
     try {
       const csvContent = await Network.fetchCSV(this.resolveDataUrl('../data/brani.csv'));
       this.brani = this.normalizeBraniList(CSVParser.parse(csvContent));
-      
+
       // Salva in cache
       Storage.set('BORDERO_BRANI_DATA', this.brani);
       Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.brani);
@@ -281,11 +280,20 @@ class DataLoader {
     } catch (error) {
       logger.error('Errore caricamento CSV', error);
       Toast.error('Errore caricamento dati: ' + error.message);
-      
-      // Fallback a cache anche in caso di errore
-      const fallback = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
-      this.brani = this.normalizeBraniList(fallback);
-      return this.brani;
+
+      if (cachedFromExcel && cachedFromExcel.length > 0) {
+        logger.warn(`Fallback cache Excel (${cachedFromExcel.length} brani)`);
+        this.brani = this.normalizeBraniList(cachedFromExcel);
+        return this.brani;
+      }
+
+      if (cached && cached.length > 0) {
+        logger.warn(`Fallback cache CSV (${cached.length} brani)`);
+        this.brani = this.normalizeBraniList(cached);
+        return this.brani;
+      }
+
+      return [];
     }
   }
 

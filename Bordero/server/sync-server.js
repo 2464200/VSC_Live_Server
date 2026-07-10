@@ -13,6 +13,7 @@
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
+const { spawn } = require('child_process');
 
 const app = express();
 const PORT = process.env.BORDERO_SYNC_PORT || 5501;
@@ -26,6 +27,15 @@ const CSV_DBASE = path.join(DATA_DIR, 'dBase.csv');
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 /**
  * Converte un array di oggetti in CSV
@@ -195,6 +205,51 @@ app.post('/api/sync/dbase', async (req, res) => {
 });
 
 /**
+ * POST /api/sync/google-sheets
+ * Sincronizza i fogli Google Sheets e salva i CSV
+ */
+app.post('/api/sync/google-sheets', async (req, res) => {
+  try {
+    const SYNC_SCRIPT = path.join(__dirname, 'google-sheets-sync.js');
+    const child = spawn(process.execPath, [SYNC_SCRIPT], {
+      cwd: __dirname
+    });
+
+    let stdout = '';
+    let stderr = '';
+    let responded = false;
+
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    child.on('error', (err) => {
+      console.error('❌ Errore avviando google-sheets-sync:', err);
+      if (!responded) {
+        responded = true;
+        res.status(500).json({ error: err.message, stderr });
+      }
+    });
+
+    child.on('close', (code) => {
+      if (responded) return;
+      responded = true;
+      if (code === 0) {
+        res.json({ success: true, message: 'Google Sheets sync completato', output: stdout });
+      } else {
+        res.status(500).json({ error: `Google Sheets sync fallito con code ${code}`, stdout, stderr });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * GET /api/status
  * Status del server
  */
@@ -220,6 +275,7 @@ app.get('/api/status', async (req, res) => {
         'POST /api/sync/brani': 'Sincronizza brani.csv',
         'POST /api/sync/comuni': 'Sincronizza comuni_italia.csv',
         'POST /api/sync/dbase': 'Sincronizza dBase.csv',
+        'POST /api/sync/google-sheets': 'Sincronizza Google Sheets e salva CSV',
         'GET /api/status': 'Status server'
       }
     });
@@ -232,7 +288,6 @@ app.get('/api/status', async (req, res) => {
  * Avvia il server
  */
 // Esegui una sincronizzazione iniziale una tantum all'avvio del server
-const { spawn } = require('child_process');
 const SYNC_SCRIPT = path.join(__dirname, 'google-sheets-sync.js');
 
 function runInitialSync() {
@@ -272,6 +327,7 @@ app.listen(PORT, () => {
   console.log('║  POST /api/sync/brani                         ║');
   console.log('║  POST /api/sync/comuni                        ║');
   console.log('║  POST /api/sync/dbase                         ║');
+  console.log('║  POST /api/sync/google-sheets                 ║');
   console.log('║  GET  /api/status                             ║');
   console.log('╚═══════════════════════════════════════════════╝\n');
 });

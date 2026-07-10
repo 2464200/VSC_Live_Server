@@ -27,26 +27,50 @@ class ExcelFileManager {
   }
 
   /**
-   * Carica XLSX.js da CDN se non disponibile
+   * Carica XLSX.js da CDN se non disponibile, con fallback locale
    */
-  loadXLSX() {
-    return new Promise((resolve) => {
+  async loadXLSX() {
+    if (typeof XLSX !== 'undefined') {
+      return true;
+    }
+
+    try {
+      await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js');
+      logger.info('✓ XLSX.js caricato da CDN');
+      return true;
+    } catch (cdnError) {
+      logger.warn('⚠️ Errore caricamento XLSX.js da CDN, provo fallback locale', cdnError);
+      try {
+        await this.loadScript('../assets/lib/xlsx.min.js');
+        logger.info('✓ XLSX.js caricato da fallback locale');
+        return true;
+      } catch (localError) {
+        logger.error('❌ Errore caricamento XLSX.js locale', localError);
+        Toast.error('❌ Impossibile caricare XLSX.js');
+        return false;
+      }
+    }
+  }
+
+  loadScript(src) {
+    return new Promise((resolve, reject) => {
       if (typeof XLSX !== 'undefined') {
         resolve(true);
         return;
       }
 
+      const existing = document.querySelector(`script[src='${src}']`);
+      if (existing) {
+        existing.addEventListener('load', () => resolve(true));
+        existing.addEventListener('error', () => reject(new Error(`Errore caricamento script: ${src}`)));
+        return;
+      }
+
       const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js';
-      script.onload = () => {
-        logger.info('✓ XLSX.js caricato da CDN');
-        resolve(true);
-      };
-      script.onerror = () => {
-        logger.error('❌ Errore caricamento XLSX.js da CDN');
-        Toast.error('❌ Impossibile caricare XLSX.js');
-        resolve(false);
-      };
+      script.src = src;
+      script.async = false;
+      script.onload = () => resolve(true);
+      script.onerror = () => reject(new Error(`Errore caricamento script: ${src}`));
       document.head.appendChild(script);
     });
   }
