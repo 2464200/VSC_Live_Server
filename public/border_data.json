@@ -1,26 +1,9 @@
 {
-  "totale_eseguite": 569,
-  "eseguite": 5,
+  "totale_eseguite": 570,
+  "eseguite": 0,
   "non_eseguite": 0,
-  "richieste_qr": 5,
-  "coreografia_piu_richiesta": "Johnny Rossato",
-  "conteggio_piu_richiesta": 1,
-  "top_5": [
-    {
-      "nome": "Johnny Rossato",
-      "conteggio": 1
-    },
-    {
-      "nome": "KINGDOM OF FEAR",
-      "conteggio": 1
-    },
-    {
-      "nome": "WHISKEY WIGGLE",
-      "conteggio": 1
-    },
-    {
-      "nome": "ASKIN' QUESTIONS",
-      "conteggio": 1
-    }
-  ]
+  "richieste_qr": 2,
+  "coreografia_piu_richiesta": "N/A",
+  "conteggio_piu_richiesta": 0,
+  "top_5": []
 }
