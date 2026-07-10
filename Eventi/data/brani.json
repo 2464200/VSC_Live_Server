@@ -1,6 +1,6 @@
 [
   {
-    "id": "001",
+    "id": "1",
     "titolo": "101",
     "brano": "lost in the shuffle",
     "autore": "michael peterson",
@@ -8,7 +8,7 @@
     "durata": "BASE"
   },
   {
-    "id": "002",
+    "id": "2",
     "titolo": "1540",
     "brano": "what the heaven",
     "autore": "kyle park",
@@ -16,7 +16,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "003",
+    "id": "3",
     "titolo": "16 BARS",
     "brano": "16 bars",
     "autore": "the southern gothic",
@@ -24,7 +24,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "004",
+    "id": "4",
     "titolo": "16 STEPS",
     "brano": "crime of the century",
     "autore": "shania twain",
@@ -32,7 +32,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "005",
+    "id": "5",
     "titolo": "16 TONS",
     "brano": "sixteen tons",
     "autore": "tennessee ernie ford",
@@ -40,7 +40,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "006",
+    "id": "6",
     "titolo": "19 FOREVER",
     "brano": "19 forever",
     "autore": "granger smith",
@@ -48,7 +48,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "007",
+    "id": "7",
     "titolo": "1929",
     "brano": "1929",
     "autore": "tara oram",
@@ -56,7 +56,7 @@
     "durata": "SUPER AVANZATO 1+2"
   },
   {
-    "id": "008",
+    "id": "8",
     "titolo": "3 FLICKS",
     "brano": "1 2 3",
     "autore": "ann tayler",
@@ -64,7 +64,7 @@
     "durata": "AVANZATO 2"
   },
   {
-    "id": "009",
+    "id": "9",
     "titolo": "3 G",
     "brano": "get it got it god",
     "autore": "billy gilman",
@@ -72,7 +72,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "010",
+    "id": "10",
     "titolo": "3 M",
     "brano": "miss me more",
     "autore": "kelsea ballerini",
@@ -80,7 +80,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "011",
+    "id": "11",
     "titolo": "3 TEQUILA FLOOR",
     "brano": "3 tequila floor",
     "autore": "josiah siska",
@@ -88,7 +88,7 @@
     "durata": "SUPER AVANZATO 1+2"
   },
   {
-    "id": "012",
+    "id": "12",
     "titolo": "50 SHOTS",
     "brano": "shoulda",
     "autore": "kylie morgan",
@@ -96,7 +96,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "013",
+    "id": "13",
     "titolo": "8 BALLS",
     "brano": "outback booty call",
     "autore": "8 ball aitken",
@@ -104,7 +104,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "014",
+    "id": "14",
     "titolo": "99 BOTTLES",
     "brano": "99 bottles",
     "autore": "zane williams",
@@ -112,7 +112,7 @@
     "durata": "SUPER AVANZATO 1+2"
   },
   {
-    "id": "015",
+    "id": "15",
     "titolo": "A BAR SONG",
     "brano": "a bar song (tipsy)",
     "autore": "shaboozey",
@@ -120,7 +120,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "016",
+    "id": "16",
     "titolo": "A DIFFERENT SUMMER",
     "brano": "nothing that a beer can't fix",
     "autore": "thomas rhett",
@@ -128,7 +128,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "017",
+    "id": "17",
     "titolo": "A SWING TO QUIT",
     "brano": "whole lotta quit",
     "autore": "randy houser",
@@ -136,7 +136,7 @@
     "durata": "SUPER AVANZATO 1+2"
   },
   {
-    "id": "018",
+    "id": "18",
     "titolo": "AA",
     "brano": "aa",
     "autore": "walker hayes",
@@ -144,7 +144,7 @@
     "durata": "BASE"
   },
   {
-    "id": "019",
+    "id": "19",
     "titolo": "AFTER MIDNIGHT",
     "brano": "walkin' after midnight",
     "autore": "the groovegrass boyz",
@@ -152,7 +152,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "020",
+    "id": "20",
     "titolo": "AFTERGLOW",
     "brano": "paradise",
     "autore": "thomas rhett",
@@ -160,7 +160,7 @@
     "durata": "AVANZATO 2"
   },
   {
-    "id": "021",
+    "id": "21",
     "titolo": "ALL NIGHT LONG",
     "brano": "you shock me all night long",
     "autore": "steve' n' seagulls",
@@ -168,7 +168,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "022",
+    "id": "22",
     "titolo": "ALL SHOOK UP",
     "brano": "all shook up",
     "autore": "billy joel",
@@ -176,7 +176,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "023",
+    "id": "23",
     "titolo": "ALL TO MYSELF",
     "brano": "all to myself",
     "autore": "dan + shy",
@@ -184,7 +184,7 @@
     "durata": "AVANZATO 1"
   },
   {
-    "id": "024",
+    "id": "24",
     "titolo": "ALTITUDE",
     "brano": "altitude",
     "autore": "jarrod morris",
@@ -192,7 +192,7 @@
     "durata": "SUPER AVANZATO 1+2"
   },
   {
-    "id": "025",
+    "id": "25",
     "titolo": "AMERICAN KIDS",
     "brano": "american kids",
     "autore": "kenny chesney",
@@ -200,7 +200,7 @@
     "durata": "BASE"
   },
   {
-    "id": "026",
+    "id": "26",
     "titolo": "ANGEL & CORONA",
     "brano": "look what gone god gave her",
     "autore": "thomas rhett",
@@ -208,7 +208,7 @@
     "durata": "AVANZATO 1"
   },
   {
-    "id": "027",
+    "id": "27",
     "titolo": "ANTHEM",
     "brano": "anthem",
     "autore": "brett kissel",
@@ -216,7 +216,7 @@
     "durata": "AVANZATO 2"
   },
   {
-    "id": "028",
+    "id": "28",
     "titolo": "ANYWAY",
     "brano": "she loves me anyway",
     "autore": "chancey williams",
@@ -224,7 +224,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "029",
+    "id": "29",
     "titolo": "AROUND THE FIRE",
     "brano": "old country barn",
     "autore": "james johnston",
@@ -232,7 +232,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "030",
+    "id": "30",
     "titolo": "ASKIN' QUESTIONS",
     "brano": "askin' questions",
     "autore": "brady seals",
@@ -240,7 +240,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "031",
+    "id": "31",
     "titolo": "AUSTIN",
     "brano": "austin",
     "autore": "dasha",
@@ -248,7 +248,7 @@
     "durata": "AVANZATO 2"
   },
   {
-    "id": "032",
+    "id": "32",
     "titolo": "AUTHORITY",
     "brano": "authority song",
     "autore": "chancey williams",
@@ -256,7 +256,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "033",
+    "id": "33",
     "titolo": "AW NAW",
     "brano": "aw naw",
     "autore": "chris young",
@@ -264,7 +264,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "034",
+    "id": "34",
     "titolo": "BACK DOWN",
     "brano": "break it back down",
     "autore": "pat green",
@@ -272,7 +272,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "035",
+    "id": "35",
     "titolo": "BAD",
     "brano": "bad bad leroy brown",
     "autore": "jim croce",
@@ -280,7 +280,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "036",
+    "id": "36",
     "titolo": "BEAUTIFUL DRUG",
     "brano": "beautiful drug",
     "autore": "zac brown band",
@@ -288,7 +288,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "037",
+    "id": "37",
     "titolo": "BEER FOR MY HORSES",
     "brano": "beer for my horses",
     "autore": "toby keith & willie nelson",
@@ -296,7 +296,7 @@
     "durata": "BASE"
   },
   {
-    "id": "038",
+    "id": "38",
     "titolo": "BEETHOVEN'S BOOGIE",
     "brano": "boogie and beethoven",
     "autore": "the gatlin brothers band",
@@ -304,7 +304,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "039",
+    "id": "39",
     "titolo": "BEST ADVENTURE",
     "brano": "best adventure",
     "autore": "leaving thomas",
@@ -312,7 +312,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "040",
+    "id": "40",
     "titolo": "BETTER COUNTRY",
     "brano": "better country",
     "autore": "paul brandt",
@@ -320,7 +320,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "041",
+    "id": "41",
     "titolo": "BILL'S BASIC",
     "brano": "i don't need the booze",
     "autore": "alan jackson",
@@ -328,7 +328,7 @@
     "durata": "BASE"
   },
   {
-    "id": "042",
+    "id": "42",
     "titolo": "BILL'S BASIC",
     "brano": "lord have marcy on a country boy",
     "autore": "josh turner",
@@ -336,7 +336,7 @@
     "durata": "BASE"
   },
   {
-    "id": "043",
+    "id": "43",
     "titolo": "BILL'S BASIC",
     "brano": "somebody take me home",
     "autore": "kenny chesney",
@@ -344,7 +344,7 @@
     "durata": "BASE"
   },
   {
-    "id": "044",
+    "id": "44",
     "titolo": "BILL'S BASIC",
     "brano": "winter wonderland",
     "autore": "brad paisley",
@@ -352,7 +352,7 @@
     "durata": "BASE"
   },
   {
-    "id": "045",
+    "id": "45",
     "titolo": "BILLBOARD",
     "brano": "name on a billboard",
     "autore": "charley crockett",
@@ -360,7 +360,7 @@
     "durata": "SUPER AVANZATO 3"
   },
   {
-    "id": "046",
+    "id": "46",
     "titolo": "BLACK COFFEE",
     "brano": "all i want for christmas is you",
     "autore": "mariah carey",
@@ -368,7 +368,7 @@
     "durata": "BASE"
   },
   {
-    "id": "047",
+    "id": "47",
     "titolo": "BLACK COFFEE",
     "brano": "black coffee",
     "autore": "lacy j dalton",
@@ -376,7 +376,7 @@
     "durata": "BASE"
   },
   {
-    "id": "048",
+    "id": "48",
     "titolo": "BLACK COFFEE",
     "brano": "last christmas",
     "autore": "taylor swift",
@@ -384,7 +384,7 @@
     "durata": "BASE"
   },
   {
-    "id": "049",
+    "id": "49",
     "titolo": "BLACK COFFEE",
     "brano": "party for two",
     "autore": "shania twain feat. billy currington",
@@ -392,7 +392,7 @@
     "durata": "BASE"
   },
   {
-    "id": "050",
+    "id": "50",
     "titolo": "BLACK COFFEE",
     "brano": "some town somewhere",
     "autore": "kenny chesney",
@@ -400,7 +400,7 @@
     "durata": "BASE"
   },
   {
-    "id": "051",
+    "id": "51",
     "titolo": "BLACK COFFEE",
     "brano": "the salt in my tears",
     "autore": "dolly parton",
@@ -408,7 +408,7 @@
     "durata": "BASE"
   },
   {
-    "id": "052",
+    "id": "52",
     "titolo": "BLACK COFFEE",
     "brano": "undone",
     "autore": "dean brody",
@@ -416,7 +416,7 @@
     "durata": "BASE"
   },
   {
-    "id": "053",
+    "id": "53",
     "titolo": "BLACK COFFEE",
     "brano": "why couldn't be christmas everyday?",
     "autore": "bianca ryan",
@@ -424,7 +424,7 @@
     "durata": "BASE"
   },
   {
-    "id": "054",
+    "id": "54",
     "titolo": "BOOMERANG",
     "brano": "i'm still falling",
     "autore": "slow horses",
@@ -432,7 +432,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "055",
+    "id": "55",
     "titolo": "BOOTY TO THE FLOOR",
     "brano": "daisy dukes and cowboy boots",
     "autore": "cowboy troy",
@@ -440,7 +440,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "056",
+    "id": "56",
     "titolo": "BOOZE CRUISE",
     "brano": "the booze cruise",
     "autore": "blackjack billy",
@@ -448,7 +448,7 @@
     "durata": "AVANZATO 1"
   },
   {
-    "id": "057",
+    "id": "57",
     "titolo": "BORN FREE",
     "brano": "born free",
     "autore": "kid rock",
@@ -456,7 +456,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "058",
+    "id": "58",
     "titolo": "BORN TO BE GREAT",
     "brano": "some town somewhere",
     "autore": "kenny chesney",
@@ -464,7 +464,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "059",
+    "id": "59",
     "titolo": "BORROW MY HEART",
     "brano": "borrow my heart",
     "autore": "taylor henderson",
@@ -472,7 +472,7 @@
     "durata": "SUPER AVANZATO 1+2"
   },
   {
-    "id": "060",
+    "id": "60",
     "titolo": "BRING DOWN THE HOUSE",
     "brano": "bring down the house",
     "autore": "dean brody",
@@ -480,7 +480,7 @@
     "durata": "AVANZATO 1"
   },
   {
-    "id": "061",
+    "id": "61",
     "titolo": "BROKEN HEELS",
     "brano": "broken heels",
     "autore": "alexandra burke",
@@ -488,7 +488,7 @@
     "durata": "AVANZATO 2"
   },
   {
-    "id": "062",
+    "id": "62",
     "titolo": "BRUNCH",
     "brano": "good people",
     "autore": "josh grider",
@@ -496,7 +496,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "063",
+    "id": "63",
     "titolo": "BUDDY",
     "brano": "one step forward",
     "autore": "desert rose band",
@@ -504,7 +504,7 @@
     "durata": "BASE"
   },
   {
-    "id": "064",
+    "id": "64",
     "titolo": "BUILD A FIRE",
     "brano": "build a fire",
     "autore": "the wanderings hearts",
@@ -512,7 +512,7 @@
     "durata": "AVANZATO 2"
   },
   {
-    "id": "065",
+    "id": "65",
     "titolo": "BURNIN' UP",
     "brano": "i hope it's me",
     "autore": "brett kissel",
@@ -520,7 +520,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "066",
+    "id": "66",
     "titolo": "BURNING LOVE",
     "brano": "burning love",
     "autore": "travis tritt",
@@ -528,7 +528,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "067",
+    "id": "67",
     "titolo": "BURNING THE DAY",
     "brano": "firefly",
     "autore": "east love",
@@ -536,7 +536,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "068",
+    "id": "68",
     "titolo": "BUSH PARTY",
     "brano": "bush party",
     "autore": "dean brody",
@@ -544,7 +544,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "069",
+    "id": "69",
     "titolo": "BY AND BY",
     "brano": "by and by",
     "autore": "the olson band",
@@ -552,7 +552,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "070",
+    "id": "70",
     "titolo": "CABO SAN LUCAS",
     "brano": "all i want for christmas is a real good than",
     "autore": "kenny chesney",
@@ -560,7 +560,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "071",
+    "id": "71",
     "titolo": "CABO SAN LUCAS",
     "brano": "cabo san lucas",
     "autore": "toby keith",
@@ -568,7 +568,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "072",
+    "id": "72",
     "titolo": "CANDY KISSES",
     "brano": "bottoms up",
     "autore": "brantley gilbert",
@@ -576,7 +576,7 @@
     "durata": "BASE"
   },
   {
-    "id": "073",
+    "id": "73",
     "titolo": "CANDY KISSES",
     "brano": "kick the dust up",
     "autore": "luke bryan",
@@ -584,7 +584,7 @@
     "durata": "BASE"
   },
   {
-    "id": "074",
+    "id": "74",
     "titolo": "CANDY KISSES",
     "brano": "sweet home alabama",
     "autore": "lynyrd skynyrd",
@@ -592,7 +592,7 @@
     "durata": "BASE"
   },
   {
-    "id": "075",
+    "id": "75",
     "titolo": "CASTAWAY",
     "brano": "castaway",
     "autore": "zac brown band",
@@ -600,7 +600,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "076",
+    "id": "76",
     "titolo": "CENTURION",
     "brano": "my heart's broke down",
     "autore": "dean miller",
@@ -608,7 +608,7 @@
     "durata": "AVANZATO 1"
   },
   {
-    "id": "077",
+    "id": "77",
     "titolo": "CHA CHA SLIDE",
     "brano": "cha cha slide",
     "autore": "dj casper",
@@ -616,7 +616,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "078",
+    "id": "78",
     "titolo": "CHANGING DANCE BARN DANCE",
     "brano": "all over again",
     "autore": "the mavericks",
@@ -624,7 +624,7 @@
     "durata": "BASE"
   },
   {
-    "id": "079",
+    "id": "79",
     "titolo": "CHANGING DANCE BARN DANCE",
     "brano": "dance the night away",
     "autore": "the mavericks",
@@ -632,7 +632,7 @@
     "durata": "BASE"
   },
   {
-    "id": "080",
+    "id": "80",
     "titolo": "CHANGING POLKA",
     "brano": "oh suzanna",
     "autore": "yamboo",
@@ -640,7 +640,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "081",
+    "id": "81",
     "titolo": "CHASING DOWN A GOOD TIME",
     "brano": "chasing down a good time",
     "autore": "randy houser",
@@ -648,7 +648,7 @@
     "durata": "AVANZATO 1"
   },
   {
-    "id": "082",
+    "id": "82",
     "titolo": "CHECK IN",
     "brano": "stay in your line",
     "autore": "hinterland",
@@ -656,7 +656,7 @@
     "durata": "SUPER AVANZATO 3"
   },
   {
-    "id": "083",
+    "id": "83",
     "titolo": "CHECK IT OUT",
     "brano": "check it out",
     "autore": "on the larceny",
@@ -664,7 +664,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "084",
+    "id": "84",
     "titolo": "CHEEK TO CHEEK",
     "brano": "bailando",
     "autore": "enrique iglesias",
@@ -672,7 +672,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "085",
+    "id": "85",
     "titolo": "CHEEK TO CHEEK",
     "brano": "stuck like glue",
     "autore": "sugarland",
@@ -680,7 +680,7 @@
     "durata": "AVANZATO 1"
   },
   {
-    "id": "086",
+    "id": "86",
     "titolo": "CHEERLEADER",
     "brano": "cheerleader",
     "autore": "omi",
@@ -688,7 +688,7 @@
     "durata": "BASE"
   },
   {
-    "id": "087",
+    "id": "87",
     "titolo": "CHEYENNE",
     "brano": "cadillac tears",
     "autore": "kevin denney",
@@ -696,7 +696,7 @@
     "durata": "BASE"
   },
   {
-    "id": "088",
+    "id": "88",
     "titolo": "CHEYENNE",
     "brano": "feels just liken a love song",
     "autore": "sara evans",
@@ -704,7 +704,7 @@
     "durata": "BASE"
   },
   {
-    "id": "089",
+    "id": "89",
     "titolo": "CHEYENNE",
     "brano": "i'm gonna getcha good",
     "autore": "shania twain",
@@ -712,7 +712,7 @@
     "durata": "BASE"
   },
   {
-    "id": "090",
+    "id": "90",
     "titolo": "CHEYENNE",
     "brano": "mamma mia",
     "autore": "elena feat glance",
@@ -720,7 +720,7 @@
     "durata": "BASE"
   },
   {
-    "id": "091",
+    "id": "91",
     "titolo": "CHEYENNE",
     "brano": "original ghostbusters theme song",
     "autore": "ray parker jr",
@@ -728,7 +728,7 @@
     "durata": "BASE"
   },
   {
-    "id": "092",
+    "id": "92",
     "titolo": "CHEYENNE",
     "brano": "santa's gonna take it all black",
     "autore": "toby keith",
@@ -736,7 +736,7 @@
     "durata": "BASE"
   },
   {
-    "id": "093",
+    "id": "93",
     "titolo": "CHEYENNE",
     "brano": "the big one",
     "autore": "george strait",
@@ -744,7 +744,7 @@
     "durata": "BASE"
   },
   {
-    "id": "094",
+    "id": "94",
     "titolo": "CHEYENNE",
     "brano": "up",
     "autore": "shania twain",
@@ -752,7 +752,7 @@
     "durata": "BASE"
   },
   {
-    "id": "095",
+    "id": "95",
     "titolo": "CHEYENNE",
     "brano": "white christmas",
     "autore": "giuliano palma",
@@ -760,7 +760,7 @@
     "durata": "BASE"
   },
   {
-    "id": "096",
+    "id": "96",
     "titolo": "CHEYENNE'S ROCK",
     "brano": "it's late",
     "autore": "shakin' stevens",
@@ -768,7 +768,7 @@
     "durata": "ALTRE COREO"
   },
   {
-    "id": "097",
+    "id": "97",
     "titolo": "CHILL FACTOR",
     "brano": "born it to the ground",
     "autore": "nickelback",
@@ -776,7 +776,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "098",
+    "id": "98",
     "titolo": "CHILL FACTOR",
     "brano": "calling all the monster",
     "autore": "china anne mcclain",
@@ -784,7 +784,7 @@
     "durata": "INTERMEDIO"
   },
   {
-    "id": "099",
+    "id": "99",
     "titolo": "CHILL FACTOR",
     "brano": "last night (line dance party)",
     "autore": "madison cowboy & dj robbie",
@@ -3289,7 +3289,7 @@
   },
   {
     "id": "412",
-    "titolo": "TWO HELL AND BACK",
+    "titolo": "TO HELL AND BACK",
     "brano": "if you're going through hell",
     "autore": "rodney atkins",
     "compositore": "",
@@ -4568,7 +4568,7 @@
     "durata": ""
   },
   {
-    "id": "EXTRA1781452804234",
+    "id": "EXTRA3",
     "titolo": "The Sphinx",
     "brano": "Medellin (Offer Nissim Madame X In The Sphinx Mix) (2022 Remaster)",
     "autore": "Madonna & Maluma",

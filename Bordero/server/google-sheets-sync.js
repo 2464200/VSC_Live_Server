@@ -13,17 +13,30 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
-const { google } = require('googleapis');
-const dotenv = require('dotenv');
 
-const envPath = path.join(__dirname, '..', 'config', '.env');
-if (!fs.existsSync(envPath)) {
-  console.error('❌ File .env non trovato!');
-  console.error('   Crea Bordero/config/.env o copia Bordero/config/.env.template');
-  process.exit(1);
+let google;
+let dotenv;
+
+try {
+  ({ google } = require('googleapis'));
+} catch (err) {
+  google = null;
+  console.warn('⚠️ googleapis non disponibile: il sync Google verrà saltato e si userà il fallback CSV/URL pubblico.');
 }
 
-dotenv.config({ path: envPath });
+try {
+  dotenv = require('dotenv');
+} catch (err) {
+  dotenv = null;
+  console.warn('⚠️ dotenv non disponibile: si useranno le variabili d’ambiente del sistema.');
+}
+
+const envPath = path.join(__dirname, '..', 'config', '.env');
+if (dotenv && fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else if (!fs.existsSync(envPath)) {
+  console.warn('⚠️ File .env non trovato; si procede con variabili d’ambiente o fallback pubblico.');
+}
 
 const API_KEY = process.env.GOOGLE_API_KEY?.trim();
 const SERVICE_ACCOUNT_KEY_FILE = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE?.trim();
@@ -34,7 +47,7 @@ const SHEETS = [
   {
     name: 'Brani',
     id: process.env.GOOGLE_SHEET_BRANI,
-    range: "'Elenco Coreo (statico)'!A:Z",
+    range: 'A:Z',
     output: 'brani.csv',
     gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
     publicUrl: process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
@@ -42,7 +55,7 @@ const SHEETS = [
   {
     name: 'Comuni',
     id: process.env.GOOGLE_SHEET_COMUNI,
-    range: 'Sheet1!A:Z',
+    range: 'A:Z',
     output: 'comuni_italia.csv',
     gid: process.env.GOOGLE_SHEET_COMUNI_GID || '0',
     publicUrl: process.env.GOOGLE_SHEET_COMUNI_PUBLIC_URL?.trim()
@@ -50,7 +63,7 @@ const SHEETS = [
   {
     name: 'DJ/dBase',
     id: process.env.GOOGLE_SHEET_DBASE,
-    range: 'dBase!A:Z',
+    range: 'A:Z',
     output: 'dbase.csv',
     gid: process.env.GOOGLE_SHEET_DBASE_GID || '0',
     publicUrl: process.env.GOOGLE_SHEET_DBASE_PUBLIC_URL?.trim()
@@ -112,37 +125,82 @@ function httpGet(url, redirectCount = 0) {
   });
 }
 
+function buildGoogleRangeCandidates(range) {
+  const baseRange = (range || '').trim();
+  const candidates = new Set();
+
+  if (!baseRange) {
+    candidates.add('A:Z');
+    return [...candidates];
+  }
+
+  candidates.add(baseRange);
+
+  const sheetMatch = baseRange.match(/^(['"]?[^'"!]+['"]?)!(.+)$/);
+  if (sheetMatch) {
+    const ref = sheetMatch[2].trim();
+    candidates.add(ref);
+    candidates.add(`'${sheetMatch[1].replace(/^['"]|['"]$/g, '')}'!${ref}`);
+  } else {
+    candidates.add(baseRange);
+    candidates.add('A:Z');
+    candidates.add('A1:Z1000');
+  }
+
+  return [...candidates];
+}
+
 function fetchSheetDataKey(spreadsheetId, range) {
   return new Promise((resolve, reject) => {
     if (!API_KEY) {
-      return reject(new Error('GOOGLE_API_KEY mancante')); 
+      return reject(new Error('GOOGLE_API_KEY mancante'));
     }
 
-    const encodedRange = encodeURIComponent(range);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}?key=${API_KEY}`;
+    const candidates = buildGoogleRangeCandidates(range);
+    let lastError = null;
 
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          if (res.statusCode !== 200) {
-            const errorMsg = json.error?.message || `HTTP ${res.statusCode}`;
-            reject(new Error(errorMsg));
-            return;
+    const tryCandidate = (index) => {
+      if (index >= candidates.length) {
+        return reject(lastError || new Error('Nessuna range Google Sheets valida'));
+      }
+
+      const candidateRange = candidates[index];
+      const encodedRange = encodeURIComponent(candidateRange);
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodedRange}?key=${API_KEY}`;
+
+      https.get(url, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data);
+            if (res.statusCode !== 200) {
+              const errorMsg = json.error?.message || `HTTP ${res.statusCode}`;
+              lastError = new Error(errorMsg);
+              return tryCandidate(index + 1);
+            }
+            resolve(json.values || []);
+          } catch (err) {
+            lastError = new Error(`Parse error: ${err.message}`);
+            tryCandidate(index + 1);
           }
-          resolve(json.values || []);
-        } catch (err) {
-          reject(new Error(`Parse error: ${err.message}`));
-        }
+        });
+      }).on('error', (err) => {
+        lastError = err;
+        tryCandidate(index + 1);
       });
-    }).on('error', reject);
+    };
+
+    tryCandidate(0);
   });
 }
 
 async function getServiceAccountAuth() {
   let credentials = null;
+
+  if (!google?.auth?.GoogleAuth) {
+    throw new Error('googleapis non disponibile');
+  }
 
   if (SERVICE_ACCOUNT_KEY_JSON) {
     try {
@@ -176,6 +234,10 @@ async function getServiceAccountAuth() {
 }
 
 async function fetchSheetDataServiceAccount(spreadsheetId, range) {
+  if (!google) {
+    throw new Error('googleapis non disponibile');
+  }
+
   const auth = await getServiceAccountAuth();
   if (!auth) {
     throw new Error('Service Account non configurato');
@@ -183,8 +245,20 @@ async function fetchSheetDataServiceAccount(spreadsheetId, range) {
 
   const client = await auth.getClient();
   const sheets = google.sheets({ version: 'v4', auth: client });
-  const response = await sheets.spreadsheets.values.get({ spreadsheetId, range });
-  return response.data.values || [];
+
+  const candidates = buildGoogleRangeCandidates(range);
+  let lastError = null;
+
+  for (const candidateRange of candidates) {
+    try {
+      const response = await sheets.spreadsheets.values.get({ spreadsheetId, range: candidateRange });
+      return response.data.values || [];
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('Nessuna range Google Sheets valida');
 }
 
 async function fetchSheetData(spreadsheetId, range) {
