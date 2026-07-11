@@ -24,7 +24,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Event listeners
   setupEventListeners();
 
-  // Auto-sync ogni X minuti
+  // Aggiorna statistiche quando lo stato dei brani cambia in un'altra scheda/finestre
+  window.addEventListener('storage', (event) => {
+    if (
+      event.key === BORDERO_CONFIG.CACHE_KEY_BRANI ||
+      event.key === 'BORDERO_BRANI_DATA' ||
+      event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA
+    ) {
+      updateStats();
+      populatePreviewTable();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    updateStats();
+    populatePreviewTable();
+  });
+
+  window.addEventListener('bordero:stats-updated', (event) => {
+    updateStats(event?.detail || null);
+    populatePreviewTable();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      updateStats();
+      populatePreviewTable();
+    }
+  });
+
+  setInterval(() => {
+    updateStats();
+    populatePreviewTable();
+  }, 1000);
+
   setInterval(() => {
     if (Network.isOnline()) {
       logger.info('Auto-sync triggered');
@@ -39,20 +72,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 /**
  * Aggiorna le statistiche sulla pagina
  */
-function updateStats() {
-  const stats = dataLoader.getStats();
+function updateStats(statsOverride = null) {
+  let sourceBrani = [];
+
+  if (statsOverride && typeof statsOverride === 'object') {
+    const total = Number(statsOverride.total ?? 0);
+    const completed = Number(statsOverride.completed ?? 0);
+    const pending = Number(statsOverride.pending ?? Math.max(total - completed, 0));
+
+    const totalEl = document.getElementById('stat-total');
+    const completedEl = document.getElementById('stat-completed');
+    const pendingEl = document.getElementById('stat-pending');
+    const syncEl = document.getElementById('stat-sync');
+
+    if (totalEl) totalEl.textContent = total;
+    if (completedEl) completedEl.textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (syncEl) syncEl.textContent = dataLoader.getLastSyncFormatted();
+
+    logger.debug('Stats updated from event', { total, completed, pending });
+    return;
+  }
+
+  const currentSerata = dataLoader.getCurrentSerata();
+  const storedBrani = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
+  const serataBrani = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
+
+  if (serataBrani.length > 0) {
+    sourceBrani = serataBrani;
+  } else if (Array.isArray(storedBrani) && storedBrani.length > 0) {
+    sourceBrani = storedBrani;
+  } else {
+    sourceBrani = Array.isArray(dataLoader.brani) ? dataLoader.brani : [];
+  }
+
+  const total = sourceBrani.length;
+  const completed = sourceBrani.filter(brano => String(brano?.flag || '').toUpperCase() === 'X').length;
+  const pending = total - completed;
 
   const totalEl = document.getElementById('stat-total');
   const completedEl = document.getElementById('stat-completed');
   const pendingEl = document.getElementById('stat-pending');
   const syncEl = document.getElementById('stat-sync');
 
-  if (totalEl) totalEl.textContent = stats.total;
-  if (completedEl) completedEl.textContent = `${stats.completed} (${stats.percentuale}%)`;
-  if (pendingEl) pendingEl.textContent = stats.pending;
+  if (totalEl) totalEl.textContent = total;
+  if (completedEl) completedEl.textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
+  if (pendingEl) pendingEl.textContent = pending;
   if (syncEl) syncEl.textContent = dataLoader.getLastSyncFormatted();
 
-  logger.debug('Stats updated', stats);
+  logger.debug('Stats updated from storage', { total, completed, pending });
 }
 
 /**

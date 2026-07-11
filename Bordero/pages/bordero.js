@@ -1195,6 +1195,10 @@ class BorderoTableManager {
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
+
+    window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
+      detail: { total, completed, pending }
+    }));
   }
 
   updateLastActionTime() {
