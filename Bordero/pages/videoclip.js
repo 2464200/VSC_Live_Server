@@ -11,6 +11,8 @@ class VideoClipManager {
     this.availableFiles = []; // elenco file presenti nella cartella locale
     this.availableMap = new Map(); // id -> filename
     this.isReloading = false;
+    this.secondaryWindow = null;
+    this.secondaryVideoUrl = '';
 
     this.init();
   }
@@ -220,39 +222,167 @@ class VideoClipManager {
     this.renderLibrary();
   }
 
+  ensureSecondaryWindow() {
+    if (this.secondaryWindow && !this.secondaryWindow.closed) {
+      return this.secondaryWindow;
+    }
+
+    const popup = window.open('', 'bordero-secondary-video', 'width=1280,height=720,left=40,top=40,toolbar=no,location=no,status=no,menubar=no,resizable=yes');
+    if (!popup) {
+      return null;
+    }
+
+    this.secondaryWindow = popup;
+    popup.document.write(`<!DOCTYPE html>
+      <html lang="it">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Borderò - Monitor sala da ballo</title>
+        <style>
+          html, body { margin: 0; height: 100%; background: #000; color: #fff; font-family: Arial, sans-serif; overflow: hidden; }
+          body { display: grid; place-items: center; }
+          .player-shell { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+          video { width: 100%; max-width: 100%; max-height: 100%; background: #000; object-fit: contain; }
+          .overlay { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+          .badge { background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 999px; font-size: 0.95rem; backdrop-filter: blur(6px); }
+          .placeholder { text-align: center; color: #bbb; font-size: 1.2em; max-width: 720px; }
+        </style>
+      </head>
+      <body>
+        <div class="player-shell">
+          <div class="overlay">
+            <div class="badge">Monitor sala da ballo</div>
+            <div class="badge" id="secondary-status">Video pronto</div>
+          </div>
+          <video id="secondary-video" playsinline preload="auto" controls></video>
+          <div class="placeholder">Seleziona un brano e premi PLAY per avviare il video per i ballerini.</div>
+        </div>
+      </body>
+      </html>`);
+    popup.document.close();
+    return popup;
+  }
+
+  loadSecondaryVideo(url) {
+    const popup = this.ensureSecondaryWindow();
+    if (!popup) return;
+
+    try {
+      const video = popup.document.getElementById('secondary-video');
+      if (!video) return;
+      video.src = url;
+      video.load();
+      video.pause();
+      video.currentTime = 0;
+      this.secondaryVideoUrl = url;
+      const status = popup.document.getElementById('secondary-status');
+      if (status) status.textContent = 'Video pronto';
+    } catch (err) {
+      logger.warn('Errore caricando video sul monitor secondario', err);
+    }
+  }
+
+  playSecondaryVideo() {
+    const popup = this.ensureSecondaryWindow();
+    if (!popup) return;
+
+    try {
+      const video = popup.document.getElementById('secondary-video');
+      if (!video) return;
+      if (!this.secondaryVideoUrl && video.src) {
+        this.secondaryVideoUrl = video.src;
+      }
+      const status = popup.document.getElementById('secondary-status');
+      if (status) status.textContent = 'Riproduzione avviata';
+      popup.focus();
+      video.play().catch(() => {});
+      if (video.requestFullscreen) {
+        try { video.requestFullscreen(); } catch (err) { logger.debug('Fullscreen popup non disponibile', err); }
+      }
+    } catch (err) {
+      logger.warn('Errore avviando playback sul monitor secondario', err);
+    }
+  }
+
+  pauseSecondaryVideo() {
+    const popup = this.secondaryWindow;
+    if (!popup || popup.closed) return;
+    try {
+      const video = popup.document.getElementById('secondary-video');
+      video?.pause();
+    } catch (err) {
+      logger.warn('Errore pausa playback sul monitor secondario', err);
+    }
+  }
+
+  stopSecondaryVideo() {
+    const popup = this.secondaryWindow;
+    if (!popup || popup.closed) return;
+    try {
+      const video = popup.document.getElementById('secondary-video');
+      if (!video) return;
+      video.pause();
+      video.currentTime = 0;
+    } catch (err) {
+      logger.warn('Errore stop playback sul monitor secondario', err);
+    }
+  }
+
+  fullscreenSecondaryVideo() {
+    const popup = this.secondaryWindow;
+    if (!popup || popup.closed) return;
+    try {
+      const video = popup.document.getElementById('secondary-video');
+      if (video?.requestFullscreen) {
+        video.requestFullscreen();
+      }
+    } catch (err) {
+      logger.warn('Errore fullscreen playback sul monitor secondario', err);
+    }
+  }
+
   updatePlayerInfo() {
     if (!this.currentBrano) {
-      document.getElementById('no-video').classList.remove('hidden');
-      document.getElementById('main-video').classList.add('hidden');
+      const noVideo = document.getElementById('no-video');
+      const mainVideo = document.getElementById('main-video');
+      noVideo?.classList.remove('hidden');
+      mainVideo?.classList.add('hidden');
       return;
     }
 
-    document.getElementById('no-video').classList.add('hidden');
-    document.getElementById('main-video').classList.remove('hidden');
+    document.getElementById('no-video')?.classList.add('hidden');
+    document.getElementById('main-video')?.classList.remove('hidden');
 
     document.getElementById('video-title').textContent = this.currentBrano.titolo || '--';
     document.getElementById('video-autore').innerHTML = `<strong>Autore:</strong> ${this.escapeHtml(this.currentBrano.autore || '--')}`;
     document.getElementById('video-coreo').innerHTML = `<strong>Coreografo:</strong> ${this.escapeHtml(this.currentBrano.coreografo || '--')}`;
     document.getElementById('video-genere').innerHTML = `<strong>Genere:</strong> ${this.escapeHtml(this.currentBrano.genere || '--')}`;
 
-    // TODO: Set video source when actual video files are available
     const matchedFile = this.availableMap.get(String(this.currentBrano.id));
+    const noVideo = document.getElementById('no-video');
+    const mainVideo = document.getElementById('main-video');
+
     if (matchedFile) {
       try {
         const syncOrigin = (window.location.protocol + '//' + window.location.hostname + ':5501').replace('://:','://localhost:');
         const url = syncOrigin + '/videos/' + encodeURIComponent(matchedFile);
-        document.getElementById('video-source').src = url;
-        const video = document.getElementById('main-video');
-        video.load();
-        video.play().catch(() => {});
+        document.getElementById('video-source').src = '';
+        this.loadSecondaryVideo(url);
+        mainVideo?.pause();
+        mainVideo?.load();
+        mainVideo?.classList.add('hidden');
+        noVideo?.classList.remove('hidden');
+        noVideo.innerHTML = '<p>Video pronto</p><small>Il playback partirà sul monitor secondario al click di PLAY.</small>';
       } catch (err) {
         logger.warn('Errore impostando sorgente video', err);
       }
     } else {
       document.getElementById('video-source').src = '';
-      const video = document.getElementById('main-video');
-      video.load();
-      video.pause();
+      mainVideo?.load();
+      mainVideo?.pause();
+      noVideo?.classList.remove('hidden');
+      noVideo.innerHTML = '<p>Nessun video selezionato</p><small>Non è stato trovato un file video associato a questo brano.</small>';
     }
   }
 
@@ -375,29 +505,24 @@ class VideoClipManager {
     // Player controls
     document.getElementById('btn-play').addEventListener('click', () => {
       if (this.currentBrano) {
-        document.getElementById('main-video').play();
+        this.playSecondaryVideo();
       }
     });
 
     document.getElementById('btn-pause').addEventListener('click', () => {
       if (this.currentBrano) {
-        document.getElementById('main-video').pause();
+        this.pauseSecondaryVideo();
       }
     });
 
     document.getElementById('btn-stop').addEventListener('click', () => {
       if (this.currentBrano) {
-        const video = document.getElementById('main-video');
-        video.pause();
-        video.currentTime = 0;
+        this.stopSecondaryVideo();
       }
     });
 
     document.getElementById('btn-fullscreen').addEventListener('click', () => {
-      const video = document.getElementById('main-video');
-      if (video.requestFullscreen) {
-        video.requestFullscreen();
-      }
+      this.fullscreenSecondaryVideo();
     });
 
     // Navigation
