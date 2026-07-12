@@ -10,6 +10,7 @@ class VideoClipManager {
     this.filteredBrani = [];
     this.availableFiles = []; // elenco file presenti nella cartella locale
     this.availableMap = new Map(); // id -> filename
+    this.isReloading = false;
 
     this.init();
   }
@@ -19,43 +20,10 @@ class VideoClipManager {
 
     try {
       this.brani = await dataLoader.loadBrani();
+      this.syncExecutedState();
       this.filteredBrani = [...this.brani];
 
-      // Fetch lista file videoclip dal server di sync (try multiple fallbacks)
-      this.availableFiles = [];
-      const attempts = [
-        'http://localhost:5501/api/videoclip/list',
-        window.location.origin.replace(/:\d+$/, '') + ':5501/api/videoclip/list',
-        '/api/videoclip/list'
-      ];
-      for (const url of attempts) {
-        try {
-          const resp = await fetch(url, { cache: 'no-store' });
-          if (!resp.ok) continue;
-          const json = await resp.json();
-          if (json && Array.isArray(json.files) && json.files.length > 0) {
-            this.availableFiles = json.files.map(f => String(f || '').toLowerCase());
-            logger.info('Videoclip list ottenuta da', url, this.availableFiles.length);
-            break;
-          }
-        } catch (err) {
-          logger.debug('Video list fetch failed for', url, err.message || err);
-          continue;
-        }
-      }
-
-      // Pre-costruisci mappa di corrispondenza brano -> file (se trovato)
-      this.availableMap = new Map();
-      // also build basenames list (without extension) for better matching
-      this.availableBasenames = this.availableFiles.map(f => {
-        const idx = f.lastIndexOf('.');
-        return idx > 0 ? f.slice(0, idx) : f;
-      });
-
-      this.brani.forEach(brano => {
-        const matched = this.findMatchingVideoFile(brano);
-        if (matched) this.availableMap.set(String(brano.id), matched);
-      });
+      await this.refreshAvailableFiles();
 
       this.renderLibrary();
       this.populateGenreFilter();
@@ -79,8 +47,102 @@ class VideoClipManager {
     });
   }
 
+  isBranoExecuted(brano) {
+    return brano && (
+      brano.flag === 'X' ||
+      brano.flag === 'x' ||
+      brano.eseguito === true ||
+      brano.eseguito === 'X' ||
+      brano.eseguito === 'x' ||
+      brano.executed === true ||
+      brano.executed === 'X' ||
+      brano.executed === 'x'
+    );
+  }
+
+  async refreshAvailableFiles() {
+    this.availableFiles = [];
+    this.availableMap = new Map();
+
+    const attempts = [
+      'http://localhost:5501/api/videoclip/list',
+      window.location.origin.replace(/:\d+$/, '') + ':5501/api/videoclip/list',
+      '/api/videoclip/list'
+    ];
+
+    for (const url of attempts) {
+      try {
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) continue;
+        const json = await resp.json();
+        if (json && Array.isArray(json.files) && json.files.length > 0) {
+          this.availableFiles = json.files.map(f => String(f || '').toLowerCase());
+          logger.info('Videoclip list ottenuta da', url, this.availableFiles.length);
+          break;
+        }
+      } catch (err) {
+        logger.debug('Video list fetch failed for', url, err.message || err);
+        continue;
+      }
+    }
+
+    this.availableBasenames = this.availableFiles.map(f => {
+      const idx = f.lastIndexOf('.');
+      return idx > 0 ? f.slice(0, idx) : f;
+    });
+
+    this.brani.forEach(brano => {
+      const matched = this.findMatchingVideoFile(brano);
+      if (matched) this.availableMap.set(String(brano.id), matched);
+    });
+
+    return this.availableFiles;
+  }
+
+  syncExecutedState() {
+    const currentSerata = dataLoader.getCurrentSerata?.();
+    if (!currentSerata || !Array.isArray(currentSerata.brani)) {
+      return false;
+    }
+
+    const serataMap = new Map();
+    currentSerata.brani.forEach(item => {
+      if (item && item.id !== null && item.id !== undefined) {
+        serataMap.set(String(item.id), item);
+      }
+    });
+
+    let changed = false;
+    this.brani = this.brani.map(brano => {
+      const serataBrano = serataMap.get(String(brano.id));
+      const isExecutedInSerata = Boolean(
+        serataBrano && (
+          serataBrano.flag === 'X' ||
+          serataBrano.flag === 'x' ||
+          serataBrano.eseguito === true ||
+          serataBrano.eseguito === 'X' ||
+          serataBrano.eseguito === 'x' ||
+          serataBrano.executed === true ||
+          serataBrano.executed === 'X' ||
+          serataBrano.executed === 'x'
+        )
+      );
+
+      if (isExecutedInSerata && !this.isBranoExecuted(brano)) {
+        changed = true;
+        return { ...brano, flag: 'X', timestamp: serataBrano.timestamp || brano.timestamp };
+      }
+
+      return brano;
+    });
+
+    this.filteredBrani = [...this.brani];
+    return changed;
+  }
+
   renderLibrary() {
     const container = document.getElementById('videos-list');
+    if (!container) return;
     container.innerHTML = '';
 
     this.filteredBrani.forEach(brano => {
@@ -88,14 +150,23 @@ class VideoClipManager {
       card.className = 'video-card';
       const matchedFile = this.availableMap.get(String(brano.id)) || null;
       const isAvailable = Boolean(matchedFile);
+      const isExecuted = this.isBranoExecuted(brano);
       if (this.currentBrano?.id === brano.id) {
         card.classList.add('active');
       }
-      if (isAvailable) {
+      if (isExecuted) {
+        card.classList.add('executed');
+      } else if (isAvailable) {
         card.classList.add('available');
       } else {
         card.classList.add('unavailable');
       }
+      card.dataset.available = isExecuted || isAvailable ? 'false' : 'false';
+      card.setAttribute('aria-disabled', isExecuted || !isAvailable ? 'true' : 'false');
+
+      const tooltipText = isExecuted
+        ? 'Brano già eseguito nella serata'
+        : (matchedFile ? `Video associato: ${matchedFile}` : 'Nessun video associato');
 
       card.innerHTML = `
         <div class="video-card-thumb">🎬</div>
@@ -106,19 +177,30 @@ class VideoClipManager {
             <span>🎭 ${this.escapeHtml(brano.coreografo || 'Sconosciuto')}</span>
             <span>🎵 ${this.escapeHtml(brano.genere || 'Sconosciuto')}</span>
           </div>
+          <div class="video-card-badge ${isExecuted ? 'executed' : (isAvailable ? 'available' : 'unavailable')}" title="${this.escapeHtml(tooltipText)}">
+            ${isExecuted ? '⚠ VIDEO GIA\' ESEGUITO' : (isAvailable ? '✓ VIDEO DISPONIBILE' : '✕ VIDEO NON DISPONIBILE')}
+          </div>
+          <div class="video-card-file" title="${this.escapeHtml(matchedFile || 'Nessun file video')}">
+            ${matchedFile ? `📁 ${this.escapeHtml(matchedFile)}` : '📁 Nessun file video'}
+          </div>
           <div class="video-card-action">
-            <button class="btn btn-primary btn-small" data-id="${brano.id}" ${isAvailable ? '' : 'disabled'}>${isAvailable ? 'SELEZIONA' : 'NON DISPONIBILE'}</button>
+            <button class="btn btn-primary btn-small" data-id="${brano.id}" ${isExecuted || !isAvailable ? 'disabled' : ''}>${isExecuted ? 'GIÀ ESEGUITO' : (isAvailable ? 'SELEZIONA' : 'NON DISPONIBILE')}</button>
           </div>
         </div>
       `;
 
-      if (isAvailable) {
+      if (!isExecuted && isAvailable) {
+        const btn = card.querySelector('button');
+        btn?.addEventListener('click', (event) => {
+          event.stopPropagation();
+          this.selectBrano(brano);
+        });
         card.addEventListener('click', () => this.selectBrano(brano));
       } else {
-        // non selezionabile: disable only the button
         const btn = card.querySelector('button');
         if (btn) btn.disabled = true;
-        card.style.opacity = '0.85';
+        card.style.cursor = 'default';
+        card.style.opacity = '0.9';
       }
 
       container.appendChild(card);
@@ -130,6 +212,9 @@ class VideoClipManager {
   }
 
   selectBrano(brano) {
+    if (this.isBranoExecuted(brano)) {
+      return;
+    }
     this.currentBrano = brano;
     this.updatePlayerInfo();
     this.renderLibrary();
@@ -157,57 +242,98 @@ class VideoClipManager {
         const syncOrigin = (window.location.protocol + '//' + window.location.hostname + ':5501').replace('://:','://localhost:');
         const url = syncOrigin + '/videos/' + encodeURIComponent(matchedFile);
         document.getElementById('video-source').src = url;
-        document.getElementById('main-video').load();
+        const video = document.getElementById('main-video');
+        video.load();
+        video.play().catch(() => {});
       } catch (err) {
         logger.warn('Errore impostando sorgente video', err);
       }
     } else {
       document.getElementById('video-source').src = '';
-      document.getElementById('main-video').load();
+      const video = document.getElementById('main-video');
+      video.load();
+      video.pause();
     }
   }
 
+  parseVideoFileReference(fileName) {
+    const rawName = String(fileName || '').trim();
+    if (!rawName) return { prefix: '', name: '' };
+
+    const withoutExtension = rawName.replace(/\.[^.]+$/, '');
+    const match = withoutExtension.match(/^(\d{3})\s+(.+)$/);
+
+    if (match) {
+      return {
+        prefix: match[1],
+        name: match[2].trim()
+      };
+    }
+
+    return {
+      prefix: '',
+      name: withoutExtension
+    };
+  }
+
   /**
-   * Cerca un file video corrispondente al brano nella lista this.availableFiles
-   * Regole: cerca file contenente l'id oppure una versione normalizzata del titolo
+   * Cerca un file video corrispondente al brano nella lista this.availableFiles.
+   * I file video hanno formato: 3 cifre + spazio + nome coreografia.
    */
   findMatchingVideoFile(brano) {
     if (!Array.isArray(this.availableFiles) || this.availableFiles.length === 0) return null;
-    const idStr = String(brano.id || '').toLowerCase().trim();
-    const title = String(brano.titolo || brano.brano || '').toLowerCase().trim();
 
     const normalize = (s) => {
       if (!s) return '';
       try {
-        // remove diacritics
         s = s.normalize('NFD').replace(/\p{Diacritic}/gu, '');
       } catch (e) {
         s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       }
-      return s.replace(/[^a-z0-9]+/g, ' ').trim();
+      return s.replace(/[^a-z0-9]+/g, ' ').trim().toLowerCase();
     };
 
-    // 1) match by id present in filename or basename
-    if (idStr) {
-      for (let i = 0; i < this.availableFiles.length; i++) {
-        const f = this.availableFiles[i];
-        const base = this.availableBasenames[i] || f;
-        if (f.includes(idStr) || base.includes(idStr)) return this.availableFiles[i];
-        // also check digits-only id match
-        const digits = idStr.replace(/\D+/g, '');
-        if (digits && (f.includes(digits) || base.includes(digits))) return this.availableFiles[i];
-      }
-    }
+    const candidates = [
+      brano.id,
+      brano.coreografia,
+      brano.titolo,
+      brano.brano,
+      brano.song,
+      brano.canzone
+    ].filter(value => value !== null && value !== undefined && String(value).trim());
 
-    // 2) match by normalized title against filename/basename
-    const nTitle = normalize(title);
-    if (nTitle) {
+    for (const candidate of candidates) {
+      const candidateText = String(candidate).trim();
+      const candidateDigits = candidateText.replace(/\D+/g, '');
+      const candidatePrefix = candidateDigits ? candidateDigits.padStart(3, '0') : '';
+      const normalizedCandidate = normalize(candidateText);
+
       for (let i = 0; i < this.availableFiles.length; i++) {
-        const f = this.availableFiles[i];
-        const base = this.availableBasenames[i] || f;
-        const nf = normalize(base);
-        if (!nf) continue;
-        if (nf.includes(nTitle) || nTitle.includes(nf)) return this.availableFiles[i];
+        const fullName = this.availableFiles[i];
+        const baseName = this.availableBasenames[i] || fullName;
+        const parsedFull = this.parseVideoFileReference(fullName);
+        const parsedBase = this.parseVideoFileReference(baseName);
+
+        const prefixMatch = Boolean(
+          candidatePrefix &&
+          (parsedFull.prefix === candidatePrefix || parsedBase.prefix === candidatePrefix)
+        );
+
+        const titleMatch = Boolean(
+          normalizedCandidate &&
+          (
+            normalize(parsedFull.name) === normalizedCandidate ||
+            normalize(parsedBase.name) === normalizedCandidate ||
+            normalize(parsedFull.name).includes(normalizedCandidate) ||
+            normalize(parsedBase.name).includes(normalizedCandidate) ||
+            normalizedCandidate.includes(normalize(parsedFull.name)) ||
+            normalizedCandidate.includes(normalize(parsedBase.name))
+          )
+        );
+
+        if (prefixMatch || (titleMatch && normalizedCandidate.length >= 4)) {
+          return fullName;
+        }
       }
     }
 
@@ -215,15 +341,36 @@ class VideoClipManager {
   }
 
   setupListeners() {
-    // Search
-    document.getElementById('video-search').addEventListener('input', (e) => {
-      this.filterVideos();
+    window.addEventListener('storage', (event) => {
+      if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
+      this.handleSerataChange();
     });
 
-    // Genre filter
-    document.getElementById('genere-filter').addEventListener('change', (e) => {
-      this.filterVideos();
+    window.addEventListener('bordero:serata-updated', () => {
+      this.handleSerataChange();
     });
+
+    window.addEventListener('pageshow', () => {
+      this.handleSerataChange();
+    });
+
+    window.addEventListener('focus', () => {
+      this.handleSerataChange();
+    });
+
+    const searchInput = document.getElementById('video-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        this.filterVideos();
+      });
+    }
+
+    const genreSelect = document.getElementById('genere-filter');
+    if (genreSelect) {
+      genreSelect.addEventListener('change', () => {
+        this.filterVideos();
+      });
+    }
 
     // Player controls
     document.getElementById('btn-play').addEventListener('click', () => {
@@ -263,15 +410,32 @@ class VideoClipManager {
     });
   }
 
+  handleSerataChange() {
+    this.syncExecutedState();
+    this.refreshAvailableFiles()
+      .then(() => {
+        this.renderLibrary();
+        this.updatePlayerInfo();
+      })
+      .catch(() => {
+        this.renderLibrary();
+      });
+  }
+
   filterVideos() {
-    const searchTerm = document.getElementById('video-search').value.toLowerCase();
-    const genreFilter = document.getElementById('genere-filter').value;
+    const searchInput = document.getElementById('video-search');
+    const genreSelect = document.getElementById('genere-filter');
+    const searchTerm = (searchInput?.value || '').toLowerCase();
+    const genreFilter = genreSelect?.value || '';
 
     this.filteredBrani = this.brani.filter(brano => {
+      const title = String(brano.titolo || '').toLowerCase();
+      const author = String(brano.autore || '').toLowerCase();
+      const choreographer = String(brano.coreografo || '').toLowerCase();
       const matchSearch = !searchTerm ||
-        brano.titolo.toLowerCase().includes(searchTerm) ||
-        (brano.autore && brano.autore.toLowerCase().includes(searchTerm)) ||
-        (brano.coreografo && brano.coreografo.toLowerCase().includes(searchTerm));
+        title.includes(searchTerm) ||
+        author.includes(searchTerm) ||
+        choreographer.includes(searchTerm);
 
       const matchGenre = !genreFilter || brano.genere === genreFilter;
 

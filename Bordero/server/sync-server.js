@@ -24,6 +24,7 @@ const DATA_DIR = path.join(BORDERO_DIR, 'data');
 const CSV_BRANI = path.join(DATA_DIR, 'brani.csv');
 const CSV_COMUNI = path.join(DATA_DIR, 'comuni_italia.csv');
 const CSV_DBASE = path.join(DATA_DIR, 'dBase.csv');
+const REPO_ROOT = path.join(__dirname, '..', '..');
 // Directory locale con i videoclip (file video)
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
 
@@ -39,12 +40,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Espone la cartella dei videoclip come risorsa statica su /videos
+// Serve l'intero progetto e la cartella dei videoclip come risorse statiche
 try {
+  app.use(express.static(REPO_ROOT, { index: ['index.html'] }));
   app.use('/videos', express.static(VIDEOCLIP_DIR));
+  console.log(`Serving project root ${REPO_ROOT}`);
   console.log(`Serving videoclip directory ${VIDEOCLIP_DIR} at /videos`);
 } catch (err) {
-  console.warn('Unable to serve videoclip directory:', err.message || err);
+  console.warn('Unable to serve static assets:', err.message || err);
 }
 
 /**
@@ -53,8 +56,11 @@ try {
  */
 app.get('/api/videoclip/list', async (req, res) => {
   try {
-    const files = await fs.readdir(VIDEOCLIP_DIR).catch(() => []);
-    // Filtra solo file (non directory) e ritorna nomi
+    const entries = await fs.readdir(VIDEOCLIP_DIR, { withFileTypes: true }).catch(() => []);
+    const files = entries
+      .filter(entry => entry.isFile())
+      .map(entry => entry.name)
+      .sort((a, b) => a.localeCompare(b));
     res.json({ dir: VIDEOCLIP_DIR, files });
   } catch (error) {
     console.error('Errore leggendo directory videoclip:', error);
