@@ -94,7 +94,17 @@ class ExcelSync {
     return new Promise((resolve) => {
       const input = document.getElementById('excel-file-input');
       input.value = ''; // Reset
-      input.onchange = (e) => {
+
+      let resolved = false;
+      const cleanup = () => {
+        resolved = true;
+        input.onchange = null;
+        window.removeEventListener('focus', handleWindowFocus);
+      };
+
+      const handleSelection = (e) => {
+        if (resolved) return;
+        cleanup();
         const file = e.target.files[0];
         if (file) {
           this.excelFile = file;
@@ -104,6 +114,20 @@ class ExcelSync {
           resolve(false);
         }
       };
+
+      const handleWindowFocus = () => {
+        if (resolved) return;
+        setTimeout(() => {
+          if (resolved) return;
+          if (!input.files || input.files.length === 0) {
+            cleanup();
+            resolve(false);
+          }
+        }, 0);
+      };
+
+      input.onchange = handleSelection;
+      window.addEventListener('focus', handleWindowFocus);
       input.click();
     });
   }
@@ -122,7 +146,7 @@ class ExcelSync {
   /**
    * Sincronizza i dati da Excel alle CSV
    */
-  async syncFromExcel() {
+  async syncFromExcel(promptForFile = true) {
     logger.info('ExcelSync: Iniziando sincronizzazione da Excel...');
 
     try {
@@ -132,8 +156,13 @@ class ExcelSync {
         return false;
       }
 
-      // Chiedi al user di selezionare il file se non già selezionato
+      // Se non abbiamo ancora un file Excel e non vogliamo forzare il prompt, usa CSV locale
       if (!this.excelFile) {
+        if (!promptForFile) {
+          logger.info('Nessun file Excel selezionato all’avvio: uso CSV locale.');
+          return false;
+        }
+
         logger.info('Richiedendo selezione file Excel...');
         const selected = await this.showFileDialog();
         if (!selected) {

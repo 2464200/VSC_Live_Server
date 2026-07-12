@@ -38,8 +38,8 @@ class BorderoTableManager {
     logger.info('BorderoTableManager initializing...');
 
     try {
-      // Prima sincronizza da Excel
-      await dataLoader.initialize();
+      // Prima sincronizza da Excel solo se il file Excel è già stato selezionato, altrimenti usa il CSV locale
+      await dataLoader.initialize(false);
 
       // Poi carica dati, mantenendo l’ordine originale e lo stato dei brani eseguiti
       const allBrani = await dataLoader.loadBrani();

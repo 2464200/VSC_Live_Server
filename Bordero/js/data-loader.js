@@ -20,11 +20,11 @@ class DataLoader {
   /**
    * Inizializza il data loader con sincronizzazione da Excel
    */
-  async initialize() {
+  async initialize(promptForFile = false) {
     logger.info('DataLoader: Inizializzazione con sync Excel...');
 
     try {
-      const excelSynced = await excelSync.syncFromExcel();
+      const excelSynced = await excelSync.syncFromExcel(promptForFile);
       
       if (excelSynced) {
         logger.info('Dati sincronizzati da Excel');
@@ -243,26 +243,6 @@ class DataLoader {
     const cachedFromExcel = Storage.get('BORDERO_BRANI_DATA');
     const cached = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI);
 
-    // Se siamo offline, usa la cache disponibile
-    if (!Network.isOnline()) {
-      if (cachedFromExcel && cachedFromExcel.length > 0) {
-        logger.info(`OFFLINE: usato cache Excel (${cachedFromExcel.length} brani)`);
-        this.brani = this.normalizeBraniList(cachedFromExcel);
-        return this.brani;
-      }
-
-      if (cached && cached.length > 0) {
-        logger.info(`OFFLINE: usato cache CSV (${cached.length} brani)`);
-        this.brani = this.normalizeBraniList(cached);
-        return this.brani;
-      }
-
-      logger.warn('OFFLINE: Nessuna cache disponibile');
-      Toast.warning('Sei offline! Usando cache (potrebbe essere non aggiornata)');
-      return [];
-    }
-
-    // Online: preferisci il CSV aggiornato e usa la cache come fallback
     try {
       const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_BRANI));
       this.brani = this.normalizeBraniList(CSVParser.parse(csvContent));
