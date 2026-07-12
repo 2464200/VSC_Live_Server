@@ -72,6 +72,24 @@ function Test-PortListening {
     }
 }
 
+function Test-HttpEndpoint {
+    param(
+        [Parameter(Mandatory = $true)] [string] $Uri,
+        [int] $TimeoutSeconds = 3
+    )
+
+    try {
+        $request = [System.Net.HttpWebRequest]::Create($Uri)
+        $request.Timeout = $TimeoutSeconds * 1000
+        $request.Method = 'GET'
+        $response = $request.GetResponse()
+        $response.Close()
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 function Wait-ForPort {
     param(
         [int]$Port,
@@ -247,22 +265,31 @@ function Start-BorderoSyncServer {
         return $null
     }
 
-    if (Test-PortListening -Port 5501) {
-        Write-Host "Bordero Sync Server già in esecuzione sulla porta 5501"
-        return $null
+    $primaryPort = 5501
+    $fallbackPort = 5511
+    $syncPort = $primaryPort
+
+    if (Test-PortListening -Port $primaryPort) {
+        if (Test-HttpEndpoint -Uri "http://localhost:$primaryPort/api/status") {
+            Write-Host "Bordero Sync Server già in esecuzione sulla porta $primaryPort"
+            return $null
+        }
+
+        Write-Host "Porta $primaryPort occupata ma non risponde al sync endpoint; provo fallback $fallbackPort"
+        $syncPort = $fallbackPort
     }
 
-    Write-Host "Avvio Bordero Sync Server..."
+    Write-Host "Avvio Bordero Sync Server sulla porta $syncPort..."
     try {
-        $proc = Start-ProcessSafe -FilePath 'node' -ArgumentList @($serverScript) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
+        $proc = Start-ProcessSafe -FilePath 'node' -ArgumentList @($serverScript, '--port', $syncPort) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
         if (-not $proc) {
             Write-Host "ERRORE: impossibile avviare Bordero Sync Server" -ForegroundColor Red
             return $null
         }
 
         Write-Host "OK Bordero Sync Server avviato (PID: $($proc.Id))"
-        if (-not (Wait-ForPort -Port 5501 -TimeoutSeconds 10)) {
-            Write-Host "AVVISO: Bordero Sync Server non risponde sulla porta 5501" -ForegroundColor Yellow
+        if (-not (Wait-ForPort -Port $syncPort -TimeoutSeconds 10)) {
+            Write-Host "AVVISO: Bordero Sync Server non risponde sulla porta $syncPort" -ForegroundColor Yellow
         }
 
         return $proc.Id
@@ -288,7 +315,7 @@ Write-Host "Unified Server: porta $UnifiedPort"
 Write-Host ""
 
 # Verifica se il server è già in esecuzione
-if ((Test-PortListening -Port $UnifiedPort) -and (Test-PortListening -Port 5501)) {
+if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri 'http://localhost:5501/api/status' -TimeoutSeconds 2)) {
     Write-Host "Server già in esecuzione sulle porte $UnifiedPort e 5501 - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."

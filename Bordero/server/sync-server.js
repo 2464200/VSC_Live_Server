@@ -16,7 +16,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const app = express();
-const PORT = process.env.BORDERO_SYNC_PORT || 5501;
+const portArg = process.argv.find((_, index, arr) => index > 0 && arr[index - 1] === '--port');
+const PORT = portArg ? Number(portArg) : (process.env.BORDERO_SYNC_PORT || 5501);
 
 // Paths relativi al progetto Bordero
 const BORDERO_DIR = path.join(__dirname, '..');

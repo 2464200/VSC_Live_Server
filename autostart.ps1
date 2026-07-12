@@ -52,6 +52,23 @@ function Test-PortListening {
     }
 }
 
+function Test-HttpEndpoint {
+    param(
+        [Parameter(Mandatory = $true)] [string] $Uri,
+        [int] $TimeoutSeconds = 3
+    )
+    try {
+        $request = [System.Net.HttpWebRequest]::Create($Uri)
+        $request.Timeout = $TimeoutSeconds * 1000
+        $request.Method = 'GET'
+        $response = $request.GetResponse()
+        $response.Close()
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 Write-Log "Wrapper autostart in esecuzione."
 
 # Load safe Start-Process helper if available
@@ -72,7 +89,7 @@ if (-not (Test-Path $StartupScript)) {
     exit 0
 }
 
-if ((Test-PortListening -Port $UnifiedPort) -and (Test-PortListening -Port 5501)) {
+if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri 'http://localhost:5501/api/status' -TimeoutSeconds 2)) {
     Write-Log "Unified Server e Sync Server già in esecuzione. Nessun avvio aggiuntivo necessario."
     exit 0
 }
