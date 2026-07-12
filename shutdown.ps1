@@ -54,7 +54,7 @@ if ($startedPids -and $startedPids.Count -gt 0) {
 # Arresto selettivo per sicurezza (cerca processi Node.js sulle porte note)
 Write-Host ""
 Write-Host "Arresto selettivo processi Node.js sulle porte note..."
-$portsToCheck = @(5500)
+$portsToCheck = @(5500, 5501)
 $nodeProcessesTerminated = 0
 
 foreach ($port in $portsToCheck) {

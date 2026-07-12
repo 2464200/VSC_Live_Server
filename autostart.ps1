@@ -72,8 +72,8 @@ if (-not (Test-Path $StartupScript)) {
     exit 0
 }
 
-if (Test-PortListening -Port $UnifiedPort) {
-    Write-Log "Unified Server già in esecuzione sulla porta $UnifiedPort. Nessun avvio aggiuntivo necessario."
+if ((Test-PortListening -Port $UnifiedPort) -and (Test-PortListening -Port 5501)) {
+    Write-Log "Unified Server e Sync Server già in esecuzione. Nessun avvio aggiuntivo necessario."
     exit 0
 }
 

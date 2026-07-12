@@ -20,6 +20,7 @@ const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXT
 const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
 const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
+const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
 
 // ===== STATO GLOBALE =====
 let chromeProcess = null;
@@ -278,6 +279,27 @@ app.get('/eventi/visualizer.html', (req, res) => {
 
 // Serve static files for Eventi before root static files.
 app.use('/eventi', express.static(path.join(__dirname, 'Eventi', 'public')));
+
+// Serve the local videoclip directory for the Bordero pages.
+app.use('/videos', express.static(VIDEOCLIP_DIR));
+
+app.get('/api/videoclip/list', (req, res) => {
+    try {
+        if (!fs.existsSync(VIDEOCLIP_DIR)) {
+            return res.json({ dir: VIDEOCLIP_DIR, files: [] });
+        }
+
+        const entries = fs.readdirSync(VIDEOCLIP_DIR, { withFileTypes: true })
+            .filter(entry => entry.isFile())
+            .map(entry => entry.name)
+            .sort((a, b) => a.localeCompare(b));
+
+        return res.json({ dir: VIDEOCLIP_DIR, files: entries });
+    } catch (error) {
+        console.error('Errore leggendo directory videoclip:', error);
+        return res.status(500).json({ error: error.message, files: [] });
+    }
+});
 
 app.use(express.static(path.join(__dirname), {
     index: ['index.html'],
