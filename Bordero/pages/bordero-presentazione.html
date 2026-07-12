@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Presentazione</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+    }
+
+    .presentation-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,127,0,0.25);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    }
+
+    .hero-card {
+      background: linear-gradient(90deg, rgba(255,127,0,0.18), rgba(255,153,51,0.08));
+      border: 1px solid rgba(255,127,0,0.35);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .hero-card h1 {
+      color: #ffb55c;
+      margin-bottom: 10px;
+      font-size: 34px;
+    }
+
+    .hero-card p {
+      font-size: 18px;
+      color: #f2f2f2;
+      margin-bottom: 0;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .feature-card h3 {
+      color: #ffb55c;
+      margin-bottom: 8px;
+    }
+
+    .feature-card ul {
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    .feature-card li {
+      margin-bottom: 6px;
+      color: #f3f3f3;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 12px 18px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="presentation-shell">
+    <a href="../index.html" class="back-link">← Torna a Borderò</a>
+
+    <section class="hero-card">
+      <h1>BORDERÒ</h1>
+      <p>Il sistema di gestione che trasforma ogni serata in un’esperienza professionale, elegante e davvero efficace per DJ.</p>
+    </section>
+
+    <section class="feature-grid">
+      <article class="feature-card">
+        <h3>Perché Borderò fa la differenza</h3>
+        <ul>
+          <li>Controllo immediato di brani e coreografie</li>
+          <li>Gestione serata più ordinata e professionale</li>
+          <li>Statistica live per monitorare l’evoluzione</li>
+        </ul>
+      </article>
+
+      <article class="feature-card">
+        <h3>Funzionalità principali</h3>
+        <ul>
+          <li>Segnalazione dei brani eseguiti</li>
+          <li>Display esterno e NextCoreo integrati</li>
+          <li>Lista serata, report e riepiloghi</li>
+        </ul>
+      </article>
+
+      <article class="feature-card">
+        <h3>Qualità che distinguono Borderò</h3>
+        <ul>
+          <li>Velocità e immediatezza</li>
+          <li>Affidabilità in pista</li>
+          <li>Flessibilità per ogni tipo di serata</li>
+        </ul>
+      </article>
+    </section>
+
+    <p>BORDERÒ è pensato per chi vuole portare la gestione della propria serata a un livello superiore: più ordinata, più professionale e più coinvolgente per chi ascolta e per chi lavora sul palco.</p>
+
+    <div class="cta-row">
+      <a href="bordero.html" class="btn btn-primary">Apri Borderò Principale</a>
+      <a href="risultati.html" class="btn btn-secondary">Vedi i Risultati</a>
+    </div>
+  </div>
+</body>
+</html>
