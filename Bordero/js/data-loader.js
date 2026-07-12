@@ -264,7 +264,7 @@ class DataLoader {
 
     // Online: preferisci il CSV aggiornato e usa la cache come fallback
     try {
-      const csvContent = await Network.fetchCSV(this.resolveDataUrl('../data/brani.csv'));
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_BRANI));
       this.brani = this.normalizeBraniList(CSVParser.parse(csvContent));
 
       // Salva in cache
@@ -312,7 +312,7 @@ class DataLoader {
       }
 
       // Fallback a CSV
-      const csvContent = await Network.fetchCSV(this.resolveDataUrl('../data/comuni_italia.csv'));
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_COMUNI));
       const comuni = this.normalizeComuniList(CSVParser.parse(csvContent));
       
       // Salva in cache
@@ -340,7 +340,7 @@ class DataLoader {
       }
 
       // Fallback a CSV
-      const csvContent = await Network.fetchCSV(this.resolveDataUrl('../data/dBase.csv'));
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_DBASE));
       const dj = this.normalizeDjList(this.parseDjFromCsv(csvContent));
       
       // Salva in cache
