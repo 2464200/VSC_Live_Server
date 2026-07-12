@@ -13,6 +13,9 @@ class VideoClipManager {
     this.isReloading = false;
     this.secondaryWindow = null;
     this.secondaryVideoUrl = '';
+    this.currentVideoUrl = '';
+    this.currentPlaybackBranoId = null;
+    this.showOnlyAvailable = false;
 
     this.init();
   }
@@ -147,12 +150,17 @@ class VideoClipManager {
     if (!container) return;
     container.innerHTML = '';
 
+    this.updateArchiveFilterButton();
+
     this.filteredBrani.forEach(brano => {
       const card = document.createElement('div');
       card.className = 'video-card';
       const matchedFile = this.availableMap.get(String(brano.id)) || null;
       const isAvailable = Boolean(matchedFile);
       const isExecuted = this.isBranoExecuted(brano);
+      if (this.showOnlyAvailable && (!isAvailable || isExecuted)) {
+        return;
+      }
       if (this.currentBrano?.id === brano.id) {
         card.classList.add('active');
       }
@@ -244,8 +252,9 @@ class VideoClipManager {
           body { display: grid; place-items: center; }
           .player-shell { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
           video { width: 100%; max-width: 100%; max-height: 100%; background: #000; object-fit: contain; }
-          .overlay { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
-          .badge { background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 999px; font-size: 0.95rem; backdrop-filter: blur(6px); }
+          .overlay { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; gap: 12px; }
+          .badge { background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 999px; font-size: 0.95rem; backdrop-filter: blur(6px); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          .badge.now-playing { max-width: 100%; }
           .placeholder { text-align: center; color: #bbb; font-size: 1.2em; max-width: 720px; }
         </style>
       </head>
@@ -253,6 +262,7 @@ class VideoClipManager {
         <div class="player-shell">
           <div class="overlay">
             <div class="badge">Monitor sala da ballo</div>
+            <div class="badge now-playing" id="secondary-now-playing">Nessun brano in riproduzione</div>
             <div class="badge" id="secondary-status">Video pronto</div>
           </div>
           <video id="secondary-video" playsinline preload="auto" controls></video>
@@ -271,15 +281,42 @@ class VideoClipManager {
     try {
       const video = popup.document.getElementById('secondary-video');
       if (!video) return;
-      video.src = url;
+      this.currentVideoUrl = url;
+      this.secondaryVideoUrl = url;
+      video.setAttribute('src', url);
       video.load();
       video.pause();
       video.currentTime = 0;
-      this.secondaryVideoUrl = url;
       const status = popup.document.getElementById('secondary-status');
+      const nowPlaying = popup.document.getElementById('secondary-now-playing');
       if (status) status.textContent = 'Video pronto';
+      if (nowPlaying) {
+        const title = this.currentBrano?.titolo || 'Nessun brano selezionato';
+        nowPlaying.textContent = title;
+      }
     } catch (err) {
       logger.warn('Errore caricando video sul monitor secondario', err);
+    }
+  }
+
+  playMainVideo() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo || !this.currentVideoUrl) return;
+
+    const sameBrano = this.currentPlaybackBranoId === this.currentBrano?.id;
+    if (sameBrano && !mainVideo.paused && mainVideo.currentTime > 0) {
+      return;
+    }
+
+    try {
+      mainVideo.load();
+      mainVideo.currentTime = 0;
+      setTimeout(() => {
+        mainVideo.play().catch(() => {});
+      }, 120);
+      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+    } catch (err) {
+      logger.warn('Errore avviando playback sul player principale', err);
     }
   }
 
@@ -290,13 +327,30 @@ class VideoClipManager {
     try {
       const video = popup.document.getElementById('secondary-video');
       if (!video) return;
-      if (!this.secondaryVideoUrl && video.src) {
-        this.secondaryVideoUrl = video.src;
+      const sameBrano = this.currentPlaybackBranoId === this.currentBrano?.id;
+      if (sameBrano && !video.paused && video.currentTime > 0) {
+        return;
+      }
+      if (!this.secondaryVideoUrl && video.getAttribute('src')) {
+        this.secondaryVideoUrl = video.getAttribute('src');
+      }
+      if (this.currentVideoUrl) {
+        video.setAttribute('src', this.currentVideoUrl);
+        video.load();
+        video.currentTime = 0;
       }
       const status = popup.document.getElementById('secondary-status');
+      const nowPlaying = popup.document.getElementById('secondary-now-playing');
       if (status) status.textContent = 'Riproduzione avviata';
+      if (nowPlaying) {
+        const title = this.currentBrano?.titolo || 'Nessun brano selezionato';
+        nowPlaying.textContent = title;
+      }
       popup.focus();
-      video.play().catch(() => {});
+      setTimeout(() => {
+        video.play().catch(() => {});
+      }, 120);
+      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
       if (video.requestFullscreen) {
         try { video.requestFullscreen(); } catch (err) { logger.debug('Fullscreen popup non disponibile', err); }
       }
@@ -362,26 +416,37 @@ class VideoClipManager {
     const matchedFile = this.availableMap.get(String(this.currentBrano.id));
     const noVideo = document.getElementById('no-video');
     const mainVideo = document.getElementById('main-video');
+    const source = document.getElementById('video-source');
+    const playbackStatus = document.getElementById('secondary-playback-status');
 
     if (matchedFile) {
       try {
         const syncOrigin = (window.location.protocol + '//' + window.location.hostname + ':5501').replace('://:','://localhost:');
         const url = syncOrigin + '/videos/' + encodeURIComponent(matchedFile);
-        document.getElementById('video-source').src = '';
-        this.loadSecondaryVideo(url);
-        mainVideo?.pause();
+        this.currentVideoUrl = url;
+        this.secondaryVideoUrl = url;
+        source.src = url;
         mainVideo?.load();
-        mainVideo?.classList.add('hidden');
-        noVideo?.classList.remove('hidden');
-        noVideo.innerHTML = '<p>Video pronto</p><small>Il playback partirà sul monitor secondario al click di PLAY.</small>';
+        mainVideo?.currentTime = 0;
+        mainVideo?.classList.remove('hidden');
+        noVideo?.classList.add('hidden');
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Video pronto: il playback parte sia sulla pagina sia sul monitor secondario.';
+        }
+        this.loadSecondaryVideo(url);
+        this.playMainVideo();
+        setTimeout(() => this.playSecondaryVideo(), 180);
       } catch (err) {
         logger.warn('Errore impostando sorgente video', err);
       }
     } else {
-      document.getElementById('video-source').src = '';
+      source.src = '';
       mainVideo?.load();
       mainVideo?.pause();
       noVideo?.classList.remove('hidden');
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Nessun video disponibile per il monitor secondario.';
+      }
       noVideo.innerHTML = '<p>Nessun video selezionato</p><small>Non è stato trovato un file video associato a questo brano.</small>';
     }
   }
@@ -502,9 +567,17 @@ class VideoClipManager {
       });
     }
 
+    const archiveToggle = document.getElementById('btn-only-archive');
+    archiveToggle?.addEventListener('click', () => {
+      this.showOnlyAvailable = !this.showOnlyAvailable;
+      this.updateArchiveFilterButton();
+      this.filterVideos();
+    });
+
     // Player controls
     document.getElementById('btn-play').addEventListener('click', () => {
       if (this.currentBrano) {
+        this.playMainVideo();
         this.playSecondaryVideo();
       }
     });
@@ -547,6 +620,13 @@ class VideoClipManager {
       });
   }
 
+  updateArchiveFilterButton() {
+    const button = document.getElementById('btn-only-archive');
+    if (!button) return;
+    button.classList.toggle('active', this.showOnlyAvailable);
+    button.setAttribute('aria-pressed', String(this.showOnlyAvailable));
+  }
+
   filterVideos() {
     const searchInput = document.getElementById('video-search');
     const genreSelect = document.getElementById('genere-filter');
@@ -563,8 +643,12 @@ class VideoClipManager {
         choreographer.includes(searchTerm);
 
       const matchGenre = !genreFilter || brano.genere === genreFilter;
+      const matchedFile = this.availableMap.get(String(brano.id)) || null;
+      const isAvailable = Boolean(matchedFile);
+      const isExecuted = this.isBranoExecuted(brano);
+      const matchArchiveFilter = !this.showOnlyAvailable || (isAvailable && !isExecuted);
 
-      return matchSearch && matchGenre;
+      return matchSearch && matchGenre && matchArchiveFilter;
     });
 
     this.renderLibrary();

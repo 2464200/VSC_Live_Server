@@ -93,6 +93,16 @@
   font-weight: 600;
 }
 
+.secondary-playback-status {
+  background: linear-gradient(135deg, rgba(57, 217, 109, 0.16), rgba(35, 185, 90, 0.08));
+  color: #c8f5d4;
+  border: 1px solid rgba(57, 217, 109, 0.35);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
 .video-controls {
   display: flex;
   flex-direction: column;
@@ -104,6 +114,27 @@
   padding: 12px 15px;
   font-size: 0.95em;
   text-align: center;
+}
+
+.btn-filter-toggle {
+  background: linear-gradient(135deg, #f3fdf4, #e5f7e7);
+  color: #4f7a52;
+  border: 2px solid #b8e2bb;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(79, 122, 82, 0.12);
+}
+
+.btn-filter-toggle.active {
+  background: linear-gradient(135deg, #39d96d, #23b95a);
+  color: #ffffff;
+  border-color: #1f8d46;
+  box-shadow: 0 0 0 3px rgba(57, 217, 109, 0.28);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+.btn-filter-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(57, 217, 109, 0.16);
 }
 
 /* ========== LIBRARY SECTION ========== */
