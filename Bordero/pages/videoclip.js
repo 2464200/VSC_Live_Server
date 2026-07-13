@@ -16,6 +16,8 @@ class VideoClipManager {
     this.currentVideoUrl = '';
     this.currentPlaybackBranoId = null;
     this.showOnlyAvailable = false;
+    this.vlcPath = '';
+    this.vlcFallbackActive = false;
 
     this.init();
   }
@@ -233,6 +235,18 @@ class VideoClipManager {
     this.renderLibrary();
   }
 
+  async launchVlcFallback(url) {
+    try {
+      const response = await fetch('/api/videoclip/play-secondary?url=' + encodeURIComponent(url), { cache: 'no-store' });
+      const payload = await response.json().catch(() => ({}));
+      this.vlcFallbackActive = Boolean(payload.success);
+      return Boolean(payload.success);
+    } catch (err) {
+      logger.warn('Impossibile avviare VLC fallback', err);
+      return false;
+    }
+  }
+
   ensureSecondaryWindow() {
     if (this.secondaryWindow && !this.secondaryWindow.closed) {
       return this.secondaryWindow;
@@ -286,7 +300,9 @@ class VideoClipManager {
       if (!video) return;
       this.currentVideoUrl = url;
       this.secondaryVideoUrl = url;
-      video.setAttribute('src', url);
+      if (video.getAttribute('src') !== url) {
+        video.setAttribute('src', url);
+      }
       video.load();
       video.pause();
       video.currentTime = 0;
@@ -302,9 +318,11 @@ class VideoClipManager {
     }
   }
 
-  playMainVideo() {
+  async playMainVideo() {
     const mainVideo = document.getElementById('main-video');
-    if (!mainVideo || !this.currentVideoUrl) return;
+    const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+
+    if (!mainVideo || !url) return;
 
     const sameBrano = this.currentPlaybackBranoId === this.currentBrano?.id;
     if (sameBrano && !mainVideo.paused && mainVideo.currentTime > 0) {
@@ -312,36 +330,53 @@ class VideoClipManager {
     }
 
     try {
-      mainVideo.load();
+      mainVideo.pause();
       mainVideo.currentTime = 0;
-      setTimeout(() => {
-        mainVideo.play().catch(() => {});
-      }, 120);
+      mainVideo.muted = true;
+      mainVideo.src = url;
+      mainVideo.load();
+      await this.waitForVideoReady(mainVideo);
+      await mainVideo.play();
+      mainVideo.muted = false;
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
-    } catch (err) {
-      logger.warn('Errore avviando playback sul player principale', err);
+    } catch (playErr) {
+      logger.warn('Main video play blocked by browser policy', playErr);
+      try {
+        mainVideo.muted = true;
+        mainVideo.src = url;
+        mainVideo.load();
+        await this.waitForVideoReady(mainVideo);
+        await mainVideo.play();
+        mainVideo.muted = false;
+      } catch (fallbackErr) {
+        logger.debug('Main video fallback play failed', fallbackErr);
+      }
     }
   }
 
-  playSecondaryVideo() {
+  async playSecondaryVideo() {
     const popup = this.ensureSecondaryWindow();
-    if (!popup) return;
+    const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+    if (!url) return;
 
     try {
-      const video = popup.document.getElementById('secondary-video');
-      if (!video) return;
+      const video = popup?.document?.getElementById('secondary-video');
+      if (!video) {
+        await this.launchVlcFallback(url);
+        return;
+      }
+
       const sameBrano = this.currentPlaybackBranoId === this.currentBrano?.id;
       if (sameBrano && !video.paused && video.currentTime > 0) {
         return;
       }
-      if (!this.secondaryVideoUrl && video.getAttribute('src')) {
-        this.secondaryVideoUrl = video.getAttribute('src');
-      }
-      if (this.currentVideoUrl) {
-        video.setAttribute('src', this.currentVideoUrl);
-        video.load();
-        video.currentTime = 0;
-      }
+
+      this.secondaryVideoUrl = url;
+      video.src = url;
+      video.pause();
+      video.currentTime = 0;
+      video.load();
+
       const status = popup.document.getElementById('secondary-status');
       const nowPlaying = popup.document.getElementById('secondary-now-playing');
       if (status) status.textContent = 'Riproduzione avviata';
@@ -350,15 +385,17 @@ class VideoClipManager {
         nowPlaying.textContent = title;
       }
       popup.focus();
-      setTimeout(() => {
-        video.play().catch(() => {});
-      }, 120);
-      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
-      if (video.requestFullscreen) {
-        try { video.requestFullscreen(); } catch (err) { logger.debug('Fullscreen popup non disponibile', err); }
+      await this.waitForVideoReady(video);
+      try {
+        await video.play();
+      } catch (playErr) {
+        logger.debug('Secondary video play deferred', playErr);
+        await this.launchVlcFallback(url);
       }
+      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
     } catch (err) {
       logger.warn('Errore avviando playback sul monitor secondario', err);
+      await this.launchVlcFallback(url);
     }
   }
 
@@ -399,6 +436,43 @@ class VideoClipManager {
     }
   }
 
+  getCurrentVideoUrl() {
+    if (this.currentVideoUrl) {
+      return this.currentVideoUrl;
+    }
+
+    if (!this.currentBrano) {
+      return '';
+    }
+
+    const matchedFile = this.availableMap.get(String(this.currentBrano.id));
+    if (!matchedFile) {
+      return '';
+    }
+
+    const syncOrigin = (window.location.protocol + '//' + window.location.hostname + ':5501').replace('://:','://localhost:');
+    return syncOrigin + '/videos/' + encodeURIComponent(matchedFile);
+  }
+
+  async waitForVideoReady(video) {
+    if (!video) return;
+
+    if (video.readyState >= 2 || video.networkState === 2) {
+      return;
+    }
+
+    await new Promise((resolve) => {
+      const handleReady = () => {
+        video.removeEventListener('canplay', handleReady);
+        video.removeEventListener('loadedmetadata', handleReady);
+        resolve();
+      };
+      video.addEventListener('canplay', handleReady, { once: true });
+      video.addEventListener('loadedmetadata', handleReady, { once: true });
+      setTimeout(handleReady, 700);
+    });
+  }
+
   updatePlayerInfo() {
     if (!this.currentBrano) {
       const noVideo = document.getElementById('no-video');
@@ -429,16 +503,17 @@ class VideoClipManager {
         this.currentVideoUrl = url;
         this.secondaryVideoUrl = url;
         source.src = url;
-        mainVideo?.load();
-        mainVideo?.currentTime = 0;
-        mainVideo?.classList.remove('hidden');
+        if (mainVideo) {
+          mainVideo.pause();
+          mainVideo.currentTime = 0;
+          mainVideo.load();
+          mainVideo.classList.remove('hidden');
+        }
         noVideo?.classList.add('hidden');
         if (playbackStatus) {
           playbackStatus.textContent = 'Video pronto: il playback parte sia sulla pagina sia sul monitor secondario.';
         }
         this.loadSecondaryVideo(url);
-        this.playMainVideo();
-        setTimeout(() => this.playSecondaryVideo(), 180);
       } catch (err) {
         logger.warn('Errore impostando sorgente video', err);
       }
@@ -578,12 +653,32 @@ class VideoClipManager {
     });
 
     // Player controls
-    document.getElementById('btn-play').addEventListener('click', () => {
-      if (this.currentBrano) {
-        this.playMainVideo();
-        this.playSecondaryVideo();
-      }
-    });
+    const playButton = document.getElementById('btn-play');
+    if (playButton) {
+      playButton.onclick = async (event) => {
+        if (!this.currentBrano) return;
+        const mainVideo = document.getElementById('main-video');
+        const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+        if (!mainVideo || !url) return;
+
+        try {
+          event.preventDefault();
+          event.stopPropagation();
+          mainVideo.pause();
+          mainVideo.currentTime = 0;
+          mainVideo.muted = false;
+          mainVideo.src = url;
+          mainVideo.load();
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          await mainVideo.play();
+          this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+        } catch (playErr) {
+          logger.warn('PLAY button play failed', playErr);
+        }
+
+        await this.playSecondaryVideo();
+      };
+    }
 
     document.getElementById('btn-pause').addEventListener('click', () => {
       if (this.currentBrano) {
@@ -666,6 +761,30 @@ class VideoClipManager {
 
 document.addEventListener('DOMContentLoaded', () => {
   window.videoClipManager = new VideoClipManager();
+  const playButton = document.getElementById('btn-play');
+  if (playButton && !playButton.onclick) {
+    playButton.onclick = async (event) => {
+      if (!window.videoClipManager?.currentBrano) return;
+      const mainVideo = document.getElementById('main-video');
+      const url = window.videoClipManager.currentVideoUrl || window.videoClipManager.getCurrentVideoUrl();
+      if (!mainVideo || !url) return;
+      try {
+        event.preventDefault();
+        event.stopPropagation();
+        mainVideo.pause();
+        mainVideo.currentTime = 0;
+        mainVideo.muted = false;
+        mainVideo.src = url;
+        mainVideo.load();
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        await mainVideo.play();
+        window.videoClipManager.currentPlaybackBranoId = window.videoClipManager.currentBrano?.id ?? null;
+      } catch (playErr) {
+        logger.warn('PLAY button play failed', playErr);
+      }
+      await window.videoClipManager.playSecondaryVideo();
+    };
+  }
 });
 
 logger.info('✓ Videoclip.js caricato');

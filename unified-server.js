@@ -301,6 +301,33 @@ app.get('/api/videoclip/list', (req, res) => {
     }
 });
 
+app.get('/api/videoclip/play-secondary', (req, res) => {
+    try {
+        const videoUrl = req.query.url;
+        if (!videoUrl) {
+            return res.status(400).json({ success: false, error: 'Missing url parameter' });
+        }
+
+        const parsed = new URL(videoUrl, 'http://localhost');
+        const relativePath = parsed.pathname.replace(/^\/videos\//i, '');
+        const fileName = decodeURIComponent(relativePath);
+        const fullPath = path.join(VIDEOCLIP_DIR, fileName);
+
+        if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+            return res.status(404).json({ success: false, error: 'Video file not found', filePath: fullPath });
+        }
+
+        const vlcPath = process.env.VLC_PATH || 'C:/Program Files/VideoLAN/VLC/vlc.exe';
+        const child = spawn(vlcPath, ['--fullscreen', fullPath], { detached: true, stdio: 'ignore' });
+        child.unref();
+
+        return res.json({ success: true, filePath: fullPath, vlcPath });
+    } catch (error) {
+        console.error('Errore avviando fallback VLC:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 app.use(express.static(path.join(__dirname), {
     index: ['index.html'],
     extensions: ['html', 'htm']

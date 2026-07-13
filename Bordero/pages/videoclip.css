@@ -66,11 +66,22 @@
 }
 
 .video-info h2 {
-  color: var(--primary-orange);
-  font-size: 1.4em;
+  color: #ffb347;
+  font-size: 2.05em;
   margin: 0;
-  border-bottom: 2px solid var(--primary-orange);
-  padding-bottom: 10px;
+  border-bottom: 3px solid #ffb347;
+  padding: 8px 12px 14px;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-shadow:
+    0 0 0 #000,
+    0 0 8px rgba(255, 179, 71, 0.45),
+    0 0 18px rgba(255, 127, 0, 0.45),
+    0 0 30px rgba(255, 127, 0, 0.35);
+  transform: perspective(600px) rotateX(2deg);
 }
 
 .video-meta {
