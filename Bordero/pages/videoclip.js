@@ -403,7 +403,7 @@ class VideoClipManager {
         }
         noVideo?.classList.add('hidden');
         if (playbackStatus) {
-          playbackStatus.textContent = 'Video pronto: il playback parte sia sulla pagina sia sul monitor secondario.';
+          playbackStatus.textContent = 'Video pronto: monitor principale HTML5, monitor secondario via VLC.';
         }
         this.loadSecondaryVideo(url);
       } catch (err) {

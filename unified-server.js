@@ -318,10 +318,11 @@ app.get('/api/videoclip/play-secondary', (req, res) => {
         }
 
         const vlcPath = process.env.VLC_PATH || 'C:/Program Files/VideoLAN/VLC/vlc.exe';
-        const child = spawn(vlcPath, ['--fullscreen', fullPath], { detached: true, stdio: 'ignore' });
+        const vlcArgs = ['--fullscreen', '--play-and-exit', '--no-loop', '--no-repeat', fullPath];
+        const child = spawn(vlcPath, vlcArgs, { detached: true, stdio: 'ignore' });
         child.unref();
 
-        return res.json({ success: true, filePath: fullPath, vlcPath });
+        return res.json({ success: true, filePath: fullPath, vlcPath, vlcArgs });
     } catch (error) {
         console.error('Errore avviando fallback VLC:', error);
         return res.status(500).json({ success: false, error: error.message });
