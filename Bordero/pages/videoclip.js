@@ -11,7 +11,6 @@ class VideoClipManager {
     this.availableFiles = []; // elenco file presenti nella cartella locale
     this.availableMap = new Map(); // id -> filename
     this.isReloading = false;
-    this.secondaryWindow = null;
     this.secondaryVideoUrl = '';
     this.currentVideoUrl = '';
     this.currentPlaybackBranoId = null;
@@ -247,75 +246,12 @@ class VideoClipManager {
     }
   }
 
-  ensureSecondaryWindow() {
-    if (this.secondaryWindow && !this.secondaryWindow.closed) {
-      return this.secondaryWindow;
-    }
-
-    const popup = window.open('', 'bordero-secondary-video', 'width=1280,height=720,left=40,top=40,toolbar=no,location=no,status=no,menubar=no,resizable=yes');
-    if (!popup) {
-      return null;
-    }
-
-    this.secondaryWindow = popup;
-    popup.document.write(`<!DOCTYPE html>
-      <html lang="it">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Borderò - Monitor sala da ballo</title>
-        <style>
-          html, body { margin: 0; height: 100%; background: #000; color: #fff; font-family: Arial, sans-serif; overflow: hidden; }
-          body { display: grid; place-items: center; }
-          .player-shell { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-          video { width: 100%; max-width: 100%; max-height: 100%; background: #000; object-fit: contain; }
-          .overlay { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; gap: 12px; }
-          .badge { background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 999px; font-size: 0.95rem; backdrop-filter: blur(6px); max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-          .badge.now-playing { max-width: 100%; }
-          .placeholder { text-align: center; color: #bbb; font-size: 1.2em; max-width: 720px; }
-        </style>
-      </head>
-      <body>
-        <div class="player-shell">
-          <div class="overlay">
-            <div class="badge">Monitor sala da ballo</div>
-            <div class="badge now-playing" id="secondary-now-playing">Nessun brano in riproduzione</div>
-            <div class="badge" id="secondary-status">Video pronto</div>
-          </div>
-          <video id="secondary-video" playsinline preload="auto" controls></video>
-          <div class="placeholder">Seleziona un brano e premi PLAY per avviare il video per i ballerini.</div>
-        </div>
-      </body>
-      </html>`);
-    popup.document.close();
-    return popup;
-  }
 
   loadSecondaryVideo(url) {
-    const popup = this.ensureSecondaryWindow();
-    if (!popup) return;
-
-    try {
-      const video = popup.document.getElementById('secondary-video');
-      if (!video) return;
-      this.currentVideoUrl = url;
-      this.secondaryVideoUrl = url;
-      if (video.getAttribute('src') !== url) {
-        video.setAttribute('src', url);
-      }
-      video.load();
-      video.pause();
-      video.currentTime = 0;
-      const status = popup.document.getElementById('secondary-status');
-      const nowPlaying = popup.document.getElementById('secondary-now-playing');
-      if (status) status.textContent = 'Video pronto';
-      if (nowPlaying) {
-        const title = this.currentBrano?.titolo || 'Nessun brano selezionato';
-        nowPlaying.textContent = title;
-      }
-    } catch (err) {
-      logger.warn('Errore caricando video sul monitor secondario', err);
-    }
+    // Monitor secondario usa VLC: non è necessario precaricare
+    // I file verranno aperti direttamente da VLC quando richiesto
+    this.secondaryVideoUrl = url;
+    logger.debug('Secondary video URL set (will use VLC for playback)');
   }
 
   async playMainVideo() {
@@ -355,86 +291,41 @@ class VideoClipManager {
   }
 
   async playSecondaryVideo() {
-    const popup = this.ensureSecondaryWindow();
     const url = this.currentVideoUrl || this.getCurrentVideoUrl();
-    if (!url) return;
+    if (!url) {
+      logger.debug('No video URL for secondary playback');
+      return;
+    }
 
+    // Monitor secondario: SOLO VLC, niente popup HTML5
     try {
-      const video = popup?.document?.getElementById('secondary-video');
-      if (!video) {
-        await this.launchVlcFallback(url);
-        return;
+      logger.debug('Launching VLC for secondary display');
+      const success = await this.launchVlcFallback(url);
+      if (success) {
+        this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+        logger.info('✓ VLC avviato sul monitor secondario');
+      } else {
+        logger.warn('Impossibile avviare VLC sul monitor secondario');
       }
-
-      const sameBrano = this.currentPlaybackBranoId === this.currentBrano?.id;
-      if (sameBrano && !video.paused && video.currentTime > 0) {
-        return;
-      }
-
-      this.secondaryVideoUrl = url;
-      video.src = url;
-      video.pause();
-      video.currentTime = 0;
-      video.load();
-
-      const status = popup.document.getElementById('secondary-status');
-      const nowPlaying = popup.document.getElementById('secondary-now-playing');
-      if (status) status.textContent = 'Riproduzione avviata';
-      if (nowPlaying) {
-        const title = this.currentBrano?.titolo || 'Nessun brano selezionato';
-        nowPlaying.textContent = title;
-      }
-      // Commented out: popup.focus(); might interfere with main video playback
-      // popup.focus();
-      await this.waitForVideoReady(video);
-      try {
-        await video.play();
-      } catch (playErr) {
-        logger.debug('Secondary video play deferred', playErr);
-        await this.launchVlcFallback(url);
-      }
-      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
     } catch (err) {
-      logger.warn('Errore avviando playback sul monitor secondario', err);
-      await this.launchVlcFallback(url);
+      logger.warn('Errore avviando VLC per monitor secondario', err);
     }
   }
 
   pauseSecondaryVideo() {
-    const popup = this.secondaryWindow;
-    if (!popup || popup.closed) return;
-    try {
-      const video = popup.document.getElementById('secondary-video');
-      video?.pause();
-    } catch (err) {
-      logger.warn('Errore pausa playback sul monitor secondario', err);
-    }
+    // Monitor secondario usa VLC: non abbiamo controllo diretto
+    // La pausa avviene tramite comandi VLC (se implementato)
+    logger.debug('Pausa sul monitor secondario (VLC) - non supportata direttamente');
   }
 
   stopSecondaryVideo() {
-    const popup = this.secondaryWindow;
-    if (!popup || popup.closed) return;
-    try {
-      const video = popup.document.getElementById('secondary-video');
-      if (!video) return;
-      video.pause();
-      video.currentTime = 0;
-    } catch (err) {
-      logger.warn('Errore stop playback sul monitor secondario', err);
-    }
+    // Monitor secondario usa VLC: non abbiamo controllo diretto
+    logger.debug('Stop sul monitor secondario (VLC) - non supportato direttamente');
   }
 
   fullscreenSecondaryVideo() {
-    const popup = this.secondaryWindow;
-    if (!popup || popup.closed) return;
-    try {
-      const video = popup.document.getElementById('secondary-video');
-      if (video?.requestFullscreen) {
-        video.requestFullscreen();
-      }
-    } catch (err) {
-      logger.warn('Errore fullscreen playback sul monitor secondario', err);
-    }
+    // Monitor secondario usa VLC: VLC gestisce il fullscreen automaticamente
+    logger.debug('Fullscreen sul monitor secondario - VLC è già a schermo intero');
   }
 
   getCurrentVideoUrl() {
