@@ -406,7 +406,7 @@ app.get('/api/videoclip/list', (req, res) => {
     }
 });
 
-app.get('/api/videoclip/play-secondary', (req, res) => {
+app.get('/api/videoclip/play-secondary', async (req, res) => {
     try {
         const videoUrl = req.query.url;
         if (!videoUrl) {
