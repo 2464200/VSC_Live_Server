@@ -142,7 +142,7 @@ class BraniEseguitiPage {
 
   setupListeners() {
     document.getElementById('btn-back')?.addEventListener('click', () => {
-      window.location.href = '../../Eventi/public/eventi.html';
+      window.location.href = 'http://localhost:5500/eventi/eventi.html';
     });
 
     document.getElementById('btn-bordero')?.addEventListener('click', () => {
