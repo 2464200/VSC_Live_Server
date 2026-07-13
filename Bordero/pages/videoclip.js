@@ -384,7 +384,8 @@ class VideoClipManager {
         const title = this.currentBrano?.titolo || 'Nessun brano selezionato';
         nowPlaying.textContent = title;
       }
-      popup.focus();
+      // Commented out: popup.focus(); might interfere with main video playback
+      // popup.focus();
       await this.waitForVideoReady(video);
       try {
         await video.play();
@@ -450,8 +451,8 @@ class VideoClipManager {
       return '';
     }
 
-    const syncOrigin = (window.location.protocol + '//' + window.location.hostname + ':5501').replace('://:','://localhost:');
-    return syncOrigin + '/videos/' + encodeURIComponent(matchedFile);
+    // Use relative URL to avoid ORB cross-origin blocking (serve da Unified Server 5500)
+    return '/videos/' + encodeURIComponent(matchedFile);
   }
 
   async waitForVideoReady(video) {
@@ -498,8 +499,8 @@ class VideoClipManager {
 
     if (matchedFile) {
       try {
-        const syncOrigin = (window.location.protocol + '//' + window.location.hostname + ':5501').replace('://:','://localhost:');
-        const url = syncOrigin + '/videos/' + encodeURIComponent(matchedFile);
+        // Use relative URL to avoid ORB cross-origin blocking
+        const url = '/videos/' + encodeURIComponent(matchedFile);
         this.currentVideoUrl = url;
         this.secondaryVideoUrl = url;
         source.src = url;
@@ -656,27 +657,46 @@ class VideoClipManager {
     const playButton = document.getElementById('btn-play');
     if (playButton) {
       playButton.onclick = async (event) => {
-        if (!this.currentBrano) return;
+        if (!this.currentBrano) {
+          logger.warn('[PLAY] No currentBrano selected');
+          return;
+        }
         const mainVideo = document.getElementById('main-video');
         const url = this.currentVideoUrl || this.getCurrentVideoUrl();
-        if (!mainVideo || !url) return;
+        if (!mainVideo || !url) {
+          logger.warn('[PLAY] No video element or URL');
+          return;
+        }
 
         try {
           event.preventDefault();
           event.stopPropagation();
-          mainVideo.pause();
+          logger.debug('[PLAY] Starting playback');
+          
+          // Reset and load
+          mainVideo.src = url;
           mainVideo.currentTime = 0;
           mainVideo.muted = false;
-          mainVideo.src = url;
+          
+          // Wait very briefly for metadata then play immediately
           mainVideo.load();
-          await new Promise(resolve => setTimeout(resolve, 1200));
-          await mainVideo.play();
+          
+          // Try to play immediately without waiting
+          logger.debug('[PLAY] Calling play() immediately');
+          const playPromise = mainVideo.play();
+          if (playPromise !== undefined) {
+            await playPromise;
+            logger.debug('[PLAY] play() Promise resolved');
+          }
+          
           this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+          logger.debug('[PLAY] Playback initiated');
         } catch (playErr) {
-          logger.warn('PLAY button play failed', playErr);
+          logger.warn('[PLAY] Error:', playErr.message || playErr);
         }
 
-        await this.playSecondaryVideo();
+        // Play secondary video in parallel (don't wait for completion)
+        this.playSecondaryVideo().catch(err => logger.warn('[PLAY] Secondary video error', err));
       };
     }
 
