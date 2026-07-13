@@ -234,16 +234,58 @@ class VideoClipManager {
     this.renderLibrary();
   }
 
+  waitMs(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   async launchVlcFallback(url) {
-    try {
-      const response = await fetch('/api/videoclip/play-secondary?url=' + encodeURIComponent(url), { cache: 'no-store' });
-      const payload = await response.json().catch(() => ({}));
-      this.vlcFallbackActive = Boolean(payload.success);
-      return Boolean(payload.success);
-    } catch (err) {
-      logger.warn('Impossibile avviare VLC fallback', err);
-      return false;
+    const host = window.location.hostname || 'localhost';
+    const candidates = [
+      '/api/videoclip/play-secondary',
+      `${window.location.protocol}//${host}:5500/api/videoclip/play-secondary`,
+      'http://localhost:5500/api/videoclip/play-secondary'
+    ];
+
+    const retryDelays = [0, 250, 700];
+
+    for (const endpoint of candidates) {
+      for (const delay of retryDelays) {
+        if (delay > 0) {
+          await this.waitMs(delay);
+        }
+
+        try {
+          const requestUrl = `${endpoint}?url=${encodeURIComponent(url)}`;
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 3000);
+          const response = await fetch(requestUrl, { cache: 'no-store', signal: controller.signal });
+          clearTimeout(timer);
+
+          const payload = await response.json().catch(() => ({}));
+          if (response.ok && payload?.success) {
+            this.vlcFallbackActive = true;
+            logger.debug('VLC fallback avviato da endpoint', { endpoint, delay });
+            return true;
+          }
+
+          logger.warn('Endpoint VLC fallback non riuscito', {
+            endpoint,
+            delay,
+            status: response.status,
+            payload
+          });
+        } catch (err) {
+          logger.warn('Errore endpoint VLC fallback', {
+            endpoint,
+            delay,
+            error: err?.message || err
+          });
+        }
+      }
     }
+
+    this.vlcFallbackActive = false;
+    return false;
   }
 
 
@@ -292,8 +334,12 @@ class VideoClipManager {
 
   async playSecondaryVideo() {
     const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+    const playbackStatus = document.getElementById('secondary-playback-status');
     if (!url) {
       logger.debug('No video URL for secondary playback');
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Nessun video selezionato per il monitor secondario.';
+      }
       return;
     }
 
@@ -304,11 +350,20 @@ class VideoClipManager {
       if (success) {
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         logger.info('✓ VLC avviato sul monitor secondario');
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: avvio VLC riuscito.';
+        }
       } else {
         logger.warn('Impossibile avviare VLC sul monitor secondario');
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Errore avvio VLC sul monitor secondario. Verifica server porta 5500 e installazione VLC.';
+        }
       }
     } catch (err) {
       logger.warn('Errore avviando VLC per monitor secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante l\'avvio VLC sul monitor secondario.';
+      }
     }
   }
 
