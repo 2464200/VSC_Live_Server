@@ -345,18 +345,33 @@ class VideoClipManager {
 
     // Monitor secondario: SOLO VLC, niente popup HTML5
     try {
-      logger.debug('Launching VLC for secondary display');
-      const success = await this.launchVlcFallback(url);
+      logger.debug('Launching/controlling VLC for secondary display');
+      const response = await fetch('/api/videoclip/vlc/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'play', url }),
+        cache: 'no-store'
+      });
+      const payload = await response.json().catch(() => ({}));
+      const success = Boolean(response.ok && payload?.success);
       if (success) {
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         logger.info('✓ VLC avviato sul monitor secondario');
         if (playbackStatus) {
-          playbackStatus.textContent = 'Monitor secondario: avvio VLC riuscito.';
+          playbackStatus.textContent = payload.mode === 'resume'
+            ? 'Monitor secondario: VLC in riproduzione (resume).'
+            : 'Monitor secondario: VLC in riproduzione.';
         }
       } else {
-        logger.warn('Impossibile avviare VLC sul monitor secondario');
-        if (playbackStatus) {
-          playbackStatus.textContent = 'Errore avvio VLC sul monitor secondario. Verifica server porta 5500 e installazione VLC.';
+        // fallback legacy endpoint
+        const fallback = await this.launchVlcFallback(url);
+        if (!fallback) {
+          logger.warn('Impossibile avviare VLC sul monitor secondario', payload);
+          if (playbackStatus) {
+            playbackStatus.textContent = 'Errore avvio VLC sul monitor secondario. Verifica server porta 5500 e installazione VLC.';
+          }
+        } else if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: VLC in riproduzione (fallback).';
         }
       }
     } catch (err) {
@@ -367,15 +382,54 @@ class VideoClipManager {
     }
   }
 
-  pauseSecondaryVideo() {
-    // Monitor secondario usa VLC: non abbiamo controllo diretto
-    // La pausa avviene tramite comandi VLC (se implementato)
-    logger.debug('Pausa sul monitor secondario (VLC) - non supportata direttamente');
+  async pauseSecondaryVideo() {
+    const playbackStatus = document.getElementById('secondary-playback-status');
+    try {
+      const response = await fetch('/api/videoclip/vlc/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'pause' }),
+        cache: 'no-store'
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.success) {
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: VLC in pausa/ripresa.';
+        }
+      } else if (playbackStatus) {
+        playbackStatus.textContent = 'Monitor secondario: pausa VLC non riuscita.';
+      }
+    } catch (err) {
+      logger.warn('Errore pausa VLC secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante la pausa VLC sul monitor secondario.';
+      }
+    }
   }
 
-  stopSecondaryVideo() {
-    // Monitor secondario usa VLC: non abbiamo controllo diretto
-    logger.debug('Stop sul monitor secondario (VLC) - non supportato direttamente');
+  async stopSecondaryVideo() {
+    const playbackStatus = document.getElementById('secondary-playback-status');
+    try {
+      const response = await fetch('/api/videoclip/vlc/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop' }),
+        cache: 'no-store'
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.success) {
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: VLC fermato.';
+        }
+      } else if (playbackStatus) {
+        playbackStatus.textContent = 'Monitor secondario: stop VLC non riuscito.';
+      }
+    } catch (err) {
+      logger.warn('Errore stop VLC secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante lo stop VLC sul monitor secondario.';
+      }
+    }
   }
 
   fullscreenSecondaryVideo() {

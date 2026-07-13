@@ -13,6 +13,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const net = require('net');
 const os = require('os');
 const QRCodeLib = require('qrcode');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
@@ -27,6 +28,110 @@ let chromeProcess = null;
 // Mappa dei viewer avviati: pid -> { file, startedAt }
 let openedViewers = {};
 const OPENED_VIEWERS_FILE = path.join(__dirname, 'pdf', 'config', 'opened-viewers.json');
+
+// Stato VLC per monitor secondario (controllo remoto)
+const VLC_RC_HOST = '127.0.0.1';
+const VLC_RC_PORT = process.env.VLC_RC_PORT ? parseInt(process.env.VLC_RC_PORT, 10) : 4212;
+let vlcProcess = null;
+let vlcSocket = null;
+let vlcCurrentFile = '';
+
+function isVlcAlive() {
+    if (!vlcProcess || !vlcProcess.pid) return false;
+    try {
+        process.kill(vlcProcess.pid, 0);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+function resetVlcState() {
+    if (vlcSocket) {
+        try { vlcSocket.destroy(); } catch (_) {}
+    }
+    vlcSocket = null;
+    vlcProcess = null;
+    vlcCurrentFile = '';
+}
+
+function resolveVideoPath(videoUrl) {
+    const parsed = new URL(videoUrl, 'http://localhost');
+    const relativePath = parsed.pathname.replace(/^\/videos\//i, '');
+    const fileName = decodeURIComponent(relativePath);
+    return path.join(VIDEOCLIP_DIR, fileName);
+}
+
+function openVlcRcSocket(timeoutMs = 3000) {
+    if (vlcSocket && !vlcSocket.destroyed) {
+        return Promise.resolve(vlcSocket);
+    }
+
+    return new Promise((resolve, reject) => {
+        const socket = net.createConnection({ host: VLC_RC_HOST, port: VLC_RC_PORT }, () => {
+            vlcSocket = socket;
+            resolve(socket);
+        });
+
+        socket.setTimeout(timeoutMs);
+        socket.once('error', (err) => {
+            try { socket.destroy(); } catch (_) {}
+            reject(err);
+        });
+        socket.once('timeout', () => {
+            try { socket.destroy(); } catch (_) {}
+            reject(new Error('VLC RC socket timeout'));
+        });
+        socket.on('close', () => {
+            if (vlcSocket === socket) vlcSocket = null;
+        });
+    });
+}
+
+async function sendVlcCommand(command) {
+    const socket = await openVlcRcSocket();
+    return new Promise((resolve, reject) => {
+        socket.write(`${command}\n`, (err) => {
+            if (err) reject(err);
+            else resolve(true);
+        });
+    });
+}
+
+async function launchVlcForSecondary(fullPath) {
+    // Evita processi multipli: chiudi VLC precedente se ancora vivo
+    if (isVlcAlive()) {
+        try {
+            await sendVlcCommand('quit');
+        } catch (_) {
+            try { spawn('taskkill', ['/PID', String(vlcProcess.pid), '/T', '/F']); } catch (_) {}
+        }
+    }
+    resetVlcState();
+
+    const vlcPath = process.env.VLC_PATH || 'C:/Program Files/VideoLAN/VLC/vlc.exe';
+    const vlcArgs = [
+        '--fullscreen',
+        '--play-and-exit',
+        '--no-loop',
+        '--no-repeat',
+        '--extraintf', 'rc',
+        '--rc-host', `${VLC_RC_HOST}:${VLC_RC_PORT}`,
+        '--rc-quiet',
+        fullPath
+    ];
+
+    const child = spawn(vlcPath, vlcArgs, { detached: true, stdio: 'ignore' });
+    child.unref();
+    vlcProcess = child;
+    vlcCurrentFile = fullPath;
+
+    child.on('exit', () => {
+        resetVlcState();
+    });
+
+    return { vlcPath, vlcArgs };
+}
 
 // ===== CONFIGURAZIONE SSE =====
 const SSE_CONFIG = {
@@ -308,23 +413,76 @@ app.get('/api/videoclip/play-secondary', (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing url parameter' });
         }
 
-        const parsed = new URL(videoUrl, 'http://localhost');
-        const relativePath = parsed.pathname.replace(/^\/videos\//i, '');
-        const fileName = decodeURIComponent(relativePath);
-        const fullPath = path.join(VIDEOCLIP_DIR, fileName);
+        const fullPath = resolveVideoPath(videoUrl);
 
         if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
             return res.status(404).json({ success: false, error: 'Video file not found', filePath: fullPath });
         }
 
-        const vlcPath = process.env.VLC_PATH || 'C:/Program Files/VideoLAN/VLC/vlc.exe';
-        const vlcArgs = ['--fullscreen', '--play-and-exit', '--no-loop', '--no-repeat', fullPath];
-        const child = spawn(vlcPath, vlcArgs, { detached: true, stdio: 'ignore' });
-        child.unref();
+        const { vlcPath, vlcArgs } = await launchVlcForSecondary(fullPath);
 
         return res.json({ success: true, filePath: fullPath, vlcPath, vlcArgs });
     } catch (error) {
         console.error('Errore avviando fallback VLC:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/videoclip/vlc/control', async (req, res) => {
+    try {
+        const action = String(req.body?.action || '').toLowerCase();
+        const videoUrl = req.body?.url || '';
+
+        if (!action) {
+            return res.status(400).json({ success: false, error: 'Missing action' });
+        }
+
+        if (action === 'play') {
+            if (videoUrl) {
+                const fullPath = resolveVideoPath(videoUrl);
+                if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+                    return res.status(404).json({ success: false, error: 'Video file not found', filePath: fullPath });
+                }
+
+                if (isVlcAlive() && vlcCurrentFile === fullPath) {
+                    try {
+                        await sendVlcCommand('play');
+                        return res.json({ success: true, action, mode: 'resume', filePath: vlcCurrentFile });
+                    } catch (_) {
+                        // fallback a relaunch se il canale RC non risponde
+                    }
+                }
+
+                const launched = await launchVlcForSecondary(fullPath);
+                return res.json({ success: true, action, mode: 'launch', filePath: fullPath, vlcPath: launched.vlcPath, vlcArgs: launched.vlcArgs });
+            }
+
+            if (!isVlcAlive()) {
+                return res.status(400).json({ success: false, error: 'No running VLC instance and no URL provided' });
+            }
+
+            await sendVlcCommand('play');
+            return res.json({ success: true, action, mode: 'resume', filePath: vlcCurrentFile });
+        }
+
+        if (!isVlcAlive()) {
+            return res.status(400).json({ success: false, error: 'No running VLC instance' });
+        }
+
+        if (action === 'pause') {
+            await sendVlcCommand('pause');
+            return res.json({ success: true, action, filePath: vlcCurrentFile });
+        }
+
+        if (action === 'stop') {
+            try { await sendVlcCommand('stop'); } catch (_) {}
+            try { await sendVlcCommand('quit'); } catch (_) {}
+            return res.json({ success: true, action, filePath: vlcCurrentFile });
+        }
+
+        return res.status(400).json({ success: false, error: `Unsupported action: ${action}` });
+    } catch (error) {
+        console.error('Errore controllo VLC secondario:', error);
         return res.status(500).json({ success: false, error: error.message });
     }
 });
