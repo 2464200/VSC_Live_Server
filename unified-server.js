@@ -257,6 +257,11 @@ async function forceKillVlc() {
         } else {
             await execFileAsync('taskkill', ['/IM', 'vlc.exe', '/T', '/F']);
         }
+    } catch (error) {
+        const details = `${error?.message || ''}\n${error?.stdout || ''}\n${error?.stderr || ''}`;
+        if (!/not found|non trovato|nessuna istanza|no running instance|cannot find/i.test(details)) {
+            throw error;
+        }
     } finally {
         resetVlcState();
     }
