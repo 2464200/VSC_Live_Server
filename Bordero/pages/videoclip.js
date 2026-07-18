@@ -701,15 +701,11 @@ class VideoClipManager {
     }
 
     document.getElementById('btn-pause').addEventListener('click', () => {
-      if (this.currentBrano) {
-        this.pauseSecondaryVideo();
-      }
+      this.pauseSecondaryVideo();
     });
 
     document.getElementById('btn-stop').addEventListener('click', () => {
-      if (this.currentBrano) {
-        this.stopSecondaryVideo();
-      }
+      this.stopSecondaryVideo();
     });
 
     document.getElementById('btn-fullscreen').addEventListener('click', () => {

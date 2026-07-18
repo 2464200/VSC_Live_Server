@@ -12,7 +12,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
+const { spawn, execFile } = require('child_process');
 const net = require('net');
 const os = require('os');
 const QRCodeLib = require('qrcode');
@@ -62,6 +62,20 @@ function resolveVideoPath(videoUrl) {
     return path.join(VIDEOCLIP_DIR, fileName);
 }
 
+function execFileAsync(command, args, options = {}) {
+    return new Promise((resolve, reject) => {
+        execFile(command, args, { windowsHide: true, ...options }, (error, stdout, stderr) => {
+            if (error) {
+                error.stdout = stdout;
+                error.stderr = stderr;
+                reject(error);
+                return;
+            }
+            resolve({ stdout, stderr });
+        });
+    });
+}
+
 function openVlcRcSocket(timeoutMs = 3000) {
     if (vlcSocket && !vlcSocket.destroyed) {
         return Promise.resolve(vlcSocket);
@@ -98,6 +112,75 @@ async function sendVlcCommand(command) {
     });
 }
 
+async function pauseVlcViaWindow() {
+    if (!isVlcAlive() || !vlcProcess?.pid) {
+        throw new Error('No running VLC instance');
+    }
+
+    const psCommand = [
+        'Add-Type -AssemblyName System.Windows.Forms',
+        '$wshell = New-Object -ComObject WScript.Shell',
+        `$activated = $wshell.AppActivate(${vlcProcess.pid})`,
+        'if (-not $activated) { exit 1 }',
+        '[System.Windows.Forms.SendKeys]::SendWait(" ")'
+    ].join('; ');
+
+    await execFileAsync('powershell.exe', [
+        '-NoProfile',
+        '-NonInteractive',
+        '-ExecutionPolicy', 'Bypass',
+        '-Command', psCommand
+    ]);
+
+    return { transport: 'window' };
+}
+
+async function pauseVlcPlayback() {
+    try {
+        await sendVlcCommand('pause');
+        return { transport: 'rc' };
+    } catch (rcError) {
+        const fallback = await pauseVlcViaWindow();
+        return { ...fallback, fallbackFrom: rcError.message };
+    }
+}
+
+async function forceKillVlc() {
+    if (!vlcProcess?.pid) {
+        resetVlcState();
+        return { transport: 'none' };
+    }
+
+    try {
+        await execFileAsync('taskkill', ['/PID', String(vlcProcess.pid), '/T', '/F']);
+    } finally {
+        resetVlcState();
+    }
+
+    return { transport: 'taskkill' };
+}
+
+async function stopVlcPlayback() {
+    let lastError = null;
+
+    try {
+        await sendVlcCommand('stop');
+    } catch (error) {
+        lastError = error;
+    }
+
+    try {
+        await sendVlcCommand('quit');
+        resetVlcState();
+        return { transport: lastError ? 'rc-quit-after-stop-failure' : 'rc' };
+    } catch (error) {
+        lastError = error;
+    }
+
+    const forced = await forceKillVlc();
+    return { ...forced, fallbackFrom: lastError?.message || '' };
+}
+
 async function launchVlcForSecondary(fullPath) {
     // Evita processi multipli: chiudi VLC precedente se ancora vivo
     if (isVlcAlive()) {
@@ -113,6 +196,7 @@ async function launchVlcForSecondary(fullPath) {
     const vlcArgs = [
         '--fullscreen',
         '--play-and-exit',
+        '--no-video-title-show',
         '--no-loop',
         '--no-repeat',
         '--extraintf', 'rc',
@@ -470,14 +554,13 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
         }
 
         if (action === 'pause') {
-            await sendVlcCommand('pause');
-            return res.json({ success: true, action, filePath: vlcCurrentFile });
+            const result = await pauseVlcPlayback();
+            return res.json({ success: true, action, filePath: vlcCurrentFile, transport: result.transport });
         }
 
         if (action === 'stop') {
-            try { await sendVlcCommand('stop'); } catch (_) {}
-            try { await sendVlcCommand('quit'); } catch (_) {}
-            return res.json({ success: true, action, filePath: vlcCurrentFile });
+            const result = await stopVlcPlayback();
+            return res.json({ success: true, action, filePath: vlcCurrentFile, transport: result.transport });
         }
 
         return res.status(400).json({ success: false, error: `Unsupported action: ${action}` });
