@@ -23,6 +23,7 @@ class BorderoTableManager {
     this.locationData = [];
     this.activeFilterPicker = null;
     this.filterButtonClickTimers = new Map();
+    this.sortButtonClickTimers = new Map();
 
     // Serata info
     this.serata = {
@@ -278,6 +279,11 @@ class BorderoTableManager {
 
     // Luogo: scelta a cascata
     this.setupLocationPicker();
+
+    const eventoInput = document.getElementById('evento-text');
+    if (eventoInput) {
+      eventoInput.value = this.serata.evento || '';
+    }
 
     // Evento libero
     document.getElementById('evento-text')?.addEventListener('input', (e) => {
@@ -591,9 +597,9 @@ class BorderoTableManager {
     this.setupFilterValuePicker();
 
     // Sort buttons (esclusivi)
-    document.getElementById('btn-sort-id')?.addEventListener('click', () => this.sortBy('id'));
-    document.getElementById('btn-sort-genere')?.addEventListener('click', () => this.sortBy('genere'));
-    document.getElementById('btn-sort-autore')?.addEventListener('click', () => this.sortBy('autore'));
+    this.bindSortButton('btn-sort-id', 'id', 'ID');
+    this.bindSortButton('btn-sort-genere', 'genere', 'GENERE');
+    this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
     this.setupColumnHeaderSorting();
     document.getElementById('btn-move-executed-bottom')?.addEventListener('click', () => this.moveExecutedToBottom());
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
@@ -709,6 +715,62 @@ class BorderoTableManager {
 
       this.clearSingleColumnFilter(field, label);
     });
+  }
+
+  bindSortButton(buttonId, field, label) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+
+    button.addEventListener('click', () => {
+      const existingTimer = this.sortButtonClickTimers.get(buttonId);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+      }
+
+      const timer = setTimeout(() => {
+        this.sortButtonClickTimers.delete(buttonId);
+        this.sortBy(field);
+      }, 220);
+
+      this.sortButtonClickTimers.set(buttonId, timer);
+    });
+
+    button.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+
+      const existingTimer = this.sortButtonClickTimers.get(buttonId);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+        this.sortButtonClickTimers.delete(buttonId);
+      }
+
+      this.resetSingleSort(field, label);
+    });
+  }
+
+  resetSingleSort(field, label = field) {
+    if (this.currentSort !== field) {
+      Toast.info(`Sort ${label} non attivo`);
+      return;
+    }
+
+    this.currentSort = null;
+    this.currentSortDirection = 'asc';
+    this.lastHeaderSortField = null;
+
+    const natural = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+    if (this.keepExecutedAtBottom) {
+      const pending = natural.filter(item => !this.isExecutedBrano(item));
+      const executed = natural.filter(item => this.isExecutedBrano(item));
+      this.allBrani = [...pending, ...executed];
+    } else {
+      this.allBrani = natural;
+    }
+
+    this.updateSortButtons();
+    this.updateColumnHeaderSortState();
+    this.applyFilters();
+    Toast.info(`Sort ${label} resettato`);
   }
 
   clearSingleColumnFilter(field, label = field) {
