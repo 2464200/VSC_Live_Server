@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Location</title>
+
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="location.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous" onerror="this.onerror=null; this.src='../assets/lib/xlsx.min.js'"></script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="location.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERÒ - Location</h1>
+        <p class="app-subtitle">Gestione completa delle location evento da foglio Excel Location</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Location</span>
+    </nav>
+
+    <section class="location-toolbar">
+      <div class="toolbar-block">
+        <label for="filter-field">Campo filtro</label>
+        <select id="filter-field" class="select-input"></select>
+      </div>
+      <div class="toolbar-block">
+        <label for="filter-value">Valore filtro</label>
+        <select id="filter-value" class="select-input">
+          <option value="">Tutti i valori</option>
+        </select>
+      </div>
+      <div class="toolbar-block toolbar-search">
+        <label for="search-term">Ricerca libera</label>
+        <input id="search-term" class="input-text" type="text" placeholder="Cerca per evento, localita, referente, indirizzo..." />
+      </div>
+      <div class="toolbar-actions">
+        <button id="btn-reset-filters" class="btn btn-secondary">Reset filtri</button>
+        <button id="btn-sync-location" class="btn btn-primary">Sync Location da Excel</button>
+        <button id="btn-export-location" class="btn btn-secondary">Esporta CSV</button>
+      </div>
+    </section>
+
+    <section class="location-stats">
+      <div class="stat-badge">
+        <span class="stat-label">Record totali:</span>
+        <span class="stat-value" id="stat-total-records">0</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Record filtrati:</span>
+        <span class="stat-value" id="stat-filtered-records">0</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Record selezionato:</span>
+        <span class="stat-value" id="stat-selected-record">--</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Contatore:</span>
+        <span class="stat-value" id="record-counter">0 / 0</span>
+      </div>
+    </section>
+
+    <main class="location-layout">
+      <section class="location-list-panel">
+        <div class="panel-header">
+          <h2>Elenco Location</h2>
+          <span id="list-caption">Filtro attivo su tutti i record</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="location-table">
+            <thead>
+              <tr>
+                <th>Riga</th>
+                <th>Nome Evento</th>
+                <th>Localita</th>
+                <th>Valore filtro</th>
+              </tr>
+            </thead>
+            <tbody id="location-list-body">
+              <tr>
+                <td colspan="4" class="empty-row">Caricamento dati...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="location-form-panel">
+        <div class="panel-header">
+          <h2>Scheda Location</h2>
+          <span>Replica funzionale di frmPAGINA11</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="info-field">
+            <label for="record-id">Riga Excel</label>
+            <input id="record-id" class="input-text" type="text" readonly />
+          </div>
+          <div class="info-field field-span-2">
+            <label for="nome-evento">Nome Evento</label>
+            <input id="nome-evento" class="input-text" type="text" />
+          </div>
+
+          <div class="info-field">
+            <label for="localita">Localita</label>
+            <input id="localita" class="input-text" type="text" />
+          </div>
+          <div class="info-field">
+            <label for="tipo-struttura">Tipo Struttura</label>
+            <input id="tipo-struttura" class="input-text" type="text" />
+          </div>
+          <div class="info-field">
+            <label for="btn-struttura-coperta">Struttura Coperta</label>
+            <button type="button" id="btn-struttura-coperta" class="popup-picker-btn" data-popup-field="struttura_coperta">Seleziona...</button>
+            <input id="struttura-coperta" type="hidden" />
+          </div>
+
+          <div class="info-field">
+            <label for="btn-provincia">Provincia</label>
+            <button type="button" id="btn-provincia" class="popup-picker-btn" data-popup-field="provincia">Seleziona...</button>
+            <input id="provincia" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="btn-paese">Paese</label>
+            <button type="button" id="btn-paese" class="popup-picker-btn" data-popup-field="paese">Seleziona prima la provincia...</button>
+            <input id="paese" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="indirizzo">Indirizzo</label>
+            <input id="indirizzo" class="input-text" type="text" />
+          </div>
+
+          <div class="info-field">
+            <label for="civico">Civico</label>
+            <input id="civico" class="input-text" type="text" />
+          </div>
+          <div class="info-field">
+            <label for="referente">Referente</label>
+            <input id="referente" class="input-text" type="text" />
+          </div>
+          <div class="info-field">
+            <label for="cell-referente">Cell Referente</label>
+            <input id="cell-referente" class="input-text" type="text" />
+          </div>
+
+          <div class="info-field">
+            <label for="btn-tipo-pista">Tipo Pista</label>
+            <button type="button" id="btn-tipo-pista" class="popup-picker-btn" data-popup-field="tipo_pista">Seleziona...</button>
+            <input id="tipo-pista" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="btn-tipo-prese-corrente">Tipo Prese Corrente</label>
+            <button type="button" id="btn-tipo-prese-corrente" class="popup-picker-btn" data-popup-field="tipo_prese_corrente">Seleziona...</button>
+            <input id="tipo-prese-corrente" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="btn-impianto-audio">Impianto Audio</label>
+            <button type="button" id="btn-impianto-audio" class="popup-picker-btn" data-popup-field="impianto_audio">Seleziona...</button>
+            <input id="impianto-audio" type="hidden" />
+          </div>
+
+          <div class="info-field">
+            <label for="btn-impianto-luci">Impianto Luci</label>
+            <button type="button" id="btn-impianto-luci" class="popup-picker-btn" data-popup-field="impianto_luci">Seleziona...</button>
+            <input id="impianto-luci" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="btn-service">Service</label>
+            <button type="button" id="btn-service" class="popup-picker-btn" data-popup-field="service">Seleziona...</button>
+            <input id="service" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="btn-palco-dj">Palco DJ</label>
+            <button type="button" id="btn-palco-dj" class="popup-picker-btn" data-popup-field="palco_dj">Seleziona...</button>
+            <input id="palco-dj" type="hidden" />
+          </div>
+
+          <div class="info-field">
+            <label for="btn-palco-ballerini">Palco Ballerini</label>
+            <button type="button" id="btn-palco-ballerini" class="popup-picker-btn" data-popup-field="palco_ballerini">Seleziona...</button>
+            <input id="palco-ballerini" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="btn-parcheggio">Parcheggio</label>
+            <button type="button" id="btn-parcheggio" class="popup-picker-btn" data-popup-field="parcheggio">Seleziona...</button>
+            <input id="parcheggio" type="hidden" />
+          </div>
+          <div class="info-field">
+            <label for="btn-bar-ristoro">Bar Ristoro</label>
+            <button type="button" id="btn-bar-ristoro" class="popup-picker-btn" data-popup-field="bar_ristoro">Seleziona...</button>
+            <input id="bar-ristoro" type="hidden" />
+          </div>
+
+          <div class="info-field">
+            <label for="btn-toilette">Toilette</label>
+            <button type="button" id="btn-toilette" class="popup-picker-btn" data-popup-field="toilette">Seleziona...</button>
+            <input id="toilette" type="hidden" />
+          </div>
+        </div>
+
+        <div class="form-actions primary-actions">
+          <button id="btn-nuovo" class="btn btn-secondary">Nuovo</button>
+          <button id="btn-salva" class="btn btn-primary">Salva</button>
+          <button id="btn-modifica" class="btn btn-primary">Modifica</button>
+          <button id="btn-elimina" class="btn btn-danger">Elimina</button>
+        </div>
+
+        <div class="form-actions secondary-actions">
+          <button id="btn-precedente" class="btn btn-secondary">Precedente</button>
+          <button id="btn-successivo" class="btn btn-secondary">Successivo</button>
+          <button id="btn-chiudi" class="btn btn-secondary">Chiudi</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="value-picker-modal" class="value-picker-modal" hidden>
+    <div class="value-picker-content">
+      <div class="value-picker-header">
+        <h3 id="value-picker-title">Seleziona valore</h3>
+        <button type="button" id="value-picker-close" class="value-picker-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="value-picker-body">
+        <input type="search" id="value-picker-search" class="value-picker-search" placeholder="Cerca valore..." />
+        <div id="value-picker-options" class="value-picker-options"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+</body>
+</html>

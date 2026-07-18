@@ -78,10 +78,12 @@ class AdminPanel {
       const braniCount = Storage.get('BORDERO_BRANI_DATA')?.length || 0;
       const comuniCount = Storage.get('BORDERO_COMUNI_DATA')?.length || 0;
       const dbaseCount = Storage.get('BORDERO_DBASE_DATA')?.length || 0;
+      const locationCount = Storage.get('BORDERO_LOCATION_DATA')?.length || 0;
 
       document.getElementById('sync-brani-status').textContent = `${braniCount} brani cached`;
       document.getElementById('sync-comuni-status').textContent = `${comuniCount} comuni cached`;
       document.getElementById('sync-dbase-status').textContent = `${dbaseCount} DJ cached`;
+      document.getElementById('sync-location-status').textContent = `${locationCount} location cached`;
       void this.refreshDataViewer();
     };
 
@@ -165,6 +167,30 @@ class AdminPanel {
         this.log(`❌ Errore sync dBase: ${error.message}`, 'error');
         this.addSyncLog(`Errore sync dBase: ${error.message}`, 'error');
         Toast.error('Errore sincronizzazione dBase');
+      }
+    });
+
+    document.getElementById('btn-sync-location').addEventListener('click', async () => {
+      this.log('🔄 Sincronizzando Location dal file Excel selezionato...', 'warn');
+      this.addSyncLog('Avvio sync Location da file Excel...', 'info');
+      if (!excelSync.excelFile) {
+        this.log('⚠️ Nessun file selezionato. Seleziona il file prima.', 'error');
+        this.addSyncLog('Nessun file Excel selezionato per Location.', 'error');
+        Toast.warning('Seleziona il file Excel prima');
+        return;
+      }
+      try {
+        const arrayBuffer = await excelSync.excelFile.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        await excelSync.syncLocation(workbook);
+        updateStatus();
+        this.log('✓ Location sincronizzate con successo', 'success');
+        this.addSyncLog('Location sincronizzate con successo.', 'success');
+        Toast.success('✓ Location sincronizzate');
+      } catch (error) {
+        this.log(`❌ Errore sync Location: ${error.message}`, 'error');
+        this.addSyncLog(`Errore sync Location: ${error.message}`, 'error');
+        Toast.error('Errore sincronizzazione Location');
       }
     });
 
@@ -281,6 +307,18 @@ class AdminPanel {
         }
         break;
       }
+      case 'location': {
+        data = Storage.get('BORDERO_LOCATION_DATA');
+        if (!Array.isArray(data) || data.length === 0) {
+          if (typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.loadLocations === 'function') {
+            data = await window.dataLoader.loadLocations();
+          } else {
+            const loader = new DataLoader();
+            data = await loader.loadLocations();
+          }
+        }
+        break;
+      }
       case 'serata':
         data = Storage.get('BORDERO_CURRENT_SERATA');
         break;
@@ -325,7 +363,24 @@ class AdminPanel {
         </table>`;
     }
 
-    if ((type === 'comuni' || type === 'dbase') && Array.isArray(data)) {
+    if ((type === 'comuni' || type === 'dbase' || type === 'location') && Array.isArray(data)) {
+      if (type === 'location') {
+        const rows = data.slice(0, 20).map((item) => `
+          <tr>
+            <td>${this.escapeHtml(item.nome_evento || '')}</td>
+            <td>${this.escapeHtml(item.localita || '')}</td>
+            <td>${this.escapeHtml(item.provincia || '')}</td>
+            <td>${this.escapeHtml(item.referente || '')}</td>
+          </tr>`).join('');
+
+        return `
+          <div class="data-viewer-summary">${data.length} location caricate • anteprima 20 righe</div>
+          <table class="data-viewer-table">
+            <thead><tr><th>Evento</th><th>Localita</th><th>Provincia</th><th>Referente</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>`;
+      }
+
       const rows = data.slice(0, 20).map((item) => {
         const name = item.nome || item.name || item.Nome || '';
         const extra = Object.entries(item)
@@ -382,6 +437,12 @@ class AdminPanel {
     document.getElementById('btn-clear-dbase-cache').addEventListener('click', () => {
       localStorage.removeItem('BORDERO_DBASE_DATA');
       this.log('✓ dBase cache cleared', 'success');
+    });
+
+    document.getElementById('btn-clear-location-cache').addEventListener('click', () => {
+      localStorage.removeItem('BORDERO_LOCATION_DATA');
+      localStorage.removeItem(BORDERO_CONFIG.CACHE_KEY_LOCATION);
+      this.log('✓ Location cache cleared', 'success');
     });
 
     document.getElementById('btn-clear-serata-cache').addEventListener('click', () => {

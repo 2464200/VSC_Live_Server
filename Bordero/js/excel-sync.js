@@ -6,6 +6,7 @@
  * - "Elenco Brani (statico)" → brani.csv
  * - "Comuni Italia" → comuni_italia.csv
  * - "dBase" → dBase.csv
+ * - "Location" → location.csv
  */
 
 class ExcelSync {
@@ -178,10 +179,11 @@ class ExcelSync {
       logger.info(`Excel aperto: ${workbook.SheetNames.length} fogli trovati`);
       logger.info(`Fogli: ${workbook.SheetNames.join(', ')}`);
 
-      // Sincronizza i tre fogli
+      // Sincronizza i fogli dati
       await this.syncBrani(workbook);
       await this.syncComuni(workbook);
       await this.syncDBase(workbook);
+      await this.syncLocation(workbook);
 
       this.lastSync = DateUtils.now();
       Storage.set('BORDERO_LAST_EXCEL_SYNC', this.lastSync);
@@ -421,10 +423,18 @@ class ExcelSync {
       // Salva in cache
       Storage.set('BORDERO_DBASE_DATA', data);
       logger.info(`✅ Sincronizzati ${data.length} DJ in cache localStorage`);
+
+      const popupOptionRows = this.buildLocationPopupOptionRows(worksheet);
+      Storage.set('BORDERO_LOCATION_OPTION_ROWS', popupOptionRows);
+      Storage.set(BORDERO_CONFIG.CACHE_KEY_LOCATION_OPTIONS, this.buildLocationPopupOptionsObject(popupOptionRows));
+      logger.info(`✅ Sincronizzate ${popupOptionRows.length} righe opzioni popup Location da dBase`);
+
       this.notifyDataUpdated('dbase');
+      this.notifyDataUpdated('location-options');
       
       // Sincronizza su disco via server Node.js
       await this.syncToDisk('dbase', data);
+      await this.syncToDisk('location-options', popupOptionRows);
       
       Toast.success(`✅ ${data.length} DJ sincronizzati su disco`);
 
@@ -432,6 +442,150 @@ class ExcelSync {
     } catch (error) {
       logger.error('❌ Errore sync dBase', error);
       Toast.error(`❌ Errore sincronizzazione dBase: ${error.message}`);
+      return false;
+    }
+  }
+
+  buildLocationPopupOptionsObject(optionRows) {
+    const pushUnique = (array, value) => {
+      if (!value || array.includes(value)) return;
+      array.push(value);
+    };
+
+    const options = {
+      yesNo: [],
+      tipoPista: [],
+      tipoPreseCorrente: [],
+      province: [],
+      paesiByProvincia: {},
+    };
+
+    optionRows.forEach((row) => {
+      const group = String(row.group || '').trim();
+      const parent = String(row.parent || '').trim();
+      const value = String(row.value || '').trim();
+      if (!group || !value) return;
+
+      if (group === 'yesNo') pushUnique(options.yesNo, value);
+      if (group === 'tipoPista') pushUnique(options.tipoPista, value);
+      if (group === 'tipoPreseCorrente') pushUnique(options.tipoPreseCorrente, value);
+      if (group === 'province') pushUnique(options.province, value);
+      if (group === 'paese') {
+        if (!options.paesiByProvincia[parent]) options.paesiByProvincia[parent] = [];
+        pushUnique(options.paesiByProvincia[parent], value);
+      }
+    });
+
+    return options;
+  }
+
+  buildLocationPopupOptionRows(worksheet) {
+    const grid = XLSX.utils.sheet_to_json(worksheet, {
+      header: 1,
+      defval: '',
+      blankrows: true,
+      raw: false,
+    });
+
+    const getCell = (row, col) => String(grid[row - 1]?.[col - 1] ?? '').trim();
+    const rows = [];
+    const addRows = (group, values, parent = '') => {
+      values
+        .map(value => String(value || '').trim())
+        .filter(Boolean)
+        .forEach((value) => rows.push({ group, parent, value }));
+    };
+
+    const readColumnValues = (startRow, endRow, col) => {
+      const values = [];
+      for (let row = startRow; row <= endRow; row += 1) {
+        const value = getCell(row, col);
+        if (value) values.push(value);
+      }
+      return values;
+    };
+
+    const yesNo = readColumnValues(154, 159, 1);
+    const tipoPista = readColumnValues(164, 186, 1);
+    const tipoPreseCorrente = readColumnValues(191, 199, 1);
+    const provinces = readColumnValues(154, 247, 5);
+
+    addRows('yesNo', yesNo);
+    addRows('tipoPista', tipoPista);
+    addRows('tipoPreseCorrente', tipoPreseCorrente);
+    addRows('province', provinces);
+
+    const headerRow = 153;
+    const maxColumns = Math.max(...grid.map((row) => Array.isArray(row) ? row.length : 0), 0);
+    for (let col = 6; col <= maxColumns; col += 1) {
+      const province = getCell(headerRow, col);
+      if (!province) continue;
+
+      const paesi = [];
+      for (let row = 154; row <= 396; row += 1) {
+        const value = getCell(row, col);
+        if (value) paesi.push(value);
+      }
+
+      addRows('paese', paesi, province);
+    }
+
+    return rows;
+  }
+
+  /**
+   * Sincronizza il foglio "Location" → location.csv
+   */
+  async syncLocation(workbook) {
+    try {
+      let sheetName = 'Location';
+      logger.info(`📖 Cercando foglio: "${sheetName}"`);
+
+      if (!workbook.SheetNames.includes(sheetName)) {
+        const found = workbook.SheetNames.find(name => /location/i.test(name));
+        if (found) {
+          sheetName = found;
+          logger.info(`✅ Trovato foglio alternativo: "${sheetName}"`);
+        } else {
+          logger.warn('⚠️ Foglio "Location" non trovato');
+          return false;
+        }
+      }
+
+      const worksheet = workbook.Sheets[sheetName];
+      if (!worksheet) {
+        logger.error(`❌ Worksheet NULL per foglio "${sheetName}"`);
+        return false;
+      }
+
+      let data = XLSX.utils.sheet_to_json(worksheet, {
+        defval: '',
+        blankrows: false,
+        raw: false,
+      });
+
+      logger.info(`📊 Dati letti dal foglio Location: ${data.length} righe`);
+
+      data = data.filter((row) => Object.values(row).some(value => String(value || '').trim() !== ''));
+
+      if (data.length === 0) {
+        logger.warn('⚠️ Nessun dato nel foglio Location');
+        return false;
+      }
+
+      Storage.set('BORDERO_LOCATION_DATA', data);
+      Storage.set(BORDERO_CONFIG.CACHE_KEY_LOCATION, data);
+      logger.info(`✅ Sincronizzate ${data.length} location in cache localStorage`);
+      this.notifyDataUpdated('location');
+
+      await this.syncToDisk('location', data);
+
+      Toast.success(`✅ ${data.length} location sincronizzate su disco`);
+
+      return true;
+    } catch (error) {
+      logger.error('❌ Errore sync Location', error);
+      Toast.error(`❌ Errore sincronizzazione Location: ${error.message}`);
       return false;
     }
   }
@@ -532,6 +686,10 @@ class ExcelSync {
 
   getCachedDBase() {
     return Storage.get('BORDERO_DBASE_DATA') || [];
+  }
+
+  getCachedLocation() {
+    return Storage.get('BORDERO_LOCATION_DATA') || [];
   }
 }
 

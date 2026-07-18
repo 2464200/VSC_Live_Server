@@ -234,6 +234,131 @@ class DataLoader {
     return unique;
   }
 
+  normalizeLocationRecord(locationRecord) {
+    if (!locationRecord || typeof locationRecord !== 'object') {
+      return null;
+    }
+
+    const getFirstValue = (...values) => {
+      for (const value of values) {
+        if (value !== null && value !== undefined) {
+          const text = String(value).trim();
+          if (text) return text;
+        }
+      }
+      return '';
+    };
+
+    const normalized = {
+      nome_evento: getFirstValue(locationRecord.nome_evento, locationRecord.Nome_evento, locationRecord['Nome_evento']),
+      localita: getFirstValue(locationRecord.localita, locationRecord.Localita, locationRecord['Località'], locationRecord['Localita'], locationRecord['Località']),
+      tipo_struttura: getFirstValue(locationRecord.tipo_struttura, locationRecord.Tipo_Struttura, locationRecord['Tipo_Struttura']),
+      struttura_coperta: getFirstValue(locationRecord.struttura_coperta, locationRecord.Struttura_Coperta, locationRecord['Struttura_Coperta']),
+      provincia: getFirstValue(locationRecord.provincia, locationRecord.Provincia),
+      paese: getFirstValue(locationRecord.paese, locationRecord.Paese),
+      indirizzo: getFirstValue(locationRecord.indirizzo, locationRecord.Indirizzo),
+      civico: getFirstValue(locationRecord.civico, locationRecord.Civico),
+      referente: getFirstValue(locationRecord.referente, locationRecord.Referente),
+      cell_referente: getFirstValue(locationRecord.cell_referente, locationRecord.Cell_Referente, locationRecord['Cell_Referente']),
+      tipo_pista: getFirstValue(locationRecord.tipo_pista, locationRecord.Tipo_Pista, locationRecord['Tipo_Pista']),
+      tipo_prese_corrente: getFirstValue(locationRecord.tipo_prese_corrente, locationRecord.Tipo_Prese_Corrente, locationRecord['Tipo_Prese_Corrente']),
+      impianto_audio: getFirstValue(locationRecord.impianto_audio, locationRecord.Impianto_Audio, locationRecord['Impianto_Audio']),
+      impianto_luci: getFirstValue(locationRecord.impianto_luci, locationRecord.Impianto_Luci, locationRecord['Impianto_Luci']),
+      service: getFirstValue(locationRecord.service, locationRecord.Service),
+      palco_dj: getFirstValue(locationRecord.palco_dj, locationRecord.Palco_DJ, locationRecord['Palco_DJ']),
+      palco_ballerini: getFirstValue(locationRecord.palco_ballerini, locationRecord.Palco_Ballerini, locationRecord['Palco_Ballerini']),
+      parcheggio: getFirstValue(locationRecord.parcheggio, locationRecord.Parcheggio),
+      bar_ristoro: getFirstValue(locationRecord.bar_ristoro, locationRecord.Bar_Ristoro, locationRecord['Bar_Ristoro']),
+      toilette: getFirstValue(locationRecord.toilette, locationRecord.Toilette),
+    };
+
+    if (!normalized.nome_evento && !normalized.localita && !normalized.referente) {
+      return null;
+    }
+
+    normalized.id = getFirstValue(locationRecord.id, locationRecord.ID, locationRecord.rowIndex);
+
+    return normalized;
+  }
+
+  normalizeLocationsList(locationList) {
+    if (!Array.isArray(locationList)) return [];
+
+    return locationList
+      .map((item, index) => {
+        const normalized = this.normalizeLocationRecord(item);
+        if (!normalized) return null;
+        return {
+          id: normalized.id || String(index + 2),
+          ...normalized,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  normalizeLocationOptionRows(optionRows) {
+    if (!Array.isArray(optionRows)) return [];
+
+    return optionRows
+      .map((row) => {
+        if (!row || typeof row !== 'object') return null;
+        const group = String(row.group || row.Group || '').trim();
+        const parent = String(row.parent || row.Parent || '').trim();
+        const value = String(row.value || row.Value || '').trim();
+        if (!group || !value) return null;
+        return { group, parent, value };
+      })
+      .filter(Boolean);
+  }
+
+  buildLocationPopupOptions(optionRows) {
+    const rows = this.normalizeLocationOptionRows(optionRows);
+    const options = {
+      yesNo: [],
+      tipoPista: [],
+      tipoPreseCorrente: [],
+      province: [],
+      paesiByProvincia: {},
+    };
+
+    rows.forEach((row) => {
+      switch (row.group) {
+        case 'yesNo':
+          options.yesNo.push(row.value);
+          break;
+        case 'tipoPista':
+          options.tipoPista.push(row.value);
+          break;
+        case 'tipoPreseCorrente':
+          options.tipoPreseCorrente.push(row.value);
+          break;
+        case 'province':
+          options.province.push(row.value);
+          break;
+        case 'paese':
+          if (!options.paesiByProvincia[row.parent]) {
+            options.paesiByProvincia[row.parent] = [];
+          }
+          options.paesiByProvincia[row.parent].push(row.value);
+          break;
+      }
+    });
+
+    const uniqueSorted = (values) => [...new Set(values.filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+
+    options.yesNo = uniqueSorted(options.yesNo);
+    options.tipoPista = uniqueSorted(options.tipoPista);
+    options.tipoPreseCorrente = uniqueSorted(options.tipoPreseCorrente);
+    options.province = uniqueSorted(options.province);
+
+    Object.keys(options.paesiByProvincia).forEach((province) => {
+      options.paesiByProvincia[province] = uniqueSorted(options.paesiByProvincia[province]);
+    });
+
+    return options;
+  }
+
   /**
    * Carica i dati dal CSV (o da cache se offline)
    */
@@ -302,6 +427,70 @@ class DataLoader {
     } catch (error) {
       logger.error('Errore caricamento Comuni', error);
       return [];
+    }
+  }
+
+  async loadLocations() {
+    logger.info('DataLoader.loadLocations()');
+
+    try {
+      const cachedFromExcel = Storage.get('BORDERO_LOCATION_DATA');
+      if (cachedFromExcel && cachedFromExcel.length > 0) {
+        logger.info(`Location caricate da cache Excel (${cachedFromExcel.length})`);
+        return this.normalizeLocationsList(cachedFromExcel);
+      }
+
+      const cached = Storage.get(BORDERO_CONFIG.CACHE_KEY_LOCATION);
+      if (cached && cached.length > 0) {
+        logger.info(`Location caricate da cache locale (${cached.length})`);
+        return this.normalizeLocationsList(cached);
+      }
+
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_LOCATION));
+      const locations = this.normalizeLocationsList(CSVParser.parse(csvContent));
+
+      Storage.set('BORDERO_LOCATION_DATA', locations);
+      Storage.set(BORDERO_CONFIG.CACHE_KEY_LOCATION, locations);
+      logger.info(`Caricate ${locations.length} location da CSV`);
+      return locations;
+    } catch (error) {
+      logger.error('Errore caricamento Location', error);
+      return [];
+    }
+  }
+
+  async loadLocationPopupOptions() {
+    logger.info('DataLoader.loadLocationPopupOptions()');
+
+    try {
+      const cachedFromExcel = Storage.get('BORDERO_LOCATION_OPTION_ROWS');
+      if (cachedFromExcel && cachedFromExcel.length > 0) {
+        logger.info(`Opzioni Location caricate da cache Excel (${cachedFromExcel.length})`);
+        return this.buildLocationPopupOptions(cachedFromExcel);
+      }
+
+      const cached = Storage.get(BORDERO_CONFIG.CACHE_KEY_LOCATION_OPTIONS);
+      if (cached && typeof cached === 'object') {
+        logger.info('Opzioni Location caricate da cache locale');
+        return cached;
+      }
+
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_LOCATION_OPTIONS));
+      const optionRows = this.normalizeLocationOptionRows(CSVParser.parse(csvContent));
+      const options = this.buildLocationPopupOptions(optionRows);
+      Storage.set('BORDERO_LOCATION_OPTION_ROWS', optionRows);
+      Storage.set(BORDERO_CONFIG.CACHE_KEY_LOCATION_OPTIONS, options);
+      logger.info(`Caricate ${optionRows.length} righe opzioni Location da CSV`);
+      return options;
+    } catch (error) {
+      logger.error('Errore caricamento opzioni Location', error);
+      return {
+        yesNo: [],
+        tipoPista: [],
+        tipoPreseCorrente: [],
+        province: [],
+        paesiByProvincia: {},
+      };
     }
   }
 

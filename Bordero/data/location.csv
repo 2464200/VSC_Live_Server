@@ -1,0 +1,5 @@
+﻿Nome_evento,Località,Tipo_Struttura,Struttura_Coperta,Provincia,Paese,Indirizzo,Civico,Referente,Cell_Referente,Tipo_Pista,Tipo_Prese_Corrente,Impianto_Audio,Impianto_Luci,Service,Palco_DJ,Palco_Ballerini,Parcheggio,Bar_Ristoro,Toilette
+Festa della Birra,Brusaporto,Capannone,Si,Bergamo,Brusaporto,Via Case Matte,6,Maria,333/2256687,Legno Massiccio,CEE (industriale) 220V 16A 2P+T,no,no,no,si,no,si,si,si
+festa2,Scanzorosciate,Parco,NO,Milano,Assago,Via Rosciate,12,Giacomo,348/7210159,Piastrelle ad Incastro,Bivalente 16A,DA ACCERTARE,SCONOSCIUTO,SI,DA CONFERMARE,DA CONFERMARE,DA ACCERTARE,NO,SCONOSCIUTO
+Festa3,Gorle,capannone,SI,Bergamo,Gorle,Via Po,3,maria,329/5555555,Acciaio,Bivalente 16A,SCONOSCIUTO,SI,NO,DA CONFERMARE,DA ACCERTARE,DA ACCERTARE MEGLIO,DA ACCERTARE,NO
+festa della cicoria,Adro,Parco,NO,Brescia,Adro,Via Miravalle,8,Giovanni,323/5856996,Acciaio,CEE (industriale) 220V 16A 3P+N+T,SI,SI,NO,SI,NO,SI,SI,SI

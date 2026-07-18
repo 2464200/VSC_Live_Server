@@ -7,6 +7,7 @@
  * POST /api/sync/brani - Sincronizza brani.csv
  * POST /api/sync/comuni - Sincronizza comuni_italia.csv
  * POST /api/sync/dbase - Sincronizza dBase.csv
+ * POST /api/sync/location - Sincronizza location.csv
  * GET /api/status - Status del server
  */
 
@@ -25,6 +26,8 @@ const DATA_DIR = path.join(BORDERO_DIR, 'data');
 const CSV_BRANI = path.join(DATA_DIR, 'brani.csv');
 const CSV_COMUNI = path.join(DATA_DIR, 'comuni_italia.csv');
 const CSV_DBASE = path.join(DATA_DIR, 'dBase.csv');
+const CSV_LOCATION = path.join(DATA_DIR, 'location.csv');
+const CSV_LOCATION_OPTIONS = path.join(DATA_DIR, 'location_popup_options.csv');
 const REPO_ROOT = path.join(__dirname, '..', '..');
 // Directory locale con i videoclip (file video)
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
@@ -237,6 +240,92 @@ app.post('/api/sync/dbase', async (req, res) => {
 });
 
 /**
+ * POST /api/sync/location
+ * Sincronizza location.csv
+ */
+app.post('/api/sync/location', async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    if (!data || !Array.isArray(data)) {
+      return res.status(400).json({
+        error: 'Dati non validi. Inviare array di oggetti in body.data'
+      });
+    }
+
+    if (data.length === 0) {
+      return res.status(400).json({
+        error: 'Nessun dato da sincronizzare'
+      });
+    }
+
+    const csv = jsonToCSV(data);
+
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    await fs.writeFile(CSV_LOCATION, csv, 'utf-8');
+
+    console.log(`✅ ${data.length} location sincronizzate su ${CSV_LOCATION}`);
+
+    res.json({
+      success: true,
+      message: `✅ ${data.length} location sincronizzate`,
+      file: CSV_LOCATION,
+      rows: data.length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Errore sync location:', error);
+    res.status(500).json({
+      error: error.message,
+      path: CSV_LOCATION
+    });
+  }
+});
+
+/**
+ * POST /api/sync/location-options
+ * Sincronizza location_popup_options.csv
+ */
+app.post('/api/sync/location-options', async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    if (!data || !Array.isArray(data)) {
+      return res.status(400).json({
+        error: 'Dati non validi. Inviare array di oggetti in body.data'
+      });
+    }
+
+    if (data.length === 0) {
+      return res.status(400).json({
+        error: 'Nessun dato da sincronizzare'
+      });
+    }
+
+    const csv = jsonToCSV(data, ['group', 'parent', 'value']);
+
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    await fs.writeFile(CSV_LOCATION_OPTIONS, csv, 'utf-8');
+
+    console.log(`✅ ${data.length} opzioni Location sincronizzate su ${CSV_LOCATION_OPTIONS}`);
+
+    res.json({
+      success: true,
+      message: `✅ ${data.length} opzioni Location sincronizzate`,
+      file: CSV_LOCATION_OPTIONS,
+      rows: data.length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Errore sync location options:', error);
+    res.status(500).json({
+      error: error.message,
+      path: CSV_LOCATION_OPTIONS
+    });
+  }
+});
+
+/**
  * POST /api/sync/google-sheets
  * Sincronizza i fogli Google Sheets e salva i CSV
  */
@@ -290,6 +379,8 @@ app.get('/api/status', async (req, res) => {
     const braniExists = await fs.stat(CSV_BRANI).then(() => true).catch(() => false);
     const comuniExists = await fs.stat(CSV_COMUNI).then(() => true).catch(() => false);
     const dbaseExists = await fs.stat(CSV_DBASE).then(() => true).catch(() => false);
+    const locationExists = await fs.stat(CSV_LOCATION).then(() => true).catch(() => false);
+    const locationOptionsExists = await fs.stat(CSV_LOCATION_OPTIONS).then(() => true).catch(() => false);
 
     res.json({
       server: 'Bordero Sync Server',
@@ -301,12 +392,16 @@ app.get('/api/status', async (req, res) => {
       files: {
         brani: { exists: braniExists, path: CSV_BRANI },
         comuni: { exists: comuniExists, path: CSV_COMUNI },
-        dbase: { exists: dbaseExists, path: CSV_DBASE }
+        dbase: { exists: dbaseExists, path: CSV_DBASE },
+        location: { exists: locationExists, path: CSV_LOCATION },
+        locationOptions: { exists: locationOptionsExists, path: CSV_LOCATION_OPTIONS }
       },
       endpoints: {
         'POST /api/sync/brani': 'Sincronizza brani.csv',
         'POST /api/sync/comuni': 'Sincronizza comuni_italia.csv',
         'POST /api/sync/dbase': 'Sincronizza dBase.csv',
+        'POST /api/sync/location': 'Sincronizza location.csv',
+        'POST /api/sync/location-options': 'Sincronizza location_popup_options.csv',
         'POST /api/sync/google-sheets': 'Sincronizza Google Sheets e salva CSV',
         'GET /api/status': 'Status server'
       }
@@ -359,6 +454,8 @@ app.listen(PORT, () => {
   console.log('║  POST /api/sync/brani                         ║');
   console.log('║  POST /api/sync/comuni                        ║');
   console.log('║  POST /api/sync/dbase                         ║');
+  console.log('║  POST /api/sync/location                      ║');
+  console.log('║  POST /api/sync/location-options              ║');
   console.log('║  POST /api/sync/google-sheets                 ║');
   console.log('║  GET  /api/status                             ║');
   console.log('╚═══════════════════════════════════════════════╝\n');
