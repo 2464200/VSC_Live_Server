@@ -99,7 +99,7 @@ async function discoverManagedVlcProcess() {
 
     const psCommand = [
         '$proc = Get-CimInstance Win32_Process | Where-Object {',
-        `  $_.Name -match '^vlc(\\.exe)?$' -and $_.CommandLine -match '--rc-host\\s+${VLC_RC_HOST.replace(/\./g, '\\.')}:${VLC_RC_PORT}'`,
+        "  $_.Name -match '^vlc(\\.exe)?$'",
         '} | Select-Object -First 1 ProcessId, CommandLine',
         'if ($proc) { $proc | ConvertTo-Json -Compress }'
     ].join(' ');
