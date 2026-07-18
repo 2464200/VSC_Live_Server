@@ -181,14 +181,14 @@ async function sendVlcCommand(command) {
 }
 
 async function pauseVlcViaWindow() {
-    if (!isVlcAlive() || !vlcProcess?.pid) {
-        throw new Error('No running VLC instance');
-    }
+    await ensureVlcTracked().catch(() => null);
 
     const psCommand = [
         'Add-Type -AssemblyName System.Windows.Forms',
         '$wshell = New-Object -ComObject WScript.Shell',
-        `$activated = $wshell.AppActivate(${vlcProcess.pid})`,
+        vlcProcess?.pid
+            ? `$activated = $wshell.AppActivate(${vlcProcess.pid})`
+            : "$activated = $wshell.AppActivate('VLC media player')",
         'if (-not $activated) { exit 1 }',
         '[System.Windows.Forms.SendKeys]::SendWait(" ")'
     ].join('; ');
@@ -204,8 +204,6 @@ async function pauseVlcViaWindow() {
 }
 
 async function pauseVlcPlayback() {
-    await ensureVlcTracked();
-
     try {
         const direct = await pauseVlcViaWindow();
         return direct;
@@ -216,15 +214,12 @@ async function pauseVlcPlayback() {
 }
 
 async function forceKillVlc() {
-    await ensureVlcTracked();
-
-    if (!vlcProcess?.pid) {
-        resetVlcState();
-        return { transport: 'none' };
-    }
-
     try {
-        await execFileAsync('taskkill', ['/PID', String(vlcProcess.pid), '/T', '/F']);
+        if (vlcProcess?.pid) {
+            await execFileAsync('taskkill', ['/PID', String(vlcProcess.pid), '/T', '/F']);
+        } else {
+            await execFileAsync('taskkill', ['/IM', 'vlc.exe', '/T', '/F']);
+        }
     } finally {
         resetVlcState();
     }
@@ -233,8 +228,6 @@ async function forceKillVlc() {
 }
 
 async function stopVlcPlayback() {
-    await ensureVlcTracked();
-
     let lastError = null;
 
     try {
@@ -623,10 +616,6 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
 
             await sendVlcCommand('play');
             return res.json({ success: true, action, mode: 'resume', filePath: vlcCurrentFile });
-        }
-
-        if (!(await ensureVlcTracked())) {
-            return res.status(400).json({ success: false, error: 'No running VLC instance' });
         }
 
         if (action === 'pause') {
