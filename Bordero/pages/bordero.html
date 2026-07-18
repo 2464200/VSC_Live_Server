@@ -11,7 +11,7 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css" />
+  <link rel="stylesheet" href="bordero.css?v=20260718-2" />
   
   <!-- XLSX Library per lettura file Excel -->
     <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
@@ -32,7 +32,7 @@
   <script defer src="../js/excel-file-manager.js?v=20260711-2"></script>
   <script defer src="../js/excel-sync.js?v=20260711-2"></script>
   <script defer src="../js/data-loader.js?v=20260711-2"></script>
-  <script defer src="bordero.js?v=20260711-2"></script>
+  <script defer src="bordero.js?v=20260718-2"></script>
 </head>
 
 <body>
@@ -203,6 +203,16 @@
       <div class="stat-badge">
         <span class="stat-label">Ultimo Aggiornamento:</span>
         <span class="stat-value" id="stat-last-action">--:--</span>
+      </div>
+      <div class="stat-badge stat-action" role="group" aria-label="Azione rapida reset filtri">
+        <span class="stat-label">Azione rapida:</span>
+        <button id="btn-reset-filters-stats" class="btn btn-secondary" title="Resetta tutti i filtri e ordina per ID crescente">
+          RESET FILTRI + ID ↑
+        </button>
+      </div>
+      <div class="stat-badge stat-mode" role="status" aria-live="polite">
+        <span class="stat-label">Eseguiti in fondo:</span>
+        <span class="stat-value stat-value-mode mode-off" id="stat-executed-bottom-mode">OFF</span>
       </div>
     </section>
 
