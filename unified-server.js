@@ -35,6 +35,7 @@ const VLC_RC_PORT = process.env.VLC_RC_PORT ? parseInt(process.env.VLC_RC_PORT, 
 let vlcProcess = null;
 let vlcSocket = null;
 let vlcCurrentFile = '';
+let vlcDiscoveryPromise = null;
 
 function isVlcAlive() {
     if (!vlcProcess || !vlcProcess.pid) return false;
@@ -62,6 +63,21 @@ function resolveVideoPath(videoUrl) {
     return path.join(VIDEOCLIP_DIR, fileName);
 }
 
+function extractVlcFileFromCommandLine(commandLine) {
+    const text = String(commandLine || '').trim();
+    if (!text) return '';
+
+    const quotedPaths = [...text.matchAll(/"([A-Za-z]:\\[^\"]+)"/g)].map((match) => match[1]);
+    for (let index = quotedPaths.length - 1; index >= 0; index -= 1) {
+        const candidate = quotedPaths[index];
+        if (/\.(mp4|mkv|mov|avi|webm|m4v)$/i.test(candidate)) {
+            return candidate;
+        }
+    }
+
+    return '';
+}
+
 function execFileAsync(command, args, options = {}) {
     return new Promise((resolve, reject) => {
         execFile(command, args, { windowsHide: true, ...options }, (error, stdout, stderr) => {
@@ -74,6 +90,58 @@ function execFileAsync(command, args, options = {}) {
             resolve({ stdout, stderr });
         });
     });
+}
+
+async function discoverManagedVlcProcess() {
+    if (vlcDiscoveryPromise) {
+        return vlcDiscoveryPromise;
+    }
+
+    const psCommand = [
+        '$proc = Get-CimInstance Win32_Process | Where-Object {',
+        `  $_.Name -match '^vlc(\\.exe)?$' -and $_.CommandLine -match '--rc-host\\s+${VLC_RC_HOST.replace(/\./g, '\\.')}:${VLC_RC_PORT}'`,
+        '} | Select-Object -First 1 ProcessId, CommandLine',
+        'if ($proc) { $proc | ConvertTo-Json -Compress }'
+    ].join(' ');
+
+    vlcDiscoveryPromise = execFileAsync('powershell.exe', [
+        '-NoProfile',
+        '-NonInteractive',
+        '-ExecutionPolicy', 'Bypass',
+        '-Command', psCommand
+    ]).then(({ stdout }) => {
+        const raw = String(stdout || '').trim();
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw);
+        const processId = Number(parsed?.ProcessId || 0);
+        if (!processId) {
+            return null;
+        }
+
+        const commandLine = String(parsed?.CommandLine || '');
+        vlcProcess = { pid: processId };
+        const discoveredFile = extractVlcFileFromCommandLine(commandLine);
+        if (discoveredFile) {
+            vlcCurrentFile = discoveredFile;
+        }
+
+        return { pid: processId, commandLine, filePath: discoveredFile };
+    }).catch(() => null).finally(() => {
+        vlcDiscoveryPromise = null;
+    });
+
+    return vlcDiscoveryPromise;
+}
+
+async function ensureVlcTracked() {
+    if (isVlcAlive()) {
+        return { pid: vlcProcess.pid, filePath: vlcCurrentFile, source: 'memory' };
+    }
+
+    return discoverManagedVlcProcess();
 }
 
 function openVlcRcSocket(timeoutMs = 3000) {
@@ -136,6 +204,8 @@ async function pauseVlcViaWindow() {
 }
 
 async function pauseVlcPlayback() {
+    await ensureVlcTracked();
+
     try {
         await sendVlcCommand('pause');
         return { transport: 'rc' };
@@ -146,6 +216,8 @@ async function pauseVlcPlayback() {
 }
 
 async function forceKillVlc() {
+    await ensureVlcTracked();
+
     if (!vlcProcess?.pid) {
         resetVlcState();
         return { transport: 'none' };
@@ -161,6 +233,8 @@ async function forceKillVlc() {
 }
 
 async function stopVlcPlayback() {
+    await ensureVlcTracked();
+
     let lastError = null;
 
     try {
@@ -541,7 +615,7 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
                 return res.json({ success: true, action, mode: 'launch', filePath: fullPath, vlcPath: launched.vlcPath, vlcArgs: launched.vlcArgs });
             }
 
-            if (!isVlcAlive()) {
+            if (!(await ensureVlcTracked())) {
                 return res.status(400).json({ success: false, error: 'No running VLC instance and no URL provided' });
             }
 
@@ -549,7 +623,7 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
             return res.json({ success: true, action, mode: 'resume', filePath: vlcCurrentFile });
         }
 
-        if (!isVlcAlive()) {
+        if (!(await ensureVlcTracked())) {
             return res.status(400).json({ success: false, error: 'No running VLC instance' });
         }
 
