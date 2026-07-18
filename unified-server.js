@@ -36,6 +36,7 @@ let vlcProcess = null;
 let vlcCurrentFile = '';
 let vlcDiscoveryPromise = null;
 let vlcLaunchSequence = 0;
+let vlcPauseSequence = 0;
 
 function isVlcAlive() {
     if (!vlcProcess || !vlcProcess.pid) return false;
@@ -217,6 +218,11 @@ async function sendVlcCommand(command, { timeoutMs = 1500, idleMs = 200 } = {}) 
     });
 }
 
+function isVlcPausedStatus(statusText) {
+    const text = String(statusText || '');
+    return /Type 'pause' to continue\.|pause state:\s*\d+\)\s*:\s*Pause/i.test(text);
+}
+
 async function pauseVlcViaWindow() {
     await ensureVlcTracked().catch(() => null);
 
@@ -241,10 +247,43 @@ async function pauseVlcViaWindow() {
 }
 
 async function pauseVlcPlayback() {
+    const pauseToken = ++vlcPauseSequence;
+
+    const tracked = await ensureVlcTracked();
+    if (!tracked) {
+        throw new Error('No running VLC instance');
+    }
+
     try {
+        const statusBefore = await sendVlcCommand('status');
+        if (pauseToken !== vlcPauseSequence) {
+            const error = new Error('Superseded by newer VLC pause request');
+            error.code = 'VLC_PAUSE_SUPERSEDED';
+            throw error;
+        }
+
+        if (isVlcPausedStatus(statusBefore)) {
+            return { transport: 'rc', mode: 'already-paused' };
+        }
+
         await sendVlcCommand('pause');
-        return { transport: 'rc' };
+
+        if (pauseToken !== vlcPauseSequence) {
+            const error = new Error('Superseded by newer VLC pause request');
+            error.code = 'VLC_PAUSE_SUPERSEDED';
+            throw error;
+        }
+
+        const statusAfter = await sendVlcCommand('status').catch(() => '');
+        if (statusAfter && !isVlcPausedStatus(statusAfter)) {
+            throw new Error('VLC did not enter pause state');
+        }
+
+        return { transport: 'rc', mode: 'paused' };
     } catch (rcError) {
+        if (rcError?.code === 'VLC_PAUSE_SUPERSEDED') {
+            throw rcError;
+        }
         const direct = await pauseVlcViaWindow();
         return { ...direct, fallbackFrom: rcError.message };
     }
@@ -698,6 +737,9 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
         return res.status(400).json({ success: false, error: `Unsupported action: ${action}` });
     } catch (error) {
         if (error?.code === 'VLC_PLAY_SUPERSEDED') {
+            return res.status(409).json({ success: false, error: error.message });
+        }
+        if (error?.code === 'VLC_PAUSE_SUPERSEDED') {
             return res.status(409).json({ success: false, error: error.message });
         }
         console.error('Errore controllo VLC secondario:', error);
