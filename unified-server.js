@@ -33,7 +33,6 @@ const OPENED_VIEWERS_FILE = path.join(__dirname, 'pdf', 'config', 'opened-viewer
 const VLC_RC_HOST = '127.0.0.1';
 const VLC_RC_PORT = process.env.VLC_RC_PORT ? parseInt(process.env.VLC_RC_PORT, 10) : 4212;
 let vlcProcess = null;
-let vlcSocket = null;
 let vlcCurrentFile = '';
 let vlcDiscoveryPromise = null;
 
@@ -48,10 +47,6 @@ function isVlcAlive() {
 }
 
 function resetVlcState() {
-    if (vlcSocket) {
-        try { vlcSocket.destroy(); } catch (_) {}
-    }
-    vlcSocket = null;
     vlcProcess = null;
     vlcCurrentFile = '';
 }
@@ -145,13 +140,8 @@ async function ensureVlcTracked() {
 }
 
 function openVlcRcSocket(timeoutMs = 3000) {
-    if (vlcSocket && !vlcSocket.destroyed) {
-        return Promise.resolve(vlcSocket);
-    }
-
     return new Promise((resolve, reject) => {
         const socket = net.createConnection({ host: VLC_RC_HOST, port: VLC_RC_PORT }, () => {
-            vlcSocket = socket;
             resolve(socket);
         });
 
@@ -164,18 +154,64 @@ function openVlcRcSocket(timeoutMs = 3000) {
             try { socket.destroy(); } catch (_) {}
             reject(new Error('VLC RC socket timeout'));
         });
-        socket.on('close', () => {
-            if (vlcSocket === socket) vlcSocket = null;
-        });
     });
 }
 
-async function sendVlcCommand(command) {
+async function sendVlcCommand(command, { timeoutMs = 1500, idleMs = 200 } = {}) {
     const socket = await openVlcRcSocket();
+
     return new Promise((resolve, reject) => {
+        let output = '';
+        let settled = false;
+        let idleTimer = null;
+
+        const cleanup = () => {
+            if (idleTimer) {
+                clearTimeout(idleTimer);
+                idleTimer = null;
+            }
+            socket.removeAllListeners('data');
+            socket.removeAllListeners('error');
+            socket.removeAllListeners('timeout');
+        };
+
+        const finish = () => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            try { socket.end(); } catch (_) {}
+            resolve(output);
+        };
+
+        const fail = (error) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            try { socket.destroy(); } catch (_) {}
+            reject(error);
+        };
+
+        const scheduleFinish = () => {
+            if (idleTimer) {
+                clearTimeout(idleTimer);
+            }
+            idleTimer = setTimeout(finish, idleMs);
+        };
+
+        socket.setTimeout(timeoutMs);
+        socket.on('data', (chunk) => {
+            output += chunk.toString('utf8');
+            scheduleFinish();
+        });
+        socket.once('error', fail);
+        socket.once('timeout', () => fail(new Error('VLC RC command timeout')));
+
         socket.write(`${command}\n`, (err) => {
-            if (err) reject(err);
-            else resolve(true);
+            if (err) {
+                fail(err);
+                return;
+            }
+            scheduleFinish();
         });
     });
 }
@@ -205,11 +241,11 @@ async function pauseVlcViaWindow() {
 
 async function pauseVlcPlayback() {
     try {
-        const direct = await pauseVlcViaWindow();
-        return direct;
-    } catch (windowError) {
         await sendVlcCommand('pause');
-        return { transport: 'rc', fallbackFrom: windowError.message };
+        return { transport: 'rc' };
+    } catch (rcError) {
+        const direct = await pauseVlcViaWindow();
+        return { ...direct, fallbackFrom: rcError.message };
     }
 }
 

@@ -296,6 +296,16 @@ class VideoClipManager {
     logger.debug('Secondary video URL set (will use VLC for playback)');
   }
 
+  setMainVideoSource(url) {
+    const mainVideo = document.getElementById('main-video');
+    const source = document.getElementById('video-source');
+
+    if (!mainVideo || !source) return;
+
+    source.src = url || '';
+    mainVideo.src = url || '';
+  }
+
   async playMainVideo() {
     const mainVideo = document.getElementById('main-video');
     const url = this.currentVideoUrl || this.getCurrentVideoUrl();
@@ -311,7 +321,7 @@ class VideoClipManager {
       mainVideo.pause();
       mainVideo.currentTime = 0;
       mainVideo.muted = true;
-      mainVideo.src = url;
+      this.setMainVideoSource(url);
       mainVideo.load();
       await this.waitForVideoReady(mainVideo);
       await mainVideo.play();
@@ -321,7 +331,7 @@ class VideoClipManager {
       logger.warn('Main video play blocked by browser policy', playErr);
       try {
         mainVideo.muted = true;
-        mainVideo.src = url;
+        this.setMainVideoSource(url);
         mainVideo.load();
         await this.waitForVideoReady(mainVideo);
         await mainVideo.play();
@@ -330,6 +340,23 @@ class VideoClipManager {
         logger.debug('Main video fallback play failed', fallbackErr);
       }
     }
+  }
+
+  pauseMainVideo() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo) return;
+
+    if (!mainVideo.paused) {
+      mainVideo.pause();
+    }
+  }
+
+  stopMainVideo() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo) return;
+
+    mainVideo.pause();
+    mainVideo.currentTime = 0;
   }
 
   async playSecondaryVideo() {
@@ -494,7 +521,6 @@ class VideoClipManager {
     const matchedFile = this.availableMap.get(String(this.currentBrano.id));
     const noVideo = document.getElementById('no-video');
     const mainVideo = document.getElementById('main-video');
-    const source = document.getElementById('video-source');
     const playbackStatus = document.getElementById('secondary-playback-status');
 
     if (matchedFile) {
@@ -503,8 +529,8 @@ class VideoClipManager {
         const url = '/videos/' + encodeURIComponent(matchedFile);
         this.currentVideoUrl = url;
         this.secondaryVideoUrl = url;
-        source.src = url;
         if (mainVideo) {
+          this.setMainVideoSource(url);
           mainVideo.pause();
           mainVideo.currentTime = 0;
           mainVideo.load();
@@ -519,7 +545,7 @@ class VideoClipManager {
         logger.warn('Errore impostando sorgente video', err);
       }
     } else {
-      source.src = '';
+      this.setMainVideoSource('');
       mainVideo?.load();
       mainVideo?.pause();
       noVideo?.classList.remove('hidden');
@@ -701,10 +727,12 @@ class VideoClipManager {
     }
 
     document.getElementById('btn-pause').addEventListener('click', () => {
+      this.pauseMainVideo();
       this.pauseSecondaryVideo();
     });
 
     document.getElementById('btn-stop').addEventListener('click', () => {
+      this.stopMainVideo();
       this.stopSecondaryVideo();
     });
 
