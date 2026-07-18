@@ -21,6 +21,8 @@ class BorderoTableManager {
     this.lastActionTime = null;
     this.serataMetaStorageKey = 'bordero_serata_meta';
     this.locationData = [];
+    this.activeFilterPicker = null;
+    this.filterButtonClickTimers = new Map();
 
     // Serata info
     this.serata = {
@@ -586,6 +588,8 @@ class BorderoTableManager {
    * Setup event listeners
    */
   setupEventListeners() {
+    this.setupFilterValuePicker();
+
     // Sort buttons (esclusivi)
     document.getElementById('btn-sort-id')?.addEventListener('click', () => this.sortBy('id'));
     document.getElementById('btn-sort-genere')?.addEventListener('click', () => this.sortBy('genere'));
@@ -597,18 +601,10 @@ class BorderoTableManager {
     });
 
     // Filter buttons
-    document.getElementById('btn-filter-coreografia')?.addEventListener('click', () =>
-      this.togglePresenceFilter('info_coreo', 'btn-filter-coreografia')
-    );
-    document.getElementById('btn-filter-genere')?.addEventListener('click', () =>
-      this.togglePresenceFilter('genere', 'btn-filter-genere')
-    );
-    document.getElementById('btn-filter-livello')?.addEventListener('click', () =>
-      this.togglePresenceFilter('info_livello', 'btn-filter-livello')
-    );
-    document.getElementById('btn-filter-altro')?.addEventListener('click', () =>
-      this.togglePresenceFilter(['collaboratori', 'compositore', 'durata', 'info_coreo'], 'btn-filter-altro')
-    );
+    this.bindFilterPopupButton('btn-filter-coreografia', 'info_livello', 'LIVELLO');
+    this.bindFilterPopupButton('btn-filter-genere', 'genere', 'GENERE');
+    this.bindFilterPopupButton('btn-filter-livello', 'coreografo', 'COREOGRAFO');
+    this.bindFilterPopupButton('btn-filter-altro', 'autore', 'AUTORE');
 
     // Search
     document.getElementById('search-box')?.addEventListener('input', (e) => {
@@ -659,6 +655,163 @@ class BorderoTableManager {
     document.getElementById('btn-prev-page')?.addEventListener('click', () => this.prevPage());
     document.getElementById('btn-next-page')?.addEventListener('click', () => this.nextPage());
     document.getElementById('btn-last-page')?.addEventListener('click', () => this.lastPage());
+  }
+
+  setupFilterValuePicker() {
+    const modal = document.getElementById('filter-picker-modal');
+    const closeBtn = document.getElementById('filter-picker-close');
+    const searchInput = document.getElementById('filter-picker-search');
+
+    closeBtn?.addEventListener('click', () => this.closeFilterValuePicker());
+    modal?.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        this.closeFilterValuePicker();
+      }
+    });
+
+    searchInput?.addEventListener('input', () => {
+      this.renderFilterValueOptions();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.activeFilterPicker) {
+        this.closeFilterValuePicker();
+      }
+    });
+  }
+
+  bindFilterPopupButton(buttonId, field, label) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+
+    button.addEventListener('click', () => {
+      const existingTimer = this.filterButtonClickTimers.get(buttonId);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+      }
+
+      const timer = setTimeout(() => {
+        this.filterButtonClickTimers.delete(buttonId);
+        this.openFilterValuePicker(field, buttonId, label);
+      }, 220);
+
+      this.filterButtonClickTimers.set(buttonId, timer);
+    });
+
+    button.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+
+      const existingTimer = this.filterButtonClickTimers.get(buttonId);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+        this.filterButtonClickTimers.delete(buttonId);
+      }
+
+      this.clearSingleColumnFilter(field, label);
+    });
+  }
+
+  clearSingleColumnFilter(field, label = field) {
+    delete this.currentFilters[field];
+
+    if (this.activeFilterPicker && this.activeFilterPicker.field === field) {
+      this.closeFilterValuePicker();
+    }
+
+    this.currentPage = 1;
+    this.updateFilterButtons();
+    this.applyFilters();
+    Toast.info(`Filtro ${label} resettato`);
+  }
+
+  getUniqueFieldValues(field) {
+    const values = this.allBrani
+      .map(item => String(item?.[field] ?? '').trim())
+      .filter(value => value.length > 0);
+
+    return [...new Set(values)].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+  }
+
+  normalizeExactFilterValue(value) {
+    return String(value ?? '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  }
+
+  openFilterValuePicker(field, buttonId, label) {
+    const modal = document.getElementById('filter-picker-modal');
+    const titleEl = document.getElementById('filter-picker-title');
+    const searchInput = document.getElementById('filter-picker-search');
+    if (!modal || !titleEl) return;
+
+    this.activeFilterPicker = { field, buttonId, label, values: this.getUniqueFieldValues(field) };
+    titleEl.textContent = `Seleziona ${label}`;
+    if (searchInput) {
+      searchInput.value = '';
+    }
+
+    this.renderFilterValueOptions();
+    modal.hidden = false;
+    searchInput?.focus();
+  }
+
+  closeFilterValuePicker() {
+    const modal = document.getElementById('filter-picker-modal');
+    if (modal) {
+      modal.hidden = true;
+    }
+    this.activeFilterPicker = null;
+  }
+
+  renderFilterValueOptions() {
+    const optionsEl = document.getElementById('filter-picker-options');
+    const searchInput = document.getElementById('filter-picker-search');
+    if (!optionsEl || !this.activeFilterPicker) return;
+
+    const query = String(searchInput?.value || '').trim().toLowerCase();
+    const values = this.activeFilterPicker.values.filter(value => !query || value.toLowerCase().includes(query));
+    this.activeFilterPicker.filteredValues = values;
+
+    const clearButton = '<button type="button" class="filter-picker-option is-clear" data-filter-index="-1">TUTTI (nessun filtro)</button>';
+    const valueButtons = values.map((value, index) => {
+      const safe = this.escapeHtml(value);
+      return `<button type="button" class="filter-picker-option" data-filter-index="${index}">${safe}</button>`;
+    }).join('');
+
+    optionsEl.innerHTML = clearButton + valueButtons;
+
+    optionsEl.querySelectorAll('.filter-picker-option').forEach(button => {
+      button.addEventListener('click', () => {
+        const idx = Number(button.getAttribute('data-filter-index'));
+        this.applyValueFilterFromPicker(idx);
+      });
+    });
+  }
+
+  applyValueFilterFromPicker(selectedIndex) {
+    if (!this.activeFilterPicker) return;
+
+    const { field } = this.activeFilterPicker;
+    const values = Array.isArray(this.activeFilterPicker.filteredValues)
+      ? this.activeFilterPicker.filteredValues
+      : this.activeFilterPicker.values;
+
+    if (!Number.isInteger(selectedIndex) || selectedIndex < 0) {
+      delete this.currentFilters[field];
+    } else {
+      const value = values[selectedIndex];
+      if (!value) {
+        delete this.currentFilters[field];
+      } else {
+        this.currentFilters[field] = { mode: 'exactValue', value };
+      }
+    }
+
+    this.currentPage = 1;
+    this.updateFilterButtons();
+    this.applyFilters();
+    this.closeFilterValuePicker();
   }
 
   setupColumnHeaderSorting() {
@@ -886,6 +1039,11 @@ class BorderoTableManager {
         const fields = config.fields || [key];
         this.filteredBrani = this.filteredBrani.filter(item =>
           fields.some(field => String(item[field] ?? '').trim() !== '')
+        );
+      } else if (config.mode === 'exactValue') {
+        const expected = this.normalizeExactFilterValue(config.value);
+        this.filteredBrani = this.filteredBrani.filter(item =>
+          this.normalizeExactFilterValue(item[key]) === expected
         );
       } else {
         const value = config.value ?? '';
@@ -1127,10 +1285,10 @@ class BorderoTableManager {
 
   updateFilterButtons() {
     const buttons = [
-      { id: 'btn-filter-coreografia', key: 'info_coreo' },
+      { id: 'btn-filter-coreografia', key: 'info_livello' },
       { id: 'btn-filter-genere', key: 'genere' },
-      { id: 'btn-filter-livello', key: 'info_livello' },
-      { id: 'btn-filter-altro', key: ['collaboratori', 'compositore', 'durata', 'info_coreo'].join('|') },
+      { id: 'btn-filter-livello', key: 'coreografo' },
+      { id: 'btn-filter-altro', key: 'autore' },
     ];
 
     buttons.forEach(({ id, key }) => {
@@ -1213,6 +1371,12 @@ class BorderoTableManager {
 
     const readable = fields.map(f => mapping[f] || f).join(', ');
     container.textContent = `Campi cercati: ${readable}`;
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = String(text ?? '');
+    return div.innerHTML;
   }
 
   /**

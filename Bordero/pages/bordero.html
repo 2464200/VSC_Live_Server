@@ -11,7 +11,7 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css?v=20260718-2" />
+  <link rel="stylesheet" href="bordero.css?v=20260718-4" />
   
   <!-- XLSX Library per lettura file Excel -->
     <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
@@ -32,7 +32,7 @@
   <script defer src="../js/excel-file-manager.js?v=20260711-2"></script>
   <script defer src="../js/excel-sync.js?v=20260711-2"></script>
   <script defer src="../js/data-loader.js?v=20260711-2"></script>
-  <script defer src="bordero.js?v=20260718-2"></script>
+  <script defer src="bordero.js?v=20260718-3"></script>
 </head>
 
 <body>
@@ -127,17 +127,17 @@
 
       <div class="toolbar-section">
         <h3>COMANDI FILTRI</h3>
-        <button id="btn-filter-coreografia" class="btn btn-filter btn-filter-blue" title="Filtra per categoria COREOGRAFIA">
-          COREOGRAFIA
+        <button id="btn-filter-coreografia" class="btn btn-filter btn-filter-blue" title="Filtra per livello">
+          LIVELLO
         </button>
         <button id="btn-filter-genere" class="btn btn-filter btn-filter-green" title="Filtra per genere">
           GENERE
         </button>
-        <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" title="Filtra per livello difficoltÃ ">
-          LIVELLO
+        <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" title="Filtra per coreografo">
+          COREOGRAFO
         </button>
-        <button id="btn-filter-altro" class="btn btn-filter btn-filter-yellow" title="Filtro aggiuntivo">
-          ALTRO
+        <button id="btn-filter-altro" class="btn btn-filter btn-filter-yellow" title="Filtra per autore">
+          AUTORE
         </button>
         <button id="btn-reset-filters" class="btn btn-secondary" title="Resetta filtri e ricerca">
           🔄 RESET RICERCA
@@ -267,6 +267,20 @@
 
   <!-- Toast Notifications -->
   <div id="toast-container" class="toast-container"></div>
+
+  <!-- Popup filtro valori colonna -->
+  <div id="filter-picker-modal" class="filter-picker-modal" role="dialog" aria-modal="true" aria-labelledby="filter-picker-title" hidden>
+    <div class="filter-picker-content">
+      <div class="filter-picker-header">
+        <h3 id="filter-picker-title">Seleziona filtro</h3>
+        <button type="button" id="filter-picker-close" class="filter-picker-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="filter-picker-body">
+        <input type="text" id="filter-picker-search" class="filter-picker-search" placeholder="Cerca opzione..." />
+        <div id="filter-picker-options" class="filter-picker-options"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- UserForm Modal (da creare separatamente) -->
   <div id="userform-modal" class="modal" style="display: none;">

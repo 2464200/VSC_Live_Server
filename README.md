@@ -12,6 +12,7 @@ Questa è la guida principale per il progetto **VSC Live Server**, che include l
 - [Documentazione completa](#documentazione-completa)
 - [Link rapidi ai file](#link-rapidi-ai-file)
 - [Uso operativo](#uso-operativo)
+- [Aggiornamenti recenti (2026-07)](#aggiornamenti-recenti-2026-07)
 - [Git e versionamento](#git-e-versionamento)
 - [Note aggiuntive](#note-aggiuntive)
 
@@ -134,6 +135,48 @@ La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
 - Home: `http://localhost:5500/index.html`
 - Borderò: `http://localhost:5500/Bordero/pages/bordero.html`
 - Eventi: `http://localhost:5500/eventi/eventi.html`
+
+## Aggiornamenti recenti (2026-07)
+
+Questa sezione riassume le modifiche funzionali principali applicate nelle ultime iterazioni.
+
+### VLC e VideoClip (`Bordero/pages/videoclip.html`, `Bordero/pages/videoclip.js`, `unified-server.js`)
+
+- Avvio VLC reso esclusivo: a ogni nuovo `PLAY` resta attivo solo l'ultimo video selezionato.
+- Migliorata la gestione comandi VLC (`PLAY`, `PAUSA`, `FERMA`) tramite endpoint `POST /api/videoclip/vlc/control`.
+- Aggiunto `--no-video-title-show` all'avvio VLC per non mostrare il nome file in sovraimpressione.
+- Rafforzata la chiusura VLC in `stop` con fallback di terminazione processo quando necessario.
+- Migliorata la coerenza UI tra player HTML5 principale e controllo monitor secondario.
+- In `videoclip`: click su `SELEZIONA` card con scroll automatico in alto al player.
+
+### Match libreria video (`Bordero/pages/videoclip.js`)
+
+- Refactoring del match brano-file video con catalogo normalizzato e scoring.
+- Priorità al prefisso ID (`NNN`) e disambiguazione più severa.
+- Nei casi ambigui il sistema evita il match errato (preferisce non associare).
+
+### Tabella Borderò e ordinamento colonne (`Bordero/pages/bordero.html`, `Bordero/pages/bordero.js`, `Bordero/pages/bordero.css`)
+
+- Intestazioni colonna rese cliccabili come tasti di ordinamento.
+- Regola ordinamento intestazioni:
+	- primo click sulla colonna: crescente
+	- click successivi sulla stessa colonna: alternanza crescente/decrescente
+	- click su nuova colonna: reset del criterio precedente e nuovo crescente.
+- Inserito box rapido `RESET FILTRI + ID ↑` nella barra statistiche.
+- Aggiunto indicatore stato `Eseguiti in fondo: ON/OFF`.
+- Modalità `SPOSTA IN FONDO GLI ESEGUITI` mantenuta anche con riordino: gli eseguiti restano in fondo ma vengono ordinati internamente quando si applica un sort.
+
+### Comandi filtri e popup selezione valori (`Bordero/pages/bordero.html`, `Bordero/pages/bordero.js`, `Bordero/pages/bordero.css`)
+
+- Aggiornati i 4 tasti filtro:
+	- `LIVELLO` (campo `info_livello`)
+	- `GENERE` (campo `genere`)
+	- `COREOGRAFO` (campo `coreografo`)
+	- `AUTORE` (campo `autore`)
+- Ogni tasto apre popup con elenco valori unici della colonna corrispondente.
+- Selezione valore nel popup: applica filtro e chiude popup immediatamente.
+- Doppio click sul tasto filtro: reset solo del filtro di quel tasto (`nessun filtro`).
+- Filtro popup con confronto esatto del valore (es. `AVANZATO 1` diverso da `SUPERAVANZATO 1`).
 
 ## Git e versionamento
 
