@@ -35,6 +35,7 @@ const VLC_RC_PORT = process.env.VLC_RC_PORT ? parseInt(process.env.VLC_RC_PORT, 
 let vlcProcess = null;
 let vlcCurrentFile = '';
 let vlcDiscoveryPromise = null;
+let vlcLaunchSequence = 0;
 
 function isVlcAlive() {
     if (!vlcProcess || !vlcProcess.pid) return false;
@@ -263,6 +264,31 @@ async function forceKillVlc() {
     return { transport: 'taskkill' };
 }
 
+async function killAllVlcProcesses() {
+    try {
+        await execFileAsync('taskkill', ['/IM', 'vlc.exe', '/T', '/F']);
+    } catch (error) {
+        const details = `${error?.message || ''}\n${error?.stdout || ''}\n${error?.stderr || ''}`;
+        if (!/not found|nessuna istanza|no running instance|cannot find/i.test(details)) {
+            throw error;
+        }
+    } finally {
+        resetVlcState();
+    }
+
+    return { transport: 'taskkill-all' };
+}
+
+async function ensureExclusiveVlcPlayback() {
+    try {
+        await stopVlcPlayback();
+    } catch (_) {
+        // Fallback globale subito sotto.
+    }
+
+    await killAllVlcProcesses();
+}
+
 async function stopVlcPlayback() {
     let lastError = null;
 
@@ -287,15 +313,15 @@ async function stopVlcPlayback() {
 }
 
 async function launchVlcForSecondary(fullPath) {
-    // Evita processi multipli: chiudi VLC precedente se ancora vivo
-    if (isVlcAlive()) {
-        try {
-            await sendVlcCommand('quit');
-        } catch (_) {
-            try { spawn('taskkill', ['/PID', String(vlcProcess.pid), '/T', '/F']); } catch (_) {}
-        }
+    const launchToken = ++vlcLaunchSequence;
+
+    await ensureExclusiveVlcPlayback();
+
+    if (launchToken !== vlcLaunchSequence) {
+        const error = new Error('Superseded by newer VLC play request');
+        error.code = 'VLC_PLAY_SUPERSEDED';
+        throw error;
     }
-    resetVlcState();
 
     const vlcPath = process.env.VLC_PATH || 'C:/Program Files/VideoLAN/VLC/vlc.exe';
     const vlcArgs = [
@@ -666,6 +692,9 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
 
         return res.status(400).json({ success: false, error: `Unsupported action: ${action}` });
     } catch (error) {
+        if (error?.code === 'VLC_PLAY_SUPERSEDED') {
+            return res.status(409).json({ success: false, error: error.message });
+        }
         console.error('Errore controllo VLC secondario:', error);
         return res.status(500).json({ success: false, error: error.message });
     }
