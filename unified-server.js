@@ -207,11 +207,11 @@ async function pauseVlcPlayback() {
     await ensureVlcTracked();
 
     try {
+        const direct = await pauseVlcViaWindow();
+        return direct;
+    } catch (windowError) {
         await sendVlcCommand('pause');
-        return { transport: 'rc' };
-    } catch (rcError) {
-        const fallback = await pauseVlcViaWindow();
-        return { ...fallback, fallbackFrom: rcError.message };
+        return { transport: 'rc', fallbackFrom: windowError.message };
     }
 }
 
@@ -245,8 +245,10 @@ async function stopVlcPlayback() {
 
     try {
         await sendVlcCommand('quit');
-        resetVlcState();
-        return { transport: lastError ? 'rc-quit-after-stop-failure' : 'rc' };
+        if (!isVlcAlive()) {
+            resetVlcState();
+            return { transport: lastError ? 'rc-quit-after-stop-failure' : 'rc' };
+        }
     } catch (error) {
         lastError = error;
     }
