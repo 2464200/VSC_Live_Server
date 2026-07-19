@@ -950,17 +950,50 @@ class VideoClipManager {
 
   handleVlcCompletionEvent(completion) {
     const fileName = String(completion?.fileName || '').trim();
-    if (!fileName) return;
+    const filePath = String(completion?.filePath || '').trim();
+    const normalizedFileName = this.normalizeCompletionFileName(fileName || filePath);
 
-    const brano = this.brani.find((item) => {
-      const matched = this.availableMap.get(String(item.id));
-      return String(matched || '').trim().toLowerCase() === fileName.toLowerCase();
-    });
-
-    if (!brano) return;
+    const brano = this.findBranoForCompletion(normalizedFileName);
+    if (!brano) {
+      logger.warn('Completamento VLC ricevuto ma nessun brano associato', { fileName, filePath });
+      return;
+    }
     if (this.isBranoExecuted(brano)) return;
 
     this.markBranoExecutedFromVideoEnd(brano);
+  }
+
+  normalizeCompletionFileName(value) {
+    const text = String(value || '').trim().replace(/\\/g, '/');
+    if (!text) return '';
+    const lastSegment = text.split('/').pop() || text;
+    return decodeURIComponent(lastSegment).trim().toLowerCase();
+  }
+
+  findBranoForCompletion(normalizedFileName) {
+    if (!normalizedFileName) {
+      const fallback = this.currentPlaybackBranoId || this.currentBrano?.id;
+      if (!fallback) return null;
+      return this.brani.find((item) => String(item.id) === String(fallback)) || null;
+    }
+
+    const byMatchedFile = this.brani.find((item) => {
+      const matched = this.availableMap.get(String(item.id));
+      const normalizedMatched = this.normalizeCompletionFileName(matched);
+      return normalizedMatched && normalizedMatched === normalizedFileName;
+    });
+    if (byMatchedFile) return byMatchedFile;
+
+    const prefixMatch = normalizedFileName.match(/^(\d{3})[\s_-]/);
+    if (prefixMatch) {
+      const expectedId = String(Number(prefixMatch[1]));
+      const byPrefix = this.brani.find((item) => String(Number(item.id)) === expectedId);
+      if (byPrefix) return byPrefix;
+    }
+
+    const fallback = this.currentPlaybackBranoId || this.currentBrano?.id;
+    if (!fallback) return null;
+    return this.brani.find((item) => String(item.id) === String(fallback)) || null;
   }
 
   markBranoExecutedFromVideoEnd(brano) {
@@ -1003,7 +1036,7 @@ class VideoClipManager {
       logger.debug('Impossibile dispatchare evento bordero:serata-updated', error);
     }
 
-    this.renderLibrary();
+    this.filterVideos();
     this.updatePlayerInfo();
     Toast.success(`Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`);
   }
