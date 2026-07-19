@@ -21,6 +21,8 @@ class VideoClipManager {
     this.pendingBranoId = this.getRequestedBranoIdFromUrl();
     this.lastVlcCompletionEventId = 0;
     this.vlcCompletionWatcherTimer = null;
+    this.vlcWasAlive = false;
+    this.manualStopPending = false;
 
     this.init();
   }
@@ -891,6 +893,7 @@ class VideoClipManager {
     });
 
     document.getElementById('btn-stop').addEventListener('click', () => {
+      this.manualStopPending = true;
       this.stopMainVideo();
       this.stopSecondaryVideo();
     });
@@ -940,12 +943,28 @@ class VideoClipManager {
     const payload = await response.json().catch(() => null);
     if (!payload || !payload.success) return;
 
+    const alive = Boolean(payload.alive);
     const completion = payload.completion || {};
     const eventId = Number(completion.eventId || 0);
-    if (!eventId || eventId <= this.lastVlcCompletionEventId) return;
+    let handledByCompletionEvent = false;
 
-    this.lastVlcCompletionEventId = eventId;
-    this.handleVlcCompletionEvent(completion);
+    if (eventId && eventId > this.lastVlcCompletionEventId) {
+      this.lastVlcCompletionEventId = eventId;
+      this.handleVlcCompletionEvent(completion);
+      handledByCompletionEvent = true;
+    }
+
+    // Fallback robusto: se VLC termina senza evento completion mappabile,
+    // usa il brano in riproduzione corrente (a meno che sia stato stop manuale).
+    if (this.vlcWasAlive && !alive && !handledByCompletionEvent) {
+      if (this.manualStopPending) {
+        this.manualStopPending = false;
+      } else {
+        this.handleVlcCompletionEvent(completion || {});
+      }
+    }
+
+    this.vlcWasAlive = alive;
   }
 
   handleVlcCompletionEvent(completion) {
