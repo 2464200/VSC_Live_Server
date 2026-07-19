@@ -1363,6 +1363,9 @@ class BorderoTableManager {
       button.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
+        if (button.disabled || button.classList.contains('is-disabled')) {
+          return;
+        }
         const branoId = button.dataset.branoId;
         if (!branoId) return;
         window.location.href = `videoclip.html?branoId=${encodeURIComponent(String(branoId))}`;
@@ -1381,8 +1384,11 @@ class BorderoTableManager {
     const completedClass = isCompleted ? 'completed' : '';
     const flagIcon = isCompleted ? '✅' : '';
     const timestamp = brano.timestamp || '';
+    const videoButtonDisabledClass = isCompleted ? ' is-disabled' : '';
+    const videoButtonDisabledAttr = isCompleted ? ' disabled aria-disabled="true" tabindex="-1"' : '';
+    const videoButtonTitle = isCompleted ? 'Brano eseguito: VideoClip non disponibile' : 'Apri VideoClip';
     const videoClipMarker = brano.videoclip
-      ? `<button type="button" class="videoclip-open" data-brano-id="${brano.id}" aria-label="Apri VideoClip per ${String(brano.titolo || brano.id || 'brano')}" title="Apri VideoClip">🎬</button>`
+      ? `<button type="button" class="videoclip-open${videoButtonDisabledClass}" data-brano-id="${brano.id}" aria-label="Apri VideoClip per ${String(brano.titolo || brano.id || 'brano')}" title="${videoButtonTitle}"${videoButtonDisabledAttr}>🎬</button>`
       : '-';
 
     return `

@@ -114,6 +114,32 @@
   line-height: 1.4;
 }
 
+.html5-debug-indicator {
+  background: linear-gradient(135deg, rgba(58, 62, 72, 0.7), rgba(34, 37, 45, 0.75));
+  border: 1px solid rgba(255, 179, 71, 0.25);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.82em;
+  color: #d7dce4;
+  line-height: 1.35;
+}
+
+.html5-debug-indicator .debug-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  margin-bottom: 3px;
+}
+
+.html5-debug-indicator .debug-row:last-child {
+  margin-bottom: 0;
+}
+
+#dbg-html5-src {
+  word-break: break-all;
+  opacity: 0.9;
+}
+
 .video-controls {
   display: flex;
   flex-direction: column;

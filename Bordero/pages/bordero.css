@@ -771,6 +771,16 @@
   outline-offset: 1px;
 }
 
+.videoclip-open.is-disabled,
+.videoclip-open:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: none;
+  background: rgba(130, 130, 130, 0.18);
+  border-color: rgba(130, 130, 130, 0.45);
+}
+
 /* Flag Icon */
 .flag-icon {
   display: inline-block;

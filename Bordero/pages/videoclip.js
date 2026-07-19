@@ -40,6 +40,7 @@ class VideoClipManager {
       this.renderLibrary();
       this.populateGenreFilter();
       this.setupListeners();
+      this.setupMainVideoDebugIndicator();
       this.applyPendingBranoSelection();
       this.startVlcCompletionWatcher();
 
@@ -376,6 +377,7 @@ class VideoClipManager {
 
     source.src = url || '';
     mainVideo.src = url || '';
+    this.updateMainVideoDebugIndicator('source-updated');
   }
 
   async playMainVideo() {
@@ -399,6 +401,7 @@ class VideoClipManager {
       await mainVideo.play();
       mainVideo.muted = false;
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+      this.updateMainVideoDebugIndicator('playing');
     } catch (playErr) {
       logger.warn('Main video play blocked by browser policy', playErr);
       try {
@@ -408,8 +411,10 @@ class VideoClipManager {
         await this.waitForVideoReady(mainVideo);
         await mainVideo.play();
         mainVideo.muted = false;
+        this.updateMainVideoDebugIndicator('playing-muted-fallback');
       } catch (fallbackErr) {
         logger.debug('Main video fallback play failed', fallbackErr);
+        this.updateMainVideoDebugIndicator('play-error');
       }
     }
   }
@@ -421,6 +426,7 @@ class VideoClipManager {
     if (!mainVideo.paused) {
       mainVideo.pause();
     }
+    this.updateMainVideoDebugIndicator('paused');
   }
 
   stopMainVideo() {
@@ -429,6 +435,7 @@ class VideoClipManager {
 
     mainVideo.pause();
     mainVideo.currentTime = 0;
+    this.updateMainVideoDebugIndicator('stopped');
   }
 
   async playSecondaryVideo() {
@@ -579,6 +586,7 @@ class VideoClipManager {
       const mainVideo = document.getElementById('main-video');
       noVideo?.classList.remove('hidden');
       mainVideo?.classList.add('hidden');
+      this.updateMainVideoDebugIndicator('no-selection');
       return;
     }
 
@@ -613,8 +621,10 @@ class VideoClipManager {
           playbackStatus.textContent = 'Video pronto: monitor principale HTML5, monitor secondario via VLC.';
         }
         this.loadSecondaryVideo(url);
+        this.updateMainVideoDebugIndicator('ready');
       } catch (err) {
         logger.warn('Errore impostando sorgente video', err);
+        this.updateMainVideoDebugIndicator('ready-error');
       }
     } else {
       this.setMainVideoSource('');
@@ -625,7 +635,36 @@ class VideoClipManager {
         playbackStatus.textContent = 'Nessun video disponibile per il monitor secondario.';
       }
       noVideo.innerHTML = '<p>Nessun video selezionato</p><small>Non è stato trovato un file video associato a questo brano.</small>';
+      this.updateMainVideoDebugIndicator('no-video-file');
     }
+  }
+
+  setupMainVideoDebugIndicator() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo) return;
+
+    const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'pause', 'stalled', 'waiting', 'suspend', 'ended', 'error'];
+    events.forEach((evt) => {
+      mainVideo.addEventListener(evt, () => this.updateMainVideoDebugIndicator(evt));
+    });
+
+    this.updateMainVideoDebugIndicator('initialized');
+  }
+
+  updateMainVideoDebugIndicator(stateLabel = 'updated') {
+    const mainVideo = document.getElementById('main-video');
+    const stateEl = document.getElementById('dbg-html5-state');
+    const readyEl = document.getElementById('dbg-html5-ready');
+    const errorEl = document.getElementById('dbg-html5-error');
+    const srcEl = document.getElementById('dbg-html5-src');
+
+    if (!mainVideo || !stateEl || !readyEl || !errorEl || !srcEl) return;
+
+    const src = mainVideo.currentSrc || mainVideo.src || document.getElementById('video-source')?.src || '';
+    stateEl.textContent = String(stateLabel || 'updated');
+    readyEl.textContent = String(mainVideo.readyState ?? 0);
+    errorEl.textContent = String(mainVideo.error?.code ?? 0);
+    srcEl.textContent = src ? src : '--';
   }
 
   parseVideoFileReference(fileName) {
