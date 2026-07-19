@@ -848,36 +848,18 @@ class VideoClipManager {
           logger.warn('[PLAY] No currentBrano selected');
           return;
         }
-        const mainVideo = document.getElementById('main-video');
         const url = this.currentVideoUrl || this.getCurrentVideoUrl();
-        if (!mainVideo || !url) {
-          logger.warn('[PLAY] No video element or URL');
+        if (!url) {
+          logger.warn('[PLAY] No video URL');
           return;
         }
 
         try {
           event.preventDefault();
           event.stopPropagation();
-          logger.debug('[PLAY] Starting playback');
-          
-          // Reset and load
-          mainVideo.src = url;
-          mainVideo.currentTime = 0;
-          mainVideo.muted = false;
-          
-          // Wait very briefly for metadata then play immediately
-          mainVideo.load();
-          
-          // Try to play immediately without waiting
-          logger.debug('[PLAY] Calling play() immediately');
-          const playPromise = mainVideo.play();
-          if (playPromise !== undefined) {
-            await playPromise;
-            logger.debug('[PLAY] play() Promise resolved');
-          }
-          
-          this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
-          logger.debug('[PLAY] Playback initiated');
+          logger.debug('[PLAY] Starting main playback via playMainVideo()');
+          await this.playMainVideo();
+          logger.debug('[PLAY] Main playback initiated');
         } catch (playErr) {
           logger.warn('[PLAY] Error:', playErr.message || playErr);
         }
