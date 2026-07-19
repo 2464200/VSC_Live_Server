@@ -24,6 +24,11 @@ class BorderoTableManager {
     this.activeFilterPicker = null;
     this.filterButtonClickTimers = new Map();
     this.sortButtonClickTimers = new Map();
+    this.headerSortClickTimers = new Map();
+    this.moveExecutedBottomClickTimer = null;
+    this.videoClipFiles = [];
+    this.videoClipCatalog = [];
+    this.videoClipAvailableMap = new Map();
 
     // Serata info
     this.serata = {
@@ -71,6 +76,9 @@ class BorderoTableManager {
       } else {
         this.allBrani = originalBrani;
       }
+
+      await this.refreshVideoClipAvailability();
+      this.applyVideoClipAvailabilityToBrani();
 
       this.filteredBrani = [...this.allBrani];
 
@@ -579,6 +587,9 @@ class BorderoTableManager {
         this.allBrani = originalBrani;
       }
 
+      await this.refreshVideoClipAvailability();
+      this.applyVideoClipAvailabilityToBrani();
+
       this.filteredBrani = [...this.allBrani];
       this.currentPage = 1;
       await this.populateDJSelect();
@@ -601,7 +612,7 @@ class BorderoTableManager {
     this.bindSortButton('btn-sort-genere', 'genere', 'GENERE');
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
     this.setupColumnHeaderSorting();
-    document.getElementById('btn-move-executed-bottom')?.addEventListener('click', () => this.moveExecutedToBottom());
+    this.bindMoveExecutedBottomButton('btn-move-executed-bottom', 'SPOSTA IN FONDO GLI ESEGUITI');
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
       window.location.href = 'brani-eseguiti.html';
     });
@@ -748,6 +759,33 @@ class BorderoTableManager {
     });
   }
 
+  bindMoveExecutedBottomButton(buttonId, label) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+
+    button.addEventListener('click', () => {
+      if (this.moveExecutedBottomClickTimer) {
+        clearTimeout(this.moveExecutedBottomClickTimer);
+      }
+
+      this.moveExecutedBottomClickTimer = setTimeout(() => {
+        this.moveExecutedBottomClickTimer = null;
+        this.moveExecutedToBottom();
+      }, 220);
+    });
+
+    button.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+
+      if (this.moveExecutedBottomClickTimer) {
+        clearTimeout(this.moveExecutedBottomClickTimer);
+        this.moveExecutedBottomClickTimer = null;
+      }
+
+      this.resetMoveExecutedToBottom(label);
+    });
+  }
+
   resetSingleSort(field, label = field) {
     if (this.currentSort !== field) {
       Toast.info(`Sort ${label} non attivo`);
@@ -881,19 +919,64 @@ class BorderoTableManager {
     headers.forEach((header) => {
       const field = header.dataset.col;
       if (!field) return;
+      const isFilterOnly = header.dataset.filterOnly === 'true';
 
       header.classList.add('sortable-col-header');
       header.setAttribute('role', 'button');
       header.setAttribute('tabindex', '0');
-      header.setAttribute('aria-label', `Ordina per ${field} in ordine crescente`);
+      if (isFilterOnly) {
+        header.setAttribute('aria-label', `Filtra per ${field} valorizzato`);
+      } else {
+        header.setAttribute('aria-label', `Ordina per ${field} in ordine crescente`);
+      }
 
       header.addEventListener('click', () => {
-        this.sortByFromHeader(field);
+        const existingTimer = this.headerSortClickTimers.get(field);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+        }
+
+        const timer = setTimeout(() => {
+          this.headerSortClickTimers.delete(field);
+          this.clearColumnFiltersExcept(field);
+
+          if (isFilterOnly) {
+            this.togglePresenceFilter(field);
+            this.updateColumnHeaderSortState();
+            return;
+          }
+
+          this.clearVideoClipPresenceFilterOnOtherHeader(field);
+          this.sortByFromHeader(field);
+        }, 220);
+
+        this.headerSortClickTimers.set(field, timer);
       });
+
+      if (!isFilterOnly) {
+        header.addEventListener('dblclick', (event) => {
+          event.preventDefault();
+
+          const existingTimer = this.headerSortClickTimers.get(field);
+          if (existingTimer) {
+            clearTimeout(existingTimer);
+            this.headerSortClickTimers.delete(field);
+          }
+
+          this.resetSingleSort(field, header.textContent?.trim() || field);
+        });
+      }
 
       header.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
+          this.clearColumnFiltersExcept(field);
+          if (isFilterOnly) {
+            this.togglePresenceFilter(field);
+            this.updateColumnHeaderSortState();
+            return;
+          }
+          this.clearVideoClipPresenceFilterOnOtherHeader(field);
           this.sortByFromHeader(field);
         }
       });
@@ -1063,6 +1146,30 @@ class BorderoTableManager {
     Toast.info('Brani eseguiti spostati in fondo');
   }
 
+  resetMoveExecutedToBottom(label = 'SPOSTA IN FONDO GLI ESEGUITI') {
+    if (!this.keepExecutedAtBottom) {
+      Toast.info(`Comando ${label} non attivo`);
+      return;
+    }
+
+    this.keepExecutedAtBottom = false;
+    this.currentSort = null;
+    this.currentSortDirection = 'asc';
+    this.lastHeaderSortField = null;
+    this.allBrani = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+    this.currentPage = 1;
+
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+    this.autoSaveSerata();
+    this.updateExecutedBottomModeBadge();
+    this.updateSortButtons();
+    this.updateColumnHeaderSortState();
+    this.applyFilters();
+
+    logger.info('Comando sposta eseguiti in fondo resettato');
+    Toast.info(`Comando ${label} resettato`);
+  }
+
   /**
    * Toggle filtro presenza dati su un campo o su più campi
    */
@@ -1151,12 +1258,24 @@ class BorderoTableManager {
 
     logger.info('Resettando filtri...');
 
+    // Reset globale: azzera tutti i filtri di tutte le colonne.
     this.currentFilters = {};
     this.currentSearch = '';
     this.currentSort = sortById ? 'id' : null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = sortById ? 'id' : null;
     this.currentPage = 1;
+
+    if (this.activeFilterPicker) {
+      this.closeFilterValuePicker();
+    }
+
+    this.filterButtonClickTimers.forEach((timer) => clearTimeout(timer));
+    this.filterButtonClickTimers.clear();
+    this.sortButtonClickTimers.forEach((timer) => clearTimeout(timer));
+    this.sortButtonClickTimers.clear();
+    this.headerSortClickTimers.forEach((timer) => clearTimeout(timer));
+    this.headerSortClickTimers.clear();
 
     // Reset UI
     const searchBox = document.getElementById('search-box');
@@ -1173,6 +1292,27 @@ class BorderoTableManager {
     if (!silent) {
       Toast.info(sortById ? 'Filtri resettati e ordinamento ID crescente applicato' : 'Filtri resettati');
     }
+  }
+
+  clearVideoClipPresenceFilterOnOtherHeader(clickedField) {
+    if (clickedField === 'videoclip') return;
+
+    const current = this.currentFilters.videoclip;
+    if (!current || current.mode !== 'hasValue') return;
+
+    delete this.currentFilters.videoclip;
+  }
+
+  clearColumnFiltersExcept(selectedField) {
+    const columnFields = Array.from(document.querySelectorAll('#brani-table thead th[data-col]'))
+      .map((header) => header.dataset.col)
+      .filter(Boolean);
+
+    columnFields.forEach((field) => {
+      if (field !== selectedField) {
+        delete this.currentFilters[field];
+      }
+    });
   }
 
   /**
@@ -1207,6 +1347,11 @@ class BorderoTableManager {
         const branoId = row.dataset.branoId;
         const brano = this.allBrani.find(b => String(b.id) === String(branoId));
         const clickedFlagCell = Boolean(e.target.closest('.col-flag'));
+        const clickedVideoIcon = Boolean(e.target.closest('.videoclip-open'));
+
+        if (clickedVideoIcon) {
+          return;
+        }
 
         if (clickedFlagCell && brano && String(brano.flag || '').toUpperCase() === 'X') {
           this.markAsAvailable(branoId);
@@ -1218,6 +1363,16 @@ class BorderoTableManager {
         }
 
         this.markAsCompleted(branoId);
+      });
+    });
+
+    tbody.querySelectorAll('.videoclip-open').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const branoId = button.dataset.branoId;
+        if (!branoId) return;
+        window.location.href = `videoclip.html?branoId=${encodeURIComponent(String(branoId))}`;
       });
     });
 
@@ -1233,6 +1388,9 @@ class BorderoTableManager {
     const completedClass = isCompleted ? 'completed' : '';
     const flagIcon = isCompleted ? '✅' : '';
     const timestamp = brano.timestamp || '';
+    const videoClipMarker = brano.videoclip
+      ? `<button type="button" class="videoclip-open" data-brano-id="${brano.id}" aria-label="Apri VideoClip per ${String(brano.titolo || brano.id || 'brano')}" title="Apri VideoClip">🎬</button>`
+      : '-';
 
     return `
       <tr class="brani-row ${completedClass}" data-brano-id="${brano.id}">
@@ -1248,8 +1406,241 @@ class BorderoTableManager {
         <td class="col-coreo">${brano.info_coreo || '-'}</td>
         <td class="col-coreografo">${brano.coreografo || '-'}</td>
         <td class="col-collaboratori">${brano.collaboratori || '-'}</td>
+        <td class="col-videoclip">${videoClipMarker}</td>
       </tr>
     `;
+  }
+
+  async refreshVideoClipAvailability() {
+    this.videoClipFiles = [];
+    this.videoClipCatalog = [];
+    this.videoClipAvailableMap = new Map();
+
+    const attempts = [
+      'http://localhost:5500/api/videoclip/list',
+      'http://127.0.0.1:5500/api/videoclip/list',
+      window.location.origin + '/api/videoclip/list',
+      'http://localhost:5501/api/videoclip/list',
+      window.location.origin.replace(/:\d+$/, '') + ':5501/api/videoclip/list',
+      '/api/videoclip/list'
+    ];
+
+    for (const url of attempts) {
+      try {
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) continue;
+        const json = await resp.json();
+        if (json && Array.isArray(json.files) && json.files.length > 0) {
+          this.videoClipFiles = json.files
+            .map(f => String(f || '').trim())
+            .filter(Boolean);
+          logger.info('Videoclip list ottenuta da', url, this.videoClipFiles.length);
+          break;
+        }
+      } catch (err) {
+        logger.debug('Video list fetch failed for', url, err.message || err);
+      }
+    }
+
+    const basenames = this.videoClipFiles.map((f) => {
+      const idx = f.lastIndexOf('.');
+      return idx > 0 ? f.slice(0, idx) : f;
+    });
+
+    this.videoClipCatalog = this.videoClipFiles.map((fullName, index) => {
+      const baseName = basenames[index] || fullName;
+      const parsed = this.parseVideoFileReference(baseName);
+      const normalizedName = this.normalizeForMatch(parsed.name || baseName);
+      return {
+        fullName,
+        baseName,
+        prefix: parsed.prefix || '',
+        name: parsed.name || baseName,
+        normalizedName,
+        tokens: this.tokenizeForMatch(normalizedName)
+      };
+    });
+
+    this.allBrani.forEach((brano) => {
+      const matched = this.findMatchingVideoFile(brano);
+      if (matched) this.videoClipAvailableMap.set(String(brano.id), matched);
+    });
+  }
+
+  applyVideoClipAvailabilityToBrani() {
+    const markerFor = (brano) => this.videoClipAvailableMap.has(String(brano?.id ?? '')) ? '🎬' : '';
+
+    this.allBrani = this.allBrani.map((brano) => ({
+      ...brano,
+      videoclip: markerFor(brano)
+    }));
+
+    this.filteredBrani = this.filteredBrani.map((brano) => ({
+      ...brano,
+      videoclip: markerFor(brano)
+    }));
+  }
+
+  parseVideoFileReference(fileName) {
+    const rawName = String(fileName || '').trim();
+    if (!rawName) return { prefix: '', name: '' };
+
+    const withoutExtension = rawName.replace(/\.[^.]+$/, '');
+    const match = withoutExtension.match(/^(\d{3})[\s_-]+(.+)$/);
+
+    if (match) {
+      return {
+        prefix: match[1],
+        name: match[2].trim()
+      };
+    }
+
+    return {
+      prefix: '',
+      name: withoutExtension
+    };
+  }
+
+  normalizeForMatch(value) {
+    let text = String(value || '').trim();
+    if (!text) return '';
+
+    try {
+      text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    } catch (e) {
+      text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    return text
+      .toLowerCase()
+      .replace(/&/g, ' e ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  tokenizeForMatch(normalizedText) {
+    return String(normalizedText || '')
+      .split(' ')
+      .map(token => token.trim())
+      .filter(token => token.length >= 2);
+  }
+
+  buildBranoMatchProfile(brano) {
+    const idDigits = String(brano?.id ?? '').replace(/\D+/g, '');
+    const idPrefix = idDigits ? idDigits.padStart(3, '0') : '';
+
+    const rawNames = [
+      brano?.coreografia,
+      brano?.titolo,
+      brano?.brano,
+      brano?.song,
+      brano?.canzone
+    ].map(value => String(value || '').trim()).filter(Boolean);
+
+    const normalizedNames = [...new Set(rawNames
+      .map(name => this.normalizeForMatch(name))
+      .filter(name => name.length >= 3))];
+
+    const tokenSet = new Set();
+    normalizedNames.forEach(name => {
+      this.tokenizeForMatch(name).forEach(token => tokenSet.add(token));
+    });
+
+    return {
+      idPrefix,
+      normalizedNames,
+      tokens: [...tokenSet]
+    };
+  }
+
+  scoreVideoCandidate(profile, candidate) {
+    let score = 0;
+
+    const hasPrefix = Boolean(profile.idPrefix);
+    if (hasPrefix && candidate.prefix === profile.idPrefix) {
+      score += 1000;
+    }
+
+    if (profile.normalizedNames.includes(candidate.normalizedName)) {
+      score += 450;
+    }
+
+    const includesName = profile.normalizedNames.some(name =>
+      candidate.normalizedName.includes(name) || name.includes(candidate.normalizedName)
+    );
+    if (includesName) {
+      score += 120;
+    }
+
+    if (profile.tokens.length > 0 && candidate.tokens.length > 0) {
+      const shared = candidate.tokens.filter(token => profile.tokens.includes(token)).length;
+      const ratio = shared / Math.max(profile.tokens.length, candidate.tokens.length);
+      score += Math.round(ratio * 100);
+    }
+
+    return score;
+  }
+
+  findMatchingVideoFile(brano) {
+    if (!Array.isArray(this.videoClipCatalog) || this.videoClipCatalog.length === 0) return null;
+
+    const profile = this.buildBranoMatchProfile(brano);
+    const hasNames = profile.normalizedNames.length > 0;
+
+    let pool = this.videoClipCatalog;
+    if (profile.idPrefix) {
+      const byPrefix = this.videoClipCatalog.filter(item => item.prefix === profile.idPrefix);
+      if (byPrefix.length > 0) {
+        pool = byPrefix;
+      }
+    }
+
+    const scored = pool
+      .map(item => ({ item, score: this.scoreVideoCandidate(profile, item) }))
+      .sort((a, b) => b.score - a.score);
+
+    if (scored.length === 0 || scored[0].score <= 0) {
+      return null;
+    }
+
+    const best = scored[0];
+    const second = scored[1];
+
+    if (profile.idPrefix && pool.length > 1 && hasNames) {
+      const ambiguous = second && (best.score - second.score) < 80;
+      if (ambiguous) {
+        logger.warn('Match ambiguo: prefisso ID duplicato senza differenza significativa', {
+          branoId: brano?.id,
+          best: best.item.fullName,
+          second: second.item.fullName,
+          bestScore: best.score,
+          secondScore: second.score
+        });
+        return null;
+      }
+    }
+
+    if (!profile.idPrefix) {
+      const exactNameMatches = scored.filter(entry => profile.normalizedNames.includes(entry.item.normalizedName));
+      if (exactNameMatches.length === 1) {
+        return exactNameMatches[0].item.fullName;
+      }
+
+      if (exactNameMatches.length > 1) {
+        logger.warn('Match ambiguo: titolo coincide con più file senza prefisso ID', {
+          branoId: brano?.id,
+          matches: exactNameMatches.map(entry => entry.item.fullName)
+        });
+        return null;
+      }
+
+      if (best.score < 260) {
+        return null;
+      }
+    }
+
+    return best.item.fullName;
   }
 
   /**
@@ -1337,11 +1728,26 @@ class BorderoTableManager {
 
   updateColumnHeaderSortState() {
     const headers = document.querySelectorAll('#brani-table thead th[data-col]');
+    const headerFields = Array.from(headers)
+      .map((header) => header.dataset.col)
+      .filter(Boolean);
+
+    const activeColumnFilterField = headerFields.find((field) => {
+      const cfg = this.currentFilters[field];
+      return Boolean(cfg && (cfg.mode === 'hasValue' || cfg.mode === 'exactValue'));
+    }) || null;
+
+    const activeField = this.currentSort || activeColumnFilterField;
+
     headers.forEach((header) => {
       const field = header.dataset.col || '';
-      const isActive = this.currentSort === field;
-      header.classList.toggle('active-sort', isActive);
-      header.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      const isFilterOnly = header.dataset.filterOnly === 'true';
+      const isActiveField = Boolean(activeField && activeField === field);
+      const isSortActive = isActiveField;
+      const isFilterActive = isActiveField && isFilterOnly;
+      header.classList.toggle('active-sort', isSortActive);
+      header.classList.toggle('active-filter', isFilterActive);
+      header.setAttribute('aria-pressed', (isSortActive || isFilterActive) ? 'true' : 'false');
     });
   }
 

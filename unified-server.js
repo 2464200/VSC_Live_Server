@@ -37,6 +37,33 @@ let vlcCurrentFile = '';
 let vlcDiscoveryPromise = null;
 let vlcLaunchSequence = 0;
 let vlcPauseSequence = 0;
+let vlcStopRequestedPids = new Set();
+let vlcCompletionEventSeq = 0;
+let vlcLastCompletionEvent = {
+    eventId: 0,
+    filePath: '',
+    fileName: '',
+    completedAt: 0
+};
+
+function trackVlcStopRequestForCurrentProcess() {
+    if (vlcProcess?.pid) {
+        vlcStopRequestedPids.add(vlcProcess.pid);
+    }
+}
+
+function recordVlcCompletion(filePath) {
+    const normalized = String(filePath || '').trim();
+    if (!normalized) return;
+
+    vlcCompletionEventSeq += 1;
+    vlcLastCompletionEvent = {
+        eventId: vlcCompletionEventSeq,
+        filePath: normalized,
+        fileName: path.basename(normalized),
+        completedAt: Date.now()
+    };
+}
 
 function isVlcAlive() {
     if (!vlcProcess || !vlcProcess.pid) return false;
@@ -291,6 +318,7 @@ async function pauseVlcPlayback() {
 
 async function forceKillVlc() {
     try {
+        trackVlcStopRequestForCurrentProcess();
         if (vlcProcess?.pid) {
             await execFileAsync('taskkill', ['/PID', String(vlcProcess.pid), '/T', '/F']);
         } else {
@@ -310,6 +338,7 @@ async function forceKillVlc() {
 
 async function killAllVlcProcesses() {
     try {
+        trackVlcStopRequestForCurrentProcess();
         await execFileAsync('taskkill', ['/IM', 'vlc.exe', '/T', '/F']);
     } catch (error) {
         const details = `${error?.message || ''}\n${error?.stdout || ''}\n${error?.stderr || ''}`;
@@ -335,6 +364,7 @@ async function ensureExclusiveVlcPlayback() {
 
 async function stopVlcPlayback() {
     let lastError = null;
+    trackVlcStopRequestForCurrentProcess();
 
     try {
         await sendVlcCommand('stop');
@@ -384,9 +414,20 @@ async function launchVlcForSecondary(fullPath) {
     child.unref();
     vlcProcess = child;
     vlcCurrentFile = fullPath;
+    const launchedPid = child.pid;
+    const launchedFile = fullPath;
 
     child.on('exit', () => {
-        resetVlcState();
+        const wasStopRequested = vlcStopRequestedPids.has(launchedPid);
+        if (wasStopRequested) {
+            vlcStopRequestedPids.delete(launchedPid);
+        } else if (launchedFile) {
+            recordVlcCompletion(launchedFile);
+        }
+
+        if (vlcProcess?.pid === launchedPid) {
+            resetVlcState();
+        }
     });
 
     return { vlcPath, vlcArgs };
@@ -743,6 +784,22 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
             return res.status(409).json({ success: false, error: error.message });
         }
         console.error('Errore controllo VLC secondario:', error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/videoclip/vlc/state', async (req, res) => {
+    try {
+        const tracked = await ensureVlcTracked();
+        const alive = isVlcAlive();
+        return res.json({
+            success: true,
+            alive,
+            tracked: Boolean(tracked),
+            filePath: vlcCurrentFile || tracked?.filePath || '',
+            completion: vlcLastCompletionEvent
+        });
+    } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
 });

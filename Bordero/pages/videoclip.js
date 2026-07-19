@@ -18,6 +18,9 @@ class VideoClipManager {
     this.showOnlyAvailable = false;
     this.vlcPath = '';
     this.vlcFallbackActive = false;
+    this.pendingBranoId = this.getRequestedBranoIdFromUrl();
+    this.lastVlcCompletionEventId = 0;
+    this.vlcCompletionWatcherTimer = null;
 
     this.init();
   }
@@ -35,6 +38,8 @@ class VideoClipManager {
       this.renderLibrary();
       this.populateGenreFilter();
       this.setupListeners();
+      this.applyPendingBranoSelection();
+      this.startVlcCompletionWatcher();
 
       logger.info('✓ VideoClipManager inizializzato');
     } catch (error) {
@@ -244,16 +249,59 @@ class VideoClipManager {
   }
 
   selectBrano(brano) {
+    return this.selectBranoWithOptions(brano, { allowExecuted: false, scrollBehavior: 'smooth' });
+  }
+
+  selectBranoWithOptions(brano, options = {}) {
+    const { allowExecuted = false, scrollBehavior = 'smooth' } = options;
     if (this.isBranoExecuted(brano)) {
-      return;
+      if (!allowExecuted) {
+        return false;
+      }
     }
+
     this.currentBrano = brano;
     this.updatePlayerInfo();
     this.renderLibrary();
 
     // Porta subito il player in vista dopo la selezione di una card.
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : scrollBehavior });
+    return true;
+  }
+
+  getRequestedBranoIdFromUrl() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const value = String(params.get('branoId') || '').trim();
+      return value || null;
+    } catch (error) {
+      logger.debug('Impossibile leggere branoId dalla URL', error);
+      return null;
+    }
+  }
+
+  applyPendingBranoSelection() {
+    if (!this.pendingBranoId) return;
+
+    const target = this.brani.find((item) => String(item.id) === String(this.pendingBranoId));
+    if (!target) {
+      this.pendingBranoId = null;
+      return;
+    }
+
+    const selected = this.selectBranoWithOptions(target, { allowExecuted: true, scrollBehavior: 'auto' });
+    this.pendingBranoId = null;
+
+    if (selected) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('branoId');
+        window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+      } catch (error) {
+        logger.debug('Impossibile pulire branoId dalla URL', error);
+      }
+    }
   }
 
   waitMs(ms) {
@@ -762,6 +810,13 @@ class VideoClipManager {
       this.handleSerataChange();
     });
 
+    window.addEventListener('beforeunload', () => {
+      if (this.vlcCompletionWatcherTimer) {
+        clearInterval(this.vlcCompletionWatcherTimer);
+        this.vlcCompletionWatcherTimer = null;
+      }
+    });
+
     const searchInput = document.getElementById('video-search');
     if (searchInput) {
       searchInput.addEventListener('input', () => {
@@ -864,6 +919,93 @@ class VideoClipManager {
       .catch(() => {
         this.renderLibrary();
       });
+  }
+
+  startVlcCompletionWatcher() {
+    if (this.vlcCompletionWatcherTimer) {
+      clearInterval(this.vlcCompletionWatcherTimer);
+    }
+
+    this.vlcCompletionWatcherTimer = setInterval(() => {
+      this.pollVlcCompletion().catch((error) => {
+        logger.debug('VLC completion poll failed', error?.message || error);
+      });
+    }, 1500);
+  }
+
+  async pollVlcCompletion() {
+    const response = await fetch('/api/videoclip/vlc/state', { cache: 'no-store' });
+    if (!response.ok) return;
+
+    const payload = await response.json().catch(() => null);
+    if (!payload || !payload.success) return;
+
+    const completion = payload.completion || {};
+    const eventId = Number(completion.eventId || 0);
+    if (!eventId || eventId <= this.lastVlcCompletionEventId) return;
+
+    this.lastVlcCompletionEventId = eventId;
+    this.handleVlcCompletionEvent(completion);
+  }
+
+  handleVlcCompletionEvent(completion) {
+    const fileName = String(completion?.fileName || '').trim();
+    if (!fileName) return;
+
+    const brano = this.brani.find((item) => {
+      const matched = this.availableMap.get(String(item.id));
+      return String(matched || '').trim().toLowerCase() === fileName.toLowerCase();
+    });
+
+    if (!brano) return;
+    if (this.isBranoExecuted(brano)) return;
+
+    this.markBranoExecutedFromVideoEnd(brano);
+  }
+
+  markBranoExecutedFromVideoEnd(brano) {
+    const targetId = String(brano.id);
+    const nowTimestamp = DateUtils.formatDate(new Date());
+
+    this.brani = this.brani.map((item) => {
+      if (String(item.id) !== targetId) return item;
+      return {
+        ...item,
+        flag: 'X',
+        timestamp: nowTimestamp
+      };
+    });
+
+    this.filteredBrani = this.filteredBrani.map((item) => {
+      if (String(item.id) !== targetId) return item;
+      return {
+        ...item,
+        flag: 'X',
+        timestamp: nowTimestamp
+      };
+    });
+
+    if (this.currentBrano && String(this.currentBrano.id) === targetId) {
+      this.currentBrano = {
+        ...this.currentBrano,
+        flag: 'X',
+        timestamp: nowTimestamp
+      };
+    }
+
+    const currentSerata = dataLoader.getCurrentSerata?.() || {};
+    const metadata = currentSerata.metadata || {};
+    dataLoader.saveCurrentSerata(metadata, this.brani);
+
+    try {
+      window.dispatchEvent(new Event('bordero:serata-updated'));
+    } catch (error) {
+      logger.debug('Impossibile dispatchare evento bordero:serata-updated', error);
+    }
+
+    this.renderLibrary();
+    this.updatePlayerInfo();
+    Toast.success(`Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`);
   }
 
   updateArchiveFilterButton() {
