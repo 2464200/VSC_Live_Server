@@ -1,0 +1,250 @@
+Attribute VB_Name = "Modulo51"
+
+Option Explicit
+
+Public gBtnAbilitato As Boolean
+
+' ... tutte le tue Sub:
+' AggiornaStatoPulsante
+' BtnPlay_Click
+' ResetPulsantePlay
+' AvviaVideo
+
+' ============================
+' VARIABILI GLOBALI
+' ============================
+Private gCartellaVideo As String
+Private gVLCPath As String
+
+' ============================
+' UTILITY
+' ============================
+Private Sub SleepMs(ms As Long)
+    ' Attesa non bloccante
+    Dim t As Single
+    t = Timer
+    Do While (Timer - t) * 1000 < ms
+        DoEvents
+    Loop
+End Sub
+
+Private Sub ShellHidden(ByVal cmdLine As String)
+    On Error GoTo EH
+    Dim sh As Object
+    Set sh = CreateObject("WScript.Shell")
+    ' 0=nascosto, False=non attendere
+    sh.Run cmdLine, 0, False
+    Exit Sub
+EH:
+    Debug.Print "ShellHidden error: "; Err.Number; " - "; Err.Description
+End Sub
+
+Private Function FileBaseName(ByVal fullPath As String) As String
+    Dim f As String
+    f = fullPath
+    If InStr(f, "\") > 0 Then f = Mid$(f, InStrRev(f, "\") + 1)
+    FileBaseName = f
+End Function
+
+Private Function ShapeExists(ws As Worksheet, shapeName As String) As Boolean
+    On Error Resume Next
+    ShapeExists = Not ws.Shapes(shapeName) Is Nothing
+End Function
+
+' ============================
+' INIZIALIZZAZIONE
+' ============================
+Public Sub InitVideoSystem()
+    If Len(gCartellaVideo) = 0 Then gCartellaVideo = GetCartellaVideo()
+    If Len(gVLCPath) = 0 Then gVLCPath = GetVLCPath()
+End Sub
+
+Public Function GetCartellaVideo() As String
+    Dim VideoPath As String
+    VideoPath = "c:\vsc_videoclip\"  ' <- se vuoi, rendilo configurabile da cella o ini
+
+    If Dir(VideoPath, vbDirectory) = "" Then
+        MsgBox "La cartella c:\vsc_videoclip non esiste." & vbCrLf & _
+               "Contattare l'amministratore.", vbCritical
+        ' Evita End; alza un errore gestibile
+        Err.Raise vbObjectError + 201, , "Cartella video mancante: " & VideoPath
+    End If
+    GetCartellaVideo = VideoPath
+End Function
+
+' ============================
+' PERCORSO VLC
+' ============================
+Public Function GetVLCPath() As String
+    On Error GoTo NotFound
+    Dim paths(1 To 4) As String
+    Dim i As Integer
+
+    paths(1) = Environ$("ProgramFiles") & "\VideoLAN\VLC\vlc.exe"
+    paths(2) = Environ$("ProgramFiles(x86)") & "\VideoLAN\VLC\vlc.exe"
+    paths(3) = Environ$("LocalAppData") & "\Programs\VideoLAN\VLC\vlc.exe"
+    paths(4) = Environ$("AppData") & "\VideoLAN\VLC\vlc.exe"
+
+    For i = LBound(paths) To UBound(paths)
+        If Len(Dir$(paths(i))) > 0 Then
+            GetVLCPath = paths(i)
+            Exit Function
+        End If
+    Next i
+
+NotFound:
+    Err.Raise vbObjectError + 200, , "VLC non installato sul PC"
+End Function
+
+' ============================
+' RICERCA FILE VIDEO
+' ============================
+Private Function TrovaVideo(codice As String) As String
+    Dim f As String
+
+    codice = Trim$(codice)
+    If Not codice Like "[0-9][0-9][0-9]" Then Exit Function
+
+    ' restituisce il primo match trovato
+    f = Dir$(gCartellaVideo & codice & "*.*")
+    If Len(f) > 0 Then
+        TrovaVideo = gCartellaVideo & f
+    Else
+        TrovaVideo = ""
+    End If
+End Function
+
+' ============================
+' AVVIO VIDEO
+' ============================
+Public Sub AvviaVideo()
+    On Error GoTo EH
+
+    Dim codice As String
+    Dim VideoPath As String
+    Dim cmd As String
+
+    InitVideoSystem
+
+    codice = CStr(Sheets("VideoClip").Range("A1").value)
+    VideoPath = TrovaVideo(codice)
+
+    If Len(VideoPath) = 0 Then
+        MsgBox "Nessun video trovato per il codice " & codice, vbCritical
+        Exit Sub
+    End If
+
+    ' Quote corretti: exe + file + parametri
+    cmd = """" & gVLCPath & """" & _
+          " " & """" & VideoPath & """" & _
+          " --play-and-exit --fullscreen --no-video-title-show --one-instance"
+
+    shell cmd, vbNormalFocus
+    Exit Sub
+
+EH:
+    MsgBox "Errore avvio video: " & Err.Number & " - " & Err.Description, vbCritical
+End Sub
+
+' ============================
+' STOP VIDEO
+' ============================
+Public Sub StopVideo()
+    On Error GoTo Fail
+
+    ' Garantiamo l'inizializzazione
+    InitVideoSystem
+
+    ' 1) Soft stop (non apre nuove istanze con --one-instance)
+    If Len(gVLCPath) > 0 Then
+        ShellHidden """" & gVLCPath & """ --one-instance --stop"
+        SleepMs 800
+    End If
+
+    ' 2) Kill gentile (senza /F)
+    If IsProcessRunning("vlc.exe") Then
+        ShellHidden "cmd /c taskkill /IM vlc.exe /T"
+        SleepMs 700
+    End If
+
+    ' 3) Kill forzato (con /F) se necessario
+    If IsProcessRunning("vlc.exe") Then
+        ShellHidden "cmd /c taskkill /F /IM vlc.exe /T"
+    End If
+    Exit Sub
+
+Fail:
+    Debug.Print "StopVideo() - errore: " & Err.Number & " - " & Err.Description
+    Err.Clear
+End Sub
+
+Private Function IsProcessRunning(ByVal exeName As String) As Boolean
+    On Error GoTo CleanFail
+    Dim wmi As Object, procs As Object
+    Set wmi = GetObject("winmgmts:\\.\root\cimv2")
+    Set procs = wmi.ExecQuery("SELECT * FROM Win32_Process WHERE Name='" & exeName & "'")
+    IsProcessRunning = (procs.Count > 0)
+    Exit Function
+CleanFail:
+    IsProcessRunning = False
+End Function
+
+' ============================
+' STATO PULSANTE
+' ============================
+Public Sub AggiornaStatoPulsante()
+    On Error GoTo ErrHandler
+
+    Dim wsBtn As Worksheet
+    Dim btn As Shape
+    Dim codice As String
+    Dim videoTrovato As Boolean
+
+    Set wsBtn = ThisWorkbook.Worksheets("Borderò")
+
+    If Not ShapeExists(wsBtn, "btnPlay") Then Exit Sub
+    Set btn = wsBtn.Shapes("btnPlay")
+
+    codice = Trim$(CStr(ThisWorkbook.Worksheets("VideoClip").Range("A1").value))
+
+    ' Stato iniziale ? GRIGIO
+    If Len(codice) = 0 Then
+        btn.Fill.ForeColor.RGB = RGB(191, 191, 191)
+        Exit Sub
+    End If
+
+    InitVideoSystem
+    videoTrovato = (Len(TrovaVideo(codice)) > 0)
+
+    If videoTrovato Then
+        btn.Fill.ForeColor.RGB = RGB(0, 176, 80)   ' VERDE
+    Else
+        btn.Fill.ForeColor.RGB = RGB(192, 0, 0)   ' ROSSO
+    End If
+
+    Exit Sub
+
+ErrHandler:
+    MsgBox "Errore aggiornamento stato pulsante: " & _
+           Err.Number & " - " & Err.Description, vbCritical
+End Sub
+Public Sub BtnPlay_Click()
+    MsgBox "CLICK RILEVATO"
+
+    Dim btn As Shape
+    Set btn = ThisWorkbook.Worksheets("Borderò").Shapes("btnPlay")
+
+    MsgBox "Colore RGB: " & btn.Fill.ForeColor.RGB
+
+    If btn.Fill.ForeColor.RGB <> RGB(0, 176, 80) Then
+        MsgBox "NON VERDE ? esco"
+        Exit Sub
+    End If
+
+    MsgBox "VERDE ? avvio video"
+    AvviaVideo
+
+    btn.Fill.ForeColor.RGB = RGB(191, 191, 191)
+End Sub
+
+

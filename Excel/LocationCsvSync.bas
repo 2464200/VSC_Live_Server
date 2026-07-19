@@ -19,7 +19,9 @@ Public Sub EsportaLocationCSV()
     End If
 
     Dim lastRow As Long
-    lastRow = LastUsedRow(ws, LOCATION_FIRST_COL, LOCATION_LAST_COL)
+    Dim usedRange As Range
+    Set usedRange = ws.UsedRange
+    lastRow = usedRange.Row + usedRange.Rows.Count - 1
     If lastRow < LOCATION_HEADER_ROW Then
         MsgBox "Nessun dato disponibile nel foglio '" & LOCATION_SHEET_NAME & "'.", vbExclamation, "Export Location CSV"
         Exit Sub
@@ -88,27 +90,26 @@ Private Function BuildLocationCSV(ByVal data As Variant, ByVal delim As String) 
 
     Dim r As Long
     Dim c As Long
-    Dim lines() As String
-    ReDim lines(1 To rowsCount)
-
-    For r = 1 To rowsCount
-        If r = 1 Or Not IsLocationRowEmpty(data, r, colsCount) Then
-            Dim parts() As String
-            ReDim parts(1 To colsCount)
-            For c = 1 To colsCount
-                parts(c) = EscapeCSVField(ToStr(data(r, c)), delim)
-            Next c
-            lines(r) = Join(parts, delim)
-        Else
-            lines(r) = vbNullString
-        End If
-    Next r
-
     Dim output As String
     For r = 1 To rowsCount
-        If Len(lines(r)) > 0 Then
+        Dim line As String
+        Dim hasContent As Boolean
+
+        line = vbNullString
+        hasContent = False
+
+        For c = 1 To colsCount
+            Dim cellValue As String
+            cellValue = ToStr(data(r, c))
+            If Len(Trim$(cellValue)) > 0 Then hasContent = True
+
+            If Len(line) > 0 Then line = line & delim
+            line = line & EscapeCSVField(cellValue, delim)
+        Next c
+
+        If r = 1 Or hasContent Then
             If Len(output) > 0 Then output = output & vbCrLf
-            output = output & lines(r)
+            output = output & line
         End If
     Next r
 
@@ -132,17 +133,6 @@ Private Function GetWorksheetByName(ByVal sheetName As String) As Worksheet
     On Error GoTo 0
 End Function
 
-Private Function LastUsedRow(ByVal ws As Worksheet, ByVal firstCol As Long, ByVal lastCol As Long) As Long
-    Dim rowIndex As Long
-    For rowIndex = ws.Rows.Count To LOCATION_HEADER_ROW Step -1
-        If Application.WorksheetFunction.CountA(ws.Range(ws.Cells(rowIndex, firstCol), ws.Cells(rowIndex, lastCol))) > 0 Then
-            LastUsedRow = rowIndex
-            Exit Function
-        End If
-    Next rowIndex
-    LastUsedRow = LOCATION_HEADER_ROW
-End Function
-
 Private Function ToStr(ByVal value As Variant) As String
     If IsError(value) Then
         ToStr = ""
@@ -154,13 +144,16 @@ Private Function ToStr(ByVal value As Variant) As String
 End Function
 
 Private Function EscapeCSVField(ByVal value As String, ByVal delim As String) As String
-    If InStr(1, value, """) > 0 Then
-        value = Replace$(value, """, """")
+    Dim quoteChar As String
+    quoteChar = Chr$(34)
+
+    If InStr(1, value, quoteChar) > 0 Then
+        value = Replace$(value, quoteChar, quoteChar & quoteChar)
     End If
 
     If InStr(1, value, delim) > 0 Or InStr(1, value, vbCr) > 0 Or InStr(1, value, vbLf) > 0 _
        Or Left$(value, 1) = " " Or Right$(value, 1) = " " Then
-        EscapeCSVField = """" & value & """"
+        EscapeCSVField = quoteChar & value & quoteChar
     Else
         EscapeCSVField = value
     End If

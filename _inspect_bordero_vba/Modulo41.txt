@@ -1,0 +1,79 @@
+Attribute VB_Name = "Modulo41"
+Sub EsportaDatiInWord_100_Corretto()
+    Dim ws As Worksheet
+    Dim wordApp As Object
+    Dim wordDoc As Object
+    Dim valoreD7 As String
+    Dim valoreD9 As String ' Nuova variabile per D9
+    Dim testoColonnaN As String
+    Dim cella As Range
+    Dim rigaTrovata As Long ' Nuova variabile per la riga trovata
+    Dim filePath As String
+    Dim objRange As Object ' Dichiarata la variabile per il Range di Word
+
+    Set ws = ThisWorkbook.Sheets("borderò")
+    valoreD7 = ws.Range("D7").value
+    valoreD9 = ws.Range("D9").value ' Recupera anche il valore di D9
+
+    rigaTrovata = 0 ' Inizializza a 0, nessuna riga trovata
+
+    ' Ricerca il valoreD7 nella colonna D (D12 in giù)
+    For Each cella In ws.Range("D12:D" & ws.cells(ws.Rows.Count, "D").End(xlUp).Row)
+        If cella.value = valoreD7 Then
+            rigaTrovata = cella.Row
+            Exit For ' Trovato D7, dà precedenza e esce
+        End If
+    Next cella
+
+    ' Se valoreD7 non è stato trovato, prova a cercare valoreD9 nella colonna C (C12 in giù)
+    If rigaTrovata = 0 Then
+        For Each cella In ws.Range("C12:C" & ws.cells(ws.Rows.Count, "C").End(xlUp).Row)
+            If cella.value = valoreD9 Then
+                rigaTrovata = cella.Row
+                Exit For ' Trovato D9, esce
+            End If
+        Next cella
+    End If
+
+    If rigaTrovata = 0 Then
+        MsgBox "Nessun valore corrispondente trovato né per '" & valoreD7 & "' (in colonna D) né per '" & valoreD9 & "' (in colonna C).", vbExclamation
+        Exit Sub
+    Else
+        ' Ottieni il testo dalla colonna N della riga trovata
+        testoColonnaN = ws.cells(rigaTrovata, "N").value
+    End If
+
+    On Error Resume Next
+    Set wordApp = GetObject(Class:="Word.Application")
+    If wordApp Is Nothing Then
+        Set wordApp = CreateObject("Word.Application")
+    End If
+    On Error GoTo 0
+
+    wordApp.Visible = True
+    Set wordDoc = wordApp.Documents.Add
+
+    ' --- INIZIO MODIFICA PER IL GRASSETTO ---
+    Set objRange = wordDoc.content ' Ottieni l'intero range del contenuto del documento
+    objRange.text = valoreD7 & ":  " & testoColonnaN ' Scrivi tutto il testo
+
+    ' Seleziona solo la parte relativa a valoreD7
+    objRange.Start = 0 ' Inizio del documento
+    objRange.End = Len(valoreD7) ' Fine alla lunghezza di valoreD7
+
+    objRange.Bold = True ' Applica il grassetto a questa selezione
+    ' --- FINE MODIFICA PER IL GRASSETTO ---
+
+    filePath = "D:\DJ Daniel West\LISTA\show_slide_word.docx"
+
+    ' wordDoc.SaveAs2 filePath
+    ' wordDoc.Close False
+    ' wordApp.Quit
+
+    MsgBox "Esportazione completata! Il testo è stato copiato in un nuovo documento Word" & IIf(Not wordApp.Visible, " e salvato in: " & filePath, "."), vbInformation
+
+    Set objRange = Nothing ' Pulisci l'oggetto Range
+    Set wordDoc = Nothing
+    Set wordApp = Nothing
+    Set ws = Nothing
+End Sub
