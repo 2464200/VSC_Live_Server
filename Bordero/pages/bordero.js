@@ -82,17 +82,10 @@ class BorderoTableManager {
 
       this.filteredBrani = [...this.allBrani];
 
-      // Apply default sort by ID ascending on first load when no sort is active
-      if (!this.currentSort) {
-        this.currentSort = 'id';
-        this.currentSortDirection = 'asc';
-        try {
-          this.allBrani = ObjectUtils.sortByField(this.allBrani, 'id', true);
-          this.filteredBrani = ObjectUtils.sortByField(this.filteredBrani, 'id', true);
-        } catch (e) {
-          logger.debug('Default sort by id failed', e);
-        }
-      }
+      // Nessun sort di default: preserva l'ordine naturale con eseguiti in fondo.
+      this.currentSort = null;
+      this.currentSortDirection = 'asc';
+      this.lastHeaderSortField = null;
 
       // Setup UI
       this.setupEventListeners();
