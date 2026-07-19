@@ -140,6 +140,89 @@
   opacity: 0.9;
 }
 
+.persistent-log-panel {
+  background: linear-gradient(135deg, rgba(17, 19, 24, 0.92), rgba(28, 31, 38, 0.95));
+  border: 1px solid rgba(255, 179, 71, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.persistent-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.persistent-log-header h3 {
+  margin: 0;
+  font-size: 0.95em;
+  color: #ffcf88;
+}
+
+.persistent-log-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.persistent-log-actions .btn {
+  padding: 7px 10px;
+  font-size: 0.75em;
+}
+
+.persistent-log-meta {
+  font-size: 0.76em;
+  color: #b5bdc9;
+  margin-bottom: 8px;
+}
+
+.persistent-log-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.persistent-log-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid rgba(255, 179, 71, 0.45);
+  border-radius: 4px;
+  padding: 7px 9px;
+  font-size: 0.75em;
+  color: #d6dbe4;
+}
+
+.persistent-log-item.is-warn {
+  border-left-color: rgba(255, 196, 87, 0.9);
+}
+
+.persistent-log-item.is-error {
+  border-left-color: rgba(255, 102, 102, 0.9);
+}
+
+.persistent-log-item.is-info {
+  border-left-color: rgba(57, 217, 109, 0.75);
+}
+
+.persistent-log-line {
+  display: block;
+  line-height: 1.4;
+}
+
+.persistent-log-line strong {
+  color: #fff3dc;
+}
+
+.persistent-log-empty {
+  color: #88909c;
+  font-size: 0.8em;
+  padding: 6px 0;
+}
+
 .video-controls {
   display: flex;
   flex-direction: column;

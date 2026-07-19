@@ -6,6 +6,8 @@
 class VideoClipManager {
   constructor() {
     this.brani = [];
+    this.persistentLogStorageKey = 'bordero_videoclip_player_log';
+    this.persistentLogMaxEntries = 120;
     this.currentBrano = null;
     this.filteredBrani = [];
     this.availableFiles = []; // elenco file presenti nella cartella locale
@@ -23,6 +25,7 @@ class VideoClipManager {
     this.vlcCompletionWatcherTimer = null;
     this.vlcWasAlive = false;
     this.manualStopPending = false;
+    this.pendingMainVideoPlay = false;
 
     this.init();
   }
@@ -31,6 +34,7 @@ class VideoClipManager {
     logger.info('VideoClipManager initializing...');
 
     try {
+      this.renderPersistentLog();
       this.brani = await dataLoader.loadBrani();
       this.syncExecutedState();
       this.filteredBrani = [...this.brani];
@@ -43,11 +47,125 @@ class VideoClipManager {
       this.setupMainVideoDebugIndicator();
       this.applyPendingBranoSelection();
       this.startVlcCompletionWatcher();
+      this.appendPersistentLog('info', 'baseline-ready', this.getPlaybackBaseline());
 
       logger.info('✓ VideoClipManager inizializzato');
     } catch (error) {
+      this.appendPersistentLog('error', 'init-error', { message: error?.message || String(error) });
       logger.error('Errore inizializzazione', error);
     }
+  }
+
+  getPlaybackBaseline() {
+    return {
+      pageOrigin: window.location.origin,
+      html5VideoPath: '/videos/:file',
+      vlcControlEndpoint: `${window.location.origin}/api/videoclip/vlc/control`,
+      vlcStateEndpoint: `${window.location.origin}/api/videoclip/vlc/state`,
+      vlcRcPort: 4212,
+      vlcLaunchDelayMs: 900,
+      html5Attributes: 'controls playsinline preload=metadata',
+      html5StartsBeforeVlc: true
+    };
+  }
+
+  getPersistentLogEntries() {
+    try {
+      const raw = localStorage.getItem(this.persistentLogStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      logger.debug('Errore lettura log persistente player', error);
+      return [];
+    }
+  }
+
+  savePersistentLogEntries(entries) {
+    try {
+      localStorage.setItem(this.persistentLogStorageKey, JSON.stringify(entries));
+    } catch (error) {
+      logger.debug('Errore salvataggio log persistente player', error);
+    }
+  }
+
+  appendPersistentLog(level, eventName, details = {}) {
+    const entry = {
+      at: new Date().toISOString(),
+      level: String(level || 'info'),
+      event: String(eventName || 'event'),
+      currentBranoId: this.currentBrano?.id ?? null,
+      playbackBranoId: this.currentPlaybackBranoId ?? null,
+      docHidden: typeof document !== 'undefined' ? document.hidden : false,
+      details
+    };
+
+    const entries = this.getPersistentLogEntries();
+    entries.unshift(entry);
+    this.savePersistentLogEntries(entries.slice(0, this.persistentLogMaxEntries));
+    this.renderPersistentLog();
+  }
+
+  clearPersistentLog() {
+    try {
+      localStorage.removeItem(this.persistentLogStorageKey);
+    } catch (error) {
+      logger.debug('Errore reset log persistente player', error);
+    }
+    this.renderPersistentLog();
+  }
+
+  async copyPersistentLogToClipboard() {
+    const entries = this.getPersistentLogEntries();
+    const text = entries.map((entry) => {
+      const details = this.formatPersistentLogDetails(entry.details);
+      return `[${entry.at}] ${entry.level.toUpperCase()} ${entry.event} brano=${entry.currentBranoId || '-'} playback=${entry.playbackBranoId || '-'} hidden=${entry.docHidden} ${details}`.trim();
+    }).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text || '');
+      Toast.success('Log player copiato negli appunti');
+    } catch (error) {
+      Toast.error('Copia log non riuscita');
+    }
+  }
+
+  formatPersistentLogDetails(details) {
+    if (!details || typeof details !== 'object') return '';
+    return Object.entries(details)
+      .map(([key, value]) => `${key}=${typeof value === 'string' ? value : JSON.stringify(value)}`)
+      .join(' ');
+  }
+
+  renderPersistentLog() {
+    const listEl = document.getElementById('persistent-log-list');
+    const metaEl = document.getElementById('persistent-log-meta');
+    if (!listEl || !metaEl) return;
+
+    const entries = this.getPersistentLogEntries();
+    metaEl.textContent = entries.length > 0
+      ? `Ultimi ${Math.min(entries.length, this.persistentLogMaxEntries)} eventi. Baseline: HTML5 /videos su 5500, API VLC su 5500, RC VLC su 4212, delay VLC 900ms.`
+      : 'In attesa di eventi...';
+
+    if (entries.length === 0) {
+      listEl.innerHTML = '<div class="persistent-log-empty">Nessun evento salvato.</div>';
+      return;
+    }
+
+    listEl.innerHTML = entries.map((entry) => {
+      const safeEvent = this.escapeHtml(entry.event || 'event');
+      const safeAt = this.escapeHtml(entry.at || '');
+      const safeLevel = this.escapeHtml(String(entry.level || 'info').toUpperCase());
+      const safeIds = this.escapeHtml(`brano=${entry.currentBranoId || '-'} playback=${entry.playbackBranoId || '-'} hidden=${entry.docHidden}`);
+      const safeDetails = this.escapeHtml(this.formatPersistentLogDetails(entry.details));
+      return `
+        <div class="persistent-log-item is-${this.escapeHtml(entry.level || 'info')}">
+          <span class="persistent-log-line"><strong>${safeLevel}</strong> ${safeEvent}</span>
+          <span class="persistent-log-line">${safeAt}</span>
+          <span class="persistent-log-line">${safeIds}</span>
+          ${safeDetails ? `<span class="persistent-log-line">${safeDetails}</span>` : ''}
+        </div>
+      `;
+    }).join('');
   }
 
   populateGenreFilter() {
@@ -426,8 +544,20 @@ class VideoClipManager {
   async playMainVideo() {
     const mainVideo = document.getElementById('main-video');
     const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+    const playbackStatus = document.getElementById('secondary-playback-status');
 
     if (!mainVideo || !url) return;
+
+    if (document.hidden) {
+      this.pendingMainVideoPlay = true;
+      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Monitor principale HTML5 in attesa: la pagina VideoClip e` in background. Portala in primo piano per avviare il video; VLC resta attivo sul monitor secondario.';
+      }
+      this.appendPersistentLog('warn', 'html5-background-pending', { url, status: 'page-hidden-before-play' });
+      this.updateMainVideoDebugIndicator('background-paused');
+      return;
+    }
 
     const sameBrano = this.currentPlaybackBranoId === this.currentBrano?.id;
     if (sameBrano && !mainVideo.paused && mainVideo.currentTime > 0) {
@@ -443,11 +573,32 @@ class VideoClipManager {
       await this.waitForVideoReady(mainVideo);
       await mainVideo.play();
       await this.waitForPlaybackStart(mainVideo);
+      this.pendingMainVideoPlay = false;
       mainVideo.muted = false;
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Video pronto: monitor principale HTML5 attivo, monitor secondario via VLC.';
+      }
+      this.appendPersistentLog('info', 'html5-playing', {
+        url,
+        muted: mainVideo.muted,
+        readyState: mainVideo.readyState,
+        networkState: mainVideo.networkState,
+        currentTime: Number(mainVideo.currentTime || 0).toFixed(2)
+      });
       this.updateMainVideoDebugIndicator('playing');
     } catch (playErr) {
       logger.warn('Main video play blocked by browser policy', playErr);
+      const isBackgroundPause = /background media was paused to save power/i.test(String(playErr?.message || ''));
+      if (isBackgroundPause) {
+        this.pendingMainVideoPlay = true;
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor principale HTML5 sospeso dal browser: riporta la pagina VideoClip in primo piano per avviare il video. Monitor secondario VLC attivo.';
+        }
+        this.appendPersistentLog('warn', 'html5-background-paused', { message: playErr?.message || String(playErr) });
+        this.updateMainVideoDebugIndicator('background-paused');
+        return;
+      }
       try {
         mainVideo.muted = true;
         this.setMainVideoSource(url);
@@ -455,11 +606,33 @@ class VideoClipManager {
         await this.waitForVideoReady(mainVideo);
         await mainVideo.play();
         await this.waitForPlaybackStart(mainVideo);
+        this.pendingMainVideoPlay = false;
         mainVideo.muted = false;
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Video pronto: monitor principale HTML5 attivo, monitor secondario via VLC.';
+        }
+        this.appendPersistentLog('info', 'html5-playing-muted-fallback', {
+          url,
+          muted: mainVideo.muted,
+          readyState: mainVideo.readyState,
+          networkState: mainVideo.networkState,
+          currentTime: Number(mainVideo.currentTime || 0).toFixed(2)
+        });
         this.updateMainVideoDebugIndicator('playing-muted-fallback');
       } catch (fallbackErr) {
         logger.debug('Main video fallback play failed', fallbackErr);
+        const fallbackBackgroundPause = /background media was paused to save power/i.test(String(fallbackErr?.message || ''));
+        if (fallbackBackgroundPause) {
+          this.pendingMainVideoPlay = true;
+          if (playbackStatus) {
+            playbackStatus.textContent = 'Monitor principale HTML5 sospeso dal browser: riporta la pagina VideoClip in primo piano per avviare il video. Monitor secondario VLC attivo.';
+          }
+          this.appendPersistentLog('warn', 'html5-background-paused', { message: fallbackErr?.message || String(fallbackErr) });
+          this.updateMainVideoDebugIndicator('background-paused');
+          return;
+        }
+        this.appendPersistentLog('error', 'html5-play-error', { message: fallbackErr?.message || String(fallbackErr) });
         this.updateMainVideoDebugIndicator('play-error');
       }
     }
@@ -479,9 +652,20 @@ class VideoClipManager {
     const mainVideo = document.getElementById('main-video');
     if (!mainVideo) return;
 
+    this.pendingMainVideoPlay = false;
     mainVideo.pause();
     mainVideo.currentTime = 0;
     this.updateMainVideoDebugIndicator('stopped');
+  }
+
+  retryPendingMainVideoPlayback() {
+    if (!this.pendingMainVideoPlay || document.hidden) {
+      return;
+    }
+
+    this.playMainVideo().catch((error) => {
+      logger.debug('Retry main video playback failed', error?.message || error);
+    });
   }
 
   async playSecondaryVideo() {
@@ -509,6 +693,12 @@ class VideoClipManager {
       if (success) {
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         logger.info('✓ VLC avviato sul monitor secondario');
+        this.appendPersistentLog('info', 'vlc-playing', {
+          url,
+          mode: payload.mode || 'play',
+          apiOrigin: window.location.origin,
+          rcPort: 4212
+        });
         if (playbackStatus) {
           playbackStatus.textContent = payload.mode === 'resume'
             ? 'Monitor secondario: VLC in riproduzione (resume).'
@@ -519,15 +709,20 @@ class VideoClipManager {
         const fallback = await this.launchVlcFallback(url);
         if (!fallback) {
           logger.warn('Impossibile avviare VLC sul monitor secondario', payload);
+          this.appendPersistentLog('error', 'vlc-start-error', { url, payload });
           if (playbackStatus) {
             playbackStatus.textContent = 'Errore avvio VLC sul monitor secondario. Verifica server porta 5500 e installazione VLC.';
           }
-        } else if (playbackStatus) {
-          playbackStatus.textContent = 'Monitor secondario: VLC in riproduzione (fallback).';
+        } else {
+          this.appendPersistentLog('warn', 'vlc-playing-fallback', { url, apiOrigin: window.location.origin, rcPort: 4212 });
+          if (playbackStatus) {
+            playbackStatus.textContent = 'Monitor secondario: VLC in riproduzione (fallback).';
+          }
         }
       }
     } catch (err) {
       logger.warn('Errore avviando VLC per monitor secondario', err);
+      this.appendPersistentLog('error', 'vlc-request-error', { url, message: err?.message || String(err) });
       if (playbackStatus) {
         playbackStatus.textContent = 'Errore durante l\'avvio VLC sul monitor secondario.';
       }
@@ -689,7 +884,7 @@ class VideoClipManager {
     const mainVideo = document.getElementById('main-video');
     if (!mainVideo) return;
 
-    const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'pause', 'stalled', 'waiting', 'suspend', 'ended', 'error'];
+    const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'pause', 'stalled', 'waiting', 'suspend', 'timeupdate', 'seeking', 'seeked', 'ended', 'error'];
     events.forEach((evt) => {
       mainVideo.addEventListener(evt, () => {
         this.updateMainVideoDebugIndicator(evt);
@@ -700,6 +895,13 @@ class VideoClipManager {
         }
 
         if (evt === 'error') {
+          this.appendPersistentLog('error', 'html5-error-event', {
+            src: mainVideo.currentSrc || mainVideo.src || '',
+            errorCode: mainVideo.error?.code || 0,
+            readyState: mainVideo.readyState,
+            networkState: mainVideo.networkState,
+            currentTime: Number(mainVideo.currentTime || 0).toFixed(2)
+          });
           logger.warn('HTML5 main video error', {
             src: mainVideo.currentSrc || mainVideo.src || '',
             errorCode: mainVideo.error?.code || 0,
@@ -720,6 +922,7 @@ class VideoClipManager {
   handleMainVideoEnded() {
     if (this.manualStopPending) {
       this.manualStopPending = false;
+      this.appendPersistentLog('info', 'html5-ended-manual-stop', {});
       return;
     }
 
@@ -740,6 +943,11 @@ class VideoClipManager {
     }
 
     logger.info('HTML5 video completed, marking brano as executed', {
+      branoId: brano.id,
+      titolo: brano.titolo || ''
+    });
+
+    this.appendPersistentLog('info', 'html5-ended', {
       branoId: brano.id,
       titolo: brano.titolo || ''
     });
@@ -953,19 +1161,32 @@ class VideoClipManager {
   setupListeners() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
+      this.appendPersistentLog('info', 'storage-serata-updated', { key: event.key });
       this.handleSerataChange();
     });
 
     window.addEventListener('bordero:serata-updated', () => {
+      this.appendPersistentLog('info', 'custom-serata-updated', {});
       this.handleSerataChange();
     });
 
     window.addEventListener('pageshow', () => {
+      this.appendPersistentLog('info', 'pageshow', { hidden: document.hidden, focus: document.hasFocus() });
       this.handleSerataChange();
+      this.retryPendingMainVideoPlayback();
     });
 
     window.addEventListener('focus', () => {
+      this.appendPersistentLog('info', 'focus', { hidden: document.hidden, focus: document.hasFocus() });
       this.handleSerataChange();
+      this.retryPendingMainVideoPlayback();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      this.appendPersistentLog('info', 'visibilitychange', { hidden: document.hidden, state: document.visibilityState });
+      if (!document.hidden) {
+        this.retryPendingMainVideoPlayback();
+      }
     });
 
     window.addEventListener('beforeunload', () => {
@@ -1013,17 +1234,42 @@ class VideoClipManager {
         try {
           event.preventDefault();
           event.stopPropagation();
+          this.appendPersistentLog('info', 'play-click', {
+            branoId: this.currentBrano?.id ?? null,
+            titolo: this.currentBrano?.titolo || '',
+            url,
+            hidden: document.hidden,
+            focus: document.hasFocus()
+          });
           logger.debug('[PLAY] Starting main playback via playMainVideo()');
           await this.playMainVideo();
           logger.debug('[PLAY] Main playback initiated');
         } catch (playErr) {
+          this.appendPersistentLog('error', 'play-click-error', { message: playErr?.message || String(playErr) });
           logger.warn('[PLAY] Error:', playErr.message || playErr);
         }
 
-        // Play secondary video in parallel (don't wait for completion)
-        this.playSecondaryVideo().catch(err => logger.warn('[PLAY] Secondary video error', err));
+        if (this.pendingMainVideoPlay) {
+          logger.debug('[PLAY] Secondary playback postponed because main HTML5 video is pending foreground playback');
+          return;
+        }
+
+        // Avvia VLC dopo il primo avvio HTML5 per ridurre i casi in cui VLC ruba il focus
+        // troppo presto e il browser lascia il player principale su schermo nero.
+        this.waitMs(900)
+          .then(() => this.playSecondaryVideo())
+          .catch(err => logger.warn('[PLAY] Secondary video error', err));
       };
     }
+
+    document.getElementById('btn-copy-player-log')?.addEventListener('click', () => {
+      this.copyPersistentLogToClipboard();
+    });
+
+    document.getElementById('btn-clear-player-log')?.addEventListener('click', () => {
+      this.clearPersistentLog();
+      this.appendPersistentLog('info', 'log-cleared', this.getPlaybackBaseline());
+    });
 
     document.getElementById('btn-pause').addEventListener('click', () => {
       this.pauseMainVideo();
@@ -1112,10 +1358,18 @@ class VideoClipManager {
 
     const brano = this.findBranoForCompletion(normalizedFileName);
     if (!brano) {
+      this.appendPersistentLog('warn', 'vlc-completion-unmatched', { fileName, filePath });
       logger.warn('Completamento VLC ricevuto ma nessun brano associato', { fileName, filePath });
       return;
     }
     if (this.isBranoExecuted(brano)) return;
+
+    this.appendPersistentLog('info', 'vlc-completion', {
+      branoId: brano.id,
+      titolo: brano.titolo || '',
+      fileName,
+      filePath
+    });
 
     this.markBranoExecutedFromVideoEnd(brano);
   }
@@ -1196,6 +1450,11 @@ class VideoClipManager {
     this.filterVideos();
     this.updatePlayerInfo();
     this.currentPlaybackBranoId = null;
+    this.appendPersistentLog('info', 'mark-executed', {
+      branoId: brano.id,
+      titolo: brano.titolo || '',
+      timestamp: nowTimestamp
+    });
     Toast.success(`Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`);
   }
 

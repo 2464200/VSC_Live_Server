@@ -7,7 +7,7 @@
   
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/bordero.css" />
-  <link rel="stylesheet" href="videoclip.css?v=20260713-1" />
+  <link rel="stylesheet" href="videoclip.css?v=20260720-1" />
   
   <!-- XLSX Library per lettura file Excel -->
     <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
@@ -26,7 +26,7 @@
   <script defer src="../js/utils.js"></script>
   <script defer src="../js/excel-sync.js"></script>
   <script defer src="../js/data-loader.js"></script>
-  <script defer src="videoclip.js?v=20260718-2"></script>
+  <script defer src="videoclip.js?v=20260720-1"></script>
 </head>
 
 <body>
@@ -74,6 +74,17 @@
           <div class="debug-row"><strong>errore:</strong> <span id="dbg-html5-error">0</span></div>
           <div class="debug-row"><strong>src:</strong> <span id="dbg-html5-src">--</span></div>
         </div>
+        <section class="persistent-log-panel" aria-labelledby="persistent-log-title">
+          <div class="persistent-log-header">
+            <h3 id="persistent-log-title">Log Persistente Player</h3>
+            <div class="persistent-log-actions">
+              <button id="btn-copy-player-log" class="btn btn-secondary" type="button">COPIA LOG</button>
+              <button id="btn-clear-player-log" class="btn btn-secondary" type="button">SVUOTA LOG</button>
+            </div>
+          </div>
+          <div id="persistent-log-meta" class="persistent-log-meta">In attesa di eventi...</div>
+          <div id="persistent-log-list" class="persistent-log-list" role="log" aria-live="polite"></div>
+        </section>
         <div class="video-controls">
           <button id="btn-only-archive" class="btn btn-filter-toggle" type="button" aria-pressed="false">SOLO VIDEO IN ARCHIVIO</button>
           <button id="btn-play" class="btn btn-primary">PLAY</button>
