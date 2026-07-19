@@ -38,6 +38,7 @@ let vlcDiscoveryPromise = null;
 let vlcLaunchSequence = 0;
 let vlcPauseSequence = 0;
 let vlcStopRequestedPids = new Set();
+let vlcSettledPids = new Set();
 let vlcCompletionEventSeq = 0;
 let vlcLastCompletionEvent = {
     eventId: 0,
@@ -63,6 +64,25 @@ function recordVlcCompletion(filePath) {
         fileName: path.basename(normalized),
         completedAt: Date.now()
     };
+}
+
+function reconcileVlcProcessState() {
+    if (!vlcProcess?.pid) return;
+
+    const trackedPid = vlcProcess.pid;
+    const trackedFile = vlcCurrentFile;
+    const alive = isVlcAlive();
+    if (alive) return;
+
+    const wasStopRequested = vlcStopRequestedPids.has(trackedPid);
+    vlcSettledPids.add(trackedPid);
+    if (wasStopRequested) {
+        vlcStopRequestedPids.delete(trackedPid);
+    } else if (trackedFile) {
+        recordVlcCompletion(trackedFile);
+    }
+
+    resetVlcState();
 }
 
 function isVlcAlive() {
@@ -418,6 +438,11 @@ async function launchVlcForSecondary(fullPath) {
     const launchedFile = fullPath;
 
     child.on('exit', () => {
+        if (vlcSettledPids.has(launchedPid)) {
+            vlcSettledPids.delete(launchedPid);
+            return;
+        }
+
         const wasStopRequested = vlcStopRequestedPids.has(launchedPid);
         if (wasStopRequested) {
             vlcStopRequestedPids.delete(launchedPid);
@@ -730,6 +755,8 @@ app.get('/api/videoclip/play-secondary', async (req, res) => {
 
 app.post('/api/videoclip/vlc/control', async (req, res) => {
     try {
+        reconcileVlcProcessState();
+
         const action = String(req.body?.action || '').toLowerCase();
         const videoUrl = req.body?.url || '';
 
@@ -790,7 +817,9 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
 
 app.get('/api/videoclip/vlc/state', async (req, res) => {
     try {
+        reconcileVlcProcessState();
         const tracked = await ensureVlcTracked();
+        reconcileVlcProcessState();
         const alive = isVlcAlive();
         return res.json({
             success: true,
