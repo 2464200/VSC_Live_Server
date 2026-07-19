@@ -47,7 +47,7 @@
     <!-- CURRENT VIDEO PLAYER -->
     <section class="player-section">
       <div class="video-player">
-        <video id="main-video" width="100%" height="auto" controls>
+        <video id="main-video" width="100%" height="auto" controls playsinline preload="metadata">
           <source id="video-source" src="" type="video/mp4" />
           Il tuo browser non supporta i video HTML5
         </video>
@@ -68,6 +68,9 @@
         <div id="html5-debug-indicator" class="html5-debug-indicator" role="status" aria-live="polite">
           <div class="debug-row"><strong>HTML5:</strong> <span id="dbg-html5-state">idle</span></div>
           <div class="debug-row"><strong>readyState:</strong> <span id="dbg-html5-ready">0</span></div>
+          <div class="debug-row"><strong>networkState:</strong> <span id="dbg-html5-network">0</span></div>
+          <div class="debug-row"><strong>tempo:</strong> <span id="dbg-html5-time">0 / 0</span></div>
+          <div class="debug-row"><strong>video:</strong> <span id="dbg-html5-size">0x0</span></div>
           <div class="debug-row"><strong>errore:</strong> <span id="dbg-html5-error">0</span></div>
           <div class="debug-row"><strong>src:</strong> <span id="dbg-html5-src">--</span></div>
         </div>

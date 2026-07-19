@@ -375,9 +375,52 @@ class VideoClipManager {
 
     if (!mainVideo || !source) return;
 
-    source.src = url || '';
-    mainVideo.src = url || '';
+    if (url) {
+      source.setAttribute('src', url);
+      mainVideo.setAttribute('src', url);
+    } else {
+      source.removeAttribute('src');
+      mainVideo.removeAttribute('src');
+    }
+
     this.updateMainVideoDebugIndicator('source-updated');
+  }
+
+  async waitForPlaybackStart(video) {
+    if (!video) return;
+
+    if (!video.paused && video.currentTime > 0) {
+      return;
+    }
+
+    await new Promise((resolve, reject) => {
+      let settled = false;
+      const cleanup = () => {
+        video.removeEventListener('playing', handleSuccess);
+        video.removeEventListener('timeupdate', handleSuccess);
+      };
+
+      const handleSuccess = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve();
+      };
+
+      video.addEventListener('playing', handleSuccess, { once: true });
+      video.addEventListener('timeupdate', handleSuccess, { once: true });
+
+      setTimeout(() => {
+        if (settled) return;
+        cleanup();
+        if (video.paused && video.currentTime <= 0) {
+          reject(new Error('HTML5 playback did not start'));
+          return;
+        }
+        settled = true;
+        resolve();
+      }, 1200);
+    });
   }
 
   async playMainVideo() {
@@ -399,6 +442,7 @@ class VideoClipManager {
       mainVideo.load();
       await this.waitForVideoReady(mainVideo);
       await mainVideo.play();
+      await this.waitForPlaybackStart(mainVideo);
       mainVideo.muted = false;
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
       this.updateMainVideoDebugIndicator('playing');
@@ -410,7 +454,9 @@ class VideoClipManager {
         mainVideo.load();
         await this.waitForVideoReady(mainVideo);
         await mainVideo.play();
+        await this.waitForPlaybackStart(mainVideo);
         mainVideo.muted = false;
+        this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         this.updateMainVideoDebugIndicator('playing-muted-fallback');
       } catch (fallbackErr) {
         logger.debug('Main video fallback play failed', fallbackErr);
@@ -645,25 +691,96 @@ class VideoClipManager {
 
     const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'pause', 'stalled', 'waiting', 'suspend', 'ended', 'error'];
     events.forEach((evt) => {
-      mainVideo.addEventListener(evt, () => this.updateMainVideoDebugIndicator(evt));
+      mainVideo.addEventListener(evt, () => {
+        this.updateMainVideoDebugIndicator(evt);
+
+        if (evt === 'ended') {
+          this.handleMainVideoEnded();
+          return;
+        }
+
+        if (evt === 'error') {
+          logger.warn('HTML5 main video error', {
+            src: mainVideo.currentSrc || mainVideo.src || '',
+            errorCode: mainVideo.error?.code || 0,
+            readyState: mainVideo.readyState,
+            networkState: mainVideo.networkState,
+            currentTime: mainVideo.currentTime,
+            duration: mainVideo.duration,
+            playbackBranoId: this.currentPlaybackBranoId,
+            currentBranoId: this.currentBrano?.id ?? null
+          });
+        }
+      });
     });
 
     this.updateMainVideoDebugIndicator('initialized');
+  }
+
+  handleMainVideoEnded() {
+    if (this.manualStopPending) {
+      this.manualStopPending = false;
+      return;
+    }
+
+    const targetId = this.currentPlaybackBranoId || this.currentBrano?.id;
+    if (!targetId) {
+      logger.warn('HTML5 ended without playback brano id');
+      return;
+    }
+
+    const brano = this.brani.find((item) => String(item.id) === String(targetId));
+    if (!brano) {
+      logger.warn('HTML5 ended without matching brano', { targetId });
+      return;
+    }
+
+    if (this.isBranoExecuted(brano)) {
+      return;
+    }
+
+    logger.info('HTML5 video completed, marking brano as executed', {
+      branoId: brano.id,
+      titolo: brano.titolo || ''
+    });
+
+    this.markBranoExecutedFromVideoEnd(brano);
   }
 
   updateMainVideoDebugIndicator(stateLabel = 'updated') {
     const mainVideo = document.getElementById('main-video');
     const stateEl = document.getElementById('dbg-html5-state');
     const readyEl = document.getElementById('dbg-html5-ready');
+    const networkEl = document.getElementById('dbg-html5-network');
+    const timeEl = document.getElementById('dbg-html5-time');
+    const sizeEl = document.getElementById('dbg-html5-size');
     const errorEl = document.getElementById('dbg-html5-error');
     const srcEl = document.getElementById('dbg-html5-src');
 
-    if (!mainVideo || !stateEl || !readyEl || !errorEl || !srcEl) return;
+    if (!mainVideo || !stateEl || !readyEl || !networkEl || !timeEl || !sizeEl || !errorEl || !srcEl) return;
 
-    const src = mainVideo.currentSrc || mainVideo.src || document.getElementById('video-source')?.src || '';
+    const rawMainSrc = mainVideo.getAttribute('src') || '';
+    const rawSourceSrc = document.getElementById('video-source')?.getAttribute('src') || '';
+    const src = mainVideo.currentSrc || rawMainSrc || rawSourceSrc || '';
+    const currentTime = Number.isFinite(mainVideo.currentTime) ? mainVideo.currentTime.toFixed(1) : '0.0';
+    const duration = Number.isFinite(mainVideo.duration) ? mainVideo.duration.toFixed(1) : '0.0';
+    const videoWidth = Number(mainVideo.videoWidth || 0);
+    const videoHeight = Number(mainVideo.videoHeight || 0);
+    const errorCode = Number(mainVideo.error?.code || 0);
+    const errorMap = {
+      0: 'nessuno',
+      1: 'aborted',
+      2: 'network',
+      3: 'decode',
+      4: 'src-not-supported'
+    };
+
     stateEl.textContent = String(stateLabel || 'updated');
     readyEl.textContent = String(mainVideo.readyState ?? 0);
-    errorEl.textContent = String(mainVideo.error?.code ?? 0);
+    networkEl.textContent = String(mainVideo.networkState ?? 0);
+    timeEl.textContent = `${currentTime} / ${duration}`;
+    sizeEl.textContent = `${videoWidth}x${videoHeight}`;
+    errorEl.textContent = `${errorCode} (${errorMap[errorCode] || 'unknown'})`;
     srcEl.textContent = src ? src : '--';
   }
 
@@ -1078,6 +1195,7 @@ class VideoClipManager {
 
     this.filterVideos();
     this.updatePlayerInfo();
+    this.currentPlaybackBranoId = null;
     Toast.success(`Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`);
   }
 

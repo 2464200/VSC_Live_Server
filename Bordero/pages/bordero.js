@@ -91,6 +91,7 @@ class BorderoTableManager {
       this.setupEventListeners();
       this.setupSerataMeta();
       this.setupDataRefreshListeners();
+      this.setupStorageSync();
       this.updateSearchPlaceholder();
       this.renderTable();
 
@@ -1007,6 +1008,20 @@ class BorderoTableManager {
       if (!currentSerata || !Array.isArray(currentSerata.brani)) return;
       logger.info('Custom event: aggiornamento serata corrente rilevato');
       this.mergeCurrentSerata(currentSerata.brani);
+    });
+
+    const refreshFromSerata = () => {
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (!currentSerata || !Array.isArray(currentSerata.brani)) return;
+      this.mergeCurrentSerata(currentSerata.brani);
+    };
+
+    window.addEventListener('focus', refreshFromSerata);
+    window.addEventListener('pageshow', refreshFromSerata);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        refreshFromSerata();
+      }
     });
   }
 
