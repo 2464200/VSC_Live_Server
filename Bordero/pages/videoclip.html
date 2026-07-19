@@ -46,14 +46,23 @@
 
     <!-- CURRENT VIDEO PLAYER -->
     <section class="player-section">
-      <div class="video-player">
-        <video id="main-video" width="100%" height="auto" controls playsinline preload="metadata">
-          <source id="video-source" src="" type="video/mp4" />
-          Il tuo browser non supporta i video HTML5
-        </video>
-        <div id="no-video" class="no-video-placeholder">
-          <p>Nessun video selezionato</p>
-          <small>Seleziona una coreografia dalla tabella per riprodurre il video</small>
+      <div class="video-player-column">
+        <div class="video-player">
+          <video id="main-video" width="100%" height="auto" controls playsinline preload="metadata">
+            <source id="video-source" src="" type="video/mp4" />
+            Il tuo browser non supporta i video HTML5
+          </video>
+          <div id="no-video" class="no-video-placeholder">
+            <p>Nessun video selezionato</p>
+            <small>Seleziona una coreografia dalla tabella per riprodurre il video</small>
+          </div>
+        </div>
+        <div class="video-controls">
+          <button id="btn-only-archive" class="btn btn-filter-toggle" type="button" aria-pressed="false">SOLO VIDEO IN ARCHIVIO</button>
+          <button id="btn-play" class="btn btn-primary">PLAY</button>
+          <button id="btn-pause" class="btn btn-secondary">PAUSA</button>
+          <button id="btn-stop" class="btn btn-secondary">FERMA</button>
+          <button id="btn-fullscreen" class="btn btn-secondary">FULLSCREEN</button>
         </div>
       </div>
 
@@ -85,13 +94,6 @@
           <div id="persistent-log-meta" class="persistent-log-meta">In attesa di eventi...</div>
           <div id="persistent-log-list" class="persistent-log-list" role="log" aria-live="polite"></div>
         </section>
-        <div class="video-controls">
-          <button id="btn-only-archive" class="btn btn-filter-toggle" type="button" aria-pressed="false">SOLO VIDEO IN ARCHIVIO</button>
-          <button id="btn-play" class="btn btn-primary">PLAY</button>
-          <button id="btn-pause" class="btn btn-secondary">PAUSA</button>
-          <button id="btn-stop" class="btn btn-secondary">FERMA</button>
-          <button id="btn-fullscreen" class="btn btn-secondary">FULLSCREEN</button>
-        </div>
       </div>
     </section>
 

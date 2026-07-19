@@ -504,6 +504,15 @@ class VideoClipManager {
     this.updateMainVideoDebugIndicator('source-updated');
   }
 
+  updatePlayButtonIdleState(forcePlaying = false) {
+    const playButton = document.getElementById('btn-play');
+    const mainVideo = document.getElementById('main-video');
+    if (!playButton) return;
+
+    const isPlaying = Boolean(forcePlaying || (mainVideo && !mainVideo.paused && mainVideo.currentTime > 0 && !mainVideo.ended));
+    playButton.classList.toggle('is-idle', !isPlaying);
+  }
+
   async waitForPlaybackStart(video) {
     if (!video) return;
 
@@ -579,6 +588,7 @@ class VideoClipManager {
       if (playbackStatus) {
         playbackStatus.textContent = 'Video pronto: monitor principale HTML5 attivo, monitor secondario via VLC.';
       }
+      this.updatePlayButtonIdleState(true);
       this.appendPersistentLog('info', 'html5-playing', {
         url,
         muted: mainVideo.muted,
@@ -612,6 +622,7 @@ class VideoClipManager {
         if (playbackStatus) {
           playbackStatus.textContent = 'Video pronto: monitor principale HTML5 attivo, monitor secondario via VLC.';
         }
+        this.updatePlayButtonIdleState(true);
         this.appendPersistentLog('info', 'html5-playing-muted-fallback', {
           url,
           muted: mainVideo.muted,
@@ -645,6 +656,7 @@ class VideoClipManager {
     if (!mainVideo.paused) {
       mainVideo.pause();
     }
+    this.updatePlayButtonIdleState(false);
     this.updateMainVideoDebugIndicator('paused');
   }
 
@@ -655,6 +667,7 @@ class VideoClipManager {
     this.pendingMainVideoPlay = false;
     mainVideo.pause();
     mainVideo.currentTime = 0;
+    this.updatePlayButtonIdleState(false);
     this.updateMainVideoDebugIndicator('stopped');
   }
 
@@ -827,6 +840,7 @@ class VideoClipManager {
       const mainVideo = document.getElementById('main-video');
       noVideo?.classList.remove('hidden');
       mainVideo?.classList.add('hidden');
+      this.updatePlayButtonIdleState(false);
       this.updateMainVideoDebugIndicator('no-selection');
       return;
     }
@@ -862,6 +876,7 @@ class VideoClipManager {
           playbackStatus.textContent = 'Video pronto: monitor principale HTML5, monitor secondario via VLC.';
         }
         this.loadSecondaryVideo(url);
+        this.updatePlayButtonIdleState(false);
         this.updateMainVideoDebugIndicator('ready');
       } catch (err) {
         logger.warn('Errore impostando sorgente video', err);
@@ -876,6 +891,7 @@ class VideoClipManager {
         playbackStatus.textContent = 'Nessun video disponibile per il monitor secondario.';
       }
       noVideo.innerHTML = '<p>Nessun video selezionato</p><small>Non è stato trovato un file video associato a questo brano.</small>';
+      this.updatePlayButtonIdleState(false);
       this.updateMainVideoDebugIndicator('no-video-file');
     }
   }
@@ -887,6 +903,14 @@ class VideoClipManager {
     const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'pause', 'stalled', 'waiting', 'suspend', 'timeupdate', 'seeking', 'seeked', 'ended', 'error'];
     events.forEach((evt) => {
       mainVideo.addEventListener(evt, () => {
+        if (evt === 'playing' || evt === 'timeupdate') {
+          this.updatePlayButtonIdleState(true);
+        }
+
+        if (evt === 'pause' || evt === 'ended') {
+          this.updatePlayButtonIdleState(false);
+        }
+
         this.updateMainVideoDebugIndicator(evt);
 
         if (evt === 'ended') {
