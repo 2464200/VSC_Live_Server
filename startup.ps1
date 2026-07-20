@@ -14,7 +14,8 @@ Write-Host ""
 
 $RootPath = $PSScriptRoot
 $UnifiedPort = 5500
-$PidFile = Join-Path $RootPath '.startup-pids.json'
+$PidDir = Join-Path $RootPath 'pids'
+$PidFile = Join-Path $PidDir 'startup-pids.json'
 $LogsDir = Join-Path $RootPath 'logs'
 
 function Start-ProcessSafe {
@@ -111,6 +112,9 @@ function Wait-ForPort {
 function Save-Pids {
     param([int[]]$Pids)
     if ($Pids -and $Pids.Count -gt 0) {
+        if (-not (Test-Path $PidDir)) {
+            New-Item -ItemType Directory -Path $PidDir -Force | Out-Null
+        }
         $Pids | ConvertTo-Json | Set-Content -Path $PidFile -Encoding UTF8
         Write-Host "OK PID salvati: $($Pids -join ', ')"
     } elseif (Test-Path $PidFile) {

@@ -14,6 +14,9 @@ class DisplayMonitor {
     };
     this.lastRefresh = null;
     this.refreshInterval = null;
+    this.scrollDirection = 1; // 1 = down, -1 = up
+    this.scrollSpeedPxPerFrame = 0.45;
+    this.scrollAnimationFrame = null;
 
     this.init();
   }
@@ -30,6 +33,9 @@ class DisplayMonitor {
 
       // Refresh iniziale
       this.refresh();
+
+      // Avvia auto-scroll tabella (giu/su)
+      this.startAutoScroll();
 
       logger.info('✓ DisplayMonitor inizializzato');
     } catch (error) {
@@ -82,10 +88,14 @@ class DisplayMonitor {
   renderTable(brani) {
     const tbody = document.getElementById('display-tbody');
     const emptyState = document.getElementById('empty-state');
+    const tableLive = document.querySelector('.table-live');
 
     if (!brani || brani.length === 0) {
       tbody.innerHTML = '';
       DOMUtils.show(emptyState);
+      if (tableLive) {
+        tableLive.scrollTop = 0;
+      }
       return;
     }
 
@@ -97,7 +107,63 @@ class DisplayMonitor {
       .map(brano => this.createBranoRow(brano))
       .join('');
 
+    // Mantiene auto-scroll coerente dopo ogni rerender.
+    if (tableLive) {
+      const maxScroll = Math.max(0, tableLive.scrollHeight - tableLive.clientHeight);
+      if (maxScroll <= 0) {
+        tableLive.scrollTop = 0;
+      } else if (tableLive.scrollTop >= maxScroll) {
+        tableLive.scrollTop = maxScroll;
+        this.scrollDirection = -1;
+      } else if (tableLive.scrollTop <= 0) {
+        tableLive.scrollTop = 0;
+        this.scrollDirection = 1;
+      }
+    }
+
     logger.debug(`Tabella aggiornata: ${displayBrani.length} righe`);
+  }
+
+  /**
+   * Avvia loop di auto-scroll bidirezionale
+   */
+  startAutoScroll() {
+    if (this.scrollAnimationFrame) {
+      cancelAnimationFrame(this.scrollAnimationFrame);
+    }
+
+    const tick = () => {
+      const tableLive = document.querySelector('.table-live');
+
+      if (!tableLive) {
+        this.scrollAnimationFrame = requestAnimationFrame(tick);
+        return;
+      }
+
+      const maxScroll = Math.max(0, tableLive.scrollHeight - tableLive.clientHeight);
+      if (maxScroll <= 0) {
+        tableLive.scrollTop = 0;
+        this.scrollDirection = 1;
+        this.scrollAnimationFrame = requestAnimationFrame(tick);
+        return;
+      }
+
+      const nextTop = tableLive.scrollTop + this.scrollDirection * this.scrollSpeedPxPerFrame;
+
+      if (nextTop >= maxScroll) {
+        tableLive.scrollTop = maxScroll;
+        this.scrollDirection = -1;
+      } else if (nextTop <= 0) {
+        tableLive.scrollTop = 0;
+        this.scrollDirection = 1;
+      } else {
+        tableLive.scrollTop = nextTop;
+      }
+
+      this.scrollAnimationFrame = requestAnimationFrame(tick);
+    };
+
+    this.scrollAnimationFrame = requestAnimationFrame(tick);
   }
 
   /**
@@ -145,6 +211,10 @@ class DisplayMonitor {
   stop() {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
+    }
+    if (this.scrollAnimationFrame) {
+      cancelAnimationFrame(this.scrollAnimationFrame);
+      this.scrollAnimationFrame = null;
     }
   }
 }

@@ -16,7 +16,7 @@ Dentro questo processo sono integrati:
 Quando apri la cartella in VS Code:
 1. parte `startup.ps1`
 2. viene avviato `unified-server.js`
-3. il PID viene salvato in `.startup-pids.json`
+3. il PID viene salvato in `pids/startup-pids.json`
 
 ## Arresto automatico
 Quando chiudi il progetto:

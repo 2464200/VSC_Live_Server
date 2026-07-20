@@ -6,7 +6,7 @@ param(
     [switch]$Force = $false
 )
 
-$PidFile = Join-Path $PSScriptRoot '.startup-pids.json'
+$PidFile = Join-Path $PSScriptRoot 'pids\startup-pids.json'
 
 Write-Host ""
 Write-Host "========================================================"
