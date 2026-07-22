@@ -576,6 +576,7 @@ class VideoClipManager {
     try {
       mainVideo.pause();
       mainVideo.currentTime = 0;
+      mainVideo.volume = 0;
       mainVideo.muted = true;
       this.setMainVideoSource(url);
       mainVideo.load();
@@ -610,6 +611,7 @@ class VideoClipManager {
         return;
       }
       try {
+        mainVideo.volume = 0;
         mainVideo.muted = true;
         this.setMainVideoSource(url);
         mainVideo.load();
@@ -868,6 +870,7 @@ class VideoClipManager {
           this.setMainVideoSource(url);
           mainVideo.pause();
           mainVideo.currentTime = 0;
+          mainVideo.volume = 0;
           mainVideo.load();
           mainVideo.classList.remove('hidden');
         }
@@ -1537,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.stopPropagation();
         mainVideo.pause();
         mainVideo.currentTime = 0;
+        mainVideo.volume = 0;
         mainVideo.muted = false;
         mainVideo.src = url;
         mainVideo.load();
