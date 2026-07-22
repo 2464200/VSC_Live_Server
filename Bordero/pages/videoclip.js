@@ -18,6 +18,7 @@ class VideoClipManager {
     this.currentVideoUrl = '';
     this.currentPlaybackBranoId = null;
     this.showOnlyAvailable = false;
+    this.showOnlyExecuted = false;
     this.vlcPath = '';
     this.vlcFallbackActive = false;
     this.pendingBranoId = this.getRequestedBranoIdFromUrl();
@@ -298,7 +299,7 @@ class VideoClipManager {
     if (!container) return;
     container.innerHTML = '';
 
-    this.updateArchiveFilterButton();
+    this.updateFilterButtons();
 
     this.filteredBrani.forEach(brano => {
       const card = document.createElement('div');
@@ -306,7 +307,7 @@ class VideoClipManager {
       const matchedFile = this.availableMap.get(String(brano.id)) || null;
       const isAvailable = Boolean(matchedFile);
       const isExecuted = this.isBranoExecuted(brano);
-      if (this.showOnlyAvailable && (!isAvailable || isExecuted)) {
+      if (!this.matchesStateFilters(isAvailable, isExecuted)) {
         return;
       }
       if (this.currentBrano?.id === brano.id) {
@@ -1240,7 +1241,14 @@ class VideoClipManager {
     const archiveToggle = document.getElementById('btn-only-archive');
     archiveToggle?.addEventListener('click', () => {
       this.showOnlyAvailable = !this.showOnlyAvailable;
-      this.updateArchiveFilterButton();
+      this.updateFilterButtons();
+      this.filterVideos();
+    });
+
+    const executedToggle = document.getElementById('btn-only-executed');
+    executedToggle?.addEventListener('click', () => {
+      this.showOnlyExecuted = !this.showOnlyExecuted;
+      this.updateFilterButtons();
       this.filterVideos();
     });
 
@@ -1485,11 +1493,37 @@ class VideoClipManager {
     Toast.success(`Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`);
   }
 
-  updateArchiveFilterButton() {
-    const button = document.getElementById('btn-only-archive');
-    if (!button) return;
-    button.classList.toggle('active', this.showOnlyAvailable);
-    button.setAttribute('aria-pressed', String(this.showOnlyAvailable));
+  updateFilterButtons() {
+    const archiveButton = document.getElementById('btn-only-archive');
+    if (archiveButton) {
+      archiveButton.classList.toggle('active', this.showOnlyAvailable);
+      archiveButton.setAttribute('aria-pressed', String(this.showOnlyAvailable));
+    }
+
+    const executedButton = document.getElementById('btn-only-executed');
+    if (executedButton) {
+      executedButton.classList.toggle('active', this.showOnlyExecuted);
+      executedButton.setAttribute('aria-pressed', String(this.showOnlyExecuted));
+    }
+  }
+
+  matchesStateFilters(isAvailable, isExecuted) {
+    const matchArchiveOnly = isAvailable && !isExecuted;
+    const matchExecutedOnly = isExecuted;
+
+    if (this.showOnlyAvailable && this.showOnlyExecuted) {
+      return matchArchiveOnly || matchExecutedOnly;
+    }
+
+    if (this.showOnlyAvailable) {
+      return matchArchiveOnly;
+    }
+
+    if (this.showOnlyExecuted) {
+      return matchExecutedOnly;
+    }
+
+    return true;
   }
 
   filterVideos() {
@@ -1511,9 +1545,9 @@ class VideoClipManager {
       const matchedFile = this.availableMap.get(String(brano.id)) || null;
       const isAvailable = Boolean(matchedFile);
       const isExecuted = this.isBranoExecuted(brano);
-      const matchArchiveFilter = !this.showOnlyAvailable || (isAvailable && !isExecuted);
+      const matchStateFilters = this.matchesStateFilters(isAvailable, isExecuted);
 
-      return matchSearch && matchGenre && matchArchiveFilter;
+      return matchSearch && matchGenre && matchStateFilters;
     });
 
     this.renderLibrary();
