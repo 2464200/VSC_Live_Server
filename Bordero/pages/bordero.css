@@ -715,6 +715,7 @@
 .col-richieste {
   width: 130px;
   min-width: 110px;
+  text-align: center;
 }
 
 .col-genere {

@@ -822,6 +822,19 @@ class BorderoTableManager {
   }
 
   getUniqueFieldValues(field) {
+    if (field === 'richieste') {
+      const numericValues = this.allBrani
+        .map((item) => String(item?.[field] ?? '').trim())
+        .filter((value) => value.length > 0)
+        .map((value) => value.replace(',', '.'))
+        .filter((value) => /^-?\d+(\.\d+)?$/.test(value))
+        .map((value) => Number(value));
+
+      return [...new Set(numericValues)]
+        .sort((a, b) => a - b)
+        .map((value) => String(value));
+    }
+
     const values = this.allBrani
       .map(item => String(item?.[field] ?? '').trim())
       .filter(value => value.length > 0);
@@ -871,19 +884,61 @@ class BorderoTableManager {
     this.activeFilterPicker.filteredValues = values;
 
     const clearButton = '<button type="button" class="filter-picker-option is-clear" data-filter-index="-1">TUTTI (nessun filtro)</button>';
+    const richiesteSpecialButtons = this.activeFilterPicker.field === 'richieste'
+      ? [
+          '<button type="button" class="filter-picker-option" data-filter-special="richieste-zero">NO (0 / vuoto)</button>',
+          '<button type="button" class="filter-picker-option" data-filter-special="richieste-nonzero">SI (diversi da 0)</button>'
+        ].join('')
+      : '';
     const valueButtons = values.map((value, index) => {
       const safe = this.escapeHtml(value);
       return `<button type="button" class="filter-picker-option" data-filter-index="${index}">${safe}</button>`;
     }).join('');
 
-    optionsEl.innerHTML = clearButton + valueButtons;
+    optionsEl.innerHTML = clearButton + richiesteSpecialButtons + valueButtons;
 
     optionsEl.querySelectorAll('.filter-picker-option').forEach(button => {
       button.addEventListener('click', () => {
+        const special = button.getAttribute('data-filter-special');
+        if (special) {
+          this.applySpecialFilterFromPicker(special);
+          return;
+        }
+
         const idx = Number(button.getAttribute('data-filter-index'));
         this.applyValueFilterFromPicker(idx);
       });
     });
+  }
+
+  applySpecialFilterFromPicker(specialKey) {
+    if (!this.activeFilterPicker) return;
+
+    const { field } = this.activeFilterPicker;
+    if (field !== 'richieste') return;
+
+    if (specialKey === 'richieste-zero') {
+      this.currentFilters[field] = { mode: 'richiesteZero' };
+    } else if (specialKey === 'richieste-nonzero') {
+      this.currentFilters[field] = { mode: 'richiesteNonZero' };
+    }
+
+    this.currentPage = 1;
+    this.updateFilterButtons();
+    this.applyFilters();
+    this.closeFilterValuePicker();
+  }
+
+  isRichiesteZeroValue(value) {
+    const text = String(value ?? '').trim();
+    if (!text || text === '-') return true;
+
+    const normalizedNumeric = text.replace(',', '.');
+    if (/^-?\d+(\.\d+)?$/.test(normalizedNumeric)) {
+      return Number(normalizedNumeric) === 0;
+    }
+
+    return false;
   }
 
   applyValueFilterFromPicker(selectedIndex) {
@@ -1220,6 +1275,10 @@ class BorderoTableManager {
         this.filteredBrani = this.filteredBrani.filter(item =>
           fields.some(field => String(item[field] ?? '').trim() !== '')
         );
+      } else if (config.mode === 'richiesteZero') {
+        this.filteredBrani = this.filteredBrani.filter(item => this.isRichiesteZeroValue(item.richieste));
+      } else if (config.mode === 'richiesteNonZero') {
+        this.filteredBrani = this.filteredBrani.filter(item => !this.isRichiesteZeroValue(item.richieste));
       } else if (config.mode === 'exactValue') {
         const expected = this.normalizeExactFilterValue(config.value);
         this.filteredBrani = this.filteredBrani.filter(item =>

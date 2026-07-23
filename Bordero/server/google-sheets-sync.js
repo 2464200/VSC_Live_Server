@@ -47,6 +47,7 @@ const SHEETS = [
   {
     name: 'Accoda 8+12',
     output: 'Accoda 8+12.csv',
+    richiesteOutput: 'brani.csv',
     baseSource: {
       name: 'Elenco Brani (statico)',
       id: process.env.GOOGLE_SHEET_BRANI,
@@ -466,76 +467,112 @@ function mergeSourceTables(sourceTables) {
 function normalizeLookupValue(value) {
   return String(value || '')
     .trim()
-    .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .toLowerCase()
+    .replace(/[.,;:!?\-_/()\[\]{}'"`´^~]/g, ' ')
+    .replace(/[*?]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-function parseRichiesteValues(raw) {
-  return String(raw || '')
-    .split(/[,;|\/\n\r]+/)
-    .map((part) => normalizeLookupValue(part))
-    .filter((part) => part.length >= 2)
-    .filter((part) => !['xxx', 'prova', 'test'].includes(part));
+function parseAliasMap(rawAliases) {
+  const map = new Map();
+  const text = String(rawAliases || '').trim();
+  if (!text) return map;
+
+  text.split(';').forEach((pair) => {
+    const [left, right] = pair.split('=');
+    const key = normalizeLookupValue(left);
+    const val = normalizeLookupValue(right);
+    if (key && val) {
+      map.set(key, val);
+    }
+  });
+
+  return map;
 }
 
-function buildRichiesteCounterFromResponses(responseValues) {
+function canonicalizeLookupValue(rawValue, aliasMap) {
+  const key = normalizeLookupValue(rawValue);
+  if (!key) return '';
+  return aliasMap?.get(key) || key;
+}
+
+function getColumnRangeBounds(columnRange = 'D:AI') {
+  const match = String(columnRange || '').trim().toUpperCase().match(/^([A-Z]+):([A-Z]+)$/);
+  if (!match) {
+    return {
+      startIndex: 3,
+      endIndex: 34
+    };
+  }
+
+  const start = excelColumnToIndex(match[1]);
+  const end = excelColumnToIndex(match[2]);
+  if (!start || !end) {
+    return {
+      startIndex: 3,
+      endIndex: 34
+    };
+  }
+
+  return {
+    startIndex: Math.max(0, Math.min(start, end) - 1),
+    endIndex: Math.max(0, Math.max(start, end) - 1)
+  };
+}
+
+function buildRichiesteCounterFromResponses(responseValues, columnRange = 'D:AI', options = {}) {
   if (!Array.isArray(responseValues) || responseValues.length < 2) {
     return new Map();
   }
 
-  const header = responseValues[0].map((name) => String(name || '').trim());
-  const normalizedHeader = header.map((name) => normalizeHeaderValue(name));
-  const requestColumnIndexes = normalizedHeader
-    .map((name, index) => ({ name, index }))
-    .filter((entry) => /^coreo\s/.test(entry.name))
-    .map((entry) => entry.index);
+  const aliasMap = parseAliasMap(options.aliases);
+  const dedupePerRow = Boolean(options.dedupePerRow);
+  const { startIndex, endIndex } = getColumnRangeBounds(columnRange);
 
   const counter = new Map();
+
   responseValues.slice(1).forEach((row) => {
-    requestColumnIndexes.forEach((index) => {
-      const values = parseRichiesteValues(row[index]);
-      values.forEach((value) => {
-        counter.set(value, (counter.get(value) || 0) + 1);
-      });
-    });
+    const seenInRow = dedupePerRow ? new Set() : null;
+    const lastIndex = Math.min(endIndex, row.length - 1);
+    for (let i = startIndex; i <= lastIndex; i += 1) {
+      const key = canonicalizeLookupValue(row[i], aliasMap);
+      if (!key) continue;
+      if (dedupePerRow) {
+        if (seenInRow.has(key)) continue;
+        seenInRow.add(key);
+      }
+      counter.set(key, (counter.get(key) || 0) + 1);
+    }
   });
 
   return counter;
 }
 
-function enrichBaseWithRichieste(baseValues, richiesteCounter) {
+function enrichBaseWithRichieste(baseValues, richiesteCounter, options = {}) {
   if (!Array.isArray(baseValues) || baseValues.length === 0) {
     return [];
   }
+
+  const aliasMap = parseAliasMap(options.aliases);
 
   const header = baseValues[0].map((name) => String(name || '').trim());
   const normalizedHeader = header.map((name) => normalizeHeaderValue(name));
 
   const idxRichieste = normalizedHeader.findIndex((name) => name === 'richieste');
   const idxCoreografia = normalizedHeader.findIndex((name) => name === 'coreografia');
-  const idxBrano = normalizedHeader.findIndex((name) => name === 'brano');
-  const idxTitolo = normalizedHeader.findIndex((name) => name === 'titolo');
 
-  if (idxRichieste < 0) {
+  if (idxRichieste < 0 || idxCoreografia < 0) {
     return baseValues;
   }
 
   const output = [header];
   baseValues.slice(1).forEach((row) => {
     const cloned = [...row];
-    const keys = [idxCoreografia, idxBrano, idxTitolo]
-      .filter((index) => index >= 0)
-      .map((index) => normalizeLookupValue(cloned[index]))
-      .filter((value) => value.length >= 2);
-
-    let count = 0;
-    keys.forEach((key) => {
-      count = Math.max(count, Number(richiesteCounter.get(key) || 0));
-    });
+    const key = canonicalizeLookupValue(cloned[idxCoreografia], aliasMap);
+    const count = key ? Number(richiesteCounter.get(key) || 0) : 0;
 
     cloned[idxRichieste] = count > 0 ? String(count) : '';
     output.push(cloned);
@@ -594,6 +631,29 @@ async function syncSheet(sheet) {
       const csv = valuesToCSV(outputValues);
       const filePath = path.join(OUTPUT_DIR, sheet.output);
       fs.writeFileSync(filePath, csv, 'utf8');
+
+      // Accoda 8+12 deve restare merge grezzo; RICHIESTE viene applicata separatamente su brani.csv.
+      if (sheet.baseSource && sheet.richiesteOutput) {
+        try {
+          const richiesteRange = process.env.RICHIESTE_MATCH_RANGE || 'D:AI';
+          const richiesteAliases = process.env.RICHIESTE_MATCH_ALIASES || '';
+          const dedupePerRow = String(process.env.RICHIESTE_DEDUPE_PER_ROW || 'false').toLowerCase() === 'true';
+          const baseValues = await fetchSheetValuesFromSource(sheet.baseSource);
+          const richiesteCounter = buildRichiesteCounterFromResponses(mergedValues, richiesteRange, {
+            aliases: richiesteAliases,
+            dedupePerRow
+          });
+          const enrichedBaseValues = enrichBaseWithRichieste(baseValues, richiesteCounter, {
+            aliases: richiesteAliases
+          });
+          const baseCsv = valuesToCSV(enrichedBaseValues);
+          const baseFilePath = path.join(OUTPUT_DIR, sheet.richiesteOutput);
+          fs.writeFileSync(baseFilePath, baseCsv, 'utf8');
+          console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteRange})`);
+        } catch (enrichError) {
+          console.warn(`   ⚠️ Impossibile aggiornare ${sheet.richiesteOutput}: ${enrichError.message}`);
+        }
+      }
 
       const mergedRows = Math.max(0, outputValues.length - 1);
       console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AI]`);
