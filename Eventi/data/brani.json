@@ -906,8 +906,8 @@
   {
     "id": "114",
     "titolo": "COUNTRY AS CAN BE",
-    "brano": "call me",
-    "autore": "blondie",
+    "brano": "hooked on country music",
+    "autore": "djtexx",
     "compositore": "",
     "durata": "BASE"
   },
@@ -3289,7 +3289,7 @@
   },
   {
     "id": "412",
-    "titolo": "2 HELL AND BACK",
+    "titolo": "TO HELL AND BACK",
     "brano": "if you're going through hell",
     "autore": "rodney atkins",
     "compositore": "",
@@ -4017,7 +4017,7 @@
   },
   {
     "id": "503",
-    "titolo": "HOUSE OF BAMBOO (THIS CITY IS OURS)",
+    "titolo": "HOUSE OF BAMB",
     "brano": "house of mamboo",
     "autore": "andy williams",
     "compositore": "",
@@ -4049,7 +4049,7 @@
   },
   {
     "id": "507",
-    "titolo": "4 COWBOY",
+    "titolo": "HOUSE OF BAMBOO",
     "brano": "rough ride for a cowboy",
     "autore": "mackenzie porter",
     "compositore": "",
@@ -4370,14 +4370,14 @@
   {
     "id": "547",
     "titolo": "C A R E",
-    "brano": "the last chanty",
+    "brano": "the last shanty",
     "autore": "derina harvey band",
     "compositore": "",
     "durata": "SUPER AVANZATO 3"
   },
   {
     "id": "548",
-    "titolo": "I SHOWED YOU THE DOOR",
+    "titolo": "I SHOWED THE DOOR",
     "brano": "the door",
     "autore": "teddy swims",
     "compositore": "",
@@ -4472,18 +4472,106 @@
     "durata": "SUPER AVANZATO 3"
   },
   {
+    "id": "560",
+    "titolo": "JUST MARRIED",
+    "brano": "for a boat",
+    "autore": "luke bryan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
+    "id": "561",
+    "titolo": "EYE OF THE STORM",
+    "brano": "eye of the storm",
+    "autore": "melanie ryan & jop dorris",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
+    "id": "562",
+    "titolo": "GIVE ME FIVE",
+    "brano": "psalm 119 (back to you)",
+    "autore": "lost & found",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
+    "id": "563",
+    "titolo": "FEEL GOOD FEELIN'",
+    "brano": "feel good feelin'",
+    "autore": "me and mae",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
+    "id": "564",
+    "titolo": "TAKE OFF",
+    "brano": "1 (800) dump him",
+    "autore": "kylie morgan",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
+    "id": "565",
+    "titolo": "BANJO",
+    "brano": "banjo",
+    "autore": "rascal flatts",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
+    "id": "566",
+    "titolo": "POT OF GOLD",
+    "brano": "dance above the rainbow",
+    "autore": "ronan hardiman",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
+    "id": "567",
+    "titolo": "KINGDOM OF FEAR",
+    "brano": "kingdom of fear",
+    "autore": "cameron whitcomb",
+    "compositore": "",
+    "durata": "SUPER AVANZATO 3"
+  },
+  {
+    "id": "568",
+    "titolo": "CHEEK TO CHEEK",
+    "brano": "cheek to cheek",
+    "autore": "frank sinatra",
+    "compositore": "",
+    "durata": "AVANZATO 1"
+  },
+  {
+    "id": "569",
+    "titolo": "PIM PAM",
+    "brano": "sixteen tons",
+    "autore": "tennessee ernie ford",
+    "compositore": "",
+    "durata": "ALTRE COREO"
+  },
+  {
     "id": "570",
-    "titolo": "AUDIO VIDEO TESTER",
-    "brano": "tsunami",
-    "autore": "dvbbs & borgeus",
+    "titolo": "MY MARIA",
+    "brano": "but for the grace of god",
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "INTERMEDIO"
+  },
+  {
+    "id": "598",
+    "titolo": "PROMO MONSTER",
+    "brano": "ANNO 2023",
+    "autore": "",
     "compositore": "",
     "durata": ""
   },
   {
-    "id": "571",
-    "titolo": "PROMO MONSTER",
-    "brano": "ANNO 2023",
-    "autore": "",
+    "id": "599",
+    "titolo": "AUDIO VIDEO TESTER",
+    "brano": "tsunami",
+    "autore": "dvbbs & borgeus",
     "compositore": "",
     "durata": ""
   },

@@ -67,3 +67,9 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Local nested workspace copy (avoid accidental embedded repo commits)
+VSC_Live_Server/
+
+# Temporary Excel lock files
+~$*.xls*
