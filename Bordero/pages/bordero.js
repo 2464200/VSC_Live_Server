@@ -605,6 +605,7 @@ class BorderoTableManager {
     this.bindSortButton('btn-sort-id', 'id', 'ID');
     this.bindSortButton('btn-sort-genere', 'genere', 'GENERE');
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
+    this.bindSortButton('btn-sort-richieste', 'richieste', 'RICHIESTE');
     this.setupColumnHeaderSorting();
     this.bindMoveExecutedBottomButton('btn-move-executed-bottom', 'SPOSTA IN FONDO GLI ESEGUITI');
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
@@ -1270,6 +1271,7 @@ class BorderoTableManager {
     // Reset globale: azzera tutti i filtri di tutte le colonne.
     this.currentFilters = {};
     this.currentSearch = '';
+    this.searchMode = 'general';
     this.currentSort = sortById ? 'id' : null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = sortById ? 'id' : null;
@@ -1729,7 +1731,7 @@ class BorderoTableManager {
    * Update buttons stato
    */
   updateSortButtons() {
-    const buttons = ['btn-sort-id', 'btn-sort-genere', 'btn-sort-autore'];
+    const buttons = ['btn-sort-id', 'btn-sort-genere', 'btn-sort-autore', 'btn-sort-richieste'];
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
       const fieldName = btnId.replace('btn-sort-', '');
