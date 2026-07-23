@@ -1458,10 +1458,13 @@ class BorderoTableManager {
    * Crea HTML riga brano
    */
   createBranoRow(brano) {
-    const isCompleted = brano.flag === 'X';
+    const isCompleted = this.isExecutedBrano(brano);
     const completedClass = isCompleted ? 'completed' : '';
     const flagIcon = isCompleted ? '✅' : '';
     const timestamp = brano.timestamp || '';
+    const richiesteHighlightClass = !isCompleted && !this.isRichiesteZeroValue(brano.richieste)
+      ? ' richieste-nonzero'
+      : '';
     const videoButtonDisabledClass = isCompleted ? ' is-disabled' : '';
     const videoButtonDisabledAttr = isCompleted ? ' disabled aria-disabled="true" tabindex="-1"' : '';
     const videoButtonTitle = isCompleted ? 'Brano eseguito: VideoClip non disponibile' : 'Apri VideoClip';
@@ -1478,7 +1481,7 @@ class BorderoTableManager {
         <td class="col-timestamp">${timestamp}</td>
         <td class="col-titolo">${brano.titolo || brano.coreografia || brano.brano || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
-        <td class="col-richieste">${brano.richieste || '-'}</td>
+        <td class="col-richieste${richiesteHighlightClass}">${brano.richieste || '-'}</td>
         <td class="col-genere">${brano.genere || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
         <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
@@ -2039,11 +2042,22 @@ class BorderoTableManager {
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
+    this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
       detail: { total, completed, pending }
     }));
+  }
+
+  updateRichiesteAlertState() {
+    const richiesteButton = document.getElementById('btn-filter-richieste');
+    if (!richiesteButton) return;
+
+    const withNonZeroRichieste = this.allBrani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
+    const hasPendingWithRichieste = withNonZeroRichieste.some((brano) => !this.isExecutedBrano(brano));
+
+    richiesteButton.classList.toggle('btn-richieste-alert', hasPendingWithRichieste);
   }
 
   updateExecutedBottomModeBadge() {
