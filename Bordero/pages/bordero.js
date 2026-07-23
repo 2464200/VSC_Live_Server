@@ -660,6 +660,7 @@ class BorderoTableManager {
     // Azioni
     document.getElementById('btn-userform')?.addEventListener('click', () => this.showUserForm());
     document.getElementById('btn-export')?.addEventListener('click', () => this.exportSerataToSIAE());
+    document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
 
@@ -1867,6 +1868,48 @@ class BorderoTableManager {
     const div = document.createElement('div');
     div.textContent = String(text ?? '');
     return div.innerHTML;
+  }
+
+  async syncRichiesteFromGoogle() {
+    const button = document.getElementById('btn-sync-richieste-google');
+    const initialText = button?.textContent || '🔄 SYNC RICHIESTE GOOGLE';
+
+    try {
+      if (button) {
+        button.disabled = true;
+        button.textContent = '⏳ SYNC IN CORSO...';
+      }
+
+      const response = await fetch('/api/bordero/sync-google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store'
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || payload?.summary?.error || 'Sincronizzazione Google non riuscita');
+      }
+
+      await this.refreshFromCurrentData();
+
+      const sheetResult = Array.isArray(payload?.summary?.results)
+        ? payload.summary.results.find((item) => String(item?.sheet || '').toLowerCase() === 'brani')
+        : null;
+      const syncedRows = Number(sheetResult?.rows || 0);
+      const syncedMessage = syncedRows > 0
+        ? `✓ Sync completato: ${syncedRows} righe aggiornate da Google`
+        : '✓ Sync Google completato';
+      Toast.success(syncedMessage);
+    } catch (error) {
+      logger.error('Errore sync richieste Google', error);
+      Toast.error(`Errore sync richieste: ${error.message || error}`);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = initialText;
+      }
+    }
   }
 
   /**

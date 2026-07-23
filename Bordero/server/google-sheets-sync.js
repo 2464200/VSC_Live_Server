@@ -47,7 +47,7 @@ const SHEETS = [
   {
     name: 'Brani',
     id: process.env.GOOGLE_SHEET_BRANI,
-    range: 'A:Z',
+    range: process.env.GOOGLE_SHEET_BRANI_RANGE || "'Accoda 8+12'!A:Z",
     output: 'brani.csv',
     gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
     publicUrl: process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
@@ -363,16 +363,25 @@ async function syncSheet(sheet) {
   }
 }
 
-async function syncAll() {
+async function syncAll(options = {}) {
+  const { exitOnFailure = false, onlySheets = null } = options;
   console.log('\n╔════════════════════════════════════════════════════════════════╗');
   console.log('║     Google Sheets Sync - Download Dati                       ║');
   console.log('╚════════════════════════════════════════════════════════════════╝');
   console.log(`\n📁 Output: ${OUTPUT_DIR}`);
 
+  const normalizedOnlySheets = Array.isArray(onlySheets)
+    ? new Set(onlySheets.map((name) => String(name || '').trim().toLowerCase()).filter(Boolean))
+    : null;
+
+  const targetSheets = normalizedOnlySheets
+    ? SHEETS.filter((sheet) => normalizedOnlySheets.has(String(sheet.name || '').trim().toLowerCase()))
+    : SHEETS;
+
   let successCount = 0;
   const results = [];
 
-  for (const sheet of SHEETS) {
+  for (const sheet of targetSheets) {
     if (!sheet.id) {
       console.log(`   ❌ ID mancante per sheet ${sheet.name}, salto`);
       results.push({ success: false, error: 'ID mancante', sheet: sheet.name });
@@ -385,15 +394,35 @@ async function syncAll() {
   }
 
   console.log('\n╔════════════════════════════════════════════════════════════════╗');
-  console.log(`║ ✅ Completato: ${successCount}/${SHEETS.length} fogli scaricati`);
+  console.log(`║ ✅ Completato: ${successCount}/${targetSheets.length} fogli scaricati`);
   console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
-  if (successCount < SHEETS.length) {
+  const summary = {
+    success: successCount === targetSheets.length,
+    successCount,
+    totalSheets: targetSheets.length,
+    results,
+    outputDir: OUTPUT_DIR,
+    syncedAt: new Date().toISOString()
+  };
+
+  if (exitOnFailure && successCount < targetSheets.length) {
     process.exit(1);
   }
+
+  return summary;
 }
 
-syncAll().catch(err => {
-  console.error('❌ Errore fatale:', err.message);
-  process.exit(1);
-});
+module.exports = {
+  syncAll,
+  syncSheet,
+  SHEETS,
+  OUTPUT_DIR
+};
+
+if (require.main === module) {
+  syncAll({ exitOnFailure: true }).catch(err => {
+    console.error('❌ Errore fatale:', err.message);
+    process.exit(1);
+  });
+}

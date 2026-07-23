@@ -17,11 +17,14 @@ const net = require('net');
 const os = require('os');
 const QRCodeLib = require('qrcode');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
+const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 
 const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
 const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
+const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
+const BORDERO_GOOGLE_SYNC_INTERVAL_MS = Number(process.env.BORDERO_GOOGLE_SYNC_INTERVAL_MS || 120000);
 
 // ===== STATO GLOBALE =====
 let chromeProcess = null;
@@ -46,6 +49,91 @@ let vlcLastCompletionEvent = {
     fileName: '',
     completedAt: 0
 };
+
+let borderoGoogleSyncTimer = null;
+let borderoGoogleSyncPromise = null;
+const borderoGoogleSyncState = {
+    enabled: BORDERO_GOOGLE_SYNC_ENABLED,
+    intervalMs: BORDERO_GOOGLE_SYNC_INTERVAL_MS,
+    inProgress: false,
+    lastTrigger: 'never',
+    lastStartedAt: null,
+    lastCompletedAt: null,
+    lastSuccessAt: null,
+    lastError: '',
+    lastSummary: null
+};
+
+async function runBorderoGoogleSync(trigger = 'manual') {
+    if (!BORDERO_GOOGLE_SYNC_ENABLED) {
+        return {
+            success: false,
+            skipped: true,
+            reason: 'BORDERO_GOOGLE_SYNC_ENABLED=false'
+        };
+    }
+
+    if (borderoGoogleSyncPromise) {
+        return borderoGoogleSyncPromise;
+    }
+
+    borderoGoogleSyncState.inProgress = true;
+    borderoGoogleSyncState.lastTrigger = trigger;
+    borderoGoogleSyncState.lastStartedAt = new Date().toISOString();
+
+    borderoGoogleSyncPromise = syncGoogleSheetsData({ exitOnFailure: false, onlySheets: ['Brani'] })
+        .then((summary) => {
+            const doneAt = new Date().toISOString();
+            borderoGoogleSyncState.lastCompletedAt = doneAt;
+            borderoGoogleSyncState.lastSummary = summary;
+            borderoGoogleSyncState.lastError = '';
+            if (summary?.success) {
+                borderoGoogleSyncState.lastSuccessAt = doneAt;
+            }
+            return summary;
+        })
+        .catch((error) => {
+            const doneAt = new Date().toISOString();
+            borderoGoogleSyncState.lastCompletedAt = doneAt;
+            borderoGoogleSyncState.lastError = error?.message || String(error);
+            return {
+                success: false,
+                error: borderoGoogleSyncState.lastError,
+                syncedAt: doneAt
+            };
+        })
+        .finally(() => {
+            borderoGoogleSyncState.inProgress = false;
+            borderoGoogleSyncPromise = null;
+        });
+
+    return borderoGoogleSyncPromise;
+}
+
+function startBorderoGoogleSyncScheduler() {
+    if (!BORDERO_GOOGLE_SYNC_ENABLED) {
+        console.log('ℹ️ Google sync Bordero disabilitato (BORDERO_GOOGLE_SYNC_ENABLED=false)');
+        return;
+    }
+
+    runBorderoGoogleSync('startup').then((summary) => {
+        if (summary?.success) {
+            console.log(`✅ Bordero Google sync startup completato (${summary.successCount}/${summary.totalSheets})`);
+        } else {
+            console.warn('⚠️ Bordero Google sync startup incompleto o fallito');
+        }
+    }).catch((error) => {
+        console.warn('⚠️ Bordero Google sync startup error:', error?.message || error);
+    });
+
+    borderoGoogleSyncTimer = setInterval(() => {
+        runBorderoGoogleSync('interval').catch((error) => {
+            console.warn('⚠️ Bordero Google sync interval error:', error?.message || error);
+        });
+    }, BORDERO_GOOGLE_SYNC_INTERVAL_MS);
+
+    console.log(`⏱️ Bordero Google sync scheduler attivo ogni ${BORDERO_GOOGLE_SYNC_INTERVAL_MS} ms`);
+}
 
 function trackVlcStopRequestForCurrentProcess() {
     if (vlcProcess?.pid) {
@@ -729,6 +817,22 @@ app.get('/api/videoclip/list', (req, res) => {
         console.error('Errore leggendo directory videoclip:', error);
         return res.status(500).json({ error: error.message, files: [] });
     }
+});
+
+app.post('/api/bordero/sync-google', async (req, res) => {
+    try {
+        const summary = await runBorderoGoogleSync('manual');
+        if (summary?.success) {
+            return res.json({ ok: true, summary, state: borderoGoogleSyncState });
+        }
+        return res.status(500).json({ ok: false, summary, state: borderoGoogleSyncState });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error), state: borderoGoogleSyncState });
+    }
+});
+
+app.get('/api/bordero/sync-google/status', (req, res) => {
+    res.json({ ok: true, state: borderoGoogleSyncState });
 });
 
 app.get('/api/videoclip/play-secondary', async (req, res) => {
@@ -1728,6 +1832,7 @@ app.use('/eventi/api', router);
 initializeEventiFiles();
 loadOpenedViewersFromFile();
 syncBraniOnStartupV2();
+startBorderoGoogleSyncScheduler();
 
 // ===== AVVIO SERVER =====
 function getLocalIP() {
@@ -1786,6 +1891,10 @@ startServer(PORT).catch((err) => {
 
 // Graceful shutdown
 process.on('SIGINT', () => {
+    if (borderoGoogleSyncTimer) {
+        clearInterval(borderoGoogleSyncTimer);
+        borderoGoogleSyncTimer = null;
+    }
     console.log('\n[STOP] Unified Server fermato');
     process.exit(0);
 });
