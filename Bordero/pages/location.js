@@ -88,6 +88,7 @@ class LocationPage {
     document.getElementById('btn-salva')?.addEventListener('click', () => this.saveNewRecord());
     document.getElementById('btn-modifica')?.addEventListener('click', () => this.updateRecord());
     document.getElementById('btn-elimina')?.addEventListener('click', () => this.deleteRecord());
+    document.getElementById('btn-stampa-location')?.addEventListener('click', () => this.printLocationList());
     document.getElementById('btn-precedente')?.addEventListener('click', () => this.selectRelative(-1));
     document.getElementById('btn-successivo')?.addEventListener('click', () => this.selectRelative(1));
     document.getElementById('btn-chiudi')?.addEventListener('click', () => { window.location.href = '../index.html'; });
@@ -691,6 +692,76 @@ class LocationPage {
       return;
     }
     dataLoader.exportToCSV(this.locations);
+  }
+
+  printLocationList() {
+    const field = document.getElementById('filter-field')?.value || this.locationFieldMap[0][0];
+    const fieldLabel = this.locationFieldMap.find(([key]) => key === field)?.[1] || field;
+    const rows = Array.isArray(this.filteredLocations) ? this.filteredLocations : [];
+
+    if (rows.length === 0) {
+      Toast.warning('Nessuna location da stampare');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=1100,height=800');
+    if (!printWindow) {
+      Toast.error('Popup bloccato: abilita le finestre popup per stampare.');
+      return;
+    }
+
+    const printedAt = new Date().toLocaleString('it-IT');
+    const tableRows = rows.map(({ location, index }) => `
+      <tr>
+        <td>${index + 2}</td>
+        <td>${this.escapeHtml(location.nome_evento || '')}</td>
+        <td>${this.escapeHtml(location.localita || '')}</td>
+        <td>${this.escapeHtml(location[field] || '')}</td>
+      </tr>
+    `).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Stampa Elenco Location</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; color: #111; }
+    h1 { margin: 0 0 6px; font-size: 20px; }
+    .meta { margin: 0 0 14px; font-size: 12px; color: #444; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #999; padding: 6px 8px; font-size: 12px; text-align: left; }
+    th { background: #f0f0f0; }
+    @media print {
+      body { margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Elenco Location</h1>
+  <p class="meta">Stampato il ${this.escapeHtml(printedAt)} - Campo filtro: ${this.escapeHtml(fieldLabel)} - Record: ${rows.length}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Riga</th>
+        <th>Nome Evento</th>
+        <th>Localita</th>
+        <th>Valore filtro</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${tableRows}
+    </tbody>
+  </table>
+</body>
+</html>`;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   }
 
   escapeHtml(value) {

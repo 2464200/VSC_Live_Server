@@ -59,10 +59,12 @@
 }
 
 .toolbar-actions {
+  grid-column: 1 / -1;
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: end;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .location-stats {
@@ -364,6 +366,5 @@
 
   .toolbar-actions {
     justify-content: stretch;
-    flex-wrap: wrap;
   }
 }
