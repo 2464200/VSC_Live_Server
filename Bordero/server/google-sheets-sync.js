@@ -45,12 +45,31 @@ const OUTPUT_DIR = path.join(__dirname, '..', 'data');
 
 const SHEETS = [
   {
-    name: 'Brani',
-    id: process.env.GOOGLE_SHEET_BRANI,
-    range: process.env.GOOGLE_SHEET_BRANI_RANGE || "'Accoda 8+12'!A:Z",
-    output: 'brani.csv',
-    gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
-    publicUrl: process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+    name: 'Accoda 8+12',
+    output: 'Accoda 8+12.csv',
+    baseSource: {
+      name: 'Elenco Brani (statico)',
+      id: process.env.GOOGLE_SHEET_BRANI,
+      range: process.env.GOOGLE_SHEET_BRANI_RANGE || 'A:Z',
+      gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
+      publicUrl: process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+    },
+    mergeSources: [
+      {
+        name: 'Modulo 8',
+        id: process.env.GOOGLE_SHEET_MODULO8 || process.env.GOOGLE_SHEET_BRANI,
+        range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AI",
+        gid: process.env.GOOGLE_SHEET_MODULO8_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
+        publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+      },
+      {
+        name: 'Modulo 12',
+        id: process.env.GOOGLE_SHEET_MODULO12 || process.env.GOOGLE_SHEET_BRANI,
+        range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AI",
+        gid: process.env.GOOGLE_SHEET_MODULO12_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
+        publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+      }
+    ]
   },
   {
     name: 'Comuni',
@@ -138,9 +157,10 @@ function buildGoogleRangeCandidates(range) {
 
   const sheetMatch = baseRange.match(/^(['"]?[^'"!]+['"]?)!(.+)$/);
   if (sheetMatch) {
+    const sheetName = sheetMatch[1].replace(/^['"]|['"]$/g, '');
     const ref = sheetMatch[2].trim();
-    candidates.add(ref);
-    candidates.add(`'${sheetMatch[1].replace(/^['"]|['"]$/g, '')}'!${ref}`);
+    candidates.add(`${sheetName}!${ref}`);
+    candidates.add(`'${sheetName}'!${ref}`);
   } else {
     candidates.add(baseRange);
     candidates.add('A:Z');
@@ -315,10 +335,271 @@ async function fetchPublicUrl(textUrl) {
   return normalizeDelimitedTextToCSV(csv);
 }
 
+function csvToValues(csvText) {
+  const lines = String(csvText || '').trim().split(/\r?\n/).filter((line) => line.trim() !== '');
+  return lines.map((line) => {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      const next = line[i + 1];
+
+      if (ch === '"') {
+        if (inQuotes && next === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+
+      if (ch === ',' && !inQuotes) {
+        values.push(current);
+        current = '';
+        continue;
+      }
+
+      current += ch;
+    }
+
+    values.push(current);
+    return values;
+  });
+}
+
+function excelColumnToIndex(columnRef) {
+  const clean = String(columnRef || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
+  if (!clean) return null;
+
+  let value = 0;
+  for (let i = 0; i < clean.length; i += 1) {
+    value = value * 26 + (clean.charCodeAt(i) - 64);
+  }
+  return value;
+}
+
+function getRangeColumnLimit(range) {
+  const text = String(range || '').trim();
+  if (!text) return null;
+
+  const withoutSheet = text.includes('!') ? text.split('!').pop() : text;
+  const match = withoutSheet.match(/:([A-Za-z]+)\d*$/);
+  if (!match) return null;
+
+  return excelColumnToIndex(match[1]);
+}
+
+function trimValuesToRange(values, range) {
+  const limit = getRangeColumnLimit(range);
+  if (!limit || !Array.isArray(values)) return values;
+
+  return values.map((row) => Array.isArray(row) ? row.slice(0, limit) : row);
+}
+
+function normalizeHeaderValue(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function mergeSourceTables(sourceTables) {
+  const nonEmptyTables = sourceTables
+    .map((table) => ({
+      ...table,
+      values: Array.isArray(table.values)
+        ? table.values.filter((row) => Array.isArray(row) && row.some((cell) => String(cell || '').trim() !== ''))
+        : []
+    }))
+    .filter((table) => table.values.length > 0);
+
+  if (nonEmptyTables.length === 0) {
+    return [];
+  }
+
+  const headerCandidates = nonEmptyTables.map((table) => table.values[0]);
+  const masterHeader = headerCandidates.sort((a, b) => b.length - a.length)[0].map((value) => String(value || '').trim());
+  const mergedRows = [masterHeader];
+
+  nonEmptyTables.forEach((table) => {
+    const rows = table.values;
+    if (rows.length === 0) return;
+
+    const sourceHeader = rows[0].map((value) => String(value || '').trim());
+    const headerMap = new Map();
+    sourceHeader.forEach((name, index) => {
+      const normalized = normalizeHeaderValue(name);
+      if (normalized && !headerMap.has(normalized)) {
+        headerMap.set(normalized, index);
+      }
+    });
+
+    const dataRows = rows.slice(1);
+    dataRows.forEach((row) => {
+      const aligned = masterHeader.map((columnName, columnIndex) => {
+        const sourceIndex = headerMap.get(normalizeHeaderValue(columnName));
+        if (Number.isInteger(sourceIndex)) {
+          return row[sourceIndex] ?? '';
+        }
+        return row[columnIndex] ?? '';
+      });
+
+      const lookup = new Map();
+      masterHeader.forEach((name, idx) => {
+        lookup.set(normalizeHeaderValue(name), String(aligned[idx] ?? '').trim());
+      });
+
+      const normalizedEntries = [...lookup.entries()];
+      const hasBusinessValue = normalizedEntries
+        .filter(([key]) => !['informazioni cronologiche', 'se vuoi, dimmi il tuo nome', 'se vuoi, scrivi il tuo nome'].includes(key))
+        .some(([, value]) => String(value || '').trim().length > 0);
+
+      if (hasBusinessValue) {
+        mergedRows.push(aligned);
+      }
+    });
+  });
+
+  return mergedRows;
+}
+
+function normalizeLookupValue(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseRichiesteValues(raw) {
+  return String(raw || '')
+    .split(/[,;|\/\n\r]+/)
+    .map((part) => normalizeLookupValue(part))
+    .filter((part) => part.length >= 2)
+    .filter((part) => !['xxx', 'prova', 'test'].includes(part));
+}
+
+function buildRichiesteCounterFromResponses(responseValues) {
+  if (!Array.isArray(responseValues) || responseValues.length < 2) {
+    return new Map();
+  }
+
+  const header = responseValues[0].map((name) => String(name || '').trim());
+  const normalizedHeader = header.map((name) => normalizeHeaderValue(name));
+  const requestColumnIndexes = normalizedHeader
+    .map((name, index) => ({ name, index }))
+    .filter((entry) => /^coreo\s/.test(entry.name))
+    .map((entry) => entry.index);
+
+  const counter = new Map();
+  responseValues.slice(1).forEach((row) => {
+    requestColumnIndexes.forEach((index) => {
+      const values = parseRichiesteValues(row[index]);
+      values.forEach((value) => {
+        counter.set(value, (counter.get(value) || 0) + 1);
+      });
+    });
+  });
+
+  return counter;
+}
+
+function enrichBaseWithRichieste(baseValues, richiesteCounter) {
+  if (!Array.isArray(baseValues) || baseValues.length === 0) {
+    return [];
+  }
+
+  const header = baseValues[0].map((name) => String(name || '').trim());
+  const normalizedHeader = header.map((name) => normalizeHeaderValue(name));
+
+  const idxRichieste = normalizedHeader.findIndex((name) => name === 'richieste');
+  const idxCoreografia = normalizedHeader.findIndex((name) => name === 'coreografia');
+  const idxBrano = normalizedHeader.findIndex((name) => name === 'brano');
+  const idxTitolo = normalizedHeader.findIndex((name) => name === 'titolo');
+
+  if (idxRichieste < 0) {
+    return baseValues;
+  }
+
+  const output = [header];
+  baseValues.slice(1).forEach((row) => {
+    const cloned = [...row];
+    const keys = [idxCoreografia, idxBrano, idxTitolo]
+      .filter((index) => index >= 0)
+      .map((index) => normalizeLookupValue(cloned[index]))
+      .filter((value) => value.length >= 2);
+
+    let count = 0;
+    keys.forEach((key) => {
+      count = Math.max(count, Number(richiesteCounter.get(key) || 0));
+    });
+
+    cloned[idxRichieste] = count > 0 ? String(count) : '';
+    output.push(cloned);
+  });
+
+  return output;
+}
+
+async function fetchSheetValuesFromSource(source) {
+  const sourceId = source?.id;
+  const sourceRange = source?.range || 'A:Z';
+  const sourceGid = source?.gid || '0';
+  const sourcePublicUrl = source?.publicUrl;
+
+  if (!sourceId) {
+    throw new Error(`ID mancante per sorgente ${source?.name || 'unknown'}`);
+  }
+
+  try {
+    const values = await fetchSheetData(sourceId, sourceRange);
+    return trimValuesToRange(values, sourceRange);
+  } catch (apiError) {
+    try {
+      const csvContent = await fetchCSVExport(sourceId, sourceGid);
+      return trimValuesToRange(csvToValues(csvContent), sourceRange);
+    } catch (fallbackError) {
+      if (sourcePublicUrl) {
+        const csvContent = await fetchPublicUrl(sourcePublicUrl);
+        return trimValuesToRange(csvToValues(csvContent), sourceRange);
+      }
+      throw new Error(`Sorgente ${source?.name || sourceId} non raggiungibile: ${fallbackError.message || apiError.message}`);
+    }
+  }
+}
+
 async function syncSheet(sheet) {
   console.log(`\n📋 Scaricando ${sheet.name}...`);
 
   try {
+    if (Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0) {
+      const sourceTables = [];
+
+      for (const source of sheet.mergeSources) {
+        const values = await fetchSheetValuesFromSource(source);
+        sourceTables.push({ source, values });
+      }
+
+      const mergedValues = mergeSourceTables(sourceTables);
+      if (!mergedValues || mergedValues.length === 0) {
+        console.log('   ⚠️  Merge vuoto');
+        return { success: false, error: 'Merge vuoto' };
+      }
+
+      const outputValues = mergedValues;
+
+      const csv = valuesToCSV(outputValues);
+      const filePath = path.join(OUTPUT_DIR, sheet.output);
+      fs.writeFileSync(filePath, csv, 'utf8');
+
+      const mergedRows = Math.max(0, outputValues.length - 1);
+      console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AI]`);
+      return { success: true, rows: mergedRows, file: filePath };
+    }
+
     const values = await fetchSheetData(sheet.id, sheet.range);
     if (!values || values.length === 0) {
       console.log('   ⚠️  Foglio vuoto');
@@ -382,7 +663,8 @@ async function syncAll(options = {}) {
   const results = [];
 
   for (const sheet of targetSheets) {
-    if (!sheet.id) {
+    const hasMergeSources = Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0;
+    if (!sheet.id && !hasMergeSources) {
       console.log(`   ❌ ID mancante per sheet ${sheet.name}, salto`);
       results.push({ success: false, error: 'ID mancante', sheet: sheet.name });
       continue;

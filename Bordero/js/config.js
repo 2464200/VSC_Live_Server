@@ -13,7 +13,7 @@ const BORDERO_CONFIG = {
   APP_AUTHOR: 'Copilot',
   
   // ========== DATI & STORAGE ==========
-  CSV_BRANI: dataBasePath + 'brani.csv',
+  CSV_BRANI: dataBasePath + 'Accoda 8+12.csv',
   CSV_COMUNI: dataBasePath + 'comuni_italia.csv',
   CSV_COMUNI_LOMBARDIA: dataBasePath + 'comuni_lombardia.csv',
   CSV_DBASE: dataBasePath + 'dBase.csv',

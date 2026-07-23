@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="xr" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision"><authors><author>Luca Beretta</author></authors><commentList><comment ref="B134" authorId="0" shapeId="0" xr:uid="{11DC4555-1E1A-4EB7-998D-2A51B8ECAF01}"><text><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>0 = Monitor Principale
+1 = Monitor Secondario
+2 = Altro Monitor Secondario
+etc.</t></r></text></comment><comment ref="B136" authorId="0" shapeId="0" xr:uid="{136E57D5-B390-41CA-9565-D3BAFD0626A1}"><text><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>yuyv422
+nv12
+yuv420p
+etc.</t></r></text></comment></commentList></comments>

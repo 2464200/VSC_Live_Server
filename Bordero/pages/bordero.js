@@ -1894,7 +1894,7 @@ class BorderoTableManager {
       await this.refreshFromCurrentData();
 
       const sheetResult = Array.isArray(payload?.summary?.results)
-        ? payload.summary.results.find((item) => String(item?.sheet || '').toLowerCase() === 'brani')
+        ? payload.summary.results.find((item) => String(item?.sheet || '').toLowerCase() === 'accoda 8+12')
         : null;
       const syncedRows = Number(sheetResult?.rows || 0);
       const syncedMessage = syncedRows > 0

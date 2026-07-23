@@ -4,7 +4,7 @@
  * Riceve i dati da Excel e li sincronizza sui file CSV
  * 
  * Endpoint:
- * POST /api/sync/brani - Sincronizza brani.csv
+ * POST /api/sync/brani - Sincronizza Accoda 8+12.csv
  * POST /api/sync/comuni - Sincronizza comuni_italia.csv
  * POST /api/sync/dbase - Sincronizza dBase.csv
  * POST /api/sync/location - Sincronizza location.csv
@@ -23,7 +23,7 @@ const PORT = portArg ? Number(portArg) : (process.env.BORDERO_SYNC_PORT || 5501)
 // Paths relativi al progetto Bordero
 const BORDERO_DIR = path.join(__dirname, '..');
 const DATA_DIR = path.join(BORDERO_DIR, 'data');
-const CSV_BRANI = path.join(DATA_DIR, 'brani.csv');
+const CSV_BRANI = path.join(DATA_DIR, 'Accoda 8+12.csv');
 const CSV_COMUNI = path.join(DATA_DIR, 'comuni_italia.csv');
 const CSV_DBASE = path.join(DATA_DIR, 'dBase.csv');
 const CSV_LOCATION = path.join(DATA_DIR, 'location.csv');
@@ -103,7 +103,7 @@ function jsonToCSV(data, headers = null) {
 
 /**
  * POST /api/sync/brani
- * Sincronizza brani.csv
+ * Sincronizza Accoda 8+12.csv
  */
 app.post('/api/sync/brani', async (req, res) => {
   try {
@@ -397,7 +397,7 @@ app.get('/api/status', async (req, res) => {
         locationOptions: { exists: locationOptionsExists, path: CSV_LOCATION_OPTIONS }
       },
       endpoints: {
-        'POST /api/sync/brani': 'Sincronizza brani.csv',
+        'POST /api/sync/brani': 'Sincronizza Accoda 8+12.csv',
         'POST /api/sync/comuni': 'Sincronizza comuni_italia.csv',
         'POST /api/sync/dbase': 'Sincronizza dBase.csv',
         'POST /api/sync/location': 'Sincronizza location.csv',

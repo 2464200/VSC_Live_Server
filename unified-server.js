@@ -81,7 +81,7 @@ async function runBorderoGoogleSync(trigger = 'manual') {
     borderoGoogleSyncState.lastTrigger = trigger;
     borderoGoogleSyncState.lastStartedAt = new Date().toISOString();
 
-    borderoGoogleSyncPromise = syncGoogleSheetsData({ exitOnFailure: false, onlySheets: ['Brani'] })
+    borderoGoogleSyncPromise = syncGoogleSheetsData({ exitOnFailure: false, onlySheets: ['Accoda 8+12'] })
         .then((summary) => {
             const doneAt = new Date().toISOString();
             borderoGoogleSyncState.lastCompletedAt = doneAt;
