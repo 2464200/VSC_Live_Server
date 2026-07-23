@@ -77,6 +77,7 @@ class DisplayMonitor {
     document.getElementById('header-dj').textContent = this.serata.dj || '--';
     document.getElementById('header-data').textContent = this.serata.data || '--';
     document.getElementById('header-luogo').textContent = this.serata.luogo || '--';
+    document.getElementById('header-evento').textContent = this.serata.evento || '--';
 
     const completed = brani.filter(b => b.flag === 'X').length;
     document.getElementById('header-completed').textContent = `${completed}/${brani.length}`;
@@ -200,6 +201,7 @@ class DisplayMonitor {
     document.getElementById('header-dj').textContent = '--';
     document.getElementById('header-data').textContent = '--';
     document.getElementById('header-luogo').textContent = '--';
+    document.getElementById('header-evento').textContent = '--';
     document.getElementById('header-completed').textContent = '0/0';
 
     logger.debug('Nessuna serata in corso');
