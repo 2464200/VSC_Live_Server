@@ -534,7 +534,17 @@ function buildRichiesteCounterFromResponses(responseValues, columnRange = 'D:AI'
 
   const counter = new Map();
 
+  const isTestRow = (row) => {
+    const timestamp = String(row?.[0] ?? '').trim().toLowerCase();
+    if (!timestamp) return false;
+
+    // In Excel queste righe sono di prova e non devono entrare nel conteggio richieste.
+    return timestamp.startsWith('01/01/2000');
+  };
+
   responseValues.slice(1).forEach((row) => {
+    if (isTestRow(row)) return;
+
     const seenInRow = dedupePerRow ? new Set() : null;
     const lastIndex = Math.min(endIndex, row.length - 1);
     for (let i = startIndex; i <= lastIndex; i += 1) {
