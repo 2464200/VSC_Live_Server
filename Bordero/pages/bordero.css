@@ -712,6 +712,11 @@
   min-width: 100px;
 }
 
+.col-richieste {
+  width: 130px;
+  min-width: 110px;
+}
+
 .col-genere {
   width: 100px;
 }
@@ -722,7 +727,12 @@
   font-size: 0.9em;
 }
 
-.col-coreo {
+.col-coreo-1 {
+  width: 130px;
+  font-size: 0.9em;
+}
+
+.col-coreo-2 {
   width: 130px;
   font-size: 0.9em;
 }
@@ -890,6 +900,7 @@
   }
 
   .col-collaboratori,
+  .col-coreo-2,
   .col-coreografo,
   .col-videoclip {
     display: none;
@@ -916,9 +927,11 @@
   }
 
   .col-timestamp,
+  .col-richieste,
   .col-genere,
   .col-livello,
-  .col-coreo,
+  .col-coreo-1,
+  .col-coreo-2,
   .col-coreografo,
   .col-collaboratori,
   .col-videoclip {

@@ -139,6 +139,9 @@
         <button id="btn-filter-altro" class="btn btn-filter btn-filter-yellow" title="Filtra per autore">
           AUTORE
         </button>
+        <button id="btn-filter-richieste" class="btn btn-filter btn-filter-blue" title="Filtra per richieste">
+          RICHIESTE
+        </button>
         <button id="btn-reset-filters" class="btn btn-secondary" title="Resetta filtri e ricerca">
           🔄 RESET RICERCA
         </button>
@@ -154,7 +157,7 @@
             class="search-input" 
             placeholder="🔍 Cerca ID, titolo, autore, coreografo..."
           />
-          <div id="search-fields-info" class="search-fields-info" style="margin-top:6px; color:#666; font-size:0.9em;">Campi cercati: ID, Titolo, Autore, Coreografo, Genere</div>
+          <div id="search-fields-info" class="search-fields-info" style="margin-top:6px; color:#666; font-size:0.9em;">Campi cercati: ID, Titolo, Autore, Richieste, Coreografo, Genere, Info Coreo 1, Info Coreo 2</div>
         </div>
         <div class="search-actions">
           <button id="btn-search-general" class="btn btn-secondary" title="Ricerca generale su titolo, autore, genere, livello e coreografia">
@@ -227,9 +230,11 @@
               <th class="col-timestamp" data-col="timestamp">Timestamp</th>
               <th class="col-titolo" data-col="titolo">Titolo</th>
               <th class="col-autore" data-col="autore">Autore</th>
+              <th class="col-richieste" data-col="richieste">Richieste</th>
               <th class="col-genere" data-col="genere">Genere</th>
               <th class="col-livello" data-col="info_livello">Info Livello</th>
-              <th class="col-coreo" data-col="info_coreo">Info Coreo</th>
+              <th class="col-coreo-1" data-col="info_coreo_1">Info Coreo 1</th>
+              <th class="col-coreo-2" data-col="info_coreo_2">Info Coreo 2</th>
               <th class="col-coreografo" data-col="coreografo">Coreografo</th>
               <th class="col-collaboratori" data-col="collaboratori">Collaboratori</th>
               <th class="col-videoclip" data-col="videoclip" data-filter-only="true">VideoClip</th>

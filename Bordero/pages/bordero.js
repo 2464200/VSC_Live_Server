@@ -616,6 +616,7 @@ class BorderoTableManager {
     this.bindFilterPopupButton('btn-filter-genere', 'genere', 'GENERE');
     this.bindFilterPopupButton('btn-filter-livello', 'coreografo', 'COREOGRAFO');
     this.bindFilterPopupButton('btn-filter-altro', 'autore', 'AUTORE');
+    this.bindFilterPopupButton('btn-filter-richieste', 'richieste', 'RICHIESTE');
 
     // Search
     document.getElementById('search-box')?.addEventListener('input', (e) => {
@@ -1231,7 +1232,7 @@ class BorderoTableManager {
     // Applica ricerca
     if (this.currentSearch) {
       // Include `id` in the general search fields per request
-      let searchFields = ['id', 'titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
+      let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
 
       if (this.searchMode === 'title') {
         searchFields = ['titolo'];
@@ -1415,9 +1416,11 @@ class BorderoTableManager {
         <td class="col-timestamp">${timestamp}</td>
         <td class="col-titolo">${brano.titolo || brano.coreografia || brano.brano || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
+        <td class="col-richieste">${brano.richieste || '-'}</td>
         <td class="col-genere">${brano.genere || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
-        <td class="col-coreo">${brano.info_coreo || '-'}</td>
+        <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
+        <td class="col-coreo-2">${brano.info_coreo_2 || '-'}</td>
         <td class="col-coreografo">${brano.coreografo || '-'}</td>
         <td class="col-collaboratori">${brano.collaboratori || '-'}</td>
         <td class="col-videoclip">${videoClipMarker}</td>
@@ -1771,6 +1774,7 @@ class BorderoTableManager {
       { id: 'btn-filter-genere', key: 'genere' },
       { id: 'btn-filter-livello', key: 'coreografo' },
       { id: 'btn-filter-altro', key: 'autore' },
+      { id: 'btn-filter-richieste', key: 'richieste' },
     ];
 
     buttons.forEach(({ id, key }) => {
@@ -1811,7 +1815,7 @@ class BorderoTableManager {
     };
 
     const placeholders = {
-      general: '🔍 Cerca ID, titolo, autore, genere, livello o coreografia...',
+      general: '🔍 Cerca ID, titolo, autore, richieste, genere, livello, info coreo 1, info coreo 2 o coreografo...',
       title: '🔍 Cerca per titolo...',
       id: '🔍 Cerca per ID...'
     };
@@ -1833,11 +1837,13 @@ class BorderoTableManager {
       id: 'ID',
       titolo: 'Titolo',
       autore: 'Autore',
+      richieste: 'Richieste',
       coreografo: 'Coreografo',
       collaboratori: 'Collaboratori',
       genere: 'Genere',
       info_livello: 'Livello',
-      info_coreo: 'Coreografia',
+      info_coreo_1: 'Info Coreo 1',
+      info_coreo_2: 'Info Coreo 2',
       compositore: 'Compositore',
       durata: 'Durata'
     };
@@ -1848,7 +1854,7 @@ class BorderoTableManager {
     } else if (this.searchMode === 'id') {
       fields = ['id'];
     } else {
-      fields = ['id', 'titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
+      fields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
     }
 
     const readable = fields.map(f => mapping[f] || f).join(', ');

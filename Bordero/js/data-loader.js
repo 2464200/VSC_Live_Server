@@ -62,9 +62,12 @@ class DataLoader {
     );
     normalized.brano = getFirstValue(brano.brano, brano.song, brano.canzone, brano['brano']);
     normalized.autore = getFirstValue(brano.autore, brano.author, brano['autore']);
+    normalized.richieste = getFirstValue(brano.richieste, brano['richieste'], brano['Richieste']);
     normalized.genere = getFirstValue(brano.genere, brano['genere']);
     normalized.info_livello = getFirstValue(brano.info_livello, brano['info livello'], brano['info_livello']);
-    normalized.info_coreo = getFirstValue(brano.info_coreo, brano['info coreo'], brano['info coreo 1'], brano['info coreo 2']);
+    normalized.info_coreo_1 = getFirstValue(brano.info_coreo_1, brano.info_coreo, brano['info coreo 1'], brano['info coreo'], brano['info_coreo_1']);
+    normalized.info_coreo_2 = getFirstValue(brano.info_coreo_2, brano['info coreo 2'], brano['info_coreo_2']);
+    normalized.info_coreo = normalized.info_coreo_1;
     normalized.coreografo = getFirstValue(brano.coreografo, brano['coreografo']);
     normalized.collaboratori = getFirstValue(brano.collaboratori, brano['collaboratori']);
     normalized.flag = getFirstValue(brano.flag, brano['flag']);
@@ -556,7 +559,7 @@ class DataLoader {
 
     // Applica ricerca full-text
     if (searchTerm) {
-      const searchFields = ['titolo', 'autore', 'coreografo', 'collaboratori'];
+      const searchFields = ['titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'info_coreo_1', 'info_coreo_2'];
       result = ObjectUtils.searchMultiField(result, searchTerm, searchFields);
     }
 
