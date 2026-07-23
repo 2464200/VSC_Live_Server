@@ -29,6 +29,15 @@ class BorderoTableManager {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
+    this.coexistingFilterFields = new Set([
+      'richieste',
+      'info_livello',
+      'info_coreo_1',
+      'info_coreo_2',
+      'coreografo',
+      'collaboratori',
+      'videoclip'
+    ]);
 
     // Serata info
     this.serata = {
@@ -42,6 +51,10 @@ class BorderoTableManager {
     };
 
     this.init();
+  }
+
+  isCoexistingFilterField(field) {
+    return this.coexistingFilterFields.has(String(field || '').trim());
   }
 
   async init() {
@@ -699,6 +712,11 @@ class BorderoTableManager {
     if (!button) return;
 
     button.addEventListener('click', () => {
+      if (this.isCoexistingFilterField(field) && this.currentFilters[field]) {
+        this.clearSingleColumnFilter(field, label);
+        return;
+      }
+
       const existingTimer = this.filterButtonClickTimers.get(buttonId);
       if (existingTimer) {
         clearTimeout(existingTimer);
@@ -1381,6 +1399,10 @@ class BorderoTableManager {
 
     columnFields.forEach((field) => {
       if (field !== selectedField) {
+        // Questi filtri devono poter coesistere e rimanere attivi finché non vengono rimossi esplicitamente.
+        if (this.isCoexistingFilterField(field)) {
+          return;
+        }
         delete this.currentFilters[field];
       }
     });
