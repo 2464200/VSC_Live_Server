@@ -70,6 +70,57 @@ class VideoClipManager {
     };
   }
 
+  getVideoApiCandidates(pathname) {
+    const normalizedPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
+    const host = window.location.hostname || 'localhost';
+    const protocol = window.location.protocol || 'http:';
+    const candidates = [
+      `http://localhost:5500${normalizedPath}`,
+      `http://127.0.0.1:5500${normalizedPath}`,
+      `${protocol}//${host}:5500${normalizedPath}`,
+      `${window.location.origin}${normalizedPath}`,
+      normalizedPath,
+    ];
+
+    return candidates.filter((value, index, array) => value && array.indexOf(value) === index);
+  }
+
+  async fetchVideoApi(pathname, options = {}) {
+    let lastResponse = null;
+    let lastError = null;
+
+    for (const url of this.getVideoApiCandidates(pathname)) {
+      try {
+        const response = await fetch(url, {
+          cache: 'no-store',
+          ...options,
+        });
+
+        if (response.ok) {
+          return { response, url, origin: new URL(url, window.location.origin).origin };
+        }
+
+        lastResponse = { response, url, origin: new URL(url, window.location.origin).origin };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastResponse) {
+      return lastResponse;
+    }
+
+    throw lastError || new Error(`Impossibile contattare ${pathname}`);
+  }
+
+  getPreferredVideoOrigin() {
+    return this.videoApiOrigin || 'http://localhost:5500';
+  }
+
+  buildVideoFileUrl(fileName) {
+    return `${this.getPreferredVideoOrigin()}/videos/${encodeURIComponent(fileName)}`;
+  }
+
   getPersistentLogEntries() {
     try {
       const raw = localStorage.getItem(this.persistentLogStorageKey);
@@ -199,31 +250,18 @@ class VideoClipManager {
     this.videoCatalog = [];
     this.availableMap = new Map();
 
-    const attempts = [
-      'http://localhost:5500/api/videoclip/list',
-      'http://127.0.0.1:5500/api/videoclip/list',
-      window.location.origin + '/api/videoclip/list',
-      'http://localhost:5501/api/videoclip/list',
-      window.location.origin.replace(/:\d+$/, '') + ':5501/api/videoclip/list',
-      '/api/videoclip/list'
-    ];
-
-    for (const url of attempts) {
-      try {
-        const resp = await fetch(url, { cache: 'no-store' });
-        if (!resp.ok) continue;
-        const json = await resp.json();
-        if (json && Array.isArray(json.files) && json.files.length > 0) {
-          this.availableFiles = json.files
-            .map(f => String(f || '').trim())
-            .filter(Boolean);
-          logger.info('Videoclip list ottenuta da', url, this.availableFiles.length);
-          break;
-        }
-      } catch (err) {
-        logger.debug('Video list fetch failed for', url, err.message || err);
-        continue;
+    try {
+      const { response, url, origin } = await this.fetchVideoApi('/api/videoclip/list');
+      const json = await response.json().catch(() => ({}));
+      if (json && Array.isArray(json.files)) {
+        this.availableFiles = json.files
+          .map(f => String(f || '').trim())
+          .filter(Boolean);
+        this.videoApiOrigin = origin;
+        logger.info('Videoclip list ottenuta da', url, this.availableFiles.length);
       }
+    } catch (err) {
+      logger.debug('Video list fetch failed', err.message || err);
     }
 
     this.availableBasenames = this.availableFiles.map(f => {
@@ -698,15 +736,15 @@ class VideoClipManager {
     // Monitor secondario: SOLO VLC, niente popup HTML5
     try {
       logger.debug('Launching/controlling VLC for secondary display');
-      const response = await fetch('/api/videoclip/vlc/control', {
+      const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'play', url }),
-        cache: 'no-store'
+        body: JSON.stringify({ action: 'play', url })
       });
       const payload = await response.json().catch(() => ({}));
       const success = Boolean(response.ok && payload?.success);
       if (success) {
+        this.videoApiOrigin = origin;
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         logger.info('✓ VLC avviato sul monitor secondario');
         this.appendPersistentLog('info', 'vlc-playing', {
@@ -748,14 +786,14 @@ class VideoClipManager {
   async pauseSecondaryVideo() {
     const playbackStatus = document.getElementById('secondary-playback-status');
     try {
-      const response = await fetch('/api/videoclip/vlc/control', {
+      const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'pause' }),
-        cache: 'no-store'
+        body: JSON.stringify({ action: 'pause' })
       });
       const payload = await response.json().catch(() => ({}));
       if (response.ok && payload?.success) {
+        this.videoApiOrigin = origin;
         if (playbackStatus) {
           playbackStatus.textContent = 'Monitor secondario: VLC in pausa/ripresa.';
         }
@@ -773,14 +811,14 @@ class VideoClipManager {
   async stopSecondaryVideo() {
     const playbackStatus = document.getElementById('secondary-playback-status');
     try {
-      const response = await fetch('/api/videoclip/vlc/control', {
+      const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'stop' }),
-        cache: 'no-store'
+        body: JSON.stringify({ action: 'stop' })
       });
       const payload = await response.json().catch(() => ({}));
       if (response.ok && payload?.success) {
+        this.videoApiOrigin = origin;
         if (playbackStatus) {
           playbackStatus.textContent = 'Monitor secondario: VLC fermato.';
         }
@@ -814,8 +852,7 @@ class VideoClipManager {
       return '';
     }
 
-    // Use relative URL to avoid ORB cross-origin blocking (serve da Unified Server 5500)
-    return '/videos/' + encodeURIComponent(matchedFile);
+    return this.buildVideoFileUrl(matchedFile);
   }
 
   async waitForVideoReady(video) {
@@ -863,8 +900,7 @@ class VideoClipManager {
 
     if (matchedFile) {
       try {
-        // Use relative URL to avoid ORB cross-origin blocking
-        const url = '/videos/' + encodeURIComponent(matchedFile);
+        const url = this.buildVideoFileUrl(matchedFile);
         this.currentVideoUrl = url;
         this.secondaryVideoUrl = url;
         if (mainVideo) {
@@ -1356,11 +1392,12 @@ class VideoClipManager {
   }
 
   async pollVlcCompletion() {
-    const response = await fetch('/api/videoclip/vlc/state', { cache: 'no-store' });
+    const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/state');
     if (!response.ok) return;
 
     const payload = await response.json().catch(() => null);
     if (!payload || !payload.success) return;
+    this.videoApiOrigin = origin;
 
     const alive = Boolean(payload.alive);
     const completion = payload.completion || {};
