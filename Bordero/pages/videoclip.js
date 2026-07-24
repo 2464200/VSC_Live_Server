@@ -363,6 +363,7 @@ class VideoClipManager {
       const isAvailable = Boolean(matchedFile);
       const isExecuted = this.isBranoExecuted(brano);
       const emphasizeArchiveAvailability = this.showOnlyAvailable && isAvailable;
+      const canSelectCard = isAvailable && (!isExecuted || this.showOnlyAvailable);
       if (!this.matchesStateFilters(isAvailable, isExecuted)) {
         return;
       }
@@ -379,7 +380,7 @@ class VideoClipManager {
         card.classList.add('unavailable');
       }
       card.dataset.available = isAvailable ? 'true' : 'false';
-      card.setAttribute('aria-disabled', isExecuted || !isAvailable ? 'true' : 'false');
+      card.setAttribute('aria-disabled', canSelectCard ? 'false' : 'true');
 
       const tooltipText = emphasizeArchiveAvailability
         ? `Video associato: ${matchedFile}`
@@ -394,6 +395,9 @@ class VideoClipManager {
       const badgeText = emphasizeArchiveAvailability
         ? '✓ VIDEO DISPONIBILE'
         : (isExecuted ? '⚠ VIDEO GIA\' ESEGUITO' : (isAvailable ? '✓ VIDEO DISPONIBILE' : '✕ VIDEO NON DISPONIBILE'));
+      const buttonLabel = !isAvailable
+        ? 'NON DISPONIBILE'
+        : (isExecuted && !this.showOnlyAvailable ? 'GIÀ ESEGUITO' : (this.showOnlyAvailable ? 'RIPRODUCI' : 'SELEZIONA'));
 
       card.innerHTML = `
         <div class="video-card-thumb">🎬</div>
@@ -411,18 +415,24 @@ class VideoClipManager {
             ${matchedFile ? `📁 ${this.escapeHtml(matchedFile)}` : '📁 Nessun file video'}
           </div>
           <div class="video-card-action">
-            <button class="btn btn-primary btn-small" data-id="${brano.id}" ${isExecuted || !isAvailable ? 'disabled' : ''}>${isExecuted ? 'GIÀ ESEGUITO' : (isAvailable ? 'SELEZIONA' : 'NON DISPONIBILE')}</button>
+            <button class="btn btn-primary btn-small" data-id="${brano.id}" ${canSelectCard ? '' : 'disabled'}>${buttonLabel}</button>
           </div>
         </div>
       `;
 
-      if (!isExecuted && isAvailable) {
+      if (canSelectCard) {
         const btn = card.querySelector('button');
         btn?.addEventListener('click', (event) => {
           event.stopPropagation();
-          this.selectBrano(brano);
+          this.selectBranoWithOptions(brano, {
+            allowExecuted: this.showOnlyAvailable,
+            scrollBehavior: 'smooth'
+          });
         });
-        card.addEventListener('click', () => this.selectBrano(brano));
+        card.addEventListener('click', () => this.selectBranoWithOptions(brano, {
+          allowExecuted: this.showOnlyAvailable,
+          scrollBehavior: 'smooth'
+        }));
       } else {
         const btn = card.querySelector('button');
         if (btn) btn.disabled = true;
@@ -1344,23 +1354,26 @@ class VideoClipManager {
             focus: document.hasFocus()
           });
           logger.debug('[PLAY] Starting main playback via playMainVideo()');
-          await this.playMainVideo();
-          logger.debug('[PLAY] Main playback initiated');
+          const mainPlaybackPromise = this.playMainVideo();
+          mainPlaybackPromise.catch((playErr) => {
+            logger.warn('[PLAY] Main playback error', playErr?.message || playErr);
+          });
+          logger.debug('[PLAY] Main playback requested');
+
+          const secondaryDelayMs = 220;
+          this.waitMs(secondaryDelayMs)
+            .then(() => {
+              if (this.pendingMainVideoPlay) {
+                logger.debug('[PLAY] Secondary playback postponed because main HTML5 video is pending foreground playback');
+                return;
+              }
+              return this.playSecondaryVideo();
+            })
+            .catch(err => logger.warn('[PLAY] Secondary video error', err));
         } catch (playErr) {
           this.appendPersistentLog('error', 'play-click-error', { message: playErr?.message || String(playErr) });
           logger.warn('[PLAY] Error:', playErr.message || playErr);
         }
-
-        if (this.pendingMainVideoPlay) {
-          logger.debug('[PLAY] Secondary playback postponed because main HTML5 video is pending foreground playback');
-          return;
-        }
-
-        // Avvia VLC dopo il primo avvio HTML5 per ridurre i casi in cui VLC ruba il focus
-        // troppo presto e il browser lascia il player principale su schermo nero.
-        this.waitMs(900)
-          .then(() => this.playSecondaryVideo())
-          .catch(err => logger.warn('[PLAY] Secondary video error', err));
       };
     }
 
