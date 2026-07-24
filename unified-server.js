@@ -224,6 +224,53 @@ function execFileAsync(command, args, options = {}) {
     });
 }
 
+function getVlcExecutableCandidates() {
+    const envValue = String(process.env.VLC_PATH || '').trim();
+    const envCandidates = envValue
+        ? envValue.split(/[;,]/).map((value) => value.trim()).filter(Boolean)
+        : [];
+
+    return [...new Set([
+        ...envCandidates,
+        'C:/Program Files/VideoLAN/VLC/vlc.exe',
+        'C:/Program Files (x86)/VideoLAN/VLC/vlc.exe'
+    ])];
+}
+
+function resolveVlcExecutable() {
+    const candidates = getVlcExecutableCandidates();
+
+    for (const candidate of candidates) {
+        if (candidate && fs.existsSync(candidate)) {
+            return candidate;
+        }
+    }
+
+    return candidates[0] || '';
+}
+
+function attachVlcChildProcess(child, launchedFile) {
+    const launchedPid = child.pid;
+
+    child.on('exit', () => {
+        if (vlcSettledPids.has(launchedPid)) {
+            vlcSettledPids.delete(launchedPid);
+            return;
+        }
+
+        const wasStopRequested = vlcStopRequestedPids.has(launchedPid);
+        if (wasStopRequested) {
+            vlcStopRequestedPids.delete(launchedPid);
+        } else if (launchedFile) {
+            recordVlcCompletion(launchedFile);
+        }
+
+        if (vlcProcess?.pid === launchedPid) {
+            resetVlcState();
+        }
+    });
+}
+
 async function discoverManagedVlcProcess() {
     if (vlcDiscoveryPromise) {
         return vlcDiscoveryPromise;
@@ -505,7 +552,11 @@ async function launchVlcForSecondary(fullPath) {
         throw error;
     }
 
-    const vlcPath = process.env.VLC_PATH || 'C:/Program Files/VideoLAN/VLC/vlc.exe';
+    const vlcPath = resolveVlcExecutable();
+    if (!vlcPath) {
+        throw new Error('Percorso VLC non configurato');
+    }
+
     const vlcArgs = [
         '--fullscreen',
         '--play-and-exit',
@@ -518,32 +569,30 @@ async function launchVlcForSecondary(fullPath) {
         fullPath
     ];
 
-    const child = spawn(vlcPath, vlcArgs, { detached: true, stdio: 'ignore' });
-    child.unref();
-    vlcProcess = child;
-    vlcCurrentFile = fullPath;
-    const launchedPid = child.pid;
-    const launchedFile = fullPath;
+    const candidates = [vlcPath, ...getVlcExecutableCandidates().filter((candidate) => candidate !== vlcPath)];
+    let lastError = null;
 
-    child.on('exit', () => {
-        if (vlcSettledPids.has(launchedPid)) {
-            vlcSettledPids.delete(launchedPid);
-            return;
+    for (const candidatePath of candidates) {
+        if (!candidatePath || !fs.existsSync(candidatePath)) {
+            continue;
         }
 
-        const wasStopRequested = vlcStopRequestedPids.has(launchedPid);
-        if (wasStopRequested) {
-            vlcStopRequestedPids.delete(launchedPid);
-        } else if (launchedFile) {
-            recordVlcCompletion(launchedFile);
+        try {
+            const child = spawn(candidatePath, vlcArgs, { detached: true, stdio: 'ignore' });
+            child.unref();
+            vlcProcess = child;
+            vlcCurrentFile = fullPath;
+            attachVlcChildProcess(child, fullPath);
+            return { vlcPath: candidatePath, vlcArgs, fallbackFrom: candidatePath === vlcPath ? '' : vlcPath };
+        } catch (error) {
+            lastError = error;
+            if (!/ENOENT/i.test(String(error?.message || ''))) {
+                throw error;
+            }
         }
+    }
 
-        if (vlcProcess?.pid === launchedPid) {
-            resetVlcState();
-        }
-    });
-
-    return { vlcPath, vlcArgs };
+    throw lastError || new Error('Nessun percorso VLC valido trovato');
 }
 
 // ===== CONFIGURAZIONE SSE =====
