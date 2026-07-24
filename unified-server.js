@@ -942,8 +942,25 @@ app.use(express.static(path.join(__dirname), {
     extensions: ['html', 'htm']
 }));
 
+function setBorderoApiCors(res) {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+}
+
+app.options('/api/bordero/export-siae', (req, res) => {
+    setBorderoApiCors(res);
+    return res.sendStatus(204);
+});
+
+app.options('/api/bordero/download-siae/:fileName', (req, res) => {
+    setBorderoApiCors(res);
+    return res.sendStatus(204);
+});
+
 app.post('/api/bordero/export-siae', (req, res) => {
     try {
+        setBorderoApiCors(res);
         const brani = Array.isArray(req.body?.brani) ? req.body.brani : [];
         const completed = brani
             .filter(item => String(item?.flag || '').trim().toUpperCase() === 'X')
@@ -995,6 +1012,7 @@ app.post('/api/bordero/export-siae', (req, res) => {
 });
 
 app.get('/api/bordero/download-siae/:fileName', (req, res) => {
+    setBorderoApiCors(res);
     const siaeDir = 'c:\\VSC_SIAE';
     const fileName = path.basename(req.params.fileName || '');
 

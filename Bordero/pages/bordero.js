@@ -2112,20 +2112,46 @@ class BorderoTableManager {
     }
 
     try {
-      const response = await fetch('/api/bordero/export-siae', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brani: completed }),
-      });
+      const exportCandidates = [
+        'http://localhost:5500/api/bordero/export-siae',
+        'http://127.0.0.1:5500/api/bordero/export-siae',
+        window.location.origin.replace(/:\d+$/, '') + ':5500/api/bordero/export-siae',
+        window.location.origin + '/api/bordero/export-siae',
+        '/api/bordero/export-siae',
+      ];
 
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || 'Errore durante la generazione del file SIAE');
+      let result = null;
+      let lastError = null;
+      let apiOrigin = '';
+
+      for (const endpoint of exportCandidates) {
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ brani: completed }),
+          });
+
+          const candidateResult = await response.json().catch(() => ({}));
+          if (!response.ok || !candidateResult.ok) {
+            throw new Error(candidateResult.error || `Errore HTTP ${response.status}`);
+          }
+
+          result = candidateResult;
+          apiOrigin = new URL(endpoint, window.location.origin).origin;
+          break;
+        } catch (candidateError) {
+          lastError = candidateError;
+        }
+      }
+
+      if (!result) {
+        throw lastError || new Error('Errore durante la generazione del file SIAE');
       }
 
       if (result.downloadUrl) {
         const link = document.createElement('a');
-        link.href = result.downloadUrl;
+        link.href = new URL(result.downloadUrl, apiOrigin || window.location.origin).href;
         link.download = result.fileName || '';
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
