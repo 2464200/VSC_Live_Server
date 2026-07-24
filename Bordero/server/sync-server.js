@@ -15,6 +15,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
+const { syncAll: syncGoogleSheetsData } = require('./google-sheets-sync');
 
 const app = express();
 const portArg = process.argv.find((_, index, arr) => index > 0 && arr[index - 1] === '--port');
@@ -101,6 +102,150 @@ function jsonToCSV(data, headers = null) {
   return csv;
 }
 
+function parseCSVLine(line) {
+  const values = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    const next = line[i + 1];
+
+    if (ch === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === ',' && !inQuotes) {
+      values.push(current);
+      current = '';
+      continue;
+    }
+
+    current += ch;
+  }
+
+  values.push(current);
+  return values;
+}
+
+function csvToJson(csvText) {
+  const lines = String(csvText || '')
+    .split(/\r?\n/)
+    .filter((line) => line.trim() !== '');
+
+  if (lines.length === 0) return [];
+
+  const headers = parseCSVLine(lines[0]).map((h) => String(h || '').trim());
+  return lines.slice(1).map((line) => {
+    const cols = parseCSVLine(line);
+    const row = {};
+    headers.forEach((header, idx) => {
+      row[header] = cols[idx] ?? '';
+    });
+    return row;
+  });
+}
+
+function normalizeText(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function parseNumeric(value) {
+  const text = String(value ?? '').trim();
+  if (!text || text === '-') return null;
+
+  const normalized = text.replace(',', '.');
+  if (!/^-?\d+(\.\d+)?$/.test(normalized)) return null;
+
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function isMissingOrZeroRichieste(value) {
+  const numeric = parseNumeric(value);
+  if (numeric === null) {
+    return String(value ?? '').trim() === '' || String(value ?? '').trim() === '-';
+  }
+  return numeric === 0;
+}
+
+function getFirstNonEmpty(...values) {
+  for (const value of values) {
+    const text = String(value ?? '').trim();
+    if (text) return text;
+  }
+  return '';
+}
+
+function extractRowId(row) {
+  return getFirstNonEmpty(row?.id, row?.ID, row?.Id, row?.['id'], row?.['ID']);
+}
+
+function extractRowCoreografia(row) {
+  return getFirstNonEmpty(row?.coreografia, row?.titolo, row?.title, row?.['coreografia'], row?.['titolo']);
+}
+
+function extractRichieste(row) {
+  return getFirstNonEmpty(row?.richieste, row?.Richieste, row?.['richieste'], row?.['Richieste']);
+}
+
+function applyRichiestePreservation(incomingRows, existingRows) {
+  const existingById = new Map();
+  const existingByCoreografia = new Map();
+
+  existingRows.forEach((row) => {
+    const id = extractRowId(row);
+    const coreo = normalizeText(extractRowCoreografia(row));
+    const richieste = extractRichieste(row);
+
+    if (id) {
+      existingById.set(id, richieste);
+    }
+    if (coreo) {
+      existingByCoreografia.set(coreo, richieste);
+    }
+  });
+
+  return incomingRows.map((row) => {
+    const cloned = { ...row };
+    const incomingRichieste = extractRichieste(cloned);
+
+    if (!isMissingOrZeroRichieste(incomingRichieste)) {
+      return cloned;
+    }
+
+    const id = extractRowId(cloned);
+    const coreo = normalizeText(extractRowCoreografia(cloned));
+    const fallbackRichieste = (id && existingById.get(id)) || (coreo && existingByCoreografia.get(coreo)) || '';
+
+    if (!isMissingOrZeroRichieste(fallbackRichieste)) {
+      cloned.richieste = String(fallbackRichieste);
+    }
+
+    return cloned;
+  });
+}
+
+async function readExistingBraniRows() {
+  try {
+    const csvContent = await fs.readFile(CSV_BRANI, 'utf-8');
+    return csvToJson(csvContent);
+  } catch (_) {
+    return [];
+  }
+}
+
 /**
  * POST /api/sync/brani
  * Sincronizza brani.csv
@@ -121,20 +266,38 @@ app.post('/api/sync/brani', async (req, res) => {
       });
     }
 
+    const existingRows = await readExistingBraniRows();
+    const mergedData = applyRichiestePreservation(data, existingRows);
+
     // Converti a CSV
-    const csv = jsonToCSV(data);
+    const csv = jsonToCSV(mergedData);
 
     // Scrivi sul file
     await fs.mkdir(DATA_DIR, { recursive: true });
     await fs.writeFile(CSV_BRANI, csv, 'utf-8');
 
-    console.log(`✅ ${data.length} brani sincronizzati su ${CSV_BRANI}`);
+    let richiesteRefresh = { triggered: false, success: false, error: '' };
+    try {
+      richiesteRefresh.triggered = true;
+      const summary = await syncGoogleSheetsData({ exitOnFailure: false, onlySheets: ['Accoda 8+12'] });
+      richiesteRefresh.success = Boolean(summary?.success);
+      if (!richiesteRefresh.success) {
+        richiesteRefresh.error = 'Sync Google richieste incompleta';
+      }
+    } catch (refreshError) {
+      richiesteRefresh.success = false;
+      richiesteRefresh.error = refreshError?.message || String(refreshError);
+      console.warn('⚠️ Ricalcolo richieste post-sync fallito:', richiesteRefresh.error);
+    }
+
+    console.log(`✅ ${mergedData.length} brani sincronizzati su ${CSV_BRANI}`);
 
     res.json({
       success: true,
-      message: `✅ ${data.length} brani sincronizzati`,
+      message: `✅ ${mergedData.length} brani sincronizzati`,
       file: CSV_BRANI,
-      rows: data.length,
+      rows: mergedData.length,
+      richiesteRefresh,
       timestamp: new Date().toISOString()
     });
 
@@ -397,7 +560,7 @@ app.get('/api/status', async (req, res) => {
         locationOptions: { exists: locationOptionsExists, path: CSV_LOCATION_OPTIONS }
       },
       endpoints: {
-        'POST /api/sync/brani': 'Sincronizza brani.csv',
+        'POST /api/sync/brani': 'Sincronizza brani.csv (preserva richieste + refresh Google)',
         'POST /api/sync/comuni': 'Sincronizza comuni_italia.csv',
         'POST /api/sync/dbase': 'Sincronizza dBase.csv',
         'POST /api/sync/location': 'Sincronizza location.csv',

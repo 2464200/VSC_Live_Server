@@ -45,12 +45,32 @@ const OUTPUT_DIR = path.join(__dirname, '..', 'data');
 
 const SHEETS = [
   {
-    name: 'Brani',
-    id: process.env.GOOGLE_SHEET_BRANI,
-    range: 'A:Z',
-    output: 'brani.csv',
-    gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
-    publicUrl: process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+    name: 'Accoda 8+12',
+    output: 'Accoda 8+12.csv',
+    richiesteOutput: 'brani.csv',
+    baseSource: {
+      name: 'Elenco Brani (statico)',
+      id: process.env.GOOGLE_SHEET_BRANI,
+      range: process.env.GOOGLE_SHEET_BRANI_RANGE || 'A:Z',
+      gid: process.env.GOOGLE_SHEET_BRANI_GID || '0',
+      publicUrl: process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+    },
+    mergeSources: [
+      {
+        name: 'Modulo 8',
+        id: process.env.GOOGLE_SHEET_MODULO8 || process.env.GOOGLE_SHEET_BRANI,
+        range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AI",
+        gid: process.env.GOOGLE_SHEET_MODULO8_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
+        publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+      },
+      {
+        name: 'Modulo 12',
+        id: process.env.GOOGLE_SHEET_MODULO12 || process.env.GOOGLE_SHEET_BRANI,
+        range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AI",
+        gid: process.env.GOOGLE_SHEET_MODULO12_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
+        publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+      }
+    ]
   },
   {
     name: 'Comuni',
@@ -138,9 +158,10 @@ function buildGoogleRangeCandidates(range) {
 
   const sheetMatch = baseRange.match(/^(['"]?[^'"!]+['"]?)!(.+)$/);
   if (sheetMatch) {
+    const sheetName = sheetMatch[1].replace(/^['"]|['"]$/g, '');
     const ref = sheetMatch[2].trim();
-    candidates.add(ref);
-    candidates.add(`'${sheetMatch[1].replace(/^['"]|['"]$/g, '')}'!${ref}`);
+    candidates.add(`${sheetName}!${ref}`);
+    candidates.add(`'${sheetName}'!${ref}`);
   } else {
     candidates.add(baseRange);
     candidates.add('A:Z');
@@ -315,10 +336,340 @@ async function fetchPublicUrl(textUrl) {
   return normalizeDelimitedTextToCSV(csv);
 }
 
+function csvToValues(csvText) {
+  const lines = String(csvText || '').trim().split(/\r?\n/).filter((line) => line.trim() !== '');
+  return lines.map((line) => {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      const next = line[i + 1];
+
+      if (ch === '"') {
+        if (inQuotes && next === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+
+      if (ch === ',' && !inQuotes) {
+        values.push(current);
+        current = '';
+        continue;
+      }
+
+      current += ch;
+    }
+
+    values.push(current);
+    return values;
+  });
+}
+
+function excelColumnToIndex(columnRef) {
+  const clean = String(columnRef || '').trim().toUpperCase().replace(/[^A-Z]/g, '');
+  if (!clean) return null;
+
+  let value = 0;
+  for (let i = 0; i < clean.length; i += 1) {
+    value = value * 26 + (clean.charCodeAt(i) - 64);
+  }
+  return value;
+}
+
+function getRangeColumnLimit(range) {
+  const text = String(range || '').trim();
+  if (!text) return null;
+
+  const withoutSheet = text.includes('!') ? text.split('!').pop() : text;
+  const match = withoutSheet.match(/:([A-Za-z]+)\d*$/);
+  if (!match) return null;
+
+  return excelColumnToIndex(match[1]);
+}
+
+function trimValuesToRange(values, range) {
+  const limit = getRangeColumnLimit(range);
+  if (!limit || !Array.isArray(values)) return values;
+
+  return values.map((row) => Array.isArray(row) ? row.slice(0, limit) : row);
+}
+
+function normalizeHeaderValue(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function mergeSourceTables(sourceTables) {
+  const nonEmptyTables = sourceTables
+    .map((table) => ({
+      ...table,
+      values: Array.isArray(table.values)
+        ? table.values.filter((row) => Array.isArray(row) && row.some((cell) => String(cell || '').trim() !== ''))
+        : []
+    }))
+    .filter((table) => table.values.length > 0);
+
+  if (nonEmptyTables.length === 0) {
+    return [];
+  }
+
+  const headerCandidates = nonEmptyTables.map((table) => table.values[0]);
+  const masterHeader = headerCandidates.sort((a, b) => b.length - a.length)[0].map((value) => String(value || '').trim());
+  const mergedRows = [masterHeader];
+
+  nonEmptyTables.forEach((table) => {
+    const rows = table.values;
+    if (rows.length === 0) return;
+
+    const sourceHeader = rows[0].map((value) => String(value || '').trim());
+    const headerMap = new Map();
+    sourceHeader.forEach((name, index) => {
+      const normalized = normalizeHeaderValue(name);
+      if (normalized && !headerMap.has(normalized)) {
+        headerMap.set(normalized, index);
+      }
+    });
+
+    const dataRows = rows.slice(1);
+    dataRows.forEach((row) => {
+      const aligned = masterHeader.map((columnName, columnIndex) => {
+        const sourceIndex = headerMap.get(normalizeHeaderValue(columnName));
+        if (Number.isInteger(sourceIndex)) {
+          return row[sourceIndex] ?? '';
+        }
+        return row[columnIndex] ?? '';
+      });
+
+      const lookup = new Map();
+      masterHeader.forEach((name, idx) => {
+        lookup.set(normalizeHeaderValue(name), String(aligned[idx] ?? '').trim());
+      });
+
+      const normalizedEntries = [...lookup.entries()];
+      const hasBusinessValue = normalizedEntries
+        .filter(([key]) => !['informazioni cronologiche', 'se vuoi, dimmi il tuo nome', 'se vuoi, scrivi il tuo nome'].includes(key))
+        .some(([, value]) => String(value || '').trim().length > 0);
+
+      if (hasBusinessValue) {
+        mergedRows.push(aligned);
+      }
+    });
+  });
+
+  return mergedRows;
+}
+
+function normalizeLookupValue(value) {
+  return String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[.,;:!?\-_/()\[\]{}'"`´^~]/g, ' ')
+    .replace(/[*?]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseAliasMap(rawAliases) {
+  const map = new Map();
+  const text = String(rawAliases || '').trim();
+  if (!text) return map;
+
+  text.split(';').forEach((pair) => {
+    const [left, right] = pair.split('=');
+    const key = normalizeLookupValue(left);
+    const val = normalizeLookupValue(right);
+    if (key && val) {
+      map.set(key, val);
+    }
+  });
+
+  return map;
+}
+
+function canonicalizeLookupValue(rawValue, aliasMap) {
+  const key = normalizeLookupValue(rawValue);
+  if (!key) return '';
+  return aliasMap?.get(key) || key;
+}
+
+function getColumnRangeBounds(columnRange = 'D:AI') {
+  const match = String(columnRange || '').trim().toUpperCase().match(/^([A-Z]+):([A-Z]+)$/);
+  if (!match) {
+    return {
+      startIndex: 3,
+      endIndex: 34
+    };
+  }
+
+  const start = excelColumnToIndex(match[1]);
+  const end = excelColumnToIndex(match[2]);
+  if (!start || !end) {
+    return {
+      startIndex: 3,
+      endIndex: 34
+    };
+  }
+
+  return {
+    startIndex: Math.max(0, Math.min(start, end) - 1),
+    endIndex: Math.max(0, Math.max(start, end) - 1)
+  };
+}
+
+function buildRichiesteCounterFromResponses(responseValues, columnRange = 'D:AI', options = {}) {
+  if (!Array.isArray(responseValues) || responseValues.length < 2) {
+    return new Map();
+  }
+
+  const aliasMap = parseAliasMap(options.aliases);
+  const dedupePerRow = Boolean(options.dedupePerRow);
+  const { startIndex, endIndex } = getColumnRangeBounds(columnRange);
+
+  const counter = new Map();
+
+  const isTestRow = (row) => {
+    const timestamp = String(row?.[0] ?? '').trim().toLowerCase();
+    if (!timestamp) return false;
+
+    // In Excel queste righe sono di prova e non devono entrare nel conteggio richieste.
+    return timestamp.startsWith('01/01/2000');
+  };
+
+  responseValues.slice(1).forEach((row) => {
+    if (isTestRow(row)) return;
+
+    const seenInRow = dedupePerRow ? new Set() : null;
+    const lastIndex = Math.min(endIndex, row.length - 1);
+    for (let i = startIndex; i <= lastIndex; i += 1) {
+      const key = canonicalizeLookupValue(row[i], aliasMap);
+      if (!key) continue;
+      if (dedupePerRow) {
+        if (seenInRow.has(key)) continue;
+        seenInRow.add(key);
+      }
+      counter.set(key, (counter.get(key) || 0) + 1);
+    }
+  });
+
+  return counter;
+}
+
+function enrichBaseWithRichieste(baseValues, richiesteCounter, options = {}) {
+  if (!Array.isArray(baseValues) || baseValues.length === 0) {
+    return [];
+  }
+
+  const aliasMap = parseAliasMap(options.aliases);
+
+  const header = baseValues[0].map((name) => String(name || '').trim());
+  const normalizedHeader = header.map((name) => normalizeHeaderValue(name));
+
+  const idxRichieste = normalizedHeader.findIndex((name) => name === 'richieste');
+  const idxCoreografia = normalizedHeader.findIndex((name) => name === 'coreografia');
+
+  if (idxRichieste < 0 || idxCoreografia < 0) {
+    return baseValues;
+  }
+
+  const output = [header];
+  baseValues.slice(1).forEach((row) => {
+    const cloned = [...row];
+    const key = canonicalizeLookupValue(cloned[idxCoreografia], aliasMap);
+    const count = key ? Number(richiesteCounter.get(key) || 0) : 0;
+
+    cloned[idxRichieste] = count > 0 ? String(count) : '';
+    output.push(cloned);
+  });
+
+  return output;
+}
+
+async function fetchSheetValuesFromSource(source) {
+  const sourceId = source?.id;
+  const sourceRange = source?.range || 'A:Z';
+  const sourceGid = source?.gid || '0';
+  const sourcePublicUrl = source?.publicUrl;
+
+  if (!sourceId) {
+    throw new Error(`ID mancante per sorgente ${source?.name || 'unknown'}`);
+  }
+
+  try {
+    const values = await fetchSheetData(sourceId, sourceRange);
+    return trimValuesToRange(values, sourceRange);
+  } catch (apiError) {
+    try {
+      const csvContent = await fetchCSVExport(sourceId, sourceGid);
+      return trimValuesToRange(csvToValues(csvContent), sourceRange);
+    } catch (fallbackError) {
+      if (sourcePublicUrl) {
+        const csvContent = await fetchPublicUrl(sourcePublicUrl);
+        return trimValuesToRange(csvToValues(csvContent), sourceRange);
+      }
+      throw new Error(`Sorgente ${source?.name || sourceId} non raggiungibile: ${fallbackError.message || apiError.message}`);
+    }
+  }
+}
+
 async function syncSheet(sheet) {
   console.log(`\n📋 Scaricando ${sheet.name}...`);
 
   try {
+    if (Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0) {
+      const sourceTables = [];
+
+      for (const source of sheet.mergeSources) {
+        const values = await fetchSheetValuesFromSource(source);
+        sourceTables.push({ source, values });
+      }
+
+      const mergedValues = mergeSourceTables(sourceTables);
+      if (!mergedValues || mergedValues.length === 0) {
+        console.log('   ⚠️  Merge vuoto');
+        return { success: false, error: 'Merge vuoto' };
+      }
+
+      const outputValues = mergedValues;
+
+      const csv = valuesToCSV(outputValues);
+      const filePath = path.join(OUTPUT_DIR, sheet.output);
+      fs.writeFileSync(filePath, csv, 'utf8');
+
+      // Accoda 8+12 deve restare merge grezzo; RICHIESTE viene applicata separatamente su brani.csv.
+      if (sheet.baseSource && sheet.richiesteOutput) {
+        try {
+          const richiesteRange = process.env.RICHIESTE_MATCH_RANGE || 'D:AI';
+          const richiesteAliases = process.env.RICHIESTE_MATCH_ALIASES || '';
+          const dedupePerRow = String(process.env.RICHIESTE_DEDUPE_PER_ROW || 'false').toLowerCase() === 'true';
+          const baseValues = await fetchSheetValuesFromSource(sheet.baseSource);
+          const richiesteCounter = buildRichiesteCounterFromResponses(mergedValues, richiesteRange, {
+            aliases: richiesteAliases,
+            dedupePerRow
+          });
+          const enrichedBaseValues = enrichBaseWithRichieste(baseValues, richiesteCounter, {
+            aliases: richiesteAliases
+          });
+          const baseCsv = valuesToCSV(enrichedBaseValues);
+          const baseFilePath = path.join(OUTPUT_DIR, sheet.richiesteOutput);
+          fs.writeFileSync(baseFilePath, baseCsv, 'utf8');
+          console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteRange})`);
+        } catch (enrichError) {
+          console.warn(`   ⚠️ Impossibile aggiornare ${sheet.richiesteOutput}: ${enrichError.message}`);
+        }
+      }
+
+      const mergedRows = Math.max(0, outputValues.length - 1);
+      console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AI]`);
+      return { success: true, rows: mergedRows, file: filePath };
+    }
+
     const values = await fetchSheetData(sheet.id, sheet.range);
     if (!values || values.length === 0) {
       console.log('   ⚠️  Foglio vuoto');
@@ -363,17 +714,27 @@ async function syncSheet(sheet) {
   }
 }
 
-async function syncAll() {
+async function syncAll(options = {}) {
+  const { exitOnFailure = false, onlySheets = null } = options;
   console.log('\n╔════════════════════════════════════════════════════════════════╗');
   console.log('║     Google Sheets Sync - Download Dati                       ║');
   console.log('╚════════════════════════════════════════════════════════════════╝');
   console.log(`\n📁 Output: ${OUTPUT_DIR}`);
 
+  const normalizedOnlySheets = Array.isArray(onlySheets)
+    ? new Set(onlySheets.map((name) => String(name || '').trim().toLowerCase()).filter(Boolean))
+    : null;
+
+  const targetSheets = normalizedOnlySheets
+    ? SHEETS.filter((sheet) => normalizedOnlySheets.has(String(sheet.name || '').trim().toLowerCase()))
+    : SHEETS;
+
   let successCount = 0;
   const results = [];
 
-  for (const sheet of SHEETS) {
-    if (!sheet.id) {
+  for (const sheet of targetSheets) {
+    const hasMergeSources = Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0;
+    if (!sheet.id && !hasMergeSources) {
       console.log(`   ❌ ID mancante per sheet ${sheet.name}, salto`);
       results.push({ success: false, error: 'ID mancante', sheet: sheet.name });
       continue;
@@ -385,15 +746,35 @@ async function syncAll() {
   }
 
   console.log('\n╔════════════════════════════════════════════════════════════════╗');
-  console.log(`║ ✅ Completato: ${successCount}/${SHEETS.length} fogli scaricati`);
+  console.log(`║ ✅ Completato: ${successCount}/${targetSheets.length} fogli scaricati`);
   console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
-  if (successCount < SHEETS.length) {
+  const summary = {
+    success: successCount === targetSheets.length,
+    successCount,
+    totalSheets: targetSheets.length,
+    results,
+    outputDir: OUTPUT_DIR,
+    syncedAt: new Date().toISOString()
+  };
+
+  if (exitOnFailure && successCount < targetSheets.length) {
     process.exit(1);
   }
+
+  return summary;
 }
 
-syncAll().catch(err => {
-  console.error('❌ Errore fatale:', err.message);
-  process.exit(1);
-});
+module.exports = {
+  syncAll,
+  syncSheet,
+  SHEETS,
+  OUTPUT_DIR
+};
+
+if (require.main === module) {
+  syncAll({ exitOnFailure: true }).catch(err => {
+    console.error('❌ Errore fatale:', err.message);
+    process.exit(1);
+  });
+}

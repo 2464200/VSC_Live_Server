@@ -29,6 +29,15 @@ class BorderoTableManager {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
+    this.coexistingFilterFields = new Set([
+      'richieste',
+      'info_livello',
+      'info_coreo_1',
+      'info_coreo_2',
+      'coreografo',
+      'collaboratori',
+      'videoclip'
+    ]);
 
     // Serata info
     this.serata = {
@@ -42,6 +51,10 @@ class BorderoTableManager {
     };
 
     this.init();
+  }
+
+  isCoexistingFilterField(field) {
+    return this.coexistingFilterFields.has(String(field || '').trim());
   }
 
   async init() {
@@ -605,6 +618,7 @@ class BorderoTableManager {
     this.bindSortButton('btn-sort-id', 'id', 'ID');
     this.bindSortButton('btn-sort-genere', 'genere', 'GENERE');
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
+    this.bindSortButton('btn-sort-richieste', 'richieste', 'RICHIESTE');
     this.setupColumnHeaderSorting();
     this.bindMoveExecutedBottomButton('btn-move-executed-bottom', 'SPOSTA IN FONDO GLI ESEGUITI');
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
@@ -616,6 +630,7 @@ class BorderoTableManager {
     this.bindFilterPopupButton('btn-filter-genere', 'genere', 'GENERE');
     this.bindFilterPopupButton('btn-filter-livello', 'coreografo', 'COREOGRAFO');
     this.bindFilterPopupButton('btn-filter-altro', 'autore', 'AUTORE');
+    this.bindFilterPopupButton('btn-filter-richieste', 'richieste', 'RICHIESTE');
 
     // Search
     document.getElementById('search-box')?.addEventListener('input', (e) => {
@@ -658,6 +673,7 @@ class BorderoTableManager {
     // Azioni
     document.getElementById('btn-userform')?.addEventListener('click', () => this.showUserForm());
     document.getElementById('btn-export')?.addEventListener('click', () => this.exportSerataToSIAE());
+    document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
 
@@ -696,6 +712,11 @@ class BorderoTableManager {
     if (!button) return;
 
     button.addEventListener('click', () => {
+      if (this.isCoexistingFilterField(field) && this.currentFilters[field]) {
+        this.clearSingleColumnFilter(field, label);
+        return;
+      }
+
       const existingTimer = this.filterButtonClickTimers.get(buttonId);
       if (existingTimer) {
         clearTimeout(existingTimer);
@@ -819,6 +840,19 @@ class BorderoTableManager {
   }
 
   getUniqueFieldValues(field) {
+    if (field === 'richieste') {
+      const numericValues = this.allBrani
+        .map((item) => String(item?.[field] ?? '').trim())
+        .filter((value) => value.length > 0)
+        .map((value) => value.replace(',', '.'))
+        .filter((value) => /^-?\d+(\.\d+)?$/.test(value))
+        .map((value) => Number(value));
+
+      return [...new Set(numericValues)]
+        .sort((a, b) => a - b)
+        .map((value) => String(value));
+    }
+
     const values = this.allBrani
       .map(item => String(item?.[field] ?? '').trim())
       .filter(value => value.length > 0);
@@ -868,19 +902,61 @@ class BorderoTableManager {
     this.activeFilterPicker.filteredValues = values;
 
     const clearButton = '<button type="button" class="filter-picker-option is-clear" data-filter-index="-1">TUTTI (nessun filtro)</button>';
+    const richiesteSpecialButtons = this.activeFilterPicker.field === 'richieste'
+      ? [
+          '<button type="button" class="filter-picker-option" data-filter-special="richieste-zero">NO (0 / vuoto)</button>',
+          '<button type="button" class="filter-picker-option" data-filter-special="richieste-nonzero">SI (diversi da 0)</button>'
+        ].join('')
+      : '';
     const valueButtons = values.map((value, index) => {
       const safe = this.escapeHtml(value);
       return `<button type="button" class="filter-picker-option" data-filter-index="${index}">${safe}</button>`;
     }).join('');
 
-    optionsEl.innerHTML = clearButton + valueButtons;
+    optionsEl.innerHTML = clearButton + richiesteSpecialButtons + valueButtons;
 
     optionsEl.querySelectorAll('.filter-picker-option').forEach(button => {
       button.addEventListener('click', () => {
+        const special = button.getAttribute('data-filter-special');
+        if (special) {
+          this.applySpecialFilterFromPicker(special);
+          return;
+        }
+
         const idx = Number(button.getAttribute('data-filter-index'));
         this.applyValueFilterFromPicker(idx);
       });
     });
+  }
+
+  applySpecialFilterFromPicker(specialKey) {
+    if (!this.activeFilterPicker) return;
+
+    const { field } = this.activeFilterPicker;
+    if (field !== 'richieste') return;
+
+    if (specialKey === 'richieste-zero') {
+      this.currentFilters[field] = { mode: 'richiesteZero' };
+    } else if (specialKey === 'richieste-nonzero') {
+      this.currentFilters[field] = { mode: 'richiesteNonZero' };
+    }
+
+    this.currentPage = 1;
+    this.updateFilterButtons();
+    this.applyFilters();
+    this.closeFilterValuePicker();
+  }
+
+  isRichiesteZeroValue(value) {
+    const text = String(value ?? '').trim();
+    if (!text || text === '-') return true;
+
+    const normalizedNumeric = text.replace(',', '.');
+    if (/^-?\d+(\.\d+)?$/.test(normalizedNumeric)) {
+      return Number(normalizedNumeric) === 0;
+    }
+
+    return false;
   }
 
   applyValueFilterFromPicker(selectedIndex) {
@@ -1217,6 +1293,10 @@ class BorderoTableManager {
         this.filteredBrani = this.filteredBrani.filter(item =>
           fields.some(field => String(item[field] ?? '').trim() !== '')
         );
+      } else if (config.mode === 'richiesteZero') {
+        this.filteredBrani = this.filteredBrani.filter(item => this.isRichiesteZeroValue(item.richieste));
+      } else if (config.mode === 'richiesteNonZero') {
+        this.filteredBrani = this.filteredBrani.filter(item => !this.isRichiesteZeroValue(item.richieste));
       } else if (config.mode === 'exactValue') {
         const expected = this.normalizeExactFilterValue(config.value);
         this.filteredBrani = this.filteredBrani.filter(item =>
@@ -1231,7 +1311,7 @@ class BorderoTableManager {
     // Applica ricerca
     if (this.currentSearch) {
       // Include `id` in the general search fields per request
-      let searchFields = ['id', 'titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
+      let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
 
       if (this.searchMode === 'title') {
         searchFields = ['titolo'];
@@ -1269,6 +1349,7 @@ class BorderoTableManager {
     // Reset globale: azzera tutti i filtri di tutte le colonne.
     this.currentFilters = {};
     this.currentSearch = '';
+    this.searchMode = 'general';
     this.currentSort = sortById ? 'id' : null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = sortById ? 'id' : null;
@@ -1318,6 +1399,10 @@ class BorderoTableManager {
 
     columnFields.forEach((field) => {
       if (field !== selectedField) {
+        // Questi filtri devono poter coesistere e rimanere attivi finché non vengono rimossi esplicitamente.
+        if (this.isCoexistingFilterField(field)) {
+          return;
+        }
         delete this.currentFilters[field];
       }
     });
@@ -1395,10 +1480,13 @@ class BorderoTableManager {
    * Crea HTML riga brano
    */
   createBranoRow(brano) {
-    const isCompleted = brano.flag === 'X';
+    const isCompleted = this.isExecutedBrano(brano);
     const completedClass = isCompleted ? 'completed' : '';
     const flagIcon = isCompleted ? '✅' : '';
     const timestamp = brano.timestamp || '';
+    const richiesteHighlightClass = !isCompleted && !this.isRichiesteZeroValue(brano.richieste)
+      ? ' richieste-nonzero'
+      : '';
     const videoButtonDisabledClass = isCompleted ? ' is-disabled' : '';
     const videoButtonDisabledAttr = isCompleted ? ' disabled aria-disabled="true" tabindex="-1"' : '';
     const videoButtonTitle = isCompleted ? 'Brano eseguito: VideoClip non disponibile' : 'Apri VideoClip';
@@ -1415,9 +1503,11 @@ class BorderoTableManager {
         <td class="col-timestamp">${timestamp}</td>
         <td class="col-titolo">${brano.titolo || brano.coreografia || brano.brano || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
+        <td class="col-richieste${richiesteHighlightClass}">${brano.richieste || '-'}</td>
         <td class="col-genere">${brano.genere || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
-        <td class="col-coreo">${brano.info_coreo || '-'}</td>
+        <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
+        <td class="col-coreo-2">${brano.info_coreo_2 || '-'}</td>
         <td class="col-coreografo">${brano.coreografo || '-'}</td>
         <td class="col-collaboratori">${brano.collaboratori || '-'}</td>
         <td class="col-videoclip">${videoClipMarker}</td>
@@ -1726,7 +1816,7 @@ class BorderoTableManager {
    * Update buttons stato
    */
   updateSortButtons() {
-    const buttons = ['btn-sort-id', 'btn-sort-genere', 'btn-sort-autore'];
+    const buttons = ['btn-sort-id', 'btn-sort-genere', 'btn-sort-autore', 'btn-sort-richieste'];
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
       const fieldName = btnId.replace('btn-sort-', '');
@@ -1771,6 +1861,7 @@ class BorderoTableManager {
       { id: 'btn-filter-genere', key: 'genere' },
       { id: 'btn-filter-livello', key: 'coreografo' },
       { id: 'btn-filter-altro', key: 'autore' },
+      { id: 'btn-filter-richieste', key: 'richieste' },
     ];
 
     buttons.forEach(({ id, key }) => {
@@ -1811,7 +1902,7 @@ class BorderoTableManager {
     };
 
     const placeholders = {
-      general: '🔍 Cerca ID, titolo, autore, genere, livello o coreografia...',
+      general: '🔍 Cerca ID, titolo, autore, richieste, genere, livello, info coreo 1, info coreo 2 o coreografo...',
       title: '🔍 Cerca per titolo...',
       id: '🔍 Cerca per ID...'
     };
@@ -1833,11 +1924,13 @@ class BorderoTableManager {
       id: 'ID',
       titolo: 'Titolo',
       autore: 'Autore',
+      richieste: 'Richieste',
       coreografo: 'Coreografo',
       collaboratori: 'Collaboratori',
       genere: 'Genere',
       info_livello: 'Livello',
-      info_coreo: 'Coreografia',
+      info_coreo_1: 'Info Coreo 1',
+      info_coreo_2: 'Info Coreo 2',
       compositore: 'Compositore',
       durata: 'Durata'
     };
@@ -1848,7 +1941,7 @@ class BorderoTableManager {
     } else if (this.searchMode === 'id') {
       fields = ['id'];
     } else {
-      fields = ['id', 'titolo', 'autore', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo'];
+      fields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
     }
 
     const readable = fields.map(f => mapping[f] || f).join(', ');
@@ -1859,6 +1952,48 @@ class BorderoTableManager {
     const div = document.createElement('div');
     div.textContent = String(text ?? '');
     return div.innerHTML;
+  }
+
+  async syncRichiesteFromGoogle() {
+    const button = document.getElementById('btn-sync-richieste-google');
+    const initialText = button?.textContent || '🔄 SYNC RICHIESTE GOOGLE';
+
+    try {
+      if (button) {
+        button.disabled = true;
+        button.textContent = '⏳ SYNC IN CORSO...';
+      }
+
+      const response = await fetch('/api/bordero/sync-google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store'
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || payload?.summary?.error || 'Sincronizzazione Google non riuscita');
+      }
+
+      await this.refreshFromCurrentData();
+
+      const sheetResult = Array.isArray(payload?.summary?.results)
+        ? payload.summary.results.find((item) => String(item?.sheet || '').toLowerCase() === 'accoda 8+12')
+        : null;
+      const syncedRows = Number(sheetResult?.rows || 0);
+      const syncedMessage = syncedRows > 0
+        ? `✓ Sync completato: ${syncedRows} righe aggiornate da Google`
+        : '✓ Sync Google completato';
+      Toast.success(syncedMessage);
+    } catch (error) {
+      logger.error('Errore sync richieste Google', error);
+      Toast.error(`Errore sync richieste: ${error.message || error}`);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = initialText;
+      }
+    }
   }
 
   /**
@@ -1929,11 +2064,22 @@ class BorderoTableManager {
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
+    this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
       detail: { total, completed, pending }
     }));
+  }
+
+  updateRichiesteAlertState() {
+    const richiesteButton = document.getElementById('btn-filter-richieste');
+    if (!richiesteButton) return;
+
+    const withNonZeroRichieste = this.allBrani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
+    const hasPendingWithRichieste = withNonZeroRichieste.some((brano) => !this.isExecutedBrano(brano));
+
+    richiesteButton.classList.toggle('btn-richieste-alert', hasPendingWithRichieste);
   }
 
   updateExecutedBottomModeBadge() {

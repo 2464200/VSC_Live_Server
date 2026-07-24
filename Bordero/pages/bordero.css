@@ -351,6 +351,25 @@
 .btn-filter-green { border-left: 4px solid #4CAF50; }
 .btn-filter-orange { border-left: 4px solid #ff7f00; }
 .btn-filter-yellow { border-left: 4px solid #FFD700; }
+
+#btn-filter-richieste.btn-richieste-alert {
+  border-color: #35d07f;
+  box-shadow: 0 0 0 1px rgba(53, 208, 127, 0.35), 0 0 10px rgba(53, 208, 127, 0.55);
+  animation: richiesteGreenPulse 1s ease-in-out infinite;
+}
+
+@keyframes richiesteGreenPulse {
+  0%,
+  100% {
+    border-color: #2fbf73;
+    box-shadow: 0 0 0 1px rgba(47, 191, 115, 0.35), 0 0 10px rgba(47, 191, 115, 0.45);
+  }
+  50% {
+    border-color: #88f2bc;
+    box-shadow: 0 0 0 2px rgba(136, 242, 188, 0.55), 0 0 16px rgba(83, 232, 155, 0.8);
+  }
+}
+
 .btn-placeholder {
   visibility: hidden;
   min-width: 170px;
@@ -712,6 +731,18 @@
   min-width: 100px;
 }
 
+.col-richieste {
+  width: 130px;
+  min-width: 110px;
+  text-align: center;
+}
+
+.col-richieste.richieste-nonzero {
+  background: linear-gradient(135deg, rgba(95, 143, 95, 0.34), rgba(140, 201, 140, 0.28));
+  color: #e9ffe9;
+  font-weight: 700;
+}
+
 .col-genere {
   width: 100px;
 }
@@ -722,7 +753,12 @@
   font-size: 0.9em;
 }
 
-.col-coreo {
+.col-coreo-1 {
+  width: 130px;
+  font-size: 0.9em;
+}
+
+.col-coreo-2 {
   width: 130px;
   font-size: 0.9em;
 }
@@ -890,6 +926,7 @@
   }
 
   .col-collaboratori,
+  .col-coreo-2,
   .col-coreografo,
   .col-videoclip {
     display: none;
@@ -916,9 +953,11 @@
   }
 
   .col-timestamp,
+  .col-richieste,
   .col-genere,
   .col-livello,
-  .col-coreo,
+  .col-coreo-1,
+  .col-coreo-2,
   .col-coreografo,
   .col-collaboratori,
   .col-videoclip {
