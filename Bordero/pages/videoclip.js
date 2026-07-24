@@ -1206,61 +1206,42 @@ class VideoClipManager {
     if (!Array.isArray(this.videoCatalog) || this.videoCatalog.length === 0) return null;
 
     const profile = this.buildBranoMatchProfile(brano);
-    const hasNames = profile.normalizedNames.length > 0;
+    const normalizedNameSet = new Set(profile.normalizedNames);
 
-    let pool = this.videoCatalog;
     if (profile.idPrefix) {
-      const byPrefix = this.videoCatalog.filter(item => item.prefix === profile.idPrefix);
-      if (byPrefix.length > 0) {
-        pool = byPrefix;
+      const prefixMatches = this.videoCatalog.filter(item => item.prefix === profile.idPrefix);
+      if (prefixMatches.length === 1) {
+        return prefixMatches[0].fullName;
+      }
+
+      if (prefixMatches.length > 1) {
+        const exactNameMatch = prefixMatches.find(item => normalizedNameSet.has(item.normalizedName));
+        if (exactNameMatch) {
+          return exactNameMatch.fullName;
+        }
+
+        logger.warn('Match ambiguo: prefisso ID duplicato', {
+          branoId: brano?.id,
+          matches: prefixMatches.map(entry => entry.fullName)
+        });
+        return null;
       }
     }
 
-    const scored = pool
-      .map(item => ({ item, score: this.scoreVideoCandidate(profile, item) }))
-      .sort((a, b) => b.score - a.score);
+    const exactNameMatches = this.videoCatalog.filter(item => normalizedNameSet.has(item.normalizedName));
+    if (exactNameMatches.length === 1) {
+      return exactNameMatches[0].fullName;
+    }
 
-    if (scored.length === 0 || scored[0].score <= 0) {
+    if (exactNameMatches.length > 1) {
+      logger.warn('Match ambiguo: nome coreografia/brano coincide con più file', {
+        branoId: brano?.id,
+        matches: exactNameMatches.map(entry => entry.fullName)
+      });
       return null;
     }
 
-    const best = scored[0];
-    const second = scored[1];
-
-    if (profile.idPrefix && pool.length > 1 && hasNames) {
-      const ambiguous = second && (best.score - second.score) < 80;
-      if (ambiguous) {
-        logger.warn('Match ambiguo: prefisso ID duplicato senza differenza significativa', {
-          branoId: brano?.id,
-          best: best.item.fullName,
-          second: second.item.fullName,
-          bestScore: best.score,
-          secondScore: second.score
-        });
-        return null;
-      }
-    }
-
-    if (!profile.idPrefix) {
-      const exactNameMatches = scored.filter(entry => profile.normalizedNames.includes(entry.item.normalizedName));
-      if (exactNameMatches.length === 1) {
-        return exactNameMatches[0].item.fullName;
-      }
-
-      if (exactNameMatches.length > 1) {
-        logger.warn('Match ambiguo: titolo coincide con più file senza prefisso ID', {
-          branoId: brano?.id,
-          matches: exactNameMatches.map(entry => entry.item.fullName)
-        });
-        return null;
-      }
-
-      if (best.score < 260) {
-        return null;
-      }
-    }
-
-    return best.item.fullName;
+    return null;
   }
 
   setupListeners() {
