@@ -942,6 +942,79 @@ app.use(express.static(path.join(__dirname), {
     extensions: ['html', 'htm']
 }));
 
+app.post('/api/bordero/export-siae', (req, res) => {
+    try {
+        const brani = Array.isArray(req.body?.brani) ? req.body.brani : [];
+        const completed = brani
+            .filter(item => String(item?.flag || '').trim().toUpperCase() === 'X')
+            .map(item => {
+                const titolo = String(item?.titolo || '').replace(/"/g, '').trim();
+                const autore = String(item?.autore || '').replace(/"/g, '').trim();
+                return { titolo, autore };
+            })
+            .filter(item => item.titolo || item.autore);
+
+        if (completed.length === 0) {
+            return res.status(400).json({ error: 'Nessun record valido da esportare.' });
+        }
+
+        completed.sort((left, right) => left.titolo.localeCompare(right.titolo, 'it', { sensitivity: 'base' }));
+
+        const rows = completed.map(item => [item.titolo, item.autore, '', '', ''].join(','));
+        const csvContent = ['Titolo,Autore,Compositore,Performer,Durata', ...rows].join('\r\n');
+
+        const now = new Date();
+        const gg = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const aaaa = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mi = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const fileName = `${gg}-${mm}-${aaaa}-${hh}${mi}${ss}_SIAE_VSC.csv`;
+        const siaeDir = 'c:\\VSC_SIAE';
+
+        if (!fs.existsSync(siaeDir)) {
+            fs.mkdirSync(siaeDir, { recursive: true });
+        }
+
+        const filePath = path.join(siaeDir, fileName);
+
+        // Match the VBA export semantics: UTF-8 text file with SIAE header and CRLF rows.
+        fs.writeFileSync(filePath, '\uFEFF' + csvContent, 'utf8');
+
+        return res.json({
+            ok: true,
+            count: completed.length,
+            fileName,
+            filePath,
+            downloadUrl: `/api/bordero/download-siae/${encodeURIComponent(fileName)}?t=${Date.now()}`,
+        });
+    } catch (error) {
+        console.error('Errore export Bordero SIAE:', error);
+        return res.status(500).json({ error: 'Errore export Bordero SIAE: ' + error.message });
+    }
+});
+
+app.get('/api/bordero/download-siae/:fileName', (req, res) => {
+    const siaeDir = 'c:\\VSC_SIAE';
+    const fileName = path.basename(req.params.fileName || '');
+
+    if (!fileName) {
+        return res.status(400).send('Nome file non valido');
+    }
+
+    const filePath = path.join(siaeDir, fileName);
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).send('File SIAE non trovato');
+    }
+
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
+    return res.download(filePath);
+});
+
 // Logging
 app.use((req, res, next) => {
     console.log(`📡 ${req.method} ${req.path}`);

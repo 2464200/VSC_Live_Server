@@ -2101,49 +2101,44 @@ class BorderoTableManager {
 
   /**
    * Export serata a CSV SIAE (solo brani eseguiti)
-   * Formato SIAE: Titolo, Autore, Compositore, Performer, Durata
+   * Replica la macro VBA: salva UTF-8 in C:\VSC_SIAE e scarica il file generato.
    */
-  exportSerataToSIAE() {
-    const completed = this.allBrani.filter(b => b.flag === 'X');
+  async exportSerataToSIAE() {
+    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
 
     if (completed.length === 0) {
       Toast.warning('Nessun brano eseguito da esportare');
       return;
     }
 
-    // CSV SIAE format
-    const headers = ['Titolo', 'Autore', 'Compositore', 'Performer', 'Durata'];
-    let csv = headers.join(',') + '\n';
+    try {
+      const response = await fetch('/api/bordero/export-siae', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brani: completed }),
+      });
 
-    completed.forEach(brano => {
-      const values = [
-        `"${brano.titolo || ''}"`,
-        `"${brano.autore || ''}"`,
-        `"${brano.compositore || ''}"`,
-        `"${brano.performer || ''}"`,
-        `"${brano.durata || ''}"`,
-      ];
-      csv += values.join(',') + '\n';
-    });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'Errore durante la generazione del file SIAE');
+      }
 
-    // Genera filename: Serata_DJ_Data_Evento
-    const filename = `Serata_${this.serata.dj || 'Unknown'}_${this.serata.data}_${this.serata.evento || 'Event'}.csv`
-      .replace(/\s+/g, '_')
-      .replace(/[^\w.-]/g, '');
+      if (result.downloadUrl) {
+        const link = document.createElement('a');
+        link.href = result.downloadUrl;
+        link.download = result.fileName || '';
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 
-    // Scarica file (nota: il salvataggio a C:\VSC_SIAE\ richiede backend/Electron)
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    logger.info(`Esportati ${completed.length} brani in formato SIAE`);
-    Toast.success(`✓ Esportati ${completed.length} brani (SIAE)`);
+      logger.info(`Esportati ${result.count || completed.length} brani in formato SIAE`, result);
+      Toast.success(`✓ File SIAE generato in C:\\VSC_SIAE\\: ${result.fileName}`);
+    } catch (error) {
+      logger.error('Errore export SIAE Bordero', error);
+      Toast.error(error.message || 'Errore durante export SIAE');
+    }
   }
 
   /**
