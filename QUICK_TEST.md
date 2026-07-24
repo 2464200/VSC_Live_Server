@@ -74,8 +74,11 @@
 
 6. **Testa Export SIAE:**
    - Click: "💾 Export SIAE"
-   - File CSV dovrebbe scaricarsi nel browser
-   - Nome: qualcosa tipo `siae_export_2026_06_18.csv`
+   - Il backend deve creare il file in `C:\VSC_SIAE\`
+   - Il browser deve scaricare lo stesso file generato dal backend
+   - Nome atteso: `GG-MM-AAAA-HHMMSS_SIAE_VSC.csv`
+   - Il contenuto deve avere header esatto: `Titolo,Autore,Compositore,Performer,Durata`
+   - Devono comparire solo i brani con stato `X`, ordinati alfabeticamente per titolo
 
 ### **Test 3: NextCoreo Display (3 min)**
 
@@ -173,6 +176,11 @@ BORDERO TABELLA
 ☐ Search funziona
 ☐ Mark complete funziona (X appare, riga grays)
 ☐ Export SIAE scarica file
+☐ Export SIAE salva il file in `C:\VSC_SIAE\`
+☐ Nome file SIAE in formato `GG-MM-AAAA-HHMMSS_SIAE_VSC.csv`
+☐ Header SIAE esatto: `Titolo,Autore,Compositore,Performer,Durata`
+☐ Solo brani eseguiti presenti nel file
+☐ Ordinamento alfabetico crescente per titolo
 
 NEXT-COREO
 ☐ Pagina carica fullscreen
@@ -228,6 +236,12 @@ OFFLINE TEST
 - [ ] Controlla che browser permetta download
 - [ ] Verifica blocco popup/download
 - [ ] Controlla dimensione file (non dovrebbe essere > 5MB)
+
+### **Verifica finale prima del portale SIAE**
+- [ ] Apri il file generato in `C:\VSC_SIAE\`
+- [ ] Controlla che l'header coincida con il fac-simile SIAE
+- [ ] Controlla che non siano presenti brani non eseguiti
+- [ ] Carica sul portale SIAE il file con suffisso `_SIAE_VSC.csv`
 
 ---
 

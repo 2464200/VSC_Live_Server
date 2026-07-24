@@ -152,7 +152,10 @@ Una volta aperto **bordero.html**:
 
 4. **Testa l'export SIAE:**
    - Click "SCARICA SIAE"
-   - Dovrebbe scaricare un CSV
+   - Il file deve essere creato in `C:\VSC_SIAE\`
+   - Il browser deve scaricare il file generato dal backend
+   - Nome atteso: `GG-MM-AAAA-HHMMSS_SIAE_VSC.csv`
+   - Header atteso: `Titolo,Autore,Compositore,Performer,Durata`
 
 ---
 

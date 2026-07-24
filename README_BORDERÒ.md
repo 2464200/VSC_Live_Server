@@ -242,6 +242,9 @@ Guida completa: `GUIDA_GIT_MAIN_DEVELOP.md`.
 - [ ] Bordero: Sort per ID, GENERE, AUTORE funziona
 - [ ] Bordero: Filter funziona
 - [ ] Bordero: Export SIAE scarica CSV
+- [ ] Bordero: Export SIAE salva il file in `C:\VSC_SIAE\`
+- [ ] Bordero: Nome file `GG-MM-AAAA-HHMMSS_SIAE_VSC.csv`
+- [ ] Bordero: Header esatto `Titolo,Autore,Compositore,Performer,Durata`
 - [ ] NextCoreo: Mostra prossimo brano in fullscreen
 - [ ] NextCoreo: Updates in tempo reale quando mark in bordero
 - [ ] Display: Table carica da localStorage
@@ -328,7 +331,7 @@ python -m http.server 8001
 | Search | âœ… | Full-text search |
 | Mark Complete | âœ… | X flag + timestamp |
 | Auto-save | âœ… | Every mark |
-| Export SIAE | âœ… | CSV format |
+| Export SIAE | âœ… | Backend + file in `C:\VSC_SIAE\` |
 | Serata Archive | âœ… | History with timestamp |
 | Fullscreen Display | âœ… | NextCoreo + videoclip |
 | Monitor Sync | âœ… | 1sec refresh |
