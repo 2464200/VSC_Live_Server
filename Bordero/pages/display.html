@@ -33,42 +33,68 @@
 
 <body class="display-body">
   <div class="display-container">
-    <!-- HEADER SERATA -->
+    <!-- HEADER TABELLONE -->
     <header class="display-header">
-      <div class="serata-badge">
-        <span class="badge-label">DJ:</span>
-        <span class="badge-value" id="header-dj">--</span>
+      <div class="display-title-row">
+        <h1 class="display-title">DISPLAY COREOGRAFIE RICHIESTE</h1>
       </div>
-      <div class="serata-badge">
-        <span class="badge-label">Data:</span>
-        <span class="badge-value" id="header-data">--</span>
+
+      <div class="display-info-row">
+        Le righe evidenziate in giallo indicano i brani gia eseguiti
       </div>
-      <div class="serata-badge">
-        <span class="badge-label">Luogo:</span>
-        <span class="badge-value" id="header-luogo">--</span>
+
+      <div class="display-live-row">
+        <div class="next-coreo-wrap">
+          <div class="next-coreo-label">PROSSIMA COREO:</div>
+          <div class="next-coreo-stage">
+            <div class="arrow-side">&#128073;</div>
+            <span id="next-coreo" aria-live="polite" role="status">--</span>
+          </div>
+        </div>
       </div>
-      <div class="serata-badge">
-        <span class="badge-label">Evento:</span>
-        <span class="badge-value" id="header-evento">--</span>
-      </div>
-      <div class="serata-badge">
-        <span class="badge-label">Brani Eseguiti:</span>
-        <span class="badge-value completed" id="header-completed">0/0</span>
+
+      <div class="serata-summary-row">
+        <div class="serata-badge">
+          <span class="badge-label">DJ:</span>
+          <span class="badge-value" id="header-dj">--</span>
+        </div>
+        <div class="serata-badge">
+          <span class="badge-label">Data:</span>
+          <span class="badge-value" id="header-data">--</span>
+        </div>
+        <div class="serata-badge">
+          <span class="badge-label">Luogo:</span>
+          <span class="badge-value" id="header-luogo">--</span>
+        </div>
+        <div class="serata-badge">
+          <span class="badge-label">Evento:</span>
+          <span class="badge-value" id="header-evento">--</span>
+        </div>
+        <div class="serata-badge">
+          <span class="badge-label">Brani Eseguiti:</span>
+          <span class="badge-value completed" id="header-completed">0/0</span>
+        </div>
       </div>
     </header>
+
+    <section id="secondary-monitor-guard" class="secondary-monitor-guard" hidden>
+      <div class="guard-actions">
+        <div class="live-date guard-date" id="data-ora">Data: --/--/---- - Ore: --:--</div>
+          <button id="btn-open-on-secondary" class="btn btn-primary" type="button">APRI SU MONITOR SECONDARIO</button>
+        <button id="btn-fullscreen" class="btn btn-secondary" type="button" aria-label="Attiva o disattiva schermo intero">SCHERMO INTERO</button>
+      </div>
+    </section>
 
     <!-- TABELLA LIVE -->
     <section class="table-live">
       <table class="brani-table">
         <thead>
           <tr>
-            <th class="col-flag">X</th>
-            <th class="col-id">ID</th>
-            <th class="col-titolo">Titolo</th>
-            <th class="col-autore">Autore</th>
-            <th class="col-coreografo">Coreografo</th>
-            <th class="col-genere">Genere</th>
-            <th class="col-livello">Livello</th>
+            <th class="col-flag">&#10003;</th>
+            <th class="col-id">&#128290; ID</th>
+            <th class="col-titolo">&#128096; Coreografia</th>
+            <th class="col-autore">&#127925; Brano / Autore</th>
+            <th class="col-coreografo">&#128131; Coreografo</th>
           </tr>
         </thead>
         <tbody id="display-tbody">
@@ -83,6 +109,15 @@
           <p>Nessun dato da visualizzare</p>
         </div>
       </div>
+    </section>
+
+    <section class="controls" aria-label="Controlli scorrimento">
+      Velocita:
+      <input type="number" id="speed" value="16" min="1" max="50" />
+      Pausa (sec):
+      <input type="number" id="pause" value="1" min="0" max="20" />
+      <button id="stopScroll" class="btn btn-secondary" type="button">Ferma Scroll</button>
+      <button id="resumeScroll" class="btn btn-secondary" type="button">Riprendi Scroll</button>
     </section>
 
     <!-- STATUS BAR -->

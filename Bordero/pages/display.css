@@ -6,7 +6,7 @@
 .display-body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-dark);
+  background-color: #111;
   color: var(--text-light);
   overflow: hidden;
 }
@@ -16,20 +16,111 @@
   flex-direction: column;
   height: 100vh;
   width: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* ========== HEADER ========== */
 .display-header {
   background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
-  border-bottom: 3px solid var(--primary-orange);
-  padding: 12px 20px;
+  border-bottom: 3px solid #ff7f00;
+  padding: 10px 16px;
+  display: grid;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.display-title-row {
+  text-align: center;
+}
+
+.display-title {
+  margin: 0;
+  font-size: 28px;
+  color: #fff;
+  letter-spacing: 0.7px;
+}
+
+.display-info-row {
+  text-align: center;
+  font-size: 18px;
+  color: #ff7f00;
+  font-weight: 700;
+}
+
+.display-live-row {
   display: flex;
   justify-content: center;
-  gap: 30px;
   align-items: center;
+}
+
+.live-date {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.next-coreo-wrap {
+  text-align: center;
+}
+
+.next-coreo-label {
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.next-coreo-stage {
+  position: relative;
+  display: inline-block;
+}
+
+#next-coreo {
+  padding: 10px 28px;
+  border: 4px solid #ffa200;
+  border-radius: 15px;
+  animation: neonPulse 2s infinite ease-in-out;
+  display: inline-block;
+  color: #fff;
+  text-shadow: 0 0 8px #000;
+  background-color: rgba(0, 0, 0, 0.25);
+  font-size: 34px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 8px #ffa200; }
+  50% { box-shadow: 0 0 20px #ffcc66; }
+  100% { box-shadow: 0 0 8px #ffa200; }
+}
+
+.arrow-side {
+  position: absolute;
+  left: -58px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 52px;
+  color: #ffa200;
+  animation: arrowBlink 1s infinite ease-in-out;
+  text-shadow: 0 0 10px #ffae42, 0 0 20px #ffae42;
+}
+
+@keyframes arrowBlink {
+  0% { opacity: 1; transform: translateY(-50%) translateX(0); }
+  50% { opacity: 0.2; transform: translateY(-50%) translateX(-8px); }
+  100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+.live-actions {
+  justify-self: end;
+}
+
+.serata-summary-row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
   flex-wrap: wrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .serata-badge {
@@ -61,6 +152,41 @@
   color: var(--success-green);
 }
 
+.secondary-monitor-guard {
+  margin: 8px 16px;
+  padding: 12px 16px;
+  border: 2px solid #ff7f00;
+  border-radius: 8px;
+  background: rgba(255, 127, 0, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.secondary-monitor-guard .guard-title {
+  font-weight: 700;
+  color: #ffd39e;
+}
+
+.secondary-monitor-guard .guard-message {
+  flex: 1;
+  color: #ffe9cf;
+}
+
+.secondary-monitor-guard .guard-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.guard-date {
+  margin-right: 10px;
+  white-space: nowrap;
+}
+
 /* ========== TABLE LIVE ========== */
 .table-live {
   flex: 1;
@@ -72,8 +198,8 @@
 .brani-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95em;
-  background-color: var(--bg-dark);
+  font-size: 1.05em;
+  background-color: #111;
 }
 
 .brani-table thead {
@@ -86,13 +212,12 @@
 }
 
 .brani-table th {
-  padding: 12px 15px;
+  padding: 10px 12px;
   text-align: left;
-  color: var(--primary-orange);
+  color: #ff9f1a;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.9em;
+  letter-spacing: 0.4px;
+  font-size: 1em;
   border-right: 1px solid var(--border-color);
 }
 
@@ -102,7 +227,7 @@
 
 .brani-table tbody tr {
   border-bottom: 1px solid var(--border-color);
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
   height: 40px;
 }
 
@@ -111,12 +236,12 @@
 }
 
 .brani-table tbody tr.completed {
-  background-color: rgba(40, 167, 69, 0.15);
-  opacity: 0.7;
+  background-color: rgba(255, 235, 59, 0.35);
+  font-weight: 700;
 }
 
 .brani-table tbody tr.completed:hover {
-  background-color: rgba(40, 167, 69, 0.25);
+  background-color: rgba(255, 235, 59, 0.48);
 }
 
 .brani-table td {
@@ -134,18 +259,18 @@
 
 .brani-table td.col-flag {
   text-align: center;
-  width: 50px;
-  font-size: 1.2em;
+  width: 58px;
+  font-size: 1.15em;
   font-weight: bold;
 }
 
 .brani-table td.col-flag.completed {
-  color: var(--success-green);
+  color: #111;
   font-weight: bold;
 }
 
 .brani-table td.col-id {
-  width: 60px;
+  width: 80px;
   font-family: 'Courier New', monospace;
   font-weight: 600;
   color: var(--primary-orange);
@@ -154,28 +279,37 @@
 .brani-table td.col-titolo {
   font-weight: 600;
   color: var(--text-light);
-  width: 250px;
+  width: 350px;
 }
 
 .brani-table td.col-autore {
-  width: 180px;
+  width: 320px;
   color: #ccc;
 }
 
 .brani-table td.col-coreografo {
-  width: 180px;
+  width: 220px;
   color: #999;
 }
 
-.brani-table td.col-genere {
-  width: 120px;
-  color: #bbb;
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-top: 1px solid #3a3a3a;
+  background: #161616;
+  font-size: 15px;
 }
 
-.brani-table td.col-livello {
-  width: 130px;
-  color: #aaa;
-  font-size: 0.9em;
+.controls input {
+  width: 60px;
+  padding: 4px 6px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #0e0e0e;
+  color: #fff;
 }
 
 /* ========== EMPTY STATE ========== */
@@ -214,7 +348,7 @@
 /* ========== FOOTER ========== */
 .display-footer {
   background-color: #1a1a1a;
-  border-top: 2px solid var(--primary-orange);
+  border-top: 1px solid #2d2d2d;
   padding: 10px 20px;
   display: flex;
   justify-content: space-between;
@@ -253,8 +387,22 @@
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
-  .display-header {
-    gap: 15px;
+  .display-live-row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .live-actions {
+    justify-self: center;
+  }
+
+  .display-title {
+    font-size: 24px;
+  }
+
+  #next-coreo {
+    font-size: 28px;
   }
 
   .serata-badge {
@@ -281,14 +429,26 @@
 }
 
 @media (max-width: 768px) {
-  .display-header {
-    gap: 10px;
-    padding: 8px 10px;
+  .display-title {
+    font-size: 20px;
   }
 
-  .serata-badge {
-    padding: 4px 8px;
-    font-size: 0.8em;
+  .display-info-row {
+    font-size: 15px;
+  }
+
+  .next-coreo-label {
+    font-size: 18px;
+  }
+
+  #next-coreo {
+    font-size: 22px;
+    padding: 8px 14px;
+  }
+
+  .arrow-side {
+    left: -38px;
+    font-size: 34px;
   }
 
   .brani-table {
@@ -314,5 +474,11 @@
 
   .brani-table td.col-coreografo {
     width: 120px;
+  }
+
+  .controls {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
   }
 }

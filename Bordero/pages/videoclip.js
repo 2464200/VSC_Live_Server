@@ -64,7 +64,7 @@ class VideoClipManager {
       vlcControlEndpoint: `${window.location.origin}/api/videoclip/vlc/control`,
       vlcStateEndpoint: `${window.location.origin}/api/videoclip/vlc/state`,
       vlcRcPort: 4212,
-      vlcLaunchDelayMs: 900,
+      vlcLaunchDelayMs: 100,
       html5Attributes: 'controls playsinline preload=metadata',
       html5StartsBeforeVlc: true
     };
@@ -195,7 +195,7 @@ class VideoClipManager {
 
     const entries = this.getPersistentLogEntries();
     metaEl.textContent = entries.length > 0
-      ? `Ultimi ${Math.min(entries.length, this.persistentLogMaxEntries)} eventi. Baseline: HTML5 /videos su 5500, API VLC su 5500, RC VLC su 4212, delay VLC 900ms.`
+      ? `Ultimi ${Math.min(entries.length, this.persistentLogMaxEntries)} eventi. Baseline: HTML5 /videos su 5500, API VLC su 5500, RC VLC su 4212, delay VLC 100ms.`
       : 'In attesa di eventi...';
 
     if (entries.length === 0) {
@@ -1349,7 +1349,7 @@ class VideoClipManager {
           });
           logger.debug('[PLAY] Main playback requested');
 
-          const secondaryDelayMs = 220;
+          const secondaryDelayMs = 100;
           this.waitMs(secondaryDelayMs)
             .then(() => {
               if (this.pendingMainVideoPlay) {
