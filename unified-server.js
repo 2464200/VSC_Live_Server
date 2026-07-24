@@ -969,8 +969,7 @@ app.post('/api/bordero/export-siae', (req, res) => {
         const aaaa = now.getFullYear();
         const hh = String(now.getHours()).padStart(2, '0');
         const mi = String(now.getMinutes()).padStart(2, '0');
-        const ss = String(now.getSeconds()).padStart(2, '0');
-        const fileName = `${gg}-${mm}-${aaaa}-${hh}${mi}${ss}_SIAE_VSC.csv`;
+        const fileName = `${gg}-${mm}-${aaaa}-${hh}${mi}_SIAE_VSC.csv`;
         const siaeDir = 'c:\\VSC_SIAE';
 
         if (!fs.existsSync(siaeDir)) {
