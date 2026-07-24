@@ -251,14 +251,30 @@ class VideoClipManager {
     this.availableMap = new Map();
 
     try {
-      const { response, url, origin } = await this.fetchVideoApi('/api/videoclip/list');
-      const json = await response.json().catch(() => ({}));
-      if (json && Array.isArray(json.files)) {
-        this.availableFiles = json.files
-          .map(f => String(f || '').trim())
-          .filter(Boolean);
-        this.videoApiOrigin = origin;
-        logger.info('Videoclip list ottenuta da', url, this.availableFiles.length);
+      let selectedOrigin = '';
+      for (const candidate of this.getVideoApiCandidates('/api/videoclip/list')) {
+        try {
+          const response = await fetch(candidate, { cache: 'no-store' });
+          if (!response.ok) continue;
+
+          const json = await response.json().catch(() => ({}));
+          const files = Array.isArray(json.files)
+            ? json.files.map(f => String(f || '').trim()).filter(Boolean)
+            : [];
+
+          if (files.length > 0) {
+            this.availableFiles = files;
+            selectedOrigin = new URL(candidate, window.location.origin).origin;
+            logger.info('Videoclip list ottenuta da', candidate, this.availableFiles.length);
+            break;
+          }
+        } catch (candidateError) {
+          logger.debug('Video list fetch failed for', candidate, candidateError?.message || candidateError);
+        }
+      }
+
+      if (selectedOrigin) {
+        this.videoApiOrigin = selectedOrigin;
       }
     } catch (err) {
       logger.debug('Video list fetch failed', err.message || err);
@@ -336,6 +352,7 @@ class VideoClipManager {
     const container = document.getElementById('videos-list');
     if (!container) return;
     container.innerHTML = '';
+    let renderedCount = 0;
 
     this.updateFilterButtons();
 
@@ -358,7 +375,7 @@ class VideoClipManager {
       } else {
         card.classList.add('unavailable');
       }
-      card.dataset.available = isExecuted || isAvailable ? 'false' : 'false';
+      card.dataset.available = isAvailable ? 'true' : 'false';
       card.setAttribute('aria-disabled', isExecuted || !isAvailable ? 'true' : 'false');
 
       const tooltipText = isExecuted
@@ -401,9 +418,10 @@ class VideoClipManager {
       }
 
       container.appendChild(card);
+      renderedCount += 1;
     });
 
-    if (this.filteredBrani.length === 0) {
+    if (renderedCount === 0) {
       container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">Nessun video trovato</div>';
     }
   }
