@@ -1,28 +1,31 @@
-# 🚀 BORDERO SYNC SERVER - Setup & Usage
+﻿# ðŸš€ BORDERO SYNC SERVER - Setup & Usage
 
-> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+> ðŸ“Œ Questa documentazione fa parte della [guida unificata del progetto](README.md).
 
 
 ## Cosa Fa
 
-Il **Sync Server** è un server Node.js che riceve i dati Excel dal browser e li sincronizza direttamente nei file CSV su disco.
+Il **Sync Server** Ã¨ un server Node.js che riceve i dati Excel dal browser e li sincronizza direttamente nei file CSV su disco.
+
+Nota runtime: il progetto completo usa come standard `unified-server.js` su `http://localhost:5500`.
+Il Sync Server Bordero su `5501` resta un servizio dedicato solo alla sincronizzazione CSV.
 
 ### Flow:
 ```
-Excel File → Browser (XLSX.js) → localStorage → Sync Server (Node.js) → CSV Files on Disk
+Excel File â†’ Browser (XLSX.js) â†’ localStorage â†’ Sync Server (Node.js) â†’ CSV Files on Disk
 ```
 
 ---
 
-## 📋 Prerequisiti
+## ðŸ“‹ Prerequisiti
 
 - **Node.js** (v14+)
 - **npm** installato
-- **express** package (già nel progetto)
+- **express** package (giÃ  nel progetto)
 
 ---
 
-## 🔧 Setup Iniziale
+## ðŸ”§ Setup Iniziale
 
 ### Passo 1: Verifica i prerequisiti
 ```bash
@@ -32,35 +35,35 @@ npm --version
 
 ### Passo 2: Installa dipendenze (se non fatto)
 ```bash
-cd C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion
+cd C:\VSC_Live_Server
 npm install express
 ```
 
 ---
 
-## ▶️ Come Avviare il Server
+## â–¶ï¸ Come Avviare il Server
 
 ### Opzione 1: Manuale (PowerShell)
 
 ```powershell
 # Nel terminale di VS Code o PowerShell
-cd 'C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion'
+cd 'C:\VSC_Live_Server'
 node Bordero/server/sync-server.js
 ```
 
 Dovresti vedere:
 ```
-╔═══════════════════════════════════════════════╗
-║  🚀 BORDERO SYNC SERVER                      ║
-║  Porta: 5501                                  ║
-║  Data Dir: Bordero\data                       ║
-║                                               ║
-║  Endpoint disponibili:                        ║
-║  POST /api/sync/brani                         ║
-║  POST /api/sync/comuni                        ║
-║  POST /api/sync/dbase                         ║
-║  GET  /api/status                             ║
-╚═══════════════════════════════════════════════╝
+â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+â•‘  ðŸš€ BORDERO SYNC SERVER                      â•‘
+â•‘  Porta: 5501                                  â•‘
+â•‘  Data Dir: Bordero\data                       â•‘
+â•‘                                               â•‘
+â•‘  Endpoint disponibili:                        â•‘
+â•‘  POST /api/sync/brani                         â•‘
+â•‘  POST /api/sync/comuni                        â•‘
+â•‘  POST /api/sync/dbase                         â•‘
+â•‘  GET  /api/status                             â•‘
+â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 ```
 
 ### Opzione 2: Con npm script (consigliato)
@@ -83,7 +86,7 @@ npm run sync-server
 
 ---
 
-## 🧪 Test del Server
+## ðŸ§ª Test del Server
 
 ### Verifica che sia online
 
@@ -109,22 +112,22 @@ Dovresti vedere un JSON con lo stato del server:
 
 ---
 
-## 💾 Sincronizzare i Dati
+## ðŸ’¾ Sincronizzare i Dati
 
 ### Da Admin Panel nel Browser
 
 1. **Avvia il sync server** (vedi sopra)
-2. **Apri Admin Panel:** http://localhost:8000/Bordero/pages/admin.html
-3. **Seleziona il file Excel:** Clicca "📁 Seleziona File Excel..."
-4. **Sincronizza:** Clicca "🔄 Sincronizza Tutto da Excel"
+2. **Apri Admin Panel:** http://localhost:5500/Bordero/pages/admin.html
+3. **Seleziona il file Excel:** Clicca "ðŸ“ Seleziona File Excel..."
+4. **Sincronizza:** Clicca "ðŸ”„ Sincronizza Tutto da Excel"
 
 ### Cosa Succede Automaticamente:
 
-1. ✅ Browser legge il file Excel (XLSX.js)
-2. ✅ Salva i dati in `localStorage`
-3. ✅ Invia i dati al Sync Server via POST /api/sync/brani
-4. ✅ Il server scrive il file `Bordero/data/brani.csv` su disco
-5. ✅ Toast verde: "✅ 120 brani sincronizzati su disco"
+1. âœ… Browser legge il file Excel (XLSX.js)
+2. âœ… Salva i dati in `localStorage`
+3. âœ… Invia i dati al Sync Server via POST /api/sync/brani
+4. âœ… Il server scrive il file `Bordero/data/brani.csv` su disco
+5. âœ… Toast verde: "âœ… 120 brani sincronizzati su disco"
 
 ### Verifica il Risultato
 
@@ -142,11 +145,11 @@ dBase.csv       (5 righe + header)
 
 ---
 
-## 🐛 Troubleshooting
+## ðŸ› Troubleshooting
 
 ### Errore: "Porta 5501 in uso"
 
-Se la porta 5501 è occupata, cambia porta:
+Se la porta 5501 Ã¨ occupata, cambia porta:
 ```bash
 set BORDERO_SYNC_PORT=5502
 node Bordero/server/sync-server.js
@@ -178,10 +181,10 @@ npm install express
 
 ---
 
-## 📊 API Endpoints
+## ðŸ“Š API Endpoints
 
 ### POST /api/sync/brani
-Sincronizza il foglio "Elenco Brani (statico)" → `brani.csv`
+Sincronizza il foglio "Elenco Brani (statico)" â†’ `brani.csv`
 
 **Request:**
 ```json
@@ -197,7 +200,7 @@ Sincronizza il foglio "Elenco Brani (statico)" → `brani.csv`
 ```json
 {
   "success": true,
-  "message": "✅ 120 brani sincronizzati",
+  "message": "âœ… 120 brani sincronizzati",
   "file": "Bordero/data/brani.csv",
   "rows": 120,
   "timestamp": "2026-06-18T17:54:00.000Z"
@@ -205,17 +208,17 @@ Sincronizza il foglio "Elenco Brani (statico)" → `brani.csv`
 ```
 
 ### POST /api/sync/comuni
-Sincronizza il foglio "Comuni Italia" → `comuni_italia.csv`
+Sincronizza il foglio "Comuni Italia" â†’ `comuni_italia.csv`
 
 ### POST /api/sync/dbase
-Sincronizza il foglio "dBase" → `dBase.csv`
+Sincronizza il foglio "dBase" â†’ `dBase.csv`
 
 ### GET /api/status
 Ritorna lo stato del server e dei file
 
 ---
 
-## 🔄 Auto-Start del Server (Opzionale)
+## ðŸ”„ Auto-Start del Server (Opzionale)
 
 Se vuoi che il server si avvii automaticamente:
 
@@ -223,7 +226,7 @@ Se vuoi che il server si avvii automaticamente:
 Salva come `start-sync-server.bat`:
 ```batch
 @echo off
-cd /d "C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion"
+cd /d "C:\VSC_Live_Server"
 node Bordero/server/sync-server.js
 pause
 ```
@@ -233,52 +236,76 @@ Doppio-click per avviare.
 ### PowerShell: Script
 Salva come `start-sync-server.ps1`:
 ```powershell
-cd 'C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion'
+cd 'C:\VSC_Live_Server'
 node Bordero/server/sync-server.js
 ```
 
 ---
 
-## ✅ Checklist Completo
+## âœ… Checklist Completo
 
 - [ ] Node.js installato
 - [ ] Express package disponibile (`npm install express`)
 - [ ] Sync Server avviato (`node Bordero/server/sync-server.js`)
 - [ ] Server online (http://localhost:5501/api/status)
-- [ ] Browser su Admin Panel (http://localhost:8000/Bordero/pages/admin.html)
+- [ ] Browser su Admin Panel (http://localhost:5500/Bordero/pages/admin.html)
 - [ ] File Excel selezionato
 - [ ] Sincronizzazione completata
 - [ ] File CSV creati in Bordero/data/
 
 ---
 
-## 📁 File Coinvolti
+## Git (main/develop) per il Sync Server
+
+Aggiorna locale da remoto prima di cambiare script o CSV:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Salva e pubblica:
+
+```powershell
+git add -A
+git commit -m "docs: aggiornamento guida sync server"
+git push
+```
+
+Per merge, pull request e promozione `develop -> main`: `GUIDA_GIT_MAIN_DEVELOP.md`.
+
+---
+
+## ðŸ“ File Coinvolti
 
 ```
 Bordero/
-├── server/
-│   └── sync-server.js           ← Server Node.js
-├── js/
-│   ├── excel-sync.js             ← Modifica: aggiunto syncToDisk()
-│   └── ...
-├── data/
-│   ├── brani.csv                 ← Generato
-│   ├── comuni_italia.csv         ← Generato
-│   └── dBase.csv                 ← Generato
-└── pages/
-    └── admin.html                ← Admin Panel
+â”œâ”€â”€ server/
+â”‚   â””â”€â”€ sync-server.js           â† Server Node.js
+â”œâ”€â”€ js/
+â”‚   â”œâ”€â”€ excel-sync.js             â† Modifica: aggiunto syncToDisk()
+â”‚   â””â”€â”€ ...
+â”œâ”€â”€ data/
+â”‚   â”œâ”€â”€ brani.csv                 â† Generato
+â”‚   â”œâ”€â”€ comuni_italia.csv         â† Generato
+â”‚   â””â”€â”€ dBase.csv                 â† Generato
+â””â”€â”€ pages/
+    â””â”€â”€ admin.html                â† Admin Panel
 ```
 
 ---
 
-## 🎯 Prossimi Step
+## ðŸŽ¯ Prossimi Step
 
-1. ✅ Avvia il Sync Server
-2. ✅ Sincronizza i dati da Excel
-3. ✅ Verifica che i CSV siano popolati
-4. ✅ Testa la visualizzazione dei dati in bordero.html
+1. âœ… Avvia il Sync Server
+2. âœ… Sincronizza i dati da Excel
+3. âœ… Verifica che i CSV siano popolati
+4. âœ… Testa la visualizzazione dei dati in bordero.html
 
 ---
 
-**Nota:** Il Sync Server deve rimanere in esecuzione per tutta la durata del lavoro con Bordero. Se lo chiudi, il browser non potrà più sincronizzare i dati su disco.
+**Nota:** Il Sync Server deve rimanere in esecuzione per tutta la durata del lavoro con Bordero. Se lo chiudi, il browser non potrÃ  piÃ¹ sincronizzare i dati su disco.
+
+
 

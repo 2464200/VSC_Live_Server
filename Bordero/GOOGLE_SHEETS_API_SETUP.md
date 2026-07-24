@@ -1,11 +1,11 @@
-# Setup Google Sheets API - Guida Rapida
+﻿# Setup Google Sheets API - Guida Rapida
 
-> 📌 Questa documentazione fa parte della [guida unificata del progetto](../README.md).
+> ðŸ“Œ Questa documentazione fa parte della [guida unificata del progetto](../README.md).
 
 
-## ⚡ Passaggi (5 minuti)
+## âš¡ Passaggi (5 minuti)
 
-### 1️⃣ Crea un Google Cloud Project
+### 1ï¸âƒ£ Crea un Google Cloud Project
 
 1. Vai a: **https://console.cloud.google.com/**
 2. Clicca su **"Seleziona un progetto"** in alto a sinistra
@@ -14,14 +14,14 @@
 5. Clicca **"Crea"**
 6. Aspetta che il progetto sia creato (2-3 secondi)
 
-### 2️⃣ Abilita Google Sheets API
+### 2ï¸âƒ£ Abilita Google Sheets API
 
 1. Nella ricerca in alto, scrivi: **"Google Sheets API"**
 2. Clicca sul risultato
 3. Clicca su **"ABILITA"** (pulsante blu)
 4. Aspetta che si abiliti
 
-### 3️⃣ Genera una API Key
+### 3ï¸âƒ£ Genera una API Key
 
 1. Nel menu a sinistra, vai a **Credenziali**
 2. Clicca **"+ Crea credenziale"** in alto
@@ -29,23 +29,23 @@
 4. Copia la chiave che appare (es: `AIzaSyD...`)
 5. Clicca **"Chiudi"**
 
-### 4️⃣ Salva la chiave nel progetto
+### 4ï¸âƒ£ Salva la chiave nel progetto
 
 Apri PowerShell e digita:
 ```powershell
-cd "C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion"
+cd "C:\\VSC_Live_Server"
 node setup-google-api.js
 ```
 
-Ti chiederà di incollare la **API Key**. Incollala e premi **Enter**.
+Ti chiederÃ  di incollare la **API Key**. Incollala e premi **Enter**.
 
-✅ **Fatto!** La chiave è salvata in `Bordero/config/.env`
+âœ… **Fatto!** La chiave Ã¨ salvata in `Bordero/config/.env`
 
 ---
 
-## 📝 Configurazione Sheets (già fatto ✅)
+## ðŸ“ Configurazione Sheets (giÃ  fatto âœ…)
 
-Le tre Google Sheets sono già pubbliche e configurate:
+Le tre Google Sheets sono giÃ  pubbliche e configurate:
 
 | Nome | Sheet ID | Uso |
 |------|----------|-----|
@@ -55,12 +55,12 @@ Le tre Google Sheets sono già pubbliche e configurate:
 
 ---
 
-## 🚀 Avvia il Sync
+## ðŸš€ Avvia il Sync
 
 Una volta configurato l'API Key, esegui:
 
 ```powershell
-cd "C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion\Bordero\server"
+cd "C:\\VSC_Live_Server\Bordero\server"
 npm install  # solo prima volta
 node google-sheets-sync.js
 ```
@@ -72,7 +72,7 @@ Questo scarica tutti i dati in CSV:
 - `Bordero/data/dbase.csv`
 ---
 
-## ❓ Problemi?
+## â“ Problemi?
 
 **"API Key non valida"**
 - Verifica di aver copiato l'intera chiave (senza spazi)
@@ -81,7 +81,7 @@ Questo scarica tutti i dati in CSV:
 **"Sheet non trovato"**
 - Verifica che la sheet sia condivisa in lettura
 - Controlla l'ID della sheet (copia il link della Google Sheet, estrai l'ID dalla URL)
-- Se la sheet è pubblicata con "Pubblica sul web", puoi anche usare un URL CSV/TSV pubblico nel file `Bordero/config/.env`
+- Se la sheet Ã¨ pubblicata con "Pubblica sul web", puoi anche usare un URL CSV/TSV pubblico nel file `Bordero/config/.env`
 
 **"Quota superato"**
 - Non dovrebbe accadere con il piano gratuito
@@ -89,8 +89,10 @@ Questo scarica tutti i dati in CSV:
 
 ---
 
-## 📖 Riferimenti
+## ðŸ“– Riferimenti
 
 - [Google Sheets API Docs](https://developers.google.com/sheets/api/guides/values/read)
 - [API Key Setup](https://cloud.google.com/docs/authentication/api-keys)
+
+
 

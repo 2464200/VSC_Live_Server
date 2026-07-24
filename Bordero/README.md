@@ -7,6 +7,9 @@
 Versione: **1.0.0**  
 Stato: **In sviluppo** 🚧
 
+Runtime standard del progetto: `unified-server.js` su `http://localhost:5500`.
+Le procedure su porta `8000` sono da intendersi come anteprima statica locale.
+
 ---
 
 ## 📖 Indice
@@ -119,6 +122,22 @@ npx http-server -c-1
 ```
 
 Poi visita: `http://localhost:8000/Bordero/`
+
+Per il runtime completo del progetto usa invece:
+- `http://localhost:5500/Bordero/pages/bordero.html`
+- `http://localhost:5500/eventi/eventi.html`
+
+## Git (main/develop)
+
+Aggiorna il locale prima delle modifiche:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Riferimento completo: `../GUIDA_GIT_MAIN_DEVELOP.md`.
 
 ---
 

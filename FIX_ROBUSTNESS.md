@@ -1,21 +1,21 @@
-# 🔧 FIX ROBUSTEZZA - Excel Sync Upgrade
+﻿# ðŸ”§ FIX ROBUSTEZZA - Excel Sync Upgrade
 
-> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+> ðŸ“Œ Questa documentazione fa parte della [guida unificata del progetto](README.md).
 
 
-## ✅ Miglioramenti Apportati
+## âœ… Miglioramenti Apportati
 
-Ho reso il sistema **molto più robusto** per gestire file Excel con nomi diversi.
+Ho reso il sistema **molto piÃ¹ robusto** per gestire file Excel con nomi diversi.
 
 ---
 
-## 🚀 Cosa È Cambiato
+## ðŸš€ Cosa Ãˆ Cambiato
 
 ### **Problema Originale:**
 ```javascript
 const sheetName = 'Elenco Brani (statico)';
 if (!workbook.SheetNames.includes(sheetName)) {
-  // Fallisce se il nome è leggermente diverso
+  // Fallisce se il nome Ã¨ leggermente diverso
   return false;
 }
 ```
@@ -43,14 +43,14 @@ if (found) {
 ```
 
 **Vantaggi:**
-✅ Cerca automaticamente il foglio con nomi alternativi
-✅ Se nessun nome corrisponde, usa il primo/secondo/terzo foglio
-✅ Non fallisce se i nomi sono leggermente diversi
-✅ Molto più flessibile
+âœ… Cerca automaticamente il foglio con nomi alternativi
+âœ… Se nessun nome corrisponde, usa il primo/secondo/terzo foglio
+âœ… Non fallisce se i nomi sono leggermente diversi
+âœ… Molto piÃ¹ flessibile
 
 ---
 
-## 📊 Comportamento Nuovo
+## ðŸ“Š Comportamento Nuovo
 
 ### **Scenario 1: Nomi Esatti**
 ```
@@ -59,7 +59,7 @@ File Excel ha:
 - "Comuni Italia"
 - "dBase"
 
-Risultato: ✅ Perfetto! Usa i nomi esatti
+Risultato: âœ… Perfetto! Usa i nomi esatti
 ```
 
 ### **Scenario 2: Nomi Diversi**
@@ -69,7 +69,7 @@ File Excel ha:
 - "Comuni" (non "Comuni Italia")
 - "DJ" (non "dBase")
 
-Risultato: ✅ Riconosce i nomi alternativi e li usa
+Risultato: âœ… Riconosce i nomi alternativi e li usa
 ```
 
 ### **Scenario 3: Nomi Totalmente Diversi**
@@ -79,12 +79,12 @@ File Excel ha:
 - "Sheet2"
 - "Sheet3"
 
-Risultato: ✅ Usa Sheet1 per brani, Sheet2 per comuni, Sheet3 per DJ
+Risultato: âœ… Usa Sheet1 per brani, Sheet2 per comuni, Sheet3 per DJ
 ```
 
 ---
 
-## 🧪 TESTA SUBITO
+## ðŸ§ª TESTA SUBITO
 
 ### **Passo 1: Ricarica il Browser**
 ```
@@ -93,34 +93,34 @@ F5 (reload)
 
 ### **Passo 2: Apri Admin Panel**
 ```
-http://localhost:8000/Bordero/pages/admin.html
+http://localhost:5500/Bordero/pages/admin.html
 ```
 
 ### **Passo 3: Seleziona File Excel**
 ```
-Clicca: "📁 Seleziona File Excel..."
+Clicca: "ðŸ“ Seleziona File Excel..."
 Seleziona il file
 ```
 
 ### **Passo 4: Sincronizza**
 ```
-Clicca: "🔄 Sincronizza Tutto da Excel"
+Clicca: "ðŸ”„ Sincronizza Tutto da Excel"
 ```
 
 ### **Passo 5: Verifica**
 ```
 Apri Console (F12)
 Guarda i log:
-  📖 Cercando foglio: "Elenco Brani (statico)"
-  📋 Fogli disponibili: Sheet1, Sheet2, Sheet3
-  ✅ Trovato foglio alternativo: "Sheet1"
-  📊 Dati letti dal foglio: 120 righe
-  ✅ Sincronizzati 120 brani in cache localStorage
+  ðŸ“– Cercando foglio: "Elenco Brani (statico)"
+  ðŸ“‹ Fogli disponibili: Sheet1, Sheet2, Sheet3
+  âœ… Trovato foglio alternativo: "Sheet1"
+  ðŸ“Š Dati letti dal foglio: 120 righe
+  âœ… Sincronizzati 120 brani in cache localStorage
 ```
 
 ---
 
-## 📋 File Modificati
+## ðŸ“‹ File Modificati
 
 **`Bordero/js/excel-sync.js`** - 3 funzioni aggiornate:
 
@@ -129,47 +129,47 @@ Guarda i log:
 3. **`syncDBase()`** - Ricerca intelligente foglio DJ
 
 **Ogni funzione ora:**
-- ✅ Cerca il nome esatto
-- ✅ Prova nomi alternativi comuni
-- ✅ Usa fallback ai fogli per ordine (0, 1, 2)
-- ✅ Log dettagliato di ogni step
-- ✅ Error handling robusto
+- âœ… Cerca il nome esatto
+- âœ… Prova nomi alternativi comuni
+- âœ… Usa fallback ai fogli per ordine (0, 1, 2)
+- âœ… Log dettagliato di ogni step
+- âœ… Error handling robusto
 
 ---
 
-## 🎯 Risultato Atteso
+## ðŸŽ¯ Risultato Atteso
 
 Dopo il fix, quando clicchi "Sincronizza Tutto":
 
 ```
-✅ Toast verde: "✓ Dati sincronizzati da Excel"
+âœ… Toast verde: "âœ“ Dati sincronizzati da Excel"
 
 Console mostra:
-  ✅ Sincronizzati 120 brani
-  ✅ Sincronizzati 8 comuni
-  ✅ Sincronizzati 5 DJ
+  âœ… Sincronizzati 120 brani
+  âœ… Sincronizzati 8 comuni
+  âœ… Sincronizzati 5 DJ
 
 Data Viewer:
-  ✅ 120 brani cached
-  ✅ 8 comuni cached
-  ✅ 5 DJ cached
+  âœ… 120 brani cached
+  âœ… 8 comuni cached
+  âœ… 5 DJ cached
 
 Bordero.html:
-  ✅ Tabella popolata con 120 brani
-  ✅ Dropdown DJ ha 5 opzioni
-  ✅ Dropdown Location ha 8 opzioni
+  âœ… Tabella popolata con 120 brani
+  âœ… Dropdown DJ ha 5 opzioni
+  âœ… Dropdown Location ha 8 opzioni
 ```
 
 ---
 
-## 🔍 Se Ancora Non Funziona
+## ðŸ” Se Ancora Non Funziona
 
 1. **Apri Console (F12)**
 2. **Esegui questo script:**
 ```javascript
 (async () => {
   if (!excelSync.excelFile) {
-    console.log('❌ File non selezionato');
+    console.log('âŒ File non selezionato');
     return;
   }
   
@@ -189,7 +189,7 @@ Bordero.html:
 
 ---
 
-## 📚 Documentazione Completa
+## ðŸ“š Documentazione Completa
 
 | File | Descrizione |
 |------|-------------|
@@ -199,7 +199,7 @@ Bordero.html:
 
 ---
 
-## ✨ Changelog
+## âœ¨ Changelog
 
 ```
 VERSIONE 2.0 - Robustness Update
@@ -219,7 +219,7 @@ VERSIONE 2.0 - Robustness Update
 
 ---
 
-## 🎁 Bonus
+## ðŸŽ Bonus
 
 ### **Varianti Nomi Supportate:**
 
@@ -251,17 +251,19 @@ VERSIONE 2.0 - Robustness Update
 
 ---
 
-## ✅ Status
+## âœ… Status
 
 ```
-✅ Fix completato
-✅ Robusto per nomi diversi
-✅ Backward compatible
-✅ Production ready
-✅ Pronto per il test
+âœ… Fix completato
+âœ… Robusto per nomi diversi
+âœ… Backward compatible
+âœ… Production ready
+âœ… Pronto per il test
 ```
 
 ---
 
-**TESTA SUBITO:** http://localhost:8000/Bordero/pages/admin.html 🚀
+**TESTA SUBITO:** http://localhost:5500/Bordero/pages/admin.html ðŸš€
+
+
 

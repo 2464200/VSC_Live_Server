@@ -32,6 +32,22 @@ git checkout develop
 git pull
 ```
 
+## 2.1) Differenza pratica tra fetch e pull
+
+- `git fetch --all --prune` aggiorna solo i riferimenti remoti (`origin/main`, `origin/develop`) senza toccare i file locali.
+- `git pull origin <branch>` aggiorna davvero il branch locale, integrando i commit remoti.
+
+Uso consigliato:
+
+```powershell
+# Prima guarda cosa e' cambiato lato remoto
+git fetch --all --prune
+
+# Poi allinea il branch su cui vuoi lavorare
+git checkout develop
+git pull origin develop
+```
+
 ## 3) Inizio nuova attivita'
 
 Crea un branch dedicato partendo da develop:
@@ -62,6 +78,11 @@ Push del branch feature:
 ```powershell
 git push -u origin feature/nome-attivita
 ```
+
+Significato operativo dei comandi:
+- `git add -A`: prepara nuove modifiche, cancellazioni e rinomini.
+- `git commit -m "..."`: salva uno snapshot locale tracciato.
+- `git push`: pubblica i commit locali sul remoto.
 
 ## 5) Test prima della promozione
 
@@ -101,6 +122,13 @@ git merge --no-ff feature/nome-attivita
 git push
 ```
 
+Se vuoi prima verificare la distanza tra locale e remoto:
+
+```powershell
+git fetch --all --prune
+git status
+```
+
 Poi puoi eliminare il branch feature:
 
 ```powershell
@@ -124,6 +152,16 @@ git checkout main
 git pull
 git merge --no-ff develop
 git push
+```
+
+Allineamento locale completo prima della promozione:
+
+```powershell
+git fetch --all --prune
+git checkout main
+git pull origin main
+git checkout develop
+git pull origin develop
 ```
 
 ## 8) Protezione di main su GitHub (fortemente consigliata)

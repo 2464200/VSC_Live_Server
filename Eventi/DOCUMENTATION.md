@@ -15,6 +15,9 @@ Indice della Documentazione:
 ## Operazioni
 - [Documentazione Operativa](DOCUMENTATION_OPERATIONS.md)
 
+## Git e versionamento
+- [Guida Git main/develop](../GUIDA_GIT_MAIN_DEVELOP.md)
+
 ## Gestione DJ e Sicurezza
 - [Documentazione Amministrativa](DOCUMENTATION_ADMIN.md)
 

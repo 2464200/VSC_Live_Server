@@ -4,6 +4,21 @@
 
 # Workflow Automatico - Aggiornamento Report Dati
 
+## Stato corrente del progetto
+
+Il flusso standard del repository usa `unified-server.js` su `http://localhost:5500`.
+Le note su server separati o porte diverse sono solo storiche.
+
+## Aggiornamento Git consigliato prima delle operazioni
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Per la procedura dettagliata su `git add`, `git commit`, `git push`, `git pull`, `git merge`, `git fetch` e promozione `develop -> main`, usa `GUIDA_GIT_MAIN_DEVELOP.md`.
+
 ## ðŸ“‹ Descrizione
 
 Questo sistema aggiorna automaticamente i dati del report statistico (`border_data.json`) leggendo i dati da Excel ogni N minuti.

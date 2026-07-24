@@ -2,14 +2,51 @@
 
 > 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
 
+## Stato corrente del runtime
+
+Dal 13 Apr 2026 il percorso standard del progetto e' `unified-server.js` su `http://localhost:5500`.
+Le procedure su porta `8000` restano utili solo come anteprima statica locale di Bordero.
+
+## Prima di iniziare: aggiornamento Git
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Per il flusso completo con `main` e `develop` (add, commit, push, pull, merge, fetch): `GUIDA_GIT_MAIN_DEVELOP.md`.
+
 
 ## ⚡ Come Avviare il Progetto
 
-### **OPZIONE 1: Python (Consigliato - Più Rapido)**
+### **OPZIONE 1: Runtime standard (consigliato)**
+
+**Passo 1:** Apri PowerShell nella root progetto
+
+```powershell
+cd C:\VSC_Live_Server
+```
+
+**Passo 2:** Avvia il server unificato
+
+```powershell
+node unified-server.js
+```
+
+**Passo 3:** Apri il browser
+
+```text
+http://localhost:5500/Bordero/pages/bordero.html
+```
+
+---
+
+### **OPZIONE 2: Python (solo anteprima statica Bordero)**
 
 **Passo 1:** Apri PowerShell nella cartella del progetto
 ```powershell
-cd C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion
+cd C:\VSC_Live_Server
 ```
 
 **Passo 2:** Avvia il server Python
@@ -29,11 +66,11 @@ http://localhost:8000/Bordero/
 
 ---
 
-### **OPZIONE 2: Node.js (Se hai Node.js installato)**
+### **OPZIONE 3: Node.js statico (solo anteprima Bordero)**
 
 **Passo 1:** Apri PowerShell nella cartella del progetto
 ```powershell
-cd C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion
+cd C:\VSC_Live_Server
 ```
 
 **Passo 2:** Installa http-server globalmente (prima volta solo)
@@ -53,7 +90,7 @@ http://localhost:8000/Bordero/
 
 ---
 
-### **OPZIONE 3: Live Server VS Code (Se usi VS Code)**
+### **OPZIONE 4: Live Server VS Code (solo anteprima statica)**
 
 **Passo 1:** Installa estensione "Live Server" (di Ritwick Dey)
 - Apri VS Code Extensions (Ctrl+Shift+X)
@@ -68,17 +105,18 @@ http://localhost:8000/Bordero/
 
 ## 🌐 Quali URL Usare
 
-Dopo aver avviato il server, usa questi URL:
+Dopo aver avviato il runtime standard, usa questi URL:
 
 | Pagina | URL | Descrizione |
 |--------|-----|-------------|
-| **🏠 Home** | http://localhost:8000/Bordero/ | Pagina principale |
-| **📋 Bordero (PRINCIPALE)** | http://localhost:8000/Bordero/pages/bordero.html | Tabella gestione brani |
-| **🎬 NextCoreo** | http://localhost:8000/Bordero/pages/next-coreo.html | Fullscreen prossima canzone |
-| **📺 Monitor** | http://localhost:8000/Bordero/pages/display.html | Monitor secondario (per secondo schermo) |
-| **📊 Lista Serata** | http://localhost:8000/Bordero/pages/lista-serata.html | Report brani eseguiti |
-| **📈 Risultati** | http://localhost:8000/Bordero/pages/risultati.html | Statistiche finali |
-| **🎥 VideoClip** | http://localhost:8000/Bordero/pages/videoclip.html | Video player coreografie |
+| **🏠 Home** | http://localhost:5500/index.html | Portale principale |
+| **📋 Bordero (PRINCIPALE)** | http://localhost:5500/Bordero/pages/bordero.html | Tabella gestione brani |
+| **🎬 NextCoreo** | http://localhost:5500/Bordero/pages/next-coreo.html | Fullscreen prossima canzone |
+| **📺 Monitor** | http://localhost:5500/Bordero/pages/display.html | Monitor secondario (per secondo schermo) |
+| **📊 Lista Serata** | http://localhost:5500/Bordero/pages/lista-serata.html | Report brani eseguiti |
+| **📈 Risultati** | http://localhost:5500/Bordero/pages/risultati.html | Statistiche finali |
+| **🎥 VideoClip** | http://localhost:5500/Bordero/pages/videoclip.html | Video player coreografie |
+| **🎧 Eventi** | http://localhost:5500/eventi/eventi.html | Modulo prenotazioni DJ |
 
 ---
 
@@ -160,7 +198,7 @@ Una volta aperto **bordero.html**:
 ## 🎯 Flusso di Utilizzo Standard
 
 ```
-1. Apri http://localhost:8000/Bordero/pages/bordero.html
+1. Apri http://localhost:5500/Bordero/pages/bordero.html
    ↓
 2. Seleziona DJ e Location dai dropdown
    ↓
@@ -168,10 +206,10 @@ Una volta aperto **bordero.html**:
    ↓
 4. Click su brano per marcare come "Eseguito"
    ↓
-5. Apri http://localhost:8000/Bordero/pages/next-coreo.html su SECONDO MONITOR
+5. Apri http://localhost:5500/Bordero/pages/next-coreo.html su SECONDO MONITOR
    (mostra prossimo brano in tempo reale)
    ↓
-6. Apri http://localhost:8000/Bordero/pages/display.html su MONITOR SECONDARIO
+6. Apri http://localhost:5500/Bordero/pages/display.html su MONITOR SECONDARIO
    (tabella live per DJ)
    ↓
 7. Quando finito: click "FINISCI SERATA" → vai a lista-serata.html per report
@@ -218,7 +256,7 @@ Bordero/
 ## 🎉 Pronto!
 
 ✅ Segui una delle opzioni di avvio sopra  
-✅ Apri http://localhost:8000/Bordero/  
+✅ Apri http://localhost:5500/Bordero/pages/bordero.html  
 ✅ Inizia a usare il progetto!
 
 Se qualcosa non funziona, controlla la console (F12) per errori specifici.

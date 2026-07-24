@@ -38,6 +38,29 @@ Quando chiudi il progetto:
 node test-system.js
 ```
 
+## Git operativo (main/develop)
+
+Prima di avviare o distribuire modifiche locali:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Commit e pubblicazione:
+
+```powershell
+git add -A
+git commit -m "chore: aggiorna automazione/documentazione"
+git push
+```
+
+Promozione in produzione:
+- `feature/*` -> `develop`
+- `develop` -> `main` dopo test e review
+- guida completa: `GUIDA_GIT_MAIN_DEVELOP.md`
+
 ## Troubleshooting
 ### Se il sistema non parte
 - verifica Node.js con `node --version`

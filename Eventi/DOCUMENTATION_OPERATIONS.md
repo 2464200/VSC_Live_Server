@@ -46,6 +46,26 @@ Avvio consigliato:
 - Sincronizza brani: `node Eventi/sync-brani.js`
 - Se la pagina non aggiorna, prova a ricaricare il browser o a riavviare il server.
 
+## Workflow Git operativo
+
+Prima di modifiche operative in ambiente locale:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Per pubblicare:
+
+```powershell
+git add -A
+git commit -m "docs: aggiornamento documentazione operativa eventi"
+git push
+```
+
+Promozione release consigliata: `develop` verso `main` via Pull Request.
+
 ## Sezioni correlate
 - [Gestione DJ e Sicurezza](DOCUMENTATION_ADMIN.md)
 - [Architettura e API](DOCUMENTATION_DEVELOPMENT.md)

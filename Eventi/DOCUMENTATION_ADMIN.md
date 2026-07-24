@@ -31,6 +31,12 @@ Indice:
 - Valore attuale: `window.SYSTEM_PASSWORD = '0000'`.
 - Questa impostazione garantisce che tutte le pagine del modulo Eventi usino la stessa password condivisa.
 
+## Nota runtime e Git
+
+- Runtime standard progetto: `http://localhost:5500` con `unified-server.js`.
+- Prima di modifiche amministrative: `git fetch --all --prune`, poi `git checkout develop` e `git pull origin develop`.
+- Guida completa: `../GUIDA_GIT_MAIN_DEVELOP.md`.
+
 ## Sezioni correlate
 - [Operazioni quotidiane](DOCUMENTATION_OPERATIONS.md)
 - [Architettura e API](DOCUMENTATION_DEVELOPMENT.md)

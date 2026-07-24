@@ -85,6 +85,40 @@ Se vuoi usare Live Server per anteprime veloci:
 - `http://localhost:5500/eventi/api/ping` deve rispondere con `200`
 - se Live Server viene avviato, deve ascoltare su `5501`
 
+## Workflow Git (main/develop)
+
+Per la procedura completa usa `GUIDA_GIT_MAIN_DEVELOP.md`.
+
+### Aggiornare la copia locale dal remoto
+
+```powershell
+# Aggiorna i riferimenti remoti senza modificare il working tree
+git fetch --all --prune
+
+# Allinea develop locale
+git checkout develop
+git pull origin develop
+
+# Allinea main locale
+git checkout main
+git pull origin main
+```
+
+### Sequenza standard add, commit e push
+
+```powershell
+git status
+git add -A
+git commit -m "feat: descrizione modifica"
+git push
+```
+
+### Merge consigliato
+
+- `feature/*` -> `develop` dopo test
+- `develop` -> `main` preferibilmente via Pull Request
+
+
 ## Comandi PowerShell consigliati
 
 Apri PowerShell in `c:\VSC_Live_Server` e usa:

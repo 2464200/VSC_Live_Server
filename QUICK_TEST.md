@@ -9,7 +9,7 @@
 
 1. **Apri Admin Panel:**
    ```
-   http://localhost:8000/Bordero/pages/admin.html
+   http://localhost:5500/Bordero/pages/admin.html
    ```
 
 2. **Verifica System Status:**
@@ -21,7 +21,7 @@
 3. **Seleziona File Excel:**
    - Clicca: **"📁 Seleziona File Excel..."**
    - Finestra di dialogo file si apre
-   - Naviga a: `C:\VSC_Live_Server - WEB\Excel\`
+   - Naviga a: `C:\VSC_Live_Server\Excel\`
    - Seleziona: `Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm`
    - Clicca: **"Apri"**
 
@@ -45,7 +45,7 @@
 
 1. **Apri Bordero:**
    ```
-   http://localhost:8000/Bordero/pages/bordero.html
+   http://localhost:5500/Bordero/pages/bordero.html
    ```
 
 2. **Verifica Caricamento Dati:**
@@ -81,7 +81,7 @@
 
 1. **Apri NextCoreo:**
    ```
-   http://localhost:8000/Bordero/pages/next-coreo.html
+   http://localhost:5500/Bordero/pages/next-coreo.html
    ```
 
 2. **Verifica Fullscreen:**
@@ -140,6 +140,16 @@
    - Brani: 20+ (numero effettivo da Excel)
    - Comuni: 7+ (numero effettivo da Excel)
    - DJ: 3+ (numero effettivo da Excel)
+
+## Git rapido prima dei test
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Per merge e promozione verso `main`: `GUIDA_GIT_MAIN_DEVELOP.md`.
 
 ---
 

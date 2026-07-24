@@ -1,53 +1,52 @@
-# 🎭 BORDERÒ - DJ Manager Web Application
+﻿# ðŸŽ­ BORDERÃ’ - DJ Manager Web Application
 
-> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+> ðŸ“Œ Questa documentazione fa parte della [guida unificata del progetto](README.md).
 
 
-**Status:** ✅ **PRODUCTION READY**  
+**Status:** âœ… **PRODUCTION READY**  
 **Version:** 1.0.0  
 **Last Updated:** 2026-06-18  
 **Created:** 2026-04-25
 
 ---
 
-## 📋 Overview
+## ðŸ“‹ Overview
 
-BORDERÒ è una web application completa per la gestione di brani e coreografie per DJ. Convertita da Excel a HTML/CSS/JavaScript con sincronizzazione automatica da fogli Excel.
+BORDERÃ’ Ã¨ una web application completa per la gestione di brani e coreografie per DJ. Convertita da Excel a HTML/CSS/JavaScript con sincronizzazione automatica da fogli Excel.
 
-**Funzionalità Principali:**
-- 📊 Tabella gestione brani con sort, filter, search
-- ✅ Mark brani come eseguiti
-- 📺 Monitor secondario per DJ
-- 🎬 Display fullscreen prossimo brano
-- 📈 Statistiche e report finale
-- 🎥 Video player per coreografie
-- 🔄 Sincronizzazione automatica da Excel
-- 💾 Auto-save su localStorage
+**FunzionalitÃ  Principali:**
+- ðŸ“Š Tabella gestione brani con sort, filter, search
+- âœ… Mark brani come eseguiti
+- ðŸ“º Monitor secondario per DJ
+- ðŸŽ¬ Display fullscreen prossimo brano
+- ðŸ“ˆ Statistiche e report finale
+- ðŸŽ¥ Video player per coreografie
+- ðŸ”„ Sincronizzazione automatica da Excel
+- ðŸ’¾ Auto-save su localStorage
 
 ---
 
-## 🚀 Quick Start
+## ðŸš€ Quick Start
 
 ### **Opzione 1: PowerShell Script (Consigliato)**
 
 ```powershell
-cd C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion
-.\start-server.ps1
+cd C:\VSC_Live_Server
+node unified-server.js
 ```
 
 Questo:
-- ✅ Avvia il server HTTP sulla porta 8000
-- ✅ Apre automaticamente il browser
-- ✅ Mostra URL di accesso rapido
+- âœ… Avvia il runtime completo del progetto su porta 5500
+- âœ… Espone Bordero ed Eventi con URL coerenti
 
 ### **Opzione 2: Manuale con Python**
 
 ```powershell
-cd C:\VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion
+cd C:\VSC_Live_Server
 python -m http.server 8000
 ```
 
-Poi apri: `http://localhost:8000/Bordero/`
+Poi apri: `http://localhost:5500/Bordero/`
 
 ### **Opzione 3: VS Code Live Server**
 
@@ -57,79 +56,79 @@ Poi apri: `http://localhost:8000/Bordero/`
 
 ---
 
-## 🌐 URL Principali
+## ðŸŒ URL Principali
 
 | Pagina | URL | Descrizione |
 |--------|-----|-------------|
-| 🏠 **Home** | `http://localhost:8000/Bordero/` | Pagina iniziale con statistiche |
-| 📋 **Bordero (PRINCIPALE)** | `http://localhost:8000/Bordero/pages/bordero.html` | Tabella gestione brani - USE THIS |
-| 🎬 **NextCoreo** | `http://localhost:8000/Bordero/pages/next-coreo.html` | Fullscreen prossima canzone |
-| 📺 **Monitor** | `http://localhost:8000/Bordero/pages/display.html` | Monitor secondario (live) |
-| 📊 **Lista Serata** | `http://localhost:8000/Bordero/pages/lista-serata.html` | Report esecuzioni |
-| 📈 **Risultati** | `http://localhost:8000/Bordero/pages/risultati.html` | Statistiche finali |
-| 🎥 **VideoClip** | `http://localhost:8000/Bordero/pages/videoclip.html` | Video manager |
-| ⚙️ **Admin** | `http://localhost:8000/Bordero/pages/admin.html` | Testing & debug |
+| ðŸ  **Home** | `http://localhost:5500/index.html` | Portale principale |
+| ðŸ“‹ **Bordero (PRINCIPALE)** | `http://localhost:5500/Bordero/pages/bordero.html` | Tabella gestione brani - USE THIS |
+| ðŸŽ¬ **NextCoreo** | `http://localhost:5500/Bordero/pages/next-coreo.html` | Fullscreen prossima canzone |
+| ðŸ“º **Monitor** | `http://localhost:5500/Bordero/pages/display.html` | Monitor secondario (live) |
+| ðŸ“Š **Lista Serata** | `http://localhost:5500/Bordero/pages/lista-serata.html` | Report esecuzioni |
+| ðŸ“ˆ **Risultati** | `http://localhost:5500/Bordero/pages/risultati.html` | Statistiche finali |
+| ðŸŽ¥ **VideoClip** | `http://localhost:5500/Bordero/pages/videoclip.html` | Video manager |
+| âš™ï¸ **Admin** | `http://localhost:5500/Bordero/pages/admin.html` | Testing & debug |
 
 ---
 
-## 📁 Struttura del Progetto
+## ðŸ“ Struttura del Progetto
 
 ```
 Bordero/
-├── index.html                          # Home page
-├── pages/
-│   ├── bordero.html                   # MAIN TABLE
-│   ├── bordero.js                     # Logic (14.2 KB)
-│   ├── bordero.css                    # Styles
-│   ├── next-coreo.html                # Fullscreen display
-│   ├── next-coreo.js                  # (6.7 KB)
-│   ├── next-coreo.css
-│   ├── display.html                   # Monitor secondario
-│   ├── display.js                     # (4.4 KB)
-│   ├── display.css
-│   ├── lista-serata.html              # Report
-│   ├── lista-serata.js                # (4.3 KB)
-│   ├── lista-serata.css
-│   ├── risultati.html                 # Statistics
-│   ├── risultati.js                   # (5.8 KB)
-│   ├── risultati.css
-│   ├── videoclip.html                 # Video manager
-│   ├── videoclip.js                   # (6.0 KB)
-│   ├── videoclip.css
-│   ├── admin.html                     # Admin panel
-│   ├── admin.js                       # (10.3 KB)
-│   └── admin.css
-├── js/
-│   ├── config.js                      # Configuration
-│   ├── utils.js                       # Utilities
-│   ├── excel-sync.js                  # Excel syncing
-│   └── data-loader.js                 # Data management
-├── assets/
-│   └── css/
-│       ├── style.css                  # Base styles
-│       ├── bordero.css                # Overrides
-│       └── responsive.css
-├── data/
-│   ├── brani.csv                      # Songs (from Excel)
-│   ├── dBase.csv                      # DJ list (from Excel)
-│   └── comuni_italia.csv              # Locations (from Excel)
-└── Excel/
-    └── Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm
+â”œâ”€â”€ index.html                          # Home page
+â”œâ”€â”€ pages/
+â”‚   â”œâ”€â”€ bordero.html                   # MAIN TABLE
+â”‚   â”œâ”€â”€ bordero.js                     # Logic (14.2 KB)
+â”‚   â”œâ”€â”€ bordero.css                    # Styles
+â”‚   â”œâ”€â”€ next-coreo.html                # Fullscreen display
+â”‚   â”œâ”€â”€ next-coreo.js                  # (6.7 KB)
+â”‚   â”œâ”€â”€ next-coreo.css
+â”‚   â”œâ”€â”€ display.html                   # Monitor secondario
+â”‚   â”œâ”€â”€ display.js                     # (4.4 KB)
+â”‚   â”œâ”€â”€ display.css
+â”‚   â”œâ”€â”€ lista-serata.html              # Report
+â”‚   â”œâ”€â”€ lista-serata.js                # (4.3 KB)
+â”‚   â”œâ”€â”€ lista-serata.css
+â”‚   â”œâ”€â”€ risultati.html                 # Statistics
+â”‚   â”œâ”€â”€ risultati.js                   # (5.8 KB)
+â”‚   â”œâ”€â”€ risultati.css
+â”‚   â”œâ”€â”€ videoclip.html                 # Video manager
+â”‚   â”œâ”€â”€ videoclip.js                   # (6.0 KB)
+â”‚   â”œâ”€â”€ videoclip.css
+â”‚   â”œâ”€â”€ admin.html                     # Admin panel
+â”‚   â”œâ”€â”€ admin.js                       # (10.3 KB)
+â”‚   â””â”€â”€ admin.css
+â”œâ”€â”€ js/
+â”‚   â”œâ”€â”€ config.js                      # Configuration
+â”‚   â”œâ”€â”€ utils.js                       # Utilities
+â”‚   â”œâ”€â”€ excel-sync.js                  # Excel syncing
+â”‚   â””â”€â”€ data-loader.js                 # Data management
+â”œâ”€â”€ assets/
+â”‚   â””â”€â”€ css/
+â”‚       â”œâ”€â”€ style.css                  # Base styles
+â”‚       â”œâ”€â”€ bordero.css                # Overrides
+â”‚       â””â”€â”€ responsive.css
+â”œâ”€â”€ data/
+â”‚   â”œâ”€â”€ brani.csv                      # Songs (from Excel)
+â”‚   â”œâ”€â”€ dBase.csv                      # DJ list (from Excel)
+â”‚   â””â”€â”€ comuni_italia.csv              # Locations (from Excel)
+â””â”€â”€ Excel/
+    â””â”€â”€ BorderÃ² - ver 13.1.69_con AutoHotkey da sistemare.xlsm
 ```
 
 ---
 
-## 🔄 Excel Synchronization
+## ðŸ”„ Excel Synchronization
 
 ### **Automatic Sync al Caricamento**
 
 All'avvio di `bordero.html`, il sistema:
 
-1. **Carica il file Excel** da: `./Excel/Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm`
+1. **Carica il file Excel** da: `./Excel/BorderÃ² - ver 13.1.69_con AutoHotkey da sistemare.xlsm`
 2. **Legge i tre fogli:**
-   - 📄 **"Elenco Brani (statico)"** → `brani.csv`
-   - 📄 **"Comuni Italia"** → `comuni_italia.csv`
-   - 📄 **"dBase"** → `dBase.csv`
+   - ðŸ“„ **"Elenco Brani (statico)"** â†’ `brani.csv`
+   - ðŸ“„ **"Comuni Italia"** â†’ `comuni_italia.csv`
+   - ðŸ“„ **"dBase"** â†’ `dBase.csv`
 3. **Sincronizza in cache** (localStorage)
 4. **Mostra i dati** nel browser
 
@@ -143,16 +142,16 @@ Usa [XLSX.js](https://github.com/SheetJS/sheetjs) per leggere file Excel diretta
 
 ### **Admin Panel per Manual Sync**
 
-Vai a: `http://localhost:8000/Bordero/pages/admin.html`
+Vai a: `http://localhost:5500/Bordero/pages/admin.html`
 
-- 🔄 Sincronizza singoli fogli
-- 💾 Export/Import dati
-- 🗑️ Clear cache
-- 🖥️ Test console
+- ðŸ”„ Sincronizza singoli fogli
+- ðŸ’¾ Export/Import dati
+- ðŸ—‘ï¸ Clear cache
+- ðŸ–¥ï¸ Test console
 
 ---
 
-## 💾 Data Persistence
+## ðŸ’¾ Data Persistence
 
 ### **localStorage Keys**
 
@@ -174,59 +173,71 @@ BORDERO_LAST_EXCEL_SYNC         // Last sync timestamp
 
 ---
 
-## 🎯 Workflow Tipico
+## ðŸŽ¯ Workflow Tipico
 
 ```
-1. Apri http://localhost:8000/Bordero/pages/bordero.html
-   ↓
+1. Apri http://localhost:5500/Bordero/pages/bordero.html
+   â†“
 2. Seleziona DJ da dropdown
-   ↓
+   â†“
 3. Seleziona Location da dropdown
-   ↓
+   â†“
 4. Ricerca brani con search box
-   ↓
+   â†“
 5. Click su brano per marcare come "Eseguito"
-   → La riga grays, X appare, timestamp aggiunto
-   → Brano scivola in fondo
-   ↓
-6. Apri http://localhost:8000/Bordero/pages/next-coreo.html su MONITOR SECONDARIO
-   → Mostra prossimo brano in fullscreen
-   ↓
-7. Apri http://localhost:8000/Bordero/pages/display.html su MONITOR ESTERNO
-   → Live table per DJ con aggiornamenti ogni 1 secondo
-   ↓
+   â†’ La riga grays, X appare, timestamp aggiunto
+   â†’ Brano scivola in fondo
+   â†“
+6. Apri http://localhost:5500/Bordero/pages/next-coreo.html su MONITOR SECONDARIO
+   â†’ Mostra prossimo brano in fullscreen
+   â†“
+7. Apri http://localhost:5500/Bordero/pages/display.html su MONITOR ESTERNO
+   â†’ Live table per DJ con aggiornamenti ogni 1 secondo
+   â†“
 8. Quando finito: Click "FINISCI SERATA"
-   → Vai a lista-serata.html per report dettagliato
-   ↓
-9. Vedi statistiche su http://localhost:8000/Bordero/pages/risultati.html
-   → Generi suonati, difficoltà, top coreografi, %completamento
+   â†’ Vai a lista-serata.html per report dettagliato
+   â†“
+9. Vedi statistiche su http://localhost:5500/Bordero/pages/risultati.html
+   â†’ Generi suonati, difficoltÃ , top coreografi, %completamento
 ```
 
 ---
 
-## 🧪 Testing
+## ðŸ§ª Testing
 
 ### **Admin Panel (Recommended)**
 
-1. Apri: `http://localhost:8000/Bordero/pages/admin.html`
+1. Apri: `http://localhost:5500/Bordero/pages/admin.html`
 2. Verifica:
-   - ✅ System status
-   - ✅ Data sync status
-   - ✅ Cache contents
-   - ✅ Export/Import
+   - âœ… System status
+   - âœ… Data sync status
+   - âœ… Cache contents
+   - âœ… Export/Import
 
 ### **Browser DevTools**
 
-- **F12** → Console → Vedi logs
-- **F12** → Application → localStorage → Vedi cache keys
-- **F12** → Network → Verifica caricamento Excel
+- **F12** â†’ Console â†’ Vedi logs
+- **F12** â†’ Application â†’ localStorage â†’ Vedi cache keys
+- **F12** â†’ Network â†’ Verifica caricamento Excel
+
+## Git (main/develop)
+
+Prima di lavorare su documentazione o codice:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Guida completa: `GUIDA_GIT_MAIN_DEVELOP.md`.
 
 ### **Manual Test Checklist**
 
 - [ ] Bordero: Tabella carica 20+ brani
 - [ ] Bordero: DJ dropdown ha 3 opzioni
 - [ ] Bordero: Location dropdown ha 7 opzioni
-- [ ] Bordero: Mark brano → X appare, timestamp added
+- [ ] Bordero: Mark brano â†’ X appare, timestamp added
 - [ ] Bordero: Row scivola in fondo
 - [ ] Bordero: Sort per ID, GENERE, AUTORE funziona
 - [ ] Bordero: Filter funziona
@@ -241,7 +252,7 @@ BORDERO_LAST_EXCEL_SYNC         // Last sync timestamp
 
 ---
 
-## 🔧 Configuration
+## ðŸ”§ Configuration
 
 ### **Config File: `js/config.js`**
 
@@ -265,12 +276,12 @@ Modifica questo file per:
 
 ---
 
-## 🐛 Troubleshooting
+## ðŸ› Troubleshooting
 
 ### **Tabella Vuota**
 **Causa:** CSV non caricato  
 **Soluzione:**
-- Controlla F12 → Console per errori
+- Controlla F12 â†’ Console per errori
 - Verifica che `./data/brani.csv` esista
 - Prova sync manuale da admin panel
 
@@ -285,10 +296,10 @@ Modifica questo file per:
 **Causa:** File Excel non trovato o non accessibile  
 **Soluzione:**
 - Verifica file esiste in `./Excel/`
-- Controlla nome file esatto: `Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm`
+- Controlla nome file esatto: `BorderÃ² - ver 13.1.69_con AutoHotkey da sistemare.xlsm`
 - Se offline: fallback a CSV locale (OK)
 
-### **Port 8000 Già in Uso**
+### **Port 8000 GiÃ  in Uso**
 **Causa:** Altro processo usa porta 8000  
 **Soluzione:**
 ```powershell
@@ -306,29 +317,29 @@ python -m http.server 8001
 
 ---
 
-## 📊 Features
+## ðŸ“Š Features
 
 | Feature | Status | Note |
 |---------|--------|------|
-| CSV Data Loading | ✅ | Cached in localStorage |
-| Excel Sync | ✅ | Automatic on page load |
-| Sort | ✅ | ID, GENERE, AUTORE |
-| Filter | ✅ | Per colonna |
-| Search | ✅ | Full-text search |
-| Mark Complete | ✅ | X flag + timestamp |
-| Auto-save | ✅ | Every mark |
-| Export SIAE | ✅ | CSV format |
-| Serata Archive | ✅ | History with timestamp |
-| Fullscreen Display | ✅ | NextCoreo + videoclip |
-| Monitor Sync | ✅ | 1sec refresh |
-| Report Generation | ✅ | Lista-serata + risultati |
-| Statistics | ✅ | Generi, difficoltà, coreografi |
-| Admin Panel | ✅ | Debug, sync, export/import |
-| Responsive Design | ✅ | Mobile/tablet friendly |
+| CSV Data Loading | âœ… | Cached in localStorage |
+| Excel Sync | âœ… | Automatic on page load |
+| Sort | âœ… | ID, GENERE, AUTORE |
+| Filter | âœ… | Per colonna |
+| Search | âœ… | Full-text search |
+| Mark Complete | âœ… | X flag + timestamp |
+| Auto-save | âœ… | Every mark |
+| Export SIAE | âœ… | CSV format |
+| Serata Archive | âœ… | History with timestamp |
+| Fullscreen Display | âœ… | NextCoreo + videoclip |
+| Monitor Sync | âœ… | 1sec refresh |
+| Report Generation | âœ… | Lista-serata + risultati |
+| Statistics | âœ… | Generi, difficoltÃ , coreografi |
+| Admin Panel | âœ… | Debug, sync, export/import |
+| Responsive Design | âœ… | Mobile/tablet friendly |
 
 ---
 
-## 📝 File Statistics
+## ðŸ“ File Statistics
 
 **Total Codebase: ~110 KB**
 
@@ -341,11 +352,11 @@ python -m http.server 8001
 
 ---
 
-## 🤝 Integration Points
+## ðŸ¤ Integration Points
 
 ### **Excel File Location**
 ```
-Excel/Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm
+Excel/BorderÃ² - ver 13.1.69_con AutoHotkey da sistemare.xlsm
 ```
 
 ### **Sheet Names (Exact Match)**
@@ -360,7 +371,7 @@ Excel/Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm
 
 ---
 
-## 🔐 Security Notes
+## ðŸ” Security Notes
 
 - **No Backend Required:** Client-side only
 - **No External API:** Except XLSX CDN (optional)
@@ -370,7 +381,7 @@ Excel/Borderò - ver 13.1.69_con AutoHotkey da sistemare.xlsm
 
 ---
 
-## 📦 Deployment
+## ðŸ“¦ Deployment
 
 ### **Firebase Hosting**
 
@@ -392,11 +403,11 @@ Upload `Bordero/` folder to any web server:
 
 ---
 
-## 📞 Support
+## ðŸ“ž Support
 
 ### **Debug Console**
 
-Apri F12 → Console, digita:
+Apri F12 â†’ Console, digita:
 ```javascript
 // View all localStorage
 Object.keys(localStorage)
@@ -415,7 +426,7 @@ excelSync.syncFromExcel()
 
 ### **Admin Panel**
 
-`http://localhost:8000/Bordero/pages/admin.html`
+`http://localhost:5500/Bordero/pages/admin.html`
 - Full system diagnostics
 - Manual sync
 - Export/import data
@@ -424,27 +435,29 @@ excelSync.syncFromExcel()
 
 ---
 
-## 🎉 Conclusion
+## ðŸŽ‰ Conclusion
 
-BORDERÒ è una web application completa, fully functional, pronta per la produzione.
+BORDERÃ’ Ã¨ una web application completa, fully functional, pronta per la produzione.
 
 **Caratteristiche:**
-- ✅ Sincronizzazione automatica da Excel
-- ✅ Interfaccia intuitiva e responsive
-- ✅ Data persistence con localStorage
-- ✅ Real-time multi-screen sync
-- ✅ Comprehensive reporting
-- ✅ Admin panel per debugging
+- âœ… Sincronizzazione automatica da Excel
+- âœ… Interfaccia intuitiva e responsive
+- âœ… Data persistence con localStorage
+- âœ… Real-time multi-screen sync
+- âœ… Comprehensive reporting
+- âœ… Admin panel per debugging
 
 **Pronto a:**
-- 🚀 Avviarsi subito
-- 🧪 Essere testato
-- 📦 Essere deployato
-- 🔄 Essere esteso
+- ðŸš€ Avviarsi subito
+- ðŸ§ª Essere testato
+- ðŸ“¦ Essere deployato
+- ðŸ”„ Essere esteso
 
 ---
 
 **Version:** 1.0.0  
-**Status:** ✅ Production Ready  
+**Status:** âœ… Production Ready  
 **Date:** 2026-06-18
+
+
 

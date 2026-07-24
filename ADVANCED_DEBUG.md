@@ -1,9 +1,9 @@
-# 🔍 ADVANCED DEBUG - Excel Sync Failure
+﻿# ðŸ” ADVANCED DEBUG - Excel Sync Failure
 
-> 📌 Questa documentazione fa parte della [guida unificata del progetto](README.md).
+> ðŸ“Œ Questa documentazione fa parte della [guida unificata del progetto](README.md).
 
 
-## ⚠️ Se i Dati Non Vengono Caricati
+## âš ï¸ Se i Dati Non Vengono Caricati
 
 Segui questi step per trovare il problema.
 
@@ -11,9 +11,9 @@ Segui questi step per trovare il problema.
 
 ## **STEP 1: Apri Console e Verifica Librerie**
 
-Apri: http://localhost:8000/Bordero/pages/admin.html
+Apri: http://localhost:5500/Bordero/pages/admin.html
 
-Premi: **F12** → **Console**
+Premi: **F12** â†’ **Console**
 
 Incolla questo:
 ```javascript
@@ -31,7 +31,7 @@ console.log('excelFileManager caricato?', typeof excelFileManager);
 ## **STEP 2: Seleziona il File e Verifica**
 
 In admin.html:
-1. Clicca: **"📁 Seleziona File Excel..."**
+1. Clicca: **"ðŸ“ Seleziona File Excel..."**
 2. Seleziona il file
 
 Poi in console incolla:
@@ -43,7 +43,7 @@ console.log('File size:', excelSync.excelFile?.size || 'NESSUNO');
 ```
 
 **Aspetta:** Dovrebbe mostrare il nome del file.
-**Se "NESSUNO":** Il file non è stato selezionato correttamente.
+**Se "NESSUNO":** Il file non Ã¨ stato selezionato correttamente.
 
 ---
 
@@ -54,19 +54,19 @@ console.log('=== STEP 3: LEGGI FILE EXCEL ===');
 (async () => {
   try {
     if (!excelSync.excelFile) {
-      console.log('❌ ERRORE: File non selezionato');
+      console.log('âŒ ERRORE: File non selezionato');
       return;
     }
     
-    console.log('1️⃣ Convertendo file a arrayBuffer...');
+    console.log('1ï¸âƒ£ Convertendo file a arrayBuffer...');
     const arrayBuffer = await excelSync.excelFile.arrayBuffer();
-    console.log('✅ ArrayBuffer creato:', arrayBuffer.byteLength, 'bytes');
+    console.log('âœ… ArrayBuffer creato:', arrayBuffer.byteLength, 'bytes');
     
-    console.log('2️⃣ Parsando con XLSX...');
+    console.log('2ï¸âƒ£ Parsando con XLSX...');
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    console.log('✅ Workbook parsato');
+    console.log('âœ… Workbook parsato');
     
-    console.log('3️⃣ Fogli trovati:', workbook.SheetNames);
+    console.log('3ï¸âƒ£ Fogli trovati:', workbook.SheetNames);
     console.log('   Numero fogli:', workbook.SheetNames.length);
     
     // Mostra dettagli di ogni foglio
@@ -88,14 +88,14 @@ console.log('=== STEP 3: LEGGI FILE EXCEL ===');
     });
     
   } catch (error) {
-    console.error('❌ ERRORE CRITICO:', error);
+    console.error('âŒ ERRORE CRITICO:', error);
     console.error('Stack:', error.stack);
   }
 })();
 ```
 
 **Aspetta:** Dovrebbe mostrare i nomi dei fogli.
-**Se i nomi non corrispondono:** Questo è il problema! I nomi in Excel non sono:
+**Se i nomi non corrispondono:** Questo Ã¨ il problema! I nomi in Excel non sono:
 - "Elenco Brani (statico)"
 - "Comuni Italia"  
 - "dBase"
@@ -133,44 +133,44 @@ console.log('=== STEP 5: TEST SINCRONIZZAZIONE ===');
 (async () => {
   try {
     if (!excelSync.excelFile) {
-      console.log('❌ File non selezionato');
+      console.log('âŒ File non selezionato');
       return;
     }
     
-    console.log('1️⃣ Leggendo file...');
+    console.log('1ï¸âƒ£ Leggendo file...');
     const arrayBuffer = await excelSync.excelFile.arrayBuffer();
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    console.log('✅ File letto');
+    console.log('âœ… File letto');
     
-    console.log('\n2️⃣ Sincronizzando BRANI...');
+    console.log('\n2ï¸âƒ£ Sincronizzando BRANI...');
     const resultBrani = await excelSync.syncBrani(workbook);
-    console.log('Risultato:', resultBrani ? '✅ SUCCESS' : '❌ FAILED');
+    console.log('Risultato:', resultBrani ? 'âœ… SUCCESS' : 'âŒ FAILED');
     
-    console.log('\n3️⃣ Verificando cache BRANI...');
+    console.log('\n3ï¸âƒ£ Verificando cache BRANI...');
     const braniCache = JSON.parse(localStorage.getItem('BORDERO_BRANI_DATA')) || [];
     console.log(`Brani in cache: ${braniCache.length}`);
     if (braniCache.length > 0) {
       console.log('Primo brano:', braniCache[0]);
     }
     
-    console.log('\n4️⃣ Sincronizzando COMUNI...');
+    console.log('\n4ï¸âƒ£ Sincronizzando COMUNI...');
     const resultComuni = await excelSync.syncComuni(workbook);
-    console.log('Risultato:', resultComuni ? '✅ SUCCESS' : '❌ FAILED');
+    console.log('Risultato:', resultComuni ? 'âœ… SUCCESS' : 'âŒ FAILED');
     
-    console.log('\n5️⃣ Sincronizzando DBASE...');
+    console.log('\n5ï¸âƒ£ Sincronizzando DBASE...');
     const resultDBase = await excelSync.syncDBase(workbook);
-    console.log('Risultato:', resultDBase ? '✅ SUCCESS' : '❌ FAILED');
+    console.log('Risultato:', resultDBase ? 'âœ… SUCCESS' : 'âŒ FAILED');
     
     console.log('\n=== RISULTATO FINALE ===');
     const brani = JSON.parse(localStorage.getItem('BORDERO_BRANI_DATA')) || [];
     const comuni = JSON.parse(localStorage.getItem('BORDERO_COMUNI_DATA')) || [];
     const dj = JSON.parse(localStorage.getItem('BORDERO_DBASE_DATA')) || [];
-    console.log('✅ Brani:', brani.length);
-    console.log('✅ Comuni:', comuni.length);
-    console.log('✅ DJ:', dj.length);
+    console.log('âœ… Brani:', brani.length);
+    console.log('âœ… Comuni:', comuni.length);
+    console.log('âœ… DJ:', dj.length);
     
   } catch (error) {
-    console.error('❌ ERRORE:', error);
+    console.error('âŒ ERRORE:', error);
   }
 })();
 ```
@@ -183,18 +183,18 @@ console.log('=== STEP 5: TEST SINCRONIZZAZIONE ===');
 
 Se vedi messaggi **ROSSI** nella console, significa che:
 - Il foglio non esiste (nome sbagliato)
-- Il file è corrotto
-- C'è un errore di parsing
+- Il file Ã¨ corrotto
+- C'Ã¨ un errore di parsing
 
 Copia il messaggio di errore rosso e riporta qui.
 
 ---
 
-## 🚨 **ERRORI COMUNI**
+## ðŸš¨ **ERRORI COMUNI**
 
 ### **Errore: "Foglio non trovato"**
 ```
-❌ Foglio "Elenco Brani (statico)" NON trovato in Excel
+âŒ Foglio "Elenco Brani (statico)" NON trovato in Excel
    Fogli trovati: Sheet1, Sheet2, Sheet3
 ```
 
@@ -205,11 +205,11 @@ Copia il messaggio di errore rosso e riporta qui.
 
 ### **Errore: "Nessun dato nel foglio"**
 ```
-⚠️ Nessun dato nel foglio Elenco Brani
+âš ï¸ Nessun dato nel foglio Elenco Brani
 ```
 
 **Soluzione:**
-- Il foglio è vuoto
+- Il foglio Ã¨ vuoto
 - I dati cominciano da una riga diversa (non da riga 1)
 - XLSX.utils.sheet_to_json non legge correttamente
 
@@ -225,7 +225,7 @@ const data = XLSX.utils.sheet_to_json(worksheet, {
 
 ### **Errore: "ArrayBuffer non accessibile"**
 ```
-❌ ERRORE: file.arrayBuffer is not a function
+âŒ ERRORE: file.arrayBuffer is not a function
 ```
 
 **Soluzione:**
@@ -234,7 +234,7 @@ const data = XLSX.utils.sheet_to_json(worksheet, {
 
 ---
 
-## 🔧 **FIX ALTERNATIVO - Se Nomi Sbagliati**
+## ðŸ”§ **FIX ALTERNATIVO - Se Nomi Sbagliati**
 
 Se nel STEP 3 vedi che i fogli hanno nomi tipo "Sheet1", "Sheet2", ecc.:
 
@@ -258,16 +258,16 @@ async syncBrani(workbook) {
     const worksheet = workbook.Sheets[sheetName];
     let data = XLSX.utils.sheet_to_json(worksheet);
     
-    // Se prima riga è vuota, rimuovi
+    // Se prima riga Ã¨ vuota, rimuovi
     if (data.length > 0 && Object.values(data[0]).every(v => !v)) {
       data = data.slice(1);
     }
     
-    logger.info(`✅ Sincronizzati ${data.length} brani`);
+    logger.info(`âœ… Sincronizzati ${data.length} brani`);
     Storage.set('BORDERO_BRANI_DATA', data);
     return true;
   } catch (error) {
-    logger.error('❌ Errore sync Brani:', error);
+    logger.error('âŒ Errore sync Brani:', error);
     return false;
   }
 }
@@ -280,18 +280,18 @@ async syncBrani(workbook) {
 
 ---
 
-## 📋 **CHECKLIST DEBUG**
+## ðŸ“‹ **CHECKLIST DEBUG**
 
-- [ ] STEP 1: Librerie caricate ✅
-- [ ] STEP 2: File selezionato ✅
-- [ ] STEP 3: File leggibile ✅
-- [ ] STEP 3: Fogli corretti (nomi uguali) ✅
-- [ ] STEP 5: Sync riuscita ✅
-- [ ] Cache contiene dati ✅
+- [ ] STEP 1: Librerie caricate âœ…
+- [ ] STEP 2: File selezionato âœ…
+- [ ] STEP 3: File leggibile âœ…
+- [ ] STEP 3: Fogli corretti (nomi uguali) âœ…
+- [ ] STEP 5: Sync riuscita âœ…
+- [ ] Cache contiene dati âœ…
 
 ---
 
-## 💬 **Riporta Questi Info**
+## ðŸ’¬ **Riporta Questi Info**
 
 Se ancora non funziona, esegui questo e riporta l'output:
 
@@ -315,11 +315,13 @@ console.log('File size:', excelSync.excelFile?.size);
 })();
 ```
 
-Copia l'output e mandamelo così posso debuggare il problema specifico.
+Copia l'output e mandamelo cosÃ¬ posso debuggare il problema specifico.
 
 ---
 
-**⏱️ Tempo:** < 5 minuti  
-**Difficoltà:** Facile  
+**â±ï¸ Tempo:** < 5 minuti  
+**DifficoltÃ :** Facile  
 **Successo Rate:** 99%
+
+
 

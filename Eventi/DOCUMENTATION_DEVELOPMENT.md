@@ -41,6 +41,18 @@ Base: `http://localhost:5500/eventi/api`
 - `Eventi/Elenco_Brani_statico.csv`
 - `Eventi/Coreografie_Aggiuntive.csv`
 
+## Git per sviluppo
+
+Aggiornamento locale consigliato:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Riferimento completo: `../GUIDA_GIT_MAIN_DEVELOP.md`.
+
 ## Sezioni correlate
 - [Operazioni quotidiane](DOCUMENTATION_OPERATIONS.md)
 - [Gestione DJ e Sicurezza](DOCUMENTATION_ADMIN.md)

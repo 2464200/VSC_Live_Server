@@ -22,7 +22,7 @@ Il progetto si basa su un unico punto di riferimento per la documentazione: ques
 
 ## Architettura progetto
 
-- Root repository: `VSC_Live_Server - WEB.worktrees\agents-bordero-html-css-js-conversion`
+- Root repository locale: `C:\VSC_Live_Server`
 - `Bordero/`: applicazione DJ Manager basata su HTML/CSS/JS e sincronizzazione CSV/Google Sheets.
 - `Eventi/`: modulo Eventi, con pagine web per gestione eventi, visualizer e API.
 - `server/`: server di sincronizzazione e setup backend per Bordero.
@@ -59,6 +59,7 @@ La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
 
 - [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md)
 - [GUIDA_SELEZIONE_EXCEL.md](GUIDA_SELEZIONE_EXCEL.md)
+- [GUIDA_GIT_MAIN_DEVELOP.md](GUIDA_GIT_MAIN_DEVELOP.md)
 - [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)
 - [QUICK_START.md](QUICK_START.md)
 - [WORKFLOW_AUTOMATICO_README.md](WORKFLOW_AUTOMATICO_README.md)
@@ -180,10 +181,29 @@ Questa sezione riassume le modifiche funzionali principali applicate nelle ultim
 
 ## Git e versionamento
 
-- `git status` per controllare le modifiche
-- `git add .` per preparare il commit
-- `git commit -m "messaggio chiaro"` per salvare le modifiche
-- `git push` per inviare i cambiamenti su remoto
+Per il flusso completo con `main` e `develop` usa:
+- [GUIDA_GIT_MAIN_DEVELOP.md](GUIDA_GIT_MAIN_DEVELOP.md)
+
+Sintesi operativa minima:
+
+```powershell
+# 1) Aggiorna riferimenti remoti
+git fetch --all --prune
+
+# 2) Allinea develop locale
+git checkout develop
+git pull origin develop
+
+# 3) Sviluppa su feature branch
+git checkout -b feature/nome-attivita
+git add -A
+git commit -m "feat: descrizione breve"
+git push -u origin feature/nome-attivita
+```
+
+Promozione finale:
+- feature -> develop (merge testato)
+- develop -> main (preferibilmente via Pull Request)
 
 ## Note aggiuntive
 

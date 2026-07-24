@@ -37,6 +37,27 @@ cd C:\VSC_Live_Server
 node test-system.js
 ```
 
+## Workflow Git consigliato
+
+Aggiorna prima il locale dal remoto:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Sequenza standard per salvare le modifiche:
+
+```powershell
+git status
+git add -A
+git commit -m "docs: aggiornamento setup stabile"
+git push
+```
+
+Per merge e promozione `develop -> main`: `GUIDA_GIT_MAIN_DEVELOP.md`.
+
 Controlli attesi:
 - server unificato raggiungibile
 - PDF API integrata raggiungibile

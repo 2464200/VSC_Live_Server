@@ -7,6 +7,16 @@
 ## Avvio consigliato
 Il progetto va usato tramite il server unificato.
 
+Prima dell'avvio, allinea la copia locale con il remoto:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Per i dettagli completi su `add`, `commit`, `push`, `pull`, `merge`, `fetch` usa `GUIDA_GIT_MAIN_DEVELOP.md`.
+
 ```powershell
 cd C:\VSC_Live_Server
 .\startup.ps1 -NoWait

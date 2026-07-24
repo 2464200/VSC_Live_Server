@@ -163,6 +163,31 @@ I DJ devono fare cosÃ¬:
 
 ---
 
+## Git: aggiornare locale e pubblicare modifiche
+
+Prima di sessioni live o cambi configurazione:
+
+```powershell
+git fetch --all --prune
+git checkout develop
+git pull origin develop
+```
+
+Quando hai modifiche pronte:
+
+```powershell
+git add -A
+git commit -m "docs: aggiornamento setup eventi"
+git push
+```
+
+Promozione consigliata:
+- merge in `develop` dopo test locali
+- Pull Request da `develop` verso `main` per rilascio
+- riferimento completo: `GUIDA_GIT_MAIN_DEVELOP.md`
+
+---
+
 ## Diagramma di rete
 
 Esempio di topologia:
