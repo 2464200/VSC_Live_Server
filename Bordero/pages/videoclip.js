@@ -246,9 +246,9 @@ class VideoClipManager {
   }
 
   async refreshAvailableFiles() {
-    this.availableFiles = [];
-    this.videoCatalog = [];
-    this.availableMap = new Map();
+    const nextAvailableFiles = [];
+    const nextVideoCatalog = [];
+    const nextAvailableMap = new Map();
 
     try {
       let selectedOrigin = '';
@@ -263,9 +263,9 @@ class VideoClipManager {
             : [];
 
           if (files.length > 0) {
-            this.availableFiles = files;
+            nextAvailableFiles.push(...files);
             selectedOrigin = new URL(candidate, window.location.origin).origin;
-            logger.info('Videoclip list ottenuta da', candidate, this.availableFiles.length);
+            logger.info('Videoclip list ottenuta da', candidate, nextAvailableFiles.length);
             break;
           }
         } catch (candidateError) {
@@ -280,29 +280,37 @@ class VideoClipManager {
       logger.debug('Video list fetch failed', err.message || err);
     }
 
-    this.availableBasenames = this.availableFiles.map(f => {
+    const nextAvailableBasenames = nextAvailableFiles.map(f => {
       const idx = f.lastIndexOf('.');
       return idx > 0 ? f.slice(0, idx) : f;
     });
 
-    this.videoCatalog = this.availableFiles.map((fullName, index) => {
-      const baseName = this.availableBasenames[index] || fullName;
+    nextAvailableFiles.forEach((fullName, index) => {
+      const baseName = nextAvailableBasenames[index] || fullName;
       const parsed = this.parseVideoFileReference(baseName);
       const normalizedName = this.normalizeForMatch(parsed.name || baseName);
-      return {
+      nextVideoCatalog.push({
         fullName,
         baseName,
         prefix: parsed.prefix || '',
         name: parsed.name || baseName,
         normalizedName,
         tokens: this.tokenizeForMatch(normalizedName)
-      };
+      });
     });
 
+    const prevVideoCatalog = this.videoCatalog;
+    this.videoCatalog = nextVideoCatalog;
     this.brani.forEach(brano => {
       const matched = this.findMatchingVideoFile(brano);
-      if (matched) this.availableMap.set(String(brano.id), matched);
+      if (matched) nextAvailableMap.set(String(brano.id), matched);
     });
+    this.videoCatalog = prevVideoCatalog;
+
+    this.availableFiles = nextAvailableFiles;
+    this.availableBasenames = nextAvailableBasenames;
+    this.videoCatalog = nextVideoCatalog;
+    this.availableMap = nextAvailableMap;
 
     return this.availableFiles;
   }
@@ -1396,11 +1404,11 @@ class VideoClipManager {
     this.syncExecutedState();
     this.refreshAvailableFiles()
       .then(() => {
-        this.renderLibrary();
+        this.filterVideos();
         this.updatePlayerInfo();
       })
       .catch(() => {
-        this.renderLibrary();
+        this.filterVideos();
       });
   }
 
