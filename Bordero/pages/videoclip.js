@@ -362,13 +362,16 @@ class VideoClipManager {
       const matchedFile = this.availableMap.get(String(brano.id)) || null;
       const isAvailable = Boolean(matchedFile);
       const isExecuted = this.isBranoExecuted(brano);
+      const emphasizeArchiveAvailability = this.showOnlyAvailable && isAvailable;
       if (!this.matchesStateFilters(isAvailable, isExecuted)) {
         return;
       }
       if (this.currentBrano?.id === brano.id) {
         card.classList.add('active');
       }
-      if (isExecuted) {
+      if (emphasizeArchiveAvailability) {
+        card.classList.add('available');
+      } else if (isExecuted) {
         card.classList.add('executed');
       } else if (isAvailable) {
         card.classList.add('available');
@@ -378,9 +381,19 @@ class VideoClipManager {
       card.dataset.available = isAvailable ? 'true' : 'false';
       card.setAttribute('aria-disabled', isExecuted || !isAvailable ? 'true' : 'false');
 
-      const tooltipText = isExecuted
+      const tooltipText = emphasizeArchiveAvailability
+        ? `Video associato: ${matchedFile}`
+        : isExecuted
         ? 'Brano già eseguito nella serata'
         : (matchedFile ? `Video associato: ${matchedFile}` : 'Nessun video associato');
+
+      const badgeClass = emphasizeArchiveAvailability
+        ? 'available'
+        : (isExecuted ? 'executed' : (isAvailable ? 'available' : 'unavailable'));
+
+      const badgeText = emphasizeArchiveAvailability
+        ? '✓ VIDEO DISPONIBILE'
+        : (isExecuted ? '⚠ VIDEO GIA\' ESEGUITO' : (isAvailable ? '✓ VIDEO DISPONIBILE' : '✕ VIDEO NON DISPONIBILE'));
 
       card.innerHTML = `
         <div class="video-card-thumb">🎬</div>
@@ -391,8 +404,8 @@ class VideoClipManager {
             <span>🎭 ${this.escapeHtml(brano.coreografo || 'Sconosciuto')}</span>
             <span>🎵 ${this.escapeHtml(brano.genere || 'Sconosciuto')}</span>
           </div>
-          <div class="video-card-badge ${isExecuted ? 'executed' : (isAvailable ? 'available' : 'unavailable')}" title="${this.escapeHtml(tooltipText)}">
-            ${isExecuted ? '⚠ VIDEO GIA\' ESEGUITO' : (isAvailable ? '✓ VIDEO DISPONIBILE' : '✕ VIDEO NON DISPONIBILE')}
+          <div class="video-card-badge ${badgeClass}" title="${this.escapeHtml(tooltipText)}">
+            ${badgeText}
           </div>
           <div class="video-card-file" title="${this.escapeHtml(matchedFile || 'Nessun file video')}">
             ${matchedFile ? `📁 ${this.escapeHtml(matchedFile)}` : '📁 Nessun file video'}
@@ -1563,7 +1576,7 @@ class VideoClipManager {
   }
 
   matchesStateFilters(isAvailable, isExecuted) {
-    const matchArchiveOnly = isAvailable && !isExecuted;
+    const matchArchiveOnly = isAvailable;
     const matchExecutedOnly = isExecuted;
 
     if (this.showOnlyAvailable && this.showOnlyExecuted) {
