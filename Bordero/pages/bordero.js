@@ -2061,17 +2061,19 @@ class BorderoTableManager {
    */
   updateStats() {
     const total = this.allBrani.length;
+    const requested = this.getUniqueRequestedBrani(this.allBrani);
     const completed = this.allBrani.filter(b => String(b.flag).toUpperCase() === 'X').length;
     const pending = total - completed;
 
     document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-requested').textContent = requested.length;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
     this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
-      detail: { total, completed, pending }
+      detail: { total, requested: requested.length, completed, pending }
     }));
   }
 
@@ -2079,10 +2081,23 @@ class BorderoTableManager {
     const richiesteButton = document.getElementById('btn-filter-richieste');
     if (!richiesteButton) return;
 
-    const withNonZeroRichieste = this.allBrani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
+    const withNonZeroRichieste = this.getUniqueRequestedBrani(this.allBrani);
     const hasPendingWithRichieste = withNonZeroRichieste.some((brano) => !this.isExecutedBrano(brano));
 
     richiesteButton.classList.toggle('btn-richieste-alert', hasPendingWithRichieste);
+  }
+
+  getUniqueRequestedBrani(collection = []) {
+    const uniqueById = new Map();
+
+    collection.forEach((brano) => {
+      if (!brano || this.isRichiesteZeroValue(brano.richieste)) return;
+      const key = String(brano.id ?? '').trim();
+      if (!key || uniqueById.has(key)) return;
+      uniqueById.set(key, brano);
+    });
+
+    return [...uniqueById.values()];
   }
 
   updateExecutedBottomModeBadge() {
