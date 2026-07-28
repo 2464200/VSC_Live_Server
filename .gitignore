@@ -71,5 +71,9 @@ node_modules/
 # Local nested workspace copy (avoid accidental embedded repo commits)
 VSC_Live_Server/
 
+# Local full backups (generated manually)
+archivio/backup_completo_*/
+archivio/repo_full_*.bundle
+
 # Temporary Excel lock files
 ~$*.xls*
