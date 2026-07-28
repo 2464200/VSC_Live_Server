@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO’ - Elenco Richieste</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="elenco-richieste.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="elenco-richieste.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERO’ - Elenco Richieste</h1>
+        <p class="app-subtitle">Visualizza solo i brani richiesti e il loro stato di esecuzione</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="bordero.html">Bordero</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Elenco Richieste</span>
+    </nav>
+
+    <section class="serata-info-box">
+      <div class="info-row">
+        <div class="info-field">
+          <label>DJ</label>
+          <span id="info-dj">--</span>
+        </div>
+        <div class="info-field">
+          <label>Data Serata</label>
+          <span id="info-data">--</span>
+        </div>
+        <div class="info-field">
+          <label>Luogo</label>
+          <span id="info-luogo">--</span>
+        </div>
+        <div class="info-field">
+          <label>Evento</label>
+          <span id="info-evento">--</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <div class="stat-card">
+        <div class="stat-icon">📌</div>
+        <div class="stat-content">
+          <h3>Brani Unici Richiesti</h3>
+          <p class="stat-value" id="stat-richieste">0</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>Richiesti Eseguiti</h3>
+          <p class="stat-value" id="stat-executed">0</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-content">
+          <h3>Percentuale</h3>
+          <p class="stat-value stat-percent" id="stat-percent">0%</p>
+        </div>
+      </div>
+    </section>
+
+    <p id="sync-diagnostic" class="sync-diagnostic" hidden aria-live="polite"></p>
+
+    <section class="list-section">
+      <div class="section-header">
+        <h2>Elenco Brani Unici Richiesti</h2>
+        <span class="count" id="richieste-count">0 brani</span>
+      </div>
+      <table class="brani-list">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Titolo</th>
+            <th>Autore</th>
+            <th>Richieste</th>
+            <th>Coreografo</th>
+            <th>Data</th>
+            <th>Stato</th>
+            <th class="col-videoclip">VideoClip</th>
+          </tr>
+        </thead>
+        <tbody id="richieste-tbody"></tbody>
+      </table>
+      <div class="empty-state" id="empty-richieste">Nessun brano richiesto trovato.</div>
+    </section>
+
+    <section class="final-actions">
+      <button id="btn-bordero" class="btn btn-primary">Torna al Bordero</button>
+    </section>
+  </div>
+</body>
+</html>

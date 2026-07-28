@@ -61,14 +61,16 @@ const SHEETS = [
         id: process.env.GOOGLE_SHEET_MODULO8 || process.env.GOOGLE_SHEET_BRANI,
         range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AI",
         gid: process.env.GOOGLE_SHEET_MODULO8_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
-        publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+        publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
+        expectedHeaders: ['informazioni cronologiche']
       },
       {
         name: 'Modulo 12',
         id: process.env.GOOGLE_SHEET_MODULO12 || process.env.GOOGLE_SHEET_BRANI,
         range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AI",
         gid: process.env.GOOGLE_SHEET_MODULO12_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
-        publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim()
+        publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
+        expectedHeaders: ['informazioni cronologiche']
       }
     ]
   },
@@ -404,6 +406,33 @@ function normalizeHeaderValue(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function sourceMatchesExpectedHeaders(values, expectedHeaders = []) {
+  if (!Array.isArray(expectedHeaders) || expectedHeaders.length === 0) {
+    return true;
+  }
+
+  if (!Array.isArray(values) || values.length === 0 || !Array.isArray(values[0])) {
+    return false;
+  }
+
+  const normalizedHeader = values[0]
+    .map((name) => normalizeHeaderValue(name))
+    .filter(Boolean);
+
+  return expectedHeaders.every((token) => normalizedHeader.includes(normalizeHeaderValue(token)));
+}
+
+function countTestResponseRows(responseValues) {
+  if (!Array.isArray(responseValues) || responseValues.length < 2) {
+    return 0;
+  }
+
+  return responseValues.slice(1).filter((row) => {
+    const timestamp = String(row?.[0] ?? '').trim().toLowerCase();
+    return timestamp.startsWith('01/01/2000');
+  }).length;
+}
+
 function mergeSourceTables(sourceTables) {
   const nonEmptyTables = sourceTables
     .map((table) => ({
@@ -603,15 +632,26 @@ async function fetchSheetValuesFromSource(source) {
 
   try {
     const values = await fetchSheetData(sourceId, sourceRange);
+    if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
+      throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via API (possibile foglio errato)`);
+    }
     return trimValuesToRange(values, sourceRange);
   } catch (apiError) {
     try {
       const csvContent = await fetchCSVExport(sourceId, sourceGid);
-      return trimValuesToRange(csvToValues(csvContent), sourceRange);
+      const values = trimValuesToRange(csvToValues(csvContent), sourceRange);
+      if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
+        throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via CSV export (gid/range non coerenti)`);
+      }
+      return values;
     } catch (fallbackError) {
       if (sourcePublicUrl) {
         const csvContent = await fetchPublicUrl(sourcePublicUrl);
-        return trimValuesToRange(csvToValues(csvContent), sourceRange);
+        const values = trimValuesToRange(csvToValues(csvContent), sourceRange);
+        if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
+          throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via public URL`);
+        }
+        return values;
       }
       throw new Error(`Sorgente ${source?.name || sourceId} non raggiungibile: ${fallbackError.message || apiError.message}`);
     }
@@ -623,6 +663,7 @@ async function syncSheet(sheet) {
 
   try {
     if (Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0) {
+      let richiesteDiagnostics = null;
       const sourceTables = [];
 
       for (const source of sheet.mergeSources) {
@@ -653,6 +694,15 @@ async function syncSheet(sheet) {
             aliases: richiesteAliases,
             dedupePerRow
           });
+          const totalResponseRows = Math.max(0, mergedValues.length - 1);
+          const skippedTestRows = countTestResponseRows(mergedValues);
+          const effectiveResponseRows = Math.max(0, totalResponseRows - skippedTestRows);
+          richiesteDiagnostics = {
+            matchRange: richiesteRange,
+            totalResponseRows,
+            skippedTestRows,
+            effectiveResponseRows,
+          };
           const enrichedBaseValues = enrichBaseWithRichieste(baseValues, richiesteCounter, {
             aliases: richiesteAliases
           });
@@ -660,6 +710,7 @@ async function syncSheet(sheet) {
           const baseFilePath = path.join(OUTPUT_DIR, sheet.richiesteOutput);
           fs.writeFileSync(baseFilePath, baseCsv, 'utf8');
           console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteRange})`);
+          console.log(`      ℹ️ Righe risposte: ${totalResponseRows}, test escluse: ${skippedTestRows}, effettive: ${effectiveResponseRows}`);
         } catch (enrichError) {
           console.warn(`   ⚠️ Impossibile aggiornare ${sheet.richiesteOutput}: ${enrichError.message}`);
         }
@@ -667,7 +718,7 @@ async function syncSheet(sheet) {
 
       const mergedRows = Math.max(0, outputValues.length - 1);
       console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AI]`);
-      return { success: true, rows: mergedRows, file: filePath };
+      return { success: true, rows: mergedRows, file: filePath, richiesteDiagnostics };
     }
 
     const values = await fetchSheetData(sheet.id, sheet.range);
