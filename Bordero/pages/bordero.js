@@ -624,6 +624,9 @@ class BorderoTableManager {
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
       window.location.href = 'brani-eseguiti.html';
     });
+    document.getElementById('btn-view-richieste')?.addEventListener('click', () => {
+      window.location.href = 'elenco-richieste.html';
+    });
 
     // Filter buttons
     this.bindFilterPopupButton('btn-filter-coreografia', 'info_livello', 'LIVELLO');
