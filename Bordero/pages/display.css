@@ -239,12 +239,16 @@
 }
 
 .brani-table tbody tr.completed {
-  background-color: rgba(255, 235, 59, 0.35);
+  background-color: #ff7f00;
   font-weight: 700;
 }
 
+.brani-table tbody tr.completed td {
+  color: #111;
+}
+
 .brani-table tbody tr.completed:hover {
-  background-color: rgba(255, 235, 59, 0.48);
+  background-color: #ff9933;
 }
 
 .brani-table td {
