@@ -1,5 +1,5 @@
 id,nome_evento,localita,tipo_struttura,struttura_coperta,provincia,paese,indirizzo,civico,referente,cell_referente,tipo_pista,tipo_prese_corrente,impianto_audio,impianto_luci,service,palco_dj,palco_ballerini,parcheggio,bar_ristoro,toilette
-,Festa della Birra,Cascina Crotta,Capannone,Si,Bergamo,Brusaporto,Via Case Matte,6,Maria,333/2256687,Legno Massiccio,CEE (industriale) 220V 16A 2P+T,NO,NO,NO,SI,NO,SI,SI,SI
+,Festa della Birra,Cascina Crotta,Capannone,SI,Bergamo,Brusaporto,Via Case Matte,6,Maria,333/2256687,Legno Massiccio,CEE (industriale) 220V 16A 2P+T,NO,NO,NO,SI,NO,SI,SI,SI
 ,Festa Oratorio,Quartiere S.Paolo,Parco,NO,Milano,Assago,Via Rosciate,12,Giacomo,348/7210159,Piastrelle ad Incastro,Bivalente 16A,DA ACCERTARE,SCONOSCIUTO,SI,DA CONFERMARE,DA CONFERMARE,DA ACCERTARE,NO,SCONOSCIUTO
 ,Festa Cucina Bergamasca,Grumellina,Capannone,SI,Bergamo,Gorle,Via Po,3,Maria,329/5555555,Acciaio,Bivalente 16A,SCONOSCIUTO,SI,NO,DA CONFERMARE,DA ACCERTARE,DA ACCERTARE MEGLIO,DA ACCERTARE,NO
 ,Festa della cicoria,Cà Marone,Parco,NO,Brescia,Adro,Via Miravalle,8,Giovanni,323/5856996,Acciaio,CEE (industriale) 220V 16A 3P+N+T,SI,SI,NO,SI,NO,SI,SI,SI
