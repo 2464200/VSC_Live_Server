@@ -1,0 +1,638 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} PAGINA11 
+   Caption         =   "frmPAGINA11"
+   ClientHeight    =   12420
+   ClientLeft      =   120
+   ClientTop       =   465
+   ClientWidth     =   16770
+   OleObjectBlob   =   "PAGINA11.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "PAGINA11"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+
+Private Const SHEET_NAME As String = "Location"
+
+Private Sub CommandButton31_Click()
+
+    Me.Hide
+    Indice.Show
+
+End Sub
+
+Private Sub CommandButton32_Click()
+
+    Me.Hide
+
+End Sub
+
+Private Sub UserForm_Initialize()
+
+    cmbValoreFiltro.ListRows = 10
+
+    CaricaCombo
+    CaricaCampiFiltro
+
+    If cmbFiltroCampo.ListCount > 0 Then
+        cmbFiltroCampo.ListIndex = 0
+        CaricaValoriFiltro
+    End If
+
+    ApplicaFiltro
+
+End Sub
+
+Private Sub ApplicaFiltro()
+
+    Dim ws As Worksheet
+    Dim UltimaRiga As Long
+    Dim Riga As Long
+    Dim ColFiltro As Long
+    Dim ValoreFiltro As String
+    Dim ValoreCampo As String
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    ColFiltro = GetColFiltro
+
+    If ColFiltro = 0 Then Exit Sub
+
+    ValoreFiltro = Trim(cmbValoreFiltro.Value)
+
+    lstLocation.Clear
+
+    UltimaRiga = ws.cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    For Riga = 2 To UltimaRiga
+
+        ValoreCampo = CStr(ws.cells(Riga, ColFiltro).Value)
+
+        If ValoreFiltro = "" Or _
+   InStr(1, UCase(ValoreCampo), UCase(ValoreFiltro)) > 0 Then
+
+            lstLocation.AddItem
+
+            lstLocation.List(lstLocation.ListCount - 1, 0) = Riga
+            lstLocation.List(lstLocation.ListCount - 1, 1) = ws.cells(Riga, 1).Value
+            lstLocation.List(lstLocation.ListCount - 1, 2) = ws.cells(Riga, 2).Value
+            lstLocation.List(lstLocation.ListCount - 1, 3) = ValoreCampo
+
+        End If
+
+    Next Riga
+
+If lstLocation.ListCount > 0 Then
+
+    lstLocation.ListIndex = 0
+
+    txtID.Value = lstLocation.List(0, 0)
+
+    CaricaRecord CLng(lstLocation.List(0, 0))
+
+End If
+
+End Sub
+
+Private Sub CaricaCombo()
+
+    Dim ws As Worksheet
+    Dim c As Range
+
+    Set ws = Worksheets("dBase")
+
+    '=========================
+    ' Province
+    '=========================
+    cmbProvincia.Clear
+
+    For Each c In ws.Range("E154:E247")
+
+        If Trim(c.Value) <> "" Then
+            cmbProvincia.AddItem c.Value
+        End If
+
+    Next c
+
+    '=========================
+    ' Combo SI/NO
+    '=========================
+
+    For Each c In ws.Range("A154:A159")
+
+        If Trim(c.Value) <> "" Then
+
+            cmbStrutturaCoperta.AddItem c.Value
+
+            cmbImpiantoAudio.AddItem c.Value
+            cmbImpiantoLuci.AddItem c.Value
+            cmbService.AddItem c.Value
+            cmbPalcoDJ.AddItem c.Value
+            cmbPalcoBallerini.AddItem c.Value
+            cmbParcheggio.AddItem c.Value
+            cmbBarRistoro.AddItem c.Value
+            cmbToilette.AddItem c.Value
+
+        End If
+
+    Next c
+
+    '=========================
+    ' Tipo Pista
+    '=========================
+
+    For Each c In ws.Range("A164:A186")
+
+        If Trim(c.Value) <> "" Then
+            cmbTipoPista.AddItem c.Value
+        End If
+
+    Next c
+
+    '=========================
+    ' Tipo Prese Corrente
+    '=========================
+
+    For Each c In ws.Range("A191:A199")
+
+        If Trim(c.Value) <> "" Then
+            cmbTipoPreseCorrente.AddItem c.Value
+        End If
+
+    Next c
+
+End Sub
+
+Private Sub CaricaCampiFiltro()
+
+    Dim ws As Worksheet
+    Dim UltimaCol As Long
+    Dim c As Long
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    cmbFiltroCampo.Clear
+
+    UltimaCol = ws.cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    For c = 1 To UltimaCol
+
+        If Trim(ws.cells(1, c).Value) <> "" Then
+
+            cmbFiltroCampo.AddItem ws.cells(1, c).Value
+
+        End If
+
+    Next c
+
+    If cmbFiltroCampo.ListCount > 0 Then
+        cmbFiltroCampo.ListIndex = 0
+    End If
+
+End Sub
+
+Private Function GetColFiltro() As Long
+
+    Dim ws As Worksheet
+    Dim UltimaCol As Long
+    Dim c As Long
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    UltimaCol = ws.cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    For c = 1 To UltimaCol
+
+        If Trim(ws.cells(1, c).Value) = _
+           Trim(cmbFiltroCampo.Value) Then
+
+            GetColFiltro = c
+            Exit Function
+
+        End If
+
+    Next c
+
+    GetColFiltro = 0
+
+End Function
+
+Private Sub cmbProvincia_Change()
+
+    CaricaPaesi cmbProvincia.Value
+
+End Sub
+
+Private Sub CaricaPaesi(ByVal Provincia As String)
+
+    Dim ws As Worksheet
+    Dim Col As Long
+    Dim Riga As Long
+    Dim UltimaCol As Long
+
+    Set ws = Worksheets("dBase")
+
+    cmbPaese.Clear
+
+    UltimaCol = ws.cells(153, ws.Columns.Count).End(xlToLeft).Column
+
+    For Col = 6 To UltimaCol
+
+        If Trim(ws.cells(153, Col).Value) = Trim(Provincia) Then
+
+            For Riga = 154 To 396
+
+                If Trim(ws.cells(Riga, Col).Value) <> "" Then
+
+                    cmbPaese.AddItem ws.cells(Riga, Col).Value
+
+                End If
+
+            Next Riga
+
+            Exit For
+
+        End If
+
+    Next Col
+
+End Sub
+
+Private Sub CaricaListaLocation()
+
+    Dim ws As Worksheet
+    Dim UltimaRiga As Long
+    Dim Riga As Long
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    lstLocation.Clear
+
+    UltimaRiga = ws.cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    For Riga = 2 To UltimaRiga
+
+        lstLocation.AddItem
+
+        lstLocation.List(lstLocation.ListCount - 1, 0) = Riga
+        lstLocation.List(lstLocation.ListCount - 1, 1) = ws.cells(Riga, 1).Value 'Nome Evento
+        lstLocation.List(lstLocation.ListCount - 1, 2) = ws.cells(Riga, 2).Value 'Località
+        lstLocation.List(lstLocation.ListCount - 1, 3) = "" 'Provincia
+
+    Next Riga
+
+End Sub
+
+
+
+Private Sub lstLocation_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+
+    Dim Riga As Long
+
+    If lstLocation.ListIndex < 0 Then Exit Sub
+
+    Riga = CLng(lstLocation.List(lstLocation.ListIndex, 0))
+
+    txtID.Value = Riga
+
+    CaricaRecord Riga
+
+End Sub
+
+Private Function VerificaCampi() As Boolean
+
+    If Trim(txtNomeEvento.Value) = "" Then
+        MsgBox "Inserire Nome Evento"
+        Exit Function
+    End If
+
+    If Trim(txtLocalita.Value) = "" Then
+        MsgBox "Inserire Località"
+        Exit Function
+    End If
+
+    If Trim(txtReferente.Value) = "" Then
+        MsgBox "Inserire Referente"
+        Exit Function
+    End If
+
+    VerificaCampi = True
+
+End Function
+
+Private Sub ScriviRecord(Riga As Long)
+
+    Dim ws As Worksheet
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    ws.cells(Riga, 1) = txtNomeEvento.Value
+    ws.cells(Riga, 2) = txtLocalita.Value
+    ws.cells(Riga, 3) = txtTipoStruttura.Value
+    ws.cells(Riga, 4) = cmbStrutturaCoperta.Value
+    ws.cells(Riga, 5) = cmbProvincia.Value
+    ws.cells(Riga, 6) = cmbPaese.Value
+    ws.cells(Riga, 7) = txtIndirizzo.Value
+    ws.cells(Riga, 8) = txtCivico.Value
+    ws.cells(Riga, 9) = txtReferente.Value
+    ws.cells(Riga, 10) = txtCellReferente.Value
+    ws.cells(Riga, 11) = cmbTipoPista.Value
+    ws.cells(Riga, 12) = cmbTipoPreseCorrente.Value
+    ws.cells(Riga, 13) = cmbImpiantoAudio.Value
+    ws.cells(Riga, 14) = cmbImpiantoLuci.Value
+    ws.cells(Riga, 15) = cmbService.Value
+    ws.cells(Riga, 16) = cmbPalcoDJ.Value
+    ws.cells(Riga, 17) = cmbPalcoBallerini.Value
+    ws.cells(Riga, 18) = cmbParcheggio.Value
+    ws.cells(Riga, 19) = cmbBarRistoro.Value
+    ws.cells(Riga, 20) = cmbToilette.Value
+
+End Sub
+
+Private Sub CaricaRecord(Riga As Long)
+
+    Dim ws As Worksheet
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    txtNomeEvento.Value = ws.cells(Riga, 1)
+    txtLocalita.Value = ws.cells(Riga, 2)
+    txtTipoStruttura.Value = ws.cells(Riga, 3)
+    cmbStrutturaCoperta.Value = ws.cells(Riga, 4)
+
+    cmbProvincia.Value = ws.cells(Riga, 5)
+
+    CaricaPaesi cmbProvincia.Value
+
+    cmbPaese.Value = ws.cells(Riga, 6)
+
+    txtIndirizzo.Value = ws.cells(Riga, 7)
+    txtCivico.Value = ws.cells(Riga, 8)
+    txtReferente.Value = ws.cells(Riga, 9)
+    txtCellReferente.Value = ws.cells(Riga, 10)
+    cmbTipoPista.Value = ws.cells(Riga, 11)
+    cmbTipoPreseCorrente.Value = ws.cells(Riga, 12)
+    cmbImpiantoAudio.Value = ws.cells(Riga, 13)
+    cmbImpiantoLuci.Value = ws.cells(Riga, 14)
+    cmbService.Value = ws.cells(Riga, 15)
+    cmbPalcoDJ.Value = ws.cells(Riga, 16)
+    cmbPalcoBallerini.Value = ws.cells(Riga, 17)
+    cmbParcheggio.Value = ws.cells(Riga, 18)
+    cmbBarRistoro.Value = ws.cells(Riga, 19)
+    cmbToilette.Value = ws.cells(Riga, 20)
+
+End Sub
+
+Private Sub PulisciForm()
+
+    txtID.Value = ""
+    txtNomeEvento.Value = ""
+    txtLocalita.Value = ""
+    txtTipoStruttura.Value = ""
+    cmbProvincia.Value = ""
+    cmbPaese.Value = ""
+    txtIndirizzo.Value = ""
+    txtCivico.Value = ""
+    txtReferente.Value = ""
+    txtCellReferente.Value = ""
+
+    cmbStrutturaCoperta.ListIndex = -1
+    cmbTipoPista.ListIndex = -1
+    cmbTipoPreseCorrente.ListIndex = -1
+    cmbImpiantoAudio.ListIndex = -1
+    cmbImpiantoLuci.ListIndex = -1
+    cmbService.ListIndex = -1
+    cmbPalcoDJ.ListIndex = -1
+    cmbPalcoBallerini.ListIndex = -1
+    cmbParcheggio.ListIndex = -1
+    cmbBarRistoro.ListIndex = -1
+    cmbToilette.ListIndex = -1
+
+End Sub
+
+Private Sub cmdSalva_Click()
+
+    Dim nr As Long
+    Dim ws As Worksheet
+
+    If Not VerificaCampi Then Exit Sub
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    nr = ws.cells(ws.Rows.Count, 1).End(xlUp).Row + 1
+
+    ScriviRecord nr
+
+    ApplicaFiltro
+
+    MsgBox "Location salvata."
+
+    PulisciForm
+
+End Sub
+
+Private Sub cmdModifica_Click()
+
+    If txtID.Value = "" Then
+
+        MsgBox "Seleziona una Location."
+        Exit Sub
+
+    End If
+
+    ScriviRecord CLng(txtID.Value)
+
+    ApplicaFiltro
+
+    MsgBox "Record aggiornato."
+
+End Sub
+
+Private Sub cmdElimina_Click()
+
+    Dim ws As Worksheet
+
+    If txtID.Value = "" Then Exit Sub
+
+    If MsgBox("Eliminare il record?", vbYesNo + vbQuestion) = vbNo Then Exit Sub
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    ws.Rows(CLng(txtID.Value)).Delete
+
+    ApplicaFiltro
+
+    PulisciForm
+
+    MsgBox "Record eliminato."
+
+End Sub
+
+Private Sub cmdNuovo_Click()
+
+    PulisciForm
+
+End Sub
+
+Private Sub cmdChiudi_Click()
+
+    Unload Me
+
+End Sub
+
+Private Sub CaricaValoriFiltro()
+
+    Dim ws As Worksheet
+    Dim UltimaRiga As Long
+    Dim Riga As Long
+    Dim ColFiltro As Long
+    Dim Diz As Object
+    Dim Valore As Variant
+
+    Set ws = Worksheets(SHEET_NAME)
+
+    ColFiltro = GetColFiltro
+
+    If ColFiltro = 0 Then Exit Sub
+
+    Set Diz = CreateObject("Scripting.Dictionary")
+
+    cmbValoreFiltro.Clear
+
+    UltimaRiga = ws.cells(ws.Rows.Count, ColFiltro).End(xlUp).Row
+
+    For Riga = 2 To UltimaRiga
+
+        If Trim(ws.cells(Riga, ColFiltro).Value) <> "" Then
+
+            If Not Diz.Exists(CStr(ws.cells(Riga, ColFiltro).Value)) Then
+
+                Diz.Add CStr(ws.cells(Riga, ColFiltro).Value), ""
+
+            End If
+
+        End If
+
+    Next Riga
+
+    For Each Valore In Diz.Keys
+
+        cmbValoreFiltro.AddItem Valore
+
+    Next Valore
+
+End Sub
+
+Private Sub cmbFiltroCampo_Change()
+
+    On Error Resume Next
+
+    lblCampoFiltro.caption = cmbFiltroCampo.Value
+
+    On Error GoTo 0
+
+    CaricaValoriFiltro
+
+    ApplicaFiltro
+
+End Sub
+
+Private Sub cmbValoreFiltro_Change()
+
+    ApplicaFiltro
+
+End Sub
+
+Private Sub cmdPrecedente_Click()
+
+    Dim Indice As Long
+    Dim Riga As Long
+
+    If lstLocation.ListCount = 0 Then Exit Sub
+
+    If lstLocation.ListIndex < 0 Then
+        
+        lstLocation.ListIndex = 0
+        
+    Else
+        
+        Indice = lstLocation.ListIndex
+        
+        If Indice > 0 Then
+            
+            lstLocation.ListIndex = Indice - 1
+            
+        End If
+        
+    End If
+
+    Riga = CLng(lstLocation.List(lstLocation.ListIndex, 0))
+
+    txtID.Value = Riga
+
+    CaricaRecord Riga
+
+If Indice <= 0 Then
+    lstLocation.ListIndex = lstLocation.ListCount - 1
+Else
+    lstLocation.ListIndex = Indice - 1
+End If
+
+End Sub
+
+Private Sub cmdSuccessivo_Click()
+
+    Dim Indice As Long
+    Dim Riga As Long
+
+    If lstLocation.ListCount = 0 Then Exit Sub
+
+    If lstLocation.ListIndex < 0 Then
+        
+        lstLocation.ListIndex = 0
+        
+    Else
+        
+        Indice = lstLocation.ListIndex
+        
+        If Indice < lstLocation.ListCount - 1 Then
+            
+            lstLocation.ListIndex = Indice + 1
+            
+        End If
+        
+    End If
+
+    Riga = CLng(lstLocation.List(lstLocation.ListIndex, 0))
+
+    txtID.Value = Riga
+
+    CaricaRecord Riga
+
+If Indice >= lstLocation.ListCount - 1 Then
+    lstLocation.ListIndex = 0
+Else
+    lstLocation.ListIndex = Indice + 1
+End If
+
+End Sub
+
+Private Sub AggiornaContatore()
+
+    If lstLocation.ListCount = 0 Then
+
+        txtContatore.Value = "0 / 0"
+
+    Else
+
+        txtContatore.Value = _
+            (lstLocation.ListIndex + 1) & _
+            " / " & _
+            lstLocation.ListCount
+
+    End If
+
+End Sub
