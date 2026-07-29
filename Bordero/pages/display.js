@@ -25,6 +25,9 @@ class DisplayMonitor {
     this.clockInterval = null;
     this.nextCoreoInterval = null;
     this.scrollAnimationFrame = null;
+    this.scrollWatchdogInterval = null;
+    this.scrollLastObservedTop = 0;
+    this.scrollLastObservedAt = 0;
     this.lastRenderedSignature = '';
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
@@ -59,6 +62,7 @@ class DisplayMonitor {
 
       // Avvia auto-scroll tabella (giu/su)
       this.startAutoScroll();
+      this.startScrollWatchdog();
 
       logger.info('✓ DisplayMonitor inizializzato');
     } catch (error) {
@@ -141,16 +145,18 @@ class DisplayMonitor {
       return;
     }
 
-    // Aggiorna header
-    this.updateHeader(requestedBrani);
+    const orderedBrani = this.orderRequestedBrani(requestedBrani);
 
-    const executedCount = requestedBrani.filter((item) => this.isBranoExecuted(item)).length;
-    this.setFooterStatus(`Brani richiesti: ${requestedBrani.length} | Eseguiti: ${executedCount}`);
+    // Aggiorna header
+    this.updateHeader(orderedBrani);
+
+    const executedCount = orderedBrani.filter((item) => this.isBranoExecuted(item)).length;
+    this.setFooterStatus(`Brani richiesti: ${orderedBrani.length} | Eseguiti: ${executedCount}`);
 
     // Renderizza solo quando i dati visualizzati cambiano, per mantenere lo scroll fluido.
-    const nextSignature = this.buildRenderSignature(requestedBrani);
+    const nextSignature = this.buildRenderSignature(orderedBrani);
     if (nextSignature !== this.lastRenderedSignature) {
-      this.renderTable(requestedBrani);
+      this.renderTable(orderedBrani);
       this.lastRenderedSignature = nextSignature;
     }
 
@@ -250,6 +256,23 @@ class DisplayMonitor {
     return brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
   }
 
+  orderRequestedBrani(brani) {
+    if (!Array.isArray(brani)) return [];
+
+    const pending = [];
+    const executed = [];
+
+    brani.forEach((brano) => {
+      if (this.isBranoExecuted(brano)) {
+        executed.push(brano);
+      } else {
+        pending.push(brano);
+      }
+    });
+
+    return pending.concat(executed);
+  }
+
   isBranoExecuted(brano) {
     if (!brano || typeof brano !== 'object') return false;
     const id = String(brano.id ?? '');
@@ -314,11 +337,6 @@ class DisplayMonitor {
     }
 
     const tick = (timestamp) => {
-      if (this.secondaryScreenGuardActive) {
-        this.scrollAnimationFrame = requestAnimationFrame(tick);
-        return;
-      }
-
       if (!this.scrollRunning) {
         this.scrollAnimationFrame = requestAnimationFrame(tick);
         return;
@@ -372,9 +390,58 @@ class DisplayMonitor {
     this.scrollAnimationFrame = requestAnimationFrame(tick);
   }
 
+  startScrollWatchdog() {
+    if (this.scrollWatchdogInterval) {
+      clearInterval(this.scrollWatchdogInterval);
+    }
+
+    this.scrollWatchdogInterval = setInterval(() => {
+      if (!this.scrollRunning) return;
+
+      const tableLive = document.querySelector('.table-live');
+      if (!tableLive) return;
+
+      const maxScroll = Math.max(0, tableLive.scrollHeight - tableLive.clientHeight);
+      if (maxScroll <= 0) return;
+
+      const now = Date.now();
+
+      // Se il loop rAF non e attivo, lo riavvia.
+      if (!this.scrollAnimationFrame) {
+        this.restartAutoScroll();
+        this.setFooterStatus('Scroll ripristinato automaticamente');
+        return;
+      }
+
+      // Se la posizione non cambia per troppo tempo fuori dalla finestra di pausa, prova restart.
+      if (this.scrollLastObservedAt === 0) {
+        this.scrollLastObservedAt = now;
+        this.scrollLastObservedTop = tableLive.scrollTop;
+        return;
+      }
+
+      const topDelta = Math.abs(tableLive.scrollTop - this.scrollLastObservedTop);
+      const inPauseWindow = performance.now() < this.scrollPauseUntil;
+
+      if (topDelta < 0.5 && !inPauseWindow && (now - this.scrollLastObservedAt) > 4000) {
+        this.restartAutoScroll();
+        this.scrollLastObservedAt = now;
+        this.scrollLastObservedTop = tableLive.scrollTop;
+        this.setFooterStatus('Scroll sbloccato automaticamente');
+        return;
+      }
+
+      if (topDelta >= 0.5) {
+        this.scrollLastObservedAt = now;
+        this.scrollLastObservedTop = tableLive.scrollTop;
+      }
+    }, 2000);
+  }
+
   restartAutoScroll() {
     this.scrollLastStepTime = 0;
     this.scrollPauseUntil = 0;
+    this.scrollLastObservedAt = 0;
     this.startAutoScroll();
   }
 
@@ -668,6 +735,10 @@ class DisplayMonitor {
     if (this.scrollAnimationFrame) {
       cancelAnimationFrame(this.scrollAnimationFrame);
       this.scrollAnimationFrame = null;
+    }
+    if (this.scrollWatchdogInterval) {
+      clearInterval(this.scrollWatchdogInterval);
+      this.scrollWatchdogInterval = null;
     }
   }
 }
