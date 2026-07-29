@@ -34,7 +34,7 @@ Il flusso standard utilizza ora un singolo server unificato o, in caso di test l
 
 - Portale principale: `http://localhost:5500/index.html`
 - Borderò locale statico: `http://localhost:5501/Bordero/pages/bordero.html` (test)
-- API sync Borderò: `http://localhost:5501/api/status` se il server di sync è avviato sulla porta `5501` o `5500` a seconda della configurazione.
+- API sync Borderò: `http://localhost:5501/api/status` (sync server dedicato su porta 5501).
 
 ## Bordero e sincronizzazione CSV
 
@@ -44,6 +44,13 @@ La cartella `Bordero/` contiene:
 - `Bordero/js/`: logica JavaScript per caricamento CSV, filtro, ordinamento, sincronizzazione e UX.
 - `Bordero/data/`: file CSV locali come `brani.csv`, `comuni_italia.csv`, `dBase.csv`.
 - `Bordero/server/google-sheets-sync.js`: script per sincronizzare i CSV da Google Sheets.
+
+Flusso aggiornato Bordero:
+
+- Sync online da Admin Panel tramite pulsante `Sync da Google Sheets`.
+- Sync offline/locale da file Excel selezionato manualmente dall'utente.
+- Directory di riferimento file Excel locali: `C:\VSC_Live_Server\Excel\`.
+- In caso di rete assente: fallback su cache localStorage e CSV locali in `Bordero/data/`.
 
 ## Eventi e pagine collegate
 
@@ -178,6 +185,13 @@ Questa sezione riassume le modifiche funzionali principali applicate nelle ultim
 - Selezione valore nel popup: applica filtro e chiude popup immediatamente.
 - Doppio click sul tasto filtro: reset solo del filtro di quel tasto (`nessun filtro`).
 - Filtro popup con confronto esatto del valore (es. `AVANZATO 1` diverso da `SUPERAVANZATO 1`).
+
+### Admin, sync e resilienza offline (`Bordero/pages/admin.html`, `Bordero/pages/admin.js`, `Bordero/js/excel-sync.js`, `Bordero/server/sync-server.js`)
+
+- Consolidato il percorso operativo locale per i file Excel: `C:\VSC_Live_Server\Excel\`.
+- Admin Panel aggiornato con azione `Sync da Google Sheets` e log live di sincronizzazione.
+- Endpoint sync estesi per Location (`/api/sync/location`, `/api/sync/location-options`).
+- In assenza internet, il sistema continua con fallback locale (Excel + cache + CSV).
 
 ## Git e versionamento
 

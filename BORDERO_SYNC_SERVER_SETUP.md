@@ -62,6 +62,9 @@ Dovresti vedere:
 â•‘  POST /api/sync/brani                         â•‘
 â•‘  POST /api/sync/comuni                        â•‘
 â•‘  POST /api/sync/dbase                         â•‘
+â•‘  POST /api/sync/location                      â•‘
+â•‘  POST /api/sync/location-options              â•‘
+â•‘  POST /api/sync/google-sheets                 â•‘
 â•‘  GET  /api/status                             â•‘
 â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 ```
@@ -119,7 +122,9 @@ Dovresti vedere un JSON con lo stato del server:
 1. **Avvia il sync server** (vedi sopra)
 2. **Apri Admin Panel:** http://localhost:5500/Bordero/pages/admin.html
 3. **Seleziona il file Excel:** Clicca "ðŸ“ Seleziona File Excel..."
+  - Directory consigliata: `C:\VSC_Live_Server\Excel\`
 4. **Sincronizza:** Clicca "ðŸ”„ Sincronizza Tutto da Excel"
+5. **Oppure online:** Clicca "ðŸŒ Sync da Google Sheets"
 
 ### Cosa Succede Automaticamente:
 
@@ -213,6 +218,15 @@ Sincronizza il foglio "Comuni Italia" â†’ `comuni_italia.csv`
 ### POST /api/sync/dbase
 Sincronizza il foglio "dBase" â†’ `dBase.csv`
 
+### POST /api/sync/location
+Sincronizza i dati Location â†’ `location.csv`
+
+### POST /api/sync/location-options
+Sincronizza le opzioni popup Location â†’ `location_popup_options.csv`
+
+### POST /api/sync/google-sheets
+Esegue sync server-side da Google Sheets e aggiorna i CSV in `Bordero/data/`
+
 ### GET /api/status
 Ritorna lo stato del server e dei file
 
@@ -250,6 +264,7 @@ node Bordero/server/sync-server.js
 - [ ] Server online (http://localhost:5501/api/status)
 - [ ] Browser su Admin Panel (http://localhost:5500/Bordero/pages/admin.html)
 - [ ] File Excel selezionato
+- [ ] File selezionato da C:\VSC_Live_Server\Excel\
 - [ ] Sincronizzazione completata
 - [ ] File CSV creati in Bordero/data/
 

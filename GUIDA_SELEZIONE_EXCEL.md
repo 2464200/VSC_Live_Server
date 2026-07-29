@@ -37,6 +37,13 @@ Clicca uno di questi pulsanti:
 - **"ðŸ”„ Sync Comuni"** - Solo il foglio "Comuni Italia"
 - **"ðŸ”„ Sync dBase"** - Solo il foglio "dBase"
 
+### **Passo 5: Nuovo Sync da Google Sheets (opzionale)**
+- In Admin Panel puoi usare anche **"ðŸŒ Sync da Google Sheets"**.
+- Se la sincronizzazione online fallisce (assenza internet/API non raggiungibile), il flusso consigliato resta:
+   1. selezione file da `C:\VSC_Live_Server\Excel\`
+   2. sync da Excel
+   3. utilizzo cache locale/CSV.
+
 ---
 
 ## ðŸ“ Opzione 2: Bordero Pagina Principale
@@ -139,6 +146,14 @@ JSON.stringify(localStorage.getItem('BORDERO_DBASE_DATA')).length > 50
 2. Clicca il pulsante "ðŸ”„ Sincronizza Tutto da Excel"
 3. Guarda il console (F12) per messaggi di errore
 4. Se il foglio ha nome diverso, aggiorna `excel-sync.js` linea 57, 91, 125
+
+### **Problema: Sync Google Sheets non disponibile**
+**Soluzione:**
+1. Verifica che il server di sync risponda su `http://localhost:5501/api/status`
+2. Se non hai internet o API key valida, usa il fallback locale:
+   - seleziona il file in `C:\VSC_Live_Server\Excel\`
+   - esegui "Sincronizza Tutto da Excel"
+3. Conferma i dati dal Data Viewer in Admin.
 
 ### **Problema: File Excel Corrotto**
 **Soluzione:**

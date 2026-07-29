@@ -79,6 +79,24 @@ Se vuoi usare Live Server per anteprime veloci:
 - Il server unificato garantisce che tutti gli URL funzionino insieme
 - Live Server rimane utile solo per testare file statici in anteprima, non per eseguire l’app completa
 
+## Bordero: fallback dati quando internet non e disponibile
+
+Per il modulo Bordero, il flusso dati aggiornato prevede due sorgenti:
+
+- Online: sincronizzazione da Google Sheets tramite Admin Panel.
+- Offline: selezione file Excel locale e uso cache/CSV locali.
+
+Percorso standard per i file Excel locali:
+
+- `C:\VSC_Live_Server\Excel\`
+
+Flusso consigliato in caso di assenza connessione:
+
+1. Apri `http://localhost:5500/Bordero/pages/admin.html`.
+2. Clicca `Seleziona File Excel...` e scegli un file dalla cartella `C:\VSC_Live_Server\Excel\`.
+3. Esegui `Sincronizza Tutto da Excel`.
+4. Continua a lavorare: Bordero usera localStorage e CSV locali come fallback.
+
 ## Verifica rapida
 
 - `http://localhost:5500/eventi/eventi.html` deve rispondere con `200`

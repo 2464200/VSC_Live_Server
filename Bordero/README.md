@@ -4,8 +4,8 @@
 
 ## Sistema di Gestione Brani e Coreografie
 
-Versione: **1.0.0**  
-Stato: **In sviluppo** 🚧
+Versione: **1.3.x**  
+Stato: **Operativo** ✅
 
 Runtime standard del progetto: `unified-server.js` su `http://localhost:5500`.
 Le procedure su porta `8000` sono da intendersi come anteprima statica locale.
@@ -96,9 +96,18 @@ L'applicazione consente ai DJ di:
 
 ### 10. **Sincronizzazione Dati**
 - Caricamento da Google Sheets (con API key)
+- Sync manuale da Admin (`Sync da Google Sheets`)
+- Sync da file Excel locale selezionato dall'utente
 - Cache locale in localStorage
-- Offline mode con dati cached
-- Auto-sync ogni 5 minuti
+- Offline mode con fallback su CSV/cache
+- Percorso consigliato file Excel: `C:\VSC_Live_Server\Excel\`
+
+### 11. **Admin Panel avanzato** (admin.html)
+- Selezione file Excel da UI
+- Sync separato per Brani, Comuni, dBase e Location
+- Sync globale da Excel
+- Log live di sincronizzazione
+- Data Viewer e gestione cache
 
 ---
 
@@ -412,34 +421,30 @@ A: Usa Ctrl+P nel browser, oppure `dataLoader.exportToCSV()`
 
 ## 📝 Changelog
 
-### v1.0.0 (2026-06-18)
-- ✅ Setup struttura base
-- ✅ Config e utilità
-- ✅ Data loader e sync
-- ⏳ Tabella principale (in progress)
-- ⏳ Filtri e ricerca (in progress)
-- ⏳ Video player (in progress)
-- ⏳ Display monitor (in progress)
+### v1.3.x (2026-07)
+- ✅ Flusso standard consolidato su `unified-server.js` (porta 5500)
+- ✅ Admin Panel con sync Excel e sync Google Sheets
+- ✅ Fallback robusto offline tramite CSV/cache locale
+- ✅ Gestione dataset Location e relative opzioni popup
+- ✅ Migliorie UI/UX su filtri, ordinamento e pannello monitor
 
 ---
 
 ## 🎯 Roadmap
 
-- [ ] Tabella principale con dati
-- [ ] Filtri per colonna
-- [ ] Full-text search
-- [ ] Ordinamento multi-colonna
-- [ ] UserForm modal
-- [ ] Video player
-- [ ] Monitor secondario
-- [ ] NextCoreo display
-- [ ] Report statistiche
-- [ ] Google Sheets sync
-- [ ] Offline mode completo
-- [ ] Print/Export
-- [ ] Admin panel
-- [ ] User authentication
-- [ ] Mobile app
+- [x] Tabella principale con dati
+- [x] Filtri per colonna
+- [x] Full-text search
+- [x] Ordinamento multi-colonna
+- [x] Video player
+- [x] Monitor secondario
+- [x] NextCoreo display
+- [x] Report statistiche
+- [x] Google Sheets sync
+- [x] Offline mode completo (cache/CSV)
+- [x] Admin panel operativo
+- [ ] Test end-to-end automatizzati
+- [ ] Rifiniture UX mobile e accessibilita
 
 ---
 

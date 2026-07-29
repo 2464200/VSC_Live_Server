@@ -70,6 +70,26 @@ Questo scarica tutti i dati in CSV:
 - `Bordero/data/brani.csv`
 - `Bordero/data/comuni_italia.csv`
 - `Bordero/data/dbase.csv`
+
+In alternativa puoi avviare il sync direttamente da Admin Panel:
+
+- `http://localhost:5500/Bordero/pages/admin.html`
+- Pulsante: `Sync da Google Sheets`
+---
+
+## ðŸ“¡ Se non c'e internet: fallback locale consigliato
+
+Quando Google Sheets/API non sono raggiungibili:
+
+1. Apri Admin Panel: `http://localhost:5500/Bordero/pages/admin.html`
+2. Clicca `Seleziona File Excel...`
+3. Scegli un file dalla directory: `C:\VSC_Live_Server\Excel\`
+4. Esegui `Sincronizza Tutto da Excel`
+
+Risultato:
+- i dati restano disponibili da cache locale (`localStorage`)
+- i CSV locali vengono usati come fallback operativo.
+
 ---
 
 ## â“ Problemi?
