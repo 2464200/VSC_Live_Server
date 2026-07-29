@@ -48,6 +48,7 @@ class LocationPage {
       province: [],
       paesiByProvincia: {},
     };
+    this.formMode = 'edit';
     this.init();
   }
 
@@ -84,9 +85,9 @@ class LocationPage {
     document.getElementById('btn-reset-filters')?.addEventListener('click', () => this.resetFilters());
     document.getElementById('btn-export-location')?.addEventListener('click', () => this.exportLocationsCsv());
     document.getElementById('btn-sync-location')?.addEventListener('click', () => this.syncLocationFromExcel());
-    document.getElementById('btn-nuovo')?.addEventListener('click', () => this.clearForm());
-    document.getElementById('btn-salva')?.addEventListener('click', () => this.saveNewRecord());
-    document.getElementById('btn-modifica')?.addEventListener('click', () => this.updateRecord());
+    document.getElementById('btn-nuovo')?.addEventListener('click', () => this.startNewRecord());
+    document.getElementById('btn-salva')?.addEventListener('click', () => this.handleSaveRecord());
+    document.getElementById('btn-modifica')?.addEventListener('click', () => this.startEditRecord());
     document.getElementById('btn-elimina')?.addEventListener('click', () => this.deleteRecord());
     document.getElementById('btn-stampa-location')?.addEventListener('click', () => this.printLocationList());
     document.getElementById('btn-precedente')?.addEventListener('click', () => this.selectRelative(-1));
@@ -505,6 +506,7 @@ class LocationPage {
     if (!record) return;
 
     this.fillFormFromRecord(record, index);
+    this.setFormMode('edit');
 
     this.renderList(document.getElementById('filter-field')?.value || this.locationFieldMap[0][0]);
     this.updateStats();
@@ -513,8 +515,43 @@ class LocationPage {
   clearForm() {
     this.selectedIndex = -1;
     this.clearFormFieldsOnly();
+    this.setFormMode('new');
     this.renderList(document.getElementById('filter-field')?.value || this.locationFieldMap[0][0]);
     this.updateStats();
+  }
+
+  setFormMode(mode) {
+    const nextMode = mode === 'new' ? 'new' : 'edit';
+    this.formMode = nextMode;
+
+    const btnNuovo = document.getElementById('btn-nuovo');
+    const btnModifica = document.getElementById('btn-modifica');
+
+    btnNuovo?.classList.toggle('is-mode-active', nextMode === 'new');
+    btnModifica?.classList.toggle('is-mode-active', nextMode === 'edit');
+  }
+
+  startNewRecord() {
+    this.clearForm();
+  }
+
+  startEditRecord() {
+    if (this.selectedIndex < 0 || this.selectedIndex >= this.locations.length) {
+      Toast.warning('Seleziona una Location da modificare.');
+      return;
+    }
+
+    this.setFormMode('edit');
+    Toast.info('Modalita modifica attiva. Premi Salva per aggiornare il record corrente.');
+  }
+
+  async handleSaveRecord() {
+    if (this.formMode === 'new') {
+      await this.saveNewRecord();
+      return;
+    }
+
+    await this.updateRecord();
   }
 
   resetFilters() {
