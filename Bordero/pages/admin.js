@@ -11,6 +11,7 @@ class AdminPanel {
 
   async init() {
     this.setupSystemStatus();
+    this.setupDisplayScrollSettings();
     this.setupExcelFileSelection();
     this.setupDataSync();
     this.setupDataViewer();
@@ -18,6 +19,185 @@ class AdminPanel {
     this.setupExportImport();
     this.setupConsole();
     this.log('✓ Admin Panel initialized', 'success');
+  }
+
+  getDisplayScrollDefaults() {
+    return {
+      stepMs: Number(BORDERO_CONFIG?.DISPLAY_SCROLL_DEFAULT_STEP_MS ?? 16),
+      pauseSec: Number(BORDERO_CONFIG?.DISPLAY_SCROLL_DEFAULT_PAUSE_SEC ?? 1),
+      stepPx: Number(BORDERO_CONFIG?.DISPLAY_SCROLL_DEFAULT_STEP_PX ?? 1),
+    };
+  }
+
+  getDisplayScrollStorageKey() {
+    return BORDERO_CONFIG?.DISPLAY_SCROLL_SETTINGS_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_SETTINGS';
+  }
+
+  readDisplayScrollSettings() {
+    const defaults = this.getDisplayScrollDefaults();
+    const raw = localStorage.getItem(this.getDisplayScrollStorageKey());
+
+    if (!raw) {
+      return defaults;
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+      const stepMs = Number(parsed?.stepMs);
+      const pauseSec = Number(parsed?.pauseSec);
+      const stepPx = Number(parsed?.stepPx);
+
+      return {
+        stepMs: Number.isFinite(stepMs) ? Math.min(50, Math.max(1, stepMs)) : defaults.stepMs,
+        pauseSec: Number.isFinite(pauseSec) ? Math.min(20, Math.max(0, pauseSec)) : defaults.pauseSec,
+        stepPx: Number.isFinite(stepPx) ? Math.min(5, Math.max(1, stepPx)) : defaults.stepPx,
+      };
+    } catch (error) {
+      logger.warn('Display scroll settings non valide, uso default', error?.message || error);
+      return defaults;
+    }
+  }
+
+  isRichiesteZeroValue(value) {
+    const text = String(value ?? '').trim();
+    if (!text || text === '-') return true;
+
+    const normalizedNumeric = text.replace(',', '.');
+    if (/^-?\d+(\.\d+)?$/.test(normalizedNumeric)) {
+      return Number(normalizedNumeric) === 0;
+    }
+
+    return false;
+  }
+
+  getRequestedBraniCountForDisplay() {
+    const brani = Storage.get('BORDERO_BRANI_DATA');
+    if (!Array.isArray(brani) || brani.length === 0) {
+      return 0;
+    }
+
+    return brani.filter((item) => !this.isRichiesteZeroValue(item?.richieste)).length;
+  }
+
+  formatSecondsToMinSec(totalSeconds) {
+    const safe = Math.max(0, Number(totalSeconds) || 0);
+    const minutes = Math.floor(safe / 60);
+    const seconds = Math.round(safe % 60);
+    if (minutes <= 0) {
+      return `${seconds}s`;
+    }
+    return `${minutes}m ${seconds}s`;
+  }
+
+  updateDisplayScrollEstimate(stepMs, pauseSec, stepPx) {
+    const estimateValue = document.getElementById('display-scroll-estimate-value');
+    if (!estimateValue) return;
+
+    const requestedCount = this.getRequestedBraniCountForDisplay();
+    if (requestedCount <= 0) {
+      estimateValue.textContent = 'n/d (nessun brano richiesto disponibile)';
+      return;
+    }
+
+    const rowHeightPx = 40;
+    const tableViewportPx = 700; // stima per monitor 1080p della pagina display
+    const contentHeightPx = requestedCount * rowHeightPx;
+    const maxScrollPx = Math.max(0, contentHeightPx - tableViewportPx);
+
+    if (maxScrollPx <= 0) {
+      estimateValue.textContent = `tabella interamente visibile (${requestedCount} brani)`;
+      return;
+    }
+
+    const oneWaySeconds = (maxScrollPx / Math.max(1, stepPx)) * (Math.max(1, stepMs) / 1000);
+    const fullCycleSeconds = (oneWaySeconds * 2) + (Math.max(0, pauseSec) * 2);
+
+    estimateValue.textContent =
+      `${this.formatSecondsToMinSec(fullCycleSeconds)} ciclo completo | ${requestedCount} brani | corsa ${Math.round(maxScrollPx)}px`;
+  }
+
+  saveDisplayScrollSettings(settings) {
+    const payload = {
+      stepMs: Number.isFinite(Number(settings?.stepMs)) ? Math.min(50, Math.max(1, Number(settings.stepMs))) : 16,
+      pauseSec: Number.isFinite(Number(settings?.pauseSec)) ? Math.min(20, Math.max(0, Number(settings.pauseSec))) : 1,
+      stepPx: Number.isFinite(Number(settings?.stepPx)) ? Math.min(5, Math.max(1, Number(settings.stepPx))) : 1,
+    };
+
+    localStorage.setItem(this.getDisplayScrollStorageKey(), JSON.stringify(payload));
+    return payload;
+  }
+
+  setupDisplayScrollSettings() {
+    const speedInput = document.getElementById('display-scroll-speed');
+    const pauseInput = document.getElementById('display-scroll-pause');
+    const stepPxInput = document.getElementById('display-scroll-step-px');
+    const speedValue = document.getElementById('display-scroll-speed-value');
+    const pauseValue = document.getElementById('display-scroll-pause-value');
+    const stepPxValue = document.getElementById('display-scroll-step-px-value');
+    const estimateValue = document.getElementById('display-scroll-estimate-value');
+    const saveBtn = document.getElementById('btn-save-display-scroll');
+    const resetBtn = document.getElementById('btn-reset-display-scroll');
+
+    if (!speedInput || !pauseInput || !stepPxInput || !saveBtn || !resetBtn) {
+      return;
+    }
+
+    const renderReadout = () => {
+      const stepMs = Number(speedInput.value);
+      const pauseSec = Number(pauseInput.value);
+      const stepPx = Number(stepPxInput.value);
+
+      if (speedValue) speedValue.textContent = `${stepMs} ms`;
+      if (pauseValue) pauseValue.textContent = `${pauseSec.toFixed(1)} sec`;
+      if (stepPxValue) stepPxValue.textContent = `${stepPx} px`;
+      if (estimateValue) this.updateDisplayScrollEstimate(stepMs, pauseSec, stepPx);
+    };
+
+    const current = this.readDisplayScrollSettings();
+    speedInput.value = String(current.stepMs);
+    pauseInput.value = String(current.pauseSec);
+    stepPxInput.value = String(current.stepPx);
+    renderReadout();
+
+    speedInput.addEventListener('input', renderReadout);
+    pauseInput.addEventListener('input', renderReadout);
+    stepPxInput.addEventListener('input', renderReadout);
+
+    saveBtn.addEventListener('click', () => {
+      const saved = this.saveDisplayScrollSettings({
+        stepMs: Number(speedInput.value),
+        pauseSec: Number(pauseInput.value),
+        stepPx: Number(stepPxInput.value),
+      });
+      speedInput.value = String(saved.stepMs);
+      pauseInput.value = String(saved.pauseSec);
+      stepPxInput.value = String(saved.stepPx);
+      renderReadout();
+      this.log(`✓ Impostazioni scroll salvate (velocita: ${saved.stepMs}ms, pausa: ${saved.pauseSec}s, passo: ${saved.stepPx}px)`, 'success');
+      Toast.success('Impostazioni scroll salvate');
+      this.updateDisplayScrollEstimate(saved.stepMs, saved.pauseSec, saved.stepPx);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      const defaults = this.getDisplayScrollDefaults();
+      const saved = this.saveDisplayScrollSettings(defaults);
+      speedInput.value = String(saved.stepMs);
+      pauseInput.value = String(saved.pauseSec);
+      stepPxInput.value = String(saved.stepPx);
+      renderReadout();
+      this.log('↺ Impostazioni scroll ripristinate ai default', 'warn');
+      Toast.warning('Default scroll ripristinati');
+      this.updateDisplayScrollEstimate(saved.stepMs, saved.pauseSec, saved.stepPx);
+    });
+
+    window.addEventListener('bordero:data-updated', () => {
+      this.updateDisplayScrollEstimate(Number(speedInput.value), Number(pauseInput.value), Number(stepPxInput.value));
+    });
+
+    window.addEventListener('storage', (event) => {
+      if (!event.key || !event.key.startsWith('BORDERO_')) return;
+      this.updateDisplayScrollEstimate(Number(speedInput.value), Number(pauseInput.value), Number(stepPxInput.value));
+    });
   }
 
   /* ========== EXCEL FILE SELECTION ========== */

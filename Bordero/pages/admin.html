@@ -72,6 +72,43 @@
       </div>
     </section>
 
+    <section class="admin-section">
+      <h2>🎚️ Display Scroll Settings</h2>
+      <p class="display-scroll-help">
+        Regola il rolling su/giu del monitor Display (stile VBA). Le impostazioni sono salvate e applicate automaticamente alla pagina Display.
+      </p>
+
+      <div class="display-scroll-grid">
+        <div class="display-scroll-control">
+          <label for="display-scroll-speed">Velocita scorrimento (ms per step)</label>
+          <input type="range" id="display-scroll-speed" min="1" max="50" step="1" value="16" />
+          <div class="display-scroll-readout"><span id="display-scroll-speed-value">16 ms</span></div>
+        </div>
+
+        <div class="display-scroll-control">
+          <label for="display-scroll-pause">Pausa agli estremi (secondi)</label>
+          <input type="range" id="display-scroll-pause" min="0" max="20" step="0.5" value="1" />
+          <div class="display-scroll-readout"><span id="display-scroll-pause-value">1.0 sec</span></div>
+        </div>
+
+        <div class="display-scroll-control">
+          <label for="display-scroll-step-px">Passo di scorrimento (pixel)</label>
+          <input type="range" id="display-scroll-step-px" min="1" max="5" step="1" value="1" />
+          <div class="display-scroll-readout"><span id="display-scroll-step-px-value">1 px</span></div>
+        </div>
+      </div>
+
+      <div class="display-scroll-actions">
+        <button id="btn-save-display-scroll" class="btn btn-primary" type="button">💾 Salva Impostazioni Scroll</button>
+        <button id="btn-reset-display-scroll" class="btn btn-secondary" type="button">↺ Ripristina Default</button>
+      </div>
+
+      <div class="display-scroll-estimate" id="display-scroll-estimate">
+        <strong>Stima ciclo rolling:</strong>
+        <span id="display-scroll-estimate-value">--</span>
+      </div>
+    </section>
+
     <!-- DATA SYNC -->
     <section class="admin-section">
       <h2>📊 Data Synchronization</h2>

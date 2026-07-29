@@ -21,6 +21,7 @@ class DisplayMonitor {
     this.scrollPauseUntil = 0;
     this.scrollLastStepTime = 0;
     this.scrollRunning = true;
+    this.scrollSettingsStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_SETTINGS_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_SETTINGS';
     this.clockInterval = null;
     this.nextCoreoInterval = null;
     this.scrollAnimationFrame = null;
@@ -36,6 +37,8 @@ class DisplayMonitor {
     logger.info('DisplayMonitor initializing...');
 
     try {
+      this.applyScrollSettings(this.readScrollSettings());
+
       // Carica dati
       this.allBrani = await dataLoader.loadBrani();
 
@@ -60,6 +63,48 @@ class DisplayMonitor {
     } catch (error) {
       logger.error('Errore inizializzazione', error);
     }
+  }
+
+  getDefaultScrollSettings() {
+    return {
+      stepMs: Number(BORDERO_CONFIG?.DISPLAY_SCROLL_DEFAULT_STEP_MS ?? 16),
+      pauseSec: Number(BORDERO_CONFIG?.DISPLAY_SCROLL_DEFAULT_PAUSE_SEC ?? 1),
+      stepPx: Number(BORDERO_CONFIG?.DISPLAY_SCROLL_DEFAULT_STEP_PX ?? 1),
+    };
+  }
+
+  readScrollSettings() {
+    const defaults = this.getDefaultScrollSettings();
+    const raw = localStorage.getItem(this.scrollSettingsStorageKey);
+
+    if (!raw) {
+      return defaults;
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+      return {
+        stepMs: Number.isFinite(Number(parsed?.stepMs)) ? Number(parsed.stepMs) : defaults.stepMs,
+        pauseSec: Number.isFinite(Number(parsed?.pauseSec)) ? Number(parsed.pauseSec) : defaults.pauseSec,
+        stepPx: Number.isFinite(Number(parsed?.stepPx)) ? Number(parsed.stepPx) : defaults.stepPx,
+      };
+    } catch (error) {
+      logger.warn('Scroll settings non valide in localStorage, uso default', error?.message || error);
+      return defaults;
+    }
+  }
+
+  applyScrollSettings(settings) {
+    const defaults = this.getDefaultScrollSettings();
+    const stepMs = Number(settings?.stepMs);
+    const pauseSec = Number(settings?.pauseSec);
+    const stepPx = Number(settings?.stepPx);
+
+    this.scrollStepMs = Number.isFinite(stepMs) ? Math.min(50, Math.max(1, stepMs)) : defaults.stepMs;
+    this.pauseAtEdgesMs = Number.isFinite(pauseSec) ? Math.min(20000, Math.max(0, pauseSec * 1000)) : defaults.pauseSec * 1000;
+    this.scrollSpeedPxPerStep = Number.isFinite(stepPx) ? Math.min(5, Math.max(1, stepPx)) : defaults.stepPx;
+    this.scrollLastStepTime = 0;
+    this.scrollPauseUntil = 0;
   }
 
   /**
@@ -329,30 +374,9 @@ class DisplayMonitor {
   }
 
   setupControls() {
-    const speedInput = document.getElementById('speed');
-    const pauseInput = document.getElementById('pause');
     const stopBtn = document.getElementById('stopScroll');
     const resumeBtn = document.getElementById('resumeScroll');
     const fullscreenBtn = document.getElementById('btn-fullscreen');
-
-    const syncFromInputs = () => {
-      const speedValue = Number(speedInput?.value ?? 16);
-      const pauseValue = Number(pauseInput?.value ?? 1);
-      this.scrollStepMs = Number.isFinite(speedValue) ? Math.min(50, Math.max(1, speedValue)) : 16;
-      this.pauseAtEdgesMs = Number.isFinite(pauseValue) ? Math.min(20000, Math.max(0, pauseValue * 1000)) : 1000;
-    };
-
-    syncFromInputs();
-
-    speedInput?.addEventListener('change', () => {
-      syncFromInputs();
-      this.scrollLastStepTime = 0;
-    });
-
-    pauseInput?.addEventListener('change', () => {
-      syncFromInputs();
-      this.scrollPauseUntil = 0;
-    });
 
     stopBtn?.addEventListener('click', () => {
       this.scrollRunning = false;
@@ -371,6 +395,14 @@ class DisplayMonitor {
 
     document.addEventListener('fullscreenchange', () => {
       this.scrollLastStepTime = 0;
+    });
+
+    window.addEventListener('storage', (event) => {
+      if (event.key !== this.scrollSettingsStorageKey) {
+        return;
+      }
+      this.applyScrollSettings(this.readScrollSettings());
+      this.setFooterStatus('Parametri scroll aggiornati da ADMIN');
     });
   }
 

@@ -18,6 +18,69 @@
   padding-bottom: 10px;
 }
 
+.display-scroll-help {
+  margin: 0 0 18px 0;
+  color: #ddd;
+  font-size: 0.95em;
+}
+
+.display-scroll-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.display-scroll-control {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 127, 0, 0.35);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.display-scroll-control label {
+  display: block;
+  color: #ffcb8f;
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 0.92em;
+}
+
+.display-scroll-control input[type="range"] {
+  width: 100%;
+  accent-color: var(--primary-orange);
+}
+
+.display-scroll-readout {
+  margin-top: 8px;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  font-size: 0.92em;
+}
+
+.display-scroll-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.display-scroll-estimate {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 127, 0, 0.5);
+  background: rgba(255, 127, 0, 0.08);
+  color: #ffe1bf;
+  font-size: 0.92em;
+}
+
+#display-scroll-estimate-value {
+  display: inline-block;
+  margin-left: 6px;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+}
+
 /* STATUS GRID */
 .status-grid {
   display: grid;
