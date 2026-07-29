@@ -60,19 +60,24 @@
 }
 
 .next-coreo-wrap {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .next-coreo-label {
   font-size: 22px;
   color: #fff;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   font-weight: 700;
 }
 
 .next-coreo-stage {
-  position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 #next-coreo {
@@ -96,10 +101,8 @@
 }
 
 .arrow-side {
-  position: absolute;
-  left: -58px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: static;
+  transform: none;
   font-size: 52px;
   color: #ffa200;
   animation: arrowBlink 1s infinite ease-in-out;
@@ -107,9 +110,9 @@
 }
 
 @keyframes arrowBlink {
-  0% { opacity: 1; transform: translateY(-50%) translateX(0); }
-  50% { opacity: 0.2; transform: translateY(-50%) translateX(-8px); }
-  100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+  0% { opacity: 1; transform: translateX(0); }
+  50% { opacity: 0.2; transform: translateX(-8px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
 .live-actions {

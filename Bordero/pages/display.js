@@ -25,6 +25,7 @@ class DisplayMonitor {
     this.clockInterval = null;
     this.nextCoreoInterval = null;
     this.scrollAnimationFrame = null;
+    this.lastRenderedSignature = '';
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
@@ -128,12 +129,14 @@ class DisplayMonitor {
     this.executedIds = this.buildExecutedIdSet(currentSerata, brani);
 
     if (!Array.isArray(brani) || brani.length === 0) {
+      this.lastRenderedSignature = '';
       this.showEmptyState();
       return;
     }
 
     const requestedBrani = this.filterRequestedBrani(brani);
     if (!Array.isArray(requestedBrani) || requestedBrani.length === 0) {
+      this.lastRenderedSignature = '';
       this.showEmptyState('Nessun brano richiesto da visualizzare');
       return;
     }
@@ -144,13 +147,29 @@ class DisplayMonitor {
     const executedCount = requestedBrani.filter((item) => this.isBranoExecuted(item)).length;
     this.setFooterStatus(`Brani richiesti: ${requestedBrani.length} | Eseguiti: ${executedCount}`);
 
-    // Renderizza tabella
-    this.renderTable(requestedBrani);
+    // Renderizza solo quando i dati visualizzati cambiano, per mantenere lo scroll fluido.
+    const nextSignature = this.buildRenderSignature(requestedBrani);
+    if (nextSignature !== this.lastRenderedSignature) {
+      this.renderTable(requestedBrani);
+      this.lastRenderedSignature = nextSignature;
+    }
 
     // Update timestamp
     this.lastRefresh = new Date();
     document.getElementById('footer-timestamp').textContent = 
       `Ultimo aggiornamento: ${DateUtils.formatTime(this.lastRefresh)}`;
+  }
+
+  buildRenderSignature(brani) {
+    const list = Array.isArray(brani) ? brani.slice(0, 1000) : [];
+    return list
+      .map((item) => {
+        const id = String(item?.id ?? '');
+        const flag = this.isBranoExecuted(item) ? 'X' : '-';
+        const richieste = String(item?.richieste ?? '');
+        return `${id}|${flag}|${richieste}`;
+      })
+      .join('~');
   }
 
   /**
@@ -331,18 +350,17 @@ class DisplayMonitor {
       }
 
       if (timestamp - this.scrollLastStepTime >= this.scrollStepMs) {
-        const nextTop = tableLive.scrollTop + this.scrollDirection * this.scrollSpeedPxPerStep;
+        const atBottom = (tableLive.scrollTop + tableLive.clientHeight) >= (tableLive.scrollHeight - 1);
+        const atTop = tableLive.scrollTop <= 0;
 
-        if (nextTop >= maxScroll) {
-          tableLive.scrollTop = maxScroll;
+        if (atBottom && this.scrollDirection === 1) {
           this.scrollDirection = -1;
           this.scrollPauseUntil = timestamp + this.pauseAtEdgesMs;
-        } else if (nextTop <= 0) {
-          tableLive.scrollTop = 0;
+        } else if (atTop && this.scrollDirection === -1) {
           this.scrollDirection = 1;
           this.scrollPauseUntil = timestamp + this.pauseAtEdgesMs;
         } else {
-          tableLive.scrollTop = nextTop;
+          tableLive.scrollTop += this.scrollDirection * this.scrollSpeedPxPerStep;
         }
 
         this.scrollLastStepTime = timestamp;
@@ -352,6 +370,12 @@ class DisplayMonitor {
     };
 
     this.scrollAnimationFrame = requestAnimationFrame(tick);
+  }
+
+  restartAutoScroll() {
+    this.scrollLastStepTime = 0;
+    this.scrollPauseUntil = 0;
+    this.startAutoScroll();
   }
 
   /**
@@ -385,7 +409,7 @@ class DisplayMonitor {
 
     resumeBtn?.addEventListener('click', () => {
       this.scrollRunning = true;
-      this.scrollLastStepTime = 0;
+      this.restartAutoScroll();
       this.setFooterStatus('Scroll attivo');
     });
 
@@ -394,7 +418,9 @@ class DisplayMonitor {
     });
 
     document.addEventListener('fullscreenchange', () => {
-      this.scrollLastStepTime = 0;
+      setTimeout(() => {
+        this.restartAutoScroll();
+      }, 100);
     });
 
     window.addEventListener('storage', (event) => {
@@ -402,6 +428,7 @@ class DisplayMonitor {
         return;
       }
       this.applyScrollSettings(this.readScrollSettings());
+      this.restartAutoScroll();
       this.setFooterStatus('Parametri scroll aggiornati da ADMIN');
     });
   }
