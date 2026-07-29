@@ -376,6 +376,20 @@
   pointer-events: none;
 }
 
+.remote-rolling-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.remote-rolling-btn {
+  padding: 6px 10px;
+  font-size: 0.8em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .search-input {
   width: 100%;
   padding: 12px 15px;

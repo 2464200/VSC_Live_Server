@@ -29,6 +29,9 @@ class DisplayMonitor {
     this.scrollLastObservedTop = 0;
     this.scrollLastObservedAt = 0;
     this.lastRenderedSignature = '';
+    this.footerRollingHint = 'Parametri rolling: configura da ADMIN';
+    this.scrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
+    this.lastHandledScrollCommandTs = 0;
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
@@ -203,22 +206,44 @@ class DisplayMonitor {
     return false;
   }
 
+  normalizeBranoIdKey(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+
+    const digitsOnly = raw.replace(/\D+/g, '');
+    if (digitsOnly) {
+      return String(Number(digitsOnly));
+    }
+
+    return raw.toLowerCase();
+  }
+
   buildDisplaySourceBrani(currentSerata) {
     const baseBrani = Array.isArray(this.allBrani) ? this.allBrani : [];
     const serataBrani = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
 
     // Base: lista completa da sorgente corrente; dalla serata riporta solo lo stato eseguito.
-    const mergedMap = new Map(baseBrani.map((item) => [String(item.id ?? ''), { ...item }]));
+    const mergedMap = new Map(
+      baseBrani.map((item) => [this.normalizeBranoIdKey(item.id), { ...item }]).filter(([key]) => Boolean(key))
+    );
 
     serataBrani.forEach((item) => {
-      const id = String(item?.id ?? '');
+      const id = this.normalizeBranoIdKey(item?.id);
       if (!id) return;
       if (String(item?.flag || '').toUpperCase() !== 'X') {
         return;
       }
 
       const base = mergedMap.get(id);
-      if (!base) return;
+      if (!base) {
+        // Fallback: se il brano non esiste nella base corrente, usa i dati serata.
+        mergedMap.set(id, {
+          ...item,
+          id: String(item?.id ?? id),
+          flag: 'X'
+        });
+        return;
+      }
 
       mergedMap.set(id, {
         ...base,
@@ -236,14 +261,16 @@ class DisplayMonitor {
 
     fromSerata.forEach((brano) => {
       if (String(brano?.flag || '').toUpperCase() === 'X') {
-        ids.add(String(brano.id));
+        const key = this.normalizeBranoIdKey(brano.id);
+        if (key) ids.add(key);
       }
     });
 
     if (ids.size === 0 && Array.isArray(sourceBrani)) {
       sourceBrani.forEach((brano) => {
         if (String(brano?.flag || '').toUpperCase() === 'X') {
-          ids.add(String(brano.id));
+          const key = this.normalizeBranoIdKey(brano.id);
+          if (key) ids.add(key);
         }
       });
     }
@@ -275,7 +302,7 @@ class DisplayMonitor {
 
   isBranoExecuted(brano) {
     if (!brano || typeof brano !== 'object') return false;
-    const id = String(brano.id ?? '');
+    const id = this.normalizeBranoIdKey(brano.id);
     if (id && this.executedIds.has(id)) {
       return true;
     }
@@ -491,6 +518,11 @@ class DisplayMonitor {
     });
 
     window.addEventListener('storage', (event) => {
+      if (event.key === this.scrollCommandStorageKey && event.newValue) {
+        this.handleRemoteScrollCommand(event.newValue);
+        return;
+      }
+
       if (event.key !== this.scrollSettingsStorageKey) {
         return;
       }
@@ -500,10 +532,44 @@ class DisplayMonitor {
     });
   }
 
+  handleRemoteScrollCommand(rawValue) {
+    let payload = null;
+
+    try {
+      payload = JSON.parse(rawValue);
+    } catch (error) {
+      logger.debug('Comando rolling remoto non valido', error?.message || error);
+      return;
+    }
+
+    const ts = Number(payload?.ts || 0);
+    if (!Number.isFinite(ts) || ts <= this.lastHandledScrollCommandTs) {
+      return;
+    }
+    this.lastHandledScrollCommandTs = ts;
+
+    const action = String(payload?.action || '').trim().toLowerCase();
+    if (action === 'stop') {
+      this.scrollRunning = false;
+      this.setFooterStatus('Scroll fermato da Bordero');
+      return;
+    }
+
+    if (action === 'resume') {
+      this.scrollRunning = true;
+      this.restartAutoScroll();
+      this.setFooterStatus('Scroll ripreso da Bordero');
+    }
+  }
+
   setFooterStatus(text) {
     const status = document.getElementById('footer-status');
     if (status) {
-      status.textContent = text;
+      if (text && text.trim()) {
+        status.textContent = `${text} | ${this.footerRollingHint}`;
+      } else {
+        status.textContent = this.footerRollingHint;
+      }
     }
   }
 
@@ -592,7 +658,10 @@ class DisplayMonitor {
 
     this.secondaryScreenGuardActive = Boolean(active);
 
-    if (!guard || !body) return;
+    if (!guard || !body) {
+      this.secondaryScreenGuardActive = false;
+      return;
+    }
 
     if (this.secondaryScreenGuardActive) {
       guard.hidden = false;

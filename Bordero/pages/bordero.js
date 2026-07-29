@@ -29,6 +29,7 @@ class BorderoTableManager {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
+    this.displayScrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
     this.coexistingFilterFields = new Set([
       'richieste',
       'info_livello',
@@ -679,12 +680,35 @@ class BorderoTableManager {
     document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
+    document.getElementById('btn-stop-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('stop'));
+    document.getElementById('btn-resume-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('resume'));
 
     // Pagination
     document.getElementById('btn-first-page')?.addEventListener('click', () => this.firstPage());
     document.getElementById('btn-prev-page')?.addEventListener('click', () => this.prevPage());
     document.getElementById('btn-next-page')?.addEventListener('click', () => this.nextPage());
     document.getElementById('btn-last-page')?.addEventListener('click', () => this.lastPage());
+  }
+
+  sendDisplayRollingCommand(action) {
+    const normalized = String(action || '').trim().toLowerCase();
+    if (normalized !== 'stop' && normalized !== 'resume') {
+      return;
+    }
+
+    const payload = {
+      action: normalized,
+      ts: Date.now(),
+      source: 'bordero-main'
+    };
+
+    localStorage.setItem(this.displayScrollCommandStorageKey, JSON.stringify(payload));
+
+    if (normalized === 'stop') {
+      Toast.warning('Comando inviato: FERMA ROLLING (monitor secondario)');
+    } else {
+      Toast.success('Comando inviato: RIPRENDI ROLLING (monitor secondario)');
+    }
   }
 
   setupFilterValuePicker() {

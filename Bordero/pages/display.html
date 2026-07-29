@@ -77,14 +77,6 @@
       </div>
     </header>
 
-    <section id="secondary-monitor-guard" class="secondary-monitor-guard" hidden>
-      <div class="guard-actions">
-        <div class="live-date guard-date" id="data-ora">Data: --/--/---- - Ore: --:--</div>
-          <button id="btn-open-on-secondary" class="btn btn-primary" type="button">APRI SU MONITOR SECONDARIO</button>
-        <button id="btn-fullscreen" class="btn btn-secondary" type="button" aria-label="Attiva o disattiva schermo intero">SCHERMO INTERO</button>
-      </div>
-    </section>
-
     <!-- TABELLA LIVE -->
     <section class="table-live">
       <table class="brani-table">
@@ -111,15 +103,11 @@
       </div>
     </section>
 
-    <section class="controls" aria-label="Controlli scorrimento">
-      Parametri rolling configurabili da pagina ADMIN
-      <button id="stopScroll" class="btn btn-secondary" type="button">Ferma Scroll</button>
-      <button id="resumeScroll" class="btn btn-secondary" type="button">Riprendi Scroll</button>
-    </section>
-
     <!-- STATUS BAR -->
     <footer class="display-footer">
-      <span id="footer-status">Sincronizzazione...</span>
+      <div class="footer-left-group">
+        <span id="footer-status">Sincronizzazione...</span>
+      </div>
       <span class="timestamp" id="footer-timestamp">Ultimo aggiornamento: --</span>
     </footer>
   </div>

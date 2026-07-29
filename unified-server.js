@@ -35,11 +35,13 @@ const OPENED_VIEWERS_FILE = path.join(__dirname, 'pdf', 'config', 'opened-viewer
 // Stato VLC per monitor secondario (controllo remoto)
 const VLC_RC_HOST = '127.0.0.1';
 const VLC_RC_PORT = process.env.VLC_RC_PORT ? parseInt(process.env.VLC_RC_PORT, 10) : 4212;
+const DISPLAY_WINDOW_TITLE_HINT = process.env.DISPLAY_WINDOW_TITLE_HINT || 'Monitor Secondario';
 let vlcProcess = null;
 let vlcCurrentFile = '';
 let vlcDiscoveryPromise = null;
 let vlcLaunchSequence = 0;
 let vlcPauseSequence = 0;
+let vlcForegroundGuardTimer = null;
 let vlcStopRequestedPids = new Set();
 let vlcSettledPids = new Set();
 let vlcCompletionEventSeq = 0;
@@ -183,9 +185,131 @@ function isVlcAlive() {
     }
 }
 
+function clearVlcForegroundGuard() {
+    if (vlcForegroundGuardTimer) {
+        clearInterval(vlcForegroundGuardTimer);
+        vlcForegroundGuardTimer = null;
+    }
+}
+
+async function focusWindowByProcessId(processId) {
+    const pid = Number(processId || 0);
+    if (!pid) return false;
+
+    const psCommand = [
+        '$pidTarget = ' + pid,
+        '$proc = Get-Process -Id $pidTarget -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1',
+        'if (-not $proc) { exit 2 }',
+        '$wshell = New-Object -ComObject WScript.Shell',
+        '$ok = $wshell.AppActivate($proc.Id)',
+        'if ($ok) { exit 0 }',
+        'exit 3'
+    ].join('; ');
+
+    try {
+        await execFileAsync('powershell.exe', [
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy', 'Bypass',
+            '-Command', psCommand
+        ]);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+async function focusWindowByTitleHints(titleHints = []) {
+    const hints = titleHints
+        .map((item) => String(item || '').trim())
+        .filter(Boolean)
+        .map((item) => item.replace(/'/g, "''"));
+
+    if (hints.length === 0) return false;
+
+    const whereClauses = hints.map((hint) => `($_.MainWindowTitle -like '*${hint}*')`).join(' -or ');
+    const psCommand = [
+        '$target = Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and (' + whereClauses + ') } | Sort-Object StartTime -Descending | Select-Object -First 1',
+        'if (-not $target) { exit 2 }',
+        '$wshell = New-Object -ComObject WScript.Shell',
+        '$ok = $wshell.AppActivate($target.Id)',
+        'if ($ok) { exit 0 }',
+        'exit 3'
+    ].join('; ');
+
+    try {
+        await execFileAsync('powershell.exe', [
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy', 'Bypass',
+            '-Command', psCommand
+        ]);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+async function forceVlcForeground(reason = 'playback') {
+    const tracked = await ensureVlcTracked().catch(() => null);
+    const pid = Number(tracked?.pid || vlcProcess?.pid || 0);
+    if (!pid) return false;
+
+    const focusedByPid = await focusWindowByProcessId(pid);
+    if (focusedByPid) {
+        console.log(`🎬 VLC portato in primo piano (${reason})`);
+        return true;
+    }
+
+    const focusedByTitle = await focusWindowByTitleHints(['VLC media player', 'VLC']);
+    if (focusedByTitle) {
+        console.log(`🎬 VLC portato in primo piano via titolo (${reason})`);
+        return true;
+    }
+
+    return false;
+}
+
+async function restoreDisplayWindowForeground(reason = 'vlc-ended') {
+    const focused = await focusWindowByTitleHints([
+        DISPLAY_WINDOW_TITLE_HINT,
+        'DISPLAY COREOGRAFIE RICHIESTE',
+        'BORDERO\' - Monitor Secondario',
+        'Bordero - Monitor Secondario',
+        'Monitor Secondario'
+    ]);
+
+    if (focused) {
+        console.log(`🖥️ Pagina HTML monitor ripristinata in primo piano (${reason})`);
+    }
+
+    return focused;
+}
+
+function startVlcForegroundGuard() {
+    clearVlcForegroundGuard();
+
+    let attempts = 0;
+    vlcForegroundGuardTimer = setInterval(async () => {
+        attempts += 1;
+
+        if (!isVlcAlive() || attempts > 15) {
+            clearVlcForegroundGuard();
+            return;
+        }
+
+        try {
+            await forceVlcForeground('guard');
+        } catch (_) {
+            // best effort: non blocca la riproduzione
+        }
+    }, 1000);
+}
+
 function resetVlcState() {
     vlcProcess = null;
     vlcCurrentFile = '';
+    clearVlcForegroundGuard();
 }
 
 function resolveVideoPath(videoUrl) {
@@ -263,6 +387,7 @@ function attachVlcChildProcess(child, launchedFile) {
             vlcStopRequestedPids.delete(launchedPid);
         } else if (launchedFile) {
             recordVlcCompletion(launchedFile);
+            restoreDisplayWindowForeground('vlc-completed').catch(() => null);
         }
 
         if (vlcProcess?.pid === launchedPid) {
@@ -461,6 +586,8 @@ async function pauseVlcPlayback() {
             throw new Error('VLC did not enter pause state');
         }
 
+        await forceVlcForeground('pause-toggle');
+
         return { transport: 'rc', mode: 'paused' };
     } catch (rcError) {
         if (rcError?.code === 'VLC_PAUSE_SUPERSEDED') {
@@ -531,6 +658,7 @@ async function stopVlcPlayback() {
         await sendVlcCommand('quit');
         if (!isVlcAlive()) {
             resetVlcState();
+            await restoreDisplayWindowForeground('vlc-stopped');
             return { transport: lastError ? 'rc-quit-after-stop-failure' : 'rc' };
         }
     } catch (error) {
@@ -538,6 +666,7 @@ async function stopVlcPlayback() {
     }
 
     const forced = await forceKillVlc();
+    await restoreDisplayWindowForeground('vlc-force-stopped');
     return { ...forced, fallbackFrom: lastError?.message || '' };
 }
 
@@ -583,6 +712,8 @@ async function launchVlcForSecondary(fullPath) {
             vlcProcess = child;
             vlcCurrentFile = fullPath;
             attachVlcChildProcess(child, fullPath);
+            await forceVlcForeground('play-launch');
+            startVlcForegroundGuard();
             return { vlcPath: candidatePath, vlcArgs, fallbackFrom: candidatePath === vlcPath ? '' : vlcPath };
         } catch (error) {
             lastError = error;
@@ -927,6 +1058,8 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
                 if (isVlcAlive() && vlcCurrentFile === fullPath) {
                     try {
                         await sendVlcCommand('play');
+                        await forceVlcForeground('play-resume-same-file');
+                        startVlcForegroundGuard();
                         return res.json({ success: true, action, mode: 'resume', filePath: vlcCurrentFile });
                     } catch (_) {
                         // fallback a relaunch se il canale RC non risponde
@@ -942,6 +1075,8 @@ app.post('/api/videoclip/vlc/control', async (req, res) => {
             }
 
             await sendVlcCommand('play');
+            await forceVlcForeground('play-resume');
+            startVlcForegroundGuard();
             return res.json({ success: true, action, mode: 'resume', filePath: vlcCurrentFile });
         }
 
