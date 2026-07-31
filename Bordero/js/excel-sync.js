@@ -299,9 +299,7 @@ class ExcelSync {
         const alternatives = [
           'Comuni',
           'COMUNI',
-          'Italia',
-          'Locations',
-          'Sheet2'
+          'Italia'
         ];
         
         const found = alternatives.find(alt => workbook.SheetNames.includes(alt));
@@ -309,9 +307,10 @@ class ExcelSync {
           sheetName = found;
           logger.info(`✅ Trovato foglio alternativo: "${sheetName}"`);
         } else {
-          // Se nulla, usa il SECONDO foglio (se esiste)
-          sheetName = workbook.SheetNames[1] || workbook.SheetNames[0];
-          logger.warn(`📌 Usando foglio: "${sheetName}"`);
+          const message = 'Foglio Comuni Italia non trovato nel file Excel selezionato';
+          logger.error(`❌ ${message}`);
+          Toast.error(`❌ ${message}`);
+          return false;
         }
       }
 
@@ -328,6 +327,16 @@ class ExcelSync {
       });
 
       logger.info(`📊 Dati letti dal foglio: ${data.length} righe`);
+
+      const headers = Object.keys(data[0] || {}).map((key) => String(key).toLowerCase());
+      const locationHeaders = ['nome_evento', 'localita', 'provincia', 'indirizzo', 'referente'];
+      const locationHeaderHits = locationHeaders.filter((header) => headers.includes(header)).length;
+      if (locationHeaderHits >= 3) {
+        const message = `Il foglio "${sheetName}" sembra una tabella Location, non un elenco Comuni Italia`;
+        logger.error(`❌ ${message}`);
+        Toast.error(`❌ ${message}`);
+        return false;
+      }
 
       // Se prima riga vuota, rimuovi
       if (data.length > 0 && Object.values(data[0]).every(v => !v || v === '')) {

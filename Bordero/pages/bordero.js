@@ -931,8 +931,8 @@ class BorderoTableManager {
     const clearButton = '<button type="button" class="filter-picker-option is-clear" data-filter-index="-1">TUTTI (nessun filtro)</button>';
     const richiesteSpecialButtons = this.activeFilterPicker.field === 'richieste'
       ? [
-          '<button type="button" class="filter-picker-option" data-filter-special="richieste-zero">NO (0 / vuoto)</button>',
-          '<button type="button" class="filter-picker-option" data-filter-special="richieste-nonzero">SI (diversi da 0)</button>'
+            '<button type="button" class="filter-picker-option" data-filter-special="richieste-zero">NON RICHIESTE</button>',
+            '<button type="button" class="filter-picker-option" data-filter-special="richieste-nonzero">RICHIESTE</button>'
         ].join('')
       : '';
     const valueButtons = values.map((value, index) => {
