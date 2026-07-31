@@ -116,9 +116,26 @@ class DisplayMonitor {
   }
 
   /**
+   * Aggiorna lo snapshot locale dai dati presenti in storage.
+   * Così il display si aggiorna anche quando un'altra finestra/ scheda modifica la serata o i brani.
+   */
+  syncDataSnapshot() {
+    const cachedBrani = Storage.get(BORDERO_CONFIG?.CACHE_KEY_BRANI) || Storage.get('BORDERO_BRANI_DATA') || dataLoader.brani || [];
+    if (Array.isArray(cachedBrani) && cachedBrani.length > 0) {
+      this.allBrani = typeof dataLoader.normalizeBraniList === 'function'
+        ? dataLoader.normalizeBraniList(cachedBrani)
+        : cachedBrani;
+    } else if (Array.isArray(dataLoader.brani) && dataLoader.brani.length > 0) {
+      this.allBrani = dataLoader.brani;
+    }
+  }
+
+  /**
    * Refresh - aggiorna tabella da storage
    */
   refresh() {
+    this.syncDataSnapshot();
+
     const currentSerata = dataLoader.getCurrentSerata();
 
     if (currentSerata && currentSerata.metadata) {
@@ -280,7 +297,16 @@ class DisplayMonitor {
 
   filterRequestedBrani(brani) {
     if (!Array.isArray(brani)) return [];
-    return brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
+
+    const requestedBrani = brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
+    if (requestedBrani.length > 0) {
+      return requestedBrani;
+    }
+
+    return brani.filter((brano) => {
+      const text = [brano?.titolo, brano?.coreografia, brano?.brano, brano?.id].filter(Boolean).join(' ');
+      return text.trim().length > 0;
+    });
   }
 
   orderRequestedBrani(brani) {
@@ -523,12 +549,31 @@ class DisplayMonitor {
         return;
       }
 
-      if (event.key !== this.scrollSettingsStorageKey) {
+      const dataKeys = [
+        BORDERO_CONFIG?.CACHE_KEY_CURRENT_SERATA,
+        BORDERO_CONFIG?.CACHE_KEY_BRANI,
+        'BORDERO_BRANI_DATA',
+        this.scrollSettingsStorageKey,
+      ];
+
+      if (dataKeys.includes(event.key)) {
+        if (event.key === this.scrollSettingsStorageKey) {
+          this.applyScrollSettings(this.readScrollSettings());
+          this.restartAutoScroll();
+          this.setFooterStatus('Parametri scroll aggiornati da ADMIN');
+        } else {
+          this.refresh();
+          this.setFooterStatus('Dati display aggiornati');
+        }
         return;
       }
-      this.applyScrollSettings(this.readScrollSettings());
-      this.restartAutoScroll();
-      this.setFooterStatus('Parametri scroll aggiornati da ADMIN');
+    });
+
+    window.addEventListener('focus', () => this.refresh());
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        this.refresh();
+      }
     });
   }
 
