@@ -110,6 +110,20 @@ function valuesToCSV(values) {
   return values.map(row => row.map(escapeCSV).join(',')).join('\n');
 }
 
+function writeCsvSafely(filePath, csvContent) {
+  const normalized = String(csvContent || '').trim();
+  if (!normalized) {
+    if (fs.existsSync(filePath)) {
+      console.warn(`   ⚠️ Contenuto CSV vuoto per ${path.basename(filePath)}; mantengo il file esistente.`);
+      return { success: false, preserved: true, filePath };
+    }
+    throw new Error(`CSV vuoto per ${path.basename(filePath)}`);
+  }
+
+  fs.writeFileSync(filePath, normalized + '\n', 'utf8');
+  return { success: true, preserved: false, filePath };
+}
+
 function httpGet(url, redirectCount = 0) {
   return new Promise((resolve, reject) => {
     if (redirectCount > 10) {
@@ -681,7 +695,11 @@ async function syncSheet(sheet) {
 
       const csv = valuesToCSV(outputValues);
       const filePath = path.join(OUTPUT_DIR, sheet.output);
-      fs.writeFileSync(filePath, csv, 'utf8');
+      const writeResult = writeCsvSafely(filePath, csv);
+      if (!writeResult.success) {
+        console.warn(`   ⚠️ Non ho scritto ${sheet.output}; mantengo il file esistente se presente.`);
+        return { success: false, error: 'CSV vuoto o non valido', file: filePath };
+      }
 
       // Accoda 8+12 deve restare merge grezzo; RICHIESTE viene applicata separatamente su brani.csv.
       if (sheet.baseSource && sheet.richiesteOutput) {
@@ -708,8 +726,12 @@ async function syncSheet(sheet) {
           });
           const baseCsv = valuesToCSV(enrichedBaseValues);
           const baseFilePath = path.join(OUTPUT_DIR, sheet.richiesteOutput);
-          fs.writeFileSync(baseFilePath, baseCsv, 'utf8');
-          console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteRange})`);
+          const baseWriteResult = writeCsvSafely(baseFilePath, baseCsv);
+          if (!baseWriteResult.success) {
+            console.warn(`   ⚠️ Non ho scritto ${sheet.richiesteOutput}; mantengo il file esistente se presente.`);
+          } else {
+            console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteRange})`);
+          }
           console.log(`      ℹ️ Righe risposte: ${totalResponseRows}, test escluse: ${skippedTestRows}, effettive: ${effectiveResponseRows}`);
         } catch (enrichError) {
           console.warn(`   ⚠️ Impossibile aggiornare ${sheet.richiesteOutput}: ${enrichError.message}`);
@@ -729,7 +751,10 @@ async function syncSheet(sheet) {
 
     const csv = valuesToCSV(values);
     const filePath = path.join(OUTPUT_DIR, sheet.output);
-    fs.writeFileSync(filePath, csv, 'utf8');
+    const writeResult = writeCsvSafely(filePath, csv);
+    if (!writeResult.success) {
+      return { success: false, error: 'CSV vuoto o non valido', file: filePath };
+    }
 
     console.log(`   ✅ ${sheet.output} (${values.length} righe) [Google Sheets API]`);
     return { success: true, rows: values.length, file: filePath };
@@ -739,7 +764,10 @@ async function syncSheet(sheet) {
     try {
       const csvContent = await fetchCSVExport(sheet.id, sheet.gid);
       const filePath = path.join(OUTPUT_DIR, sheet.output);
-      fs.writeFileSync(filePath, csvContent, 'utf8');
+      const writeResult = writeCsvSafely(filePath, csvContent);
+      if (!writeResult.success) {
+        return { success: false, error: 'CSV vuoto o non valido', file: filePath };
+      }
       const rows = csvContent.trim().split(/\r?\n/).filter(line => line.trim() !== '').length - 1;
       console.log(`   ✅ ${sheet.output} (${rows} righe) [Export CSV]`);
       return { success: true, rows, file: filePath };
@@ -749,7 +777,10 @@ async function syncSheet(sheet) {
           console.warn(`   ⚠️ Fallback da URL pubblico: ${sheet.publicUrl}`);
           const csvContent = await fetchPublicUrl(sheet.publicUrl);
           const filePath = path.join(OUTPUT_DIR, sheet.output);
-          fs.writeFileSync(filePath, csvContent, 'utf8');
+          const writeResult = writeCsvSafely(filePath, csvContent);
+          if (!writeResult.success) {
+            return { success: false, error: 'CSV vuoto o non valido', file: filePath };
+          }
           const rows = csvContent.trim().split(/\r?\n/).filter(line => line.trim() !== '').length - 1;
           console.log(`   ✅ ${sheet.output} (${rows} righe) [Public URL]`);
           return { success: true, rows, file: filePath };
