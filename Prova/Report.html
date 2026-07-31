@@ -26,35 +26,26 @@ th{background:#333;color:#fff}
 <div class='container'>
 <h1>Coreografie - Report Statistico</h1>
 <p>Eseguite in totale: <strong>1 </strong>
-<p>Richieste con QR: <strong>45</strong> di cui non eseguite: <strong>54</strong></p>
-<p>Coreografia piu' richiesta: <strong>HOLD</strong> (3 volte)</p>
-<h2>Top 5 Coreografie</h2>
+<p>Richieste con QR: <strong>2</strong> di cui non eseguite: <strong>2</strong></p>
+<p>Coreografia piu' richiesta: <strong>C A R E</strong> (1 volte)</p>
+<h2>Top 2 Coreografie</h2>
 <table>
 <tr><th>#</th><th>Coreografia</th><th>Richieste</th></tr>
-<tr><td>1</td><td>HOLD</td><td>3</td></tr>
-<tr><td>2</td><td>ME AND JOHNNY CASH</td><td>3</td></tr>
-<tr><td>3</td><td>MY CINDERELLA</td><td>2</td></tr>
-<tr><td>4</td><td>CASANOVA COWBOY</td><td>2</td></tr>
-<tr><td>5</td><td>FORGIVE ME FRIEND</td><td>2</td></tr>
+<tr><td>1</td><td>C A R E</td><td>1</td></tr>
+<tr><td>2</td><td>I SHOWED YOU THE DOOR</td><td>1</td></tr>
 </table>
 <div class='charts-row'>
 <div class='chart-pie'><canvas id='pie'></canvas></div>
 <div class='chart-bar'><canvas id='bar'></canvas></div>
 </div>
 <script>
-new Chart(pie,{type:'pie',data:{labels:['Eseguite','Non eseguite'],datasets:[{data:[1,54],backgroundColor:['#28A745','#DC3545']}]} });
+new Chart(pie,{type:'pie',data:{labels:['Eseguite','Non eseguite'],datasets:[{data:[1,2],backgroundColor:['#28A745','#DC3545']}]} });
 new Chart(bar,{type:'bar',data:{labels:[
-'HOLD',
-'ME AND JOHNNY CASH',
-'MY CINDERELLA',
-'CASANOVA COWBOY',
-'FORGIVE ME FRIEND'
+'C A R E',
+'I SHOWED YOU THE DOOR'
 ],datasets:[{data:[
-3,
-3,
-2,
-2,
-2
+1,
+1
 ],backgroundColor:'#007BFF'}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}});
 </script>
 </div></body></html>
