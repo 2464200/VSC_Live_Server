@@ -23,6 +23,7 @@ const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
 const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
+const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
 const BORDERO_GOOGLE_SYNC_INTERVAL_MS = Number(process.env.BORDERO_GOOGLE_SYNC_INTERVAL_MS || 120000);
 
@@ -65,6 +66,32 @@ const borderoGoogleSyncState = {
     lastError: '',
     lastSummary: null
 };
+
+function ensureSiaeExportDir() {
+    if (!fs.existsSync(SIAE_EXPORT_DIR)) {
+        fs.mkdirSync(SIAE_EXPORT_DIR, { recursive: true });
+    }
+    return SIAE_EXPORT_DIR;
+}
+
+function getSiaeExportPath(fileName = '') {
+    const safeName = path.basename(fileName || '');
+    return path.join(SIAE_EXPORT_DIR, safeName);
+}
+
+function sanitizeSiaeEventName(value = '') {
+    const raw = String(value || '').trim();
+    if (!raw) return 'evento';
+
+    const normalized = raw
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9._-]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+    return normalized || 'evento';
+}
 
 async function runBorderoGoogleSync(trigger = 'manual') {
     if (!BORDERO_GOOGLE_SYNC_ENABLED) {
@@ -1294,6 +1321,7 @@ app.post('/api/bordero/export-siae', (req, res) => {
     try {
         setBorderoApiCors(res);
         const brani = Array.isArray(req.body?.brani) ? req.body.brani : [];
+        const evento = sanitizeSiaeEventName(req.body?.evento || req.body?.eventName || '');
         const completed = brani
             .filter(item => String(item?.flag || '').trim().toUpperCase() === 'X')
             .map(item => {
@@ -1318,14 +1346,11 @@ app.post('/api/bordero/export-siae', (req, res) => {
         const aaaa = now.getFullYear();
         const hh = String(now.getHours()).padStart(2, '0');
         const mi = String(now.getMinutes()).padStart(2, '0');
-        const fileName = `${gg}-${mm}-${aaaa}-${hh}${mi}_SIAE_VSC.csv`;
-        const siaeDir = 'c:\\VSC_SIAE';
-
-        if (!fs.existsSync(siaeDir)) {
-            fs.mkdirSync(siaeDir, { recursive: true });
-        }
-
-        const filePath = path.join(siaeDir, fileName);
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const hhmmss = `${hh}${mi}${ss}`;
+        const fileName = `${gg}-${mm}-${aaaa}-${hhmmss}_${evento}_SIAE_VSC.csv`;
+        const siaeDir = ensureSiaeExportDir();
+        const filePath = getSiaeExportPath(fileName);
 
         // Match the VBA export semantics: UTF-8 text file with SIAE header and CRLF rows.
         fs.writeFileSync(filePath, '\uFEFF' + csvContent, 'utf8');
@@ -1345,14 +1370,14 @@ app.post('/api/bordero/export-siae', (req, res) => {
 
 app.get('/api/bordero/download-siae/:fileName', (req, res) => {
     setBorderoApiCors(res);
-    const siaeDir = 'c:\\VSC_SIAE';
     const fileName = path.basename(req.params.fileName || '');
 
     if (!fileName) {
         return res.status(400).send('Nome file non valido');
     }
 
-    const filePath = path.join(siaeDir, fileName);
+    ensureSiaeExportDir();
+    const filePath = getSiaeExportPath(fileName);
     if (!fs.existsSync(filePath)) {
         return res.status(404).send('File SIAE non trovato');
     }
@@ -1951,14 +1976,8 @@ router.get('/export-csv', (req, res) => {
             const aaaa = now.getFullYear();
             const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
             const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE_VSC.csv`;
-            const siaeDir = 'c:\\VSC_SIAE';
-            
-            // Crea la cartella se non esiste
-            if (!fs.existsSync(siaeDir)) {
-                fs.mkdirSync(siaeDir, { recursive: true });
-            }
-            
-            csvPath = path.join(siaeDir, siaeFileName);
+            ensureSiaeExportDir();
+            csvPath = getSiaeExportPath(siaeFileName);
         } else {
             csvPath = pathCsv;
         }
@@ -1975,7 +1994,7 @@ router.get('/export-csv', (req, res) => {
 
 // Download CSV (supporta sia log.csv che file SIAE)
 router.get('/log.csv', (req, res) => {
-    const siaeDir = 'c:\\VSC_SIAE';
+    const siaeDir = ensureSiaeExportDir();
     
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
@@ -1997,14 +2016,14 @@ router.get('/log.csv', (req, res) => {
 });
 
 router.get('/download-siae/:fileName', (req, res) => {
-    const siaeDir = 'c:\\\\VSC_SIAE';
     const fileName = path.basename(req.params.fileName || '');
 
     if (!fileName) {
         return res.status(400).send('Nome file non valido');
     }
 
-    const filePath = path.join(siaeDir, fileName);
+    ensureSiaeExportDir();
+    const filePath = getSiaeExportPath(fileName);
     if (!fs.existsSync(filePath)) {
         return res.status(404).send('File SIAE non trovato');
     }
