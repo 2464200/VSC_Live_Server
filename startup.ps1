@@ -122,6 +122,35 @@ function Save-Pids {
     }
 }
 
+function Start-MonitorLaunchers {
+    param([string]$RootPath)
+
+    $launchers = @(
+        (Join-Path $RootPath 'open_display_on_secondary.ps1'),
+        (Join-Path $RootPath 'open_bordero_on_primary.ps1')
+    )
+
+    foreach ($launcher in $launchers) {
+        if (-not (Test-Path $launcher)) {
+            Write-Host "AVVISO: launcher non trovato: $launcher" -ForegroundColor Yellow
+            continue
+        }
+
+        try {
+            Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
+                '-NoProfile',
+                '-ExecutionPolicy',
+                'Bypass',
+                '-File',
+                $launcher
+            ) -WorkingDirectory $RootPath -WindowStyle Hidden | Out-Null
+            Write-Host "OK launcher avviato: $(Split-Path $launcher -Leaf)"
+        } catch {
+            Write-Host "AVVISO: impossibile avviare $launcher - $_" -ForegroundColor Yellow
+        }
+    }
+}
+
 function Clear-OldProcesses {
     Write-Host "Pulizia processi precedenti..."
     $oldPids = @()
@@ -274,7 +303,7 @@ function Start-BorderoSyncServer {
     $syncPort = $primaryPort
 
     if (Test-PortListening -Port $primaryPort) {
-        if (Test-HttpEndpoint -Uri "http://localhost:$primaryPort/api/status") {
+        if (Test-HttpEndpoint -Uri "http://localhost:$($primaryPort)/api/status") {
             Write-Host "Bordero Sync Server già in esecuzione sulla porta $primaryPort"
             return $null
         }
@@ -319,7 +348,7 @@ Write-Host "Unified Server: porta $UnifiedPort"
 Write-Host ""
 
 # Verifica se il server è già in esecuzione
-if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/api/health" -TimeoutSeconds 2)) {
+if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2)) {
     Write-Host "Server già in esecuzione sulle porte $UnifiedPort e 5501 - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."
@@ -337,9 +366,14 @@ if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEnd
     Write-Host "========================================================"
     Write-Host ""
     Write-Host "URL per accesso:"
-    Write-Host "  Homepage:    http://localhost:$UnifiedPort/index.html"
-    Write-Host "  Mobile:      http://localhost:$UnifiedPort/public/mobile1.html"
+    Write-Host "  Homepage:    http://localhost:$($UnifiedPort)/index.html"
+    Write-Host "  Mobile:      http://localhost:$($UnifiedPort)/public/mobile1.html"
     Write-Host ""
+    try {
+        Start-MonitorLaunchers -RootPath $RootPath
+    } catch {
+        Write-Host "AVVISO: impossibile avviare i launcher monitor - $_" -ForegroundColor Yellow
+    }
     exit 0
 }
 
@@ -369,11 +403,16 @@ Write-Host "========================================================"
 Write-Host "        SISTEMA COMPLETAMENTE OPERATIVO"
 Write-Host "========================================================"
 Write-Host ""
+try {
+    Start-MonitorLaunchers -RootPath $RootPath
+} catch {
+    Write-Host "AVVISO: impossibile avviare i launcher monitor - $_" -ForegroundColor Yellow
+}
 Write-Host "URL per accesso:"
-Write-Host "  Homepage:    http://localhost:$UnifiedPort/index.html"
-Write-Host "  PDF:         http://localhost:$UnifiedPort/Prova/ScriptPDF1.html"
-Write-Host "  Diagnostica: http://localhost:$UnifiedPort/diagnostica.html"
-Write-Host "  Eventi:      http://localhost:$UnifiedPort/eventi/eventi.html"
+Write-Host "  Homepage:    http://localhost:$($UnifiedPort)/index.html"
+Write-Host "  PDF:         http://localhost:$($UnifiedPort)/Prova/ScriptPDF1.html"
+Write-Host "  Diagnostica: http://localhost:$($UnifiedPort)/diagnostica.html"
+Write-Host "  Eventi:      http://localhost:$($UnifiedPort)/eventi/eventi.html"
 Write-Host ""
 Write-Host "Server integrati:"
 Write-Host "  - Unified Server (porta $UnifiedPort): Web + PDF + Eventi"

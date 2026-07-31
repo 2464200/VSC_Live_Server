@@ -69,6 +69,35 @@ function Test-HttpEndpoint {
     }
 }
 
+function Start-MonitorLaunchers {
+    param([string]$RootPath)
+
+    $launchers = @(
+        (Join-Path $RootPath 'open_display_on_secondary.ps1'),
+        (Join-Path $RootPath 'open_bordero_on_primary.ps1')
+    )
+
+    foreach ($launcher in $launchers) {
+        if (-not (Test-Path $launcher)) {
+            Write-Log "Launcher non trovato: $launcher"
+            continue
+        }
+
+        try {
+            Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
+                '-NoProfile',
+                '-ExecutionPolicy',
+                'Bypass',
+                '-File',
+                $launcher
+            ) -WorkingDirectory $RootPath -WindowStyle Hidden | Out-Null
+            Write-Log "Launcher avviato: $(Split-Path $launcher -Leaf)"
+        } catch {
+            Write-Log "Impossibile avviare launcher $launcher: $_"
+        }
+    }
+}
+
 Write-Log "Wrapper autostart in esecuzione."
 
 # Load safe Start-Process helper if available
@@ -89,8 +118,9 @@ if (-not (Test-Path $StartupScript)) {
     exit 0
 }
 
-if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/api/health" -TimeoutSeconds 2)) {
-    Write-Log "Unified Server e Sync Server già in esecuzione. Nessun avvio aggiuntivo necessario."
+if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2)) {
+    Write-Log "Unified Server e Sync Server già in esecuzione. Avvio dei launcher monitor."
+    Start-MonitorLaunchers -RootPath $RootPath
     exit 0
 }
 
@@ -106,6 +136,7 @@ if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEnd
 
         if ($proc -ne $null) {
             Write-Log "Startup avviato con successo. PID wrapper: $($proc.Id)."
+            Start-MonitorLaunchers -RootPath $RootPath
         } else {
             Write-Log "ERRORE: Start-ProcessSafe non ha restituito un processo valido."
         }

@@ -16,11 +16,12 @@ public static class Win32 {
 Add-Type $signature
 
 $root = "C:\VSC_Live_Server"
-# trova schermo secondario
+# trova schermi principale e secondario
 $screens = [System.Windows.Forms.Screen]::AllScreens
+$primary = $screens | Where-Object { $_.Primary } | Select-Object -First 1
+if (-not $primary) { $primary = [System.Windows.Forms.Screen]::PrimaryScreen }
 $secondary = $screens | Where-Object { -not $_.Primary } | Select-Object -First 1
-if (-not $secondary) { $secondary = [System.Windows.Forms.Screen]::PrimaryScreen }
-$bounds = $secondary.Bounds
+if (-not $secondary) { $secondary = $primary }
 
 # verifica se http.server è in esecuzione
 $httpRunning = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'http\.server' -or $_.CommandLine -match 'SimpleHTTPServer' }
@@ -44,8 +45,24 @@ foreach ($file in $files) {
     $relative = $file.FullName.Substring($root.Length + 1) -replace '\\','/'
     $url = "http://localhost:5500/" + [System.Uri]::EscapeUriString($relative)
 
+    $isDisplayPage = $relative -match '(^|/)(Bordero/pages/)?display\.html$'
+    $isBorderoPage = $relative -match '(^|/)(Bordero/pages/)?bordero\.html$'
+
+    if ($isBorderoPage) {
+        $bounds = $primary.Bounds
+        $targetLabel = 'monitor primario'
+    } elseif ($isDisplayPage) {
+        $bounds = $secondary.Bounds
+        $targetLabel = 'monitor secondario'
+    } else {
+        $bounds = $secondary.Bounds
+        $targetLabel = 'monitor secondario'
+    }
+
+    Write-Host "Apertura $relative -> $targetLabel"
+
     if ($chrome) {
-        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', '--start-maximized', $url -PassThru
+        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', "--window-position=$($bounds.X),$($bounds.Y)", "--window-size=$($bounds.Width),$($bounds.Height)", $url -PassThru
     } else {
         $proc = Start-ProcessSafe -FilePath $url -PassThru
     }

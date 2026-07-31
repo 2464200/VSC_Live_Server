@@ -1,9 +1,9 @@
-# Apre Bordero/pages/display.html sul monitor secondario (se presente), altrimenti sul primario.
+# Apre Bordero/pages/bordero.html sul monitor principale (se presente), altrimenti sul secondario.
 # Usa Chrome se installato; in fallback usa il browser di default.
 
 param(
     [string]$BaseUrl = "http://localhost:5500",
-    [string]$Path = "/Bordero/pages/display.html"
+    [string]$Path = "/Bordero/pages/bordero.html"
 )
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -40,13 +40,10 @@ if (-not (Get-Command -Name Start-ProcessSafe -ErrorAction SilentlyContinue)) {
     }
 }
 
-# Screen target
 $screens = [System.Windows.Forms.Screen]::AllScreens
 $primary = $screens | Where-Object { $_.Primary } | Select-Object -First 1
 if (-not $primary) { $primary = [System.Windows.Forms.Screen]::PrimaryScreen }
-$secondary = $screens | Where-Object { -not $_.Primary } | Select-Object -First 1
-if (-not $secondary) { $secondary = $primary }
-$bounds = $secondary.Bounds
+$bounds = $primary.Bounds
 
 $url = ($BaseUrl.TrimEnd('/')) + $Path
 
@@ -57,14 +54,14 @@ $chromePaths = @(
 $chrome = $chromePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 if ($chrome) {
-    $chromeArgs = @(
+    $args = @(
         '--new-window',
         '--kiosk',
         "--window-position=$($bounds.X),$($bounds.Y)",
         "--window-size=$($bounds.Width),$($bounds.Height)",
         $url
     )
-    $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList $chromeArgs -PassThru
+    $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList $args -PassThru
 
     if ($proc) {
         $handle = [IntPtr]::Zero
@@ -80,10 +77,9 @@ if ($chrome) {
         }
     }
 
-    Write-Host "Display aperto su monitor secondario (se disponibile): $url"
+    Write-Host "Bordero aperto sul monitor principale: $url"
     exit 0
 }
 
-# Fallback browser di default
 Start-ProcessSafe -FilePath $url
 Write-Host "Chrome non trovato: aperto browser di default. URL: $url"
