@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <title>Test Scroll</title>
-<link rel="stylesheet" href="/public/style.css">
+<link rel="stylesheet" href="style.css">
+<script src="base-path.js"></script>
 <style>
   /* ⭐ BORDO ANIMATO NEON PULSE ⭐ */
   #next-coreo {
@@ -65,7 +66,7 @@
 </head>
 <body>
   <div class="logo-container">
-    <img src="/public/MonsterCountryGroup_grey.png" alt="Monster Country Group Logo" class="logo">
+    <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group Logo" class="logo">
   </div>
 
  <div class="header">
@@ -130,7 +131,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     async function caricaCSV() {
       try {
-        const response = await fetch("/public/display.csv?t=" + Date.now(), { cache: "no-store" });
+        const response = await fetch("display.csv?t=" + Date.now(), { cache: "no-store" });
         const text = await response.text();
 
         const righe = text.trim().split("\n").slice(3); 
@@ -163,7 +164,7 @@
     // Carico NextCoreo.csv e gestisco lampeggio + fade-out
     async function mostraNextCoreo() {
       try {
-        const response = await fetch("/public/NextCoreo.csv?t=" + Date.now(), { cache: "no-store" });
+        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { cache: "no-store" });
         const text = await response.text();
 
         const primaRiga = text.trim().split("\n")[0];
@@ -209,6 +210,6 @@
   }
   </script>
 
-  <script src="/public/script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

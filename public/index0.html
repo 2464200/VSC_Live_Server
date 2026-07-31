@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111">
 <title>Test Scroll</title>
-<link rel="stylesheet" href="/public/style.css">
+<link rel="stylesheet" href="style.css">
+<script src="base-path.js"></script>
 <style>
   /* ⭐ BORDO ANIMATO NEON PULSE ⭐ */
   #next-coreo {
@@ -67,7 +68,7 @@
 </head>
 <body>
   <div class="logo-container">
-    <img src="/public/MonsterCountryGroup_grey.png" alt="Monster Country Group Logo" class="logo">
+    <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group Logo" class="logo">
   </div>
 
  <div class="header">
@@ -141,7 +142,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     async function caricaCSV() {
       try {
-        const response = await fetch("/public/display.csv?t=" + Date.now(), { 
+        const response = await fetch("display.csv?t=" + Date.now(), { 
           cache: "no-store" 
         });
         
@@ -187,7 +188,7 @@
     // Carico NextCoreo.csv e gestisco lampeggio + fade-out
     async function mostraNextCoreo() {
       try {
-        const response = await fetch("/public/NextCoreo.csv?t=" + Date.now(), { 
+        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { 
           cache: "no-store" 
         });
         
@@ -253,6 +254,6 @@
   }
   </script>
 
-  <script src="/public/script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

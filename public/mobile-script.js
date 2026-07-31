@@ -88,12 +88,16 @@ function toggleMenu() {
  * Nota: su iOS potrebbero esserci limitazioni al fullscreen.
  */
 function toggleFullscreen() {
+  const target = document.documentElement || document.body;
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
+    const request = target.requestFullscreen?.() || target.webkitRequestFullscreen?.() || target.msRequestFullscreen?.();
+    Promise.resolve(request).catch((err) => {
       console.log('Errore fullscreen:', err);
     });
   } else {
-    document.exitFullscreen();
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.msExitFullscreen) document.msExitFullscreen();
   }
 }
 
@@ -143,7 +147,12 @@ if (stopButton) {
     isScrolling = false;
     cancelAnimationFrame(rafHandle);
     stopButton.textContent = '⏸️ In Pausa';
+    stopButton.setAttribute('aria-pressed', 'true');
     stopButton.style.opacity = '0.7';
+    if (resumeButton) {
+      resumeButton.textContent = '▶️ Riprendi';
+      resumeButton.setAttribute('aria-pressed', 'false');
+    }
   });
 }
 
@@ -154,8 +163,13 @@ if (resumeButton) {
   resumeButton.addEventListener('click', () => {
     if (!isScrolling) {
       isScrolling = true;
-      stopButton.textContent = '⏸️ Pausa';
-      stopButton.style.opacity = '1';
+      if (stopButton) {
+        stopButton.textContent = '⏸️ Pausa';
+        stopButton.setAttribute('aria-pressed', 'false');
+        stopButton.style.opacity = '1';
+      }
+      resumeButton.textContent = '▶️ In esecuzione';
+      resumeButton.setAttribute('aria-pressed', 'true');
       startScrolling();
     }
   });
@@ -270,7 +284,7 @@ function createChoreoCard(choreo) {
  */
 async function loadDisplayCsv() {
   try {
-    const res = await fetchWithTimeoutAndRetry('/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
+    const res = await fetchWithTimeoutAndRetry(window.resolveAppUrl ? window.resolveAppUrl('display.csv?t=' + Date.now()) : '/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
     const text = await res.text();
     const rows = parseCSV(text);
     const dataRows = rows.slice(3).filter(r => r.length && r.some(c => c !== ''));
@@ -349,7 +363,7 @@ async function loadNextCoreo() {
   target.textContent = 'Prossima Coreo: Caricamento...';
 
   try {
-    const url = `/public/NextCoreo.csv?t=${Date.now()}`; // cache busting
+    const url = window.resolveAppUrl ? window.resolveAppUrl(`NextCoreo.csv?t=${Date.now()}`) : `/public/NextCoreo.csv?t=${Date.now()}`; // cache busting
     const response = await fetchWithTimeoutAndRetry(url, { cache: 'no-store' }, 8000, 1);
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -378,7 +392,7 @@ async function loadNextCoreo() {
 async function aggiornaScrittaRossa() {
   (async () => {
     try {
-      const res = await fetchWithTimeoutAndRetry('/public/NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' }, 8000, 1);
+      const res = await fetchWithTimeoutAndRetry(window.resolveAppUrl ? window.resolveAppUrl('NextCoreo.csv?t=' + Date.now()) : '/public/NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' }, 8000, 1);
       const text = await res.text();
       const rows = text.split(/\r?\n/);
       const primaCoreo = (rows[0] || '').split(',')[1] || '';

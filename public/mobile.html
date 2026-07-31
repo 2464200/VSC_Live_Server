@@ -6,11 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Coreografie Monster Country Group</title>
-<link rel="stylesheet" href="/public/mobile-style.css">
+<link rel="stylesheet" href="mobile-style.css">
+<script src="base-path.js"></script>
 </head>
 <body>
 <div id="global-nav-container"></div>
-<script src="/nav.js"></script>
+<script src="../nav.js"></script>
   <!-- Header fisso -->
   <div class="header">
     <div class="logo">
@@ -49,10 +50,10 @@
       </div>
 
       <div class="control-buttons">
-        <button class="btn-control btn-fullscreen" onclick="toggleFullscreen()">📱 Schermo Intero</button>
+        <button class="btn-control btn-fullscreen" onclick="toggleFullscreen()" aria-label="Attiva o disattiva schermo intero">📱 Schermo Intero</button>
       </div>
 
-      <button class="btn-close" onclick="toggleMenu()">✖️ Chiudi</button>
+      <button class="btn-close" onclick="toggleMenu()" aria-label="Chiudi menu">✖️ Chiudi</button>
     </div>
   </div>
 
@@ -77,6 +78,6 @@
   </div>
 
 
-  <script src="/public/mobile-script.js"></script>
+  <script src="mobile-script.js"></script>
 </body>
 </html>

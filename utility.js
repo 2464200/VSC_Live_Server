@@ -1,6 +1,6 @@
 /**
  * utility.js - Helper globali per fetch robusti e error handling
- * Inclusione: <script src="/utility.js"></script>
+ * Inclusione: <script src="utility.js"></script>
  */
 
 // Configurazione global

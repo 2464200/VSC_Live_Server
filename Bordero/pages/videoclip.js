@@ -114,7 +114,11 @@ class VideoClipManager {
   }
 
   getPreferredVideoOrigin() {
-    return this.videoApiOrigin || 'http://localhost:5500';
+    if (this.videoApiOrigin) return this.videoApiOrigin;
+    const protocol = window.location.protocol || 'http:';
+    const host = window.location.hostname || 'localhost';
+    const port = window.location.port || '5500';
+    return `${protocol}//${host}${port ? `:${port}` : ''}`;
   }
 
   buildVideoFileUrl(fileName) {
@@ -522,7 +526,8 @@ class VideoClipManager {
     const candidates = [
       '/api/videoclip/play-secondary',
       `${window.location.protocol}//${host}:5500/api/videoclip/play-secondary`,
-      'http://localhost:5500/api/videoclip/play-secondary'
+      `http://127.0.0.1:5500/api/videoclip/play-secondary`,
+      `http://localhost:5500/api/videoclip/play-secondary`
     ];
 
     const retryDelays = [0, 250, 700];

@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Caricamento CSV e popolamento tabella ---
   async function caricaCSV() {
     try {
-      const res = await fetchWithTimeoutAndRetry('/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
+      const res = await fetchWithTimeoutAndRetry(window.resolveAppUrl ? window.resolveAppUrl('display.csv?t=' + Date.now()) : '/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
       const text = await res.text();
 
       // parse CSV robusto
@@ -194,11 +194,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Schermo intero sul contenitore scrollabile ---
   window.toggleFullscreen = function() {
-    const target = scrollContainer || document.documentElement;
+    const target = scrollContainer || document.documentElement || document.body;
 
     if (!document.fullscreenElement) {
-      // Richiesta fullscreen sul container (più stabile)
-      const p = target.requestFullscreen
+      const request = target.requestFullscreen
         ? target.requestFullscreen()
         : target.webkitRequestFullscreen
         ? target.webkitRequestFullscreen()
@@ -206,11 +205,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ? target.msRequestFullscreen()
         : Promise.reject(new Error("Fullscreen non supportato"));
 
-      Promise.resolve(p).catch(err => {
+      Promise.resolve(request).catch(err => {
         console.error(`Errore fullscreen: ${err.message}`);
       });
     } else {
-      // Uscita dal fullscreen
       if (document.exitFullscreen) {
         document.exitFullscreen();
       } else if (document.webkitExitFullscreen) {
