@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playlist Country</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="header">
+    <div class="logo-container">
+      <img class="logo" src="../public/MonsterCountryGroup_blue.png" alt="Monster Country Group" />
+    </div>
+    <div class="controls">
+      <button id="stopScroll">⏸️ Pausa</button>
+      <button id="resumeScroll">▶️ Riprendi</button>
+      <button id="fullscreenBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+    </div>
+  </div>
+
+  <div class="scroll-container">
+    <table>
+      <tbody id="data-body"></tbody>
+    </table>
+  </div>
+
+  <div id="fullscreenWarning" class="warning" style="display:none;">Fullscreen non disponibile in questo browser.</div>
+
+  <script src="script.js"></script>
+</body>
+</html>

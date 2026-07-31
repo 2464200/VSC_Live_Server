@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Carica dati dal CSV
-fetch('display.csv')
+fetch('/public/display.csv')
     .then(response => response.text())
     .then(text => {
         const rows = text.trim().split('\n').slice(3); // Skip first 3 lines

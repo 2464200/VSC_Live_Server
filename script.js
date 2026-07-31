@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Caricamento CSV e popolamento tabella ---
   async function caricaCSV() {
     try {
-      const res = await fetchWithTimeoutAndRetry('display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
+      const res = await fetchWithTimeoutAndRetry('/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
       const text = await res.text();
 
       // parse CSV robusto

@@ -270,7 +270,7 @@ function createChoreoCard(choreo) {
  */
 async function loadDisplayCsv() {
   try {
-    const res = await fetchWithTimeoutAndRetry('display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
+    const res = await fetchWithTimeoutAndRetry('/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
     const text = await res.text();
     const rows = parseCSV(text);
     const dataRows = rows.slice(3).filter(r => r.length && r.some(c => c !== ''));
@@ -349,7 +349,7 @@ async function loadNextCoreo() {
   target.textContent = 'Prossima Coreo: Caricamento...';
 
   try {
-    const url = `NextCoreo.csv?t=${Date.now()}`; // cache busting
+    const url = `/public/NextCoreo.csv?t=${Date.now()}`; // cache busting
     const response = await fetchWithTimeoutAndRetry(url, { cache: 'no-store' }, 8000, 1);
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -378,7 +378,7 @@ async function loadNextCoreo() {
 async function aggiornaScrittaRossa() {
   (async () => {
     try {
-      const res = await fetchWithTimeoutAndRetry('NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' }, 8000, 1);
+      const res = await fetchWithTimeoutAndRetry('/public/NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' }, 8000, 1);
       const text = await res.text();
       const rows = text.split(/\r?\n/);
       const primaCoreo = (rows[0] || '').split(',')[1] || '';

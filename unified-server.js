@@ -1242,6 +1242,14 @@ app.get('/public/test-bordero-frontend.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'test-bordero-frontend.html'));
 });
 
+app.get('/Playlist-country', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Playlist-country', 'index.html'));
+});
+
+app.get('/Playlist-country/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Playlist-country', 'index.html'));
+});
+
 app.get('/NextCoreo1.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'NextCoreo1.html'));
 });
