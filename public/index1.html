@@ -3,9 +3,48 @@
 <head>
 <meta charset="utf-8">
 <title>Test Scroll</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/public/style.css">
 <style>
-  /* Lampeggio */
+  /* ⭐ BORDO ANIMATO NEON PULSE ⭐ */
+  #next-coreo {
+    padding: 10px 28px;
+    border: 4px solid #ffa200;
+    border-radius: 15px;
+    animation: neonPulse 2s infinite ease-in-out;
+    display: inline-block;
+    color: #ffffff;
+    text-shadow: 0 0 8px #000;
+    background-color: rgba(0,0,0,0.25);
+    font-size: 36px;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+
+  @keyframes neonPulse {
+    0% { box-shadow: 0 0 8px #ffa200; }
+    50% { box-shadow: 0 0 20px #ffcc66; }
+    100% { box-shadow: 0 0 8px #ffa200; }
+  }
+
+  /* ⭐ FRECCIA LAMPEGGIANTE A SINISTRA ⭐ */
+  .arrow-side {
+    position: absolute;
+    left: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 55px;
+    color: #ffa200;
+    animation: arrowBlink 1s infinite ease-in-out;
+    text-shadow: 0 0 10px #ffae42, 0 0 20px #ffae42;
+  }
+
+  @keyframes arrowBlink {
+    0% { opacity: 1; transform: translateY(-50%) translateX(0); }
+    50% { opacity: 0.2; transform: translateY(-50%) translateX(-8px); }
+    100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+  }
+
+/* Lampeggio */
   .blink {
     animation: blink 1s step-start infinite;
     color: #ff0000;
@@ -26,7 +65,7 @@
 </head>
 <body>
   <div class="logo-container">
-    <img src="MonsterCountryGroup_grey.png" alt="Monster Country Group Logo" class="logo">
+    <img src="/public/MonsterCountryGroup_grey.png" alt="Monster Country Group Logo" class="logo">
   </div>
 
  <div class="header">
@@ -39,12 +78,11 @@
     <tr>
       <th colspan="7" style="text-align:center; font-size:18px; color:#ff7f00;">
         Le righe evidenziate in arancione indicano le coreografie già eseguite
-      </th>
-      <th style="text-align:right;">
+        <th style="text-align:right;">
         <button onclick="toggleFullscreen()" aria-label="Attiva o disattiva schermo intero">
-          Schermo Intero
+        Schermo Intero
         </button>
-      </th>
+        </th>
     </tr>
     <tr>
       <th colspan="2" style="text-align:right; font-size:16px;">
@@ -53,23 +91,25 @@
       <th colspan="1" style="text-align:center; font-size:26px;">
         PROSSIMA COREO:
       </th>
+      
       <th colspan="4" style="text-align:center; font-size:48px;">
         <span id="next-coreo" aria-live="polite" role="status"></span>
       </th>
       <th style="text-align:center;">
-        <!-- Nessun contenuto previsto qui -->
+
       </th>
     </tr>
   </table>
 </div>
 
+<!-- TABELLA TITOLI -->
 <table class="titoli-tabella">
       <tr>
-        <th>ID</th>
-        <th>Coreografia</th>
-        <th>Brano</th>
-        <th>Autore</th>
-        <th>Coreografo</th>
+        <th>🔢 ID</th>
+        <th>👢 Coreografia</th>
+        <th>🎵 Brano</th>
+        <th>✍️ Autore</th>
+        <th>💃 Coreografo</th>
       </tr>
     </table>
   </div>
@@ -90,7 +130,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     async function caricaCSV() {
       try {
-        const response = await fetch("display.csv?t=" + Date.now(), { cache: "no-store" });
+        const response = await fetch("/public/display.csv?t=" + Date.now(), { cache: "no-store" });
         const text = await response.text();
 
         const righe = text.trim().split("\n").slice(3); 
@@ -101,10 +141,10 @@
           const celle = riga.split(",").map(c => c.replace(/(^\"|\"$)/g, "").trim());
           if (celle.length < 2) return;
 
+          // Salta le righe marcate come eseguite (prima colonna 'X')
+          if (celle[0] && String(celle[0]).toUpperCase().startsWith('X')) return;
+
           const tr = document.createElement("tr");
-          if (celle[0] === "X") {
-            tr.classList.add("orange-row");
-          }
           for (let i = 1; i < celle.length; i++) {
             const td = document.createElement("td");
             td.textContent = celle[i];
@@ -123,7 +163,7 @@
     // Carico NextCoreo.csv e gestisco lampeggio + fade-out
     async function mostraNextCoreo() {
       try {
-        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { cache: "no-store" });
+        const response = await fetch("/public/NextCoreo.csv?t=" + Date.now(), { cache: "no-store" });
         const text = await response.text();
 
         const primaRiga = text.trim().split("\n")[0];
@@ -169,6 +209,6 @@
   }
   </script>
 
-  <script src="script.js"></script>
+  <script src="/public/script.js"></script>
 </body>
 </html>

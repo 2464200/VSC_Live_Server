@@ -68,7 +68,7 @@
     try {
       addResult('🔄 Test 1: Caricamento brani.csv', 'In corso...', 'info');
       
-      const response = await fetch('./Bordero/data/brani.csv');
+      const response = await fetch('/Bordero/data/brani.csv');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -148,7 +148,7 @@
     try {
       addResult('🔄 Test 2: Caricamento comuni_italia.csv', 'In corso...', 'info');
       
-      const response = await fetch('./Bordero/data/comuni_italia.csv');
+      const response = await fetch('/Bordero/data/comuni_italia.csv');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -179,7 +179,7 @@
     try {
       addResult('🔄 Test 3: Caricamento dBase.csv', 'In corso...', 'info');
       
-      const response = await fetch('./Bordero/data/dBase.csv');
+      const response = await fetch('/Bordero/data/dBase.csv');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }

@@ -2,9 +2,9 @@
   "name": "scriptpdf-server",
   "version": "2.0.0",
   "description": "Server stabile per gestione PDF con auto-start/stop",
-  "main": "unified-server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node unified-server.js",
+    "start": "node server.js",
     "dev": "nodemon unified-server.js",
     "test:bordero": "node test/bordero-finish.test.js",
     "build:brani": "node Eventi/sync-brani.js",

@@ -29,7 +29,7 @@
   
   <h2>📺 Preview Frontend Bordero</h2>
   <p>Caricamento anteprima in tempo reale:</p>
-  <iframe class="bordered-iframe" src="./Bordero/index.html" allow="clipboard-read; clipboard-write"></iframe>
+  <iframe class="bordered-iframe" src="/Bordero/index.html" allow="clipboard-read; clipboard-write"></iframe>
 </div>
 
 <script>
@@ -46,7 +46,7 @@
     addResult('🔄 Test 1: Caricamento Bordero/index.html', 'In corso...', 'info');
     
     try {
-      const response = await fetch('./Bordero/index.html');
+      const response = await fetch('/Bordero/index.html');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -91,7 +91,7 @@
     addResult('🔄 Test 2: Caricamento data-loader.js', 'In corso...', 'info');
     
     try {
-      const response = await fetch('./Bordero/js/data-loader.js');
+      const response = await fetch('/Bordero/js/data-loader.js');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -135,7 +135,7 @@
     addResult('🔄 Test 3: Caricamento config.js', 'In corso...', 'info');
     
     try {
-      const response = await fetch('./Bordero/js/config.js');
+      const response = await fetch('/Bordero/js/config.js');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -178,9 +178,9 @@
     addResult('🔄 Test 4: Verifica file CSV', 'In corso...', 'info');
     
     const csvFiles = [
-      { name: 'brani.csv', path: './Bordero/data/brani.csv' },
-      { name: 'comuni_italia.csv', path: './Bordero/data/comuni_italia.csv' },
-      { name: 'dBase.csv', path: './Bordero/data/dBase.csv' }
+      { name: 'brani.csv', path: '/Bordero/data/brani.csv' },
+      { name: 'comuni_italia.csv', path: '/Bordero/data/comuni_italia.csv' },
+      { name: 'dBase.csv', path: '/Bordero/data/dBase.csv' }
     ];
 
     let allFound = true;

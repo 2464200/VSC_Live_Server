@@ -1121,10 +1121,142 @@ app.get('/api/videoclip/vlc/state', async (req, res) => {
     }
 });
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/index.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/mobile.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
+});
+
+app.get('/mobile1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
+});
+
+app.get('/public/mobile1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
+});
+
 app.use(express.static(path.join(__dirname), {
     index: ['index.html'],
     extensions: ['html', 'htm']
 }));
+
+app.get('/diagnostica.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'diagnostica.html'));
+});
+
+app.get('/public/diagnostica.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'diagnostica.html'));
+});
+
+app.get('/servizio.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'servizio.html'));
+});
+
+app.get('/public/servizio.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'servizio.html'));
+});
+
+app.get('/ScriptPDF1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'ScriptPDF1.html'));
+});
+
+app.get('/public/ScriptPDF1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'ScriptPDF1.html'));
+});
+
+app.get('/index0.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index0.html'));
+});
+
+app.get('/public/index0.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index0.html'));
+});
+
+app.get('/index1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index1.html'));
+});
+
+app.get('/public/index1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index1.html'));
+});
+
+app.get('/index2.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index2.html'));
+});
+
+app.get('/public/index2.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index2.html'));
+});
+
+app.get('/temp.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'temp.html'));
+});
+
+app.get('/public/temp.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'temp.html'));
+});
+
+app.get('/display.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'display.html'));
+});
+
+app.get('/public/display.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'display.html'));
+});
+
+app.get('/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/public/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/test-csv-loading.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'test-csv-loading.html'));
+});
+
+app.get('/public/test-csv-loading.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'test-csv-loading.html'));
+});
+
+app.get('/nav.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'nav.html'));
+});
+
+app.get('/public/nav.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'nav.html'));
+});
+
+app.get('/test-bordero-frontend.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'test-bordero-frontend.html'));
+});
+
+app.get('/public/test-bordero-frontend.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'test-bordero-frontend.html'));
+});
+
+app.get('/NextCoreo1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'NextCoreo1.html'));
+});
+
+app.get('/public/NextCoreo1.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'NextCoreo1.html'));
+});
+
+app.get('/NextCoreo2.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'NextCoreo2.html'));
+});
+
+app.get('/public/NextCoreo2.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'NextCoreo2.html'));
+});
 
 function setBorderoApiCors(res) {
     res.set('Access-Control-Allow-Origin', '*');
