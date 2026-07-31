@@ -155,16 +155,16 @@ Quando esegui `.\start-server-manager.ps1`:
    Start-Process -NoWindow node -ArgumentList "server-manager.js"
    ```
 
-3. **Aspetta che la porta 3000 sia pronta**
+3. **Aspetta che il server unificato sia pronto**
    ```powershell
    # Loop di verifica fino a 30 secondi
    while (-not $portOpen -and $elapsed -lt 30000)
    ```
 
-4. **Rimane in ascolto su http://localhost:3000**
-   - Accetta richieste per `/api/start-pdf-server`
-   - Accetta richieste per `/api/stop-pdf-server`
-   - Accetta richieste per `/api/status`
+4. **Rimane in ascolto su http://localhost:5500**
+   - Accetta richieste per `/api/open-pdf`
+   - Accetta richieste per `/api/close-chrome`
+   - Accetta richieste per `/api/health`
 
 ### Phase 2: Apertura della Pagina HTML
 
@@ -190,29 +190,26 @@ Quando l'utente apre `ScriptPDF1.html`:
 
 3. **setupServerLifecycle() chiama**
    ```javascript
-   // Contatta Server Manager
+   // Contatta il server unificato
    const response = await fetch(
-       "http://localhost:3000/api/start-pdf-server",
+       "http://localhost:5500/api/open-pdf",
        { method: "POST" }
    );
-   
-   // Server Manager spawna pdf-server.js
-   // pdf-server.js avvia Express sulla porta 8765
    ```
 
 4. **api-config.js fa health check**
    ```javascript
-   // Controlla se il server Ã¨ pronto
-   const health = await fetch("http://localhost:8765/api/pdf-list");
+   // Controlla se il server è pronto
+   const health = await fetch("http://localhost:5500/api/health");
    if (health.ok) {
-       console.log("âœ… PDF Server pronto!");
+       console.log("✅ Server pronto!");
    }
    ```
 
 5. **Carica i dati**
    ```javascript
-   // Ora che il server Ã¨ pronto, carica i PDF
-   const pdfList = await fetch("http://localhost:8765/api/pdf-list");
+   // Ora che il server è pronto, carica i PDF
+   const pdfList = await fetch("http://localhost:5500/api/pdf-list");
    const files = await pdfList.json();
    ```
 
