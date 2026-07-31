@@ -35,6 +35,7 @@ Il flusso standard utilizza ora un singolo server unificato o, in caso di test l
 - Portale principale: `http://localhost:5500/index.html`
 - Borderò principale: `http://localhost:5500/Bordero/pages/bordero.html`
 - API Borderò: `http://localhost:5500/api/health`
+- Eventi: `http://localhost:5500/eventi/eventi.html`
 
 ## Bordero e sincronizzazione CSV
 

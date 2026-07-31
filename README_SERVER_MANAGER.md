@@ -596,7 +596,7 @@ POST http://localhost:3000/api/stop-pdf-server
 
 **Request:**
 ```
-GET http://localhost:3000/api/status
+GET http://localhost:5500/api/health
 ```
 
 **Response:**

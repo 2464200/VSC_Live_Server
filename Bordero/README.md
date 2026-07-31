@@ -130,7 +130,7 @@ python -m http.server 8000
 npx http-server -c-1
 ```
 
-Poi visita: `http://localhost:8000/Bordero/`
+Poi visita: `http://localhost:5500/Bordero/`
 
 Per il runtime completo del progetto usa invece:
 - `http://localhost:5500/Bordero/pages/bordero.html`

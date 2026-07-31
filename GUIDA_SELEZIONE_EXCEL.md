@@ -149,7 +149,7 @@ JSON.stringify(localStorage.getItem('BORDERO_DBASE_DATA')).length > 50
 
 ### **Problema: Sync Google Sheets non disponibile**
 **Soluzione:**
-1. Verifica che il server di sync risponda su `http://localhost:5501/api/status`
+1. Verifica che il server unificato risponda su `http://localhost:5500/api/health`
 2. Se non hai internet o API key valida, usa il fallback locale:
    - seleziona il file in `C:\VSC_Live_Server\Excel\`
    - esegui "Sincronizza Tutto da Excel"

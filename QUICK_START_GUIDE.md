@@ -49,19 +49,19 @@ http://localhost:5500/Bordero/pages/bordero.html
 cd C:\VSC_Live_Server
 ```
 
-**Passo 2:** Avvia il server Python
+**Passo 2:** Avvia il server unificato (percorso standard)
 ```powershell
-python -m http.server 8000
+node unified-server.js
 ```
 
 **Output atteso:**
 ```
-Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+Server consolidato avviato su http://localhost:5500
 ```
 
 **Passo 3:** Apri il browser
 ```
-http://localhost:8000/Bordero/
+http://localhost:5500/Bordero/
 ```
 
 ---
@@ -78,14 +78,14 @@ cd C:\VSC_Live_Server
 npm install -g http-server
 ```
 
-**Passo 3:** Avvia il server
+**Passo 3:** Avvia il server unificato
 ```powershell
-http-server -c-1 -p 8000
+node unified-server.js
 ```
 
 **Passo 4:** Apri il browser
 ```
-http://localhost:8000/Bordero/
+http://localhost:5500/Bordero/
 ```
 
 ---

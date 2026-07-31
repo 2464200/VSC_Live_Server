@@ -252,7 +252,7 @@ node Bordero/server/sync-server.js
 - [ ] Node.js installato
 - [ ] Express package disponibile (`npm install express`)
 - [ ] Sync Server avviato (`node Bordero/server/sync-server.js`)
-- [ ] Server online (http://localhost:5501/api/status)
+- [ ] Server online (http://localhost:5500/api/health)
 - [ ] Browser su Admin Panel (http://localhost:5500/Bordero/pages/admin.html)
 - [ ] File Excel selezionato
 - [ ] File selezionato da C:\VSC_Live_Server\Excel\
