@@ -1141,6 +1141,14 @@ app.get('/public/mobile1.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
 });
 
+app.get('/public/script.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'script.js'));
+});
+
+app.get('/public/utility.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'utility.js'));
+});
+
 app.use(express.static(path.join(__dirname), {
     index: ['index.html'],
     extensions: ['html', 'htm']
