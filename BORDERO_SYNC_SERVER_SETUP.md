@@ -95,21 +95,15 @@ npm run sync-server
 
 Apri il browser e vai a:
 ```
-http://localhost:5501/api/status
+http://localhost:5500/api/health
 ```
 
-Dovresti vedere un JSON con lo stato del server:
+Dovresti vedere un JSON con lo stato del server unificato:
 ```json
 {
-  "server": "Bordero Sync Server",
-  "port": 5501,
-  "status": "online",
-  "dataDir": "C:\\...\\Bordero\\data",
-  "files": {
-    "brani": { "exists": false, "path": "..." },
-    "comuni": { "exists": false, "path": "..." },
-    "dbase": { "exists": false, "path": "..." }
-  }
+  "status": "ok",
+  "server": "unified-server",
+  "port": 5500
 }
 ```
 
@@ -152,18 +146,15 @@ dBase.csv       (5 righe + header)
 
 ## ðŸ› Troubleshooting
 
-### Errore: "Porta 5501 in uso"
+### Errore: "Porta 5500 in uso"
 
-Se la porta 5501 Ã¨ occupata, cambia porta:
+Se la porta 5500 è occupata, avvia il server con una porta alternativa tramite variabile d’ambiente:
 ```bash
-set BORDERO_SYNC_PORT=5502
-node Bordero/server/sync-server.js
+set UNIFIED_PORT=5502
+node unified-server.js
 ```
 
-Poi aggiorna excel-sync.js linea ~390:
-```javascript
-const SYNC_SERVER = 'http://localhost:5502';
-```
+Poi aggiorna gli URL di accesso a `http://localhost:5502`.
 
 ### Errore: "Express non trovato"
 
@@ -174,7 +165,7 @@ npm install express
 
 ### Nessun file CSV creato
 
-1. Verifica che il server sia online: http://localhost:5501/api/status
+1. Verifica che il server sia online: http://localhost:5500/api/health
 2. Controlla la console del server per errori
 3. Assicurati di avere i permessi di scrittura su Bordero/data/
 

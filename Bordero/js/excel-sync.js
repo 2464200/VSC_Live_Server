@@ -644,8 +644,8 @@ class ExcelSync {
    */
   async syncToDisk(dataType, data) {
     try {
-      const SYNC_SERVER = 'http://localhost:5501';
-      const endpoint = `${SYNC_SERVER}/api/sync/${dataType}`;
+      const SYNC_SERVER = window.location.origin || 'http://localhost:5500';
+      const endpoint = `${SYNC_SERVER}/api/bordero/sync-${dataType}`;
 
       logger.info(`🌐 POST a ${endpoint}`);
 
@@ -664,9 +664,9 @@ class ExcelSync {
       logger.info(`📁 File salvato: ${result.file}`);
 
     } catch (error) {
-      logger.warn(`⚠️ Non è possibile sincronizzare su disco. Server Node.js su :5501 non disponibile.`);
+      logger.warn(`⚠️ Non è possibile sincronizzare su disco. Server unificato non disponibile.`);
       logger.warn(`   Dati rimangono in cache localStorage.`);
-      logger.warn(`   Avvia il sync-server: node Bordero/server/sync-server.js`);
+      logger.warn(`   Assicurati che unified-server.js sia attivo su 5500.`);
     }
   }
 

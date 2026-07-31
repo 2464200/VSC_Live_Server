@@ -319,7 +319,7 @@ Write-Host "Unified Server: porta $UnifiedPort"
 Write-Host ""
 
 # Verifica se il server è già in esecuzione
-if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri 'http://localhost:5501/api/status' -TimeoutSeconds 2)) {
+if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/api/health" -TimeoutSeconds 2)) {
     Write-Host "Server già in esecuzione sulle porte $UnifiedPort e 5501 - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."

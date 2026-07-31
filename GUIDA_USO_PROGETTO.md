@@ -45,8 +45,8 @@ Se vuoi usare Live Server per anteprime veloci:
 1. Avvia Live Server da VS Code nella cartella `c:\VSC_Live_Server`
 2. Accertati che usi porta `5501`
 3. Apri:
-   - `http://localhost:5501/index.html`
-   - `http://localhost:5501/Eventi/public/eventi.html`
+   - `http://localhost:5500/index.html`
+   - `http://localhost:5500/eventi/eventi.html`
 
 > Nota: le pagine Eventi aperte da Live Server cercheranno comunque le API su `5500`. Per funzionare correttamente, `unified-server.js` deve restare attivo.
 

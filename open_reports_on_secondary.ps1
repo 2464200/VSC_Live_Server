@@ -32,9 +32,9 @@ if (-not (Test-Path $pythonExe)) { $pythonExe = "python" }
 Start-Sleep -Seconds 1
 
 $urls = @(
-    "http://localhost:8000/Prova/Report.html",
-    "http://localhost:8000/Prova/Report_white.html",
-    "http://localhost:8000/Prova/Report_black.html"
+    "http://localhost:5500/Prova/Report.html",
+    "http://localhost:5500/Prova/Report_white.html",
+    "http://localhost:5500/Prova/Report_black.html"
 )
 
 # Tenta usare Chrome se presente

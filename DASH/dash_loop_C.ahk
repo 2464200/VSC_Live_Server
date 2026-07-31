@@ -29,9 +29,9 @@ FILE2_PRIMARY := "http://localhost:5500/NextCoreo1.html"
 REMOTE_URL_PRIMARY := "http://localhost:5500/NextCoreo1.html"
 
 ; --- URL ALTERNATIVI (AGGIUNGILI TU COME SERVE) ---
-FILE1_ALT := "http://localhost:5501/Index.html"
-FILE2_ALT := "http://localhost:5501/NextCoreo1.html"
-REMOTE_URL_ALT := "http://localhost:5501/NextCoreo1.html"
+FILE1_ALT := "http://localhost:5500/Index.html"
+FILE2_ALT := "http://localhost:5500/NextCoreo1.html"
+REMOTE_URL_ALT := "http://localhost:5500/NextCoreo1.html"
 ; IMAGE non richiede fallback
 
 

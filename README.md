@@ -33,8 +33,8 @@ Il progetto si basa su un unico punto di riferimento per la documentazione: ques
 Il flusso standard utilizza ora un singolo server unificato o, in caso di test locali, un server statico semplice.
 
 - Portale principale: `http://localhost:5500/index.html`
-- Borderò locale statico: `http://localhost:5501/Bordero/pages/bordero.html` (test)
-- API sync Borderò: `http://localhost:5501/api/status` (sync server dedicato su porta 5501).
+- Borderò principale: `http://localhost:5500/Bordero/pages/bordero.html`
+- API Borderò: `http://localhost:5500/api/health`
 
 ## Bordero e sincronizzazione CSV
 

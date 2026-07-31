@@ -42,7 +42,7 @@ $files = Get-ChildItem -Path $root -Filter *.html -Recurse | Where-Object { $_.F
 
 foreach ($file in $files) {
     $relative = $file.FullName.Substring($root.Length + 1) -replace '\\','/'
-    $url = "http://localhost:8000/" + [System.Uri]::EscapeUriString($relative)
+    $url = "http://localhost:5500/" + [System.Uri]::EscapeUriString($relative)
 
     if ($chrome) {
         $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', '--start-maximized', $url -PassThru

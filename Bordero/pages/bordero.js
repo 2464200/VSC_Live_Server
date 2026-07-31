@@ -1548,11 +1548,9 @@ class BorderoTableManager {
     this.videoClipAvailableMap = new Map();
 
     const attempts = [
+      window.location.origin + '/api/videoclip/list',
       'http://localhost:5500/api/videoclip/list',
       'http://127.0.0.1:5500/api/videoclip/list',
-      window.location.origin + '/api/videoclip/list',
-      'http://localhost:5501/api/videoclip/list',
-      window.location.origin.replace(/:\d+$/, '') + ':5501/api/videoclip/list',
       '/api/videoclip/list'
     ];
 

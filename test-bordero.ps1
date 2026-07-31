@@ -5,7 +5,7 @@
  # Verifica funzionamento di tutte le pagine
  #>
 
-$baseUrl = "http://localhost:8000"
+$baseUrl = "http://localhost:5500"
 $borderoBases = @(
   "Bordero/index.html"
   "Bordero/pages/bordero.html"

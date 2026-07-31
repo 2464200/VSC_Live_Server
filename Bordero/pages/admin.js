@@ -408,8 +408,8 @@ class AdminPanel {
       this.log('🌐 Avvio sync da Google Sheets...', 'warn');
       this.addSyncLog('Avvio sync da Google Sheets...', 'info');
       try {
-        const response = await fetch('http://localhost:5501/api/sync/google-sheets', {
-          method: 'POST',
+        const response = await fetch(`${window.location.origin || 'http://localhost:5500'}/api/bordero/sync-google`, {
+          method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
         const result = await response.json();

@@ -363,7 +363,7 @@ console.log('[ADMIN] Pagina caricata, inizializzazione...');
 window.eventiFetch = window.eventiFetch || async function(path, options = {}) {
   const bases = [
     'http://localhost:5500/eventi/api',
-    'http://localhost:3010/eventi/api'
+    'http://localhost:5500/eventi/api'
   ];
   let lastError = null;
   for (const base of bases) {

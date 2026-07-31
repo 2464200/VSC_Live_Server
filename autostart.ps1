@@ -89,7 +89,7 @@ if (-not (Test-Path $StartupScript)) {
     exit 0
 }
 
-if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri 'http://localhost:5501/api/status' -TimeoutSeconds 2)) {
+if ((Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/") -and (Test-HttpEndpoint -Uri "http://localhost:$UnifiedPort/api/health" -TimeoutSeconds 2)) {
     Write-Log "Unified Server e Sync Server già in esecuzione. Nessun avvio aggiuntivo necessario."
     exit 0
 }

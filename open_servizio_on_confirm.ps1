@@ -37,7 +37,7 @@ if (-not $httpRunning) {
     Start-Sleep -Seconds 1
 }
 
-$url = "http://localhost:8000/servizio.html"
+$url = "http://localhost:5500/servizio.html"
 
 # Usa Chrome se disponibile
 $chromePaths = @("C:\Program Files\Google\Chrome\Application\chrome.exe", "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
