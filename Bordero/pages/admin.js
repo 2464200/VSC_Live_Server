@@ -18,6 +18,7 @@ class AdminPanel {
     this.setupCacheManagement();
     this.setupExportImport();
     this.setupConsole();
+    this.setupElectronLauncher();
     this.log('✓ Admin Panel initialized', 'success');
   }
 
@@ -719,6 +720,83 @@ class AdminPanel {
       return `"${str.replace(/"/g, '""')}"`;
     }
     return str;
+  }
+
+  /* ========== ELECTRON LAUNCHER ========== */
+  setupElectronLauncher() {
+    const launchBtn = document.getElementById('btn-launch-electron');
+    const swapBtn = document.getElementById('btn-swap-monitors');
+    if (!launchBtn && !swapBtn) return;
+
+    const updateSwapButton = (enabled) => {
+      if (!swapBtn) return;
+      swapBtn.textContent = `Inverti Monitor: ${enabled ? 'ON' : 'OFF'}`;
+      swapBtn.classList.toggle('btn-primary', enabled);
+      swapBtn.classList.toggle('btn-secondary', !enabled);
+    };
+
+    const loadSwapStatus = async () => {
+      if (!swapBtn) return;
+      try {
+        const response = await fetch('/api/electron/monitor-preferences', {
+          method: 'GET',
+          cache: 'no-store'
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        updateSwapButton(Boolean(payload.swapPrimarySecondary));
+      } catch (error) {
+        this.log(`Impossibile leggere stato swap monitor: ${error?.message || error}`, 'warn');
+      }
+    };
+
+    if (launchBtn) {
+      launchBtn.addEventListener('click', () => {
+        this.log('Avvio Electron dual-monitor...', 'info');
+        try {
+          const terminalCommand = 'npm run electron';
+          this.log(`Comando pronto: ${terminalCommand}`, 'success');
+          Toast.success('Launcher Electron pronto. Avvia il progetto da terminale con npm run electron');
+        } catch (error) {
+          this.log(`Errore avvio Electron: ${error?.message || error}`, 'error');
+          Toast.error('Impossibile avviare Electron da qui');
+        }
+      });
+    }
+
+    if (swapBtn) {
+      loadSwapStatus();
+
+      swapBtn.addEventListener('click', async () => {
+        swapBtn.disabled = true;
+        try {
+          const response = await fetch('/api/electron/swap-monitors', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const payload = await response.json();
+          const isEnabled = Boolean(payload.swapPrimarySecondary);
+          updateSwapButton(isEnabled);
+          this.log(`Swap monitor ${isEnabled ? 'attivato' : 'disattivato'}: applicazione Electron aggiornata`, 'success');
+          Toast.success(`Swap monitor ${isEnabled ? 'ON' : 'OFF'}`);
+        } catch (error) {
+          this.log(`Errore swap monitor: ${error?.message || error}`, 'error');
+          Toast.error('Impossibile invertire i monitor');
+        } finally {
+          swapBtn.disabled = false;
+        }
+      });
+    }
   }
 
   /* ========== CONSOLE ========== */

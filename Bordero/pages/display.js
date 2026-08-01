@@ -521,6 +521,7 @@ class DisplayMonitor {
     const stopBtn = document.getElementById('stopScroll');
     const resumeBtn = document.getElementById('resumeScroll');
     const fullscreenBtn = document.getElementById('btn-fullscreen');
+    const closeBtn = document.getElementById('btn-close-display');
 
     stopBtn?.addEventListener('click', () => {
       this.scrollRunning = false;
@@ -535,6 +536,10 @@ class DisplayMonitor {
 
     fullscreenBtn?.addEventListener('click', () => {
       this.toggleFullscreen();
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      this.closeDisplayWindow();
     });
 
     document.addEventListener('fullscreenchange', () => {
@@ -690,6 +695,22 @@ class DisplayMonitor {
         logger.debug('exitFullscreen failed', error?.message || error);
       }
     }
+  }
+
+  closeDisplayWindow() {
+    this.stop();
+
+    try {
+      window.close();
+    } catch (error) {
+      logger.warn('window.close non disponibile', error?.message || error);
+    }
+
+    setTimeout(() => {
+      if (!window.closed) {
+        this.setFooterStatus('Chiusura bloccata dal browser: chiudi manualmente la scheda/finestra');
+      }
+    }, 200);
   }
 
   getDisplayPageUrl() {

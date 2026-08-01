@@ -37,6 +37,7 @@ const OPENED_VIEWERS_FILE = path.join(__dirname, 'pdf', 'config', 'opened-viewer
 const VLC_RC_HOST = '127.0.0.1';
 const VLC_RC_PORT = process.env.VLC_RC_PORT ? parseInt(process.env.VLC_RC_PORT, 10) : 4212;
 const DISPLAY_WINDOW_TITLE_HINT = process.env.DISPLAY_WINDOW_TITLE_HINT || 'Monitor Secondario';
+const ELECTRON_MONITOR_PREFERENCES_FILE = path.join(__dirname, 'electron', 'monitor-preferences.json');
 let vlcProcess = null;
 let vlcCurrentFile = '';
 let vlcDiscoveryPromise = null;
@@ -183,6 +184,33 @@ function recordVlcCompletion(filePath) {
     };
 }
 
+function readElectronMonitorPreferences() {
+    try {
+        if (!fs.existsSync(ELECTRON_MONITOR_PREFERENCES_FILE)) {
+            return { swapPrimarySecondary: false };
+        }
+        const raw = fs.readFileSync(ELECTRON_MONITOR_PREFERENCES_FILE, 'utf8');
+        const parsed = JSON.parse(raw);
+        return {
+            swapPrimarySecondary: Boolean(parsed && parsed.swapPrimarySecondary)
+        };
+    } catch (error) {
+        console.warn('⚠️ Lettura preferenze monitor Electron fallita, uso default:', error?.message || error);
+        return { swapPrimarySecondary: false };
+    }
+}
+
+function writeElectronMonitorPreferences(preferences = {}) {
+    const payload = {
+        swapPrimarySecondary: Boolean(preferences.swapPrimarySecondary),
+        updatedAt: new Date().toISOString()
+    };
+
+    fs.mkdirSync(path.dirname(ELECTRON_MONITOR_PREFERENCES_FILE), { recursive: true });
+    fs.writeFileSync(ELECTRON_MONITOR_PREFERENCES_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    return payload;
+}
+
 function reconcileVlcProcessState() {
     if (!vlcProcess?.pid) return;
 
@@ -211,6 +239,32 @@ function isVlcAlive() {
         return false;
     }
 }
+
+app.get('/api/electron/monitor-preferences', (req, res) => {
+    const preferences = readElectronMonitorPreferences();
+    return res.json({
+        ok: true,
+        swapPrimarySecondary: Boolean(preferences.swapPrimarySecondary)
+    });
+});
+
+app.post('/api/electron/swap-monitors', (req, res) => {
+    const current = readElectronMonitorPreferences();
+    const hasExplicitValue = Object.prototype.hasOwnProperty.call(req.body || {}, 'swapPrimarySecondary');
+
+    const swapPrimarySecondary = hasExplicitValue
+        ? Boolean(req.body.swapPrimarySecondary)
+        : !Boolean(current.swapPrimarySecondary);
+
+    const saved = writeElectronMonitorPreferences({ swapPrimarySecondary });
+    console.log(`🖥️ Electron monitor swap impostato a: ${saved.swapPrimarySecondary ? 'ON' : 'OFF'}`);
+
+    return res.json({
+        ok: true,
+        swapPrimarySecondary: saved.swapPrimarySecondary,
+        updatedAt: saved.updatedAt
+    });
+});
 
 function clearVlcForegroundGuard() {
     if (vlcForegroundGuardTimer) {

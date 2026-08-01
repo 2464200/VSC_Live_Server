@@ -30,6 +30,7 @@
 }
 
 .display-title-row {
+  position: relative;
   text-align: center;
 }
 
@@ -38,6 +39,27 @@
   font-size: 23px;
   color: #fff;
   letter-spacing: 0.7px;
+}
+
+.display-close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 127, 0, 0.7);
+  border-radius: 6px;
+  background: rgba(20, 20, 20, 0.9);
+  color: #ffb366;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.display-close-btn:hover {
+  background: rgba(255, 127, 0, 0.25);
+  color: #fff;
 }
 
 .display-info-row {

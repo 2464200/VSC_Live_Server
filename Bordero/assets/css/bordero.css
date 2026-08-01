@@ -435,6 +435,14 @@ body {
   animation: slideOut 0.3s ease;
 }
 
+/* ========== PAGE SHORTCUTS (BORDERO PAGES) ========== */
+.page-shortcuts {
+  margin: 14px 0 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .header {
@@ -494,5 +502,9 @@ body {
 
   .toast {
     max-width: 100%;
+  }
+
+  .page-shortcuts {
+    gap: 8px;
   }
 }
