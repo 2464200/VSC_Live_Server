@@ -273,6 +273,20 @@
   background-color: #ff9933;
 }
 
+.brani-table tbody tr.blocked {
+  background-color: rgba(128, 128, 128, 0.24);
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.72;
+}
+
+.brani-table tbody tr.blocked td {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.brani-table tbody tr.blocked:hover {
+  background-color: rgba(160, 160, 160, 0.3);
+}
+
 .brani-table td {
   padding: 10px 15px;
   border-right: 1px solid var(--border-color);

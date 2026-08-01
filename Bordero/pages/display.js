@@ -166,17 +166,21 @@ class DisplayMonitor {
     }
 
     const orderedBrani = this.orderRequestedBrani(requestedBrani);
+    const annotatedBrani = annotateBraniByTitleVisibility(orderedBrani, {
+      isExecuted: (brano) => this.isBranoExecuted(brano),
+      isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
+    });
 
     // Aggiorna header
-    this.updateHeader(orderedBrani);
+    this.updateHeader(annotatedBrani);
 
-    const executedCount = orderedBrani.filter((item) => this.isBranoExecuted(item)).length;
-    this.setFooterStatus(`Brani richiesti: ${orderedBrani.length} | Eseguiti: ${executedCount}`);
+    const executedCount = annotatedBrani.filter((item) => this.isBranoExecuted(item)).length;
+    this.setFooterStatus(`Brani richiesti: ${annotatedBrani.length} | Eseguiti: ${executedCount}`);
 
     // Renderizza solo quando i dati visualizzati cambiano, per mantenere lo scroll fluido.
-    const nextSignature = this.buildRenderSignature(orderedBrani);
+    const nextSignature = this.buildRenderSignature(annotatedBrani);
     if (nextSignature !== this.lastRenderedSignature) {
-      this.renderTable(orderedBrani);
+      this.renderTable(annotatedBrani);
       this.lastRenderedSignature = nextSignature;
     }
 
@@ -193,7 +197,8 @@ class DisplayMonitor {
         const id = String(item?.id ?? '');
         const flag = this.isBranoExecuted(item) ? 'X' : '-';
         const richieste = String(item?.richieste ?? '');
-        return `${id}|${flag}|${richieste}`;
+        const state = item?.displayState || 'available';
+        return `${id}|${flag}|${richieste}|${state}`;
       })
       .join('~');
   }
@@ -503,12 +508,13 @@ class DisplayMonitor {
    */
   createBranoRow(brano) {
     const isCompleted = this.isBranoExecuted(brano);
-    const completedClass = isCompleted ? 'completed' : '';
+    const displayState = brano?.displayState || 'available';
+    const rowClass = displayState === 'executed' ? 'completed' : displayState === 'blocked' ? 'blocked' : '';
     const flagIcon = isCompleted ? '✅' : '';
 
     return `
-      <tr class="brano-row ${completedClass}">
-        <td class="col-flag ${completedClass}">${flagIcon}</td>
+      <tr class="brano-row ${rowClass}">
+        <td class="col-flag ${rowClass}">${flagIcon}</td>
         <td class="col-id">${brano.id}</td>
         <td class="col-titolo">${brano.titolo || brano.coreografia || '--'}</td>
         <td class="col-autore">${brano.brano || '--'}${brano.autore ? ` / ${brano.autore}` : ''}</td>

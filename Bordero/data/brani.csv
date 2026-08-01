@@ -44,14 +44,14 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,043,BILL'S BASIC,somebody take me home,kenny chesney,,BASE,STAGE,,,Bill Ray,,16 conteggi 4 muri
 ,,044,BILL'S BASIC,winter wonderland,brad paisley,,BASE,NATALIZIA,,,Bill Ray,,16 conteggi 4 muri
 ,,045,BILLBOARD,name on a billboard,charley crockett,,SUPER AVANZATO 3
-,,046,BLACK COFFEE,all i want for christmas is you,mariah carey,,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
-,,047,BLACK COFFEE,black coffee,lacy j dalton,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,048,BLACK COFFEE,last christmas,taylor swift,,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
-,,049,BLACK COFFEE,party for two,shania twain feat. billy currington,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,050,BLACK COFFEE,some town somewhere,kenny chesney,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,051,BLACK COFFEE,the salt in my tears,dolly parton,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,052,BLACK COFFEE,undone,dean brody,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,053,BLACK COFFEE,why couldn't be christmas everyday?,bianca ryan,,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
+,,046,BLACK COFFEE,all i want for christmas is you,mariah carey,1,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
+,,047,BLACK COFFEE,black coffee,lacy j dalton,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,048,BLACK COFFEE,last christmas,taylor swift,1,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
+,,049,BLACK COFFEE,party for two,shania twain feat. billy currington,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,050,BLACK COFFEE,some town somewhere,kenny chesney,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,051,BLACK COFFEE,the salt in my tears,dolly parton,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,052,BLACK COFFEE,undone,dean brody,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,053,BLACK COFFEE,why couldn't be christmas everyday?,bianca ryan,1,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
 ,,054,BOOMERANG,i'm still falling,slow horses,,ALTRE COREO
 ,,055,BOOTY TO THE FLOOR,daisy dukes and cowboy boots,cowboy troy,,ALTRE COREO
 ,,056,BOOZE CRUISE,the booze cruise,blackjack billy,,AVANZATO 1,,,,Donna Manning,,32 conteggi 2 muri
@@ -118,10 +118,10 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,117,COUNTRY GIRL SHAKE,country girl (shake it for me),luke bryan,,ALTRE COREO
 ,,118,COUNTRY ROADS,country roads,hermes house band,,AVANZATO 2,,,,Kate Sala,,32 conteggi 4 muri 1 tag alla fine del 5° muro
 ,,119,COWBOY BIG UP,cowboy up,jill johnson,,BASE,STAGE,,,Big Andrew Gragnaniello,,32 conteggi 4 muri
-,,120,CASANOVA COWBOY,blue christmas,sheryl crow,,INTERMEDIO,NATALIZIA,,,Rob Fowler,,32 conteggi 4 muri
-,,121,CASANOVA COWBOY,cowboy casanova,carrie underwood,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
-,,122,CASANOVA COWBOY,must be a woman,gord bamford,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
-,,123,CASANOVA COWBOY,true blue,madonna,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,120,CASANOVA COWBOY,blue christmas,sheryl crow,1,INTERMEDIO,NATALIZIA,,,Rob Fowler,,32 conteggi 4 muri
+,,121,CASANOVA COWBOY,cowboy casanova,carrie underwood,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,122,CASANOVA COWBOY,must be a woman,gord bamford,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,123,CASANOVA COWBOY,true blue,madonna,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,124,COWBOY STRUT,my next broken heart,brooks & dunn,,ALTRE COREO
 ,,125,COWBOY UP,bury the shovel,clay walker,,SUPER AVANZATO 1+2
 ,,126,CRASH AND BURN,crush and burn,thomas rhett,,BASE,,,,Gail Smith,,32 conteggi 4 muri
@@ -537,14 +537,14 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,536,ELECTRIC SLIDE,no rompas mi corazon,caballo dorado,,BASE,,,,Ric Silvern,,14 conteggi 2 muri
 ,,537,MY MARIA,choosin' texas,ella langley,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
 ,,538,SWISS GUY,swiss guy,florian fox,,SUPER AVANZATO 3,,,,Fabian Muller,,48 counts 4 muri 3 Tag [Tag 1 di 17 conteggi al 3^ e al 6^ muro dopo 15 conteggi] [Tag 2 di 4 conteggi all’8^ muro dopo 32 conteggi] [Tag 3 di 33 conteggi al 10^ muro dopo 15 conteggi]
-,,539,CASANOVA COWBOY,love runs out,onerepublic,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,539,CASANOVA COWBOY,love runs out,onerepublic,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,540,BIG BULL FIDDLE,big butch bass bull fiddle,corb lund,,SUPER AVANZATO 3,,,,Arne Stakkestad,,56 conteggi 2 muri
 ,,541,TEXAS HOLD'EM,texas hold'em,beyoncè,,ALTRE COREO,,,,Laura Jones,,32 conteggi 2 muri
 ,,542,OPHELIA,ophelia,taylor swift,,ALTRE COREO,,,,Mikyung Lee,,40 conteggi 2 muri
 ,,543,ELECTRIC STOMP,fast as you,dwight yoakam,,ALTRE COREO,,,,,,24 conteggi 4 muri
 ,,544,LAKE DARBONNE,lake darbonne,katie knight,,SUPER AVANZATO 3,,,,David Villelas,,32 conteggi 1 restart al 4° muro dopo 16 conteggi
 ,,545,MAN ON A MISSION,man on a mission,oh the lacerny,,SUPER AVANZATO 3,,,,Gary O'Reilly,Guillaume Richard Niels Puolsen,32 conteggi 2 muri [restart al 2° e 5° muro dopo 8 counts] (tag alla fine del 3° muro dopo 8 counts)
-,,546,CASANOVA COWBOY,man i feel like a woman,shania twain,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,546,CASANOVA COWBOY,man i feel like a woman,shania twain,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,547,C A R E,the last shanty,derina harvey band,1,SUPER AVANZATO 3,,,,Fabian Muller,,32 conteggi 4 muri [3 restart al 2° e al 6° dopo 16 counts al 12° dopo 8 counts] finale si ripete ultima ottava due volte
 ,,548,I SHOWED YOU THE DOOR,the door,teddy swims,1,SUPER AVANZATO 3,,,,Ria Vos,,64 conteggi 4 muri (restart al 2° muro dopo 32 counts)
 ,,549,CHEYENNE,drunken sailor,malinda feat. bobby waters,,BASE,,,,Unknown,,24 conteggi 4 muri
