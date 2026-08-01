@@ -18,6 +18,7 @@ const os = require('os');
 const QRCodeLib = require('qrcode');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
+const { parseBorderoGoogleSyncIntervalMs, shouldScheduleBorderoGoogleSync } = require('./Bordero/server/bordero-sync-config');
 
 const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
@@ -25,7 +26,7 @@ const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
 const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
-const BORDERO_GOOGLE_SYNC_INTERVAL_MS = Number(process.env.BORDERO_GOOGLE_SYNC_INTERVAL_MS || 120000);
+const BORDERO_GOOGLE_SYNC_INTERVAL_MS = parseBorderoGoogleSyncIntervalMs(process.env);
 
 // ===== STATO GLOBALE =====
 let chromeProcess = null;
@@ -56,6 +57,7 @@ let vlcLastCompletionEvent = {
 
 let borderoGoogleSyncTimer = null;
 let borderoGoogleSyncPromise = null;
+let borderoGoogleSyncSchedulerStarted = false;
 const borderoGoogleSyncState = {
     enabled: BORDERO_GOOGLE_SYNC_ENABLED,
     intervalMs: BORDERO_GOOGLE_SYNC_INTERVAL_MS,
@@ -141,10 +143,16 @@ async function runBorderoGoogleSync(trigger = 'manual') {
 }
 
 function startBorderoGoogleSyncScheduler() {
+    if (borderoGoogleSyncSchedulerStarted) {
+        return;
+    }
+
     if (!BORDERO_GOOGLE_SYNC_ENABLED) {
         console.log('ℹ️ Google sync Bordero disabilitato (BORDERO_GOOGLE_SYNC_ENABLED=false)');
         return;
     }
+
+    borderoGoogleSyncSchedulerStarted = true;
 
     runBorderoGoogleSync('startup').then((summary) => {
         if (summary?.success) {
@@ -155,6 +163,11 @@ function startBorderoGoogleSyncScheduler() {
     }).catch((error) => {
         console.warn('⚠️ Bordero Google sync startup error:', error?.message || error);
     });
+
+    if (!shouldScheduleBorderoGoogleSync(process.env)) {
+        console.log('ℹ️ Bordero Google sync scheduler disabilitato (intervallo non impostato o <= 0)');
+        return;
+    }
 
     borderoGoogleSyncTimer = setInterval(() => {
         runBorderoGoogleSync('interval').catch((error) => {

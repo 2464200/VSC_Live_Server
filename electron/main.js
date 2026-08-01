@@ -8,6 +8,7 @@ const { resolveDisplayTargetsForWindows, getWindowBoundsForDisplay, buildElectro
 let primaryWindow;
 let secondaryWindow;
 let serverProcess;
+let ensureUnifiedServerPromise = null;
 let currentSwapMonitors = false;
 let monitorPreferenceWatcher = null;
 
@@ -97,7 +98,11 @@ function waitForServer(url, timeoutMs = 15000) {
 }
 
 function ensureUnifiedServer() {
-  return waitForServer('http://127.0.0.1:5500')
+  if (ensureUnifiedServerPromise) {
+    return ensureUnifiedServerPromise;
+  }
+
+  ensureUnifiedServerPromise = waitForServer('http://127.0.0.1:5500')
     .then(() => {
       console.log('Unified server already available');
     })
@@ -121,11 +126,18 @@ function ensureUnifiedServer() {
         if (code !== 0 && !app.isQuitting) {
           console.warn(`Unified server exited with code ${code}`);
         }
-        serverProcess = null;
+        if (serverProcess && serverProcess.exitCode !== null) {
+          serverProcess = null;
+        }
       });
 
       return waitForServer('http://127.0.0.1:5500', 20000);
+    })
+    .finally(() => {
+      ensureUnifiedServerPromise = null;
     });
+
+  return ensureUnifiedServerPromise;
 }
 
 function createWindow(url, options = {}) {
