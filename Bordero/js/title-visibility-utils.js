@@ -77,8 +77,16 @@ function annotateBraniByTitleVisibility(brani, options = {}) {
   });
 }
 
-module.exports = {
-  filterBraniByTitleVisibility,
-  annotateBraniByTitleVisibility,
-  normalizeTitle,
-};
+if (typeof window !== 'undefined') {
+  window.normalizeTitle = normalizeTitle;
+  window.filterBraniByTitleVisibility = filterBraniByTitleVisibility;
+  window.annotateBraniByTitleVisibility = annotateBraniByTitleVisibility;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    filterBraniByTitleVisibility,
+    annotateBraniByTitleVisibility,
+    normalizeTitle,
+  };
+}

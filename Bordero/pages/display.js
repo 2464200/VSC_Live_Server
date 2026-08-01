@@ -170,17 +170,18 @@ class DisplayMonitor {
       isExecuted: (brano) => this.isBranoExecuted(brano),
       isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
     });
+    const displayBrani = this.orderDisplayByState(annotatedBrani);
 
     // Aggiorna header
-    this.updateHeader(annotatedBrani);
+    this.updateHeader(displayBrani);
 
-    const executedCount = annotatedBrani.filter((item) => this.isBranoExecuted(item)).length;
-    this.setFooterStatus(`Brani richiesti: ${annotatedBrani.length} | Eseguiti: ${executedCount}`);
+    const executedCount = displayBrani.filter((item) => this.isBranoExecuted(item)).length;
+    this.setFooterStatus(`Brani richiesti: ${displayBrani.length} | Eseguiti: ${executedCount}`);
 
     // Renderizza solo quando i dati visualizzati cambiano, per mantenere lo scroll fluido.
-    const nextSignature = this.buildRenderSignature(annotatedBrani);
+    const nextSignature = this.buildRenderSignature(displayBrani);
     if (nextSignature !== this.lastRenderedSignature) {
-      this.renderTable(annotatedBrani);
+      this.renderTable(displayBrani);
       this.lastRenderedSignature = nextSignature;
     }
 
@@ -329,6 +330,27 @@ class DisplayMonitor {
     });
 
     return pending.concat(executed);
+  }
+
+  orderDisplayByState(brani) {
+    if (!Array.isArray(brani)) return [];
+
+    const stateRank = {
+      available: 0,
+      executed: 1,
+      blocked: 2,
+    };
+
+    return brani
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => {
+        const rankA = stateRank[a.item?.displayState || 'available'] ?? 0;
+        const rankB = stateRank[b.item?.displayState || 'available'] ?? 0;
+
+        if (rankA !== rankB) return rankA - rankB;
+        return a.index - b.index;
+      })
+      .map((entry) => entry.item);
   }
 
   isBranoExecuted(brano) {
