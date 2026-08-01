@@ -10,6 +10,32 @@
 
 ---
 
+## Novita 2026-08
+
+### Electron dual monitor
+
+- Nuovo avvio via Electron con doppia finestra:
+   - `bordero.html` sul monitor principale
+   - `display.html` sul monitor secondario in fullscreen
+- Gestione disconnessione/riconnessione monitor con ri-posizionamento automatico finestre.
+- In `Admin` aggiunto tasto `Inverti Monitor: ON/OFF` per scambiare principale/secondario senza modifiche manuali.
+
+### Display manual close
+
+- In `display.html` aggiunto un piccolo tasto `X` in alto a destra per chiudere manualmente la finestra.
+- Se il browser blocca la chiusura diretta, compare un messaggio guida in footer.
+
+### Navigazione pagine Bordero
+
+- Su tutte le pagine Bordero non-Admin e stata mantenuta la navigazione minimale a riga (breadcrumb).
+- I pulsanti di quick navigation restano disponibili solo in `admin.html`.
+
+### VS Code task visibility
+
+- Task `Auto-startup all servers` reso sempre visibile nel terminale (foreground), utile per restart e debug rapido.
+
+---
+
 ## ðŸ“‹ Overview
 
 BORDERÃ’ Ã¨ una web application completa per la gestione di brani e coreografie per DJ. Convertita da Excel a HTML/CSS/JavaScript con sincronizzazione automatica da fogli Excel.

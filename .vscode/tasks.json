@@ -10,14 +10,14 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\autostart.ps1"
+        "${workspaceFolder}\\startup.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "presentation": {
-        "reveal": "silent",
-        "panel": "shared",
+        "reveal": "always",
+        "panel": "dedicated",
         "showReuseMessage": false,
         "clear": false
       },
@@ -61,8 +61,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\startup.ps1",
-        "-NoWait"
+        "${workspaceFolder}\\startup.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -103,7 +102,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "& '${workspaceFolder}\\shutdown.ps1'; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup.ps1' -NoWait"
+        "& '${workspaceFolder}\\shutdown.ps1'; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup.ps1'"
       ],
       "presentation": {
         "reveal": "always",

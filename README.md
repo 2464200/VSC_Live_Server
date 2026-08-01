@@ -145,6 +145,43 @@ La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
 - Borderò: `http://localhost:5500/Bordero/pages/bordero.html`
 - Eventi: `http://localhost:5500/eventi/eventi.html`
 
+## Aggiornamenti recenti (2026-08)
+
+Questa sezione riassume le modifiche funzionali principali applicate nelle ultime iterazioni (Agosto 2026).
+
+### Electron dual monitor e gestione display (`electron/main.js`, `electron/display-manager.js`, `Bordero/pages/admin.html`, `Bordero/pages/admin.js`)
+
+- Introdotto launcher Electron per apertura automatica su doppio monitor:
+	- `bordero.html` sul monitor principale
+	- `display.html` sul monitor secondario in fullscreen/kiosk.
+- Gestione monitor dinamica con re-layout automatico su eventi di aggiunta/rimozione monitor.
+- Aggiunto toggle in Admin: `Inverti Monitor: ON/OFF`.
+- Persistenza preferenza swap monitor su `electron/monitor-preferences.json`.
+
+### API server per preferenze Electron (`unified-server.js`)
+
+- Aggiunti endpoint:
+	- `GET /api/electron/monitor-preferences`
+	- `POST /api/electron/swap-monitors`
+- Gli endpoint aggiornano lo stato di inversione monitor e lo rendono disponibile alla UI Admin.
+
+### Display: chiusura manuale finestra (`Bordero/pages/display.html`, `Bordero/pages/display.css`, `Bordero/pages/display.js`)
+
+- Inserito piccolo pulsante `X` in alto a destra nella pagina Display.
+- Chiusura manuale supportata anche quando la pagina e gestita da Electron.
+- In caso di blocco browser su `window.close()`, mostrato messaggio di fallback in footer.
+
+### Navigazione Bordero minimal (`Bordero/pages/*.html`)
+
+- Allineata la navigazione delle pagine Bordero a riga minimale (breadcrumb) su tutte le pagine non-Admin.
+- Mantenuti i pulsanti di quick navigation solo in `admin.html`.
+
+### Task VS Code: terminale sempre visibile (`.vscode/tasks.json`)
+
+- `Auto-startup all servers` ora esegue `startup.ps1` in foreground.
+- Terminale task impostato su `reveal: always` e `panel: dedicated`.
+- Rimossi i `-NoWait` dai task `Start All Servers Manually` e `Restart All Servers` per mantenere il terminale monitorabile.
+
 ## Aggiornamenti recenti (2026-07)
 
 Questa sezione riassume le modifiche funzionali principali applicate nelle ultime iterazioni.

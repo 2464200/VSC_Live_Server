@@ -2,6 +2,35 @@
 
 **⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
+## Data: 1 Agosto 2026
+## Stato: STABILE - Electron dual monitor + UX Admin/Display + Task terminale visibile
+
+### Aggiunte principali
+
+1. Electron dual monitor operativo
+   - Apre `Bordero/pages/bordero.html` su monitor principale
+   - Apre `Bordero/pages/display.html` su monitor secondario in fullscreen/kiosk
+   - Re-layout automatico su cambio monitor (add/remove/metrics change)
+
+2. Inversione monitor da Admin
+   - Nuovo tasto `Inverti Monitor: ON/OFF` in `Bordero/pages/admin.html`
+   - Nuovi endpoint in `unified-server.js`:
+     - `GET /api/electron/monitor-preferences`
+     - `POST /api/electron/swap-monitors`
+   - Persistenza su `electron/monitor-preferences.json`
+
+3. Display: chiusura manuale finestra
+   - Nuovo pulsante `X` in alto a destra su `Bordero/pages/display.html`
+   - Gestione click in `Bordero/pages/display.js` con fallback messaggio se `window.close()` e bloccato
+
+4. Navigazione Bordero semplificata
+   - Mantenuta breadcrumb minimale su pagine Bordero non-Admin
+   - Quick Navigation a pulsanti mantenuta solo su `Bordero/pages/admin.html`
+
+5. Task VS Code piu visibili per operations
+   - `.vscode/tasks.json` aggiornato per mantenere `Auto-startup all servers` visibile (`reveal: always`, `panel: dedicated`)
+   - Rimossi `-NoWait` su start/restart manuali per monitoraggio diretto in terminale
+
 # âœ… CHANGELOG - Correzioni Applicate per StabilitÃ 
 ## Data: 2 Giugno 2026
 ## Stato: ✅ STABILE - Miglioramenti UI Prova/Image.html
