@@ -34,6 +34,7 @@
     },
     {
       "label": "Auto-shutdown all servers",
+      "hide": true,
       "type": "shell",
       "command": "powershell",
       "args": [
@@ -56,6 +57,7 @@
     },
     {
       "label": "Start All Servers Manually",
+      "hide": true,
       "type": "shell",
       "command": "powershell",
       "args": [
@@ -79,6 +81,7 @@
     },
     {
       "label": "Stop All Servers Manually",
+      "hide": true,
       "type": "shell",
       "command": "powershell",
       "args": [
@@ -115,6 +118,7 @@
     },
     {
       "label": "Test System Integrity",
+      "hide": true,
       "type": "shell",
       "command": "node",
       "args": [
