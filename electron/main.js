@@ -1,12 +1,15 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const { resolveDisplayTargetsForWindows, getWindowBoundsForDisplay, buildElectronAppConfig } = require('./display-manager');
 
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
 let primaryWindow;
 let secondaryWindow;
+let videoPlayerWindow;
 let serverProcess;
 let ensureUnifiedServerPromise = null;
 let currentSwapMonitors = false;
@@ -32,6 +35,14 @@ function readMonitorPreferences() {
 
 function applyWindowLayout() {
   if (!primaryWindow || primaryWindow.isDestroyed() || !secondaryWindow || secondaryWindow.isDestroyed()) {
+    if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+      const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
+        swapPrimarySecondary: currentSwapMonitors
+      });
+      const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
+      videoPlayerWindow.setBounds(monitorBounds);
+      videoPlayerWindow.setFullScreen(true);
+    }
     return;
   }
 
@@ -46,6 +57,11 @@ function applyWindowLayout() {
   const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
   secondaryWindow.setBounds(monitorBounds);
   secondaryWindow.setFullScreen(true);
+
+  if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+    videoPlayerWindow.setBounds(monitorBounds);
+    videoPlayerWindow.setFullScreen(true);
+  }
 }
 
 function syncMonitorPreferencesFromDisk() {
@@ -153,6 +169,123 @@ function createWindow(url, options = {}) {
   win.loadURL(url);
   return win;
 }
+
+function getVideoPlayerUrl(videoUrl) {
+  const playerUrl = new URL('http://localhost:5500/Bordero/pages/video-player.html');
+  playerUrl.searchParams.set('src', videoUrl);
+  playerUrl.searchParams.set('ts', String(Date.now()));
+  return playerUrl.toString();
+}
+
+function createVideoPlayerWindow() {
+  const config = buildElectronAppConfig({ baseUrl: 'http://localhost:5500', pageUrl: '/Bordero/pages/video-player.html', displayUrl: '/Bordero/pages/display.html' });
+  const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
+    swapPrimarySecondary: currentSwapMonitors
+  });
+  const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
+
+  const win = new BrowserWindow({
+    ...config.windowOptions,
+    x: monitorBounds.x,
+    y: monitorBounds.y,
+    width: monitorBounds.width,
+    height: monitorBounds.height,
+    show: false,
+    fullscreen: true,
+    kiosk: true,
+    frame: false,
+    autoHideMenuBar: true,
+    skipTaskbar: true,
+    backgroundColor: '#000000',
+    alwaysOnTop: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  win.setMenuBarVisibility(false);
+  win.setVisibleOnAllWorkspaces(false);
+  win.setAlwaysOnTop(true, 'screen-saver');
+  win.once('closed', () => {
+    if (videoPlayerWindow === win) {
+      videoPlayerWindow = null;
+    }
+  });
+
+  win.webContents.on('did-finish-load', () => {
+    if (!win.isDestroyed()) {
+      win.show();
+      win.focus();
+      win.setAlwaysOnTop(true, 'screen-saver');
+    }
+  });
+
+  return win;
+}
+
+async function ensureVideoPlayerWindow(videoUrl) {
+  await ensureUnifiedServer();
+
+  if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
+    videoPlayerWindow = createVideoPlayerWindow();
+  }
+
+  const playerUrl = getVideoPlayerUrl(videoUrl);
+  await videoPlayerWindow.loadURL(playerUrl);
+  if (!videoPlayerWindow.isDestroyed()) {
+    videoPlayerWindow.setAlwaysOnTop(true, 'screen-saver');
+    videoPlayerWindow.show();
+    videoPlayerWindow.focus();
+  }
+  applyWindowLayout();
+  return videoPlayerWindow;
+}
+
+function closeVideoPlayerWindow() {
+  if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+    videoPlayerWindow.close();
+  }
+}
+
+ipcMain.handle('bordero-video-player:play', async (_event, payload) => {
+  const videoUrl = typeof payload === 'string' ? payload : payload?.url;
+  if (!videoUrl) {
+    return { success: false, error: 'Missing video url' };
+  }
+
+  await ensureVideoPlayerWindow(videoUrl);
+  return { success: true, url: videoUrl };
+});
+
+ipcMain.handle('bordero-video-player:pause', async () => {
+  if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
+    return { success: false, error: 'Video player window not available' };
+  }
+
+  videoPlayerWindow.webContents.send('bordero-video-player:pause');
+  return { success: true };
+});
+
+ipcMain.handle('bordero-video-player:stop', async () => {
+  if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
+    return { success: true, stopped: false };
+  }
+
+  videoPlayerWindow.webContents.send('bordero-video-player:stop');
+  return { success: true, stopped: true };
+});
+
+ipcMain.on('bordero-video-player:ended', (_event, payload) => {
+  BrowserWindow.getAllWindows().forEach((win) => {
+    if (!win.isDestroyed()) {
+      win.webContents.send('bordero-video-player:ended', payload);
+    }
+  });
+
+  closeVideoPlayerWindow();
+});
 
 async function ensureWindows() {
   await ensureUnifiedServer();

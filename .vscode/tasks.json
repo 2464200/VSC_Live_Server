@@ -117,6 +117,30 @@
       "group": "build"
     },
     {
+      "label": "Restart Electron",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "Get-Process electron -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 1; npm run electron"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
       "label": "Test System Integrity",
       "hide": true,
       "type": "shell",

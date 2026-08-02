@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO’ - Electron Video Player</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .player-shell {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .status {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.45);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      max-width: calc(100vw - 32px);
+      pointer-events: none;
+    }
+  </style>
+  <script defer src="video-player.js?v=20260802-1"></script>
+</head>
+<body>
+  <div class="player-shell">
+    <video id="electron-video" playsinline preload="auto"></video>
+    <div id="player-status" class="status">In attesa del video...</div>
+  </div>
+</body>
+</html>
