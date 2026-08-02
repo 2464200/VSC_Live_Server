@@ -23,10 +23,10 @@ function bindElectronCommands() {
   }
 
   window.electronAPI.videoPlayerWindow.onPause(() => {
-    if (videoElement && !videoElement.paused) {
+    if (videoElement) {
       videoElement.pause();
-      setStatus('Video in pausa.');
     }
+    setStatus('Video in pausa.');
   });
 
   window.electronAPI.videoPlayerWindow.onStop(() => {

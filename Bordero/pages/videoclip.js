@@ -122,7 +122,9 @@ class VideoClipManager {
     const renderButton = () => {
       const preference = this.playbackBackendPreference;
       const resolved = this.resolvePlaybackBackend();
-      const label = preference === 'auto' ? `AUTO → ${resolved.toUpperCase()}` : preference.toUpperCase();
+      const label = preference === 'auto'
+        ? `AUTO → ${resolved.toUpperCase()}`
+        : preference.toUpperCase();
       button.textContent = `PLAYER: ${label}`;
       button.classList.toggle('btn-primary', resolved === 'electron');
       button.classList.toggle('btn-secondary', resolved !== 'electron');
@@ -162,6 +164,11 @@ class VideoClipManager {
     if (this.vlcCompletionWatcherTimer) {
       clearInterval(this.vlcCompletionWatcherTimer);
       this.vlcCompletionWatcherTimer = null;
+    }
+
+    if (this.playbackBackendPreference === 'electron' && !this.isElectronVideoPlayerAvailable()) {
+      this.appendPersistentLog('warn', 'electron-backend-unavailable', { backend: 'electron' });
+      return;
     }
 
     if (this.resolvePlaybackBackend() === 'electron' && this.isElectronVideoPlayerAvailable()) {
@@ -891,9 +898,26 @@ class VideoClipManager {
       return;
     }
 
-    if (this.resolvePlaybackBackend() === 'electron' && this.isElectronVideoPlayerAvailable()) {
+    const preferElectron = this.playbackBackendPreference === 'electron';
+    const electronAvailable = this.isElectronVideoPlayerAvailable();
+
+    if (preferElectron) {
       await this.stopActiveSecondaryPlayback('electron');
-      return this.playSecondaryVideoElectron(url, playbackStatus);
+
+      if (!electronAvailable) {
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Player Electron non disponibile: VLC non avviato.';
+        }
+        this.appendPersistentLog('error', 'electron-backend-unavailable', { url });
+        return;
+      }
+
+      return this.playSecondaryVideoElectron(url, playbackStatus, { allowVlcFallback: false });
+    }
+
+    if (this.resolvePlaybackBackend() === 'electron' && electronAvailable) {
+      await this.stopActiveSecondaryPlayback('electron');
+      return this.playSecondaryVideoElectron(url, playbackStatus, { allowVlcFallback: true });
     }
 
     await this.stopActiveSecondaryPlayback('vlc');
@@ -924,7 +948,9 @@ class VideoClipManager {
     }
   }
 
-  async playSecondaryVideoElectron(url, playbackStatus) {
+  async playSecondaryVideoElectron(url, playbackStatus, options = {}) {
+    const allowVlcFallback = options.allowVlcFallback !== false;
+
     try {
       logger.debug('Launching Electron video player for secondary display');
       const payload = await window.electronAPI.videoPlayer.play({ url, branoId: this.currentBrano?.id ?? null });
@@ -944,8 +970,32 @@ class VideoClipManager {
       } else {
         logger.warn('Impossibile avviare Electron player sul monitor secondario', payload);
         this.appendPersistentLog('error', 'electron-start-error', { url, payload });
+        if (allowVlcFallback) {
+          if (playbackStatus) {
+            playbackStatus.textContent = 'Errore avvio Electron sul monitor secondario. Passo a VLC.';
+          }
+          if (this.electronCompletionUnsubscribe) {
+            try {
+              this.electronCompletionUnsubscribe();
+            } catch (error) {
+              logger.debug('Errore disattivazione listener Electron durante fallback', error);
+            }
+            this.electronCompletionUnsubscribe = null;
+          }
+          this.startVlcCompletionWatcher();
+          return this.playSecondaryVideoVlc(url, playbackStatus);
+        }
+
         if (playbackStatus) {
-          playbackStatus.textContent = 'Errore avvio Electron sul monitor secondario. Passo a VLC.';
+          playbackStatus.textContent = 'Errore avvio Electron sul monitor secondario.';
+        }
+      }
+    } catch (err) {
+      logger.warn('Errore avviando Electron per monitor secondario', err);
+      this.appendPersistentLog('error', 'electron-request-error', { url, message: err?.message || String(err) });
+      if (allowVlcFallback) {
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Errore durante l\'avvio Electron sul monitor secondario. Passo a VLC.';
         }
         if (this.electronCompletionUnsubscribe) {
           try {
@@ -958,22 +1008,10 @@ class VideoClipManager {
         this.startVlcCompletionWatcher();
         return this.playSecondaryVideoVlc(url, playbackStatus);
       }
-    } catch (err) {
-      logger.warn('Errore avviando Electron per monitor secondario', err);
-      this.appendPersistentLog('error', 'electron-request-error', { url, message: err?.message || String(err) });
+
       if (playbackStatus) {
-        playbackStatus.textContent = 'Errore durante l\'avvio Electron sul monitor secondario. Passo a VLC.';
+        playbackStatus.textContent = 'Errore durante l\'avvio Electron sul monitor secondario.';
       }
-      if (this.electronCompletionUnsubscribe) {
-        try {
-          this.electronCompletionUnsubscribe();
-        } catch (error) {
-          logger.debug('Errore disattivazione listener Electron durante fallback', error);
-        }
-        this.electronCompletionUnsubscribe = null;
-      }
-      this.startVlcCompletionWatcher();
-      return this.playSecondaryVideoVlc(url, playbackStatus);
     }
   }
 
