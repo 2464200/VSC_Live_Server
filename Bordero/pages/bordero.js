@@ -30,6 +30,7 @@ class BorderoTableManager {
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
     this.displayScrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
+    this.deselectionConfirmState = null;
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
@@ -633,6 +634,7 @@ class BorderoTableManager {
    */
   setupEventListeners() {
     this.setupFilterValuePicker();
+    this.setupDeselectionConfirmModal();
 
     // Sort buttons (esclusivi)
     this.bindSortButton('btn-sort-id', 'id', 'ID');
@@ -1501,7 +1503,7 @@ class BorderoTableManager {
 
     // Event listeners per click righe
     tbody.querySelectorAll('.brani-row').forEach(row => {
-      row.addEventListener('click', (e) => {
+      row.addEventListener('click', async (e) => {
         const branoId = row.dataset.branoId;
         const brano = this.allBrani.find(b => String(b.id) === String(branoId));
         const clickedFlagCell = Boolean(e.target.closest('.col-flag'));
@@ -1515,16 +1517,42 @@ class BorderoTableManager {
 
         if (clickedNextCell) {
           e.stopPropagation();
+            if (brano && brano.next_selected) {
+              const confirmed = await this.showDeselectionConfirm({
+                title: 'Conferma deselezione NEXT',
+                message: `Stai per rimuovere la scelta NEXT da ${this.escapeHtml(brano.titolo || brano.coreografia || brano.brano || brano.id || 'questo brano')}.`,
+                confirmLabel: 'Deseleziona NEXT'
+              });
+
+              if (!confirmed) {
+                return;
+              }
+            }
           this.toggleNextCoreoSelection(branoId);
           return;
         }
 
         if (clickedFlagCell) {
+          if (!brano || !brano.next_selected) {
+            Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
+            return;
+          }
+
           if (activeNextSelectionId && String(branoId) !== String(activeNextSelectionId)) {
             return;
           }
 
           if (brano && String(brano.flag || '').toUpperCase() === 'X') {
+            const confirmed = await this.showDeselectionConfirm({
+              title: 'Conferma deselezione FLAG',
+              message: `Stai per riportare disponibile ${this.escapeHtml(brano.titolo || brano.coreografia || brano.brano || brano.id || 'questo brano')}.`,
+              confirmLabel: 'Riporta disponibile'
+            });
+
+            if (!confirmed) {
+              return;
+            }
+
             this.markAsAvailable(branoId);
             return;
           }
@@ -1909,6 +1937,22 @@ class BorderoTableManager {
   markAsCompleted(branoId) {
     const brano = this.allBrani.find(b => String(b.id) === String(branoId));
     if (!brano) return;
+
+    if (!brano.next_selected) {
+      Toast.warning('FLAG non consentito: seleziona prima questo brano in NEXT.');
+      return;
+    }
+
+    const wasNextSelected = Boolean(brano.next_selected);
+
+    if (wasNextSelected) {
+      this.allBrani.forEach((item) => {
+        item.next_selected = false;
+      });
+      Storage.remove('bordero_next_coreo_selection');
+      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+    }
 
     // Marca flag X
     brano.flag = 'X';
@@ -2427,6 +2471,71 @@ class BorderoTableManager {
   /**
    * UserForm
    */
+  setupDeselectionConfirmModal() {
+    const modal = document.getElementById('deselection-confirm-modal');
+    const closeBtn = document.getElementById('deselection-confirm-close');
+    const cancelBtn = document.getElementById('deselection-confirm-cancel');
+    const confirmBtn = document.getElementById('deselection-confirm-accept');
+
+    closeBtn?.addEventListener('click', () => this.resolveDeselectionConfirm(false));
+    cancelBtn?.addEventListener('click', () => this.resolveDeselectionConfirm(false));
+    confirmBtn?.addEventListener('click', () => this.resolveDeselectionConfirm(true));
+
+    modal?.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        this.resolveDeselectionConfirm(false);
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.deselectionConfirmState) {
+        this.resolveDeselectionConfirm(false);
+      }
+    });
+  }
+
+  showDeselectionConfirm({ title, message, confirmLabel }) {
+    const modal = document.getElementById('deselection-confirm-modal');
+    const titleEl = document.getElementById('deselection-confirm-title');
+    const messageEl = document.getElementById('deselection-confirm-message');
+    const confirmBtn = document.getElementById('deselection-confirm-accept');
+
+    if (!modal || !titleEl || !messageEl || !confirmBtn) {
+      return Promise.resolve(window.confirm(message || title || 'Confermi la deselezione?'));
+    }
+
+    if (this.deselectionConfirmState) {
+      this.resolveDeselectionConfirm(false);
+    }
+
+    titleEl.textContent = title || 'Conferma deselezione';
+    messageEl.innerHTML = message || 'Confermi di annullare la selezione?';
+    confirmBtn.textContent = confirmLabel || 'Conferma';
+
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+
+    return new Promise((resolve) => {
+      this.deselectionConfirmState = { resolve };
+      setTimeout(() => confirmBtn.focus(), 0);
+    });
+  }
+
+  resolveDeselectionConfirm(confirmed) {
+    const modal = document.getElementById('deselection-confirm-modal');
+    if (modal) {
+      modal.hidden = true;
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    const state = this.deselectionConfirmState;
+    this.deselectionConfirmState = null;
+
+    if (state && typeof state.resolve === 'function') {
+      state.resolve(Boolean(confirmed));
+    }
+  }
+
   showUserForm() {
     alert('UserForm da implementare'); // TODO
   }

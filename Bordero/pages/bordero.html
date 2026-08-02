@@ -307,6 +307,23 @@
     </div>
   </div>
 
+  <!-- Popup conferma deselezione brano -->
+  <div id="deselection-confirm-modal" class="deselection-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="deselection-confirm-title" aria-hidden="true" hidden>
+    <div class="deselection-confirm-content">
+      <div class="deselection-confirm-header">
+        <h3 id="deselection-confirm-title">Conferma deselezione</h3>
+        <button type="button" id="deselection-confirm-close" class="deselection-confirm-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="deselection-confirm-body">
+        <p id="deselection-confirm-message" class="deselection-confirm-message">Confermi di annullare la selezione?</p>
+        <div class="deselection-confirm-actions">
+          <button type="button" id="deselection-confirm-cancel" class="deselection-confirm-btn is-cancel">Annulla</button>
+          <button type="button" id="deselection-confirm-accept" class="deselection-confirm-btn is-accept">Conferma</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- UserForm Modal (da creare separatamente) -->
   <div id="userform-modal" class="modal" style="display: none;">
     <!-- Modal content da implementare -->

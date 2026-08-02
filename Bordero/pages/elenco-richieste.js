@@ -442,23 +442,15 @@ class ElencoRichiestePage {
             <td class="col-coreografo">${brano.coreografo || '--'}</td>
             <td class="col-timestamp">${brano.timestamp || '--'}</td>
             <td>
-              <label class="action-inline ${statoClass}">
-                <input type="checkbox" class="checkbox-executed" data-brano-id="${brano.id}" ${isExecuted ? 'checked' : ''} />
+              <span class="action-inline ${statoClass}" aria-live="polite">
                 ${isExecuted ? '✅' : '⬜'} ${statoLabel}
-              </label>
+              </span>
             </td>
             <td class="col-videoclip">${videoClipMarker}</td>
           </tr>
         `;
       })
       .join('');
-
-    tbody.querySelectorAll('.checkbox-executed').forEach((checkbox) => {
-      checkbox.addEventListener('change', () => {
-        const branoId = checkbox.dataset.branoId;
-        this.toggleExecuted(branoId, checkbox.checked);
-      });
-    });
 
     tbody.querySelectorAll('.videoclip-open').forEach((button) => {
       button.addEventListener('click', (event) => {
@@ -472,31 +464,6 @@ class ElencoRichiestePage {
         window.location.href = `videoclip.html?branoId=${encodeURIComponent(String(branoId))}`;
       });
     });
-  }
-
-  toggleExecuted(branoId, shouldBeExecuted) {
-    const brano = this.brani.find((b) => String(b.id) === String(branoId));
-    if (!brano) return;
-
-    if (shouldBeExecuted) {
-      brano.flag = 'X';
-      brano.timestamp = DateUtils.formatDate(new Date());
-    } else {
-      brano.flag = '';
-      brano.timestamp = '';
-    }
-
-    dataLoader.saveCurrentSerata(this.serata, this.brani);
-
-    try {
-      window.dispatchEvent(new Event('bordero:serata-updated'));
-    } catch (e) {
-      logger.debug('Impossibile dispatchare evento custom', e);
-    }
-
-    Toast.success(shouldBeExecuted ? 'Brano segnato come eseguito' : 'Brano riportato disponibile');
-
-    this.refreshFromCurrentData().then(() => this.render());
   }
 
   setupStorageSync() {
