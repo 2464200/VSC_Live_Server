@@ -1207,12 +1207,14 @@ class BorderoTableManager {
   sortCollection(collection, field, ascending) {
     if (!Array.isArray(collection)) return [];
 
+    const prioritized = this.applyNextSelectionPriority(collection);
+
     if (!this.keepExecutedAtBottom) {
-      return ObjectUtils.sortByField(collection, field, ascending);
+      return ObjectUtils.sortByField(prioritized, field, ascending);
     }
 
-    const pending = collection.filter(item => !this.isExecutedBrano(item));
-    const executed = collection.filter(item => this.isExecutedBrano(item));
+    const pending = prioritized.filter(item => !this.isExecutedBrano(item));
+    const executed = prioritized.filter(item => this.isExecutedBrano(item));
 
     const pendingSorted = ObjectUtils.sortByField(pending, field, ascending);
     const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
@@ -1371,6 +1373,8 @@ class BorderoTableManager {
 
       this.filteredBrani = ObjectUtils.searchMultiField(this.filteredBrani, this.currentSearch, searchFields);
     }
+
+    this.filteredBrani = this.applyNextSelectionPriority(this.filteredBrani);
 
     // Re-applica sort
     if (this.currentSort) {
@@ -1548,29 +1552,31 @@ class BorderoTableManager {
     return activeBrano ? String(activeBrano.id) : null;
   }
 
-  reorderSelectedNextToTop() {
+  applyNextSelectionPriority(collection) {
+    if (!Array.isArray(collection)) return [];
+
     const activeId = this.getActiveNextSelectionId();
-    if (!activeId) return;
+    if (!activeId) return collection;
 
-    const activeBrano = this.allBrani.find((item) => String(item.id) === String(activeId));
-    if (!activeBrano) return;
+    const activeBrano = collection.find((item) => String(item.id) === String(activeId));
+    if (!activeBrano) return collection;
 
-    this.allBrani = this.allBrani.filter((item) => String(item.id) !== String(activeId));
-    this.allBrani = [activeBrano, ...this.allBrani];
+    const remaining = collection.filter((item) => String(item.id) !== String(activeId));
+    return [activeBrano, ...remaining];
+  }
+
+  reorderSelectedNextToTop() {
+    this.allBrani = this.applyNextSelectionPriority(this.allBrani);
 
     if (Array.isArray(this.filteredBrani)) {
-      const filteredActive = this.filteredBrani.find((item) => String(item.id) === String(activeId));
-      if (filteredActive) {
-        this.filteredBrani = this.filteredBrani.filter((item) => String(item.id) !== String(activeId));
-        this.filteredBrani = [filteredActive, ...this.filteredBrani];
-      }
+      this.filteredBrani = this.applyNextSelectionPriority(this.filteredBrani);
     }
   }
 
   reapplyCurrentOrdering() {
     if (!this.currentSort) {
-      this.allBrani = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
-      this.filteredBrani = [...this.filteredBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+      this.allBrani = this.applyNextSelectionPriority([...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0)));
+      this.filteredBrani = this.applyNextSelectionPriority([...this.filteredBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0)));
       return;
     }
 
