@@ -1517,6 +1517,11 @@ class BorderoTableManager {
 
         if (clickedNextCell) {
           e.stopPropagation();
+            if (brano && String(brano.flag || '').toUpperCase() === 'X') {
+              Toast.warning('Questo brano non puo essere selezionato in NEXT perche e gia stato eseguito.');
+              return;
+            }
+
             if (brano && brano.next_selected) {
               const confirmed = await this.showDeselectionConfirm({
                 title: 'Conferma deselezione NEXT',
@@ -1627,6 +1632,11 @@ class BorderoTableManager {
   toggleNextCoreoSelection(branoId) {
     const brano = this.allBrani.find((item) => String(item.id) === String(branoId));
     if (!brano) return;
+
+    if (String(brano.flag || '').toUpperCase() === 'X') {
+      Toast.warning('NEXT non consentito: il brano e gia stato eseguito.');
+      return;
+    }
 
     const isAlreadySelected = Boolean(brano.next_selected);
     const value = brano.next_coreo || brano.nextCoreo || brano['next coreo'] || brano.titolo || brano.coreografia || brano.brano || '';
