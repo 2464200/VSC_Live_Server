@@ -11,6 +11,18 @@ const pathLog   = path.join(__dirname, 'data', 'log.json');
 const pathDj    = path.join(__dirname, 'data', 'dj.json');
 const pathDjLimits = path.join(__dirname, 'data', 'dj-limits.json');
 const pathCsv   = path.join(__dirname, 'data', 'log.csv');
+const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
+
+function ensureSiaeExportDir() {
+  if (!fs.existsSync(SIAE_EXPORT_DIR)) {
+    fs.mkdirSync(SIAE_EXPORT_DIR, { recursive: true });
+  }
+  return SIAE_EXPORT_DIR;
+}
+
+function getSiaeExportPath(fileName = '') {
+  return path.join(ensureSiaeExportDir(), path.basename(fileName || ''));
+}
 
 // Assicurati che i file esistano
 function ensureFiles() {
@@ -222,11 +234,36 @@ router.get('/export-csv', (req, res) => {
       return `${r.timestamp};${r.id};${statoCsv};${r.dj ?? ''}`;
     }).join('\n');
 
+    const isSiaeExport = String(req.query.siae || '').toLowerCase() === '1';
+
+    if (isSiaeExport) {
+      const now = new Date();
+      const gg = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const aaaa = now.getFullYear();
+      const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+      const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE_VSC.csv`;
+      const siaePath = getSiaeExportPath(siaeFileName);
+      fs.writeFileSync(siaePath, header + rows);
+      res.json({ ok: true, csv: `/eventi/api/download-siae/${encodeURIComponent(siaeFileName)}`, fileName: siaeFileName });
+      return;
+    }
+
     fs.writeFileSync(pathCsv, header + rows);
     res.json({ ok: true, csv: '/eventi/api/log.csv' });
   } catch (e) {
     res.status(500).json({ error: 'Errore export CSV' });
   }
+});
+
+router.get('/download-siae/:fileName', (req, res) => {
+  const fileName = path.basename(req.params.fileName || '');
+  if (!fileName) return res.status(400).send('Nome file non valido');
+
+  const filePath = getSiaeExportPath(fileName);
+  if (!fs.existsSync(filePath)) return res.status(404).send('File SIAE non trovato');
+
+  res.download(filePath);
 });
 
 // Download CSV
