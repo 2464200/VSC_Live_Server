@@ -89,8 +89,9 @@ class NextCoreoDisplay {
       return;
     }
 
-    // Aggiorna header
+    // Aggiorna header e statistiche subito, prima del controllo async del videoclip
     this.updateHeader(braniWithFlags);
+    this.updateStats(braniWithFlags);
 
     const selection = Storage.get('bordero_next_coreo_selection', null);
     let nextBrano = null;
@@ -113,9 +114,6 @@ class NextCoreoDisplay {
 
     // Aggiorna display
     this.displayBrano(nextBrano, braniWithFlags, hasVideo);
-
-    // Aggiorna statistiche
-    this.updateStats(braniWithFlags);
   }
 
   getSerataMetadata(currentSerata = null) {
@@ -155,6 +153,7 @@ class NextCoreoDisplay {
     document.getElementById('header-dj').textContent = this.serata.dj || '--';
     document.getElementById('header-data').textContent = this.serata.data || '--';
     document.getElementById('header-luogo').textContent = this.serata.luogo || '--';
+    document.getElementById('header-evento').textContent = this.serata.evento || '--';
 
     const completed = brani.filter((b) => this.isBranoExecuted(b)).length;
     document.getElementById('header-completed').textContent = `${completed}/${brani.length}`;

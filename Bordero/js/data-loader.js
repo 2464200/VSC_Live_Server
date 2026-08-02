@@ -79,7 +79,12 @@ class DataLoader {
 
   normalizeBraniList(brani) {
     if (!Array.isArray(brani)) return [];
-    return brani.map(item => this.normalizeBranoRecord(item));
+
+    const normalized = brani
+      .map((item) => this.normalizeBranoRecord(item))
+      .filter((item) => Boolean(item?.titolo));
+
+    return normalized;
   }
 
   normalizeDjRecord(djRecord) {
