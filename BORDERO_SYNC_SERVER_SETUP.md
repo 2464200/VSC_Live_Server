@@ -139,7 +139,7 @@ Dovresti vedere:
 ```
 brani.csv       (120 righe + header)
 comuni_italia.csv (8 righe + header)
-dBase.csv       (5 righe + header)
+deejay.csv       (5 righe + header)
 ```
 
 ---
@@ -207,7 +207,7 @@ Sincronizza il foglio "Elenco Brani (statico)" â†’ `brani.csv`
 Sincronizza il foglio "Comuni Italia" â†’ `comuni_italia.csv`
 
 ### POST /api/sync/dbase
-Sincronizza il foglio "dBase" â†’ `dBase.csv`
+Sincronizza il foglio "dBase" â†’ `deejay.csv`
 
 ### POST /api/sync/location
 Sincronizza i dati Location â†’ `location.csv`
@@ -295,7 +295,7 @@ Bordero/
 â”œâ”€â”€ data/
 â”‚   â”œâ”€â”€ brani.csv                 â† Generato
 â”‚   â”œâ”€â”€ comuni_italia.csv         â† Generato
-â”‚   â””â”€â”€ dBase.csv                 â† Generato
+â”‚   â””â”€â”€ deejay.csv                 â† Generato
 â””â”€â”€ pages/
     â””â”€â”€ admin.html                â† Admin Panel
 ```

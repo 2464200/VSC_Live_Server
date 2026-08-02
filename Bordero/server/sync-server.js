@@ -6,7 +6,7 @@
  * Endpoint:
  * POST /api/sync/brani - Sincronizza brani.csv
  * POST /api/sync/comuni - Sincronizza comuni_italia.csv
- * POST /api/sync/dbase - Sincronizza dBase.csv
+ * POST /api/sync/dbase - Sincronizza deejay.csv
  * POST /api/sync/location - Sincronizza location.csv
  * GET /api/status - Status del server
  */
@@ -26,7 +26,7 @@ const BORDERO_DIR = path.join(__dirname, '..');
 const DATA_DIR = path.join(BORDERO_DIR, 'data');
 const CSV_BRANI = path.join(DATA_DIR, 'brani.csv');
 const CSV_COMUNI = path.join(DATA_DIR, 'comuni_italia.csv');
-const CSV_DBASE = path.join(DATA_DIR, 'dBase.csv');
+const CSV_DBASE = path.join(DATA_DIR, 'deejay.csv');
 const CSV_LOCATION = path.join(DATA_DIR, 'location.csv');
 const CSV_LOCATION_OPTIONS = path.join(DATA_DIR, 'location_popup_options.csv');
 const REPO_ROOT = path.join(__dirname, '..', '..');
@@ -358,7 +358,7 @@ app.post('/api/sync/comuni', async (req, res) => {
 
 /**
  * POST /api/sync/dbase
- * Sincronizza dBase.csv
+ * Sincronizza deejay.csv
  */
 app.post('/api/sync/dbase', async (req, res) => {
   try {
@@ -562,7 +562,7 @@ app.get('/api/status', async (req, res) => {
       endpoints: {
         'POST /api/sync/brani': 'Sincronizza brani.csv (preserva richieste + refresh Google)',
         'POST /api/sync/comuni': 'Sincronizza comuni_italia.csv',
-        'POST /api/sync/dbase': 'Sincronizza dBase.csv',
+        'POST /api/sync/dbase': 'Sincronizza deejay.csv',
         'POST /api/sync/location': 'Sincronizza location.csv',
         'POST /api/sync/location-options': 'Sincronizza location_popup_options.csv',
         'POST /api/sync/google-sheets': 'Sincronizza Google Sheets e salva CSV',

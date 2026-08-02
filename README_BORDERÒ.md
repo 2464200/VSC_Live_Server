@@ -136,7 +136,7 @@ Bordero/
 â”‚       â””â”€â”€ responsive.css
 â”œâ”€â”€ data/
 â”‚   â”œâ”€â”€ brani.csv                      # Songs (from Excel)
-â”‚   â”œâ”€â”€ dBase.csv                      # DJ list (from Excel)
+â”‚   â”œâ”€â”€ deejay.csv                      # DJ list (from Excel)
 â”‚   â””â”€â”€ comuni_italia.csv              # Locations (from Excel)
 â””â”€â”€ Excel/
     â””â”€â”€ BorderÃ² - ver 13.1.69_con AutoHotkey da sistemare.xlsm
@@ -154,7 +154,7 @@ All'avvio di `bordero.html`, il sistema:
 2. **Legge i tre fogli:**
    - ðŸ“„ **"Elenco Brani (statico)"** â†’ `brani.csv`
    - ðŸ“„ **"Comuni Italia"** â†’ `comuni_italia.csv`
-   - ðŸ“„ **"dBase"** â†’ `dBase.csv`
+   - ðŸ“„ **"dBase"** â†’ `deejay.csv`
 3. **Sincronizza in cache** (localStorage)
 4. **Mostra i dati** nel browser
 
@@ -289,7 +289,7 @@ Guida completa: `GUIDA_GIT_MAIN_DEVELOP.md`.
 BORDERO_CONFIG = {
   CSV_BRANI: './data/brani.csv',
   CSV_COMUNI: './data/comuni_italia.csv',
-  CSV_DBASE: './data/dBase.csv',
+  CSV_DBASE: './data/deejay.csv',
   CACHE_KEY_BRANI: 'BORDERO_BRANI_DATA',
   CACHE_KEY_CURRENT_SERATA: 'BORDERO_CURRENT_SERATA',
   ITEMS_PER_PAGE: 50,
@@ -317,7 +317,7 @@ Modifica questo file per:
 ### **Dropdown Vuoti**
 **Causa:** DJ o Comuni non caricati  
 **Soluzione:**
-- Verifica `dBase.csv` e `comuni_italia.csv` hanno dati
+- Verifica `deejay.csv` e `comuni_italia.csv` hanno dati
 - Prova sync da admin panel
 - Controlla XLSX.js caricata correttamente
 

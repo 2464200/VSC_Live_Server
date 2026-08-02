@@ -17,6 +17,7 @@ class AdminPanel {
     this.setupDataViewer();
     this.setupCacheManagement();
     this.setupExportImport();
+    this.setupDjManagement();
     this.setupConsole();
     this.setupElectronLauncher();
     this.log('✓ Admin Panel initialized', 'success');
@@ -199,6 +200,210 @@ class AdminPanel {
       if (!event.key || !event.key.startsWith('BORDERO_')) return;
       this.updateDisplayScrollEstimate(Number(speedInput.value), Number(pauseInput.value), Number(stepPxInput.value));
     });
+  }
+
+  /* ========== DJ MANAGEMENT ========== */
+  setupDjManagement() {
+    const addBtn = document.getElementById('btn-add-dj');
+    const refreshBtn = document.getElementById('btn-refresh-dj-list');
+    const syncBtn = document.getElementById('btn-sync-dj-source');
+    const input = document.getElementById('dj-name-input');
+    const list = document.getElementById('dj-list');
+
+    if (!addBtn || !refreshBtn || !syncBtn || !input || !list) return;
+
+    const persistDjSource = async (djList) => {
+      try {
+        const response = await fetch('http://localhost:5500/api/bordero/dj-source', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dj: djList })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        this.log(`✓ Sorgente DJ salvata su file (${result.count} DJ)`, 'success');
+        return result;
+      } catch (error) {
+        logger.error('Errore salvataggio sorgente DJ', error);
+        Toast.error('Impossibile salvare la sorgente DJ');
+        return null;
+      }
+    };
+
+    const loadDjListFromSource = async () => {
+      try {
+        const response = await fetch('http://localhost:5500/api/dj', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const serverDj = await response.json();
+        if (Array.isArray(serverDj)) {
+          Storage.set('BORDERO_DBASE_DATA', serverDj);
+          return serverDj;
+        }
+      } catch (error) {
+        logger.warn('Impossibile caricare i DJ dal server, uso il dato locale', error?.message || error);
+      }
+
+      const localDj = await dataLoader.loadDJ();
+      return Array.isArray(localDj) ? localDj : [];
+    };
+
+    const renderDjList = async () => {
+      try {
+        const dj = await loadDjListFromSource();
+        if (!Array.isArray(dj) || dj.length === 0) {
+          list.innerHTML = '<div class="sync-log warn">Nessun DJ disponibile</div>';
+          return;
+        }
+
+        const rows = dj.map((item) => {
+          const name = item?.nome || item?.name || '';
+          return `
+            <div class="dj-row" style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #ddd;">
+              <span class="dj-name-display">${this.escapeHtml(name)}</span>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-secondary edit-dj-btn" type="button" data-dj-name="${this.escapeHtml(name)}">Modifica</button>
+                <button class="btn btn-secondary remove-dj-btn" type="button" data-dj-name="${this.escapeHtml(name)}">Rimuovi</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        list.innerHTML = rows;
+
+        list.querySelectorAll('button.remove-dj-btn').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const name = button.getAttribute('data-dj-name');
+            if (!name) return;
+            const nextList = dj.filter((item) => (item?.nome || item?.name || '') !== name);
+            Storage.set('BORDERO_DBASE_DATA', nextList);
+            await persistDjSource(nextList);
+            this.log(`✓ DJ rimosso: ${name}`, 'success');
+            Toast.success(`DJ rimosso: ${name}`);
+            await this.renderDjListFromStorage();
+          });
+        });
+
+        list.querySelectorAll('button.edit-dj-btn').forEach((button) => {
+          button.addEventListener('click', async () => {
+            const name = button.getAttribute('data-dj-name');
+            if (!name) return;
+            const row = button.closest('.dj-row');
+            if (!row) return;
+
+            row.innerHTML = `
+              <input class="input dj-edit-input" type="text" value="${this.escapeHtml(name)}" style="flex:1; min-width: 180px;" />
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-primary save-dj-btn" type="button" style="font-weight:700;">💾 Salva</button>
+                <button class="btn btn-secondary cancel-dj-btn" type="button">↺ Annulla</button>
+              </div>
+            `;
+
+            const input = row.querySelector('.dj-edit-input');
+            let autoSaveTimer = null;
+
+            const saveEdit = async () => {
+              const newName = input?.value?.trim();
+              if (!newName) {
+                Toast.warning('Inserisci un nome DJ');
+                return;
+              }
+
+              const nextList = dj.map((item) => {
+                const currentName = item?.nome || item?.name || '';
+                if (currentName !== name) return item;
+                return { ...item, nome: newName, name: newName };
+              });
+
+              Storage.set('BORDERO_DBASE_DATA', nextList);
+              await persistDjSource(nextList);
+              this.log(`✓ DJ aggiornato: ${name} → ${newName}`, 'success');
+              Toast.success(`DJ aggiornato: ${newName}`);
+              await this.renderDjListFromStorage();
+            };
+
+            input.addEventListener('input', () => {
+              clearTimeout(autoSaveTimer);
+              autoSaveTimer = setTimeout(() => {
+                saveEdit();
+              }, 700);
+            });
+
+            input.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                clearTimeout(autoSaveTimer);
+                saveEdit();
+              }
+            });
+
+            row.querySelector('.save-dj-btn').addEventListener('click', () => {
+              clearTimeout(autoSaveTimer);
+              saveEdit();
+            });
+
+            row.querySelector('.cancel-dj-btn').addEventListener('click', async () => {
+              clearTimeout(autoSaveTimer);
+              await this.renderDjListFromStorage();
+            });
+          });
+        });
+      } catch (error) {
+        logger.error('Errore render DJ list', error);
+        list.innerHTML = '<div class="sync-log error">Errore nel caricamento dei DJ</div>';
+      }
+    };
+
+    this.renderDjListFromStorage = renderDjList;
+
+    addBtn.addEventListener('click', async () => {
+      const name = input.value.trim();
+      if (!name) {
+        Toast.warning('Inserisci un nome DJ');
+        return;
+      }
+
+      const current = await dataLoader.loadDJ();
+      const exists = (current || []).some((item) => String(item?.nome || item?.name || '').toLowerCase() === name.toLowerCase());
+      if (exists) {
+        Toast.warning('DJ già presente');
+        return;
+      }
+
+      const nextList = [...(current || []), { nome: name, name }];
+      Storage.set('BORDERO_DBASE_DATA', nextList);
+      await persistDjSource(nextList);
+      input.value = '';
+      this.log(`✓ DJ aggiunto: ${name}`, 'success');
+      Toast.success(`DJ aggiunto: ${name}`);
+      await renderDjList();
+    });
+
+    refreshBtn.addEventListener('click', () => renderDjList());
+    window.addEventListener('focus', () => {
+      renderDjList();
+    });
+    window.addEventListener('storage', (event) => {
+      if (!event.key || !event.key.startsWith('BORDERO_')) return;
+      renderDjList();
+    });
+    syncBtn.addEventListener('click', async () => {
+      const current = Storage.get('BORDERO_DBASE_DATA', []);
+      const normalized = Array.isArray(current) ? current.filter((item) => item && (item.nome || item.name)) : [];
+      Storage.set('BORDERO_DBASE_DATA', normalized);
+      await persistDjSource(normalized);
+      this.log('✓ Sorgente DJ sincronizzata', 'success');
+      Toast.success('Sorgente DJ sincronizzata');
+      await renderDjList();
+    });
+
+    renderDjList();
   }
 
   /* ========== EXCEL FILE SELECTION ========== */

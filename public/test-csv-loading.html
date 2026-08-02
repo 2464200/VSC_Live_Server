@@ -173,13 +173,13 @@
   }
 
   /**
-   * Test caricamento dBase.csv
+   * Test caricamento deejay.csv
    */
   async function testDBaseLoading() {
     try {
-      addResult('🔄 Test 3: Caricamento dBase.csv', 'In corso...', 'info');
+      addResult('🔄 Test 3: Caricamento deejay.csv', 'In corso...', 'info');
       
-      const response = await fetch('/Bordero/data/dBase.csv');
+      const response = await fetch('/Bordero/data/deejay.csv');
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -188,18 +188,18 @@
       const dbase = parseCSV(csvContent);
 
       if (dbase.length === 0) {
-        addResult('❌ Test 3: Caricamento dBase.csv', 'File caricato ma nessun dato trovato', 'error');
+        addResult('❌ Test 3: Caricamento deejay.csv', 'File caricato ma nessun dato trovato', 'error');
         return;
       }
 
-      addResult('✅ Test 3: Caricamento dBase.csv', 
+      addResult('✅ Test 3: Caricamento deejay.csv', 
         `<strong>${dbase.length} DJ caricati</strong>`, 
         'success');
 
       return dbase;
 
     } catch (error) {
-      addResult('❌ Test 3: Caricamento dBase.csv', `Errore: ${error.message}`, 'error');
+      addResult('❌ Test 3: Caricamento deejay.csv', `Errore: ${error.message}`, 'error');
     }
   }
 

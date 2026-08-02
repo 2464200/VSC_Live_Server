@@ -88,7 +88,7 @@ Il sistema legge automaticamente **3 fogli** dal file Excel:
 |----|-------------|------------------|-----|
 | 1 | **Elenco Brani (statico)** | `Bordero/data/brani.csv` | Lista di tutti i brani |
 | 2 | **Comuni Italia** | `Bordero/data/comuni_italia.csv` | Lista locations/comuni |
-| 3 | **dBase** | `Bordero/data/dBase.csv` | Lista DJ/performers |
+| 3 | **dBase** | `Bordero/data/deejay.csv` | Lista DJ/performers |
 
 ---
 

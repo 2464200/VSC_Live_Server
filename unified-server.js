@@ -2221,6 +2221,29 @@ router.delete('/dj/:id', (req, res) => {
     }
 });
 
+// Salva la lista DJ nel file CSV di sorgente Borderò
+router.post('/bordero/dj-source', (req, res) => {
+    try {
+        const payload = Array.isArray(req.body?.dj) ? req.body.dj : [];
+        const names = payload
+            .map((entry) => String(entry?.nome || entry?.name || '').trim())
+            .filter(Boolean)
+            .filter((name, index, array) => array.indexOf(name) === index);
+
+        if (!fs.existsSync(borderoDBaseDir)) {
+            fs.mkdirSync(borderoDBaseDir, { recursive: true });
+        }
+
+        const csvLines = ['nome,tipologia', ...names.map((name) => `${name},DeeJay`)];
+        const csvContent = csvLines.join('\n');
+        fs.writeFileSync(borderoDBasePath, csvContent, 'utf8');
+
+        res.json({ ok: true, count: names.length, file: borderoDBasePath });
+    } catch (e) {
+        res.status(500).json({ error: 'Errore salvataggio sorgente DJ: ' + e.message });
+    }
+});
+
 // ============================
 //    GET: LIMITI PRENOTAZIONI DJ
 // ============================

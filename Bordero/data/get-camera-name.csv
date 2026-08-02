@@ -1,0 +1,15 @@
+value,Codifica,dshow-size,dshow-fps,ELENCO WEBCAM
+USB Camera,yuyv422,1920x1080,30,Luca - USB Camera
+HP Display Camera,yuyv422,640x360,30,Luca - Monitor HP
+Fotocamera frontale,yuyv422,640x360,30,Luca - Elitebook ERRORE
+HP HD Camera,yuyv422,640x360,30,Luca - Elitebook
+GRANDSTREAM GUV3100,yuyv422,320x180,30,Luca - GrandStream ERRORE
+OBS Virtual Camera,yuyv420,1280x720,30,Luca - software
+HP IR Camera,,,,Luca - ??? ERRORE
+Trust Webcam,yuyv422,640x480,30,"Daniele -
+(Videocamera vecchia) USB TRUST"
+Wireless webcam,yuyv422,1920x1080,30,"Daniele - (Nuova
+wireless) TOALLIN WL168"
+CyberLink Webcam Splitter,,,,
+HP TrueVision HD Camera,yuyv422,640x360,30,"Daniele - frontale PC
+Windows"

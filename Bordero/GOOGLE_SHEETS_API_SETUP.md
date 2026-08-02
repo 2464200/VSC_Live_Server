@@ -69,7 +69,7 @@ Questo scarica tutti i dati in CSV:
 
 - `Bordero/data/brani.csv`
 - `Bordero/data/comuni_italia.csv`
-- `Bordero/data/dbase.csv`
+- `Bordero/data/deejay.csv`
 
 In alternativa puoi avviare il sync direttamente da Admin Panel:
 

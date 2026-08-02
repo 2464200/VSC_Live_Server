@@ -167,6 +167,32 @@
       </div>
     </section>
 
+    <!-- DJ MANAGEMENT -->
+    <section class="admin-section">
+      <h2>🎧 Gestione DJ</h2>
+      <p class="display-scroll-help">
+        Aggiungi, modifica e gestisci i DJ usati dal selettore della serata. I dati vengono salvati nella sorgente principale usata da Borderò.
+      </p>
+
+      <div class="sync-panel" style="margin-bottom: 16px;">
+        <div class="sync-item" style="flex: 1 1 100%;">
+          <h3>Aggiungi DJ</h3>
+          <input id="dj-name-input" class="input" type="text" placeholder="Nome DJ" style="width: 100%; margin-bottom: 10px;" />
+          <button id="btn-add-dj" class="btn btn-primary" type="button">➕ Aggiungi DJ</button>
+        </div>
+      </div>
+
+      <div class="sync-panel" style="margin-bottom: 16px;">
+        <div class="sync-item" style="flex: 1 1 100%;">
+          <h3>Elenco DJ</h3>
+          <div id="dj-list" class="data-viewer" style="max-height: 320px; overflow: auto;"></div>
+        </div>
+      </div>
+
+      <button id="btn-refresh-dj-list" class="btn btn-secondary" type="button">🔄 Aggiorna elenco</button>
+      <button id="btn-sync-dj-source" class="btn btn-warning" type="button" style="margin-left: 8px;">🧠 Sincronizza sorgente DJ</button>
+    </section>
+
     <!-- DATA VIEWER -->
     <section class="admin-section">
       <h2>📋 Data Viewer</h2>

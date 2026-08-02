@@ -53,7 +53,7 @@
 └── 📂 data/
     ├── brani.csv
     ├── comuni_italia.csv
-    └── dBase.csv
+    └── deejay.csv
 ```
 
 ---

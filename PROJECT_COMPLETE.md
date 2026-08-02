@@ -50,7 +50,7 @@ Bordero/
 â”œâ”€â”€ ðŸ“‚ assets/                      # Styles
 â”œâ”€â”€ ðŸ“‚ data/                        # CSV files (sync from Excel)
 â”‚   â”œâ”€â”€ brani.csv
-â”‚   â”œâ”€â”€ dBase.csv
+â”‚   â”œâ”€â”€ deejay.csv
 â”‚   â””â”€â”€ comuni_italia.csv
 â””â”€â”€ ðŸ“‚ Excel/                       # Source Excel file
     â””â”€â”€ BorderÃ² - ver 13.1.69...
@@ -65,7 +65,7 @@ Bordero/
 | **Data Loading** | âœ… | CSV + Excel sync with XLSX.js |
 | **Main Table** | âœ… | Full CRUD, sort, filter, search |
 | **Mark Complete** | âœ… | X flag + timestamp + auto-save |
-| **DJ Dropdown** | âœ… | Auto-load from dBase.csv |
+| **DJ Dropdown** | âœ… | Auto-load from deejay.csv |
 | **Location Filter** | âœ… | Auto-load from comuni_italia.csv |
 | **Sort Functions** | âœ… | ID, Genre, Author, custom |
 | **Filter System** | âœ… | Per-column + multi-filter |

@@ -90,7 +90,7 @@ class DataLoader {
   normalizeDjRecord(djRecord) {
     if (typeof djRecord === 'string') {
       const nome = djRecord.trim();
-      return nome ? { nome, name: nome } : null;
+      return this.isValidDjName(nome) ? { nome, name: nome } : null;
     }
 
     if (!djRecord || typeof djRecord !== 'object') {
@@ -119,7 +119,7 @@ class DataLoader {
       djRecord['dj name']
     );
 
-    if (!nome) {
+    if (!this.isValidDjName(nome)) {
       const fallbackValues = Object.values(djRecord)
         .filter(value => typeof value === 'string' || typeof value === 'number')
         .map(value => String(value).trim())
@@ -152,6 +152,54 @@ class DataLoader {
     });
 
     return unique;
+  }
+
+  isValidDjName(value) {
+    if (value === null || value === undefined) return false;
+
+    const text = String(value).trim();
+    if (!text) return false;
+
+    const normalized = text.toLowerCase();
+    const blocked = [
+      'x',
+      'select',
+      'base',
+      'intermedio',
+      'avanzato',
+      'super avanzato',
+      'gold',
+      'altre coreo',
+      'coppi',
+      'coppia',
+      '3 persone',
+      '4 persone',
+      'two step',
+      'halloween',
+      'natalizia',
+      'stage',
+      'contra',
+      'sigla chiusura',
+      'estate 2021',
+      'estate 2022',
+      'estate 2023',
+      'estate 2024',
+      'estate 2025',
+      'doppia coreo',
+      'tripla coreo',
+      'line dance',
+      'contra dance',
+      'couple/circle dance',
+      'empty',
+      'memo vba:'
+    ];
+
+    if (blocked.includes(normalized)) return false;
+    if (/^(base|intermedio|avanzato|super avanzato|gold|altre coreo|coppi|3 persone|4 persone|two step|halloween|natalizia|stage|contra|sigla chiusura|estate 2021|estate 2022|estate 2023|estate 2024|estate 2025|doppia coreo|tripla coreo)$/i.test(text)) {
+      return false;
+    }
+
+    return true;
   }
 
   normalizeComuneRecord(comune) {
@@ -485,7 +533,20 @@ class DataLoader {
       }
 
       const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_LOCATION_OPTIONS));
-      const optionRows = this.normalizeLocationOptionRows(CSVParser.parse(csvContent));
+      let optionRows = this.normalizeLocationOptionRows(CSVParser.parse(csvContent));
+
+      const categoryRows = [];
+      const categoryMappings = [
+        ['tipo_pista', 'tipoPista'],
+        ['tipo_prese_corrente', 'tipoPreseCorrente'],
+      ];
+
+      for (const [categoryKey, groupName] of categoryMappings) {
+        const values = await this.loadCategoryValues(categoryKey);
+        values.forEach((value) => categoryRows.push({ group: groupName, parent: '', value }));
+      }
+
+      optionRows = [...optionRows, ...categoryRows];
       const options = this.buildLocationPopupOptions(optionRows);
       Storage.set('BORDERO_LOCATION_OPTION_ROWS', optionRows);
       Storage.set(BORDERO_CONFIG.CACHE_KEY_LOCATION_OPTIONS, options);
@@ -500,6 +561,37 @@ class DataLoader {
         province: [],
         paesiByProvincia: {},
       };
+    }
+  }
+
+  async loadCategoryValues(categoryKey) {
+    const csvUrl = BORDERO_CONFIG.CSV_CATEGORIES?.[categoryKey];
+    if (!csvUrl) {
+      return [];
+    }
+
+    const storageKey = `BORDERO_CATEGORY_${String(categoryKey).toUpperCase()}`;
+    const cached = Storage.get(storageKey);
+    if (Array.isArray(cached) && cached.length > 0) {
+      return cached;
+    }
+
+    try {
+      const csvContent = await Network.fetchCSV(this.resolveDataUrl(csvUrl));
+      const rows = CSVParser.parse(csvContent);
+      const values = rows
+        .map((row) => {
+          const candidate = row.value || row.nome || row.label || row.name || row[Object.keys(row)[0]];
+          return String(candidate ?? '').trim();
+        })
+        .filter(Boolean)
+        .filter((value, index, array) => array.indexOf(value) === index);
+
+      Storage.set(storageKey, values);
+      return values;
+    } catch (error) {
+      logger.warn(`Impossibile caricare categoria ${categoryKey}`, error?.message || error);
+      return [];
     }
   }
 

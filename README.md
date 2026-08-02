@@ -43,7 +43,7 @@ La cartella `Bordero/` contiene:
 
 - `Bordero/pages/`: le pagine HTML principali come `bordero.html`, `display.html`, `next-coreo.html`, `videoclip.html`, `lista-serata.html`, `risultati.html`.
 - `Bordero/js/`: logica JavaScript per caricamento CSV, filtro, ordinamento, sincronizzazione e UX.
-- `Bordero/data/`: file CSV locali come `brani.csv`, `comuni_italia.csv`, `dBase.csv`.
+- `Bordero/data/`: file CSV locali come `brani.csv`, `comuni_italia.csv`, `deejay.csv`.
 - `Bordero/server/google-sheets-sync.js`: script per sincronizzare i CSV da Google Sheets.
 
 Flusso aggiornato Bordero:

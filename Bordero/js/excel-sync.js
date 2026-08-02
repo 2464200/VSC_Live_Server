@@ -5,7 +5,7 @@
  * Fogli da sincronizzare:
  * - "Elenco Brani (statico)" → brani.csv
  * - "Comuni Italia" → comuni_italia.csv
- * - "dBase" → dBase.csv
+ * - "dBase" → deejay.csv
  * - "Location" → location.csv
  */
 
@@ -370,7 +370,7 @@ class ExcelSync {
   }
 
   /**
-   * Sincronizza il foglio "dBase" → dBase.csv
+   * Sincronizza il foglio "dBase" → deejay.csv
    * ROBUSTA: Se foglio non trovato, usa il TERZO foglio o alternativa
    */
   async syncDBase(workbook) {

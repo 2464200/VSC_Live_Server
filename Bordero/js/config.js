@@ -16,7 +16,7 @@ const BORDERO_CONFIG = {
   CSV_BRANI: dataBasePath + 'brani.csv',
   CSV_COMUNI: dataBasePath + 'comuni_italia.csv',
   CSV_COMUNI_LOMBARDIA: dataBasePath + 'comuni_lombardia.csv',
-  CSV_DBASE: dataBasePath + 'dBase.csv',
+  CSV_DBASE: dataBasePath + 'deejay.csv',
   CSV_LOCATION: dataBasePath + 'location.csv',
   CSV_LOCATION_OPTIONS: dataBasePath + 'location_popup_options.csv',
   CACHE_KEY_BRANI: 'bordero_brani',

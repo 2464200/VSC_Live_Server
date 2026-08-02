@@ -127,7 +127,7 @@ Dopo aver avviato il runtime standard, usa questi URL:
 3. ✅ Sincronizza automaticamente i dati da:
    - 📄 Foglio "Elenco Brani (statico)" → brani.csv
    - 📄 Foglio "Comuni Italia" → comuni_italia.csv
-   - 📄 Foglio "dBase" → dBase.csv
+   - 📄 Foglio "dBase" → deejay.csv
 4. ✅ Salva i dati in localStorage per accesso offline
 5. ✅ Mostra la tabella con 28+ brani
 
@@ -250,7 +250,7 @@ Bordero/
 │   └── utils.js                     ← Utilità
 └── data/
     ├── brani.csv                    ← Brani (da Excel)
-    ├── dBase.csv                    ← DJ (da Excel)
+    ├── deejay.csv                    ← DJ (da Excel)
     └── comuni_italia.csv            ← Locations (da Excel)
 ```
 

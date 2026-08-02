@@ -86,7 +86,7 @@ const SHEETS = [
     name: 'DJ/dBase',
     id: process.env.GOOGLE_SHEET_DBASE,
     range: 'A:Z',
-    output: 'dbase.csv',
+    output: 'deejay.csv',
     gid: process.env.GOOGLE_SHEET_DBASE_GID || '0',
     publicUrl: process.env.GOOGLE_SHEET_DBASE_PUBLIC_URL?.trim()
   }
