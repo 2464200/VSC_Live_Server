@@ -1526,6 +1526,8 @@ class VideoClipManager {
       return {
         ...item,
         flag: 'X',
+        eseguito: 'X',
+        executed: true,
         timestamp: nowTimestamp
       };
     });
@@ -1535,6 +1537,8 @@ class VideoClipManager {
       return {
         ...item,
         flag: 'X',
+        eseguito: 'X',
+        executed: true,
         timestamp: nowTimestamp
       };
     });
@@ -1543,6 +1547,8 @@ class VideoClipManager {
       this.currentBrano = {
         ...this.currentBrano,
         flag: 'X',
+        eseguito: 'X',
+        executed: true,
         timestamp: nowTimestamp
       };
     }

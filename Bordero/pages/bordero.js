@@ -30,6 +30,9 @@ class BorderoTableManager {
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
     this.displayScrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
+    this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
+      ? new BroadcastChannel('bordero-next-coreo')
+      : null;
     this.coexistingFilterFields = new Set([
       'richieste',
       'info_livello',
@@ -95,6 +98,7 @@ class BorderoTableManager {
       this.applyVideoClipAvailabilityToBrani();
 
       this.filteredBrani = [...this.allBrani];
+      this.restoreNextCoreoSelection();
 
       // Nessun sort di default: preserva l'ordine naturale con eseguiti in fondo.
       this.currentSort = null;
@@ -115,6 +119,21 @@ class BorderoTableManager {
       logger.error('Errore inizializzazione', error);
       Toast.error('Errore caricamento tabella: ' + error.message);
     }
+  }
+
+  restoreNextCoreoSelection() {
+    const stored = Storage.get('bordero_next_coreo_selection', null);
+    if (!stored || typeof stored !== 'object') return;
+
+    const targetId = String(stored.id || '').trim();
+    if (!targetId) return;
+
+    this.allBrani.forEach((item) => {
+      item.next_selected = String(item.id) === targetId;
+    });
+    this.filteredBrani.forEach((item) => {
+      item.next_selected = String(item.id) === targetId;
+    });
   }
 
   getStoredSerataMeta() {
@@ -631,7 +650,6 @@ class BorderoTableManager {
 
     // Filter buttons
     this.bindFilterPopupButton('btn-filter-coreografia', 'info_livello', 'LIVELLO');
-    this.bindFilterPopupButton('btn-filter-genere', 'genere', 'GENERE');
     this.bindFilterPopupButton('btn-filter-livello', 'coreografo', 'COREOGRAFO');
     this.bindFilterPopupButton('btn-filter-altro', 'autore', 'AUTORE');
     this.bindFilterPopupButton('btn-filter-richieste', 'richieste', 'RICHIESTE');
@@ -1343,7 +1361,7 @@ class BorderoTableManager {
     // Applica ricerca
     if (this.currentSearch) {
       // Include `id` in the general search fields per request
-      let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
+      let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
 
       if (this.searchMode === 'title') {
         searchFields = ['titolo'];
@@ -1473,21 +1491,38 @@ class BorderoTableManager {
         const brano = this.allBrani.find(b => String(b.id) === String(branoId));
         const clickedFlagCell = Boolean(e.target.closest('.col-flag'));
         const clickedVideoIcon = Boolean(e.target.closest('.videoclip-open'));
+        const clickedNextCell = Boolean(e.target.closest('.col-next-coreo'));
+        const activeNextSelectionId = this.getActiveNextSelectionId();
 
         if (clickedVideoIcon) {
           return;
         }
 
-        if (clickedFlagCell && brano && String(brano.flag || '').toUpperCase() === 'X') {
-          this.markAsAvailable(branoId);
+        if (clickedNextCell) {
+          e.stopPropagation();
+          this.toggleNextCoreoSelection(branoId);
           return;
         }
 
-        if (!brano || String(brano.flag || '').toUpperCase() === 'X') {
+        if (clickedFlagCell) {
+          if (activeNextSelectionId && String(branoId) !== String(activeNextSelectionId)) {
+            return;
+          }
+
+          if (brano && String(brano.flag || '').toUpperCase() === 'X') {
+            this.markAsAvailable(branoId);
+            return;
+          }
+
+          if (!brano || String(brano.flag || '').toUpperCase() === 'X') {
+            return;
+          }
+
+          this.markAsCompleted(branoId);
           return;
         }
 
-        this.markAsCompleted(branoId);
+        return;
       });
     });
 
@@ -1508,6 +1543,78 @@ class BorderoTableManager {
     this.updateStats();
   }
 
+  getActiveNextSelectionId() {
+    const activeBrano = this.allBrani.find((item) => Boolean(item.next_selected));
+    return activeBrano ? String(activeBrano.id) : null;
+  }
+
+  reorderSelectedNextToTop() {
+    const activeId = this.getActiveNextSelectionId();
+    if (!activeId) return;
+
+    const activeBrano = this.allBrani.find((item) => String(item.id) === String(activeId));
+    if (!activeBrano) return;
+
+    this.allBrani = this.allBrani.filter((item) => String(item.id) !== String(activeId));
+    this.allBrani = [activeBrano, ...this.allBrani];
+
+    if (Array.isArray(this.filteredBrani)) {
+      const filteredActive = this.filteredBrani.find((item) => String(item.id) === String(activeId));
+      if (filteredActive) {
+        this.filteredBrani = this.filteredBrani.filter((item) => String(item.id) !== String(activeId));
+        this.filteredBrani = [filteredActive, ...this.filteredBrani];
+      }
+    }
+  }
+
+  reapplyCurrentOrdering() {
+    if (!this.currentSort) {
+      this.allBrani = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+      this.filteredBrani = [...this.filteredBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+      return;
+    }
+
+    const ascending = this.currentSortDirection !== 'desc';
+    this.allBrani = this.sortCollection(this.allBrani, this.currentSort, ascending);
+    this.filteredBrani = this.sortCollection(this.filteredBrani, this.currentSort, ascending);
+  }
+
+  toggleNextCoreoSelection(branoId) {
+    const brano = this.allBrani.find((item) => String(item.id) === String(branoId));
+    if (!brano) return;
+
+    const isAlreadySelected = Boolean(brano.next_selected);
+    const value = brano.next_coreo || brano.nextCoreo || brano['next coreo'] || brano.titolo || brano.coreografia || brano.brano || '';
+
+    this.allBrani.forEach((item) => {
+      item.next_selected = false;
+    });
+
+    if (!isAlreadySelected) {
+      brano.next_selected = true;
+      const title = brano.titolo || brano.coreografia || brano.brano || '';
+      this.reorderSelectedNextToTop();
+      const payload = {
+        id: String(brano.id),
+        title: title || value || '',
+        nextValue: value,
+        timestamp: Date.now(),
+      };
+      Storage.set('bordero_next_coreo_selection', payload);
+      this.nextCoreoBroadcastChannel?.postMessage({ type: 'update', payload });
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      Toast.success(`NEXT selezionato: ${title || brano.id}`);
+    } else {
+      Storage.remove('bordero_next_coreo_selection');
+      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      Toast.info('Selezione NEXT rimossa');
+    }
+
+    this.reapplyCurrentOrdering();
+    this.renderTable();
+  }
+
   /**
    * Crea HTML riga brano
    */
@@ -1525,18 +1632,20 @@ class BorderoTableManager {
     const videoClipMarker = brano.videoclip
       ? `<button type="button" class="videoclip-open${videoButtonDisabledClass}" data-brano-id="${brano.id}" aria-label="Apri VideoClip per ${String(brano.titolo || brano.id || 'brano')}" title="${videoButtonTitle}"${videoButtonDisabledAttr}>🎬</button>`
       : '-';
+    const nextCellValue = brano.next_coreo || brano.nextCoreo || brano['next coreo'] || '';
+    const nextSelectionMarker = brano.next_selected ? '<span class="next-choice-icon" aria-label="Scelta NEXT effettuata">✓</span>' : '';
 
     return `
       <tr class="brani-row ${completedClass}" data-brano-id="${brano.id}">
         <td class="col-flag">
           <span class="flag-icon">${flagIcon}</span>
         </td>
+        <td class="col-next-coreo">${brano.next_selected ? nextSelectionMarker : nextCellValue}</td>
         <td class="col-id">${brano.id}</td>
         <td class="col-timestamp">${timestamp}</td>
         <td class="col-titolo">${brano.titolo || brano.coreografia || brano.brano || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
         <td class="col-richieste${richiesteHighlightClass}">${brano.richieste || '-'}</td>
-        <td class="col-genere">${brano.genere || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
         <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
         <td class="col-coreo-2">${brano.info_coreo_2 || '-'}</td>
@@ -1888,7 +1997,7 @@ class BorderoTableManager {
   updateFilterButtons() {
     const buttons = [
       { id: 'btn-filter-coreografia', key: 'info_livello' },
-      { id: 'btn-filter-genere', key: 'genere' },
+      { id: 'btn-filter-next', key: 'next_coreo' },
       { id: 'btn-filter-livello', key: 'coreografo' },
       { id: 'btn-filter-altro', key: 'autore' },
       { id: 'btn-filter-richieste', key: 'richieste' },
@@ -1932,7 +2041,7 @@ class BorderoTableManager {
     };
 
     const placeholders = {
-      general: '🔍 Cerca ID, titolo, autore, richieste, genere, livello, info coreo 1, info coreo 2 o coreografo...',
+      general: '🔍 Cerca ID, titolo, autore, richieste, next, genere, livello, info coreo 1, info coreo 2 o coreografo...',
       title: '🔍 Cerca per titolo...',
       id: '🔍 Cerca per ID...'
     };
@@ -1958,6 +2067,7 @@ class BorderoTableManager {
       coreografo: 'Coreografo',
       collaboratori: 'Collaboratori',
       genere: 'Genere',
+      next_coreo: 'Next',
       info_livello: 'Livello',
       info_coreo_1: 'Info Coreo 1',
       info_coreo_2: 'Info Coreo 2',
@@ -1971,7 +2081,7 @@ class BorderoTableManager {
     } else if (this.searchMode === 'id') {
       fields = ['id'];
     } else {
-      fields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
+      fields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
     }
 
     const readable = fields.map(f => mapping[f] || f).join(', ');
@@ -2250,10 +2360,12 @@ class BorderoTableManager {
       // RESET: riporta tutti i brani eseguiti al loro stato disponibile
       try {
         this.allBrani = this.allBrani.map(b => {
-          if (String(b.flag || '').toUpperCase() === 'X') {
+          if (String(b.flag || '').toUpperCase() === 'X' || b.eseguito === true || b.eseguito === 'X' || b.eseguito === 'x' || b.executed === true || b.executed === 'X' || b.executed === 'x') {
             return {
               ...b,
               flag: '',
+              eseguito: false,
+              executed: false,
               timestamp: '',
             };
           }

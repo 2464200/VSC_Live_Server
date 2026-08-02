@@ -64,6 +64,7 @@ class DataLoader {
     normalized.autore = getFirstValue(brano.autore, brano.author, brano['autore']);
     normalized.richieste = getFirstValue(brano.richieste, brano['richieste'], brano['Richieste']);
     normalized.genere = getFirstValue(brano.genere, brano['genere']);
+    normalized.next_coreo = getFirstValue(brano.next_coreo, brano.nextCoreo, brano['next coreo'], brano['Next Coreo'], brano['NEXT COREO']);
     normalized.info_livello = getFirstValue(brano.info_livello, brano['info livello'], brano['info_livello']);
     normalized.info_coreo_1 = getFirstValue(brano.info_coreo_1, brano.info_coreo, brano['info coreo 1'], brano['info coreo'], brano['info_coreo_1']);
     normalized.info_coreo_2 = getFirstValue(brano.info_coreo_2, brano['info coreo 2'], brano['info_coreo_2']);
@@ -759,6 +760,15 @@ class DataLoader {
     };
 
     Storage.set(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA, serata);
+
+    try {
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new Event('bordero:serata-updated'));
+      }
+    } catch (error) {
+      logger.debug('Impossibile dispatchare evento bordero:serata-updated', error);
+    }
+
     logger.info(`Serata salvata: DJ=${serataMetadata.dj}, Data=${serataMetadata.data}`);
     Toast.success('Serata salvata automaticamente');
     return serata;

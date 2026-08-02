@@ -722,6 +722,30 @@
   text-align: center;
 }
 
+.col-next-coreo {
+  width: 70px;
+  min-width: 70px;
+  text-align: center;
+  font-size: 1.05em;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.next-choice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd54f, #ff9800);
+  color: #1f1f1f;
+  font-size: 1.05em;
+  font-weight: 900;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 3px 8px rgba(0, 0, 0, 0.25);
+  line-height: 1;
+}
+
 .col-id {
   width: 60px;
   font-family: 'Courier New', monospace;

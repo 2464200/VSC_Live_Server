@@ -32,6 +32,10 @@ class DisplayMonitor {
     this.footerRollingHint = 'Parametri rolling: configura da ADMIN';
     this.scrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
     this.lastHandledScrollCommandTs = 0;
+    this.nextCoreoSelectionStorageKey = 'bordero_next_coreo_selection';
+    this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
+      ? new BroadcastChannel('bordero-next-coreo')
+      : null;
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
@@ -57,6 +61,7 @@ class DisplayMonitor {
 
       this.setupControls();
       this.setupDateTimeClock();
+      this.setupNextCoreoSync();
       this.loadNextCoreo();
       this.nextCoreoInterval = setInterval(() => this.loadNextCoreo(), 30000);
 
@@ -666,9 +671,39 @@ class DisplayMonitor {
     this.clockInterval = setInterval(update, 60000);
   }
 
+  setupNextCoreoSync() {
+    window.addEventListener('storage', (event) => {
+      if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
+      this.loadNextCoreo();
+    });
+
+    window.addEventListener('bordero:next-coreo-updated', () => {
+      this.loadNextCoreo();
+    });
+
+    this.nextCoreoBroadcastChannel?.addEventListener('message', (event) => {
+      if (!event?.data) return;
+      if (event.data.type === 'update' && event.data.payload) {
+        Storage.set(this.nextCoreoSelectionStorageKey, event.data.payload);
+      } else if (event.data.type === 'clear') {
+        Storage.remove(this.nextCoreoSelectionStorageKey);
+      }
+      this.loadNextCoreo();
+    });
+  }
+
   async loadNextCoreo() {
     const target = document.getElementById('next-coreo');
     if (!target) return;
+
+    const storedSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
+    if (storedSelection && typeof storedSelection === 'object') {
+      const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
+      if (title) {
+        target.textContent = title;
+        return;
+      }
+    }
 
     const candidates = [
       '/NextCoreo.csv',
