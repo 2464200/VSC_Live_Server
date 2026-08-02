@@ -1207,19 +1207,30 @@ class BorderoTableManager {
   sortCollection(collection, field, ascending) {
     if (!Array.isArray(collection)) return [];
 
+    const activeId = this.getActiveNextSelectionId();
     const prioritized = this.applyNextSelectionPriority(collection);
+    const selectedItem = activeId
+      ? prioritized.find(item => String(item.id) === String(activeId))
+      : null;
+    const remainingItems = activeId
+      ? prioritized.filter(item => String(item.id) !== String(activeId))
+      : prioritized;
 
     if (!this.keepExecutedAtBottom) {
-      return ObjectUtils.sortByField(prioritized, field, ascending);
+      return selectedItem
+        ? [selectedItem, ...ObjectUtils.sortByField(remainingItems, field, ascending)]
+        : ObjectUtils.sortByField(prioritized, field, ascending);
     }
 
-    const pending = prioritized.filter(item => !this.isExecutedBrano(item));
-    const executed = prioritized.filter(item => this.isExecutedBrano(item));
+    const pending = remainingItems.filter(item => !this.isExecutedBrano(item));
+    const executed = remainingItems.filter(item => this.isExecutedBrano(item));
 
     const pendingSorted = ObjectUtils.sortByField(pending, field, ascending);
     const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
 
-    return [...pendingSorted, ...executedSorted];
+    return selectedItem
+      ? [selectedItem, ...pendingSorted, ...executedSorted]
+      : [...pendingSorted, ...executedSorted];
   }
 
   /**
