@@ -361,45 +361,13 @@ app.post('/api/sync/comuni', async (req, res) => {
  * Sincronizza deejay.csv
  */
 app.post('/api/sync/dbase', async (req, res) => {
-  try {
-    const { data } = req.body;
-
-    if (!data || !Array.isArray(data)) {
-      return res.status(400).json({ 
-        error: 'Dati non validi. Inviare array di oggetti in body.data' 
-      });
-    }
-
-    if (data.length === 0) {
-      return res.status(400).json({ 
-        error: 'Nessun dato da sincronizzare' 
-      });
-    }
-
-    // Converti a CSV
-    const csv = jsonToCSV(data);
-
-    // Scrivi sul file
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.writeFile(CSV_DBASE, csv, 'utf-8');
-
-    console.log(`✅ ${data.length} DJ sincronizzati su ${CSV_DBASE}`);
-
-    res.json({
-      success: true,
-      message: `✅ ${data.length} DJ sincronizzati`,
-      file: CSV_DBASE,
-      rows: data.length,
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('❌ Errore sync dBase:', error);
-    res.status(500).json({
-      error: error.message,
-      path: CSV_DBASE
-    });
-  }
+  res.status(410).json({
+    success: false,
+    error: 'Endpoint deprecato: deejay.csv non viene piu sincronizzato da dBase Excel.',
+    hint: 'Usare la gestione DJ in ADMIN e l\'endpoint /api/bordero/dj-source.',
+    file: CSV_DBASE,
+    timestamp: new Date().toISOString()
+  });
 });
 
 /**

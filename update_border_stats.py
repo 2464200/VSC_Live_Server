@@ -5,10 +5,10 @@ Script per aggiornare automaticamente border_data.json
 Legge i dati dal file Excel Borderò e genera il JSON con le statistiche
 """
 
-import openpyxl
 import glob
 import json
 import os
+from excel_openpyxl_utils import load_workbook_safely
 
 def update_border_stats():
     # Leggi il file Excel
@@ -23,7 +23,7 @@ def update_border_stats():
     print(f'Lettura file: {excel_file}')
     
     # Carica con data_only=True per ottenere valori calcolati
-    wb = openpyxl.load_workbook(excel_file, data_only=True)
+    wb = load_workbook_safely(excel_file, data_only=True)
     
     # Conta X nel foglio borderò (A11:A612)
     ws_bordero = wb['borderò']

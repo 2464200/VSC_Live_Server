@@ -912,6 +912,8 @@ function broadcastEventiUpdate(payload = { type: 'refresh' }) {
 
 // ===== PATHS EVENTI =====
 const eventiDataDir = path.join(__dirname, 'Eventi', 'data');
+const borderoDBaseDir = path.join(__dirname, 'Bordero', 'data');
+const borderoDBasePath = path.join(borderoDBaseDir, 'deejay.csv');
 const pathBrani = path.join(eventiDataDir, 'brani.json');
 const pathLog = path.join(eventiDataDir, 'log.json');
 const pathDj = path.join(eventiDataDir, 'dj.json');
@@ -2224,11 +2226,30 @@ router.delete('/dj/:id', (req, res) => {
 // Salva la lista DJ nel file CSV di sorgente Borderò
 router.post('/bordero/dj-source', (req, res) => {
     try {
+        const isLegacyDBaseNoise = (value) => {
+            const text = String(value || '').trim();
+            if (!text) return true;
+            if (/^https?:\/\//i.test(text)) return true;
+            if (/^(x|select)$/i.test(text)) return true;
+            if (/^(base|intermedio|avanzato|super avanzato|gold|altre coreo|coppia|3 persone|4 persone|two step|halloween|natalizia|stage|contra|sigla chiusura)$/i.test(text)) return true;
+            if (/^(line dance|contra dance|couple\/circle dance|empty)$/i.test(text)) return true;
+            if (/^modulo\s+\d+/i.test(text)) return true;
+            return false;
+        };
+
         const payload = Array.isArray(req.body?.dj) ? req.body.dj : [];
         const names = payload
             .map((entry) => String(entry?.nome || entry?.name || '').trim())
             .filter(Boolean)
+            .filter((name) => !isLegacyDBaseNoise(name))
             .filter((name, index, array) => array.indexOf(name) === index);
+
+        if (names.length === 0) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Nessun DJ valido da salvare: payload sembra contenere righe legacy dBase'
+            });
+        }
 
         if (!fs.existsSync(borderoDBaseDir)) {
             fs.mkdirSync(borderoDBaseDir, { recursive: true });

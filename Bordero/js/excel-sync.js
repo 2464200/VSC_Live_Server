@@ -441,11 +441,11 @@ class ExcelSync {
       this.notifyDataUpdated('dbase');
       this.notifyDataUpdated('location-options');
       
-      // Sincronizza su disco via server Node.js
-      await this.syncToDisk('dbase', data);
+      // Non scrivere deejay.csv da dBase Excel: il file DJ e' gestito da ADMIN.
+      logger.info('ℹ️ Sync dBase su disco disabilitata: deejay.csv e\' gestito dall\'archivio DJ ADMIN');
       await this.syncToDisk('location-options', popupOptionRows);
       
-      Toast.success(`✅ ${data.length} DJ sincronizzati su disco`);
+      Toast.success(`✅ ${data.length} DJ sincronizzati (cache ADMIN)`);
 
       return true;
     } catch (error) {

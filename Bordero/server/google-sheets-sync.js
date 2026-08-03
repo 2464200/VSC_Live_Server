@@ -88,7 +88,8 @@ const SHEETS = [
     range: 'A:Z',
     output: 'deejay.csv',
     gid: process.env.GOOGLE_SHEET_DBASE_GID || '0',
-    publicUrl: process.env.GOOGLE_SHEET_DBASE_PUBLIC_URL?.trim()
+    publicUrl: process.env.GOOGLE_SHEET_DBASE_PUBLIC_URL?.trim(),
+    disabledByDefault: true
   }
 ];
 
@@ -811,10 +812,18 @@ async function syncAll(options = {}) {
     ? SHEETS.filter((sheet) => normalizedOnlySheets.has(String(sheet.name || '').trim().toLowerCase()))
     : SHEETS;
 
+  const allowDBaseSync = String(process.env.BORDERO_ALLOW_DBASE_SYNC || '').trim().toLowerCase() === 'true';
+  const effectiveTargetSheets = targetSheets.filter((sheet) => {
+    if (!sheet.disabledByDefault) return true;
+    if (allowDBaseSync) return true;
+    console.log(`   ℹ️ Sheet ${sheet.name} disabilitato di default (imposta BORDERO_ALLOW_DBASE_SYNC=true per abilitarlo)`);
+    return false;
+  });
+
   let successCount = 0;
   const results = [];
 
-  for (const sheet of targetSheets) {
+  for (const sheet of effectiveTargetSheets) {
     const hasMergeSources = Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0;
     if (!sheet.id && !hasMergeSources) {
       console.log(`   ❌ ID mancante per sheet ${sheet.name}, salto`);
@@ -828,19 +837,19 @@ async function syncAll(options = {}) {
   }
 
   console.log('\n╔════════════════════════════════════════════════════════════════╗');
-  console.log(`║ ✅ Completato: ${successCount}/${targetSheets.length} fogli scaricati`);
+  console.log(`║ ✅ Completato: ${successCount}/${effectiveTargetSheets.length} fogli scaricati`);
   console.log('╚════════════════════════════════════════════════════════════════╝\n');
 
   const summary = {
-    success: successCount === targetSheets.length,
+    success: successCount === effectiveTargetSheets.length,
     successCount,
-    totalSheets: targetSheets.length,
+    totalSheets: effectiveTargetSheets.length,
     results,
     outputDir: OUTPUT_DIR,
     syncedAt: new Date().toISOString()
   };
 
-  if (exitOnFailure && successCount < targetSheets.length) {
+  if (exitOnFailure && successCount < effectiveTargetSheets.length) {
     process.exit(1);
   }
 

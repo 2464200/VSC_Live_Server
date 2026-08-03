@@ -1,8 +1,8 @@
-import openpyxl
 import json
 from collections import Counter
 from pathlib import Path
 import os
+from excel_openpyxl_utils import load_workbook_safely
 
 # Trova il file Excel più recente nella cartella Excel
 excel_dir = Path(r'C:\VSC_Live_Server\Excel')
@@ -30,7 +30,7 @@ def write_log(msg):
 
 # Carica il workbook
 try:
-    wb = openpyxl.load_workbook(excel_path, data_only=True)
+    wb = load_workbook_safely(excel_path, data_only=True)
     write_log(f"Aperto workbook: {excel_path}")
 except Exception as e:
     write_log(f"ERRORE apertura workbook: {e}")
