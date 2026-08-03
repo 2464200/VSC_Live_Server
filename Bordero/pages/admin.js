@@ -235,21 +235,7 @@ class AdminPanel {
     };
 
     const loadDjListFromSource = async () => {
-      try {
-        const response = await fetch('http://localhost:5500/api/dj', { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const serverDj = await response.json();
-        if (Array.isArray(serverDj)) {
-          Storage.set('BORDERO_DBASE_DATA', serverDj);
-          return serverDj;
-        }
-      } catch (error) {
-        logger.warn('Impossibile caricare i DJ dal server, uso il dato locale', error?.message || error);
-      }
-
+      // Bordero usa una sorgente DJ separata da Eventi (deejay.csv/cache locale).
       const localDj = await dataLoader.loadDJ();
       return Array.isArray(localDj) ? localDj : [];
     };

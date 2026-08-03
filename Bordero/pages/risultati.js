@@ -39,7 +39,6 @@ class RisultatiSerata {
   render() {
     this.updateSummary();
     this.updateStats();
-    this.updateGeneriChart();
     this.updateLivelliChart();
     this.updateCoreografiList();
   }
@@ -59,32 +58,6 @@ class RisultatiSerata {
     document.getElementById('result-total').textContent = total;
     document.getElementById('result-executed').textContent = executed;
     document.getElementById('result-percent').textContent = `${percent}%`;
-  }
-
-  updateGeneriChart() {
-    const generiCount = {};
-    this.executed.forEach(b => {
-      const genere = b.genere || 'Sconosciuto';
-      generiCount[genere] = (generiCount[genere] || 0) + 1;
-    });
-
-    const html = Object.entries(generiCount)
-      .sort((a, b) => b[1] - a[1])
-      .map(([genere, count]) => {
-        const percent = Math.round((count / this.executed.length) * 100);
-        return `
-          <div class="chart-bar">
-            <span class="bar-label">${genere}</span>
-            <div class="bar-container">
-              <div class="bar-fill" style="width: ${percent}%"></div>
-            </div>
-            <span class="bar-value">${count} (${percent}%)</span>
-          </div>
-        `;
-      })
-      .join('');
-
-    document.getElementById('generi-chart').innerHTML = html || '<p>Nessun dato</p>';
   }
 
   updateLivelliChart() {
