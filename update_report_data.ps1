@@ -3,7 +3,8 @@
 
 param(
     [string]$Interval = "5",  # Intervallo in minuti (default 5)
-    [switch]$Once             # Se specificato, esegue una sola volta senza loop
+    [switch]$Once,            # Se specificato, esegue una sola volta senza loop
+    [switch]$Silent           # Se specificato, non mostra output in console
 )
 
 $pythonExe = "C:\VSC_Live_Server\.venv\Scripts\python.exe"
@@ -19,15 +20,23 @@ if (-not (Test-Path $logsDir)) {
 # Funzione per eseguire l'aggiornamento
 function Update-ReportData {
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Write-Host "[$timestamp] Aggiornamento dati report in corso..." -ForegroundColor Cyan
+    if (-not $Silent) {
+        Write-Host "[$timestamp] Aggiornamento dati report in corso..." -ForegroundColor Cyan
+    }
     
     try {
-        & $pythonExe $scriptPath 2>&1 | Tee-Object -FilePath $logPath -Append
-        Write-Host "[$timestamp] ✓ Aggiornamento completato con successo" -ForegroundColor Green
+        if ($Silent) {
+            & $pythonExe $scriptPath 2>&1 | Out-File -FilePath $logPath -Append -Encoding utf8
+        } else {
+            & $pythonExe $scriptPath 2>&1 | Tee-Object -FilePath $logPath -Append
+            Write-Host "[$timestamp] ✓ Aggiornamento completato con successo" -ForegroundColor Green
+        }
     }
     catch {
         $errorMsg = "Errore durante l'aggiornamento: $_"
-        Write-Host "[$timestamp] ✗ $errorMsg" -ForegroundColor Red
+        if (-not $Silent) {
+            Write-Host "[$timestamp] ✗ $errorMsg" -ForegroundColor Red
+        }
         Add-Content -Path $logPath -Value "[$timestamp] ERRORE: $errorMsg"
     }
 }

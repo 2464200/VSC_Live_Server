@@ -17,6 +17,7 @@ if (-not $isAdmin) {
 
 $pythonExe = "C:\VSC_Live_Server\.venv\Scripts\python.exe"
 $scriptPath = "C:\VSC_Live_Server\generate_report_data.py"
+$runnerScript = "C:\VSC_Live_Server\update_report_data.ps1"
 
 if (-not (Test-Path $pythonExe)) {
     Write-Host "ERRORE: Python executable non trovato" -ForegroundColor Red
@@ -25,6 +26,11 @@ if (-not (Test-Path $pythonExe)) {
 
 if (-not (Test-Path $scriptPath)) {
     Write-Host "ERRORE: Script Python non trovato" -ForegroundColor Red
+    exit 1
+}
+
+if (-not (Test-Path $runnerScript)) {
+    Write-Host "ERRORE: Runner PowerShell non trovato" -ForegroundColor Red
     exit 1
 }
 
@@ -39,7 +45,7 @@ if ($existingTask) {
 }
 
 $trigger = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Minutes $Interval) -Once -At (Get-Date)
-$action = New-ScheduledTaskAction -Execute $pythonExe -Argument $scriptPath -WorkingDirectory "C:\VSC_Live_Server"
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$runnerScript`" -Once -Silent" -WorkingDirectory "C:\VSC_Live_Server"
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 1)
 
 try {
