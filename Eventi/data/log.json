@@ -1,1 +1,62 @@
-[]
+[
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-08-03T23:15:08.230Z",
+    "dj": "DJ Gio"
+  },
+  {
+    "id": "009",
+    "stato": "prenotato",
+    "timestamp": "2026-08-03T23:15:13.219Z",
+    "dj": "DJ Gio"
+  },
+  {
+    "id": "009",
+    "stato": "eseguito",
+    "timestamp": "2026-08-03T23:15:31.127Z",
+    "dj": "DJ Gio"
+  },
+  {
+    "id": "008",
+    "stato": "eseguito",
+    "timestamp": "2026-08-03T23:15:32.376Z",
+    "dj": "DJ Gio"
+  },
+  {
+    "id": "010",
+    "stato": "prenotato",
+    "timestamp": "2026-08-03T23:15:36.325Z",
+    "dj": "DJ Gio"
+  },
+  {
+    "id": "504",
+    "stato": "prenotato",
+    "timestamp": "2026-08-03T23:15:39.410Z",
+    "dj": "DJ Gio"
+  },
+  {
+    "id": "504",
+    "stato": "disponibile",
+    "timestamp": "2026-08-03T23:15:53.682Z",
+    "dj": null
+  },
+  {
+    "id": "010",
+    "stato": "disponibile",
+    "timestamp": "2026-08-03T23:15:54.834Z",
+    "dj": null
+  },
+  {
+    "id": "008",
+    "stato": "disponibile",
+    "timestamp": "2026-08-03T23:15:58.237Z",
+    "dj": null
+  },
+  {
+    "id": "009",
+    "stato": "disponibile",
+    "timestamp": "2026-08-03T23:16:01.242Z",
+    "dj": null
+  }
+]
