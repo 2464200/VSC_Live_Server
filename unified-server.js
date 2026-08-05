@@ -200,27 +200,65 @@ function recordVlcCompletion(filePath) {
 function readElectronMonitorPreferences() {
     try {
         if (!fs.existsSync(ELECTRON_MONITOR_PREFERENCES_FILE)) {
-            return { swapPrimarySecondary: false };
+            return {
+                swapPrimarySecondary: false,
+                primaryMonitorChoice: null,
+                selectionConfirmed: false
+            };
         }
         const raw = fs.readFileSync(ELECTRON_MONITOR_PREFERENCES_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
         if (!raw) {
-            return { swapPrimarySecondary: false };
+            return {
+                swapPrimarySecondary: false,
+                primaryMonitorChoice: null,
+                selectionConfirmed: false
+            };
         }
         const parsed = JSON.parse(raw);
+
+        const explicitChoice = Number(parsed?.primaryMonitorChoice);
+        let primaryMonitorChoice = null;
+        if (explicitChoice === 1 || explicitChoice === 2) {
+            primaryMonitorChoice = explicitChoice;
+        }
+
+        const swapPrimarySecondary = primaryMonitorChoice === null
+            ? Boolean(parsed && parsed.swapPrimarySecondary)
+            : primaryMonitorChoice === 2;
+
         return {
-            swapPrimarySecondary: Boolean(parsed && parsed.swapPrimarySecondary)
+            swapPrimarySecondary,
+            primaryMonitorChoice,
+            selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed)
         };
     } catch (error) {
         console.warn('⚠️ Lettura preferenze monitor Electron fallita, uso default:', error?.message || error);
-        return { swapPrimarySecondary: false };
+        return {
+            swapPrimarySecondary: false,
+            primaryMonitorChoice: null,
+            selectionConfirmed: false
+        };
     }
 }
 
 function writeElectronMonitorPreferences(preferences = {}) {
+    const explicitChoice = Number(preferences?.primaryMonitorChoice);
+    const primaryMonitorChoice = (explicitChoice === 1 || explicitChoice === 2)
+        ? explicitChoice
+        : (Boolean(preferences?.swapPrimarySecondary) ? 2 : 1);
+
     const payload = {
-        swapPrimarySecondary: Boolean(preferences.swapPrimarySecondary),
+        primaryMonitorChoice,
+        swapPrimarySecondary: primaryMonitorChoice === 2,
+        selectionConfirmed: Object.prototype.hasOwnProperty.call(preferences, 'selectionConfirmed')
+            ? Boolean(preferences.selectionConfirmed)
+            : true,
         updatedAt: new Date().toISOString()
     };
+
+    if (preferences?.source) {
+        payload.source = String(preferences.source);
+    }
 
     fs.mkdirSync(path.dirname(ELECTRON_MONITOR_PREFERENCES_FILE), { recursive: true });
     fs.writeFileSync(ELECTRON_MONITOR_PREFERENCES_FILE, JSON.stringify(payload, null, 2), 'utf8');
@@ -260,7 +298,9 @@ app.get('/api/electron/monitor-preferences', (req, res) => {
     const preferences = readElectronMonitorPreferences();
     return res.json({
         ok: true,
-        swapPrimarySecondary: Boolean(preferences.swapPrimarySecondary)
+        swapPrimarySecondary: Boolean(preferences.swapPrimarySecondary),
+        primaryMonitorChoice: preferences.primaryMonitorChoice,
+        selectionConfirmed: Boolean(preferences.selectionConfirmed)
     });
 });
 
@@ -272,12 +312,17 @@ app.post('/api/electron/swap-monitors', (req, res) => {
         ? Boolean(req.body.swapPrimarySecondary)
         : !Boolean(current.swapPrimarySecondary);
 
-    const saved = writeElectronMonitorPreferences({ swapPrimarySecondary });
+    const saved = writeElectronMonitorPreferences({
+        primaryMonitorChoice: swapPrimarySecondary ? 2 : 1,
+        selectionConfirmed: true,
+        source: 'api-swap-monitors'
+    });
     console.log(`🖥️ Electron monitor swap impostato a: ${saved.swapPrimarySecondary ? 'ON' : 'OFF'}`);
 
     return res.json({
         ok: true,
         swapPrimarySecondary: saved.swapPrimarySecondary,
+        primaryMonitorChoice: saved.primaryMonitorChoice,
         updatedAt: saved.updatedAt
     });
 });

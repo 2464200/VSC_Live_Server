@@ -141,13 +141,21 @@ function Start-MonitorLaunchers {
     }
 
     try {
-        $prefsPayload = @{
-            swapPrimarySecondary = $false
-            updatedAt = (Get-Date).ToString('o')
-            source = 'startup.ps1'
-        } | ConvertTo-Json
-        [System.IO.File]::WriteAllText($monitorPrefs, $prefsPayload, [System.Text.UTF8Encoding]::new($false))
-        Write-Host "OK Preferenze monitor Electron forzate: principale=bordero, secondario=display"
+        if (-not (Test-Path $monitorPrefs)) {
+            $prefsPayload = @{
+                primaryMonitorChoice = $null
+                swapPrimarySecondary = $false
+                selectionConfirmed = $false
+                updatedAt = (Get-Date).ToString('o')
+                source = 'startup.ps1-default'
+            } | ConvertTo-Json
+
+            $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText($monitorPrefs, $prefsPayload, $utf8NoBom)
+            Write-Host "OK Preferenze monitor inizializzate (scelta monitor richiesta al primo avvio Electron)"
+        } else {
+            Write-Host "OK Preferenze monitor Electron gia presenti: mantengo scelta utente"
+        }
     } catch {
         Write-Host "AVVISO: impossibile aggiornare le preferenze monitor Electron - $_" -ForegroundColor Yellow
     }
@@ -382,6 +390,8 @@ Write-Host "Progetto: $RootPath"
 Write-Host "Unified Server: porta $UnifiedPort"
 Write-Host ""
 
+$startedPids = @()
+
 # Verifica se il server è già in esecuzione
 if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2)) {
     Write-Host "Server già in esecuzione sulle porte $UnifiedPort e 5501 - Nessuna azione necessaria"
@@ -416,7 +426,6 @@ if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-Http
 Clear-OldProcesses
 Stop-NodeListenersOnPort -Port $UnifiedPort
 
-$startedPids = @()
 $processId = Start-UnifiedServer
 if ($processId) { $startedPids += $processId }
 $syncProcessId = Start-BorderoSyncServer

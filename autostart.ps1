@@ -41,12 +41,12 @@ function Test-PortListening {
     param([int]$Port)
     try {
         $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-        if ($null -ne $connections -and $connections.Count -gt 0) { return $true }
+        if (@($connections).Count -gt 0) { return $true }
     } catch {
     }
     try {
         $result = & netstat -ano 2>$null | Select-String ":$Port\s" | Select-String "LISTENING"
-        return $null -ne $result
+        return [bool]$result
     } catch {
         return $false
     }
@@ -88,13 +88,20 @@ function Start-MonitorLaunchers {
     }
 
     try {
-        $prefsPayload = @{
-            swapPrimarySecondary = $false
-            updatedAt = (Get-Date).ToString('o')
-            source = 'autostart.ps1'
-        } | ConvertTo-Json
-        [System.IO.File]::WriteAllText($monitorPrefs, $prefsPayload, [System.Text.UTF8Encoding]::new($false))
-        Write-Log "OK Preferenze monitor Electron forzate: principale=bordero, secondario=display"
+        if (-not (Test-Path $monitorPrefs)) {
+            $prefsPayload = @{
+                primaryMonitorChoice = $null
+                swapPrimarySecondary = $false
+                selectionConfirmed = $false
+                updatedAt = (Get-Date).ToString('o')
+                source = 'autostart.ps1-default'
+            } | ConvertTo-Json
+            $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText($monitorPrefs, $prefsPayload, $utf8NoBom)
+            Write-Log "OK Preferenze monitor inizializzate: la scelta 1/2 verra richiesta da Electron"
+        } else {
+            Write-Log "OK Preferenze monitor Electron gia presenti: mantengo scelta utente"
+        }
     } catch {
         Write-Log "AVVISO: impossibile aggiornare preferenze monitor Electron: $($_.Exception.Message)"
     }
@@ -117,7 +124,7 @@ function Start-MonitorLaunchers {
 
     try {
         $proc = Start-ProcessSafe -FilePath $electronCmd -ArgumentList @($electronMain) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
-        if ($proc -ne $null) {
+        if ($null -ne $proc) {
             Write-Log "OK Electron dual monitor avviato (PID: $($proc.Id))"
         } else {
             Write-Log "ERRORE: impossibile avviare Electron dual monitor"

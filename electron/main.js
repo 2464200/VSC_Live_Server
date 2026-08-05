@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, dialog } = require('electron');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
@@ -22,19 +22,44 @@ const PRIMARY_DEFAULT_PAGE_PATH = '/Bordero/pages/bordero.html';
 function readMonitorPreferences() {
   try {
     if (!fs.existsSync(MONITOR_PREFERENCES_FILE)) {
-      return { swapPrimarySecondary: false };
+      return {
+        swapPrimarySecondary: false,
+        primaryMonitorChoice: null,
+        selectionConfirmed: false
+      };
     }
     const raw = fs.readFileSync(MONITOR_PREFERENCES_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
     if (!raw) {
-      return { swapPrimarySecondary: false };
+      return {
+        swapPrimarySecondary: false,
+        primaryMonitorChoice: null,
+        selectionConfirmed: false
+      };
     }
     const parsed = JSON.parse(raw);
+
+    const explicitChoice = Number(parsed?.primaryMonitorChoice);
+    let primaryMonitorChoice = null;
+    if (explicitChoice === 1 || explicitChoice === 2) {
+      primaryMonitorChoice = explicitChoice;
+    }
+
+    const swapPrimarySecondary = primaryMonitorChoice === null
+      ? Boolean(parsed && parsed.swapPrimarySecondary)
+      : primaryMonitorChoice === 2;
+
     return {
-      swapPrimarySecondary: Boolean(parsed && parsed.swapPrimarySecondary)
+      swapPrimarySecondary,
+      primaryMonitorChoice,
+      selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed)
     };
   } catch (error) {
     console.warn('Failed to read monitor preferences, using default:', error.message || error);
-    return { swapPrimarySecondary: false };
+    return {
+      swapPrimarySecondary: false,
+      primaryMonitorChoice: null,
+      selectionConfirmed: false
+    };
   }
 }
 
@@ -66,6 +91,79 @@ function applyWindowLayout() {
   if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
     videoPlayerWindow.setBounds(monitorBounds);
     videoPlayerWindow.setFullScreen(true);
+  }
+}
+
+function buildMonitorPreferencesPayload(preferences = {}, defaults = {}) {
+  const explicitChoice = Number(preferences?.primaryMonitorChoice);
+  const fallbackChoice = Number(defaults?.primaryMonitorChoice) === 2 ? 2 : 1;
+
+  const primaryMonitorChoice = (explicitChoice === 1 || explicitChoice === 2)
+    ? explicitChoice
+    : fallbackChoice;
+
+  const swapPrimarySecondary = primaryMonitorChoice === 2;
+  const selectionConfirmed = Object.prototype.hasOwnProperty.call(preferences, 'selectionConfirmed')
+    ? Boolean(preferences.selectionConfirmed)
+    : Boolean(defaults.selectionConfirmed);
+
+  const payload = {
+    primaryMonitorChoice,
+    swapPrimarySecondary,
+    selectionConfirmed,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (preferences?.source) {
+    payload.source = String(preferences.source);
+  }
+
+  return payload;
+}
+
+function writeMonitorPreferences(preferences = {}, defaults = {}) {
+  const payload = buildMonitorPreferencesPayload(preferences, defaults);
+  fs.mkdirSync(path.dirname(MONITOR_PREFERENCES_FILE), { recursive: true });
+  fs.writeFileSync(MONITOR_PREFERENCES_FILE, JSON.stringify(payload, null, 2), 'utf8');
+  return payload;
+}
+
+async function ensurePrimaryMonitorSelectionPreference() {
+  const current = readMonitorPreferences();
+  if (current.selectionConfirmed && (current.primaryMonitorChoice === 1 || current.primaryMonitorChoice === 2)) {
+    return current;
+  }
+
+  try {
+    const response = await dialog.showMessageBox({
+      type: 'question',
+      title: 'Bordero - Selezione Monitor Principale',
+      message: 'Monitor principale su cui eseguire Bordero?',
+      detail: 'Scegli 1 o 2. Il monitor 1 e predefinito.',
+      buttons: ['1 (predefinito)', '2 (scambia monitor)'],
+      defaultId: 0,
+      cancelId: 0,
+      noLink: true,
+      normalizeAccessKeys: true
+    });
+
+    const primaryMonitorChoice = response?.response === 1 ? 2 : 1;
+    const saved = writeMonitorPreferences({
+      primaryMonitorChoice,
+      selectionConfirmed: true,
+      source: 'electron-prompt'
+    }, current);
+
+    console.log(`Primary monitor selected via prompt: ${saved.primaryMonitorChoice}`);
+    return saved;
+  } catch (error) {
+    console.warn('Monitor selection prompt failed, using default monitor 1:', error?.message || error);
+    const saved = writeMonitorPreferences({
+      primaryMonitorChoice: 1,
+      selectionConfirmed: true,
+      source: 'electron-prompt-fallback'
+    }, current);
+    return saved;
   }
 }
 
@@ -429,7 +527,8 @@ ipcMain.on('bordero-video-player:ended', (_event, payload) => {
 
 async function ensureWindows() {
   await ensureUnifiedServer();
-  currentSwapMonitors = Boolean(readMonitorPreferences().swapPrimarySecondary);
+  const monitorPreferences = await ensurePrimaryMonitorSelectionPreference();
+  currentSwapMonitors = Boolean(monitorPreferences.swapPrimarySecondary);
 
   if (!primaryWindow || primaryWindow.isDestroyed()) {
     const config = buildElectronAppConfig({ baseUrl: 'http://localhost:5500' });

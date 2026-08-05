@@ -1,5 +1,7 @@
 {
-    "updatedAt":  "2026-08-05T13:28:15.7840788+02:00",
-    "source":  "startup.ps1",
-    "swapPrimarySecondary":  false
+  "primaryMonitorChoice": 1,
+  "swapPrimarySecondary": false,
+  "selectionConfirmed": true,
+  "updatedAt": "2026-08-05T11:42:19.788Z",
+  "source": "electron-prompt"
 }
