@@ -38,6 +38,11 @@ class VideoClipManager {
     logger.info('VideoClipManager initializing...');
 
     try {
+      const redirectedToSecondary = await this.ensureElectronSecondaryPlacement();
+      if (redirectedToSecondary) {
+        return;
+      }
+
       this.renderPersistentLog();
       this.brani = await dataLoader.loadBrani();
       this.syncExecutedState();
@@ -79,6 +84,20 @@ class VideoClipManager {
 
   isElectronVideoPlayerAvailable() {
     return Boolean(window.electronAPI && window.electronAPI.videoPlayer && typeof window.electronAPI.videoPlayer.play === 'function');
+  }
+
+  isElectronRuntime() {
+    return Boolean(window.electronAPI && window.electronAPI.runtime && window.electronAPI.runtime.isElectron);
+  }
+
+  isElectronSecondaryInstance() {
+    return false;
+  }
+
+  async ensureElectronSecondaryPlacement() {
+    // In modalita Electron la pagina VideoClip resta sul monitor principale.
+    // Il monitor secondario e dedicato a display.html e al player video fullscreen.
+    return false;
   }
 
   loadPlaybackBackendPreference() {

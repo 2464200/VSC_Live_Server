@@ -145,7 +145,7 @@ function Start-MonitorLaunchers {
             updatedAt = (Get-Date).ToString('o')
             source = 'startup.ps1'
         } | ConvertTo-Json
-        $prefsPayload | Set-Content -Path $monitorPrefs -Encoding UTF8
+        [System.IO.File]::WriteAllText($monitorPrefs, $prefsPayload, [System.Text.UTF8Encoding]::new($false))
         Write-Host "OK Preferenze monitor Electron forzate: principale=bordero, secondario=display"
     } catch {
         Write-Host "AVVISO: impossibile aggiornare le preferenze monitor Electron - $_" -ForegroundColor Yellow

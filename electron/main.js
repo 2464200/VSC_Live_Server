@@ -16,13 +16,18 @@ let currentSwapMonitors = false;
 let monitorPreferenceWatcher = null;
 
 const MONITOR_PREFERENCES_FILE = path.join(__dirname, 'monitor-preferences.json');
+const DISPLAY_PAGE_PATH = '/Bordero/pages/display.html';
+const PRIMARY_DEFAULT_PAGE_PATH = '/Bordero/pages/bordero.html';
 
 function readMonitorPreferences() {
   try {
     if (!fs.existsSync(MONITOR_PREFERENCES_FILE)) {
       return { swapPrimarySecondary: false };
     }
-    const raw = fs.readFileSync(MONITOR_PREFERENCES_FILE, 'utf8');
+    const raw = fs.readFileSync(MONITOR_PREFERENCES_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+    if (!raw) {
+      return { swapPrimarySecondary: false };
+    }
     const parsed = JSON.parse(raw);
     return {
       swapPrimarySecondary: Boolean(parsed && parsed.swapPrimarySecondary)
@@ -52,7 +57,7 @@ function applyWindowLayout() {
 
   const mainBounds = getWindowBoundsForDisplay(targets.mainDisplay, { width: 1400, height: 900 });
   primaryWindow.setBounds(mainBounds);
-  primaryWindow.setFullScreen(false);
+  primaryWindow.setFullScreen(true);
 
   const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
   secondaryWindow.setBounds(monitorBounds);
@@ -170,6 +175,107 @@ function createWindow(url, options = {}) {
   return win;
 }
 
+function toAbsoluteAppUrl(pagePath) {
+  const raw = typeof pagePath === 'string' && pagePath.trim().length > 0
+    ? pagePath.trim()
+    : DISPLAY_PAGE_PATH;
+
+  try {
+    return new URL(raw, 'http://localhost:5500').toString();
+  } catch (_) {
+    return `http://localhost:5500${DISPLAY_PAGE_PATH}`;
+  }
+}
+
+function isDisplayPageUrl(candidateUrl) {
+  try {
+    const parsed = new URL(String(candidateUrl || ''), 'http://localhost:5500');
+    return parsed.pathname.toLowerCase().endsWith(DISPLAY_PAGE_PATH.toLowerCase());
+  } catch (_) {
+    return false;
+  }
+}
+
+function getPrimaryDefaultUrl() {
+  return `http://localhost:5500${PRIMARY_DEFAULT_PAGE_PATH}`;
+}
+
+async function loadInPrimaryWindow(url) {
+  if (!primaryWindow || primaryWindow.isDestroyed()) {
+    await ensureWindows();
+  }
+
+  if (!primaryWindow || primaryWindow.isDestroyed()) {
+    return false;
+  }
+
+  try {
+    await primaryWindow.loadURL(url || getPrimaryDefaultUrl());
+    primaryWindow.setFullScreen(true);
+    primaryWindow.show();
+    primaryWindow.focus();
+    applyWindowLayout();
+    return true;
+  } catch (error) {
+    console.warn('Unable to load URL in primary window:', error?.message || error);
+    return false;
+  }
+}
+
+async function ensureSecondaryDisplayPage() {
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    await ensureWindows();
+  }
+
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return false;
+  }
+
+  const currentUrl = secondaryWindow.webContents.getURL();
+  if (!isDisplayPageUrl(currentUrl)) {
+    await secondaryWindow.loadURL(`http://localhost:5500${DISPLAY_PAGE_PATH}`);
+  }
+
+  secondaryWindow.setFullScreen(true);
+  secondaryWindow.show();
+  applyWindowLayout();
+  return true;
+}
+
+function enforceSecondaryNavigationPolicy() {
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return;
+  }
+
+  secondaryWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (!isDisplayPageUrl(url)) {
+      loadInPrimaryWindow(url);
+    }
+    return { action: 'deny' };
+  });
+
+  secondaryWindow.webContents.on('will-navigate', (event, url) => {
+    if (!isDisplayPageUrl(url)) {
+      event.preventDefault();
+      loadInPrimaryWindow(url);
+      ensureSecondaryDisplayPage().catch((error) => {
+        console.warn('Unable to keep display page on secondary monitor:', error?.message || error);
+      });
+    }
+  });
+}
+
+function enforcePrimaryNavigationPolicy() {
+  if (!primaryWindow || primaryWindow.isDestroyed()) {
+    return;
+  }
+
+  primaryWindow.webContents.setWindowOpenHandler(({ url }) => {
+    loadInPrimaryWindow(url);
+    return { action: 'deny' };
+  });
+}
+
 function getVideoPlayerUrl(videoUrl) {
   const playerUrl = new URL('http://localhost:5500/Bordero/pages/video-player.html');
   playerUrl.searchParams.set('src', videoUrl);
@@ -227,6 +333,7 @@ function createVideoPlayerWindow() {
 
 async function ensureVideoPlayerWindow(videoUrl) {
   await ensureUnifiedServer();
+  await ensureSecondaryDisplayPage();
 
   if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
     videoPlayerWindow = createVideoPlayerWindow();
@@ -277,6 +384,36 @@ ipcMain.handle('bordero-video-player:stop', async () => {
   return { success: true, stopped: true };
 });
 
+ipcMain.handle('bordero-window:open-secondary', async (_event, payload) => {
+  try {
+    await ensureWindows();
+
+    if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+      return { success: false, error: 'Secondary window not available' };
+    }
+
+    const targetUrl = toAbsoluteAppUrl(payload?.path);
+    if (isDisplayPageUrl(targetUrl)) {
+      await secondaryWindow.loadURL(targetUrl);
+      secondaryWindow.setFullScreen(true);
+      secondaryWindow.show();
+      applyWindowLayout();
+      return { success: true, url: targetUrl, target: 'secondary' };
+    }
+
+    const loadedOnPrimary = await loadInPrimaryWindow(targetUrl);
+    await ensureSecondaryDisplayPage();
+    return {
+      success: loadedOnPrimary,
+      url: targetUrl,
+      target: 'primary',
+      redirected: true
+    };
+  } catch (error) {
+    return { success: false, error: error?.message || String(error) };
+  }
+});
+
 ipcMain.on('bordero-video-player:ended', (_event, payload) => {
   BrowserWindow.getAllWindows().forEach((win) => {
     if (!win.isDestroyed()) {
@@ -285,6 +422,9 @@ ipcMain.on('bordero-video-player:ended', (_event, payload) => {
   });
 
   closeVideoPlayerWindow();
+  ensureSecondaryDisplayPage().catch((error) => {
+    console.warn('Unable to restore display page after video ended:', error?.message || error);
+  });
 });
 
 async function ensureWindows() {
@@ -301,9 +441,11 @@ async function ensureWindows() {
       width: 1400,
       height: 900,
       show: false,
-      fullscreen: false
+      fullscreen: true,
+      autoHideMenuBar: true
     });
 
+    primaryWindow.setMenuBarVisibility(false);
     primaryWindow.setVisibleOnAllWorkspaces(false);
     primaryWindow.setAlwaysOnTop(false);
     primaryWindow.once('closed', () => {
@@ -334,6 +476,9 @@ async function ensureWindows() {
     primaryWindow.webContents.on('did-finish-load', () => {
       primaryWindow.show();
     });
+
+    enforcePrimaryNavigationPolicy();
+    enforceSecondaryNavigationPolicy();
 
     applyWindowLayout();
   }

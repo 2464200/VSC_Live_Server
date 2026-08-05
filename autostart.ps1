@@ -41,12 +41,12 @@ function Test-PortListening {
     param([int]$Port)
     try {
         $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-        if ($connections -ne $null -and $connections.Count -gt 0) { return $true }
+        if ($null -ne $connections -and $connections.Count -gt 0) { return $true }
     } catch {
     }
     try {
         $result = & netstat -ano 2>$null | Select-String ":$Port\s" | Select-String "LISTENING"
-        return $result -ne $null
+        return $null -ne $result
     } catch {
         return $false
     }
@@ -72,29 +72,57 @@ function Test-HttpEndpoint {
 function Start-MonitorLaunchers {
     param([string]$RootPath)
 
-    $launchers = @(
-        (Join-Path $RootPath 'open_display_on_secondary.ps1'),
-        (Join-Path $RootPath 'open_bordero_on_primary.ps1')
-    )
+    $electronMain = Join-Path $RootPath 'electron\main.js'
+    $electronCmd = Join-Path $RootPath 'node_modules\.bin\electron.cmd'
+    $monitorPrefs = Join-Path $RootPath 'electron\monitor-preferences.json'
 
-    foreach ($launcher in $launchers) {
-        if (-not (Test-Path $launcher)) {
-            Write-Log "Launcher non trovato: $launcher"
-            continue
-        }
+    if (-not (Test-Path $electronMain)) {
+        Write-Log "AVVISO: Electron main non trovato: $electronMain"
+        return
+    }
 
-        try {
-            Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
-                '-NoProfile',
-                '-ExecutionPolicy',
-                'Bypass',
-                '-File',
-                $launcher
-            ) -WorkingDirectory $RootPath -WindowStyle Hidden | Out-Null
-            Write-Log "Launcher avviato: $(Split-Path $launcher -Leaf)"
-        } catch {
-            Write-Log "Impossibile avviare launcher $launcher: $_"
+    if (-not (Test-Path $electronCmd)) {
+        Write-Log "AVVISO: Electron non installato (manca $electronCmd)."
+        return
+    }
+
+    try {
+        $prefsPayload = @{
+            swapPrimarySecondary = $false
+            updatedAt = (Get-Date).ToString('o')
+            source = 'autostart.ps1'
+        } | ConvertTo-Json
+        [System.IO.File]::WriteAllText($monitorPrefs, $prefsPayload, [System.Text.UTF8Encoding]::new($false))
+        Write-Log "OK Preferenze monitor Electron forzate: principale=bordero, secondario=display"
+    } catch {
+        Write-Log "AVVISO: impossibile aggiornare preferenze monitor Electron: $($_.Exception.Message)"
+    }
+
+    try {
+        $existing = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.Name -match '^electron(\.exe)?$' -and
+                $_.CommandLine -match 'electron[\\/]+main\.js'
+            } |
+            Select-Object -First 1
+
+        if ($existing) {
+            Write-Log "OK Electron dual monitor gia in esecuzione (PID: $($existing.ProcessId))"
+            return
         }
+    } catch {
+        Write-Log "AVVISO: verifica processo Electron non disponibile: $($_.Exception.Message)"
+    }
+
+    try {
+        $proc = Start-ProcessSafe -FilePath $electronCmd -ArgumentList @($electronMain) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
+        if ($proc -ne $null) {
+            Write-Log "OK Electron dual monitor avviato (PID: $($proc.Id))"
+        } else {
+            Write-Log "ERRORE: impossibile avviare Electron dual monitor"
+        }
+    } catch {
+        Write-Log "ERRORE: avvio Electron dual monitor fallito: $($_.Exception.Message)"
     }
 }
 
@@ -119,7 +147,7 @@ if (-not (Test-Path $StartupScript)) {
 }
 
 if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2)) {
-    Write-Log "Unified Server e Sync Server già in esecuzione. Avvio dei launcher monitor."
+    Write-Log "Unified Server e Sync Server già in esecuzione. Avvio Electron dual monitor."
     Start-MonitorLaunchers -RootPath $RootPath
     exit 0
 }
@@ -134,14 +162,13 @@ if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-Http
             '-NoWait'
         ) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
 
-        if ($proc -ne $null) {
+        if ($null -ne $proc) {
             Write-Log "Startup avviato con successo. PID wrapper: $($proc.Id)."
-            Start-MonitorLaunchers -RootPath $RootPath
         } else {
             Write-Log "ERRORE: Start-ProcessSafe non ha restituito un processo valido."
         }
     } catch {
-        Write-Log "ERRORE: impossibile avviare lo startup automatico: $_"
+        Write-Log "ERRORE: impossibile avviare lo startup automatico: $($_.Exception.Message)"
     }
 
 exit 0

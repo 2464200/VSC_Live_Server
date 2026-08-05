@@ -202,7 +202,10 @@ function readElectronMonitorPreferences() {
         if (!fs.existsSync(ELECTRON_MONITOR_PREFERENCES_FILE)) {
             return { swapPrimarySecondary: false };
         }
-        const raw = fs.readFileSync(ELECTRON_MONITOR_PREFERENCES_FILE, 'utf8');
+        const raw = fs.readFileSync(ELECTRON_MONITOR_PREFERENCES_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+        if (!raw) {
+            return { swapPrimarySecondary: false };
+        }
         const parsed = JSON.parse(raw);
         return {
             swapPrimarySecondary: Boolean(parsed && parsed.swapPrimarySecondary)
