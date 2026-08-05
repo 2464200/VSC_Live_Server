@@ -268,6 +268,23 @@
         <button id="btn-launch-electron" class="btn btn-primary" type="button">Avvia Dual Monitor Electron</button>
         <button id="btn-swap-monitors" class="btn btn-secondary" type="button">Inverti Monitor: OFF</button>
       </div>
+
+      <div class="page-shortcuts" style="margin-top: 12px; align-items: center; gap: 8px;">
+        <label for="select-primary-monitor" style="font-weight: 600;">Monitor principale Bordero:</label>
+        <select id="select-primary-monitor" class="input" style="max-width: 180px;">
+          <option value="1">1 (predefinito)</option>
+          <option value="2">2 (scambia monitor)</option>
+        </select>
+        <button id="btn-apply-primary-monitor" class="btn btn-info" type="button">Applica monitor</button>
+      </div>
+
+      <div style="margin-top: 14px; border: 1px solid #d8d8d8; border-radius: 8px; padding: 10px; background: #fafafa;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
+          <strong>Diagnostica Routing Monitor (Electron)</strong>
+          <button id="btn-monitor-policy-clear" class="btn btn-secondary" type="button">Pulisci</button>
+        </div>
+        <div id="monitor-policy-last-route" style="font-size: 13px; line-height: 1.4; color: #333; white-space: pre-wrap;">In attesa del primo routing...</div>
+      </div>
     </section>
 
     <!-- BACK BUTTON -->

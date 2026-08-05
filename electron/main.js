@@ -14,10 +14,28 @@ let serverProcess;
 let ensureUnifiedServerPromise = null;
 let currentSwapMonitors = false;
 let monitorPreferenceWatcher = null;
+let isProgrammaticPrimaryLoad = false;
+let isProgrammaticSecondaryLoad = false;
+let lastMonitorRouteEvent = null;
 
 const MONITOR_PREFERENCES_FILE = path.join(__dirname, 'monitor-preferences.json');
 const DISPLAY_PAGE_PATH = '/Bordero/pages/display.html';
 const PRIMARY_DEFAULT_PAGE_PATH = '/Bordero/pages/bordero.html';
+const PAGE_POLICY = new Map([
+  ['/bordero/pages/admin.html', { primary: true, secondary: false }],
+  ['/bordero/pages/bordero-presentazione.html', { primary: true, secondary: true }],
+  ['/bordero/pages/bordero.html', { primary: true, secondary: false }],
+  ['/bordero/pages/brani-eseguiti.html', { primary: true, secondary: true }],
+  ['/bordero/pages/display.html', { primary: false, secondary: true }],
+  ['/bordero/pages/elenco-richieste.html', { primary: true, secondary: false }],
+  ['/bordero/pages/lista-serata.html', { primary: true, secondary: true }],
+  ['/bordero/pages/location.html', { primary: true, secondary: false }],
+  ['/bordero/pages/next-coreo.html', { primary: true, secondary: true }],
+  ['/bordero/pages/risultati.html', { primary: true, secondary: true }],
+  ['/bordero/pages/video-player.html', { primary: false, secondary: true }],
+  ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
+  ['/eventi/eventi.html', { primary: true, secondary: false }]
+]);
 
 function readMonitorPreferences() {
   try {
@@ -285,13 +303,64 @@ function toAbsoluteAppUrl(pagePath) {
   }
 }
 
-function isDisplayPageUrl(candidateUrl) {
+function tryParseUrl(candidateUrl) {
   try {
-    const parsed = new URL(String(candidateUrl || ''), 'http://localhost:5500');
-    return parsed.pathname.toLowerCase().endsWith(DISPLAY_PAGE_PATH.toLowerCase());
+    return new URL(String(candidateUrl || ''), 'http://localhost:5500');
   } catch (_) {
+    return null;
+  }
+}
+
+function normalizePathname(candidateUrl) {
+  const parsed = tryParseUrl(candidateUrl);
+  if (!parsed) {
+    return '';
+  }
+
+  return String(parsed.pathname || '').toLowerCase();
+}
+
+function isManagedHtmlAppUrl(candidateUrl) {
+  const parsed = tryParseUrl(candidateUrl);
+  if (!parsed) {
     return false;
   }
+
+  const host = (parsed.hostname || '').toLowerCase();
+  if (host && host !== 'localhost' && host !== '127.0.0.1') {
+    return false;
+  }
+
+  return normalizePathname(parsed.toString()).endsWith('.html');
+}
+
+function getMonitorPolicyForUrl(candidateUrl) {
+  const normalizedPath = normalizePathname(candidateUrl);
+  if (PAGE_POLICY.has(normalizedPath)) {
+    return PAGE_POLICY.get(normalizedPath);
+  }
+
+  // Default prudente: pagine non mappate sul monitor principale.
+  return { primary: true, secondary: false };
+}
+
+function broadcastMonitorPolicyRouteEvent(payload = {}) {
+  const eventPayload = {
+    timestamp: new Date().toISOString(),
+    ...payload
+  };
+
+  lastMonitorRouteEvent = eventPayload;
+
+  BrowserWindow.getAllWindows().forEach((win) => {
+    if (!win.isDestroyed()) {
+      win.webContents.send('bordero-monitor-policy:routed', eventPayload);
+    }
+  });
+}
+
+function isDisplayPageUrl(candidateUrl) {
+  return normalizePathname(candidateUrl).endsWith(DISPLAY_PAGE_PATH.toLowerCase());
 }
 
 function getPrimaryDefaultUrl() {
@@ -308,6 +377,7 @@ async function loadInPrimaryWindow(url) {
   }
 
   try {
+    isProgrammaticPrimaryLoad = true;
     await primaryWindow.loadURL(url || getPrimaryDefaultUrl());
     primaryWindow.setFullScreen(true);
     primaryWindow.show();
@@ -317,6 +387,33 @@ async function loadInPrimaryWindow(url) {
   } catch (error) {
     console.warn('Unable to load URL in primary window:', error?.message || error);
     return false;
+  } finally {
+    isProgrammaticPrimaryLoad = false;
+  }
+}
+
+async function loadInSecondaryWindow(url) {
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    await ensureWindows();
+  }
+
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return false;
+  }
+
+  try {
+    isProgrammaticSecondaryLoad = true;
+    await secondaryWindow.loadURL(url || `http://localhost:5500${DISPLAY_PAGE_PATH}`);
+    secondaryWindow.setFullScreen(true);
+    secondaryWindow.show();
+    secondaryWindow.focus();
+    applyWindowLayout();
+    return true;
+  } catch (error) {
+    console.warn('Unable to load URL in secondary window:', error?.message || error);
+    return false;
+  } finally {
+    isProgrammaticSecondaryLoad = false;
   }
 }
 
@@ -340,26 +437,77 @@ async function ensureSecondaryDisplayPage() {
   return true;
 }
 
+async function routeUrlByPolicy(targetUrl, source = 'unknown') {
+  await ensureWindows();
+
+  const absoluteTargetUrl = toAbsoluteAppUrl(targetUrl);
+  const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
+
+  const result = {
+    url: absoluteTargetUrl,
+    source,
+    policy,
+    primaryUpdated: false,
+    secondaryUpdated: false
+  };
+
+  if (policy.primary) {
+    result.primaryUpdated = await loadInPrimaryWindow(absoluteTargetUrl);
+  }
+
+  if (policy.secondary) {
+    result.secondaryUpdated = await loadInSecondaryWindow(absoluteTargetUrl);
+  } else {
+    result.secondaryUpdated = await ensureSecondaryDisplayPage();
+  }
+
+  broadcastMonitorPolicyRouteEvent({
+    source,
+    url: absoluteTargetUrl,
+    path: normalizePathname(absoluteTargetUrl),
+    policy,
+    primaryUpdated: Boolean(result.primaryUpdated),
+    secondaryUpdated: Boolean(result.secondaryUpdated),
+    swapPrimarySecondary: Boolean(currentSwapMonitors)
+  });
+
+  return result;
+}
+
 function enforceSecondaryNavigationPolicy() {
   if (!secondaryWindow || secondaryWindow.isDestroyed()) {
     return;
   }
 
   secondaryWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (!isDisplayPageUrl(url)) {
-      loadInPrimaryWindow(url);
+    if (!isManagedHtmlAppUrl(url)) {
+      return { action: 'allow' };
     }
+
+    routeUrlByPolicy(url, 'secondary-window-open').catch((error) => {
+      console.warn('Unable to route secondary window.open URL by policy:', error?.message || error);
+    });
     return { action: 'deny' };
   });
 
   secondaryWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isDisplayPageUrl(url)) {
-      event.preventDefault();
-      loadInPrimaryWindow(url);
-      ensureSecondaryDisplayPage().catch((error) => {
-        console.warn('Unable to keep display page on secondary monitor:', error?.message || error);
-      });
+    if (isProgrammaticSecondaryLoad) {
+      return;
     }
+
+    if (!isManagedHtmlAppUrl(url)) {
+      return;
+    }
+
+    const policy = getMonitorPolicyForUrl(url);
+    if (policy.secondary && !policy.primary) {
+      return;
+    }
+
+    event.preventDefault();
+    routeUrlByPolicy(url, 'secondary-will-navigate').catch((error) => {
+      console.warn('Unable to route secondary navigation by policy:', error?.message || error);
+    });
   });
 }
 
@@ -369,8 +517,37 @@ function enforcePrimaryNavigationPolicy() {
   }
 
   primaryWindow.webContents.setWindowOpenHandler(({ url }) => {
-    loadInPrimaryWindow(url);
+    if (!isManagedHtmlAppUrl(url)) {
+      return { action: 'allow' };
+    }
+
+    routeUrlByPolicy(url, 'primary-window-open').catch((error) => {
+      console.warn('Unable to route primary window.open URL by policy:', error?.message || error);
+    });
     return { action: 'deny' };
+  });
+
+  primaryWindow.webContents.on('will-navigate', (event, url) => {
+    if (isProgrammaticPrimaryLoad) {
+      return;
+    }
+
+    if (!isManagedHtmlAppUrl(url)) {
+      return;
+    }
+
+    const policy = getMonitorPolicyForUrl(url);
+    if (policy.primary && !policy.secondary) {
+      ensureSecondaryDisplayPage().catch((error) => {
+        console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
+      });
+      return;
+    }
+
+    event.preventDefault();
+    routeUrlByPolicy(url, 'primary-will-navigate').catch((error) => {
+      console.warn('Unable to route primary navigation by policy:', error?.message || error);
+    });
   });
 }
 
@@ -484,28 +661,14 @@ ipcMain.handle('bordero-video-player:stop', async () => {
 
 ipcMain.handle('bordero-window:open-secondary', async (_event, payload) => {
   try {
-    await ensureWindows();
-
-    if (!secondaryWindow || secondaryWindow.isDestroyed()) {
-      return { success: false, error: 'Secondary window not available' };
-    }
-
     const targetUrl = toAbsoluteAppUrl(payload?.path);
-    if (isDisplayPageUrl(targetUrl)) {
-      await secondaryWindow.loadURL(targetUrl);
-      secondaryWindow.setFullScreen(true);
-      secondaryWindow.show();
-      applyWindowLayout();
-      return { success: true, url: targetUrl, target: 'secondary' };
-    }
-
-    const loadedOnPrimary = await loadInPrimaryWindow(targetUrl);
-    await ensureSecondaryDisplayPage();
+    const routeResult = await routeUrlByPolicy(targetUrl, 'ipc-open-secondary');
     return {
-      success: loadedOnPrimary,
+      success: Boolean(routeResult.primaryUpdated || routeResult.secondaryUpdated),
       url: targetUrl,
-      target: 'primary',
-      redirected: true
+      policy: routeResult.policy,
+      primaryUpdated: routeResult.primaryUpdated,
+      secondaryUpdated: routeResult.secondaryUpdated
     };
   } catch (error) {
     return { success: false, error: error?.message || String(error) };
@@ -523,6 +686,13 @@ ipcMain.on('bordero-video-player:ended', (_event, payload) => {
   ensureSecondaryDisplayPage().catch((error) => {
     console.warn('Unable to restore display page after video ended:', error?.message || error);
   });
+});
+
+ipcMain.handle('bordero-monitor-policy:last-event', async () => {
+  return {
+    ok: true,
+    event: lastMonitorRouteEvent
+  };
 });
 
 async function ensureWindows() {

@@ -27,6 +27,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   windowManager: {
     openSecondaryPage: (payload) => ipcRenderer.invoke('bordero-window:open-secondary', payload)
   },
+  monitorPolicy: {
+    getLastRoute: () => ipcRenderer.invoke('bordero-monitor-policy:last-event'),
+    onRouted: (callback) => createSubscription('bordero-monitor-policy:routed', callback)
+  },
   videoPlayer: {
     play: (payload) => ipcRenderer.invoke('bordero-video-player:play', payload),
     pause: () => ipcRenderer.invoke('bordero-video-player:pause'),

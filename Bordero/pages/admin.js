@@ -20,7 +20,59 @@ class AdminPanel {
     this.setupDjManagement();
     this.setupConsole();
     this.setupElectronLauncher();
+    this.setupMonitorPolicyDiagnostics();
     this.log('✓ Admin Panel initialized', 'success');
+  }
+
+  setupMonitorPolicyDiagnostics() {
+    const output = document.getElementById('monitor-policy-last-route');
+    const clearBtn = document.getElementById('btn-monitor-policy-clear');
+
+    if (!output) return;
+
+    const render = (eventPayload) => {
+      if (!eventPayload) {
+        output.textContent = 'In attesa del primo routing...';
+        return;
+      }
+
+      const policyPrimary = eventPayload?.policy?.primary ? 'SI' : 'NO';
+      const policySecondary = eventPayload?.policy?.secondary ? 'SI' : 'NO';
+      const primaryUpdated = eventPayload?.primaryUpdated ? 'SI' : 'NO';
+      const secondaryUpdated = eventPayload?.secondaryUpdated ? 'SI' : 'NO';
+      const swap = eventPayload?.swapPrimarySecondary ? 'ON' : 'OFF';
+
+      output.textContent = [
+        `Ora: ${eventPayload?.timestamp || '-'}`,
+        `Origine: ${eventPayload?.source || '-'}`,
+        `Pagina: ${eventPayload?.path || eventPayload?.url || '-'}`,
+        `Policy tabella -> Principale: ${policyPrimary} | Secondario: ${policySecondary}`,
+        `Aggiornamento effettivo -> Principale: ${primaryUpdated} | Secondario: ${secondaryUpdated}`,
+        `Swap monitor: ${swap}`
+      ].join('\n');
+    };
+
+    clearBtn?.addEventListener('click', () => {
+      render(null);
+    });
+
+    const monitorPolicyBridge = window.electronAPI?.monitorPolicy;
+    if (!monitorPolicyBridge) {
+      output.textContent = 'Diagnostica live disponibile solo in runtime Electron.';
+      return;
+    }
+
+    monitorPolicyBridge.getLastRoute()
+      .then((payload) => {
+        render(payload?.event || null);
+      })
+      .catch((error) => {
+        output.textContent = `Impossibile leggere ultimo routing: ${error?.message || error}`;
+      });
+
+    monitorPolicyBridge.onRouted((eventPayload) => {
+      render(eventPayload || null);
+    });
   }
 
   getDisplayScrollDefaults() {
@@ -917,7 +969,9 @@ class AdminPanel {
   setupElectronLauncher() {
     const launchBtn = document.getElementById('btn-launch-electron');
     const swapBtn = document.getElementById('btn-swap-monitors');
-    if (!launchBtn && !swapBtn) return;
+    const primaryMonitorSelect = document.getElementById('select-primary-monitor');
+    const applyPrimaryMonitorBtn = document.getElementById('btn-apply-primary-monitor');
+    if (!launchBtn && !swapBtn && !primaryMonitorSelect && !applyPrimaryMonitorBtn) return;
 
     const updateSwapButton = (enabled) => {
       if (!swapBtn) return;
@@ -926,8 +980,19 @@ class AdminPanel {
       swapBtn.classList.toggle('btn-secondary', !enabled);
     };
 
+    const updatePrimaryMonitorSelect = (payload) => {
+      if (!primaryMonitorSelect) return;
+
+      const explicitChoice = Number(payload?.primaryMonitorChoice);
+      const resolvedChoice = explicitChoice === 1 || explicitChoice === 2
+        ? explicitChoice
+        : (Boolean(payload?.swapPrimarySecondary) ? 2 : 1);
+
+      primaryMonitorSelect.value = String(resolvedChoice);
+    };
+
     const loadSwapStatus = async () => {
-      if (!swapBtn) return;
+      if (!swapBtn && !primaryMonitorSelect) return;
       try {
         const response = await fetch('/api/electron/monitor-preferences', {
           method: 'GET',
@@ -938,6 +1003,7 @@ class AdminPanel {
         }
         const payload = await response.json();
         updateSwapButton(Boolean(payload.swapPrimarySecondary));
+        updatePrimaryMonitorSelect(payload);
       } catch (error) {
         this.log(`Impossibile leggere stato swap monitor: ${error?.message || error}`, 'warn');
       }
@@ -958,8 +1024,6 @@ class AdminPanel {
     }
 
     if (swapBtn) {
-      loadSwapStatus();
-
       swapBtn.addEventListener('click', async () => {
         swapBtn.disabled = true;
         try {
@@ -978,6 +1042,7 @@ class AdminPanel {
           const payload = await response.json();
           const isEnabled = Boolean(payload.swapPrimarySecondary);
           updateSwapButton(isEnabled);
+          updatePrimaryMonitorSelect(payload);
           this.log(`Swap monitor ${isEnabled ? 'attivato' : 'disattivato'}: applicazione Electron aggiornata`, 'success');
           Toast.success(`Swap monitor ${isEnabled ? 'ON' : 'OFF'}`);
         } catch (error) {
@@ -988,6 +1053,46 @@ class AdminPanel {
         }
       });
     }
+
+    if (applyPrimaryMonitorBtn && primaryMonitorSelect) {
+      applyPrimaryMonitorBtn.addEventListener('click', async () => {
+        applyPrimaryMonitorBtn.disabled = true;
+        primaryMonitorSelect.disabled = true;
+
+        try {
+          const requestedChoice = Number(primaryMonitorSelect.value) === 2 ? 2 : 1;
+          const shouldSwap = requestedChoice === 2;
+
+          const response = await fetch('/api/electron/swap-monitors', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              swapPrimarySecondary: shouldSwap
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const payload = await response.json();
+          updateSwapButton(Boolean(payload.swapPrimarySecondary));
+          updatePrimaryMonitorSelect(payload);
+          this.log(`Monitor principale impostato su ${requestedChoice}: applicazione Electron aggiornata`, 'success');
+          Toast.success(`Monitor principale ${requestedChoice} applicato`);
+        } catch (error) {
+          this.log(`Errore impostazione monitor principale: ${error?.message || error}`, 'error');
+          Toast.error('Impossibile impostare il monitor principale');
+        } finally {
+          applyPrimaryMonitorBtn.disabled = false;
+          primaryMonitorSelect.disabled = false;
+        }
+      });
+    }
+
+    loadSwapStatus();
   }
 
   /* ========== CONSOLE ========== */
