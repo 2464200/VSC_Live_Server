@@ -128,6 +128,7 @@ function Start-MonitorLaunchers {
     $electronMain = Join-Path $RootPath 'electron\main.js'
     $electronCmd = Join-Path $RootPath 'node_modules\.bin\electron.cmd'
     $monitorPrefs = Join-Path $RootPath 'electron\monitor-preferences.json'
+    $electronMainPattern = [Regex]::Escape($electronMain)
 
     if (-not (Test-Path $electronMain)) {
         Write-Host "AVVISO: Electron main non trovato: $electronMain" -ForegroundColor Yellow
@@ -155,7 +156,7 @@ function Start-MonitorLaunchers {
         $existing = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
             Where-Object {
                 $_.Name -match '^electron(\.exe)?$' -and
-                $_.CommandLine -match 'electron[\\/]+main\.js'
+                $_.CommandLine -match $electronMainPattern
             } |
             Select-Object -First 1
 
