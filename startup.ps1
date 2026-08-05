@@ -125,29 +125,63 @@ function Save-Pids {
 function Start-MonitorLaunchers {
     param([string]$RootPath)
 
-    $launchers = @(
-        (Join-Path $RootPath 'open_display_on_secondary.ps1'),
-        (Join-Path $RootPath 'open_bordero_on_primary.ps1')
-    )
+    $electronMain = Join-Path $RootPath 'electron\main.js'
+    $electronCmd = Join-Path $RootPath 'node_modules\.bin\electron.cmd'
+    $monitorPrefs = Join-Path $RootPath 'electron\monitor-preferences.json'
 
-    foreach ($launcher in $launchers) {
-        if (-not (Test-Path $launcher)) {
-            Write-Host "AVVISO: launcher non trovato: $launcher" -ForegroundColor Yellow
-            continue
+    if (-not (Test-Path $electronMain)) {
+        Write-Host "AVVISO: Electron main non trovato: $electronMain" -ForegroundColor Yellow
+        return $null
+    }
+
+    if (-not (Test-Path $electronCmd)) {
+        Write-Host "AVVISO: Electron non installato (manca $electronCmd). Eseguire npm install." -ForegroundColor Yellow
+        return $null
+    }
+
+    try {
+        $prefsPayload = @{
+            swapPrimarySecondary = $false
+            updatedAt = (Get-Date).ToString('o')
+            source = 'startup.ps1'
+        } | ConvertTo-Json
+        $prefsPayload | Set-Content -Path $monitorPrefs -Encoding UTF8
+        Write-Host "OK Preferenze monitor Electron forzate: principale=bordero, secondario=display"
+    } catch {
+        Write-Host "AVVISO: impossibile aggiornare le preferenze monitor Electron - $_" -ForegroundColor Yellow
+    }
+
+    try {
+        $existing = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.Name -match '^electron(\.exe)?$' -and
+                $_.CommandLine -match 'electron[\\/]+main\.js'
+            } |
+            Select-Object -First 1
+
+        if ($existing) {
+            Write-Host "OK Electron dual monitor gia in esecuzione (PID: $($existing.ProcessId))"
+            return [int]$existing.ProcessId
+        }
+    } catch {
+        Write-Host "AVVISO: verifica processo Electron non disponibile, provo avvio diretto" -ForegroundColor Yellow
+    }
+
+    Write-Host "Avvio Electron dual monitor..."
+    try {
+        $proc = Start-ProcessSafe -FilePath $electronCmd -ArgumentList @($electronMain) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
+        if (-not $proc) {
+            Write-Host "AVVISO: impossibile avviare Electron dual monitor" -ForegroundColor Yellow
+            return $null
         }
 
-        try {
-            Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
-                '-NoProfile',
-                '-ExecutionPolicy',
-                'Bypass',
-                '-File',
-                $launcher
-            ) -WorkingDirectory $RootPath -WindowStyle Hidden | Out-Null
-            Write-Host "OK launcher avviato: $(Split-Path $launcher -Leaf)"
-        } catch {
-            Write-Host "AVVISO: impossibile avviare $launcher - $_" -ForegroundColor Yellow
-        }
+        Write-Host "OK Electron dual monitor avviato (PID: $($proc.Id))"
+        Write-Host "  - Monitor principale: /Bordero/pages/bordero.html"
+        Write-Host "  - Monitor secondario: /Bordero/pages/display.html"
+        return $proc.Id
+    } catch {
+        Write-Host "AVVISO: errore avvio Electron dual monitor - $_" -ForegroundColor Yellow
+        return $null
     }
 }
 
@@ -370,9 +404,10 @@ if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-Http
     Write-Host "  Mobile:      http://localhost:$($UnifiedPort)/public/mobile1.html"
     Write-Host ""
     try {
-        Start-MonitorLaunchers -RootPath $RootPath
+        $electronPid = Start-MonitorLaunchers -RootPath $RootPath
+        if ($electronPid) { $startedPids += [int]$electronPid; Save-Pids -Pids $startedPids }
     } catch {
-        Write-Host "AVVISO: impossibile avviare i launcher monitor - $_" -ForegroundColor Yellow
+        Write-Host "AVVISO: impossibile avviare Electron dual monitor - $_" -ForegroundColor Yellow
     }
     exit 0
 }
@@ -404,9 +439,10 @@ Write-Host "        SISTEMA COMPLETAMENTE OPERATIVO"
 Write-Host "========================================================"
 Write-Host ""
 try {
-    Start-MonitorLaunchers -RootPath $RootPath
+    $electronPid = Start-MonitorLaunchers -RootPath $RootPath
+    if ($electronPid) { $startedPids += [int]$electronPid; Save-Pids -Pids $startedPids }
 } catch {
-    Write-Host "AVVISO: impossibile avviare i launcher monitor - $_" -ForegroundColor Yellow
+    Write-Host "AVVISO: impossibile avviare Electron dual monitor - $_" -ForegroundColor Yellow
 }
 Write-Host "URL per accesso:"
 Write-Host "  Homepage:    http://localhost:$($UnifiedPort)/index.html"
