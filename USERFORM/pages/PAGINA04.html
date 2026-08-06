@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA04</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina04-actions.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1 id="form-name">PAGINA04</h1>
+        <p class="subtitle">Hub display/mobile/service con layout operativo VBA-like</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h2>Metadati VBA</h2>
+        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA04</strong></p>
+        <p class="meta">Caption: <strong id="form-caption">-</strong></p>
+        <p class="meta">Client size: <strong id="form-size">-</strong></p>
+        <div class="route-group">
+          <span class="route-pill">43/44/47/60/61/62 -> display links</span>
+          <span class="route-pill">45/46/48/49 -> public/mobile links</span>
+          <span class="route-pill">661 -> ScriptPDF1 legacy port</span>
+          <span class="route-pill">31/41 -> torna a indice</span>
+          <span class="route-pill">32/42/65 -> chiudi</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Display e NextCoreo</h2>
+        <div class="hub-grid">
+          <article class="hub-item"><h4>CommandButton43</h4><button class="btn btn-block" data-open="/index0.html" type="button">Apri index0</button></article>
+          <article class="hub-item"><h4>CommandButton44</h4><button class="btn btn-block" data-open="/NextCoreo1.html" type="button">Apri NextCoreo1</button></article>
+          <article class="hub-item"><h4>CommandButton47</h4><button class="btn btn-block" data-open="/NextCoreo2.html" type="button">Apri NextCoreo2</button></article>
+          <article class="hub-item"><h4>CommandButton60</h4><button class="btn btn-block" data-open="/index1.html" type="button">Apri index1</button></article>
+          <article class="hub-item"><h4>CommandButton61</h4><button class="btn btn-block" data-open="/index2.html" type="button">Apri index2</button></article>
+          <article class="hub-item"><h4>CommandButton62</h4><button class="btn btn-block" data-open="/servizio.html" type="button">Apri servizio</button></article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Public e Mobile</h2>
+        <div class="hub-grid">
+          <article class="hub-item"><h4>CommandButton45</h4><button class="btn btn-block" data-open="/public/index.html" type="button">Apri public/index</button></article>
+          <article class="hub-item"><h4>CommandButton46</h4><button class="btn btn-block" data-open="/public/mobile.html" type="button">Apri public/mobile</button></article>
+          <article class="hub-item"><h4>CommandButton48</h4><button class="btn btn-block" data-open="/public/mobile1.html" type="button">Apri public/mobile1</button></article>
+          <article class="hub-item"><h4>CommandButton49</h4><button class="btn btn-block" data-open="/public/mobile2.html" type="button">Apri public/mobile2</button></article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>PDF e Utility</h2>
+        <div class="control-toolbar">
+          <button class="btn" id="btn-open-pdf-legacy" type="button">CommandButton661: Apri ScriptPDF1 (legacy 8765)</button>
+          <button class="btn btn-secondary" id="btn-prev-file" type="button">CommandButton63: File precedente</button>
+          <button class="btn btn-secondary" id="btn-next-file" type="button">CommandButton64: File successivo</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione Form</h2>
+        <div class="control-toolbar">
+          <a class="btn" href="INDICE.html">CommandButton31/41: Torna a INDICE</a>
+          <button class="btn btn-secondary" id="btn-close-pagina04" type="button">CommandButton32/42: Chiudi form</button>
+          <button class="btn btn-danger" id="btn-close-acrobat" type="button">CommandButton65: Chiudi e torna</button>
+        </div>
+        <div id="pagina04-status" class="status-box" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione sequenziale</h2>
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

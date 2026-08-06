@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA10</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina10-actions.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1 id="form-name">PAGINA10</h1>
+        <p class="subtitle">Controllo DASH + UI Timer (porting operativo)</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h2>Metadati VBA</h2>
+        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA10</strong></p>
+        <p class="meta">Caption: <strong id="form-caption">-</strong></p>
+        <p class="meta">Client size: <strong id="form-size">-</strong></p>
+        <div class="route-group">
+          <span class="route-pill">33 -> AvviaDashLoop</span>
+          <span class="route-pill">34 -> FermaDashLoop</span>
+          <span class="route-pill">cmdStartUI/cmdStopUI</span>
+          <span class="route-pill">UserForm_Initialize -> StartTextBoxTimer</span>
+          <span class="route-pill">UserForm_Terminate -> stop all</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Controllo DASH (AutoHotkey)</h2>
+        <div class="control-toolbar">
+          <button id="btn-dash-start" class="btn" type="button">CommandButton33: START DASH</button>
+          <button id="btn-dash-stop" class="btn btn-secondary" type="button">CommandButton34: STOP DASH</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Controllo UI TextBox Timer</h2>
+        <div class="form-layout">
+          <div class="control-box">
+            <div class="control-toolbar">
+              <button id="btn-ui-start" class="btn" type="button">cmdStartUI: START</button>
+              <button id="btn-ui-stop" class="btn btn-secondary" type="button">cmdStopUI: STOP</button>
+            </div>
+            <p class="hint">In VBA il timer UI parte anche automaticamente all'apertura.</p>
+          </div>
+          <div class="control-box">
+            <h3>Simulazione UI</h3>
+            <input id="dash-textbox" class="field-input" type="text" readonly value="UI timer in attesa..." />
+            <div class="metric-row">
+              <span id="chip-dash-state" class="metric-chip">DASH: OFF</span>
+              <span id="chip-ui-state" class="metric-chip">UI TIMER: ON (auto)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione Form</h2>
+        <div class="control-toolbar">
+          <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+          <button id="btn-close-pagina10" class="btn btn-secondary" type="button">CommandButton32: Chiudi form</button>
+        </div>
+        <div id="pagina10-status" class="status-box" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione sequenziale</h2>
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

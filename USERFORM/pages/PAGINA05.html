@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA05</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina05-actions.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1 id="form-name">PAGINA05</h1>
+        <p class="subtitle">Camera recorder hub (FFmpeg/VLC) in layout VBA-like</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h2>Metadati VBA</h2>
+        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA05</strong></p>
+        <p class="meta">Caption: <strong id="form-caption">-</strong></p>
+        <p class="meta">Client size: <strong id="form-size">-</strong></p>
+        <div class="route-group">
+          <span class="route-pill">1/2 -> Start/Stop Recording</span>
+          <span class="route-pill">3 -> Converti + Play VLC</span>
+          <span class="route-pill">4/5 -> VLC live on/off</span>
+          <span class="route-pill">ComboBox2 -> profilo camera da dBase</span>
+          <span class="route-pill">14 -> AutoTestTools</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Selezione Camera e Profilo</h2>
+        <div class="form-layout">
+          <div class="control-box">
+            <label class="field-label" for="camera-name-05">ComboBox2: Fotocamera</label>
+            <select id="camera-name-05" class="field-select"></select>
+            <div class="metric-row">
+              <span id="cam-codec-chip" class="metric-chip">Codec: -</span>
+              <span id="cam-size-chip" class="metric-chip">Size: -</span>
+              <span id="cam-fps-chip" class="metric-chip">FPS: -</span>
+            </div>
+            <p class="hint">Replica lookup camera da dBase A137:D147 con fallback profili.</p>
+          </div>
+          <div class="control-box">
+            <h3>Stato Live VLC</h3>
+            <div class="metric-row">
+              <span id="vlc-state-chip" class="metric-chip">VLC: OFF</span>
+              <span id="rec-state-chip-05" class="metric-chip">REC: OFF</span>
+            </div>
+            <div class="control-toolbar">
+              <button id="btn-vlc-start" class="btn" type="button">CommandButton4: Avvia VLC Live</button>
+              <button id="btn-vlc-stop" class="btn btn-secondary" type="button">CommandButton5: Ferma VLC Live</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Registrazione FFmpeg</h2>
+        <div class="control-toolbar">
+          <button id="btn-rec-start-05" class="btn" type="button">CommandButton1: AVVIA registrazione</button>
+          <button id="btn-rec-stop-05" class="btn btn-secondary" type="button">CommandButton2: FERMA registrazione</button>
+          <button id="btn-autotest-tools" class="btn" type="button">CommandButton14: AutoTestTools</button>
+        </div>
+        <p class="panel-note tiny">La conversione video e il kill process sono simulati in web, mantenendo il flusso dei pulsanti VBA.</p>
+      </section>
+
+      <section class="panel">
+        <h2>File Registrati e Conversione</h2>
+        <div class="form-layout">
+          <div class="control-box">
+            <label class="field-label" for="recording-list-05">ComboBox1: file .mkv</label>
+            <select id="recording-list-05" class="field-select"></select>
+            <p class="hint">Elenco equivalente a UpdateFileList.</p>
+          </div>
+          <div class="control-box">
+            <h3>Conversione e playback</h3>
+            <button id="btn-convert-play-05" class="btn btn-block" type="button">CommandButton3: Converti MP4 + Play VLC</button>
+            <p class="tiny panel-note">Output previsto: converted_nomefile.mp4.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione Form</h2>
+        <div class="control-toolbar">
+          <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+          <button id="btn-close-pagina05" class="btn btn-secondary" type="button">CommandButton32: Chiudi form</button>
+        </div>
+        <div id="pagina05-status" class="status-box" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione sequenziale</h2>
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

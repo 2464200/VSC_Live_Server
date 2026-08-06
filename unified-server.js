@@ -15,6 +15,7 @@ const fs = require('fs');
 const { spawn, execFile } = require('child_process');
 const net = require('net');
 const os = require('os');
+const { parse: parseCsv } = require('csv-parse/sync');
 const QRCodeLib = require('qrcode');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
@@ -25,6 +26,14 @@ let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5
 const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
 const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
+const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
+const USERFORM_RECORDINGS_DIR = process.env.USERFORM_RECORDINGS_DIR || path.join(os.homedir(), 'Videos', 'VSC_Webcam');
+const LEGACY_RECORDINGS_DIR = 'C:\\vsc_webcam';
+const USERFORM_FFMPEG_CANDIDATES = [
+    process.env.FFMPEG_PATH,
+    'C:/FFMPEG/bin/ffmpeg.exe',
+    'C:/ffmpeg/bin/ffmpeg.exe'
+].filter(Boolean);
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
 const BORDERO_GOOGLE_SYNC_INTERVAL_MS = parseBorderoGoogleSyncIntervalMs(process.env);
 
@@ -58,6 +67,9 @@ let vlcLastCompletionEvent = {
 let borderoGoogleSyncTimer = null;
 let borderoGoogleSyncPromise = null;
 let borderoGoogleSyncSchedulerStarted = false;
+let userformRecordingProcess = null;
+let userformRecordingFilePath = '';
+let userformLiveVlcProcess = null;
 const borderoGoogleSyncState = {
     enabled: BORDERO_GOOGLE_SYNC_ENABLED,
     intervalMs: BORDERO_GOOGLE_SYNC_INTERVAL_MS,
@@ -513,6 +525,183 @@ function resolveVlcExecutable() {
     }
 
     return candidates[0] || '';
+}
+
+function ensureUserformRecordingDir() {
+    if (!fs.existsSync(USERFORM_RECORDINGS_DIR)) {
+        fs.mkdirSync(USERFORM_RECORDINGS_DIR, { recursive: true });
+    }
+    return USERFORM_RECORDINGS_DIR;
+}
+
+function resolveFfmpegExecutable() {
+    for (const candidate of USERFORM_FFMPEG_CANDIDATES) {
+        const normalized = String(candidate || '').trim();
+        if (normalized && fs.existsSync(normalized)) {
+            return normalized;
+        }
+    }
+    return '';
+}
+
+function sanitizeCsvValue(value) {
+    return String(value ?? '').replace(/^\uFEFF/, '').trim();
+}
+
+function loadUserformCameraProfiles() {
+    if (!fs.existsSync(USERFORM_CAMERA_CSV)) {
+        return [];
+    }
+
+    const raw = fs.readFileSync(USERFORM_CAMERA_CSV, 'utf8').replace(/^\uFEFF/, '');
+    const rows = parseCsv(raw, {
+        columns: true,
+        skip_empty_lines: true,
+        relax_column_count: true,
+        trim: true
+    });
+
+    return rows
+        .map((row) => {
+            const name = sanitizeCsvValue(row.value || row.Value);
+            const codec = sanitizeCsvValue(row.Codifica || row.codifica);
+            const size = sanitizeCsvValue(row['dshow-size'] || row.dshowSize || row.size);
+            const fps = sanitizeCsvValue(row['dshow-fps'] || row.dshowFps || row.fps);
+            const label = sanitizeCsvValue(row['ELENCO WEBCAM'] || row.label || row.descrizione);
+
+            if (!name) {
+                return null;
+            }
+
+            return {
+                name,
+                codec,
+                size,
+                fps,
+                label
+            };
+        })
+        .filter(Boolean);
+}
+
+function listUserformRecordingFiles(extensions = ['.mkv']) {
+    const folders = [USERFORM_RECORDINGS_DIR, LEGACY_RECORDINGS_DIR]
+        .map((folder) => path.resolve(folder))
+        .filter((folder, index, all) => folder && all.indexOf(folder) === index && fs.existsSync(folder));
+
+    const allowed = new Set(extensions.map((ext) => String(ext || '').toLowerCase()));
+    const files = [];
+
+    for (const folder of folders) {
+        const entries = fs.readdirSync(folder, { withFileTypes: true });
+        for (const entry of entries) {
+            if (!entry.isFile()) continue;
+            const ext = path.extname(entry.name).toLowerCase();
+            if (!allowed.has(ext)) continue;
+
+            const fullPath = path.join(folder, entry.name);
+            const stats = fs.statSync(fullPath);
+            files.push({
+                name: entry.name,
+                path: fullPath,
+                sizeBytes: stats.size,
+                mtimeMs: stats.mtimeMs
+            });
+        }
+    }
+
+    files.sort((a, b) => b.mtimeMs - a.mtimeMs);
+    return files;
+}
+
+function getUserformRecordingState() {
+    const alive = Boolean(userformRecordingProcess?.pid);
+    return {
+        recording: alive,
+        pid: alive ? userformRecordingProcess.pid : null,
+        filePath: userformRecordingFilePath || ''
+    };
+}
+
+async function stopUserformRecordingIfRunning() {
+    if (!userformRecordingProcess?.pid) {
+        userformRecordingProcess = null;
+        userformRecordingFilePath = '';
+        return { stopped: false };
+    }
+
+    const pid = userformRecordingProcess.pid;
+    try {
+        await execFileAsync('taskkill', ['/PID', String(pid), '/T', '/F']);
+    } catch (error) {
+        const stderr = String(error?.stderr || '').toLowerCase();
+        if (!stderr.includes('not found') && !stderr.includes('nessun processo')) {
+            throw error;
+        }
+    }
+
+    userformRecordingProcess = null;
+    userformRecordingFilePath = '';
+    return { stopped: true, pid };
+}
+
+function buildCameraCaptureArgs(profile = {}, outputFilePath = '') {
+    const cameraName = sanitizeCsvValue(profile.name);
+    const size = sanitizeCsvValue(profile.size) || '640x480';
+    const fps = sanitizeCsvValue(profile.fps) || '30';
+    const codec = sanitizeCsvValue(profile.codec);
+
+    const args = ['-y', '-f', 'dshow', '-rtbufsize', '64M', '-video_size', size, '-framerate', fps];
+    if (codec) {
+        args.push('-pixel_format', codec);
+    }
+    args.push('-i', `video=${cameraName}`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', outputFilePath);
+    return args;
+}
+
+function buildConvertToMp4Args(inputFilePath = '', outputFilePath = '') {
+    return ['-y', '-i', inputFilePath, '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-c:a', 'aac', '-b:a', '128k', outputFilePath];
+}
+
+function spawnDetachedProcess(executablePath, args = []) {
+    const child = spawn(executablePath, args, { detached: true, stdio: 'ignore', windowsHide: true });
+    child.unref();
+    return child;
+}
+
+function getUserformLiveVlcState() {
+    const pid = Number(userformLiveVlcProcess?.pid || 0);
+    if (!pid) {
+        return { alive: false, pid: null };
+    }
+
+    try {
+        process.kill(pid, 0);
+        return { alive: true, pid };
+    } catch (_) {
+        userformLiveVlcProcess = null;
+        return { alive: false, pid: null };
+    }
+}
+
+async function stopUserformLiveVlc() {
+    const state = getUserformLiveVlcState();
+    if (!state.alive || !state.pid) {
+        userformLiveVlcProcess = null;
+        return { stopped: false };
+    }
+
+    try {
+        await execFileAsync('taskkill', ['/PID', String(state.pid), '/T', '/F']);
+    } catch (error) {
+        const stderr = String(error?.stderr || '').toLowerCase();
+        if (!stderr.includes('not found') && !stderr.includes('nessun processo')) {
+            throw error;
+        }
+    }
+
+    userformLiveVlcProcess = null;
+    return { stopped: true, pid: state.pid };
 }
 
 function attachVlcChildProcess(child, launchedFile) {
@@ -1265,6 +1454,260 @@ app.get('/api/videoclip/vlc/state', async (req, res) => {
         });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/userform/pagina05/cameras', (req, res) => {
+    try {
+        const cameras = loadUserformCameraProfiles();
+        return res.json({
+            ok: true,
+            source: USERFORM_CAMERA_CSV,
+            count: cameras.length,
+            cameras
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error), cameras: [] });
+    }
+});
+
+app.get('/api/userform/pagina05/files', (req, res) => {
+    try {
+        ensureUserformRecordingDir();
+        const mkvFiles = listUserformRecordingFiles(['.mkv']);
+        const mp4Files = listUserformRecordingFiles(['.mp4']);
+        return res.json({
+            ok: true,
+            recordingDir: USERFORM_RECORDINGS_DIR,
+            legacyDir: LEGACY_RECORDINGS_DIR,
+            mkvFiles,
+            mp4Files
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error), mkvFiles: [], mp4Files: [] });
+    }
+});
+
+app.get('/api/userform/pagina05/state', (req, res) => {
+    try {
+        const recording = getUserformRecordingState();
+        const liveVlc = getUserformLiveVlcState();
+        return res.json({
+            ok: true,
+            recording,
+            liveVlc,
+            ffmpegPath: resolveFfmpegExecutable(),
+            vlcPath: resolveVlcExecutable(),
+            recordingDir: USERFORM_RECORDINGS_DIR
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/recording/start', async (req, res) => {
+    try {
+        const currentState = getUserformRecordingState();
+        if (currentState.recording) {
+            return res.status(409).json({ ok: false, error: 'Recording already active', state: currentState });
+        }
+
+        const ffmpegPath = resolveFfmpegExecutable();
+        if (!ffmpegPath) {
+            return res.status(500).json({ ok: false, error: 'FFmpeg non trovato. Configura FFMPEG_PATH o installa in C:/FFMPEG/bin/ffmpeg.exe' });
+        }
+
+        const cameraName = sanitizeCsvValue(req.body?.cameraName);
+        if (!cameraName) {
+            return res.status(400).json({ ok: false, error: 'cameraName obbligatorio' });
+        }
+
+        const cameraProfiles = loadUserformCameraProfiles();
+        const profile = cameraProfiles.find((item) => item.name === cameraName) || {
+            name: cameraName,
+            codec: sanitizeCsvValue(req.body?.codec),
+            size: sanitizeCsvValue(req.body?.size) || '640x480',
+            fps: sanitizeCsvValue(req.body?.fps) || '30'
+        };
+
+        const recDir = ensureUserformRecordingDir();
+        const timestamp = new Date().toISOString().replace(/[-:T]/g, '').replace(/\..+/, '');
+        const fileName = `${timestamp}.mkv`;
+        const outputPath = path.join(recDir, fileName);
+        const ffArgs = buildCameraCaptureArgs(profile, outputPath);
+
+        const child = spawn(ffmpegPath, ffArgs, { stdio: 'ignore', windowsHide: true });
+        userformRecordingProcess = child;
+        userformRecordingFilePath = outputPath;
+
+        child.once('exit', () => {
+            if (userformRecordingProcess?.pid === child.pid) {
+                userformRecordingProcess = null;
+                userformRecordingFilePath = '';
+            }
+        });
+
+        return res.json({
+            ok: true,
+            recording: true,
+            pid: child.pid,
+            fileName,
+            filePath: outputPath,
+            ffmpegPath,
+            ffmpegArgs: ffArgs,
+            profile
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/recording/stop', async (req, res) => {
+    try {
+        const result = await stopUserformRecordingIfRunning();
+        return res.json({
+            ok: true,
+            ...result,
+            state: getUserformRecordingState()
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/convert-play', async (req, res) => {
+    try {
+        const ffmpegPath = resolveFfmpegExecutable();
+        if (!ffmpegPath) {
+            return res.status(500).json({ ok: false, error: 'FFmpeg non trovato. Configura FFMPEG_PATH o installa in C:/FFMPEG/bin/ffmpeg.exe' });
+        }
+
+        const fileName = sanitizeCsvValue(req.body?.fileName);
+        if (!fileName) {
+            return res.status(400).json({ ok: false, error: 'fileName obbligatorio' });
+        }
+
+        const availableMkv = listUserformRecordingFiles(['.mkv']);
+        const source = availableMkv.find((item) => item.name === fileName);
+        if (!source) {
+            return res.status(404).json({ ok: false, error: `File MKV non trovato: ${fileName}` });
+        }
+
+        const baseName = fileName.toLowerCase().endsWith('.mkv') ? fileName.slice(0, -4) : fileName;
+        const outputName = `converted_${baseName}.mp4`;
+        const outputPath = path.join(path.dirname(source.path), outputName);
+        const convertArgs = buildConvertToMp4Args(source.path, outputPath);
+
+        await execFileAsync(ffmpegPath, convertArgs, { maxBuffer: 10 * 1024 * 1024 });
+
+        if (!fs.existsSync(outputPath)) {
+            return res.status(500).json({ ok: false, error: 'Conversione completata ma file output non trovato', outputPath });
+        }
+
+        const vlcPath = resolveVlcExecutable();
+        if (!vlcPath) {
+            return res.status(500).json({ ok: false, error: 'VLC non trovato. Configura VLC_PATH o installa VLC' });
+        }
+
+        await stopUserformLiveVlc().catch(() => null);
+        const launched = await launchVlcForSecondary(outputPath);
+
+        return res.json({
+            ok: true,
+            sourceFile: source.path,
+            outputFile: outputPath,
+            ffmpegPath,
+            ffmpegArgs: convertArgs,
+            vlcPath: launched.vlcPath,
+            vlcArgs: launched.vlcArgs
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/vlc/live/start', async (req, res) => {
+    try {
+        const vlcPath = resolveVlcExecutable();
+        if (!vlcPath) {
+            return res.status(500).json({ ok: false, error: 'VLC non trovato. Configura VLC_PATH o installa VLC' });
+        }
+
+        const cameraName = sanitizeCsvValue(req.body?.cameraName);
+        if (!cameraName) {
+            return res.status(400).json({ ok: false, error: 'cameraName obbligatorio' });
+        }
+
+        const size = sanitizeCsvValue(req.body?.size);
+        const fps = sanitizeCsvValue(req.body?.fps);
+
+        await stopUserformLiveVlc().catch(() => null);
+
+        const args = [
+            '--fullscreen',
+            '--no-video-title-show',
+            'dshow://',
+            `:dshow-vdev=${cameraName}`,
+            ':dshow-adev=none'
+        ];
+
+        if (size) {
+            args.push(`:dshow-size=${size}`);
+        }
+        if (fps) {
+            args.push(`:dshow-fps=${fps}`);
+        }
+
+        const child = spawnDetachedProcess(vlcPath, args);
+        userformLiveVlcProcess = { pid: child.pid };
+
+        return res.json({ ok: true, pid: child.pid, vlcPath, vlcArgs: args });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/vlc/live/stop', async (req, res) => {
+    try {
+        const result = await stopUserformLiveVlc();
+        return res.json({ ok: true, ...result, state: getUserformLiveVlcState() });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/autotest', async (req, res) => {
+    try {
+        ensureUserformRecordingDir();
+        const ffmpegPath = resolveFfmpegExecutable();
+        const vlcPath = resolveVlcExecutable();
+        const cameraProfiles = loadUserformCameraProfiles();
+        const mkvFiles = listUserformRecordingFiles(['.mkv']);
+
+        return res.json({
+            ok: true,
+            checks: {
+                cameraCsvExists: fs.existsSync(USERFORM_CAMERA_CSV),
+                ffmpegFound: Boolean(ffmpegPath),
+                vlcFound: Boolean(vlcPath),
+                recordingDirExists: fs.existsSync(USERFORM_RECORDINGS_DIR)
+            },
+            paths: {
+                cameraCsv: USERFORM_CAMERA_CSV,
+                ffmpegPath,
+                vlcPath,
+                recordingDir: USERFORM_RECORDINGS_DIR,
+                legacyRecordingDir: LEGACY_RECORDINGS_DIR
+            },
+            summary: {
+                cameras: cameraProfiles.length,
+                mkvFiles: mkvFiles.length,
+                recordingState: getUserformRecordingState(),
+                liveVlcState: getUserformLiveVlcState()
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
 });
 

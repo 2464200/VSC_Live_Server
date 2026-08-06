@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA03</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina03-actions.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1 id="form-name">PAGINA03</h1>
+        <p class="subtitle" id="pagina03-caption">DJ'S BORDERO' - 2025 [DJ LUCAS BERRY]</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h2>Metadati VBA</h2>
+        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA03</strong></p>
+        <p class="meta">Caption: <strong id="form-caption">-</strong></p>
+        <p class="meta">Client size: <strong id="form-size">-</strong></p>
+        <div class="route-group">
+          <span class="route-pill">CommandButton33 -> GeneraReportHTML</span>
+          <span class="route-pill">343/344/345 -> report views</span>
+          <span class="route-pill">346 -> GeneraFileSIAE</span>
+          <span class="route-pill">TextBox1 <-> Publisher-Show!D2</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Controllo Report</h2>
+        <div class="form-layout-single">
+          <div class="control-box">
+            <label class="field-label" for="textbox-report-d2">TextBox1 (Publisher-Show!D2)</label>
+            <input id="textbox-report-d2" class="field-input" type="text" placeholder="Valore collegato a D2" />
+            <div class="control-toolbar" style="margin-top:10px;">
+              <button id="btn-genera-report" class="btn" type="button">CommandButton33: Genera Report HTML</button>
+              <button id="btn-genera-siae" class="btn btn-secondary" type="button">CommandButton346: Genera File SIAE</button>
+            </div>
+            <div class="metric-row">
+              <span class="metric-chip" id="report-timer-chip">Timer report: OFF</span>
+              <button id="btn-toggle-report-timer" class="btn btn-secondary tiny" type="button">Toggle timer 3 min</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Report Views</h2>
+        <div class="hub-grid">
+          <article class="hub-item">
+            <h4>CommandButton343</h4>
+            <p class="tiny">Apri Report standard</p>
+            <button class="btn btn-block" id="btn-report-default" type="button">Apri /Prova/Report.html</button>
+          </article>
+          <article class="hub-item">
+            <h4>CommandButton344</h4>
+            <p class="tiny">Apri Report black</p>
+            <button class="btn btn-block" id="btn-report-black" type="button">Apri /Prova/Report_black.html</button>
+          </article>
+          <article class="hub-item">
+            <h4>CommandButton345</h4>
+            <p class="tiny">Apri Report white</p>
+            <button class="btn btn-block" id="btn-report-white" type="button">Apri /Prova/Report_white.html</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione Form</h2>
+        <div class="control-toolbar">
+          <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+          <button id="btn-close-pagina03" class="btn btn-secondary" type="button">CommandButton32: Chiudi form</button>
+        </div>
+        <div id="pagina03-status" class="status-box" role="status" aria-live="polite">
+          <strong>Stato:</strong> pronto.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione sequenziale</h2>
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

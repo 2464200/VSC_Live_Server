@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA08</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina08-actions.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1 id="form-name">PAGINA08</h1>
+        <p class="subtitle">Launcher ScriptPDF1 (root e /prova)</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h2>Metadati VBA</h2>
+        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA08</strong></p>
+        <p class="meta">Caption: <strong id="form-caption">-</strong></p>
+        <p class="meta">Client size: <strong id="form-size">-</strong></p>
+        <div class="route-group">
+          <span class="route-pill">1073 -> /ScriptPDF1.html</span>
+          <span class="route-pill">1074 -> /prova/ScriptPDF1.html</span>
+          <span class="route-pill">31 -> indice</span>
+          <span class="route-pill">32 -> chiudi</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Azioni ScriptPDF</h2>
+        <div class="control-toolbar">
+          <button id="btn-scriptpdf-root" class="btn" type="button">CommandButton1073: Apri /ScriptPDF1.html</button>
+          <button id="btn-scriptpdf-prova" class="btn" type="button">CommandButton1074: Apri /prova/ScriptPDF1.html</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione Form</h2>
+        <div class="control-toolbar">
+          <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+          <button id="btn-close-pagina08" class="btn btn-secondary" type="button">CommandButton32: Chiudi form</button>
+        </div>
+        <div id="pagina08-status" class="status-box" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione sequenziale</h2>
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA01</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina01-actions.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1 id="form-name">PAGINA01</h1>
+        <p class="subtitle" id="pagina01-caption">DJ'S BORDERO' - 2025 [DJ LUCAS BERRY]</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h2>Metadati VBA</h2>
+        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA01</strong></p>
+        <p class="meta">Caption: <strong id="form-caption">-</strong></p>
+        <p class="meta">Client size: <strong id="form-size">-</strong></p>
+        <div class="route-group" aria-label="Mappa eventi VBA PAGINA01">
+          <span class="route-pill">CommandButton31 -> INDICE</span>
+          <span class="route-pill">CommandButton32 -> Chiudi</span>
+          <span class="route-pill">Prova_Click -> ScriptPDF1</span>
+          <span class="route-pill">Init -> ComboBox1 (dBase A1:A3)</span>
+          <span class="route-pill">Init2 -> ComboBox2 (ComuniItalia F1772:F2000)</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione Form</h2>
+        <div class="form-layout-single">
+          <div class="control-box">
+            <h3>Comandi principali</h3>
+            <div class="control-row">
+              <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+              <button class="btn btn-secondary" id="btn-close-pagina01" type="button">CommandButton32: Chiudi form</button>
+            </div>
+            <p class="hint">Replica il comportamento di Unload + ritorno/nascondi form nella versione VBA.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Gruppo Inizializzazione Dati (ComboBox)</h2>
+        <div class="form-layout">
+          <div class="control-box">
+            <h3>ComboBox1</h3>
+            <label class="field-label" for="combo-dbase">Sorgente: dBase A1:A3</label>
+            <select id="combo-dbase" class="field-select" aria-label="ComboBox1 dBase"></select>
+            <p class="hint">Caricamento in UserForm_Initialize.</p>
+          </div>
+
+          <div class="control-box">
+            <h3>ComboBox2</h3>
+            <label class="field-label" for="combo-comuni">Sorgente: ComuniItalia F1772:F2000</label>
+            <select id="combo-comuni" class="field-select" aria-label="ComboBox2 ComuniItalia"></select>
+            <p class="hint">Caricamento in UserForm2_Initialize (porting strutturale).</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Azione Prova (PDF)</h2>
+        <div class="form-layout-single">
+          <div class="control-box">
+            <h3>Prova_Click</h3>
+            <p class="action-desc">Chiama Btn_Prova_click e apre ScriptPDF1 su BASE_URL.</p>
+            <div class="control-row">
+              <button id="btn-prova" class="btn" type="button">Apri ScriptPDF1</button>
+              <span class="route-pill" id="pagina01-url-pill">BASE_URL/Prova/ScriptPDF1.html</span>
+            </div>
+            <div id="pagina01-status" class="status-inline" role="status" aria-live="polite">Stato: pronto.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione sequenziale</h2>
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+

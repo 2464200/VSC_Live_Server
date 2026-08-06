@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA07</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina07-actions.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1 id="form-name">PAGINA07</h1>
+        <p class="subtitle">Webcam preview e registrazione (workflow live)</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel">
+        <h2>Metadati VBA</h2>
+        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA07</strong></p>
+        <p class="meta">Caption: <strong id="form-caption">-</strong></p>
+        <p class="meta">Client size: <strong id="form-size">-</strong></p>
+        <div class="route-group">
+          <span class="route-pill">Init -> webcam/resolution/fps defaults</span>
+          <span class="route-pill">1001 -> StartRecording1000</span>
+          <span class="route-pill">1002 -> StopRecording1000</span>
+          <span class="route-pill">1003 -> Open newest mp4 via VLC</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Setup Camera</h2>
+        <div class="form-layout">
+          <div class="control-box">
+            <label class="field-label" for="webcam-name">ComboBoxWebcam</label>
+            <select id="webcam-name" class="field-select"></select>
+            <label class="field-label" for="camera-resolution" style="margin-top:10px;">ComboBoxResol</label>
+            <select id="camera-resolution" class="field-select"></select>
+            <label class="field-label" for="camera-fps" style="margin-top:10px;">ComboFPS</label>
+            <select id="camera-fps" class="field-select"></select>
+            <label class="field-label" for="camera-bitrate" style="margin-top:10px;">TextBitrate</label>
+            <input id="camera-bitrate" class="field-input" type="number" min="500" step="100" value="2500" />
+          </div>
+          <div class="control-box">
+            <h3>Preview (simulata)</h3>
+            <div id="preview-box" class="status-box">Nessuna anteprima attiva.</div>
+            <div class="metric-row">
+              <span id="rec-state-chip" class="metric-chip">REC: OFF</span>
+              <span id="timer-chip" class="metric-chip">00:00:00</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Controlli Registrazione</h2>
+        <div class="control-toolbar">
+          <button id="btn-rec-start" class="btn" type="button">CommandButton1001: START REC</button>
+          <button id="btn-rec-stop" class="btn btn-secondary" type="button">CommandButton1002: STOP REC</button>
+          <button id="btn-open-last-video" class="btn" type="button">CommandButton1003: Apri ultimo MP4</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione Form</h2>
+        <div class="control-toolbar">
+          <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+          <button id="btn-close-pagina07" class="btn btn-secondary" type="button">CommandButton32: Chiudi form</button>
+        </div>
+        <div id="pagina07-status" class="status-box" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Navigazione sequenziale</h2>
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+
