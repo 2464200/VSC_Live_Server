@@ -631,11 +631,26 @@ async function stopUserformRecordingIfRunning() {
     }
 
     const pid = userformRecordingProcess.pid;
+    let aliveBeforeStop = true;
+    try {
+        process.kill(pid, 0);
+    } catch (_) {
+        aliveBeforeStop = false;
+    }
+
+    if (!aliveBeforeStop) {
+        userformRecordingProcess = null;
+        userformRecordingFilePath = '';
+        return { stopped: true, pid };
+    }
+
     try {
         await execFileAsync('taskkill', ['/PID', String(pid), '/T', '/F']);
     } catch (error) {
         const stderr = String(error?.stderr || '').toLowerCase();
-        if (!stderr.includes('not found') && !stderr.includes('nessun processo')) {
+        const stdout = String(error?.stdout || '').toLowerCase();
+        const combined = `${stdout} ${stderr}`;
+        if (!combined.includes('not found') && !combined.includes('nessun processo') && !combined.includes('no running instance')) {
             throw error;
         }
     }
