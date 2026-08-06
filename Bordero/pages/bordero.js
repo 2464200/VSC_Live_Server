@@ -2547,7 +2547,8 @@ class BorderoTableManager {
   }
 
   showUserForm() {
-    alert('UserForm da implementare'); // TODO
+    // Bordero page lives in Bordero/pages, USERFORM index is at repo root /USERFORM/index.html.
+    window.location.href = '../../USERFORM/index.html';
   }
 }
 
