@@ -652,19 +652,41 @@ class AdminPanel {
       this.log('🌐 Avvio sync da Google Sheets...', 'warn');
       this.addSyncLog('Avvio sync da Google Sheets...', 'info');
       try {
-        const response = await fetch(`${window.location.origin || 'http://localhost:5500'}/api/bordero/sync-google`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
+        const endpoint = `${window.location.origin || 'http://localhost:5500'}/api/bordero/sync-google`;
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
         });
-        const result = await response.json();
+
+        const contentType = response.headers.get('content-type') || '';
+        const responseText = await response.text();
+        let result = {};
+
+        if (responseText) {
+          try {
+            result = JSON.parse(responseText);
+          } catch (parseError) {
+            const preview = responseText.slice(0, 120).replace(/\s+/g, ' ').trim();
+            throw new Error(
+              `Risposta non JSON dall'endpoint sync (HTTP ${response.status}, content-type: ${contentType || 'n/a'}). Anteprima: ${preview}`
+            );
+          }
+        }
 
         if (!response.ok) {
           throw new Error(result.error || `HTTP ${response.status}`);
         }
 
+        const successMessage = result?.summary?.successCount != null
+          ? `${result.summary.successCount}/${result.summary.totalSheets} fogli sincronizzati`
+          : (result.message || 'sincronizzazione completata');
+
         updateStatus();
-        this.log(`✓ Sync Google Sheets completato: ${result.message}`, 'success');
-        this.addSyncLog(`Sync Google Sheets completato: ${result.message}`, 'success');
+        this.log(`✓ Sync Google Sheets completato: ${successMessage}`, 'success');
+        this.addSyncLog(`Sync Google Sheets completato: ${successMessage}`, 'success');
         Toast.success('✓ Sync da Google Sheets completato');
 
       } catch (error) {

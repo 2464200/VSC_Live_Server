@@ -1143,7 +1143,7 @@ app.get('/api/videoclip/list', (req, res) => {
     }
 });
 
-app.post('/api/bordero/sync-google', async (req, res) => {
+async function handleBorderoSyncGoogle(req, res) {
     try {
         const summary = await runBorderoGoogleSync('manual');
         if (summary?.success) {
@@ -1153,7 +1153,10 @@ app.post('/api/bordero/sync-google', async (req, res) => {
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error), state: borderoGoogleSyncState });
     }
-});
+}
+
+app.post('/api/bordero/sync-google', handleBorderoSyncGoogle);
+app.get('/api/bordero/sync-google', handleBorderoSyncGoogle);
 
 app.get('/api/bordero/sync-google/status', (req, res) => {
     res.json({ ok: true, state: borderoGoogleSyncState });

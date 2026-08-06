@@ -2,8 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { parseBorderoGoogleSyncIntervalMs, shouldScheduleBorderoGoogleSync } = require('../Bordero/server/bordero-sync-config');
 
-test('defaults to the existing 120s cadence when env is not set', () => {
-  assert.equal(parseBorderoGoogleSyncIntervalMs({}), 120000);
+test('defaults to the 60s cadence when env is not set', () => {
+  assert.equal(parseBorderoGoogleSyncIntervalMs({}), 60000);
   assert.equal(shouldScheduleBorderoGoogleSync({}), true);
 });
 
