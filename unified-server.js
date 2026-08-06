@@ -1323,9 +1323,41 @@ app.get('/eventi/visualizer.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'Eventi', 'public', 'visualizer.html'));
 });
 
+app.get('/eventi/eventi.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Eventi', 'public', 'eventi.html'));
+});
+
+app.get('/eventi/public/eventi.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Eventi', 'public', 'eventi.html'));
+});
+
+app.get('/eventi/qr.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Eventi', 'public', 'qr.html'));
+});
+
+app.get('/eventi/public/qr.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Eventi', 'public', 'qr.html'));
+});
+
 // Serve the Eventi landing page for both /eventi and /eventi/.
 app.get(['/eventi', '/eventi/'], (req, res) => {
     res.sendFile(path.join(__dirname, 'Eventi', 'public', 'eventi.html'));
+});
+
+// Explicitly serve Eventi HTML assets such as /eventi/eventi.html and /eventi/qr.html.
+app.get('/eventi/:file', (req, res, next) => {
+    const requestedFile = req.params.file;
+    if (!requestedFile.includes('.')) {
+        return next();
+    }
+
+    const fullPath = path.join(__dirname, 'Eventi', 'public', requestedFile);
+    console.log(`[eventi-route] request=${req.originalUrl} file=${requestedFile} exists=${fs.existsSync(fullPath)} path=${fullPath}`);
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+        return res.sendFile(fullPath);
+    }
+
+    return next();
 });
 
 // Serve static files for Eventi before root static files.

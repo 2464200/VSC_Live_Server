@@ -1,7 +1,7 @@
 {
-  "primaryMonitorChoice": 1,
-  "swapPrimarySecondary": false,
+  "primaryMonitorChoice": 2,
+  "swapPrimarySecondary": true,
   "selectionConfirmed": true,
-  "updatedAt": "2026-08-05T11:42:19.788Z",
-  "source": "electron-prompt"
+  "updatedAt": "2026-08-06T21:20:22.492Z",
+  "source": "api-swap-monitors"
 }
