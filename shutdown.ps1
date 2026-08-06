@@ -3,7 +3,8 @@
 ######################################################################
 
 param(
-    [switch]$Force = $false
+    [switch]$Force = $false,
+    [switch]$AutoCommit = $false
 )
 
 $PidFile = Join-Path $PSScriptRoot 'pids\startup-pids.json'
@@ -123,14 +124,18 @@ if (Test-Path $syncScript) {
     Write-Host "Script sync_csvs.ps1 non trovato"
 }
 
-# Git commit automatico
-try {
-    & git add . 2>$null
-    $commitMessage = "Auto save on exit $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-    & git commit -m $commitMessage 2>$null
-    Write-Host "OK Commit automatico eseguito: $commitMessage"
-} catch {
-    Write-Host "Nessun cambiamento da committare o errore git: $_"
+# Git commit automatico (opt-in)
+if ($AutoCommit) {
+    try {
+        & git add . 2>$null
+        $commitMessage = "Auto save on exit $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        & git commit -m $commitMessage 2>$null
+        Write-Host "OK Commit automatico eseguito: $commitMessage"
+    } catch {
+        Write-Host "Nessun cambiamento da committare o errore git: $_"
+    }
+} else {
+    Write-Host "Auto-commit disattivato (usa -AutoCommit per abilitarlo)."
 }
 
 Write-Host ""
