@@ -9,18 +9,8 @@
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="videoclip.css?v=20260802-1" />
   
-  <!-- XLSX Library per lettura file Excel -->
-    <!-- XLSX Library - DEVE caricare PRIMA dei defer scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js" crossorigin="anonymous"></script>
-  
-  <!-- Verifica caricamento XLSX -->
-  <script>
-    if (typeof XLSX === 'undefined') {
-      console.warn('⚠️ CDN XLSX.js non disponibile');
-    } else {
-      console.log('✓ XLSX.js caricato dal CDN');
-    }
-  </script>
+  <!-- XLSX Library locale per lettura file Excel -->
+  <script src="../assets/lib/xlsx.min.js"></script>
   
   <script defer src="../js/config.js"></script>
   <script defer src="../js/utils.js"></script>

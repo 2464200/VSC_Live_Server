@@ -213,7 +213,7 @@ OFFLINE TEST
 - [ ] Aspetta 2 secondi
 - [ ] Verifica F12 → Network → cerca "xlsx"
 - [ ] Se non c'è, il CDN non accessibile
-  - **Soluzione:** Scarica xlsx.min.js localmente e includi come `<script src="../js/xlsx.min.js"></script>`
+  - **Soluzione:** Usa il bundle locale già presente in [Bordero/assets/lib/xlsx.min.js](Bordero/assets/lib/xlsx.min.js) e includilo come `<script src="../assets/lib/xlsx.min.js"></script>`
 
 ### **File Dialog Non Appare**
 - [ ] Controlla permessi browser per file dialog

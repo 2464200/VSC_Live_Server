@@ -131,8 +131,10 @@ JSON.stringify(localStorage.getItem('BORDERO_DBASE_DATA')).length > 50
 **Soluzione:**
 1. Ricarica la pagina (F5 o Ctrl+R)
 2. Verifica che XLSX.js sia caricato (F12 â†’ Network tab, cerca "xlsx.min.js")
-3. Se non c'Ã¨, il CDN non Ã¨ accessibile. Soluzione:
-   - Scarica XLSX.js localmente e includi come: `<script src="../js/xlsx.min.js"></script>`
+3. Se non c'è, controlla che il file locale [Bordero/assets/lib/xlsx.min.js](Bordero/assets/lib/xlsx.min.js) sia presente e che la pagina includa:
+   ```html
+   <script src="../assets/lib/xlsx.min.js"></script>
+   ```
 
 ### **Problema: Dialogo non appare**
 **Soluzione:**

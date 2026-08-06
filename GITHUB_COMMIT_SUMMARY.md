@@ -73,7 +73,7 @@
 
 ### **Bug Fixes:**
 - 🐛 Fixed "excel is not defined" error
-- 🐛 Added automatic XLSX.js CDN loading
+- 🐛 Added automatic local XLSX.js loading with fallback support
 - 🐛 Proper script initialization order
 - 🐛 File dialog integration for Excel selection
 
@@ -120,7 +120,7 @@ chore: Complete Borderò DJ Manager web application conversion
 - [MODIFIED] Bordero.html to include excel-file-manager.js
 - [MODIFIED] Updated script load order for proper XLSX initialization
 - [FIX] Resolved 'excel is not defined' error with proper initialization
-- [FIX] Added automatic XLSX.js CDN loading if not available
+- [FIX] Added automatic local XLSX.js loading with fallback support
 
 Features:
 ✅ User-selectable Excel file via file dialog

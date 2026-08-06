@@ -89,7 +89,7 @@ Bordero/
 ### **Technology Stack**
 - **Frontend:** HTML5 + CSS3 + Vanilla JavaScript (NO FRAMEWORKS)
 - **Data:** CSV + localStorage + XLSX library
-- **Excel Integration:** XLSX.js CDN (client-side parsing)
+- **Excel Integration:** XLSX.js local bundle with offline fallback (client-side parsing)
 - **Styling:** Base from "Eventi" project + custom overrides
 - **Server:** Python http.server (development) or Firebase (production)
 

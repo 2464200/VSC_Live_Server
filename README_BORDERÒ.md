@@ -160,11 +160,13 @@ All'avvio di `bordero.html`, il sistema:
 
 ### **Libreria XLSX**
 
-Usa [XLSX.js](https://github.com/SheetJS/sheetjs) per leggere file Excel direttamente nel browser.
+Usa [XLSX.js](https://github.com/SheetJS/sheetjs) per leggere file Excel direttamente nel browser, con fallback locale già incluso nel repository.
 
 ```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+<script src="../assets/lib/xlsx.min.js"></script>
 ```
+
+Il bundle locale è disponibile in [Bordero/assets/lib/xlsx.min.js](Bordero/assets/lib/xlsx.min.js).
 
 ### **Admin Panel per Manual Sync**
 

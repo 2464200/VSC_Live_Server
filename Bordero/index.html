@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="assets/css/bordero.css" />
   <link rel="stylesheet" href="assets/css/responsive.css" />
   
-  <!-- XLSX Library per lettura file Excel -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  <!-- XLSX Library locale: evita errori di rete e warning inutili -->
+  <script src="assets/lib/xlsx.min.js"></script>
   
   <!-- Config globale -->
   <script defer src="js/config.js?v=20260711-2"></script>
@@ -47,7 +47,7 @@
         <li><a href="pages/bordero-presentazione.html" class="nav-link">Presentazione Borderò</a></li>
         <li class="nav-divider"></li>
         <li><a href="pages/admin.html" class="nav-link">⚙️ Admin</a></li>
-        <li><a href="/eventi/eventi.html" class="nav-link">Eventi DJ SET</a></li>
+        <li><a href="/eventi/eventi.html" class="nav-link" onclick="window.location.assign('/eventi/eventi.html'); return false;">Eventi DJ SET</a></li>
       </ul>
     </nav>
 

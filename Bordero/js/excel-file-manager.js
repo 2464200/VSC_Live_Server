@@ -27,7 +27,7 @@ class ExcelFileManager {
   }
 
   /**
-   * Carica XLSX.js da CDN se non disponibile, con fallback locale
+   * Carica XLSX.js dal fallback locale, evitando dipendenze esterne.
    */
   async loadXLSX() {
     if (typeof XLSX !== 'undefined') {
@@ -35,20 +35,13 @@ class ExcelFileManager {
     }
 
     try {
-      await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js');
-      logger.info('✓ XLSX.js caricato da CDN');
+      await this.loadScript('../assets/lib/xlsx.min.js');
+      logger.info('✓ XLSX.js caricato dal fallback locale');
       return true;
-    } catch (cdnError) {
-      logger.warn('⚠️ Errore caricamento XLSX.js da CDN, provo fallback locale', cdnError);
-      try {
-        await this.loadScript('../assets/lib/xlsx.min.js');
-        logger.info('✓ XLSX.js caricato da fallback locale');
-        return true;
-      } catch (localError) {
-        logger.error('❌ Errore caricamento XLSX.js locale', localError);
-        Toast.error('❌ Impossibile caricare XLSX.js');
-        return false;
-      }
+    } catch (localError) {
+      logger.error('❌ Errore caricamento XLSX.js locale', localError);
+      Toast.error('❌ Impossibile caricare XLSX.js');
+      return false;
     }
   }
 

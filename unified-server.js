@@ -1323,6 +1323,11 @@ app.get('/eventi/visualizer.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'Eventi', 'public', 'visualizer.html'));
 });
 
+// Serve the Eventi landing page for both /eventi and /eventi/.
+app.get(['/eventi', '/eventi/'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'Eventi', 'public', 'eventi.html'));
+});
+
 // Serve static files for Eventi before root static files.
 app.use('/eventi', express.static(path.join(__dirname, 'Eventi', 'public')));
 

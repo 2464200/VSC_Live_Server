@@ -39,7 +39,7 @@ class ExcelSync {
         return true;
       }
 
-      logger.warn('⚠️ XLSX.js non disponibile: uso CSV locale');
+      logger.info('ℹ️ XLSX.js locale non disponibile, proseguo con CSV locale');
       return false;
     } catch (error) {
       logger.warn('⚠️ XLSX.js non disponibile, fallback a CSV locale', error);

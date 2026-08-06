@@ -104,18 +104,14 @@ console.log(`DJ caricati: ${dj?.length || 0}`);
 ### **Errore: "XLSX is not defined"**
 - Controlla F12 â†’ Network tab
 - Cerca "xlsx.min.js" nella lista
-- Se non c'Ã¨, il CDN non Ã¨ accessibile
-- **Soluzione:**
-  - Scarica da: https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js
-  - Salva in: `Bordero/js/xlsx.min.js`
-  - Modifica `admin.html` linea 13:
+- Se non c'è, il file locale non è raggiungibile
+- **Soluzione attuale:**
+  - Il progetto usa il bundle locale [Bordero/assets/lib/xlsx.min.js](Bordero/assets/lib/xlsx.min.js)
+  - Le pagine Bordero caricano il file con:
     ```html
-    <!-- Da: -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
-    
-    <!-- A: -->
-    <script src="../js/xlsx.min.js"></script>
+    <script src="../assets/lib/xlsx.min.js"></script>
     ```
+  - Se serve, verifica che il file esista nella cartella [Bordero/assets/lib](Bordero/assets/lib)
 
 ### **Errore: File Excel corrotto**
 - Apri il file in Excel
