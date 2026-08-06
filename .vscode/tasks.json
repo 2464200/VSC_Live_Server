@@ -154,6 +154,40 @@
       },
       "problemMatcher": [],
       "group": "test"
+    },
+    {
+      "label": "Git: Add Commit Push",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\git-quick-push.ps1",
+        "-CommitMessage",
+        "${input:gitCommitMessage}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "gitCommitMessage",
+      "type": "promptString",
+      "description": "Messaggio del commit",
+      "default": "chore: aggiornamenti"
     }
   ]
 }
