@@ -117,6 +117,24 @@
       "group": "build"
     },
     {
+      "label": "Restart All Servers (with AutoCommit)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "& '${workspaceFolder}\\shutdown.ps1' -AutoCommit; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup.ps1'"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
       "label": "Restart Electron",
       "type": "shell",
       "command": "powershell",
