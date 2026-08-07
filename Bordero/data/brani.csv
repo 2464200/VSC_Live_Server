@@ -13,12 +13,12 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,012,50 SHOTS,shoulda,kylie morgan,,ALTRE COREO
 ,,013,8 BALLS,outback booty call,8 ball aitken,,ALTRE COREO
 ,,014,99 BOTTLES,99 bottles,zane williams,,SUPER AVANZATO 1+2
-,,015,A BAR SONG,a bar song (tipsy),shaboozey,1,INTERMEDIO,,,,Ben Murphy,,32 conteggi 4 muri (Tag di 4 conteggi alla fine 10° muro)
-,,016,A DIFFERENT SUMMER,nothing that a beer can't fix,thomas rhett,1,ALTRE COREO,,,,Neus Llioveras,Lourdes Martin,32 conteggi 2 muri
+,,015,A BAR SONG,a bar song (tipsy),shaboozey,,INTERMEDIO,,,,Ben Murphy,,32 conteggi 4 muri (Tag di 4 conteggi alla fine 10° muro)
+,,016,A DIFFERENT SUMMER,nothing that a beer can't fix,thomas rhett,,ALTRE COREO,,,,Neus Llioveras,Lourdes Martin,32 conteggi 2 muri
 ,,017,A SWING TO QUIT,whole lotta quit,randy houser,,SUPER AVANZATO 1+2
 ,,018,AA,aa,walker hayes,,BASE,,,,Linda Scott,,32 conteggi 4 muri
 ,,019,AFTER MIDNIGHT,walkin' after midnight,the groovegrass boyz,,ALTRE COREO
-,,020,AFTERGLOW,paradise,thomas rhett,1,AVANZATO 2,,,,Pol F. Ryan,,32 conteggi 2 muri 3 tag 4 restart
+,,020,AFTERGLOW,paradise,thomas rhett,,AVANZATO 2,,,,Pol F. Ryan,,32 conteggi 2 muri 3 tag 4 restart
 ,,021,ALL NIGHT LONG,you shock me all night long,steve' n' seagulls,,ALTRE COREO
 ,,022,ALL SHOOK UP,all shook up,billy joel,,INTERMEDIO,,,,Naomi Fleetwood Pyle,,80 conteggi 1 muro [Sequenza AB ABC ABC ABC]
 ,,023,ALL TO MYSELF,all to myself,dan + shy,,AVANZATO 1,,,,Séverine Fillion,,32 conteggi 2 muri [Tag alla fine del 2° del 4° e del 6° muro]
@@ -44,14 +44,14 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,043,BILL'S BASIC,somebody take me home,kenny chesney,,BASE,STAGE,,,Bill Ray,,16 conteggi 4 muri
 ,,044,BILL'S BASIC,winter wonderland,brad paisley,,BASE,NATALIZIA,,,Bill Ray,,16 conteggi 4 muri
 ,,045,BILLBOARD,name on a billboard,charley crockett,,SUPER AVANZATO 3
-,,046,BLACK COFFEE,all i want for christmas is you,mariah carey,1,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
-,,047,BLACK COFFEE,black coffee,lacy j dalton,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,048,BLACK COFFEE,last christmas,taylor swift,1,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
-,,049,BLACK COFFEE,party for two,shania twain feat. billy currington,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,050,BLACK COFFEE,some town somewhere,kenny chesney,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,051,BLACK COFFEE,the salt in my tears,dolly parton,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,052,BLACK COFFEE,undone,dean brody,1,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
-,,053,BLACK COFFEE,why couldn't be christmas everyday?,bianca ryan,1,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
+,,046,BLACK COFFEE,all i want for christmas is you,mariah carey,,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
+,,047,BLACK COFFEE,black coffee,lacy j dalton,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,048,BLACK COFFEE,last christmas,taylor swift,,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
+,,049,BLACK COFFEE,party for two,shania twain feat. billy currington,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,050,BLACK COFFEE,some town somewhere,kenny chesney,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,051,BLACK COFFEE,the salt in my tears,dolly parton,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,052,BLACK COFFEE,undone,dean brody,,BASE,,,,Helen O'Malley,,32 conteggi 4 muri
+,,053,BLACK COFFEE,why couldn't be christmas everyday?,bianca ryan,,BASE,NATALIZIA,,,Helen O'Malley,,32 conteggi 4 muri
 ,,054,BOOMERANG,i'm still falling,slow horses,,ALTRE COREO
 ,,055,BOOTY TO THE FLOOR,daisy dukes and cowboy boots,cowboy troy,,ALTRE COREO
 ,,056,BOOZE CRUISE,the booze cruise,blackjack billy,,AVANZATO 1,,,,Donna Manning,,32 conteggi 2 muri
@@ -118,10 +118,10 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,117,COUNTRY GIRL SHAKE,country girl (shake it for me),luke bryan,,ALTRE COREO
 ,,118,COUNTRY ROADS,country roads,hermes house band,,AVANZATO 2,,,,Kate Sala,,32 conteggi 4 muri 1 tag alla fine del 5° muro
 ,,119,COWBOY BIG UP,cowboy up,jill johnson,,BASE,STAGE,,,Big Andrew Gragnaniello,,32 conteggi 4 muri
-,,120,CASANOVA COWBOY,blue christmas,sheryl crow,1,INTERMEDIO,NATALIZIA,,,Rob Fowler,,32 conteggi 4 muri
-,,121,CASANOVA COWBOY,cowboy casanova,carrie underwood,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
-,,122,CASANOVA COWBOY,must be a woman,gord bamford,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
-,,123,CASANOVA COWBOY,true blue,madonna,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,120,CASANOVA COWBOY,blue christmas,sheryl crow,,INTERMEDIO,NATALIZIA,,,Rob Fowler,,32 conteggi 4 muri
+,,121,CASANOVA COWBOY,cowboy casanova,carrie underwood,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,122,CASANOVA COWBOY,must be a woman,gord bamford,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,123,CASANOVA COWBOY,true blue,madonna,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,124,COWBOY STRUT,my next broken heart,brooks & dunn,,ALTRE COREO
 ,,125,COWBOY UP,bury the shovel,clay walker,,SUPER AVANZATO 1+2
 ,,126,CRASH AND BURN,crush and burn,thomas rhett,,BASE,,,,Gail Smith,,32 conteggi 4 muri
@@ -145,7 +145,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,144,DOCTOR DOCTOR,bad case of loving you,robert palmer,,INTERMEDIO,,,,Masters in Line,,80 conteggi 4 muri [1 restart 4°muro dopo 32 counts] [1 Tag 5°muro dopo 32 counts]
 ,,145,DON'T DRINK THE WATHER,don't drink the wather,brad paisley,,ALTRE COREO
 ,,146,DON'T MAKE ME BEG,don't make me beg,steve holy,,SUPER AVANZATO 1+2,,,,,,2 muri  frasata Parte A (32 counts) B (32 counts ) C (32 counts) SEQUENZA    A A B B C A A B B C C C A B B C C C
-,,147,DOUBLE DUTCH,some beach,blake shelton,1,ALTRE COREO,COPPIA,CERCHIO
+,,147,DOUBLE DUTCH,some beach,blake shelton,,ALTRE COREO,COPPIA,CERCHIO
 ,,148,DRIVEN,driven,casey james,,ALTRE COREO
 ,,149,DUTY FREE,natural disaster,zac brown band,,AVANZATO 2,,,,Esther & José,,A 20c B 38c C 16c 1muro [A BB A BB(24) CCC BB(24)]
 ,,150,EASY COME EASY GO,hillbilly rock hillibilly roll,die campbell,,ALTRE COREO
@@ -158,7 +158,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,157,ELECTRIC STOMP,long road to nashville,the woolpackers,,ALTRE COREO,,,,,,24 conteggi 4 muri
 ,,158,ENDLESS,less and less,travis tritt,,ALTRE COREO
 ,,159,EVERY STAR,even the stars fall for you,keith urban,,ALTRE COREO,COPPIA
-,,160,FAKE ID,fake id,big & rich,1,SUPER AVANZATO 1+2
+,,160,FAKE ID,fake id,big & rich,,SUPER AVANZATO 1+2
 ,,161,FEEL THE MOMENT,walla walla prison,scotty alexander,,SUPER AVANZATO 1+2,,,,David Villelas
 ,,162,FIFTY TWO BEERS AGO,beers ago,toby keith,,INTERMEDIO,,,,Séverine Fillion,,32 conteggi 4 muri (Restart al 5° muro dopo 24 conteggi)
 ,,163,FIGHT,fight!,lee dewyze,,AVANZATO 2,,,,Teo Lattanzio,,Intro 8 tempi (A32 B16 Tag1 44 Tag2 24) 2 muri [AA Tag1 AAAA BB Tag2 A BBB B Final]
@@ -285,14 +285,14 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,284,MR. LONELY,mr lonely,midland,,ALTRE COREO
 ,,285,MR POLICEMAN,mr. policeman,brad paisley,,AVANZATO 1,,,,Ria Vos,,64 conteggi 2 muri
 ,,286,MY BLUE JEANS,if you love somebody,kevin sharp,,ALTRE COREO
-,,287,MY MARIA,breakin up thing,terri clark,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,288,MY MARIA,crying on a suitcase,casey james,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,289,MY MARIA,me and maxine,sammy kershaw,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,290,MY MARIA,my maria,brooks & dunn,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,291,MY MARIA,need you no,lady antebellum,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,292,MY MARIA,that look,aaron watson,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,293,MY MARIA,tougher than the rest,chris ledoux,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,294,MY MARIA,when your lips are so close,gord bamford,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,287,MY MARIA,breakin up thing,terri clark,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,288,MY MARIA,crying on a suitcase,casey james,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,289,MY MARIA,me and maxine,sammy kershaw,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,290,MY MARIA,my maria,brooks & dunn,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,291,MY MARIA,need you no,lady antebellum,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,292,MY MARIA,that look,aaron watson,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,293,MY MARIA,tougher than the rest,chris ledoux,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,294,MY MARIA,when your lips are so close,gord bamford,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
 ,,295,MYSTERIOUS GIRL,99.9% sure,the nashville stars,,ALTRE COREO
 ,,296,NANCY MULLIGAN,nancy mulligan,ed sheeran,,SUPER AVANZATO 3
 ,,297,NEVERMIND,las vegas gold,austin whalert,,ALTRE COREO
@@ -314,7 +314,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,313,P8,boys in boots,tania kernaghan,,ALTRE COREO
 ,,314,PARIS TENNESSEE,paris tennessee,tracy lawrence,,ALTRE COREO
 ,,315,PATIENT HEART,patient hearts,bekka & billy,,SUPER AVANZATO 3,,,,Michael VeraLobos,,48 conteggi 2 muri (Tag di 16 counts alla fine del terzo sesto e ottavo muro)
-,,316,PAY ME MY MONEY DOWN,pay me my money down,bruce springsteen,1,AVANZATO 2,CONTRA,,,David Prestor,,64 conteggi 2 muri (2 restart al 5° e 9° muro dopo 24 conteggi) [contra dance]
+,,316,PAY ME MY MONEY DOWN,pay me my money down,bruce springsteen,,AVANZATO 2,CONTRA,,,David Prestor,,64 conteggi 2 muri (2 restart al 5° e 9° muro dopo 24 conteggi) [contra dance]
 ,,317,PERFECT SUNSET,better off in love,george canyon,,ALTRE COREO,,,,Silvia Denise Staiti,,64 conteggi 2 muri 4 restart
 ,,318,PETER PAN,when im grow up,the raging idiots,,ALTRE COREO
 ,,319,PICK A BALE,pick a bale of cotton,riverside,,ALTRE COREO,STAGE
@@ -455,7 +455,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,454,WHAT DO I KNOW,what do i know,ricochet,,ALTRE COREO,,,,Gianni Hook Valassi
 ,,455,WHEN YOU SMILE,when you smile,rune rudberg,,ALTRE COREO
 ,,456,WHISKEY WHISKEY,1 2 3 4,alan doyle,,ALTRE COREO,STAGE
-,,457,WHISKEY WIGGLE,every little thing,carlene carter,1,INTERMEDIO,COPPIA,CERCHIO,,Joyce Warren,,48 conteggi [coppia cerchio]
+,,457,WHISKEY WIGGLE,every little thing,carlene carter,,INTERMEDIO,COPPIA,CERCHIO,,Joyce Warren,,48 conteggi [coppia cerchio]
 ,,458,WHITE SOLDIER,when i'm gone,the wild horses,,INTERMEDIO,,,,Pol F. Ryan,Johnny Rossato,32 conteggi 2 muri (1°tag di 16 counts alla fine del 3 muro) (2°tag di 8 counts alla fine del 7 muro)
 ,,459,WILD AT HEART,wild at heart,gloriana,,ALTRE COREO
 ,,460,WILD NIGHTS,wild night,martina mcbride,,INTERMEDIO,,,,Dan Albro,,64 conteggi 4 muri
@@ -520,37 +520,37 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,519,CHILL FACTOR,i play chicken with the train,cowboy troy with big & ritch,,INTERMEDIO,,,,Daniel Whittaker,Hayley Westhead,48 conteggi 4 muri
 ,,520,CHILL FACTOR,turn on the radio,reba mcentire,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,521,EYES ON YOU,eyes on you,trent tomlisson,,ALTRE COREO
-,,522,MY MARIA,that girl's got a cowboy heart,todd fritsch,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
-,,523,MY MARIA,two black cadillacs,carrie underwood,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,522,MY MARIA,that girl's got a cowboy heart,todd fritsch,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,523,MY MARIA,two black cadillacs,carrie underwood,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
 ,,524,OH LOVE,oh love,thorstein einarsson,,SUPER AVANZATO 3,,,,Johnny Rossato,,Sequenza M1 M2 Tag1 32 counts [ M3 tag2  di 4 counts [ M4 restart ddpo 16 counts [ M5 restart dopo 16 counts [ M6 M7 [ M8 tag 1 lungo
 ,,525,LOOP,over all over again,james barker band,,SUPER AVANZATO 3,,,,Pol F. Ryan,Aurora Profumo Stefano Ciaccio,32 conteggi 4 muri
 ,,526,RETRO,i feel it in the wind,smith & thell,,SUPER AVANZATO 3,,,,Gusella Paolo,,32 conteggi 2 muri
 ,,527,WONT' LET GO,ex's and oh's,saddle up,,SUPER AVANZATO 3,,,,David Villelas
 ,,528,DEAD MAN WALKING,the hangman,war hippies,,ALTRE COREO,,,,Jgor Pasin
 ,,529,DANCE WITH EVERYBODY,dance with everybody,drew holcomb & the neighbors and the national park,,ALTRE COREO,,,,Jgor Pasin
-,,530,MY MARIA,what the heart want,collin raye,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,530,MY MARIA,what the heart want,collin raye,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
 ,,531,NICE TO MEET YOU,nice to meet you,myles smith feat lainey wilson,,SUPER AVANZATO 3,,,,Gia Caparros,,32 conteggi 2 muri Tag alla fine del 4° muro
 ,,532,ELECTRIC SLIDE,rumor has it,clay walker,,BASE,,,,Ric Silvern,,14 conteggi 2 muri
 ,,533,FRESH DELAY,work for it,daphne willis & lonis,,SUPER AVANZATO 3,,,,Sara Sofia Katia Margherita
 ,,534,MAGIC MOMENT,just like magic,casey barnes,,ALTRE COREO,,,,Alex & Rosy
 ,,535,SOMEWHERE IN SEDONA,so far so good,dalton davis,,SUPER AVANZATO 3,,,,Maddison Glover,,64 conteggi 2 muri No tag No Restart
 ,,536,ELECTRIC SLIDE,no rompas mi corazon,caballo dorado,,BASE,,,,Ric Silvern,,14 conteggi 2 muri
-,,537,MY MARIA,choosin' texas,ella langley,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
+,,537,MY MARIA,choosin' texas,ella langley,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
 ,,538,SWISS GUY,swiss guy,florian fox,,SUPER AVANZATO 3,,,,Fabian Muller,,48 counts 4 muri 3 Tag [Tag 1 di 17 conteggi al 3^ e al 6^ muro dopo 15 conteggi] [Tag 2 di 4 conteggi all’8^ muro dopo 32 conteggi] [Tag 3 di 33 conteggi al 10^ muro dopo 15 conteggi]
-,,539,CASANOVA COWBOY,love runs out,onerepublic,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,539,CASANOVA COWBOY,love runs out,onerepublic,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,540,BIG BULL FIDDLE,big butch bass bull fiddle,corb lund,,SUPER AVANZATO 3,,,,Arne Stakkestad,,56 conteggi 2 muri
 ,,541,TEXAS HOLD'EM,texas hold'em,beyoncè,,ALTRE COREO,,,,Laura Jones,,32 conteggi 2 muri
 ,,542,OPHELIA,ophelia,taylor swift,,ALTRE COREO,,,,Mikyung Lee,,40 conteggi 2 muri
 ,,543,ELECTRIC STOMP,fast as you,dwight yoakam,,ALTRE COREO,,,,,,24 conteggi 4 muri
 ,,544,LAKE DARBONNE,lake darbonne,katie knight,,SUPER AVANZATO 3,,,,David Villelas,,32 conteggi 1 restart al 4° muro dopo 16 conteggi
 ,,545,MAN ON A MISSION,man on a mission,oh the lacerny,,SUPER AVANZATO 3,,,,Gary O'Reilly,Guillaume Richard Niels Puolsen,32 conteggi 2 muri [restart al 2° e 5° muro dopo 8 counts] (tag alla fine del 3° muro dopo 8 counts)
-,,546,CASANOVA COWBOY,man i feel like a woman,shania twain,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,546,CASANOVA COWBOY,man i feel like a woman,shania twain,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,547,C A R E,the last shanty,derina harvey band,1,SUPER AVANZATO 3,,,,Fabian Muller,,32 conteggi 4 muri [3 restart al 2° e al 6° dopo 16 counts al 12° dopo 8 counts] finale si ripete ultima ottava due volte
-,,548,I SHOWED YOU THE DOOR,the door,teddy swims,1,SUPER AVANZATO 3,,,,Ria Vos,,64 conteggi 4 muri (restart al 2° muro dopo 32 counts)
+,,548,I SHOWED YOU THE DOOR,the door,teddy swims,,SUPER AVANZATO 3,,,,Ria Vos,,64 conteggi 4 muri (restart al 2° muro dopo 32 counts)
 ,,549,CHEYENNE,drunken sailor,malinda feat. bobby waters,,BASE,,,,Unknown,,24 conteggi 4 muri
 ,,550,THE THING I LOVE,the thing i love,max & andy grammer,1,SUPER AVANZATO 3,,,,Johnny Rossato,Daniela Seidel,32 conteggi 4 muri Restar al 3°muro dopo 16 conteggi
 ,,551,HOT CHOCOLATE,bed dreams,teddy swims,,SUPER AVANZATO 3,,,,Sara Sofia Katia Margherita,,32 conteggi 2 muri No Tag e No Restart
-,,552,BLUE CHAIRS,two blue chairs & you,zac brown band,1,ALTRE COREO,,,,Alessandro Boer,,32 conteggi 4 muri (Restart al 3°muro dopo 16 counts) (Tag alla fine del 6°muro)
+,,552,BLUE CHAIRS,two blue chairs & you,zac brown band,,ALTRE COREO,,,,Alessandro Boer,,32 conteggi 4 muri (Restart al 3°muro dopo 16 counts) (Tag alla fine del 6°muro)
 ,,553,MONSTER HOLIDAY,(it's a) monsters holiday,buck owens and the buckaroos,,ALTRE COREO,,,,Gianni Hook Valassi,,64 conteggi 4 muri
 ,,554,DOODLES,doodles,rose betts,,SUPER AVANZATO 3,,,,Aurora Profumo,,Parte A 32 Counts Parte B 68 counts Parte B corta 64 conteggi Sequenza A A B A A Bcorta A B A A B & final
 ,,555,LOVE POTION 666,love potion 666,djtexx,,ALTRE COREO,,,,Rob Fowler,,32 conteggi 2 muri No tag No restart
@@ -568,7 +568,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info core
 ,,567,KINGDOM OF FEAR,kingdom of fear,cameron whitcomb,,SUPER AVANZATO 3,,,,Johnny Rossato
 ,,568,CHEEK TO CHEEK,cheek to cheek,frank sinatra,,AVANZATO 1,,,,Rob Fowler,,64 conteggi 2 muri
 ,,569,PIM PAM,sixteen tons,tennessee ernie ford,,ALTRE COREO
-,,570,MY MARIA,but for the grace of god,keith urban,1,INTERMEDIO,COPPIA,,,Jgor Pasin,,29 conteggi (couple dance)
+,,570,MY MARIA,but for the grace of god,keith urban,,INTERMEDIO,COPPIA,,,Jgor Pasin,,29 conteggi (couple dance)
 ,,571,NUMBER 7,numer 7's gone,blake whiten,,ALTRE COREO,,,,Alessandro Boer
 ,,572,,,,
 ,,573,,,,

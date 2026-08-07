@@ -111,8 +111,8 @@
         <button id="btn-sort-id" class="btn btn-sort" title="Ordina per ID progressivo">
           ORDINA PER ID
         </button>
-        <button id="btn-sort-genere" class="btn btn-sort" title="Ordina per genere musicale">
-          ORDINA PER GENERE
+        <button id="btn-sort-coreografo" class="btn btn-sort" title="Ordina per coreografo">
+          ORDINA PER COREOGRAFO
         </button>
         <button id="btn-sort-autore" class="btn btn-sort" title="Ordina per autore">
           ORDINA PER AUTORE
@@ -162,16 +162,26 @@
           />
           <div id="search-fields-info" class="search-fields-info" style="margin-top:6px; color:#666; font-size:0.9em;">Campi cercati: ID, Titolo, Autore, Richieste, Coreografo, Genere, Info Coreo 1, Info Coreo 2</div>
         </div>
-        <div class="search-actions">
-          <button id="btn-search-general" class="btn btn-secondary" title="Ricerca generale su titolo, autore, genere, livello e coreografia">
+        <div class="search-actions-row">
+          <div class="search-actions">
+            <button id="btn-search-general" class="btn btn-secondary search-mode-btn" title="Ricerca generale su titolo, autore, genere, livello e coreografia">
             🔎 RICERCA GENERALE
-          </button>
-          <button id="btn-search-title" class="btn btn-secondary" title="Ricerca solo per titolo">
+            </button>
+            <button id="btn-search-title" class="btn btn-secondary search-mode-btn" title="Ricerca solo per titolo">
             🔎 RICERCA PER TITOLO
-          </button>
-          <button id="btn-search-id" class="btn btn-secondary" title="Ricerca solo per ID">
+            </button>
+            <button id="btn-search-id" class="btn btn-secondary search-mode-btn" title="Ricerca solo per ID">
             🔎 RICERCA PER ID
-          </button>
+            </button>
+          </div>
+
+          <div class="search-webcam-signal-slot" aria-label="Spia webcam secondaria">
+            <div id="webcam-signal-05" class="p05-webcam-signal" data-state="idle" aria-live="polite" aria-label="Spia stato webcam secondaria">
+              <span class="p05-webcam-signal-label">STATO<br />WEBCAM</span>
+              <span id="webcam-gem-05" class="p05-webcam-gem" aria-hidden="true"></span>
+              <span id="webcam-signal-text-05" class="p05-webcam-signal-text">Riposo</span>
+            </div>
+          </div>
         </div>
       </div>
 

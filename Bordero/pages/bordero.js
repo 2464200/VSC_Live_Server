@@ -26,6 +26,9 @@ class BorderoTableManager {
     this.sortButtonClickTimers = new Map();
     this.headerSortClickTimers = new Map();
     this.moveExecutedBottomClickTimer = null;
+    this.searchButtonsResizeScheduled = false;
+    this.webcamSignalPollTimer = null;
+    this.webcamSignalWarningReason = '';
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
@@ -116,6 +119,8 @@ class BorderoTableManager {
       this.setupAutoRefresh();
       this.setupStorageSync();
       this.updateSearchPlaceholder();
+      this.equalizeSearchActionButtons();
+      this.setupWebcamSignalBox();
       this.renderTable();
 
       logger.info(`✓ Inizializzato con ${this.allBrani.length} brani`);
@@ -671,7 +676,7 @@ class BorderoTableManager {
 
     // Sort buttons (esclusivi)
     this.bindSortButton('btn-sort-id', 'id', 'ID');
-    this.bindSortButton('btn-sort-genere', 'genere', 'GENERE');
+    this.bindSortButton('btn-sort-coreografo', 'coreografo', 'COREOGRAFO');
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
     this.bindSortButton('btn-sort-richieste', 'richieste', 'RICHIESTE');
     this.setupColumnHeaderSorting();
@@ -716,6 +721,10 @@ class BorderoTableManager {
       this.applyFilters();
     });
 
+    window.addEventListener('resize', () => {
+      this.scheduleSearchButtonsResize();
+    });
+
     // Reset filters
     document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
       this.resetFilters();
@@ -741,6 +750,124 @@ class BorderoTableManager {
     document.getElementById('btn-prev-page')?.addEventListener('click', () => this.prevPage());
     document.getElementById('btn-next-page')?.addEventListener('click', () => this.nextPage());
     document.getElementById('btn-last-page')?.addEventListener('click', () => this.lastPage());
+  }
+
+  scheduleSearchButtonsResize() {
+    if (this.searchButtonsResizeScheduled) {
+      return;
+    }
+
+    this.searchButtonsResizeScheduled = true;
+    window.requestAnimationFrame(() => {
+      this.searchButtonsResizeScheduled = false;
+      this.equalizeSearchActionButtons();
+    });
+  }
+
+  equalizeSearchActionButtons() {
+    const buttons = [
+      document.getElementById('btn-search-general'),
+      document.getElementById('btn-search-title'),
+      document.getElementById('btn-search-id')
+    ].filter(Boolean);
+
+    if (!buttons.length) return;
+
+    buttons.forEach((btn) => {
+      btn.style.width = 'auto';
+    });
+
+    const maxWidth = Math.max(...buttons.map((btn) => btn.getBoundingClientRect().width));
+    const targetWidth = `${Math.ceil(maxWidth)}px`;
+
+    buttons.forEach((btn) => {
+      btn.style.width = targetWidth;
+    });
+  }
+
+  setWebcamSignal(state, text, warningReason = '') {
+    const webcamSignalNode = document.getElementById('webcam-signal-05');
+    const webcamSignalTextNode = document.getElementById('webcam-signal-text-05');
+
+    if (webcamSignalNode) {
+      webcamSignalNode.dataset.state = state;
+      webcamSignalNode.setAttribute('aria-label', `Spia stato webcam secondaria: ${text}`);
+      if (warningReason) {
+        webcamSignalNode.title = warningReason;
+      } else {
+        webcamSignalNode.removeAttribute('title');
+      }
+    }
+
+    if (webcamSignalTextNode) {
+      webcamSignalTextNode.textContent = text;
+    }
+
+    this.webcamSignalWarningReason = warningReason;
+  }
+
+  refreshWebcamSignal({ warningReason = this.webcamSignalWarningReason, vlcRunning = false } = {}) {
+    if (warningReason) {
+      this.setWebcamSignal('warning', 'Anomalia', warningReason);
+      return;
+    }
+
+    if (vlcRunning) {
+      this.setWebcamSignal('live', 'Live monitor 2');
+      return;
+    }
+
+    this.setWebcamSignal('idle', 'Riposo');
+  }
+
+  async refreshSecondaryPlayerSignalState() {
+    try {
+      const response = await fetch('/api/userform/pagina05/electron/player/state', {
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const out = await response.json().catch(() => ({}));
+      if (!response.ok || out?.ok === false || out?.success === false) {
+        throw new Error(out?.error || `HTTP ${response.status}`);
+      }
+
+      const playerState = out?.playerState || {};
+      if (playerState.active) {
+        this.refreshWebcamSignal({ warningReason: '', vlcRunning: playerState.mode === 'webcam-live' });
+      } else {
+        this.refreshWebcamSignal({ warningReason: '', vlcRunning: false });
+      }
+    } catch (error) {
+      this.refreshWebcamSignal({
+        warningReason: error?.message || 'Player Electron non raggiungibile',
+        vlcRunning: false
+      });
+    }
+  }
+
+  setupWebcamSignalBox() {
+    if (!document.getElementById('webcam-signal-05')) {
+      return;
+    }
+
+    this.refreshWebcamSignal({ warningReason: '', vlcRunning: false });
+    this.refreshSecondaryPlayerSignalState().catch(() => null);
+
+    if (this.webcamSignalPollTimer) {
+      clearInterval(this.webcamSignalPollTimer);
+    }
+
+    this.webcamSignalPollTimer = setInterval(() => {
+      this.refreshSecondaryPlayerSignalState().catch(() => null);
+    }, 2000);
+
+    window.addEventListener('pagehide', () => {
+      if (this.webcamSignalPollTimer) {
+        clearInterval(this.webcamSignalPollTimer);
+        this.webcamSignalPollTimer = null;
+      }
+    }, { once: true });
   }
 
   sendDisplayRollingCommand(action) {
@@ -2059,7 +2186,7 @@ class BorderoTableManager {
    * Update buttons stato
    */
   updateSortButtons() {
-    const buttons = ['btn-sort-id', 'btn-sort-genere', 'btn-sort-autore', 'btn-sort-richieste'];
+    const buttons = ['btn-sort-id', 'btn-sort-coreografo', 'btn-sort-autore', 'btn-sort-richieste'];
     buttons.forEach(btnId => {
       const btn = document.getElementById(btnId);
       const fieldName = btnId.replace('btn-sort-', '');
