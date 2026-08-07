@@ -29,7 +29,7 @@ const BORDERO_CONFIG = {
   CACHE_KEY_CURRENT_SERATA: 'bordero_currentSerata',      // Serata in corso (brani + metadata)
   CACHE_KEY_SERATA_HISTORY: 'bordero_serataHistory',      // Array of completed serata
   CACHE_KEY_SERATA_ARCHIVE_DIR: 'C:\\VSC_SIAE\\Storico Serate\\', // Directory archivio
-  SYNC_INTERVAL_MS: 5 * 60 * 1000, // 5 minuti
+  SYNC_INTERVAL_MS: 60 * 1000, // 1 minuto
   
   // ========== GOOGLE SHEETS API ==========
   GOOGLE_SHEETS_API_KEY: 'YOUR_API_KEY_HERE', // Da configurare

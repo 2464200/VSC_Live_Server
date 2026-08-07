@@ -19,7 +19,6 @@ const { parse: parseCsv } = require('csv-parse/sync');
 const QRCodeLib = require('qrcode');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
-const { parseBorderoGoogleSyncIntervalMs, shouldScheduleBorderoGoogleSync } = require('./Bordero/server/bordero-sync-config');
 
 const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
@@ -36,7 +35,7 @@ const USERFORM_FFMPEG_CANDIDATES = [
     'C:/ffmpeg/bin/ffmpeg.exe'
 ].filter(Boolean);
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
-const BORDERO_GOOGLE_SYNC_INTERVAL_MS = parseBorderoGoogleSyncIntervalMs(process.env);
+const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 60 * 1000;
 
 // ===== STATO GLOBALE =====
 let chromeProcess = null;
@@ -178,11 +177,6 @@ function startBorderoGoogleSyncScheduler() {
     }).catch((error) => {
         console.warn('⚠️ Bordero Google sync startup error:', error?.message || error);
     });
-
-    if (!shouldScheduleBorderoGoogleSync(process.env)) {
-        console.log('ℹ️ Bordero Google sync scheduler disabilitato (intervallo non impostato o <= 0)');
-        return;
-    }
 
     borderoGoogleSyncTimer = setInterval(() => {
         runBorderoGoogleSync('interval').catch((error) => {

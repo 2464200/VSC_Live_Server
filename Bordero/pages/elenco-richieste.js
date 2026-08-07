@@ -11,15 +11,19 @@ class ElencoRichiestePage {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
+    this.autoRefreshIntervalMs = 60 * 1000;
+    this.autoRefreshTimer = null;
+    this.autoRefreshInProgress = false;
     this.init();
   }
 
   async init() {
     try {
       await dataLoader.initialize();
-      await this.refreshFromCurrentData();
+      await this.refreshFromCurrentData({ forceRemote: true, silent: true });
       await this.refreshSyncDiagnostic();
       this.render();
+      this.setupAutoRefresh();
       this.setupStorageSync();
       this.setupListeners();
     } catch (error) {
@@ -28,47 +32,85 @@ class ElencoRichiestePage {
     }
   }
 
-  async refreshFromCurrentData() {
-    // Usa prima la cache aggiornata da Bordero (include eventuale sync Google),
-    // poi fallback a loadBrani se la cache non e disponibile.
-    const cachedBrani = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
-    const latestBrani = Array.isArray(cachedBrani) && cachedBrani.length > 0
-      ? dataLoader.normalizeBraniList(cachedBrani)
-      : await dataLoader.loadBrani();
+  setupAutoRefresh() {
+    if (this.autoRefreshTimer) {
+      clearInterval(this.autoRefreshTimer);
+      this.autoRefreshTimer = null;
+    }
 
-    const originalBrani = latestBrani.map((brano, index) => ({
-      ...brano,
-      originalIndex: index,
-    }));
+    this.autoRefreshTimer = setInterval(() => {
+      if (document.hidden) return;
+      this.refreshFromCurrentData({ forceRemote: true, silent: true })
+        .then(() => this.refreshSyncDiagnostic())
+        .then(() => this.render())
+        .catch((error) => logger.error('Errore auto-refresh elenco richieste', error));
+    }, this.autoRefreshIntervalMs);
 
-    const currentSerata = dataLoader.getCurrentSerata();
-    if (currentSerata) {
-      this.serata = currentSerata.metadata;
+    window.addEventListener('pagehide', () => {
+      if (this.autoRefreshTimer) {
+        clearInterval(this.autoRefreshTimer);
+        this.autoRefreshTimer = null;
+      }
+    }, { once: true });
+  }
 
-      if (Array.isArray(currentSerata.brani) && currentSerata.brani.length > 0) {
-        const executedMap = new Map(currentSerata.brani.map((b) => [String(b.id), b]));
-        this.brani = originalBrani.map((brano) => {
-          const saved = executedMap.get(String(brano.id));
-          if (saved && String(saved.flag || '').toUpperCase() === 'X') {
-            return {
-              ...brano,
-              flag: 'X',
-              timestamp: saved.timestamp || brano.timestamp,
-            };
-          }
-          return brano;
-        });
+  async refreshFromCurrentData(options = {}) {
+    const { forceRemote = false, silent = true } = options;
+
+    if (this.autoRefreshInProgress) {
+      return;
+    }
+
+    this.autoRefreshInProgress = true;
+
+    try {
+      // Usa prima la cache aggiornata da Bordero (include eventuale sync Google),
+      // poi fallback a loadBrani se la cache non e disponibile.
+      const cachedBrani = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
+      const latestBrani = forceRemote
+        ? await dataLoader.loadBrani({ silent })
+        : (
+          Array.isArray(cachedBrani) && cachedBrani.length > 0
+            ? dataLoader.normalizeBraniList(cachedBrani)
+            : await dataLoader.loadBrani({ silent })
+        );
+
+      const originalBrani = latestBrani.map((brano, index) => ({
+        ...brano,
+        originalIndex: index,
+      }));
+
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (currentSerata) {
+        this.serata = currentSerata.metadata;
+
+        if (Array.isArray(currentSerata.brani) && currentSerata.brani.length > 0) {
+          const executedMap = new Map(currentSerata.brani.map((b) => [String(b.id), b]));
+          this.brani = originalBrani.map((brano) => {
+            const saved = executedMap.get(String(brano.id));
+            if (saved && String(saved.flag || '').toUpperCase() === 'X') {
+              return {
+                ...brano,
+                flag: 'X',
+                timestamp: saved.timestamp || brano.timestamp,
+              };
+            }
+            return brano;
+          });
+        } else {
+          this.brani = originalBrani;
+        }
       } else {
         this.brani = originalBrani;
       }
-    } else {
-      this.brani = originalBrani;
+
+      await this.refreshVideoClipAvailability();
+      this.applyVideoClipAvailabilityToBrani();
+
+      this.requested = this.getUniqueRequestedBrani(this.brani);
+    } finally {
+      this.autoRefreshInProgress = false;
     }
-
-    await this.refreshVideoClipAvailability();
-    this.applyVideoClipAvailabilityToBrani();
-
-    this.requested = this.getUniqueRequestedBrani(this.brani);
   }
 
   isRichiesteZeroValue(value) {

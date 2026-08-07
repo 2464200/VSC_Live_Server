@@ -419,7 +419,8 @@ class DataLoader {
   /**
    * Carica i dati dal CSV (o da cache se offline)
    */
-  async loadBrani() {
+  async loadBrani(options = {}) {
+    const { silent = false } = options;
     logger.info('DataLoader.loadBrani() - Iniziando caricamento dati...');
 
     const cachedFromExcel = Storage.get('BORDERO_BRANI_DATA');
@@ -436,12 +437,16 @@ class DataLoader {
       Storage.set(BORDERO_CONFIG.CACHE_KEY_SYNC, this.lastSync);
 
       logger.info(`Caricati ${this.brani.length} brani da CSV`);
-      Toast.success(`${this.brani.length} brani caricati`);
+      if (!silent) {
+        Toast.success(`${this.brani.length} brani caricati`);
+      }
 
       return this.brani;
     } catch (error) {
       logger.error('Errore caricamento CSV', error);
-      Toast.error('Errore caricamento dati: ' + error.message);
+      if (!silent) {
+        Toast.error('Errore caricamento dati: ' + error.message);
+      }
 
       if (cachedFromExcel && cachedFromExcel.length > 0) {
         logger.warn(`Fallback cache Excel (${cachedFromExcel.length} brani)`);

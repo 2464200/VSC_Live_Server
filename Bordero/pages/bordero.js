@@ -29,6 +29,9 @@ class BorderoTableManager {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
+    this.autoRefreshIntervalMs = 60 * 1000;
+    this.autoRefreshTimer = null;
+    this.autoRefreshInProgress = false;
     this.displayScrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
     this.deselectionConfirmState = null;
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
@@ -110,6 +113,7 @@ class BorderoTableManager {
       this.setupEventListeners();
       this.setupSerataMeta();
       this.setupDataRefreshListeners();
+      this.setupAutoRefresh();
       this.setupStorageSync();
       this.updateSearchPlaceholder();
       this.renderTable();
@@ -575,22 +579,49 @@ class BorderoTableManager {
   setupDataRefreshListeners() {
     window.removeEventListener('bordero:data-updated', this.handleDataRefreshBound);
     this.handleDataRefreshBound = () => {
-      this.refreshFromCurrentData();
+      this.refreshFromCurrentData({ silent: true });
     };
     window.addEventListener('bordero:data-updated', this.handleDataRefreshBound);
 
     window.removeEventListener('storage', this.handleStorageRefreshBound);
     this.handleStorageRefreshBound = (event) => {
       if (event.key && event.key.startsWith('BORDERO_')) {
-        this.refreshFromCurrentData();
+        this.refreshFromCurrentData({ silent: true });
       }
     };
     window.addEventListener('storage', this.handleStorageRefreshBound);
   }
 
-  async refreshFromCurrentData() {
+  setupAutoRefresh() {
+    if (this.autoRefreshTimer) {
+      clearInterval(this.autoRefreshTimer);
+      this.autoRefreshTimer = null;
+    }
+
+    this.autoRefreshTimer = setInterval(() => {
+      this.refreshFromCurrentData({ silent: true, source: 'timer' });
+    }, this.autoRefreshIntervalMs);
+
+    window.addEventListener('pagehide', () => {
+      if (this.autoRefreshTimer) {
+        clearInterval(this.autoRefreshTimer);
+        this.autoRefreshTimer = null;
+      }
+    }, { once: true });
+  }
+
+  async refreshFromCurrentData(options = {}) {
+    const { silent = true, source = 'runtime' } = options;
+
+    if (this.autoRefreshInProgress) {
+      logger.debug('Refresh dati saltato: aggiornamento già in corso', { source });
+      return;
+    }
+
+    this.autoRefreshInProgress = true;
+
     try {
-      const allBrani = await dataLoader.loadBrani();
+      const allBrani = await dataLoader.loadBrani({ silent });
       const originalBrani = allBrani.map((brano, index) => ({
         ...brano,
         originalIndex: index,
@@ -623,9 +654,11 @@ class BorderoTableManager {
       await this.populateDJSelect();
       await this.setupLocationPicker();
       this.renderTable();
-      logger.info('✓ Dati aggiornati dopo sincronizzazione');
+      logger.info('✓ Dati aggiornati dopo sincronizzazione', { source });
     } catch (error) {
       logger.error('Errore aggiornamento dati dopo sincronizzazione', error);
+    } finally {
+      this.autoRefreshInProgress = false;
     }
   }
 
@@ -2186,7 +2219,7 @@ class BorderoTableManager {
         throw new Error(payload?.error || payload?.summary?.error || 'Sincronizzazione Google non riuscita');
       }
 
-      await this.refreshFromCurrentData();
+      await this.refreshFromCurrentData({ silent: true, source: 'manual-google-sync' });
 
       const sheetResult = Array.isArray(payload?.summary?.results)
         ? payload.summary.results.find((item) => String(item?.sheet || '').toLowerCase() === 'accoda 8+12')

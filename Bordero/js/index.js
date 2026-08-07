@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setInterval(() => {
     if (Network.isOnline()) {
       logger.info('Auto-sync triggered');
-      dataLoader.loadBrani().then(() => {
+      dataLoader.loadBrani({ silent: true }).then(() => {
         updateStats();
         populatePreviewTable();
       });
