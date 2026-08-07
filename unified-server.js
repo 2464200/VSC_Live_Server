@@ -27,7 +27,7 @@ const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
 const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
 const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
-const USERFORM_RECORDINGS_DIR = process.env.USERFORM_RECORDINGS_DIR || path.join(os.homedir(), 'Videos', 'VSC_Webcam');
+const USERFORM_RECORDINGS_DIR = process.env.USERFORM_RECORDINGS_DIR || 'C:\\VSC_WEBCAM';
 const LEGACY_RECORDINGS_DIR = 'C:\\vsc_webcam';
 const USERFORM_FFMPEG_CANDIDATES = [
     process.env.FFMPEG_PATH,
@@ -548,7 +548,251 @@ function sanitizeCsvValue(value) {
     return String(value ?? '').replace(/^\uFEFF/, '').trim();
 }
 
-function loadUserformCameraProfiles() {
+const USERFORM_CAMERA_CSV_HEADER = [
+    'value',
+    'Codifica',
+    'dshow-size',
+    'dshow-fps',
+    'ELENCO WEBCAM',
+    'profile-id',
+    'is-default',
+    'is-enabled',
+    'last-used-at',
+    'last-mode',
+    'last-status',
+    'usage-count',
+    'last-size',
+    'last-fps',
+    'last-codec',
+    'notes'
+];
+
+function csvEscapeValue(value) {
+    const text = String(value ?? '');
+    if (!/[",\r\n]/.test(text)) {
+        return text;
+    }
+    return `"${text.replace(/"/g, '""')}"`;
+}
+
+function readCameraField(row = {}, aliases = []) {
+    for (const alias of aliases) {
+        const value = sanitizeCsvValue(row?.[alias]);
+        if (value) {
+            return value;
+        }
+    }
+    return '';
+}
+
+function parseCsvBoolean(value, fallback = true) {
+    const normalized = sanitizeCsvValue(value).toLowerCase();
+    if (!normalized) {
+        return fallback;
+    }
+    if (['1', 'true', 'yes', 'y', 'si'].includes(normalized)) {
+        return true;
+    }
+    if (['0', 'false', 'no', 'n'].includes(normalized)) {
+        return false;
+    }
+    return fallback;
+}
+
+function parseCsvInteger(value, fallback = 0) {
+    const n = Number.parseInt(sanitizeCsvValue(value), 10);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+function ensureProfileId(name = '') {
+    const normalized = sanitizeCsvValue(name)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    return normalized || `camera-${Date.now()}`;
+}
+
+function mapCsvRowToCameraProfile(row = {}) {
+    const name = readCameraField(row, ['value', 'Value', 'name']);
+    if (!name) {
+        return null;
+    }
+
+    const codec = readCameraField(row, ['Codifica', 'codifica', 'codec', 'last-codec']);
+    const size = readCameraField(row, ['dshow-size', 'dshowSize', 'size', 'last-size']);
+    const fps = readCameraField(row, ['dshow-fps', 'dshowFps', 'fps', 'last-fps']);
+
+    return {
+        name,
+        codec,
+        size,
+        fps,
+        label: readCameraField(row, ['ELENCO WEBCAM', 'label', 'descrizione']),
+        profileId: readCameraField(row, ['profile-id', 'profileId']) || ensureProfileId(name),
+        isDefault: parseCsvBoolean(readCameraField(row, ['is-default', 'isDefault']), false),
+        isEnabled: parseCsvBoolean(readCameraField(row, ['is-enabled', 'isEnabled']), true),
+        lastUsedAt: readCameraField(row, ['last-used-at', 'lastUsedAt']),
+        lastMode: readCameraField(row, ['last-mode', 'lastMode']),
+        lastStatus: readCameraField(row, ['last-status', 'lastStatus']),
+        usageCount: parseCsvInteger(readCameraField(row, ['usage-count', 'usageCount']), 0),
+        lastSize: readCameraField(row, ['last-size', 'lastSize']) || size,
+        lastFps: readCameraField(row, ['last-fps', 'lastFps']) || fps,
+        lastCodec: readCameraField(row, ['last-codec', 'lastCodec']) || codec,
+        notes: readCameraField(row, ['notes', 'note'])
+    };
+}
+
+function parseDshowVideoDeviceNames(outputText = '') {
+    const source = String(outputText || '');
+    const matches = [...source.matchAll(/"([^"]+)"\s+\(video\)/gi)];
+    const names = matches
+        .map((match) => sanitizeCsvValue(match[1]))
+        .filter(Boolean);
+
+    return [...new Set(names)];
+}
+
+function choosePreferredSystemWebcam(deviceNames = []) {
+    if (!Array.isArray(deviceNames) || deviceNames.length === 0) {
+        return '';
+    }
+
+    const virtualPattern = /(virtual|splitter|obs|xsplit|manycam|ndi)/i;
+    const physical = deviceNames.find((name) => !virtualPattern.test(name));
+    return physical || deviceNames[0] || '';
+}
+
+async function detectSystemWebcamFromFfmpeg() {
+    const ffmpegPath = resolveFfmpegExecutable();
+    if (!ffmpegPath) {
+        return {
+            detectedName: '',
+            candidates: [],
+            ffmpegPath: '',
+            error: 'FFmpeg non trovato'
+        };
+    }
+
+    try {
+        const { stderr, stdout } = await execFileAsync(ffmpegPath, [
+            '-hide_banner',
+            '-list_devices', 'true',
+            '-f', 'dshow',
+            '-i', 'dummy'
+        ], { maxBuffer: 1024 * 1024 });
+
+        const deviceNames = parseDshowVideoDeviceNames(`${stderr || ''}\n${stdout || ''}`);
+        return {
+            detectedName: choosePreferredSystemWebcam(deviceNames),
+            candidates: deviceNames,
+            ffmpegPath,
+            error: ''
+        };
+    } catch (error) {
+        const stderr = String(error?.stderr || '');
+        const stdout = String(error?.stdout || '');
+        const deviceNames = parseDshowVideoDeviceNames(`${stderr}\n${stdout}`);
+        return {
+            detectedName: choosePreferredSystemWebcam(deviceNames),
+            candidates: deviceNames,
+            ffmpegPath,
+            error: error?.message || String(error)
+        };
+    }
+}
+
+function writeUserformCameraProfilesCsv(rows = []) {
+    const lines = [USERFORM_CAMERA_CSV_HEADER.join(',')];
+
+    for (const row of rows) {
+        const profile = mapCsvRowToCameraProfile(row);
+        if (!profile) {
+            continue;
+        }
+
+        const values = [
+            csvEscapeValue(profile.name),
+            csvEscapeValue(profile.codec),
+            csvEscapeValue(profile.size),
+            csvEscapeValue(profile.fps),
+            csvEscapeValue(profile.label),
+            csvEscapeValue(profile.profileId),
+            csvEscapeValue(profile.isDefault ? '1' : '0'),
+            csvEscapeValue(profile.isEnabled ? '1' : '0'),
+            csvEscapeValue(profile.lastUsedAt),
+            csvEscapeValue(profile.lastMode),
+            csvEscapeValue(profile.lastStatus),
+            csvEscapeValue(String(Math.max(0, Number(profile.usageCount) || 0))),
+            csvEscapeValue(profile.lastSize),
+            csvEscapeValue(profile.lastFps),
+            csvEscapeValue(profile.lastCodec),
+            csvEscapeValue(profile.notes)
+        ];
+        lines.push(values.join(','));
+    }
+
+    fs.writeFileSync(USERFORM_CAMERA_CSV, `${lines.join('\r\n')}\r\n`, 'utf8');
+}
+
+async function ensureSystemWebcamInUserformCsv() {
+    const detection = await detectSystemWebcamFromFfmpeg();
+    const detectedName = sanitizeCsvValue(detection.detectedName);
+
+    if (!detectedName) {
+        return {
+            added: false,
+            detectedName: '',
+            candidates: detection.candidates || [],
+            error: detection.error || ''
+        };
+    }
+
+    const raw = fs.existsSync(USERFORM_CAMERA_CSV)
+        ? fs.readFileSync(USERFORM_CAMERA_CSV, 'utf8').replace(/^\uFEFF/, '')
+        : `${USERFORM_CAMERA_CSV_HEADER.join(',')}\n`;
+
+    const rows = parseCsv(raw, {
+        columns: true,
+        skip_empty_lines: true,
+        relax_column_count: true,
+        trim: true
+    });
+
+    const existingProfiles = rows
+        .map((row) => mapCsvRowToCameraProfile(row))
+        .filter(Boolean);
+    const alreadyPresent = existingProfiles.some((row) => row.name.toLowerCase() === detectedName.toLowerCase());
+    const hasDefault = existingProfiles.some((row) => row.isDefault);
+
+    if (!alreadyPresent) {
+        rows.push({
+            value: detectedName,
+            Codifica: 'yuyv422',
+            'dshow-size': '1280x720',
+            'dshow-fps': '30',
+            'ELENCO WEBCAM': 'Sistema - Webcam auto-rilevata',
+            'profile-id': ensureProfileId(detectedName),
+            'is-default': hasDefault ? '0' : '1',
+            'is-enabled': '1',
+            'last-status': 'detected',
+            'usage-count': '0',
+            'last-size': '1280x720',
+            'last-fps': '30',
+            'last-codec': 'yuyv422',
+            notes: 'Aggiunta automaticamente da rilevamento sistema'
+        });
+        writeUserformCameraProfilesCsv(rows);
+    }
+
+    return {
+        added: !alreadyPresent,
+        detectedName,
+        candidates: detection.candidates || [],
+        error: detection.error || ''
+    };
+}
+
+function loadUserformCameraProfiles(includeDisabled = false) {
     if (!fs.existsSync(USERFORM_CAMERA_CSV)) {
         return [];
     }
@@ -562,30 +806,166 @@ function loadUserformCameraProfiles() {
     });
 
     return rows
-        .map((row) => {
-            const name = sanitizeCsvValue(row.value || row.Value);
-            const codec = sanitizeCsvValue(row.Codifica || row.codifica);
-            const size = sanitizeCsvValue(row['dshow-size'] || row.dshowSize || row.size);
-            const fps = sanitizeCsvValue(row['dshow-fps'] || row.dshowFps || row.fps);
-            const label = sanitizeCsvValue(row['ELENCO WEBCAM'] || row.label || row.descrizione);
-
-            if (!name) {
-                return null;
+        .map((row) => mapCsvRowToCameraProfile(row))
+        .filter((row) => {
+            if (!row?.name) {
+                return false;
             }
+            if (includeDisabled) {
+                return true;
+            }
+            return row.isEnabled !== false;
+        });
+}
 
-            return {
-                name,
-                codec,
-                size,
-                fps,
-                label
-            };
-        })
-        .filter(Boolean);
+function saveUserformCameraProfiles(profiles = []) {
+    writeUserformCameraProfilesCsv(profiles);
+}
+
+function toInputBoolean(value, fallback = false) {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    return parseCsvBoolean(value, fallback);
+}
+
+function upsertUserformCameraProfile(cameraName = '', payload = {}) {
+    const normalizedName = sanitizeCsvValue(cameraName);
+    if (!normalizedName) {
+        return null;
+    }
+
+    const profiles = loadUserformCameraProfiles(true);
+    const index = profiles.findIndex((item) => item.name.toLowerCase() === normalizedName.toLowerCase());
+    const nowIso = new Date().toISOString();
+
+    const base = index >= 0
+        ? profiles[index]
+        : {
+            name: normalizedName,
+            codec: '',
+            size: '',
+            fps: '',
+            label: '',
+            profileId: ensureProfileId(normalizedName),
+            isDefault: false,
+            isEnabled: true,
+            lastUsedAt: '',
+            lastMode: '',
+            lastStatus: '',
+            usageCount: 0,
+            lastSize: '',
+            lastFps: '',
+            lastCodec: '',
+            notes: ''
+        };
+
+    const next = {
+        ...base,
+        name: normalizedName,
+        codec: sanitizeCsvValue(payload.codec) || base.codec,
+        size: sanitizeCsvValue(payload.size) || base.size,
+        fps: sanitizeCsvValue(payload.fps) || base.fps,
+        label: sanitizeCsvValue(payload.label) || base.label,
+        profileId: sanitizeCsvValue(payload.profileId) || base.profileId || ensureProfileId(normalizedName),
+        isDefault: Object.prototype.hasOwnProperty.call(payload, 'isDefault')
+            ? toInputBoolean(payload.isDefault, false)
+            : base.isDefault,
+        isEnabled: Object.prototype.hasOwnProperty.call(payload, 'isEnabled')
+            ? toInputBoolean(payload.isEnabled, true)
+            : base.isEnabled,
+        lastUsedAt: sanitizeCsvValue(payload.lastUsedAt) || (payload.touchNow ? nowIso : base.lastUsedAt),
+        lastMode: sanitizeCsvValue(payload.lastMode) || base.lastMode,
+        lastStatus: sanitizeCsvValue(payload.lastStatus) || base.lastStatus,
+        usageCount: Object.prototype.hasOwnProperty.call(payload, 'usageCount')
+            ? Math.max(0, Number.parseInt(sanitizeCsvValue(payload.usageCount), 10) || 0)
+            : base.usageCount,
+        lastSize: sanitizeCsvValue(payload.lastSize) || sanitizeCsvValue(payload.size) || base.lastSize || base.size,
+        lastFps: sanitizeCsvValue(payload.lastFps) || sanitizeCsvValue(payload.fps) || base.lastFps || base.fps,
+        lastCodec: sanitizeCsvValue(payload.lastCodec) || sanitizeCsvValue(payload.codec) || base.lastCodec || base.codec,
+        notes: Object.prototype.hasOwnProperty.call(payload, 'notes')
+            ? sanitizeCsvValue(payload.notes)
+            : base.notes
+    };
+
+    if (index >= 0) {
+        profiles[index] = next;
+    } else {
+        profiles.push(next);
+    }
+
+    if (next.isDefault) {
+        for (const item of profiles) {
+            if (item.name.toLowerCase() !== normalizedName.toLowerCase()) {
+                item.isDefault = false;
+            }
+        }
+    }
+
+    saveUserformCameraProfiles(profiles);
+    return next;
+}
+
+function updateUserformCameraProfileUsage(cameraName = '', payload = {}) {
+    const normalizedName = sanitizeCsvValue(cameraName);
+    if (!normalizedName) {
+        return null;
+    }
+
+    const profiles = loadUserformCameraProfiles(true);
+    const nowIso = new Date().toISOString();
+    const index = profiles.findIndex((item) => item.name.toLowerCase() === normalizedName.toLowerCase());
+
+    const base = index >= 0
+        ? profiles[index]
+        : {
+            name: normalizedName,
+            codec: sanitizeCsvValue(payload.codec) || 'yuyv422',
+            size: sanitizeCsvValue(payload.size) || '640x480',
+            fps: sanitizeCsvValue(payload.fps) || '30',
+            label: 'Profilo creato automaticamente',
+            profileId: ensureProfileId(normalizedName),
+            isDefault: false,
+            isEnabled: true,
+            lastUsedAt: '',
+            lastMode: '',
+            lastStatus: '',
+            usageCount: 0,
+            lastSize: '',
+            lastFps: '',
+            lastCodec: '',
+            notes: 'Creato da runtime durante uso camera'
+        };
+
+    const codec = sanitizeCsvValue(payload.codec) || base.codec;
+    const size = sanitizeCsvValue(payload.size) || base.size;
+    const fps = sanitizeCsvValue(payload.fps) || base.fps;
+    const next = {
+        ...base,
+        codec,
+        size,
+        fps,
+        lastCodec: codec || base.lastCodec,
+        lastSize: size || base.lastSize,
+        lastFps: fps || base.lastFps,
+        lastMode: sanitizeCsvValue(payload.mode) || base.lastMode,
+        lastStatus: sanitizeCsvValue(payload.status) || base.lastStatus,
+        lastUsedAt: nowIso,
+        usageCount: Math.max(0, Number(base.usageCount) || 0) + (payload.incrementUsage ? 1 : 0)
+    };
+
+    if (index >= 0) {
+        profiles[index] = next;
+    } else {
+        profiles.push(next);
+    }
+
+    saveUserformCameraProfiles(profiles);
+    return next;
 }
 
 function listUserformRecordingFiles(extensions = ['.mkv']) {
-    const folders = [USERFORM_RECORDINGS_DIR, LEGACY_RECORDINGS_DIR]
+    const folders = [USERFORM_RECORDINGS_DIR]
         .map((folder) => path.resolve(folder))
         .filter((folder, index, all) => folder && all.indexOf(folder) === index && fs.existsSync(folder));
 
@@ -604,6 +984,7 @@ function listUserformRecordingFiles(extensions = ['.mkv']) {
             files.push({
                 name: entry.name,
                 path: fullPath,
+                folder,
                 sizeBytes: stats.size,
                 mtimeMs: stats.mtimeMs
             });
@@ -623,11 +1004,39 @@ function getUserformRecordingState() {
     };
 }
 
+function waitForChildExit(child, timeoutMs = 3000) {
+    return new Promise((resolve) => {
+        if (!child || child.exitCode !== null) {
+            resolve(true);
+            return;
+        }
+
+        let done = false;
+        const timer = setTimeout(() => {
+            if (done) return;
+            done = true;
+            child.removeListener('exit', onExit);
+            resolve(false);
+        }, timeoutMs);
+
+        const onExit = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            resolve(true);
+        };
+
+        child.once('exit', onExit);
+    });
+}
+
 async function stopUserformRecordingIfRunning() {
+    const recordedFilePath = userformRecordingFilePath || '';
+
     if (!userformRecordingProcess?.pid) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
-        return { stopped: false };
+        return { stopped: false, filePath: recordedFilePath };
     }
 
     const pid = userformRecordingProcess.pid;
@@ -641,7 +1050,23 @@ async function stopUserformRecordingIfRunning() {
     if (!aliveBeforeStop) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
-        return { stopped: true, pid };
+        return { stopped: true, pid, filePath: recordedFilePath };
+    }
+
+    let gracefulStopped = false;
+    if (userformRecordingProcess?.stdin && !userformRecordingProcess.stdin.destroyed) {
+        try {
+            userformRecordingProcess.stdin.write('q\n');
+            gracefulStopped = await waitForChildExit(userformRecordingProcess, 3000);
+        } catch (_) {
+            gracefulStopped = false;
+        }
+    }
+
+    if (gracefulStopped) {
+        userformRecordingProcess = null;
+        userformRecordingFilePath = '';
+        return { stopped: true, pid, filePath: recordedFilePath, graceful: true };
     }
 
     try {
@@ -657,19 +1082,20 @@ async function stopUserformRecordingIfRunning() {
 
     userformRecordingProcess = null;
     userformRecordingFilePath = '';
-    return { stopped: true, pid };
+    return { stopped: true, pid, filePath: recordedFilePath, graceful: false };
 }
 
 function buildCameraCaptureArgs(profile = {}, outputFilePath = '') {
     const cameraName = sanitizeCsvValue(profile.name);
-    const size = sanitizeCsvValue(profile.size) || '640x480';
-    const fps = sanitizeCsvValue(profile.fps) || '30';
-    const codec = sanitizeCsvValue(profile.codec);
+    const fps = sanitizeCsvValue(profile.fps);
 
-    const args = ['-y', '-f', 'dshow', '-rtbufsize', '64M', '-video_size', size, '-framerate', fps];
-    if (codec) {
-        args.push('-pixel_format', codec);
+    const args = ['-y', '-f', 'dshow', '-rtbufsize', '64M'];
+
+    // Avoid forcing size/pixel format here: many webcams reject strict dshow options.
+    if (/^\d{1,3}$/.test(fps)) {
+        args.push('-framerate', fps);
     }
+
     args.push('-i', `video=${cameraName}`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', outputFilePath);
     return args;
 }
@@ -1365,6 +1791,8 @@ app.use('/eventi', express.static(path.join(__dirname, 'Eventi', 'public')));
 
 // Serve the local videoclip directory for the Bordero pages.
 app.use('/videos', express.static(VIDEOCLIP_DIR));
+// Serve recordings generated by USERFORM PAGINA05 for Electron secondary playback.
+app.use('/userform-recordings', express.static(USERFORM_RECORDINGS_DIR));
 
 app.get('/api/videoclip/list', (req, res) => {
     try {
@@ -1509,17 +1937,68 @@ app.get('/api/videoclip/vlc/state', async (req, res) => {
     }
 });
 
-app.get('/api/userform/pagina05/cameras', (req, res) => {
+app.get('/api/userform/pagina05/cameras', async (req, res) => {
     try {
+        const systemCamera = await ensureSystemWebcamInUserformCsv();
         const cameras = loadUserformCameraProfiles();
+        const defaultCameraName = sanitizeCsvValue(systemCamera.detectedName);
+        const csvDefault = cameras.find((item) => item.isDefault)?.name || '';
+        const resolvedDefault = csvDefault
+            || (cameras.some((item) => item.name === defaultCameraName) ? defaultCameraName : '')
+            || (cameras[0]?.name || '');
+
         return res.json({
             ok: true,
             source: USERFORM_CAMERA_CSV,
             count: cameras.length,
+            defaultCameraName: resolvedDefault,
+            systemCamera,
             cameras
         });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error), cameras: [] });
+    }
+});
+
+app.post('/api/userform/pagina05/cameras/profile/save', (req, res) => {
+    try {
+        const cameraName = sanitizeCsvValue(req.body?.cameraName);
+        if (!cameraName) {
+            return res.status(400).json({ ok: false, error: 'cameraName obbligatorio' });
+        }
+
+        const saved = upsertUserformCameraProfile(cameraName, {
+            codec: req.body?.codec,
+            size: req.body?.size,
+            fps: req.body?.fps,
+            label: req.body?.label,
+            profileId: req.body?.profileId,
+            isDefault: req.body?.isDefault,
+            isEnabled: req.body?.isEnabled,
+            lastUsedAt: req.body?.lastUsedAt,
+            lastMode: req.body?.lastMode,
+            lastStatus: req.body?.lastStatus,
+            usageCount: req.body?.usageCount,
+            lastSize: req.body?.lastSize,
+            lastFps: req.body?.lastFps,
+            lastCodec: req.body?.lastCodec,
+            notes: req.body?.notes,
+            touchNow: toInputBoolean(req.body?.touchNow, false)
+        });
+
+        if (!saved) {
+            return res.status(400).json({ ok: false, error: 'Profilo camera non valido' });
+        }
+
+        const cameras = loadUserformCameraProfiles();
+        return res.json({
+            ok: true,
+            profile: saved,
+            count: cameras.length,
+            defaultCameraName: cameras.find((item) => item.isDefault)?.name || ''
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
 });
 
@@ -1528,15 +2007,23 @@ app.get('/api/userform/pagina05/files', (req, res) => {
         ensureUserformRecordingDir();
         const mkvFiles = listUserformRecordingFiles(['.mkv']);
         const mp4Files = listUserformRecordingFiles(['.mp4']);
+        const allFiles = [...mkvFiles, ...mp4Files]
+            .sort((a, b) => Number(b.mtimeMs || 0) - Number(a.mtimeMs || 0))
+            .map((item) => ({
+                ...item,
+                publicUrl: `/userform-recordings/${encodeURIComponent(item.name)}`
+            }));
+
         return res.json({
             ok: true,
             recordingDir: USERFORM_RECORDINGS_DIR,
             legacyDir: LEGACY_RECORDINGS_DIR,
             mkvFiles,
-            mp4Files
+            mp4Files,
+            allFiles
         });
     } catch (error) {
-        return res.status(500).json({ ok: false, error: error?.message || String(error), mkvFiles: [], mp4Files: [] });
+        return res.status(500).json({ ok: false, error: error?.message || String(error), mkvFiles: [], mp4Files: [], allFiles: [] });
     }
 });
 
@@ -1588,9 +2075,18 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
         const outputPath = path.join(recDir, fileName);
         const ffArgs = buildCameraCaptureArgs(profile, outputPath);
 
-        const child = spawn(ffmpegPath, ffArgs, { stdio: 'ignore', windowsHide: true });
+        const child = spawn(ffmpegPath, ffArgs, { stdio: ['pipe', 'ignore', 'ignore'], windowsHide: true });
         userformRecordingProcess = child;
         userformRecordingFilePath = outputPath;
+
+        updateUserformCameraProfileUsage(cameraName, {
+            codec: profile.codec,
+            size: profile.size,
+            fps: profile.fps,
+            mode: 'recording',
+            status: 'started',
+            incrementUsage: true
+        });
 
         child.once('exit', () => {
             if (userformRecordingProcess?.pid === child.pid) {
@@ -1712,6 +2208,15 @@ app.post('/api/userform/pagina05/vlc/live/start', async (req, res) => {
 
         const child = spawnDetachedProcess(vlcPath, args);
         userformLiveVlcProcess = { pid: child.pid };
+
+        updateUserformCameraProfileUsage(cameraName, {
+            codec: sanitizeCsvValue(req.body?.codec),
+            size,
+            fps,
+            mode: 'live',
+            status: 'started',
+            incrementUsage: true
+        });
 
         return res.json({ ok: true, pid: child.pid, vlcPath, vlcArgs: args });
     } catch (error) {

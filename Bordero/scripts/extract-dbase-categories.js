@@ -42,9 +42,161 @@ function uniqueValues(values) {
   });
 }
 
+function parseCsvRows(text) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const ch = text[index];
+    const next = text[index + 1];
+
+    if (ch === '"') {
+      if (inQuotes && next === '"') {
+        cell += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
+
+    if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && next === '\n') index += 1;
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = '';
+      continue;
+    }
+
+    cell += ch;
+  }
+
+  if (cell.length || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+function csvEscape(value) {
+  const text = String(value ?? '');
+  if (!/[",\r\n]/.test(text)) {
+    return text;
+  }
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
 function writeCsv(fileName, values) {
   const output = ['value', ...values].join('\n');
   fs.writeFileSync(path.join(dataDir, fileName), output, 'utf8');
+}
+
+function writeCameraProfilesCsv(values) {
+  const filePath = path.join(dataDir, 'get-camera-name.csv');
+  const header = [
+    'value',
+    'Codifica',
+    'dshow-size',
+    'dshow-fps',
+    'ELENCO WEBCAM',
+    'profile-id',
+    'is-default',
+    'is-enabled',
+    'last-used-at',
+    'last-mode',
+    'last-status',
+    'usage-count',
+    'last-size',
+    'last-fps',
+    'last-codec',
+    'notes'
+  ];
+
+  const existingMap = new Map();
+  if (fs.existsSync(filePath)) {
+    const raw = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
+    const rows = parseCsvRows(raw).filter((row) => row.some((cell) => String(cell || '').trim()));
+    if (rows.length > 1) {
+      const sourceHeader = rows[0].map((cell) => String(cell || '').trim().toLowerCase());
+      const indexOf = (name) => sourceHeader.indexOf(name.toLowerCase());
+
+      rows.slice(1).forEach((row) => {
+        const name = String(row[indexOf('value')] || '').trim();
+        if (!name) return;
+        existingMap.set(name.toLowerCase(), {
+          value: name,
+          Codifica: String(row[indexOf('codifica')] || row[indexOf('codec')] || '').trim(),
+          'dshow-size': String(row[indexOf('dshow-size')] || row[indexOf('size')] || '').trim(),
+          'dshow-fps': String(row[indexOf('dshow-fps')] || row[indexOf('fps')] || '').trim(),
+          'ELENCO WEBCAM': String(row[indexOf('elenco webcam')] || row[indexOf('label')] || '').trim(),
+          'profile-id': String(row[indexOf('profile-id')] || '').trim(),
+          'is-default': String(row[indexOf('is-default')] || '').trim(),
+          'is-enabled': String(row[indexOf('is-enabled')] || '').trim(),
+          'last-used-at': String(row[indexOf('last-used-at')] || '').trim(),
+          'last-mode': String(row[indexOf('last-mode')] || '').trim(),
+          'last-status': String(row[indexOf('last-status')] || '').trim(),
+          'usage-count': String(row[indexOf('usage-count')] || '').trim(),
+          'last-size': String(row[indexOf('last-size')] || '').trim(),
+          'last-fps': String(row[indexOf('last-fps')] || '').trim(),
+          'last-codec': String(row[indexOf('last-codec')] || '').trim(),
+          notes: String(row[indexOf('notes')] || '').trim()
+        });
+      });
+    }
+  }
+
+  const sourceNames = uniqueValues(values.map((item) => String(item || '').trim()).filter(Boolean));
+  const mergedNames = [...sourceNames];
+  existingMap.forEach((row) => {
+    if (!mergedNames.some((name) => name.toLowerCase() === row.value.toLowerCase())) {
+      mergedNames.push(row.value);
+    }
+  });
+
+  const rows = mergedNames.map((name) => {
+    const existing = existingMap.get(name.toLowerCase()) || {};
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `camera-${Date.now()}`;
+    return {
+      value: name,
+      Codifica: existing.Codifica || 'yuyv422',
+      'dshow-size': existing['dshow-size'] || '1280x720',
+      'dshow-fps': existing['dshow-fps'] || '30',
+      'ELENCO WEBCAM': existing['ELENCO WEBCAM'] || name,
+      'profile-id': existing['profile-id'] || slug,
+      'is-default': existing['is-default'] || '0',
+      'is-enabled': existing['is-enabled'] || '1',
+      'last-used-at': existing['last-used-at'] || '',
+      'last-mode': existing['last-mode'] || '',
+      'last-status': existing['last-status'] || '',
+      'usage-count': existing['usage-count'] || '0',
+      'last-size': existing['last-size'] || existing['dshow-size'] || '1280x720',
+      'last-fps': existing['last-fps'] || existing['dshow-fps'] || '30',
+      'last-codec': existing['last-codec'] || existing.Codifica || 'yuyv422',
+      notes: existing.notes || ''
+    };
+  });
+
+  if (rows.length > 0 && !rows.some((row) => String(row['is-default'] || '').trim() === '1')) {
+    rows[0]['is-default'] = '1';
+  }
+
+  const lines = [header.join(',')];
+  rows.forEach((row) => {
+    const line = header.map((column) => csvEscape(row[column] || '')).join(',');
+    lines.push(line);
+  });
+
+  fs.writeFileSync(filePath, `${lines.join('\r\n')}\r\n`, 'utf8');
 }
 
 function isLabelRow(row, labels) {
@@ -143,8 +295,13 @@ function main() {
   ];
 
   outputs.forEach(([fileName, values]) => {
-    writeCsv(fileName, uniqueValues(values));
-    console.log(`✓ ${fileName}: ${uniqueValues(values).length} valori`);
+    const distinct = uniqueValues(values);
+    if (fileName === 'get-camera-name.csv') {
+      writeCameraProfilesCsv(distinct);
+    } else {
+      writeCsv(fileName, distinct);
+    }
+    console.log(`✓ ${fileName}: ${distinct.length} valori`);
   });
 }
 

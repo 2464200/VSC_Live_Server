@@ -551,9 +551,24 @@ function enforcePrimaryNavigationPolicy() {
   });
 }
 
-function getVideoPlayerUrl(videoUrl) {
+function getVideoPlayerUrl(payload = {}) {
+  const videoUrl = typeof payload === 'string' ? payload : payload?.url;
+  const mode = typeof payload === 'object' && payload?.mode === 'webcam-live' ? 'webcam-live' : 'video';
   const playerUrl = new URL('http://localhost:5500/Bordero/pages/video-player.html');
-  playerUrl.searchParams.set('src', videoUrl);
+  if (mode === 'webcam-live') {
+    if (payload?.cameraName) {
+      playerUrl.searchParams.set('camera', String(payload.cameraName));
+    }
+    if (payload?.size) {
+      playerUrl.searchParams.set('size', String(payload.size));
+    }
+    if (payload?.fps) {
+      playerUrl.searchParams.set('fps', String(payload.fps));
+    }
+    playerUrl.searchParams.set('mode', 'webcam-live');
+  } else {
+    playerUrl.searchParams.set('src', videoUrl);
+  }
   playerUrl.searchParams.set('ts', String(Date.now()));
   return playerUrl.toString();
 }
@@ -606,7 +621,7 @@ function createVideoPlayerWindow() {
   return win;
 }
 
-async function ensureVideoPlayerWindow(videoUrl) {
+async function ensureVideoPlayerWindow(payload = {}) {
   await ensureUnifiedServer();
   await ensureSecondaryDisplayPage();
 
@@ -614,7 +629,7 @@ async function ensureVideoPlayerWindow(videoUrl) {
     videoPlayerWindow = createVideoPlayerWindow();
   }
 
-  const playerUrl = getVideoPlayerUrl(videoUrl);
+  const playerUrl = getVideoPlayerUrl(payload);
   await videoPlayerWindow.loadURL(playerUrl);
   if (!videoPlayerWindow.isDestroyed()) {
     videoPlayerWindow.setAlwaysOnTop(true, 'screen-saver');
@@ -632,13 +647,15 @@ function closeVideoPlayerWindow() {
 }
 
 ipcMain.handle('bordero-video-player:play', async (_event, payload) => {
+  const mode = typeof payload === 'object' && payload?.mode === 'webcam-live' ? 'webcam-live' : 'video';
   const videoUrl = typeof payload === 'string' ? payload : payload?.url;
-  if (!videoUrl) {
+
+  if (mode === 'video' && !videoUrl) {
     return { success: false, error: 'Missing video url' };
   }
 
-  await ensureVideoPlayerWindow(videoUrl);
-  return { success: true, url: videoUrl };
+  await ensureVideoPlayerWindow(payload || { url: videoUrl });
+  return { success: true, url: videoUrl || '', mode, cameraName: payload?.cameraName || '' };
 });
 
 ipcMain.handle('bordero-video-player:pause', async () => {

@@ -1,7 +1,7 @@
 {
-  "primaryMonitorChoice": 2,
-  "swapPrimarySecondary": true,
+  "primaryMonitorChoice": 1,
+  "swapPrimarySecondary": false,
   "selectionConfirmed": true,
-  "updatedAt": "2026-08-06T21:20:22.492Z",
+  "updatedAt": "2026-08-07T06:31:49.091Z",
   "source": "api-swap-monitors"
 }

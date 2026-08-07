@@ -1,6 +1,10 @@
 (function () {
   const cameraNode = document.getElementById("camera-name-05");
   const recListNode = document.getElementById("recording-list-05");
+  const playbackListNode = document.getElementById("recordings-play-list-05");
+  const webcamShellNode = document.getElementById("webcam-shell-05");
+  const webcamSlideNode = document.getElementById("webcam-slide-05");
+  const webcamPreviewNode = document.getElementById("webcam-preview-05");
   const codecChip = document.getElementById("cam-codec-chip");
   const sizeChip = document.getElementById("cam-size-chip");
   const fpsChip = document.getElementById("cam-fps-chip");
@@ -11,11 +15,100 @@
   let recording = false;
   let vlcRunning = false;
   let cameraProfiles = [];
+  let preferredCameraName = "";
+  let availableRecordings = [];
+  let selectedRecordingName = "";
+  let localPreviewStream = null;
+  let localPreviewCameraName = "";
 
   const setStatus = (msg) => {
     if (statusNode) {
       statusNode.innerHTML = `<strong>Stato:</strong> ${msg}`;
     }
+  };
+
+  const normalizeCell = (value) => String(value ?? "").replace(/^\uFEFF/, "").replace(/\s+/g, " ").trim();
+
+  const parseCsvRows = (text) => {
+    const rows = [];
+    let row = [];
+    let cell = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i += 1) {
+      const ch = text[i];
+      const next = text[i + 1];
+
+      if (ch === '"') {
+        if (inQuotes && next === '"') {
+          cell += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+
+      if (ch === "," && !inQuotes) {
+        row.push(cell);
+        cell = "";
+        continue;
+      }
+
+      if ((ch === "\n" || ch === "\r") && !inQuotes) {
+        if (ch === "\r" && next === "\n") i += 1;
+        row.push(cell);
+        rows.push(row);
+        row = [];
+        cell = "";
+        continue;
+      }
+
+      cell += ch;
+    }
+
+    if (cell.length || row.length) {
+      row.push(cell);
+      rows.push(row);
+    }
+
+    return rows;
+  };
+
+  const mapCameraCsvToProfiles = (csvText) => {
+    const rows = parseCsvRows(csvText.replace(/^\uFEFF/, ""));
+    if (!rows.length) return [];
+
+    const headers = rows[0].map((h) => normalizeCell(h).toLowerCase());
+    const byHeader = (source, names) => {
+      for (const name of names) {
+        const idx = headers.indexOf(name);
+        if (idx >= 0) return normalizeCell(source[idx]);
+      }
+      return "";
+    };
+
+    return rows
+      .slice(1)
+      .map((source) => {
+        const name = byHeader(source, ["value"]);
+        if (!name) return null;
+
+        const isDefaultRaw = byHeader(source, ["is-default", "isdefault"]);
+        const isEnabledRaw = byHeader(source, ["is-enabled", "isenabled"]);
+        const isEnabled = !["0", "false", "no", "n"].includes(normalizeCell(isEnabledRaw).toLowerCase());
+        if (!isEnabled) return null;
+
+        return {
+          name,
+          codec: byHeader(source, ["codifica", "codec", "last-codec"]),
+          size: byHeader(source, ["dshow-size", "size", "dshowsize", "last-size"]),
+          fps: byHeader(source, ["dshow-fps", "fps", "dshowfps", "last-fps"]),
+          label: byHeader(source, ["elenco webcam", "label", "descrizione"]),
+          isDefault: ["1", "true", "yes", "y", "si"].includes(normalizeCell(isDefaultRaw).toLowerCase())
+        };
+      })
+      .filter(Boolean);
   };
 
   const fetchJson = async (url, options = {}) => {
@@ -30,6 +123,102 @@
       throw new Error(err);
     }
     return data;
+  };
+
+  const isElectronVideoPlayerAvailable = () => {
+    return Boolean(window.electronAPI && window.electronAPI.videoPlayer && typeof window.electronAPI.videoPlayer.play === "function");
+  };
+
+  const setPreviewMode = (live) => {
+    if (webcamShellNode) {
+      webcamShellNode.classList.toggle("is-live", Boolean(live));
+    }
+    if (webcamSlideNode) {
+      webcamSlideNode.classList.toggle("p05-hidden", Boolean(live));
+    }
+    if (webcamPreviewNode) {
+      webcamPreviewNode.classList.toggle("p05-hidden", !live);
+    }
+  };
+
+  const stopLocalPreview = () => {
+    if (localPreviewStream) {
+      localPreviewStream.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch (_) {
+          // Ignore track stop errors.
+        }
+      });
+      localPreviewStream = null;
+    }
+
+    if (webcamPreviewNode) {
+      webcamPreviewNode.pause();
+      webcamPreviewNode.srcObject = null;
+    }
+    localPreviewCameraName = "";
+    setPreviewMode(false);
+  };
+
+  const findMatchingVideoDevice = async (cameraName) => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videos = devices.filter((item) => item.kind === "videoinput");
+    if (!videos.length) {
+      return "";
+    }
+
+    const normalized = normalizeCell(cameraName).toLowerCase();
+    if (!normalized) {
+      return videos[0].deviceId;
+    }
+
+    const exact = videos.find((item) => normalizeCell(item.label).toLowerCase() === normalized);
+    if (exact) {
+      return exact.deviceId;
+    }
+
+    const contains = videos.find((item) => normalizeCell(item.label).toLowerCase().includes(normalized));
+    return contains?.deviceId || videos[0].deviceId;
+  };
+
+  const getUserMediaWithTimeout = async (constraints, timeoutMs = 5000) => {
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("timeout accesso webcam"));
+      }, timeoutMs);
+    });
+    return Promise.race([
+      navigator.mediaDevices.getUserMedia(constraints),
+      timeoutPromise
+    ]);
+  };
+
+  const startLocalPreview = async (payload) => {
+    if (!webcamPreviewNode || !navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Anteprima webcam non supportata in questo browser/runtime.");
+    }
+
+    stopLocalPreview();
+
+    // Warmup permission ensures device labels are available for matching by name.
+    const warmupStream = await getUserMediaWithTimeout({ video: true, audio: false });
+    warmupStream.getTracks().forEach((track) => track.stop());
+
+    const deviceId = await findMatchingVideoDevice(payload.cameraName);
+    const constraints = {
+      audio: false,
+      video: {
+        frameRate: { ideal: Number(payload.fps) || 30 },
+        ...(deviceId ? { deviceId: { exact: deviceId } } : {})
+      }
+    };
+
+    localPreviewStream = await getUserMediaWithTimeout(constraints);
+    webcamPreviewNode.srcObject = localPreviewStream;
+    await webcamPreviewNode.play().catch(() => null);
+    localPreviewCameraName = normalizeCell(payload.cameraName);
+    setPreviewMode(true);
   };
 
   const refreshProfile = () => {
@@ -58,6 +247,88 @@
     });
   };
 
+  const markSelectedRecording = (fileName) => {
+    selectedRecordingName = fileName || "";
+
+    if (playbackListNode) {
+      playbackListNode.querySelectorAll("li[data-name]").forEach((li) => {
+        li.classList.toggle("is-active", li.dataset.name === selectedRecordingName);
+      });
+    }
+
+    if (recListNode && selectedRecordingName) {
+      const option = Array.from(recListNode.options).find((item) => item.value === selectedRecordingName);
+      if (option) {
+        recListNode.value = selectedRecordingName;
+      }
+    }
+  };
+
+  const playRecordingOnSecondary = async (fileName) => {
+    const entry = availableRecordings.find((item) => item.name === fileName);
+    if (!entry) {
+      setStatus("File registrazione non trovato nella lista aggiornata.");
+      return;
+    }
+
+    if (!isElectronVideoPlayerAvailable()) {
+      setStatus("Riproduzione sul monitor secondario disponibile solo in runtime Electron.");
+      return;
+    }
+
+    const fileUrl = entry.publicUrl
+      ? `${window.location.origin}${entry.publicUrl}`
+      : `${window.location.origin}/userform-recordings/${encodeURIComponent(entry.name)}`;
+
+    const result = await window.electronAPI.videoPlayer.play({ url: fileUrl });
+    if (!result?.success) {
+      throw new Error(result?.error || "Riproduzione Electron non riuscita");
+    }
+  };
+
+  const renderPlaybackList = (files = []) => {
+    if (!playbackListNode) return;
+
+    playbackListNode.innerHTML = "";
+    if (!files.length) {
+      const li = document.createElement("li");
+      li.textContent = "Nessuna registrazione disponibile";
+      li.style.cursor = "default";
+      playbackListNode.appendChild(li);
+      return;
+    }
+
+    files.forEach((item) => {
+      const li = document.createElement("li");
+      li.dataset.name = item.name;
+      const when = item.mtimeMs ? new Date(item.mtimeMs).toLocaleString("it-IT") : "";
+      li.title = when ? `${item.name} | ${when}` : item.name;
+      li.textContent = when ? `${item.name} - ${when}` : item.name;
+
+      li.addEventListener("click", () => {
+        markSelectedRecording(item.name);
+      });
+
+      li.addEventListener("dblclick", async () => {
+        try {
+          markSelectedRecording(item.name);
+          await playRecordingOnSecondary(item.name);
+          setStatus(`Riproduzione su monitor secondario avviata: ${item.name}`);
+        } catch (error) {
+          setStatus(`Errore riproduzione secondaria: ${error.message}`);
+        }
+      });
+
+      playbackListNode.appendChild(li);
+    });
+
+    const currentStillExists = files.some((item) => item.name === selectedRecordingName);
+    if (!currentStillExists) {
+      selectedRecordingName = files[0].name;
+    }
+    markSelectedRecording(selectedRecordingName);
+  };
+
   const syncState = async () => {
     const state = await fetchJson("/api/userform/pagina05/state");
     recording = Boolean(state?.recording?.recording);
@@ -70,26 +341,77 @@
   const refreshRecList = async () => {
     const files = await fetchJson("/api/userform/pagina05/files");
     renderRecordingList(files?.mkvFiles || []);
+    availableRecordings = files?.allFiles || [];
+    renderPlaybackList(availableRecordings);
     return files;
   };
 
   const loadCameraProfiles = async () => {
-    const data = await fetchJson("/api/userform/pagina05/cameras");
-    cameraProfiles = data?.cameras || [];
+    let cameras = [];
+    let defaultCameraName = "";
+
+    try {
+      const data = await fetchJson("/api/userform/pagina05/cameras");
+      cameras = data?.cameras || [];
+      defaultCameraName = normalizeCell(data?.defaultCameraName || "");
+    } catch (_) {
+      cameras = [];
+      defaultCameraName = "";
+    }
+
+    if (!cameras.length) {
+      const csvCandidates = [
+        "/Bordero/data/get-camera-name.csv",
+        "../../Bordero/data/get-camera-name.csv",
+        "../Bordero/data/get-camera-name.csv"
+      ];
+
+      for (const csvUrl of csvCandidates) {
+        try {
+          const response = await fetch(`${csvUrl}?t=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) continue;
+          const csvText = await response.text();
+          const parsed = mapCameraCsvToProfiles(csvText);
+          if (parsed.length) {
+            cameras = parsed;
+            break;
+          }
+        } catch (_) {
+          // Try next candidate path.
+        }
+      }
+    }
+
+    cameraProfiles = cameras;
+    const csvDefault = cameraProfiles.find((item) => item.isDefault)?.name || "";
+    preferredCameraName = defaultCameraName || csvDefault;
 
     if (!cameraNode) return;
     cameraNode.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = cameraProfiles.length ? "Seleziona telecamera" : "Nessuna telecamera disponibile";
+    cameraNode.appendChild(placeholder);
+
     cameraProfiles.forEach((c) => {
       const opt = document.createElement("option");
       opt.value = c.name;
-      opt.textContent = c.name;
+      opt.textContent = c.label ? `${c.name} - ${c.label}` : c.name;
       cameraNode.appendChild(opt);
     });
 
     if (cameraProfiles.length) {
-      cameraNode.value = cameraProfiles[0].name;
+      const hasPreferred = preferredCameraName && cameraProfiles.some((item) => item.name === preferredCameraName);
+      cameraNode.value = hasPreferred ? preferredCameraName : cameraProfiles[0].name;
+    } else {
+      cameraNode.value = "";
     }
+
     refreshProfile();
+
+    if (!cameraProfiles.length) {
+      setStatus("Impossibile caricare le webcam da API/CSV.");
+    }
   };
 
   const selectedProfilePayload = () => {
@@ -98,12 +420,73 @@
       cameraName: cameraNode?.value || "",
       codec: profile.codec || "",
       size: profile.size || "",
-      fps: profile.fps || ""
+      fps: profile.fps || "",
+      label: profile.label || ""
     };
   };
 
+  const persistSelectedCameraProfile = async ({ asDefault = true, lastStatus = "selected" } = {}) => {
+    const payload = selectedProfilePayload();
+    if (!payload.cameraName) {
+      return;
+    }
+
+    await fetchJson("/api/userform/pagina05/cameras/profile/save", {
+      method: "POST",
+      body: JSON.stringify({
+        cameraName: payload.cameraName,
+        codec: payload.codec,
+        size: payload.size,
+        fps: payload.fps,
+        label: payload.label,
+        isDefault: asDefault,
+        lastMode: "preview",
+        lastStatus,
+        lastSize: payload.size,
+        lastFps: payload.fps,
+        lastCodec: payload.codec,
+        touchNow: true
+      })
+    }).catch(() => ({}));
+  };
+
+  const ensurePreviewForSelectedCamera = async ({ silent = true } = {}) => {
+    const payload = selectedProfilePayload();
+    if (!payload.cameraName) {
+      stopLocalPreview();
+      return false;
+    }
+
+    const hasLiveTrack = Boolean(localPreviewStream?.getTracks?.().some((track) => track.readyState === "live"));
+    const alreadyMatching = hasLiveTrack && normalizeCell(localPreviewCameraName) === normalizeCell(payload.cameraName);
+    if (alreadyMatching) {
+      setPreviewMode(true);
+      if (!silent) {
+        setStatus(`Preview webcam attiva: ${payload.cameraName}`);
+      }
+      return true;
+    }
+
+    try {
+      await startLocalPreview(payload);
+      if (!silent) {
+        setStatus(`Preview webcam attiva: ${payload.cameraName}`);
+      }
+      return true;
+    } catch (error) {
+      if (!silent) {
+        setStatus(`Preview webcam non disponibile per ${payload.cameraName}: ${error.message}`);
+      }
+      return false;
+    }
+  };
+
   if (cameraNode) {
-    cameraNode.addEventListener("change", refreshProfile);
+    cameraNode.addEventListener("change", async () => {
+      refreshProfile();
+      await ensurePreviewForSelectedCamera({ silent: false });
+      await persistSelectedCameraProfile({ asDefault: true, lastStatus: "preview-active" });
+    });
   }
 
   document.getElementById("btn-rec-start-05")?.addEventListener("click", async () => {
@@ -120,7 +503,7 @@
       recording = true;
       if (recChip) recChip.textContent = "REC: ON";
       await refreshRecList();
-      setStatus(`StartRecording: avviata registrazione ${out.fileName}.`);
+      setStatus(`Registrazione avviata: ${out.fileName}. Destinazione: C:/VSC_WEBCAM`);
     } catch (error) {
       setStatus(`Errore StartRecording: ${error.message}`);
     }
@@ -135,7 +518,12 @@
       recording = false;
       if (recChip) recChip.textContent = "REC: OFF";
       await refreshRecList();
-      setStatus(out.stopped ? "StopRecording: registrazione terminata." : "Nessuna registrazione FFmpeg rilevata.");
+      if (out.stopped) {
+        const savedName = String(out.filePath || "").split(/[\\/]/).pop() || "file registrato";
+        setStatus(`Registrazione terminata. File salvato: ${savedName} in C:/VSC_WEBCAM`);
+      } else {
+        setStatus("Nessuna registrazione FFmpeg rilevata.");
+      }
     } catch (error) {
       setStatus(`Errore StopRecording: ${error.message}`);
     }
@@ -162,33 +550,73 @@
   document.getElementById("btn-vlc-start")?.addEventListener("click", async () => {
     try {
       if (vlcRunning) {
-        setStatus("VLC gia in esecuzione.");
+        setStatus("Ripresa video gia in esecuzione.");
         return;
       }
+
       const payload = selectedProfilePayload();
-      await fetchJson("/api/userform/pagina05/vlc/live/start", {
-        method: "POST",
-        body: JSON.stringify(payload)
+
+      if (!payload.cameraName) {
+        setStatus("Seleziona una telecamera prima di avviare la ripresa live.");
+        return;
+      }
+
+      if (!isElectronVideoPlayerAvailable()) {
+        throw new Error("Avvio live disponibile solo in runtime Electron (monitor secondario fullscreen).");
+      }
+
+      await ensurePreviewForSelectedCamera({ silent: false });
+      await persistSelectedCameraProfile({ asDefault: true, lastStatus: "live-start" });
+
+      const result = await window.electronAPI.videoPlayer.play({
+        mode: "webcam-live",
+        cameraName: payload.cameraName,
+        size: payload.size,
+        fps: payload.fps
       });
+
+      if (!result?.success) {
+        throw new Error(result?.error || "Avvio live Electron non riuscito");
+      }
+
       vlcRunning = true;
-      if (vlcChip) vlcChip.textContent = "VLC: ON";
-      setStatus("CommandButton4: anteprima VLC live avviata.");
+      if (vlcChip) vlcChip.textContent = "LIVE: ON (ELECTRON)";
+      setStatus("Ripresa attiva: anteprima locale in PAGINA05 e fullscreen live su monitor secondario (Electron).");
     } catch (error) {
-      setStatus(`Errore avvio VLC live: ${error.message}`);
+      setStatus(`Errore avvio ripresa live: ${error.message}`);
+      await ensurePreviewForSelectedCamera({ silent: true });
     }
   });
 
   document.getElementById("btn-vlc-stop")?.addEventListener("click", async () => {
+    let stopElectronError = null;
     try {
+      if (isElectronVideoPlayerAvailable()) {
+        try {
+          await window.electronAPI.videoPlayer.stop();
+        } catch (error) {
+          stopElectronError = error;
+        }
+      }
+
+      // Stop VLC as well, so old live sessions are always terminated.
       await fetchJson("/api/userform/pagina05/vlc/live/stop", {
         method: "POST",
         body: JSON.stringify({})
-      });
+      }).catch(() => ({}));
+
       vlcRunning = false;
-      if (vlcChip) vlcChip.textContent = "VLC: OFF";
-      setStatus("CommandButton5: anteprima VLC live fermata.");
+      if (vlcChip) vlcChip.textContent = "LIVE: OFF";
+      if (stopElectronError) {
+        setStatus(`Ripresa live locale fermata, ma stop Electron ha restituito errore: ${stopElectronError.message || stopElectronError}`);
+      } else {
+        setStatus("Ripresa video in diretta fermata. Preview locale webcam attiva.");
+      }
     } catch (error) {
-      setStatus(`Errore stop VLC live: ${error.message}`);
+      setStatus(`Errore stop ripresa live: ${error.message}`);
+    } finally {
+      await ensurePreviewForSelectedCamera({ silent: true });
+      await persistSelectedCameraProfile({ asDefault: true, lastStatus: "live-stop" });
     }
   });
 
@@ -221,10 +649,17 @@
 
   const bootstrap = async () => {
     try {
+      stopLocalPreview();
       await loadCameraProfiles();
       await syncState();
       await refreshRecList();
-      setStatus("PAGINA05 pronta: camera da CSV Bordero e runtime backend attivo.");
+      const previewActive = await ensurePreviewForSelectedCamera({ silent: false });
+      await persistSelectedCameraProfile({ asDefault: true, lastStatus: "bootstrap-preview" });
+      if (previewActive) {
+        setStatus("PAGINA05 pronta: preview webcam attiva e runtime backend attivo.");
+      } else {
+        setStatus("PAGINA05 pronta: preview webcam non disponibile (usa la combo per verificare altre telecamere).");
+      }
     } catch (error) {
       setStatus(`Errore inizializzazione PAGINA05: ${error.message}`);
     }
