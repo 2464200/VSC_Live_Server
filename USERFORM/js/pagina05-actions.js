@@ -5,6 +5,8 @@
   const webcamShellNode = document.getElementById("webcam-shell-05");
   const webcamSlideNode = document.getElementById("webcam-slide-05");
   const webcamPreviewNode = document.getElementById("webcam-preview-05");
+  const webcamSignalNode = document.getElementById("webcam-signal-05");
+  const webcamSignalTextNode = document.getElementById("webcam-signal-text-05");
   const secondaryPlayerStateNode = document.getElementById("secondary-player-state-05");
   const codecChip = document.getElementById("cam-codec-chip");
   const sizeChip = document.getElementById("cam-size-chip");
@@ -23,6 +25,7 @@
   let localPreviewCameraName = "";
   let previewSuspendedForLive = false;
   let secondaryPlayerPollTimer = null;
+  let indicatorWarningReason = "";
 
   const setStatus = (msg) => {
     if (statusNode) {
@@ -31,6 +34,36 @@
   };
 
   const normalizeCell = (value) => String(value ?? "").replace(/^\uFEFF/, "").replace(/\s+/g, " ").trim();
+
+  const setWebcamSignal = (state, text, warningReason = "") => {
+    if (webcamSignalNode) {
+      webcamSignalNode.dataset.state = state;
+      webcamSignalNode.setAttribute("aria-label", `Spia stato webcam secondaria: ${text}`);
+      if (warningReason) {
+        webcamSignalNode.title = warningReason;
+      } else {
+        webcamSignalNode.removeAttribute("title");
+      }
+    }
+    if (webcamSignalTextNode) {
+      webcamSignalTextNode.textContent = text;
+    }
+    indicatorWarningReason = warningReason;
+  };
+
+  const refreshWebcamSignal = ({ warningReason = indicatorWarningReason } = {}) => {
+    if (warningReason) {
+      setWebcamSignal("warning", "Anomalia", warningReason);
+      return;
+    }
+
+    if (vlcRunning) {
+      setWebcamSignal("live", "Live monitor 2");
+      return;
+    }
+
+    setWebcamSignal("idle", "Riposo");
+  };
 
   const parseCsvRows = (text) => {
     const rows = [];
@@ -163,6 +196,7 @@
     }
     localPreviewCameraName = "";
     setPreviewMode(false);
+    refreshWebcamSignal();
   };
 
   const suspendPreviewForElectronLive = () => {
@@ -195,15 +229,24 @@
           ? `Live Electron attivo${playerState.cameraName ? ` (${playerState.cameraName})` : ""}.`
           : `Riproduzione file attiva${playerState.url ? ` (${String(playerState.url).split("/").pop()})` : ""}.`;
         setSecondaryPlayerState(detail);
+        vlcRunning = playerState.mode === "webcam-live";
+        refreshWebcamSignal({ warningReason: "" });
       } else if (playerState.lastEvent === "stop-requested") {
         setSecondaryPlayerState("Player Electron fermato correttamente.");
+        vlcRunning = false;
+        refreshWebcamSignal({ warningReason: "" });
       } else if (playerState.lastEvent === "ended") {
         setSecondaryPlayerState("Riproduzione su monitor secondario completata.");
+        vlcRunning = false;
+        refreshWebcamSignal({ warningReason: "" });
       } else {
         setSecondaryPlayerState("Stato player Electron in attesa.");
+        vlcRunning = false;
+        refreshWebcamSignal({ warningReason: "" });
       }
-    } catch (_) {
+    } catch (error) {
       setSecondaryPlayerState("Player Electron non raggiungibile.");
+      refreshWebcamSignal({ warningReason: error?.message || "Player Electron non raggiungibile" });
     }
   };
 
@@ -402,6 +445,7 @@
     vlcRunning = Boolean(state?.liveVlc?.alive);
     if (recChip) recChip.textContent = recording ? "REC: ON" : "REC: OFF";
     if (vlcChip) vlcChip.textContent = vlcRunning ? "VLC: ON" : "VLC: OFF";
+    refreshWebcamSignal({ warningReason: "" });
     return state;
   };
 
@@ -478,6 +522,7 @@
 
     if (!cameraProfiles.length) {
       setStatus("Impossibile caricare le webcam da API/CSV.");
+      refreshWebcamSignal({ warningReason: "Nessuna webcam disponibile da API o CSV" });
     }
   };
 
@@ -523,6 +568,7 @@
     const payload = selectedProfilePayload();
     if (!payload.cameraName) {
       stopLocalPreview();
+      refreshWebcamSignal({ warningReason: "" });
       return false;
     }
 
@@ -533,6 +579,7 @@
       if (!silent) {
         setStatus(`Preview webcam attiva: ${payload.cameraName}`);
       }
+      refreshWebcamSignal({ warningReason: "" });
       return true;
     }
 
@@ -541,13 +588,76 @@
       if (!silent) {
         setStatus(`Preview webcam attiva: ${payload.cameraName}`);
       }
+      refreshWebcamSignal({ warningReason: "" });
       return true;
     } catch (error) {
       if (!silent) {
         setStatus(`Preview webcam non disponibile per ${payload.cameraName}: ${error.message}`);
       }
+      refreshWebcamSignal({ warningReason: `Preview webcam non disponibile: ${error.message}` });
       return false;
     }
+  };
+
+  const probeSelectedCameraLocally = async () => {
+    const payload = selectedProfilePayload();
+    if (!payload.cameraName) {
+      return {
+        ok: false,
+        skipped: false,
+        message: "nessuna webcam selezionata"
+      };
+    }
+
+    if (previewSuspendedForLive || vlcRunning) {
+      return {
+        ok: true,
+        skipped: true,
+        message: "verifica camera saltata per non interferire con il live sul monitor 2"
+      };
+    }
+
+    const hasLiveTrack = Boolean(localPreviewStream?.getTracks?.().some((track) => track.readyState === "live"));
+    const alreadyMatching = hasLiveTrack && normalizeCell(localPreviewCameraName) === normalizeCell(payload.cameraName);
+    if (alreadyMatching) {
+      return {
+        ok: true,
+        skipped: false,
+        message: `preview locale gia attiva su ${payload.cameraName}`
+      };
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      return {
+        ok: false,
+        skipped: false,
+        message: "getUserMedia non disponibile in questo runtime"
+      };
+    }
+
+    const deviceId = await findMatchingVideoDevice(payload.cameraName);
+    const constraints = {
+      audio: false,
+      video: {
+        frameRate: { ideal: Number(payload.fps) || 30 },
+        ...(deviceId ? { deviceId: { exact: deviceId } } : {})
+      }
+    };
+
+    const probeStream = await getUserMediaWithTimeout(constraints, 3500);
+    probeStream.getTracks().forEach((track) => {
+      try {
+        track.stop();
+      } catch (_) {
+        // Ignore track stop errors.
+      }
+    });
+
+    return {
+      ok: true,
+      skipped: false,
+      message: `accesso locale webcam OK (${payload.cameraName})`
+    };
   };
 
   if (cameraNode) {
@@ -591,16 +701,23 @@
       if (recChip) recChip.textContent = "REC: OFF";
       await refreshRecList();
       if (out.stopped) {
-        const savedName = String(out.filePath || out.targetFilePath || "").split(/[\\/]/).pop() || "file registrato";
-        if (out.conversion?.ok) {
-          setStatus(`Registrazione terminata. Convertito e salvato in MP4: ${savedName} in C:/VSC_WEBCAM`);
-        } else if (out.recordingMode === "direct-mp4") {
-          setStatus(`Registrazione terminata. File MP4 salvato: ${savedName} in C:/VSC_WEBCAM`);
+        const finalPath = String(out.finalFilePath || out.filePath || out.targetFilePath || "");
+        const savedName = String(out.finalFileName || finalPath.split(/[\\/]/).pop() || "file registrato");
+        const sizeKb = Number(out.fileSizeBytes || 0) > 0 ? ` (${Math.max(1, Math.round(Number(out.fileSizeBytes || 0) / 1024))} KB)` : "";
+        const verifyNote = out.verificationNote ? ` ${out.verificationNote}` : "";
+        if (out.conversion?.ok && out.fileVerified) {
+          setStatus(`Registrazione terminata. Convertito e salvato in MP4: ${savedName}${sizeKb} in ${finalPath}.${verifyNote}`);
+        } else if (out.recordingMode === "direct-mp4" && out.fileVerified && out.graceful) {
+          setStatus(`Registrazione terminata. File MP4 salvato: ${savedName}${sizeKb} in ${finalPath}.${verifyNote}`);
+        } else if (out.recordingMode === "direct-mp4" && out.fileVerified && !out.graceful) {
+          setStatus(`Registrazione fermata con stop forzato. File MP4 rilevato: ${savedName}${sizeKb} in ${finalPath}. Verificare integrita.${verifyNote}`);
         } else if (out.recordingMode === "native-then-mp4" && out.conversion?.ok === false) {
           const srcName = String(out.sourceFilePath || "").split(/[\\/]/).pop() || "file nativo";
           setStatus(`Registrazione fermata. Conversione MP4 non riuscita (${out.conversion.error}). Disponibile: ${srcName}`);
+        } else if (!out.fileVerified) {
+          setStatus(`Registrazione fermata ma file finale non verificato su disco: ${savedName || "file registrato"}. ${finalPath || "Percorso non disponibile."}${verifyNote}`);
         } else {
-          setStatus(`Registrazione terminata. File salvato: ${savedName} in C:/VSC_WEBCAM`);
+          setStatus(`Registrazione terminata. File salvato: ${savedName}${sizeKb} in ${finalPath}.${verifyNote}`);
         }
       } else {
         setStatus("Nessuna registrazione FFmpeg rilevata.");
@@ -667,10 +784,12 @@
 
       vlcRunning = true;
       if (vlcChip) vlcChip.textContent = "LIVE: ON (ELECTRON)";
+      refreshWebcamSignal({ warningReason: "" });
       await refreshSecondaryPlayerState();
       setStatus("Ripresa attiva: preview locale sospesa per evitare conflitti hardware, fullscreen live su monitor secondario (Electron).");
     } catch (error) {
       setStatus(`Errore avvio ripresa live: ${error.message}`);
+      refreshWebcamSignal({ warningReason: `Errore avvio live: ${error.message}` });
       await resumePreviewAfterElectronLive();
     }
   });
@@ -703,6 +822,7 @@
 
       vlcRunning = false;
       if (vlcChip) vlcChip.textContent = "LIVE: OFF";
+      refreshWebcamSignal({ warningReason: stopElectronError ? String(stopElectronError.message || stopElectronError) : "" });
       await refreshSecondaryPlayerState();
       if (stopElectronError) {
         setStatus(`Ripresa live locale fermata, ma stop Electron ha restituito errore: ${stopElectronError.message || stopElectronError}`);
@@ -725,8 +845,23 @@
       });
       const checks = out?.checks || {};
       const summary = out?.summary || {};
+      const liveOnSecondary = Boolean(summary?.liveVlcState?.alive) || previewSuspendedForLive || vlcRunning;
+      const localProbe = liveOnSecondary
+        ? {
+            ok: true,
+            skipped: true,
+            message: "verifica camera locale saltata per non mostrare nulla sul monitor secondario"
+          }
+        : await probeSelectedCameraLocally();
+
+      if (!localProbe.ok && !localProbe.skipped) {
+        refreshWebcamSignal({ warningReason: `AutoTest webcam locale: ${localProbe.message}` });
+      } else {
+        refreshWebcamSignal({ warningReason: "" });
+      }
+
       setStatus(
-        `AutoTestTools OK - cam:${summary.cameras ?? 0}, mkv:${summary.mkvFiles ?? 0}, ffmpeg:${checks.ffmpegFound ? "OK" : "KO"}, vlc:${checks.vlcFound ? "OK" : "KO"}`
+        `AutoTestTools OK - cam:${summary.cameras ?? 0}, mkv:${summary.mkvFiles ?? 0}, ffmpeg:${checks.ffmpegFound ? "OK" : "KO"}, vlc:${checks.vlcFound ? "OK" : "KO"}, preview locale:${localProbe.ok ? "OK" : "KO"}${localProbe.skipped ? " (SKIP SICURO)" : ""}. ${localProbe.message}. Monitor 2 non toccato.`
       );
       await syncState();
       await refreshRecList();
@@ -762,6 +897,7 @@
       }
     } catch (error) {
       setStatus(`Errore inizializzazione PAGINA05: ${error.message}`);
+      refreshWebcamSignal({ warningReason: `Errore inizializzazione: ${error.message}` });
     }
   };
 

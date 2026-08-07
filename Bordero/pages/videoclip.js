@@ -1754,6 +1754,10 @@ class VideoClipManager {
     document.getElementById('btn-bordero').addEventListener('click', () => {
       window.location.href = 'bordero.html';
     });
+
+    document.getElementById('btn-bordero-quick')?.addEventListener('click', () => {
+      window.location.href = 'bordero.html';
+    });
   }
 
   handleSerataChange() {

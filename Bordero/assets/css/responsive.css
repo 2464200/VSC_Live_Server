@@ -5,6 +5,10 @@
     padding: 0 20px;
   }
 
+  .nav-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -17,6 +21,10 @@
 
   .hero h2 {
     font-size: 2em;
+  }
+
+  .nav-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .stats-grid {
@@ -47,7 +55,7 @@
   }
 
   .nav-list {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .nav-link {

@@ -73,6 +73,41 @@
       display: block;
     }
 
+    .live-corner-badge {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 3;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-width: 88px;
+      min-height: 40px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 170, 170, 0.42);
+      background: linear-gradient(180deg, rgba(255, 68, 68, 0.96) 0%, rgba(177, 0, 0, 0.98) 100%);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 0 20px rgba(255, 34, 34, 0.55), inset 0 1px 3px rgba(255, 255, 255, 0.3);
+      pointer-events: none;
+      animation: live-corner-pulse 1s infinite;
+    }
+
+    body.webcam-live-mode .live-corner-badge {
+      display: inline-flex;
+    }
+
+    @keyframes live-corner-pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.42; transform: scale(0.94); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
   </style>
   <script defer src="video-player.js?v=20260802-1"></script>
 </head>
@@ -80,6 +115,7 @@
   <div class="player-shell">
     <video id="electron-video" playsinline preload="auto"></video>
     <div id="live-disclaimer" class="live-disclaimer">Avviso informativa privacy: questa ripresa video è trasmessa solo in diretta e non viene registrata nè salvata.</div>
+    <div id="live-corner-badge" class="live-corner-badge" aria-hidden="true">LIVE</div>
     <div id="player-status" class="status">In attesa del video...</div>
   </div>
 </body>

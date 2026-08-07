@@ -161,6 +161,100 @@
       transition: border-color 0.18s ease, box-shadow 0.18s ease;
     }
 
+    .p05-preview-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      width: fit-content;
+    }
+
+    .p05-webcam-signal {
+      margin-top: 52px;
+      min-width: 116px;
+      min-height: 156px;
+      border: 1px solid #b8b8b8;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 10px;
+      box-sizing: border-box;
+    }
+
+    .p05-webcam-signal-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      color: #2f2f2f;
+      letter-spacing: 0.03em;
+    }
+
+    .p05-webcam-gem {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 3px solid rgba(0, 0, 0, 0.3);
+      background: #cc2d2d;
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.1), 0 0 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .p05-webcam-signal-text {
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      color: #1f1f1f;
+      line-height: 1.25;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.14);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(235, 235, 235, 0.98) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .p05-webcam-signal[data-state="idle"] .p05-webcam-gem {
+      background: radial-gradient(circle at 35% 35%, #ff9c9c 0%, #d12d2d 55%, #8d0d0d 100%);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.44), 0 0 18px rgba(209, 45, 45, 0.35), 0 0 34px rgba(209, 45, 45, 0.18);
+    }
+
+    .p05-webcam-signal[data-state="idle"] .p05-webcam-signal-text {
+      color: #7f1717;
+      background: linear-gradient(180deg, rgba(255, 235, 235, 0.96) 0%, rgba(255, 214, 214, 0.98) 100%);
+      border-color: rgba(170, 38, 38, 0.24);
+    }
+
+    .p05-webcam-signal[data-state="live"] .p05-webcam-gem {
+      background: radial-gradient(circle at 35% 35%, #b8ff9c 0%, #2fcf39 52%, #0b7d17 100%);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.52), 0 0 22px rgba(47, 207, 57, 0.68), 0 0 40px rgba(47, 207, 57, 0.32);
+      animation: p05-gem-live-pulse 1s infinite;
+    }
+
+    .p05-webcam-signal[data-state="live"] .p05-webcam-signal-text {
+      color: #0d6a18;
+      background: linear-gradient(180deg, rgba(232, 255, 232, 0.96) 0%, rgba(205, 247, 209, 0.98) 100%);
+      border-color: rgba(22, 143, 34, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 12px rgba(47, 207, 57, 0.14);
+    }
+
+    .p05-webcam-signal[data-state="warning"] .p05-webcam-gem {
+      background: radial-gradient(circle at 35% 35%, #fff0a4 0%, #e7be25 55%, #9e7500 100%);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.52), 0 0 20px rgba(231, 190, 37, 0.5), 0 0 36px rgba(231, 190, 37, 0.24);
+    }
+
+    .p05-webcam-signal[data-state="warning"] .p05-webcam-signal-text {
+      color: #7d5a00;
+      background: linear-gradient(180deg, rgba(255, 248, 217, 0.97) 0%, rgba(250, 235, 172, 0.98) 100%);
+      border-color: rgba(184, 140, 14, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 0 12px rgba(231, 190, 37, 0.12);
+    }
+
+    @keyframes p05-gem-live-pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.94); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
     .p05-webcam-image.is-live {
       border-color: #d0322b;
       box-shadow: 0 0 0 2px rgba(208, 50, 43, 0.2);
@@ -376,6 +470,19 @@
         width: 100%;
       }
 
+      .p05-preview-row {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .p05-webcam-signal {
+        margin-top: 0;
+        width: 100%;
+        min-height: 0;
+        flex-direction: row;
+        justify-content: flex-start;
+      }
+
       .p05-live-row .green,
       .p05-live-row .red {
         transform: none;
@@ -417,11 +524,19 @@
       <p class="p05-recordings-hint">Doppio click su un file per riprodurlo sul monitor secondario.</p>
     </section>
 
-    <div id="webcam-shell-05" class="p05-webcam-image" aria-label="Anteprima webcam locale">
-      <span id="webcam-live-badge-05" class="p05-live-badge">LIVE</span>
-      <img id="webcam-slide-05" src="../../archivio/webcam.jpeg" alt="Webcam" />
-      <video id="webcam-preview-05" class="p05-hidden" autoplay muted playsinline></video>
-      <div id="preview-suspended-05" class="p05-preview-suspended">Preview locale sospesa temporaneamente per lasciare la webcam al live Electron sul monitor secondario.</div>
+    <div class="p05-preview-row">
+      <div id="webcam-shell-05" class="p05-webcam-image" aria-label="Anteprima webcam locale">
+        <span id="webcam-live-badge-05" class="p05-live-badge">LIVE</span>
+        <img id="webcam-slide-05" src="../../archivio/webcam.jpeg" alt="Webcam" />
+        <video id="webcam-preview-05" class="p05-hidden" autoplay muted playsinline></video>
+        <div id="preview-suspended-05" class="p05-preview-suspended">Preview locale sospesa temporaneamente per lasciare la webcam al live Electron sul monitor secondario.</div>
+      </div>
+
+      <div id="webcam-signal-05" class="p05-webcam-signal" data-state="idle" aria-live="polite" aria-label="Spia stato webcam secondaria">
+        <span class="p05-webcam-signal-label">STATO<br />WEBCAM</span>
+        <span id="webcam-gem-05" class="p05-webcam-gem" aria-hidden="true"></span>
+        <span id="webcam-signal-text-05" class="p05-webcam-signal-text">Riposo</span>
+      </div>
     </div>
 
     <div class="p05-live-row" aria-label="Controllo ripresa diretta">

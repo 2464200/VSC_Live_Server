@@ -1049,6 +1049,44 @@ function waitForChildExit(child, timeoutMs = 3000) {
     });
 }
 
+function getUserformRecordedFileInfo(filePath = '') {
+    const normalized = String(filePath || '').trim();
+    if (!normalized) {
+        return { exists: false, path: '', name: '', sizeBytes: 0 };
+    }
+
+    const resolved = path.resolve(normalized);
+    try {
+        const stats = fs.statSync(resolved);
+        if (!stats.isFile()) {
+            return { exists: false, path: resolved, name: path.basename(resolved), sizeBytes: 0 };
+        }
+        return {
+            exists: true,
+            path: resolved,
+            name: path.basename(resolved),
+            sizeBytes: Number(stats.size || 0)
+        };
+    } catch (_) {
+        return { exists: false, path: resolved, name: path.basename(resolved), sizeBytes: 0 };
+    }
+}
+
+async function waitForUserformRecordedFile(filePath = '', { attempts = 16, delayMs = 250, minSizeBytes = 1 } = {}) {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+        const info = getUserformRecordedFileInfo(filePath);
+        if (info.exists && info.sizeBytes >= minSizeBytes) {
+            return { ok: true, ...info, attempts: attempt + 1 };
+        }
+
+        if (attempt < attempts - 1) {
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+    }
+
+    return { ok: false, ...getUserformRecordedFileInfo(filePath), attempts };
+}
+
 async function stopUserformRecordingIfRunning() {
     const recordedFilePath = userformRecordingFilePath || '';
     const currentPlan = userformRecordingPlan;
@@ -1057,7 +1095,7 @@ async function stopUserformRecordingIfRunning() {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
         userformRecordingPlan = null;
-        return { stopped: false, filePath: recordedFilePath };
+        return { stopped: false, filePath: recordedFilePath, fileVerified: false, fileSizeBytes: 0 };
     }
 
     const pid = userformRecordingProcess.pid;
@@ -1072,7 +1110,17 @@ async function stopUserformRecordingIfRunning() {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
         userformRecordingPlan = null;
-        return { stopped: true, pid, filePath: recordedFilePath };
+        const fileCheck = await waitForUserformRecordedFile(currentPlan?.targetFilePath || recordedFilePath);
+        return {
+            stopped: true,
+            pid,
+            filePath: fileCheck.path || recordedFilePath,
+            finalFilePath: fileCheck.path || recordedFilePath,
+            finalFileName: fileCheck.name || path.basename(recordedFilePath || ''),
+            fileVerified: Boolean(fileCheck.ok),
+            fileSizeBytes: Number(fileCheck.sizeBytes || 0),
+            verificationNote: fileCheck.ok ? 'File finale rilevato dopo uscita processo gia avvenuta.' : 'File finale non verificato dopo uscita processo gia avvenuta.'
+        };
     }
 
     let gracefulStopped = false;
@@ -1089,6 +1137,11 @@ async function stopUserformRecordingIfRunning() {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
         let conversion = null;
+        let finalFilePath = currentPlan?.targetFilePath || recordedFilePath;
+        let finalFileName = path.basename(finalFilePath || '') || '';
+        let fileVerified = false;
+        let fileSizeBytes = 0;
+        let verificationNote = '';
 
         if (currentPlan?.convertToMp4OnStop && currentPlan.sourceFilePath && currentPlan.targetFilePath) {
             try {
@@ -1103,16 +1156,45 @@ async function stopUserformRecordingIfRunning() {
             }
         }
 
+        if (conversion?.ok) {
+            const fileCheck = await waitForUserformRecordedFile(conversion.targetFilePath || currentPlan?.targetFilePath || recordedFilePath);
+            finalFilePath = fileCheck.path || conversion.targetFilePath || finalFilePath;
+            finalFileName = fileCheck.name || path.basename(finalFilePath || '') || finalFileName;
+            fileVerified = Boolean(fileCheck.ok);
+            fileSizeBytes = Number(fileCheck.sizeBytes || 0);
+            verificationNote = fileCheck.ok
+                ? 'File MP4 convertito e verificato su disco.'
+                : 'Conversione dichiarata completata ma file finale non verificato su disco.';
+        } else if (!currentPlan?.convertToMp4OnStop) {
+            const fileCheck = await waitForUserformRecordedFile(currentPlan?.targetFilePath || recordedFilePath);
+            finalFilePath = fileCheck.path || finalFilePath;
+            finalFileName = fileCheck.name || path.basename(finalFilePath || '') || finalFileName;
+            fileVerified = Boolean(fileCheck.ok);
+            fileSizeBytes = Number(fileCheck.sizeBytes || 0);
+            verificationNote = fileCheck.ok
+                ? 'File MP4 diretto verificato su disco dopo stop pulito.'
+                : 'Stop pulito completato ma file MP4 finale non verificato su disco.';
+        } else {
+            verificationNote = conversion?.error
+                ? `Conversione MP4 non riuscita: ${conversion.error}`
+                : 'Nessuna conversione MP4 eseguita.';
+        }
+
         userformRecordingPlan = null;
         return {
             stopped: true,
             pid,
-            filePath: conversion?.ok ? conversion.targetFilePath : recordedFilePath,
+            filePath: finalFilePath || (conversion?.ok ? conversion.targetFilePath : recordedFilePath),
+            finalFilePath,
+            finalFileName,
             sourceFilePath: currentPlan?.sourceFilePath || '',
             targetFilePath: currentPlan?.targetFilePath || '',
             recordingMode: currentPlan?.recordingMode || '',
             conversion,
-            graceful: true
+            graceful: true,
+            fileVerified,
+            fileSizeBytes,
+            verificationNote
         };
     }
 
@@ -1130,14 +1212,23 @@ async function stopUserformRecordingIfRunning() {
     userformRecordingProcess = null;
     userformRecordingFilePath = '';
     userformRecordingPlan = null;
+    const finalCandidatePath = currentPlan?.targetFilePath || recordedFilePath;
+    const fileCheck = await waitForUserformRecordedFile(finalCandidatePath, { attempts: 8, delayMs: 250, minSizeBytes: 1 });
     return {
         stopped: true,
         pid,
-        filePath: recordedFilePath,
+        filePath: fileCheck.path || recordedFilePath,
+        finalFilePath: fileCheck.path || finalCandidatePath,
+        finalFileName: fileCheck.name || path.basename(finalCandidatePath || recordedFilePath || ''),
         sourceFilePath: currentPlan?.sourceFilePath || '',
         targetFilePath: currentPlan?.targetFilePath || '',
         recordingMode: currentPlan?.recordingMode || '',
-        graceful: false
+        graceful: false,
+        fileVerified: Boolean(fileCheck.ok),
+        fileSizeBytes: Number(fileCheck.sizeBytes || 0),
+        verificationNote: fileCheck.ok
+            ? 'Stop forzato: file finale rilevato ma integrita da verificare.'
+            : 'Stop forzato: file finale non verificato su disco.'
     };
 }
 

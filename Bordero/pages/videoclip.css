@@ -243,6 +243,11 @@
   min-width: 0;
 }
 
+#btn-playback-backend {
+  grid-column: 1 / span 2;
+  grid-row: 3;
+}
+
 #btn-only-archive {
   grid-column: 1;
   grid-row: 1;
@@ -271,6 +276,11 @@
 #btn-fullscreen {
   grid-column: 3;
   grid-row: 2;
+}
+
+#btn-bordero-quick {
+  grid-column: 3;
+  grid-row: 3;
 }
 
 #btn-play.is-idle,
