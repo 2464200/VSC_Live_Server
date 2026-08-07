@@ -71,6 +71,7 @@ let userformRecordingProcess = null;
 let userformRecordingFilePath = '';
 let userformRecordingPlan = null;
 let userformRecordingStartedAt = 0;
+let userformLastRecordingSnapshot = null;
 let userformLiveVlcProcess = null;
 const borderoGoogleSyncState = {
     enabled: BORDERO_GOOGLE_SYNC_ENABLED,
@@ -1083,16 +1084,90 @@ async function waitForUserformRecordedFile(filePath = '', { attempts = 16, delay
     return { ok: false, ...getUserformRecordedFileInfo(filePath), attempts };
 }
 
+async function waitForUserformRecordedFileStable(filePath = '', {
+    attempts = 28,
+    delayMs = 250,
+    minSizeBytes = 1,
+    stableChecks = 2
+} = {}) {
+    let previousSize = -1;
+    let stableCount = 0;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+        const info = getUserformRecordedFileInfo(filePath);
+        if (info.exists && info.sizeBytes >= minSizeBytes) {
+            if (info.sizeBytes === previousSize) {
+                stableCount += 1;
+            } else {
+                stableCount = 0;
+            }
+
+            previousSize = info.sizeBytes;
+
+            if (stableCount >= stableChecks) {
+                return { ok: true, stable: true, ...info, attempts: attempt + 1 };
+            }
+        }
+
+        if (attempt < attempts - 1) {
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+    }
+
+    const fallback = getUserformRecordedFileInfo(filePath);
+    return {
+        ok: Boolean(fallback.exists && fallback.sizeBytes >= minSizeBytes),
+        stable: false,
+        ...fallback,
+        attempts
+    };
+}
+
+function setLastUserformRecordingSnapshot(plan, startedAt = 0) {
+    if (!plan) return;
+    userformLastRecordingSnapshot = {
+        plan: { ...plan },
+        startedAt: Number(startedAt || 0),
+        stoppedAt: 0
+    };
+}
+
 async function stopUserformRecordingIfRunning() {
     const recordedFilePath = userformRecordingFilePath || '';
     const currentPlan = userformRecordingPlan;
     const currentStartedAt = Number(userformRecordingStartedAt || 0);
+    const fallbackSnapshot = userformLastRecordingSnapshot;
 
     if (!userformRecordingProcess?.pid) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
         userformRecordingPlan = null;
         userformRecordingStartedAt = 0;
+
+        const fallbackPath = fallbackSnapshot?.plan?.targetFilePath || fallbackSnapshot?.plan?.outputFilePath || recordedFilePath;
+        if (fallbackPath) {
+            const fileCheck = await waitForUserformRecordedFileStable(fallbackPath, { attempts: 12, delayMs: 250, minSizeBytes: 1, stableChecks: 1 });
+            if (fileCheck.ok) {
+                return {
+                    stopped: true,
+                    startedAt: Number(fallbackSnapshot?.startedAt || 0),
+                    durationMs: Number(fallbackSnapshot?.startedAt || 0) ? Math.max(0, Date.now() - Number(fallbackSnapshot.startedAt)) : 0,
+                    filePath: fileCheck.path || fallbackPath,
+                    finalFilePath: fileCheck.path || fallbackPath,
+                    finalFileName: fileCheck.name || path.basename(fallbackPath || ''),
+                    sourceFilePath: fallbackSnapshot?.plan?.sourceFilePath || '',
+                    targetFilePath: fallbackSnapshot?.plan?.targetFilePath || '',
+                    recordingMode: fallbackSnapshot?.plan?.recordingMode || '',
+                    graceful: true,
+                    fileVerified: true,
+                    fileSizeBytes: Number(fileCheck.sizeBytes || 0),
+                    verificationNote: fileCheck.stable
+                        ? 'Processo gia terminato: file MP4 finale gia presente e stabile su disco.'
+                        : 'Processo gia terminato: file MP4 presente su disco (stabilizzazione non confermata).'
+                };
+            }
+        }
+
         return { stopped: false, filePath: recordedFilePath, fileVerified: false, fileSizeBytes: 0 };
     }
 
@@ -1109,7 +1184,7 @@ async function stopUserformRecordingIfRunning() {
         userformRecordingFilePath = '';
         userformRecordingPlan = null;
         userformRecordingStartedAt = 0;
-        const fileCheck = await waitForUserformRecordedFile(currentPlan?.targetFilePath || recordedFilePath);
+        const fileCheck = await waitForUserformRecordedFileStable(currentPlan?.targetFilePath || recordedFilePath, { attempts: 16, delayMs: 250, minSizeBytes: 1, stableChecks: 1 });
         return {
             stopped: true,
             pid,
@@ -1120,7 +1195,9 @@ async function stopUserformRecordingIfRunning() {
             finalFileName: fileCheck.name || path.basename(recordedFilePath || ''),
             fileVerified: Boolean(fileCheck.ok),
             fileSizeBytes: Number(fileCheck.sizeBytes || 0),
-            verificationNote: fileCheck.ok ? 'File finale rilevato dopo uscita processo gia avvenuta.' : 'File finale non verificato dopo uscita processo gia avvenuta.'
+            verificationNote: fileCheck.ok
+                ? (fileCheck.stable ? 'File finale rilevato e stabile dopo uscita processo gia avvenuta.' : 'File finale rilevato dopo uscita processo gia avvenuta.')
+                : 'File finale non verificato dopo uscita processo gia avvenuta.'
         };
     }
 
@@ -1159,22 +1236,22 @@ async function stopUserformRecordingIfRunning() {
         }
 
         if (conversion?.ok) {
-            const fileCheck = await waitForUserformRecordedFile(conversion.targetFilePath || currentPlan?.targetFilePath || recordedFilePath);
+            const fileCheck = await waitForUserformRecordedFileStable(conversion.targetFilePath || currentPlan?.targetFilePath || recordedFilePath);
             finalFilePath = fileCheck.path || conversion.targetFilePath || finalFilePath;
             finalFileName = fileCheck.name || path.basename(finalFilePath || '') || finalFileName;
             fileVerified = Boolean(fileCheck.ok);
             fileSizeBytes = Number(fileCheck.sizeBytes || 0);
             verificationNote = fileCheck.ok
-                ? 'File MP4 convertito e verificato su disco.'
+                ? (fileCheck.stable ? 'File MP4 convertito, finalizzato e verificato su disco.' : 'File MP4 convertito e verificato su disco.')
                 : 'Conversione dichiarata completata ma file finale non verificato su disco.';
         } else if (!currentPlan?.convertToMp4OnStop) {
-            const fileCheck = await waitForUserformRecordedFile(currentPlan?.targetFilePath || recordedFilePath);
+            const fileCheck = await waitForUserformRecordedFileStable(currentPlan?.targetFilePath || recordedFilePath);
             finalFilePath = fileCheck.path || finalFilePath;
             finalFileName = fileCheck.name || path.basename(finalFilePath || '') || finalFileName;
             fileVerified = Boolean(fileCheck.ok);
             fileSizeBytes = Number(fileCheck.sizeBytes || 0);
             verificationNote = fileCheck.ok
-                ? 'File MP4 diretto verificato su disco dopo stop pulito.'
+                ? (fileCheck.stable ? 'File MP4 diretto finalizzato e verificato su disco dopo stop pulito.' : 'File MP4 diretto verificato su disco dopo stop pulito.')
                 : 'Stop pulito completato ma file MP4 finale non verificato su disco.';
         } else {
             verificationNote = conversion?.error
@@ -1218,7 +1295,7 @@ async function stopUserformRecordingIfRunning() {
     userformRecordingPlan = null;
     userformRecordingStartedAt = 0;
     const finalCandidatePath = currentPlan?.targetFilePath || recordedFilePath;
-    const fileCheck = await waitForUserformRecordedFile(finalCandidatePath, { attempts: 8, delayMs: 250, minSizeBytes: 1 });
+    const fileCheck = await waitForUserformRecordedFileStable(finalCandidatePath, { attempts: 8, delayMs: 250, minSizeBytes: 1, stableChecks: 1 });
     return {
         stopped: true,
         pid,
@@ -1234,7 +1311,7 @@ async function stopUserformRecordingIfRunning() {
         fileVerified: Boolean(fileCheck.ok),
         fileSizeBytes: Number(fileCheck.sizeBytes || 0),
         verificationNote: fileCheck.ok
-            ? 'Stop forzato: file finale rilevato ma integrita da verificare.'
+            ? (fileCheck.stable ? 'Stop forzato: file finale rilevato su disco (integrita da verificare).' : 'Stop forzato: file finale rilevato ma integrita da verificare.')
             : 'Stop forzato: file finale non verificato su disco.'
     };
 }
@@ -2308,7 +2385,9 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
         };
 
         const recDir = ensureUserformRecordingDir();
-        const timestamp = new Date().toISOString().replace(/[-:T]/g, '').replace(/\..+/, '');
+        const now = new Date();
+        const isoCompact = now.toISOString().replace(/[-:T]/g, '').replace(/\..+/, '');
+        const timestamp = `${isoCompact}${String(now.getMilliseconds()).padStart(3, '0')}`;
         const requestedMode = sanitizeCsvValue(req.body?.recordingMode || process.env.USERFORM_RECORDING_MODE || 'direct-mp4');
         const plan = buildUserformRecordingPlan({
             recDir,
@@ -2323,6 +2402,7 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
         userformRecordingFilePath = plan.outputFilePath;
         userformRecordingPlan = plan;
         userformRecordingStartedAt = Date.now();
+        setLastUserformRecordingSnapshot(plan, userformRecordingStartedAt);
 
         updateUserformCameraProfileUsage(cameraName, {
             codec: profile.codec,
@@ -2339,6 +2419,9 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
                 userformRecordingFilePath = '';
                 userformRecordingPlan = null;
                 userformRecordingStartedAt = 0;
+            }
+            if (userformLastRecordingSnapshot?.plan?.targetFilePath === plan.targetFilePath) {
+                userformLastRecordingSnapshot.stoppedAt = Date.now();
             }
         });
 
