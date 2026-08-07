@@ -39,6 +39,38 @@
 
   const normalizeCell = (value) => String(value ?? "").replace(/^\uFEFF/, "").replace(/\s+/g, " ").trim();
 
+  const normalizeDeviceLabel = (value) => {
+    let text = normalizeCell(value).toLowerCase();
+    try {
+      text = text.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+    } catch (_) {
+      text = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+    return text
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  const tokenizeLabel = (value) => normalizeDeviceLabel(value)
+    .split(" ")
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+
+  const parseResolution = (value) => {
+    const raw = normalizeCell(value);
+    const match = raw.match(/^(\d{2,5})\s*[xX]\s*(\d{2,5})$/);
+    if (!match) return null;
+
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      return null;
+    }
+
+    return { width, height };
+  };
+
   const formatRecordingElapsed = (ms) => {
     const safeMs = Math.max(0, Number(ms || 0));
     const totalSeconds = Math.floor(safeMs / 1000);
@@ -315,25 +347,69 @@
     }, 2000);
   };
 
-  const findMatchingVideoDevice = async (cameraName) => {
+  const findMatchingVideoDevice = async (cameraName, cameraLabel = "") => {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videos = devices.filter((item) => item.kind === "videoinput");
     if (!videos.length) {
-      return "";
+      return { deviceId: "", label: "", confidence: 0 };
     }
 
-    const normalized = normalizeCell(cameraName).toLowerCase();
-    if (!normalized) {
-      return videos[0].deviceId;
+    const candidates = [cameraName, cameraLabel]
+      .map((item) => normalizeCell(item))
+      .filter(Boolean);
+
+    if (!candidates.length) {
+      return {
+        deviceId: videos[0].deviceId,
+        label: normalizeCell(videos[0].label),
+        confidence: 0.2
+      };
     }
 
-    const exact = videos.find((item) => normalizeCell(item.label).toLowerCase() === normalized);
-    if (exact) {
-      return exact.deviceId;
+    const candidateTokens = [...new Set(candidates.flatMap((item) => tokenizeLabel(item)))];
+    const candidateNormalized = candidates.map((item) => normalizeDeviceLabel(item)).filter(Boolean);
+
+    const scored = videos.map((item) => {
+      const label = normalizeCell(item.label);
+      const normalizedLabel = normalizeDeviceLabel(label);
+      const labelTokens = tokenizeLabel(label);
+
+      let score = 0;
+      if (normalizedLabel && candidateNormalized.includes(normalizedLabel)) {
+        score += 120;
+      }
+
+      if (normalizedLabel && candidateNormalized.some((src) => normalizedLabel.includes(src) || src.includes(normalizedLabel))) {
+        score += 45;
+      }
+
+      if (candidateTokens.length && labelTokens.length) {
+        const shared = labelTokens.filter((token) => candidateTokens.includes(token)).length;
+        const ratio = shared / Math.max(candidateTokens.length, labelTokens.length);
+        score += Math.round(ratio * 100);
+      }
+
+      return {
+        deviceId: item.deviceId,
+        label,
+        score
+      };
+    }).sort((a, b) => b.score - a.score);
+
+    const best = scored[0];
+    if (best && best.score > 0) {
+      return {
+        deviceId: best.deviceId,
+        label: best.label,
+        confidence: Math.min(1, best.score / 120)
+      };
     }
 
-    const contains = videos.find((item) => normalizeCell(item.label).toLowerCase().includes(normalized));
-    return contains?.deviceId || videos[0].deviceId;
+    return {
+      deviceId: videos[0].deviceId,
+      label: normalizeCell(videos[0].label),
+      confidence: 0.2
+    };
   };
 
   const getUserMediaWithTimeout = async (constraints, timeoutMs = 5000) => {
@@ -359,30 +435,82 @@
     const warmupStream = await getUserMediaWithTimeout({ video: true, audio: false });
     warmupStream.getTracks().forEach((track) => track.stop());
 
-    const deviceId = await findMatchingVideoDevice(payload.cameraName);
-    const constraints = {
-      audio: false,
-      video: {
-        frameRate: { ideal: Number(payload.fps) || 30 },
-        ...(deviceId ? { deviceId: { exact: deviceId } } : {})
-      }
+    const resolution = parseResolution(payload.size);
+    const match = await findMatchingVideoDevice(payload.cameraName, payload.label);
+    const baseVideoConstraints = {
+      ...(Number(payload.fps) > 0 ? { frameRate: { ideal: Number(payload.fps) } } : {}),
+      ...(resolution ? { width: { ideal: resolution.width }, height: { ideal: resolution.height } } : {})
     };
 
-    try {
-      localPreviewStream = await getUserMediaWithTimeout(constraints);
-    } catch (_) {
-      // Fallback: if the named binding fails, try any available webcam so the preview still acts as a live indicator.
-      localPreviewStream = await getUserMediaWithTimeout({
+    const candidateConstraints = [
+      {
         audio: false,
         video: {
-          frameRate: { ideal: Number(payload.fps) || 30 }
+          ...baseVideoConstraints,
+          ...(match.deviceId ? { deviceId: { exact: match.deviceId } } : {})
         }
-      });
+      },
+      {
+        audio: false,
+        video: {
+          ...(Number(payload.fps) > 0 ? { frameRate: { ideal: Number(payload.fps) } } : {}),
+          ...(match.deviceId ? { deviceId: { exact: match.deviceId } } : {})
+        }
+      },
+      {
+        audio: false,
+        video: {
+          ...(match.deviceId ? { deviceId: { exact: match.deviceId } } : {})
+        }
+      },
+      {
+        audio: false,
+        video: {
+          ...baseVideoConstraints
+        }
+      },
+      {
+        audio: false,
+        video: true
+      }
+    ];
+
+    localPreviewStream = null;
+    let lastError = null;
+
+    for (const constraints of candidateConstraints) {
+      try {
+        localPreviewStream = await getUserMediaWithTimeout(constraints);
+        break;
+      } catch (error) {
+        lastError = error;
+      }
     }
+
+    if (!localPreviewStream) {
+      throw new Error(lastError?.message || "Impossibile avviare anteprima webcam");
+    }
+
+    const selectedTrack = localPreviewStream.getVideoTracks?.()[0];
+    const selectedLabel = normalizeCell(selectedTrack?.label || match.label || payload.cameraName);
+
     webcamPreviewNode.srcObject = localPreviewStream;
     await webcamPreviewNode.play().catch(() => null);
-    localPreviewCameraName = normalizeCell(payload.cameraName);
+    localPreviewCameraName = selectedLabel || normalizeCell(payload.cameraName);
     setPreviewMode(true);
+  };
+
+  const buildProbeConstraints = async (payload) => {
+    const resolution = parseResolution(payload.size);
+    const match = await findMatchingVideoDevice(payload.cameraName, payload.label);
+    return {
+      audio: false,
+      video: {
+        ...(Number(payload.fps) > 0 ? { frameRate: { ideal: Number(payload.fps) } } : {}),
+        ...(resolution ? { width: { ideal: resolution.width }, height: { ideal: resolution.height } } : {}),
+        ...(match.deviceId ? { deviceId: { exact: match.deviceId } } : {})
+      }
+    };
   };
 
   const refreshProfile = () => {
@@ -698,14 +826,7 @@
       };
     }
 
-    const deviceId = await findMatchingVideoDevice(payload.cameraName);
-    const constraints = {
-      audio: false,
-      video: {
-        frameRate: { ideal: Number(payload.fps) || 30 },
-        ...(deviceId ? { deviceId: { exact: deviceId } } : {})
-      }
-    };
+    const constraints = await buildProbeConstraints(payload);
 
     const probeStream = await getUserMediaWithTimeout(constraints, 3500);
     probeStream.getTracks().forEach((track) => {
