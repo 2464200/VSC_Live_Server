@@ -71,6 +71,7 @@ let borderoGoogleSyncSchedulerStarted = false;
 let userformRecordingProcess = null;
 let userformRecordingFilePath = '';
 let userformRecordingPlan = null;
+let userformRecordingStartedAt = 0;
 let userformLiveVlcProcess = null;
 const borderoGoogleSyncState = {
     enabled: BORDERO_GOOGLE_SYNC_ENABLED,
@@ -1016,6 +1017,7 @@ function getUserformRecordingState() {
     return {
         recording: alive,
         pid: alive ? userformRecordingProcess.pid : null,
+        startedAt: alive && userformRecordingStartedAt ? userformRecordingStartedAt : 0,
         filePath: userformRecordingFilePath || '',
         recordingMode: userformRecordingPlan?.recordingMode || '',
         targetFilePath: userformRecordingPlan?.targetFilePath || '',
@@ -1090,11 +1092,13 @@ async function waitForUserformRecordedFile(filePath = '', { attempts = 16, delay
 async function stopUserformRecordingIfRunning() {
     const recordedFilePath = userformRecordingFilePath || '';
     const currentPlan = userformRecordingPlan;
+    const currentStartedAt = Number(userformRecordingStartedAt || 0);
 
     if (!userformRecordingProcess?.pid) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
         userformRecordingPlan = null;
+        userformRecordingStartedAt = 0;
         return { stopped: false, filePath: recordedFilePath, fileVerified: false, fileSizeBytes: 0 };
     }
 
@@ -1110,10 +1114,13 @@ async function stopUserformRecordingIfRunning() {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
         userformRecordingPlan = null;
+        userformRecordingStartedAt = 0;
         const fileCheck = await waitForUserformRecordedFile(currentPlan?.targetFilePath || recordedFilePath);
         return {
             stopped: true,
             pid,
+            startedAt: currentStartedAt,
+            durationMs: currentStartedAt ? Math.max(0, Date.now() - currentStartedAt) : 0,
             filePath: fileCheck.path || recordedFilePath,
             finalFilePath: fileCheck.path || recordedFilePath,
             finalFileName: fileCheck.name || path.basename(recordedFilePath || ''),
@@ -1136,6 +1143,7 @@ async function stopUserformRecordingIfRunning() {
     if (gracefulStopped) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
+        userformRecordingStartedAt = 0;
         let conversion = null;
         let finalFilePath = currentPlan?.targetFilePath || recordedFilePath;
         let finalFileName = path.basename(finalFilePath || '') || '';
@@ -1184,6 +1192,8 @@ async function stopUserformRecordingIfRunning() {
         return {
             stopped: true,
             pid,
+            startedAt: currentStartedAt,
+            durationMs: currentStartedAt ? Math.max(0, Date.now() - currentStartedAt) : 0,
             filePath: finalFilePath || (conversion?.ok ? conversion.targetFilePath : recordedFilePath),
             finalFilePath,
             finalFileName,
@@ -1212,11 +1222,14 @@ async function stopUserformRecordingIfRunning() {
     userformRecordingProcess = null;
     userformRecordingFilePath = '';
     userformRecordingPlan = null;
+    userformRecordingStartedAt = 0;
     const finalCandidatePath = currentPlan?.targetFilePath || recordedFilePath;
     const fileCheck = await waitForUserformRecordedFile(finalCandidatePath, { attempts: 8, delayMs: 250, minSizeBytes: 1 });
     return {
         stopped: true,
         pid,
+        startedAt: currentStartedAt,
+        durationMs: currentStartedAt ? Math.max(0, Date.now() - currentStartedAt) : 0,
         filePath: fileCheck.path || recordedFilePath,
         finalFilePath: fileCheck.path || finalCandidatePath,
         finalFileName: fileCheck.name || path.basename(finalCandidatePath || recordedFilePath || ''),
@@ -2315,6 +2328,7 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
         userformRecordingProcess = child;
         userformRecordingFilePath = plan.outputFilePath;
         userformRecordingPlan = plan;
+        userformRecordingStartedAt = Date.now();
 
         updateUserformCameraProfileUsage(cameraName, {
             codec: profile.codec,
@@ -2330,6 +2344,7 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
                 userformRecordingProcess = null;
                 userformRecordingFilePath = '';
                 userformRecordingPlan = null;
+                userformRecordingStartedAt = 0;
             }
         });
 
@@ -2337,6 +2352,7 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
             ok: true,
             recording: true,
             pid: child.pid,
+            startedAt: userformRecordingStartedAt,
             fileName: plan.targetFileName,
             filePath: plan.targetFilePath,
             sourceFileName: plan.sourceFileName,

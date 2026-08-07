@@ -95,6 +95,43 @@
       justify-self: end;
     }
 
+    .p05-recording-counter {
+      grid-column: 1 / span 2;
+      border: 1px solid #9f9f9f;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f1f1 100%);
+      min-height: 66px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      align-items: center;
+    }
+
+    .p05-counter-field {
+      display: grid;
+      gap: 4px;
+    }
+
+    .p05-counter-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #454545;
+      letter-spacing: 0.04em;
+    }
+
+    .p05-counter-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: #111;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .p05-counter-value.is-live {
+      color: #b10000;
+      text-shadow: 0 0 10px rgba(214, 20, 20, 0.16);
+    }
+
     .p05-main-box {
       margin-top: 16px;
       width: 364px;
@@ -444,6 +481,10 @@
         grid-template-columns: 1fr 1fr;
       }
 
+      .p05-recording-counter {
+        grid-column: 1 / -1;
+      }
+
       .p05-side-tools,
       .p05-bottom-bar {
         position: static;
@@ -508,6 +549,17 @@
     <section class="p05-top" aria-label="Comandi principali">
       <button id="btn-rec-start-05" class="p05-flat-btn green" type="button">AVVIA REGISTRAZIONE</button>
       <button id="btn-rec-stop-05" class="p05-flat-btn red" type="button">STOP REGISTRAZIONE</button>
+
+      <div class="p05-recording-counter" aria-label="Tempo e dimensione ultima registrazione">
+        <div class="p05-counter-field">
+          <span class="p05-counter-label">TEMPO REGISTRAZIONE</span>
+          <span id="recording-elapsed-05" class="p05-counter-value">00:00</span>
+        </div>
+        <div class="p05-counter-field">
+          <span class="p05-counter-label">DIMENSIONE MP4</span>
+          <span id="recording-size-05" class="p05-counter-value">0.00 MB</span>
+        </div>
+      </div>
 
       <div class="p05-webcam-box">
         <select id="camera-name-05" aria-label="Selezione webcam"></select>

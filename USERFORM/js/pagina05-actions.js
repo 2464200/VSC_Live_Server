@@ -8,6 +8,8 @@
   const webcamSignalNode = document.getElementById("webcam-signal-05");
   const webcamSignalTextNode = document.getElementById("webcam-signal-text-05");
   const secondaryPlayerStateNode = document.getElementById("secondary-player-state-05");
+  const recordingElapsedNode = document.getElementById("recording-elapsed-05");
+  const recordingSizeNode = document.getElementById("recording-size-05");
   const codecChip = document.getElementById("cam-codec-chip");
   const sizeChip = document.getElementById("cam-size-chip");
   const fpsChip = document.getElementById("cam-fps-chip");
@@ -26,6 +28,8 @@
   let previewSuspendedForLive = false;
   let secondaryPlayerPollTimer = null;
   let indicatorWarningReason = "";
+  let recordingStartedAt = 0;
+  let recordingCounterTimer = null;
 
   const setStatus = (msg) => {
     if (statusNode) {
@@ -34,6 +38,58 @@
   };
 
   const normalizeCell = (value) => String(value ?? "").replace(/^\uFEFF/, "").replace(/\s+/g, " ").trim();
+
+  const formatRecordingElapsed = (ms) => {
+    const safeMs = Math.max(0, Number(ms || 0));
+    const totalSeconds = Math.floor(safeMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) {
+      return [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
+    }
+    return [minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
+  };
+
+  const formatMegabytes = (bytes) => {
+    const safeBytes = Number(bytes || 0);
+    if (!Number.isFinite(safeBytes) || safeBytes <= 0) {
+      return "0.00 MB";
+    }
+    return `${(safeBytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const renderRecordingCounter = ({ elapsedMs = 0, sizeBytes = null, live = false } = {}) => {
+    if (recordingElapsedNode) {
+      recordingElapsedNode.textContent = formatRecordingElapsed(elapsedMs);
+      recordingElapsedNode.classList.toggle("is-live", Boolean(live));
+    }
+    if (recordingSizeNode && sizeBytes !== null) {
+      recordingSizeNode.textContent = formatMegabytes(sizeBytes);
+    }
+  };
+
+  const stopRecordingCounterTimer = () => {
+    if (recordingCounterTimer) {
+      clearInterval(recordingCounterTimer);
+      recordingCounterTimer = null;
+    }
+  };
+
+  const startRecordingCounterTimer = () => {
+    stopRecordingCounterTimer();
+    if (!recording || !recordingStartedAt) {
+      renderRecordingCounter({ elapsedMs: 0, live: false });
+      return;
+    }
+
+    const tick = () => {
+      renderRecordingCounter({ elapsedMs: Date.now() - recordingStartedAt, live: true });
+    };
+
+    tick();
+    recordingCounterTimer = setInterval(tick, 1000);
+  };
 
   const setWebcamSignal = (state, text, warningReason = "") => {
     if (webcamSignalNode) {
@@ -442,9 +498,16 @@
   const syncState = async () => {
     const state = await fetchJson("/api/userform/pagina05/state");
     recording = Boolean(state?.recording?.recording);
+    recordingStartedAt = Number(state?.recording?.startedAt || 0);
     vlcRunning = Boolean(state?.liveVlc?.alive);
     if (recChip) recChip.textContent = recording ? "REC: ON" : "REC: OFF";
     if (vlcChip) vlcChip.textContent = vlcRunning ? "VLC: ON" : "VLC: OFF";
+    if (recording && recordingStartedAt) {
+      startRecordingCounterTimer();
+    } else {
+      stopRecordingCounterTimer();
+      renderRecordingCounter({ elapsedMs: 0, live: false });
+    }
     refreshWebcamSignal({ warningReason: "" });
     return state;
   };
@@ -680,7 +743,9 @@
         body: JSON.stringify(payload)
       });
       recording = true;
+      recordingStartedAt = Number(out?.startedAt || Date.now());
       if (recChip) recChip.textContent = "REC: ON";
+      startRecordingCounterTimer();
       await refreshRecList();
       const modeText = out.recordingMode === "native-then-mp4"
         ? "nativo con conversione automatica in MP4 allo stop"
@@ -698,12 +763,16 @@
         body: JSON.stringify({})
       });
       recording = false;
+      stopRecordingCounterTimer();
       if (recChip) recChip.textContent = "REC: OFF";
       await refreshRecList();
       if (out.stopped) {
         const finalPath = String(out.finalFilePath || out.filePath || out.targetFilePath || "");
         const savedName = String(out.finalFileName || finalPath.split(/[\\/]/).pop() || "file registrato");
         const sizeKb = Number(out.fileSizeBytes || 0) > 0 ? ` (${Math.max(1, Math.round(Number(out.fileSizeBytes || 0) / 1024))} KB)` : "";
+        const elapsedMs = Number(out.durationMs || (recordingStartedAt ? Date.now() - recordingStartedAt : 0));
+        renderRecordingCounter({ elapsedMs, sizeBytes: Number(out.fileSizeBytes || 0), live: false });
+        recordingStartedAt = 0;
         const verifyNote = out.verificationNote ? ` ${out.verificationNote}` : "";
         if (out.conversion?.ok && out.fileVerified) {
           setStatus(`Registrazione terminata. Convertito e salvato in MP4: ${savedName}${sizeKb} in ${finalPath}.${verifyNote}`);
@@ -720,6 +789,8 @@
           setStatus(`Registrazione terminata. File salvato: ${savedName}${sizeKb} in ${finalPath}.${verifyNote}`);
         }
       } else {
+        recordingStartedAt = 0;
+        renderRecordingCounter({ elapsedMs: 0, live: false });
         setStatus("Nessuna registrazione FFmpeg rilevata.");
       }
     } catch (error) {
