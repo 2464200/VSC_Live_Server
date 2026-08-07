@@ -151,8 +151,8 @@
 
     .p05-webcam-image {
       margin-top: 52px;
-      width: 186px;
-      height: 112px;
+      width: 260px;
+      height: 156px;
       border: 1px solid #999;
       display: block;
       background: #fff;
@@ -197,10 +197,31 @@
       display: none;
     }
 
+    .p05-preview-suspended {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 2;
+      display: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.68);
+      color: #fff;
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.25;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
     .p05-webcam-image.is-live .p05-live-badge {
       display: inline-flex;
       align-items: center;
       gap: 4px;
+    }
+
+    .p05-webcam-image.is-suspended .p05-preview-suspended {
+      display: block;
     }
 
     @keyframes p05-live-pulse {
@@ -215,35 +236,25 @@
 
     .p05-live-row {
       margin-top: 8px;
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       align-items: stretch;
+      width: 260px;
     }
 
     .p05-live-row .p05-flat-btn {
-      min-height: 86px;
-    }
-
-    .p05-live-row .green {
-      width: 186px;
-      font-size: 34px;
-      transform: scaleX(0.6);
-      transform-origin: left center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-align: left;
-      padding-left: 8px;
-    }
-
-    .p05-live-row .red {
-      width: 100px;
-      font-size: 30px;
-      transform: scaleX(0.62);
-      transform-origin: left center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-align: left;
-      padding-left: 6px;
+      min-height: 68px;
+      width: 100%;
+      min-width: 0;
+      font-size: 15px;
+      line-height: 1.1;
+      letter-spacing: 0.01em;
+      white-space: normal;
+      overflow: visible;
+      word-break: break-word;
+      text-align: center;
+      padding: 6px 8px;
     }
 
     .p05-bottom-bar {
@@ -316,6 +327,15 @@
       min-height: 56px;
     }
 
+    .p05-secondary-state {
+      border: 1px solid #9a9a9a;
+      background: #fff;
+      font-size: 12px;
+      padding: 8px;
+      min-height: 66px;
+      line-height: 1.35;
+    }
+
     .p05-hidden-meta {
       display: none;
     }
@@ -349,6 +369,11 @@
 
       .p05-main-box {
         height: 210px;
+      }
+
+      .p05-webcam-image,
+      .p05-live-row {
+        width: 100%;
       }
 
       .p05-live-row .green,
@@ -396,11 +421,12 @@
       <span id="webcam-live-badge-05" class="p05-live-badge">LIVE</span>
       <img id="webcam-slide-05" src="../../archivio/webcam.jpeg" alt="Webcam" />
       <video id="webcam-preview-05" class="p05-hidden" autoplay muted playsinline></video>
+      <div id="preview-suspended-05" class="p05-preview-suspended">Preview locale sospesa temporaneamente per lasciare la webcam al live Electron sul monitor secondario.</div>
     </div>
 
     <div class="p05-live-row" aria-label="Controllo ripresa diretta">
-      <button id="btn-vlc-start" class="p05-flat-btn green" type="button">RIPRESA VIDEO IN DIRETTA</button>
-      <button id="btn-vlc-stop" class="p05-flat-btn red" type="button">STOP RIPRESA VIDEO</button>
+      <button id="btn-vlc-start" class="p05-flat-btn green" type="button">START RIPRESA VIDEO IN DIRETTA</button>
+      <button id="btn-vlc-stop" class="p05-flat-btn red" type="button">STOP RIPRESA VIDEO IN DIRETTA</button>
     </div>
 
     <aside class="p05-side-tools" aria-label="Strumenti conversione e stato">
@@ -415,6 +441,11 @@
         <span id="cam-fps-chip" class="p05-chip">FPS: -</span>
         <span id="vlc-state-chip" class="p05-chip">VLC: OFF</span>
         <span id="rec-state-chip-05" class="p05-chip">REC: OFF</span>
+      </div>
+
+      <div id="secondary-player-state-05" class="p05-secondary-state" aria-live="polite">
+        <strong>Monitor secondario:</strong><br />
+        Stato player Electron in attesa.
       </div>
 
       <div id="pagina05-status" class="p05-status" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>

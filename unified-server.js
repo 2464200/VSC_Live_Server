@@ -29,6 +29,7 @@ const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
 const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
 const USERFORM_RECORDINGS_DIR = process.env.USERFORM_RECORDINGS_DIR || 'C:\\VSC_WEBCAM';
 const LEGACY_RECORDINGS_DIR = 'C:\\vsc_webcam';
+const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : 5512;
 const USERFORM_FFMPEG_CANDIDATES = [
     process.env.FFMPEG_PATH,
     'C:/FFMPEG/bin/ffmpeg.exe',
@@ -69,6 +70,7 @@ let borderoGoogleSyncPromise = null;
 let borderoGoogleSyncSchedulerStarted = false;
 let userformRecordingProcess = null;
 let userformRecordingFilePath = '';
+let userformRecordingPlan = null;
 let userformLiveVlcProcess = null;
 const borderoGoogleSyncState = {
     enabled: BORDERO_GOOGLE_SYNC_ENABLED,
@@ -548,6 +550,20 @@ function sanitizeCsvValue(value) {
     return String(value ?? '').replace(/^\uFEFF/, '').trim();
 }
 
+async function callElectronControl(pathname = '/', payload) {
+    const response = await fetch(`http://127.0.0.1:${ELECTRON_CONTROL_PORT}${pathname}`, {
+        method: payload === undefined ? 'GET' : 'POST',
+        headers: payload === undefined ? undefined : { 'Content-Type': 'application/json' },
+        body: payload === undefined ? undefined : JSON.stringify(payload)
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data?.success === false || data?.ok === false) {
+        throw new Error(data?.error || `Electron control bridge HTTP ${response.status}`);
+    }
+    return data;
+}
+
 const USERFORM_CAMERA_CSV_HEADER = [
     'value',
     'Codifica',
@@ -1000,7 +1016,10 @@ function getUserformRecordingState() {
     return {
         recording: alive,
         pid: alive ? userformRecordingProcess.pid : null,
-        filePath: userformRecordingFilePath || ''
+        filePath: userformRecordingFilePath || '',
+        recordingMode: userformRecordingPlan?.recordingMode || '',
+        targetFilePath: userformRecordingPlan?.targetFilePath || '',
+        sourceFilePath: userformRecordingPlan?.sourceFilePath || ''
     };
 }
 
@@ -1032,10 +1051,12 @@ function waitForChildExit(child, timeoutMs = 3000) {
 
 async function stopUserformRecordingIfRunning() {
     const recordedFilePath = userformRecordingFilePath || '';
+    const currentPlan = userformRecordingPlan;
 
     if (!userformRecordingProcess?.pid) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
+        userformRecordingPlan = null;
         return { stopped: false, filePath: recordedFilePath };
     }
 
@@ -1050,6 +1071,7 @@ async function stopUserformRecordingIfRunning() {
     if (!aliveBeforeStop) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
+        userformRecordingPlan = null;
         return { stopped: true, pid, filePath: recordedFilePath };
     }
 
@@ -1066,7 +1088,32 @@ async function stopUserformRecordingIfRunning() {
     if (gracefulStopped) {
         userformRecordingProcess = null;
         userformRecordingFilePath = '';
-        return { stopped: true, pid, filePath: recordedFilePath, graceful: true };
+        let conversion = null;
+
+        if (currentPlan?.convertToMp4OnStop && currentPlan.sourceFilePath && currentPlan.targetFilePath) {
+            try {
+                conversion = await convertUserformRecordingToMp4(currentPlan);
+            } catch (error) {
+                conversion = {
+                    ok: false,
+                    error: error?.message || String(error),
+                    sourceFilePath: currentPlan.sourceFilePath,
+                    targetFilePath: currentPlan.targetFilePath
+                };
+            }
+        }
+
+        userformRecordingPlan = null;
+        return {
+            stopped: true,
+            pid,
+            filePath: conversion?.ok ? conversion.targetFilePath : recordedFilePath,
+            sourceFilePath: currentPlan?.sourceFilePath || '',
+            targetFilePath: currentPlan?.targetFilePath || '',
+            recordingMode: currentPlan?.recordingMode || '',
+            conversion,
+            graceful: true
+        };
     }
 
     try {
@@ -1082,12 +1129,22 @@ async function stopUserformRecordingIfRunning() {
 
     userformRecordingProcess = null;
     userformRecordingFilePath = '';
-    return { stopped: true, pid, filePath: recordedFilePath, graceful: false };
+    userformRecordingPlan = null;
+    return {
+        stopped: true,
+        pid,
+        filePath: recordedFilePath,
+        sourceFilePath: currentPlan?.sourceFilePath || '',
+        targetFilePath: currentPlan?.targetFilePath || '',
+        recordingMode: currentPlan?.recordingMode || '',
+        graceful: false
+    };
 }
 
 function buildCameraCaptureArgs(profile = {}, outputFilePath = '') {
     const cameraName = sanitizeCsvValue(profile.name);
     const fps = sanitizeCsvValue(profile.fps);
+    const outputExt = path.extname(String(outputFilePath || '')).toLowerCase();
 
     const args = ['-y', '-f', 'dshow', '-rtbufsize', '64M'];
 
@@ -1096,12 +1153,95 @@ function buildCameraCaptureArgs(profile = {}, outputFilePath = '') {
         args.push('-framerate', fps);
     }
 
-    args.push('-i', `video=${cameraName}`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', outputFilePath);
+    args.push('-i', `video=${cameraName}`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p');
+    if (outputExt === '.mp4') {
+        args.push('-movflags', '+faststart');
+    }
+    args.push(outputFilePath);
     return args;
 }
 
 function buildConvertToMp4Args(inputFilePath = '', outputFilePath = '') {
-    return ['-y', '-i', inputFilePath, '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-c:a', 'aac', '-b:a', '128k', outputFilePath];
+    return [
+        '-y',
+        '-i', inputFilePath,
+        '-map', '0:v:0',
+        '-map', '0:a?',
+        '-c:v', 'libx264',
+        '-preset', 'fast',
+        '-crf', '18',
+        '-c:a', 'aac',
+        '-b:a', '128k',
+        '-movflags', '+faststart',
+        outputFilePath
+    ];
+}
+
+function resolveUserformRecordingMode(value = '') {
+    const normalized = sanitizeCsvValue(value).toLowerCase();
+    if (['native', 'native-then-mp4', 'native_then_mp4', 'mkv-then-mp4', 'mkv_then_mp4'].includes(normalized)) {
+        return 'native-then-mp4';
+    }
+    return 'direct-mp4';
+}
+
+function buildUserformRecordingPlan({ recDir = '', timestamp = '', recordingMode = 'direct-mp4' } = {}) {
+    const effectiveMode = resolveUserformRecordingMode(recordingMode);
+    if (effectiveMode === 'native-then-mp4') {
+        const sourceFileName = `${timestamp}.mkv`;
+        const targetFileName = `${timestamp}.mp4`;
+        return {
+            recordingMode: effectiveMode,
+            sourceFileName,
+            sourceFilePath: path.join(recDir, sourceFileName),
+            targetFileName,
+            targetFilePath: path.join(recDir, targetFileName),
+            outputFilePath: path.join(recDir, sourceFileName),
+            convertToMp4OnStop: true
+        };
+    }
+
+    const targetFileName = `${timestamp}.mp4`;
+    return {
+        recordingMode: 'direct-mp4',
+        sourceFileName: targetFileName,
+        sourceFilePath: path.join(recDir, targetFileName),
+        targetFileName,
+        targetFilePath: path.join(recDir, targetFileName),
+        outputFilePath: path.join(recDir, targetFileName),
+        convertToMp4OnStop: false
+    };
+}
+
+async function convertUserformRecordingToMp4(plan = {}) {
+    const ffmpegPath = resolveFfmpegExecutable();
+    if (!ffmpegPath) {
+        throw new Error('FFmpeg non trovato per conversione MP4');
+    }
+
+    const source = path.resolve(String(plan.sourceFilePath || ''));
+    const target = path.resolve(String(plan.targetFilePath || ''));
+    if (!source || !target) {
+        throw new Error('Percorsi conversione non validi');
+    }
+    if (!fs.existsSync(source)) {
+        throw new Error(`File sorgente non trovato: ${source}`);
+    }
+
+    const convertArgs = buildConvertToMp4Args(source, target);
+    await execFileAsync(ffmpegPath, convertArgs, { maxBuffer: 10 * 1024 * 1024 });
+
+    if (!fs.existsSync(target)) {
+        throw new Error('Conversione completata ma file MP4 non trovato');
+    }
+
+    return {
+        ok: true,
+        ffmpegPath,
+        ffmpegArgs: convertArgs,
+        sourceFilePath: source,
+        targetFilePath: target
+    };
 }
 
 function spawnDetachedProcess(executablePath, args = []) {
@@ -2071,13 +2211,19 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
 
         const recDir = ensureUserformRecordingDir();
         const timestamp = new Date().toISOString().replace(/[-:T]/g, '').replace(/\..+/, '');
-        const fileName = `${timestamp}.mkv`;
-        const outputPath = path.join(recDir, fileName);
-        const ffArgs = buildCameraCaptureArgs(profile, outputPath);
+        const requestedMode = sanitizeCsvValue(req.body?.recordingMode || process.env.USERFORM_RECORDING_MODE || 'direct-mp4');
+        const plan = buildUserformRecordingPlan({
+            recDir,
+            timestamp,
+            recordingMode: requestedMode
+        });
+
+        const ffArgs = buildCameraCaptureArgs(profile, plan.outputFilePath);
 
         const child = spawn(ffmpegPath, ffArgs, { stdio: ['pipe', 'ignore', 'ignore'], windowsHide: true });
         userformRecordingProcess = child;
-        userformRecordingFilePath = outputPath;
+        userformRecordingFilePath = plan.outputFilePath;
+        userformRecordingPlan = plan;
 
         updateUserformCameraProfileUsage(cameraName, {
             codec: profile.codec,
@@ -2092,6 +2238,7 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
             if (userformRecordingProcess?.pid === child.pid) {
                 userformRecordingProcess = null;
                 userformRecordingFilePath = '';
+                userformRecordingPlan = null;
             }
         });
 
@@ -2099,8 +2246,14 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
             ok: true,
             recording: true,
             pid: child.pid,
-            fileName,
-            filePath: outputPath,
+            fileName: plan.targetFileName,
+            filePath: plan.targetFilePath,
+            sourceFileName: plan.sourceFileName,
+            sourceFilePath: plan.sourceFilePath,
+            targetFileName: plan.targetFileName,
+            targetFilePath: plan.targetFilePath,
+            recordingMode: plan.recordingMode,
+            convertToMp4OnStop: plan.convertToMp4OnStop,
             ffmpegPath,
             ffmpegArgs: ffArgs,
             profile
@@ -2169,6 +2322,59 @@ app.post('/api/userform/pagina05/convert-play', async (req, res) => {
             vlcPath: launched.vlcPath,
             vlcArgs: launched.vlcArgs
         });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/electron/live/start', async (req, res) => {
+    try {
+        const cameraName = sanitizeCsvValue(req.body?.cameraName);
+        if (!cameraName) {
+            return res.status(400).json({ ok: false, error: 'cameraName obbligatorio' });
+        }
+
+        const payload = {
+            mode: 'webcam-live',
+            cameraName,
+            size: sanitizeCsvValue(req.body?.size),
+            fps: sanitizeCsvValue(req.body?.fps)
+        };
+
+        const result = await callElectronControl('/video-player/play', payload);
+        return res.json({ ok: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/electron/live/stop', async (_req, res) => {
+    try {
+        const result = await callElectronControl('/video-player/stop', {});
+        return res.json({ ok: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/electron/player/play', async (req, res) => {
+    try {
+        const videoUrl = sanitizeCsvValue(req.body?.url);
+        if (!videoUrl) {
+            return res.status(400).json({ ok: false, error: 'url obbligatorio' });
+        }
+
+        const result = await callElectronControl('/video-player/play', { url: videoUrl });
+        return res.json({ ok: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/userform/pagina05/electron/player/state', async (_req, res) => {
+    try {
+        const result = await callElectronControl('/video-player/state');
+        return res.json({ ok: true, ...result });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }

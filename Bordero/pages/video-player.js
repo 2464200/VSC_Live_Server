@@ -1,10 +1,18 @@
 const videoElement = document.getElementById('electron-video');
 const statusElement = document.getElementById('player-status');
+const liveDisclaimerElement = document.getElementById('live-disclaimer');
 let liveStream = null;
 
 function setStatus(text) {
   if (statusElement) {
     statusElement.textContent = text;
+  }
+}
+
+function setWebcamLiveMode(active) {
+  document.body.classList.toggle('webcam-live-mode', Boolean(active));
+  if (liveDisclaimerElement) {
+    liveDisclaimerElement.hidden = !active;
   }
 }
 
@@ -83,6 +91,7 @@ async function startWebcamLivePlayback(params) {
   }
 
   setStatus('Attivazione webcam live...');
+  setWebcamLiveMode(true);
   stopLiveTracks();
 
   const fpsValue = Number(String(params.fps || '').trim());
@@ -140,6 +149,7 @@ function bindElectronCommands() {
       videoElement.srcObject = null;
     }
     stopLiveTracks();
+    setWebcamLiveMode(false);
     setStatus('Video fermato.');
     window.close();
   });
@@ -162,6 +172,7 @@ async function startPlayback() {
     return;
   }
 
+  setWebcamLiveMode(false);
   videoElement.src = sourceUrl;
   videoElement.srcObject = null;
   videoElement.load();
@@ -198,5 +209,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('beforeunload', () => {
+  setWebcamLiveMode(false);
   stopLiveTracks();
 });

@@ -5,6 +5,7 @@
   const webcamShellNode = document.getElementById("webcam-shell-05");
   const webcamSlideNode = document.getElementById("webcam-slide-05");
   const webcamPreviewNode = document.getElementById("webcam-preview-05");
+  const secondaryPlayerStateNode = document.getElementById("secondary-player-state-05");
   const codecChip = document.getElementById("cam-codec-chip");
   const sizeChip = document.getElementById("cam-size-chip");
   const fpsChip = document.getElementById("cam-fps-chip");
@@ -20,6 +21,8 @@
   let selectedRecordingName = "";
   let localPreviewStream = null;
   let localPreviewCameraName = "";
+  let previewSuspendedForLive = false;
+  let secondaryPlayerPollTimer = null;
 
   const setStatus = (msg) => {
     if (statusNode) {
@@ -132,6 +135,7 @@
   const setPreviewMode = (live) => {
     if (webcamShellNode) {
       webcamShellNode.classList.toggle("is-live", Boolean(live));
+      webcamShellNode.classList.toggle("is-suspended", Boolean(previewSuspendedForLive));
     }
     if (webcamSlideNode) {
       webcamSlideNode.classList.toggle("p05-hidden", Boolean(live));
@@ -159,6 +163,57 @@
     }
     localPreviewCameraName = "";
     setPreviewMode(false);
+  };
+
+  const suspendPreviewForElectronLive = () => {
+    previewSuspendedForLive = true;
+    stopLocalPreview();
+    if (webcamShellNode) {
+      webcamShellNode.classList.add("is-suspended");
+    }
+  };
+
+  const resumePreviewAfterElectronLive = async () => {
+    previewSuspendedForLive = false;
+    if (webcamShellNode) {
+      webcamShellNode.classList.remove("is-suspended");
+    }
+    return ensurePreviewForSelectedCamera({ silent: true });
+  };
+
+  const setSecondaryPlayerState = (text) => {
+    if (!secondaryPlayerStateNode) return;
+    secondaryPlayerStateNode.innerHTML = `<strong>Monitor secondario:</strong><br />${text}`;
+  };
+
+  const refreshSecondaryPlayerState = async () => {
+    try {
+      const out = await fetchJson("/api/userform/pagina05/electron/player/state");
+      const playerState = out?.playerState || {};
+      if (playerState.active) {
+        const detail = playerState.mode === "webcam-live"
+          ? `Live Electron attivo${playerState.cameraName ? ` (${playerState.cameraName})` : ""}.`
+          : `Riproduzione file attiva${playerState.url ? ` (${String(playerState.url).split("/").pop()})` : ""}.`;
+        setSecondaryPlayerState(detail);
+      } else if (playerState.lastEvent === "stop-requested") {
+        setSecondaryPlayerState("Player Electron fermato correttamente.");
+      } else if (playerState.lastEvent === "ended") {
+        setSecondaryPlayerState("Riproduzione su monitor secondario completata.");
+      } else {
+        setSecondaryPlayerState("Stato player Electron in attesa.");
+      }
+    } catch (_) {
+      setSecondaryPlayerState("Player Electron non raggiungibile.");
+    }
+  };
+
+  const startSecondaryPlayerPolling = () => {
+    if (secondaryPlayerPollTimer) {
+      clearInterval(secondaryPlayerPollTimer);
+    }
+    secondaryPlayerPollTimer = setInterval(() => {
+      refreshSecondaryPlayerState().catch(() => null);
+    }, 2000);
   };
 
   const findMatchingVideoDevice = async (cameraName) => {
@@ -214,7 +269,17 @@
       }
     };
 
-    localPreviewStream = await getUserMediaWithTimeout(constraints);
+    try {
+      localPreviewStream = await getUserMediaWithTimeout(constraints);
+    } catch (_) {
+      // Fallback: if the named binding fails, try any available webcam so the preview still acts as a live indicator.
+      localPreviewStream = await getUserMediaWithTimeout({
+        audio: false,
+        video: {
+          frameRate: { ideal: Number(payload.fps) || 30 }
+        }
+      });
+    }
     webcamPreviewNode.srcObject = localPreviewStream;
     await webcamPreviewNode.play().catch(() => null);
     localPreviewCameraName = normalizeCell(payload.cameraName);
@@ -271,16 +336,17 @@
       return;
     }
 
-    if (!isElectronVideoPlayerAvailable()) {
-      setStatus("Riproduzione sul monitor secondario disponibile solo in runtime Electron.");
-      return;
-    }
-
     const fileUrl = entry.publicUrl
       ? `${window.location.origin}${entry.publicUrl}`
       : `${window.location.origin}/userform-recordings/${encodeURIComponent(entry.name)}`;
 
-    const result = await window.electronAPI.videoPlayer.play({ url: fileUrl });
+    const result = isElectronVideoPlayerAvailable()
+      ? await window.electronAPI.videoPlayer.play({ url: fileUrl })
+      : await fetchJson("/api/userform/pagina05/electron/player/play", {
+          method: "POST",
+          body: JSON.stringify({ url: fileUrl })
+        });
+
     if (!result?.success) {
       throw new Error(result?.error || "Riproduzione Electron non riuscita");
     }
@@ -313,6 +379,7 @@
         try {
           markSelectedRecording(item.name);
           await playRecordingOnSecondary(item.name);
+          await refreshSecondaryPlayerState();
           setStatus(`Riproduzione su monitor secondario avviata: ${item.name}`);
         } catch (error) {
           setStatus(`Errore riproduzione secondaria: ${error.message}`);
@@ -421,7 +488,9 @@
       codec: profile.codec || "",
       size: profile.size || "",
       fps: profile.fps || "",
-      label: profile.label || ""
+      label: profile.label || "",
+      // Default strategy: write MP4 directly. Backend supports native-then-MP4 if requested.
+      recordingMode: "direct-mp4"
     };
   };
 
@@ -503,7 +572,10 @@
       recording = true;
       if (recChip) recChip.textContent = "REC: ON";
       await refreshRecList();
-      setStatus(`Registrazione avviata: ${out.fileName}. Destinazione: C:/VSC_WEBCAM`);
+      const modeText = out.recordingMode === "native-then-mp4"
+        ? "nativo con conversione automatica in MP4 allo stop"
+        : "MP4 diretto";
+      setStatus(`Registrazione avviata (${modeText}): ${out.fileName}. Destinazione: C:/VSC_WEBCAM`);
     } catch (error) {
       setStatus(`Errore StartRecording: ${error.message}`);
     }
@@ -519,8 +591,17 @@
       if (recChip) recChip.textContent = "REC: OFF";
       await refreshRecList();
       if (out.stopped) {
-        const savedName = String(out.filePath || "").split(/[\\/]/).pop() || "file registrato";
-        setStatus(`Registrazione terminata. File salvato: ${savedName} in C:/VSC_WEBCAM`);
+        const savedName = String(out.filePath || out.targetFilePath || "").split(/[\\/]/).pop() || "file registrato";
+        if (out.conversion?.ok) {
+          setStatus(`Registrazione terminata. Convertito e salvato in MP4: ${savedName} in C:/VSC_WEBCAM`);
+        } else if (out.recordingMode === "direct-mp4") {
+          setStatus(`Registrazione terminata. File MP4 salvato: ${savedName} in C:/VSC_WEBCAM`);
+        } else if (out.recordingMode === "native-then-mp4" && out.conversion?.ok === false) {
+          const srcName = String(out.sourceFilePath || "").split(/[\\/]/).pop() || "file nativo";
+          setStatus(`Registrazione fermata. Conversione MP4 non riuscita (${out.conversion.error}). Disponibile: ${srcName}`);
+        } else {
+          setStatus(`Registrazione terminata. File salvato: ${savedName} in C:/VSC_WEBCAM`);
+        }
       } else {
         setStatus("Nessuna registrazione FFmpeg rilevata.");
       }
@@ -561,19 +642,24 @@
         return;
       }
 
-      if (!isElectronVideoPlayerAvailable()) {
-        throw new Error("Avvio live disponibile solo in runtime Electron (monitor secondario fullscreen).");
-      }
-
-      await ensurePreviewForSelectedCamera({ silent: false });
+      suspendPreviewForElectronLive();
       await persistSelectedCameraProfile({ asDefault: true, lastStatus: "live-start" });
 
-      const result = await window.electronAPI.videoPlayer.play({
-        mode: "webcam-live",
-        cameraName: payload.cameraName,
-        size: payload.size,
-        fps: payload.fps
-      });
+      const result = isElectronVideoPlayerAvailable()
+        ? await window.electronAPI.videoPlayer.play({
+            mode: "webcam-live",
+            cameraName: payload.cameraName,
+            size: payload.size,
+            fps: payload.fps
+          })
+        : await fetchJson("/api/userform/pagina05/electron/live/start", {
+            method: "POST",
+            body: JSON.stringify({
+              cameraName: payload.cameraName,
+              size: payload.size,
+              fps: payload.fps
+            })
+          });
 
       if (!result?.success) {
         throw new Error(result?.error || "Avvio live Electron non riuscito");
@@ -581,10 +667,11 @@
 
       vlcRunning = true;
       if (vlcChip) vlcChip.textContent = "LIVE: ON (ELECTRON)";
-      setStatus("Ripresa attiva: anteprima locale in PAGINA05 e fullscreen live su monitor secondario (Electron).");
+      await refreshSecondaryPlayerState();
+      setStatus("Ripresa attiva: preview locale sospesa per evitare conflitti hardware, fullscreen live su monitor secondario (Electron).");
     } catch (error) {
       setStatus(`Errore avvio ripresa live: ${error.message}`);
-      await ensurePreviewForSelectedCamera({ silent: true });
+      await resumePreviewAfterElectronLive();
     }
   });
 
@@ -594,6 +681,15 @@
       if (isElectronVideoPlayerAvailable()) {
         try {
           await window.electronAPI.videoPlayer.stop();
+        } catch (error) {
+          stopElectronError = error;
+        }
+      } else {
+        try {
+          await fetchJson("/api/userform/pagina05/electron/live/stop", {
+            method: "POST",
+            body: JSON.stringify({})
+          });
         } catch (error) {
           stopElectronError = error;
         }
@@ -607,15 +703,16 @@
 
       vlcRunning = false;
       if (vlcChip) vlcChip.textContent = "LIVE: OFF";
+      await refreshSecondaryPlayerState();
       if (stopElectronError) {
         setStatus(`Ripresa live locale fermata, ma stop Electron ha restituito errore: ${stopElectronError.message || stopElectronError}`);
       } else {
-        setStatus("Ripresa video in diretta fermata. Preview locale webcam attiva.");
+        setStatus("Ripresa video in diretta fermata. Riattivazione preview locale webcam.");
       }
     } catch (error) {
       setStatus(`Errore stop ripresa live: ${error.message}`);
     } finally {
-      await ensurePreviewForSelectedCamera({ silent: true });
+      await resumePreviewAfterElectronLive();
       await persistSelectedCameraProfile({ asDefault: true, lastStatus: "live-stop" });
     }
   });
@@ -633,6 +730,7 @@
       );
       await syncState();
       await refreshRecList();
+      await refreshSecondaryPlayerState();
     } catch (error) {
       setStatus(`Errore AutoTestTools: ${error.message}`);
     }
@@ -653,6 +751,8 @@
       await loadCameraProfiles();
       await syncState();
       await refreshRecList();
+      await refreshSecondaryPlayerState();
+      startSecondaryPlayerPolling();
       const previewActive = await ensurePreviewForSelectedCamera({ silent: false });
       await persistSelectedCameraProfile({ asDefault: true, lastStatus: "bootstrap-preview" });
       if (previewActive) {

@@ -11,16 +11,29 @@ let primaryWindow;
 let secondaryWindow;
 let videoPlayerWindow;
 let serverProcess;
+let electronControlServer = null;
 let ensureUnifiedServerPromise = null;
 let currentSwapMonitors = false;
 let monitorPreferenceWatcher = null;
 let isProgrammaticPrimaryLoad = false;
 let isProgrammaticSecondaryLoad = false;
 let lastMonitorRouteEvent = null;
+let electronVideoPlayerState = {
+  active: false,
+  mode: '',
+  url: '',
+  cameraName: '',
+  lastPlayRequestedAt: '',
+  lastStoppedAt: '',
+  lastCompletedAt: '',
+  lastEvent: 'idle'
+};
 
 const MONITOR_PREFERENCES_FILE = path.join(__dirname, 'monitor-preferences.json');
+const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : 5512;
 const DISPLAY_PAGE_PATH = '/Bordero/pages/display.html';
 const PRIMARY_DEFAULT_PAGE_PATH = '/Bordero/pages/bordero.html';
+const PRIMARY_ONLY_PREFIXES = ['/userform/', '/operatore/', '/operator/'];
 const PAGE_POLICY = new Map([
   ['/bordero/pages/admin.html', { primary: true, secondary: false }],
   ['/bordero/pages/bordero-presentazione.html', { primary: true, secondary: true }],
@@ -336,6 +349,10 @@ function isManagedHtmlAppUrl(candidateUrl) {
 
 function getMonitorPolicyForUrl(candidateUrl) {
   const normalizedPath = normalizePathname(candidateUrl);
+  if (PRIMARY_ONLY_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
+    return { primary: true, secondary: false };
+  }
+
   if (PAGE_POLICY.has(normalizedPath)) {
     return PAGE_POLICY.get(normalizedPath);
   }
@@ -630,20 +647,130 @@ async function ensureVideoPlayerWindow(payload = {}) {
   }
 
   const playerUrl = getVideoPlayerUrl(payload);
+  const mode = typeof payload === 'object' && payload?.mode === 'webcam-live' ? 'webcam-live' : 'video';
   await videoPlayerWindow.loadURL(playerUrl);
   if (!videoPlayerWindow.isDestroyed()) {
     videoPlayerWindow.setAlwaysOnTop(true, 'screen-saver');
     videoPlayerWindow.show();
     videoPlayerWindow.focus();
   }
+  electronVideoPlayerState = {
+    ...electronVideoPlayerState,
+    active: true,
+    mode,
+    url: typeof payload === 'string' ? payload : (payload?.url || ''),
+    cameraName: payload?.cameraName || '',
+    lastPlayRequestedAt: new Date().toISOString(),
+    lastEvent: 'play-requested'
+  };
   applyWindowLayout();
   return videoPlayerWindow;
 }
 
 function closeVideoPlayerWindow() {
+  electronVideoPlayerState = {
+    ...electronVideoPlayerState,
+    active: false,
+    lastStoppedAt: new Date().toISOString(),
+    lastEvent: 'window-closed'
+  };
   if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
     videoPlayerWindow.close();
   }
+}
+
+function sendElectronControlJson(res, statusCode, payload) {
+  res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify(payload));
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += String(chunk || '');
+      if (raw.length > 1024 * 1024) {
+        reject(new Error('Request body too large'));
+      }
+    });
+    req.on('end', () => {
+      if (!raw.trim()) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(raw));
+      } catch (error) {
+        reject(new Error('Invalid JSON body'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function startElectronControlServer() {
+  if (electronControlServer) {
+    return electronControlServer;
+  }
+
+  electronControlServer = http.createServer(async (req, res) => {
+    try {
+      const requestUrl = new URL(req.url || '/', `http://127.0.0.1:${ELECTRON_CONTROL_PORT}`);
+
+      if (req.method === 'GET' && requestUrl.pathname === '/health') {
+        sendElectronControlJson(res, 200, { ok: true, pid: process.pid, hasVideoPlayerWindow: Boolean(videoPlayerWindow && !videoPlayerWindow.isDestroyed()), playerState: electronVideoPlayerState });
+        return;
+      }
+
+      if (req.method === 'GET' && requestUrl.pathname === '/video-player/state') {
+        sendElectronControlJson(res, 200, { ok: true, pid: process.pid, hasVideoPlayerWindow: Boolean(videoPlayerWindow && !videoPlayerWindow.isDestroyed()), playerState: electronVideoPlayerState });
+        return;
+      }
+
+      if (req.method === 'POST' && requestUrl.pathname === '/video-player/play') {
+        const payload = await readJsonBody(req);
+        const mode = typeof payload === 'object' && payload?.mode === 'webcam-live' ? 'webcam-live' : 'video';
+        const videoUrl = typeof payload === 'string' ? payload : payload?.url;
+        if (mode === 'video' && !videoUrl) {
+          sendElectronControlJson(res, 400, { success: false, error: 'Missing video url' });
+          return;
+        }
+        await ensureVideoPlayerWindow(payload || { url: videoUrl });
+        sendElectronControlJson(res, 200, { success: true, mode, url: videoUrl || '', cameraName: payload?.cameraName || '' });
+        return;
+      }
+
+      if (req.method === 'POST' && requestUrl.pathname === '/video-player/stop') {
+        if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
+          sendElectronControlJson(res, 200, { success: true, stopped: false });
+          return;
+        }
+        electronVideoPlayerState = {
+          ...electronVideoPlayerState,
+          active: false,
+          lastStoppedAt: new Date().toISOString(),
+          lastEvent: 'stop-requested'
+        };
+        videoPlayerWindow.webContents.send('bordero-video-player:stop');
+        sendElectronControlJson(res, 200, { success: true, stopped: true });
+        return;
+      }
+
+      sendElectronControlJson(res, 404, { success: false, error: 'Not found' });
+    } catch (error) {
+      sendElectronControlJson(res, 500, { success: false, error: error?.message || String(error) });
+    }
+  });
+
+  electronControlServer.listen(ELECTRON_CONTROL_PORT, '127.0.0.1', () => {
+    console.log(`Electron control bridge listening on http://127.0.0.1:${ELECTRON_CONTROL_PORT}`);
+  });
+
+  electronControlServer.on('error', (error) => {
+    console.warn('Electron control bridge error:', error?.message || error);
+  });
+
+  return electronControlServer;
 }
 
 ipcMain.handle('bordero-video-player:play', async (_event, payload) => {
@@ -672,6 +799,12 @@ ipcMain.handle('bordero-video-player:stop', async () => {
     return { success: true, stopped: false };
   }
 
+  electronVideoPlayerState = {
+    ...electronVideoPlayerState,
+    active: false,
+    lastStoppedAt: new Date().toISOString(),
+    lastEvent: 'stop-requested'
+  };
   videoPlayerWindow.webContents.send('bordero-video-player:stop');
   return { success: true, stopped: true };
 });
@@ -693,6 +826,13 @@ ipcMain.handle('bordero-window:open-secondary', async (_event, payload) => {
 });
 
 ipcMain.on('bordero-video-player:ended', (_event, payload) => {
+  electronVideoPlayerState = {
+    ...electronVideoPlayerState,
+    active: false,
+    lastCompletedAt: new Date().toISOString(),
+    lastEvent: 'ended',
+    url: payload?.url || electronVideoPlayerState.url
+  };
   BrowserWindow.getAllWindows().forEach((win) => {
     if (!win.isDestroyed()) {
       win.webContents.send('bordero-video-player:ended', payload);
@@ -778,6 +918,7 @@ app.whenReady().then(() => {
   ensureWindows().catch((error) => {
     console.error('Failed to initialize dual-monitor windows:', error);
   });
+  startElectronControlServer();
   watchMonitorPreferences();
 
   screen.on('display-added', handleDisplayChange);
@@ -795,6 +936,10 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   stopWatchMonitorPreferences();
+  if (electronControlServer) {
+    electronControlServer.close();
+    electronControlServer = null;
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
