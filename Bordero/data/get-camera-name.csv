@@ -1,13 +1,13 @@
 value,Codifica,dshow-size,dshow-fps,ELENCO WEBCAM,profile-id,is-default,is-enabled,last-used-at,last-mode,last-status,usage-count,last-size,last-fps,last-codec,notes
-USB Camera,yuyv422,1920x1080,30,Luca - USB Camera,usb-camera,0,1,2026-08-07T22:52:26.192Z,preview,preview-active,0,1920x1080,30,yuyv422,
-HP Display Camera,yuyv422,640x360,30,Luca - Monitor HP,hp-display-camera,1,1,2026-08-07T22:55:05.691Z,preview,preview-active,0,640x360,30,yuyv422,
-Fotocamera frontale,yuyv422,640x360,30,Luca - Elitebook ERRORE,fotocamera-frontale,0,1,,,,0,640x360,30,yuyv422,Profilo storico
-HP HD Camera,yuyv422,640x360,30,Luca - Elitebook,hp-hd-camera,0,1,,,,0,640x360,30,yuyv422,
-GRANDSTREAM GUV3100,yuyv422,320x180,30,Luca - GrandStream ERRORE,grandstream-guv3100,0,1,,,,0,320x180,30,yuyv422,Profilo storico
-OBS Virtual Camera,yuyv420,1280x720,30,Luca - software,obs-virtual-camera,0,1,,,,0,1280x720,30,yuyv420,Camera virtuale
-HP IR Camera,,,,Luca - ??? ERRORE,hp-ir-camera,0,1,,,,0,,,,Profilo incompleto
-Trust Webcam,yuyv422,640x480,30,Daniele - (Videocamera vecchia) USB TRUST,trust-webcam,0,1,,,,0,640x480,30,yuyv422,
-Wireless webcam,yuyv422,1920x1080,30,Daniele - (Nuova wireless) TOALLIN WL168,wireless-webcam,0,1,,,,0,1920x1080,30,yuyv422,
-CyberLink Webcam Splitter,,,,,cyberlink-webcam-splitter,0,1,,,,0,,,,Camera virtuale/splitter
-HP TrueVision HD Camera,yuyv422,640x360,30,Daniele - frontale PC Windows,hp-truevision-hd-camera,0,1,2026-08-07T22:54:51.044Z,preview,preview-active,0,640x360,30,yuyv422,
-HD Pro Webcam C920,yuyv422,1280x720,30,Sistema - Webcam auto-rilevata,hd-pro-webcam-c920,0,1,2026-08-07T22:52:13.782Z,preview,live-stop,0,1280x720,30,yuyv422,
+USB Camera,yuyv422,1920x1080,30,Luca - USB Camera,usb-camera,0,1,2026-08-07T23:00:51.169Z,preview,preview-active,0,1920x1080,30,yuyv422,
+HP Display Camera,yuyv422,640x360,30,Luca - Monitor HP,hp-display-camera,0,1,2026-08-07T23:01:00.415Z,preview,preview-active,0,640x360,30,yuyv422,
+Fotocamera frontale,yuyv422,640x360,30,Luca - Elitebook ERRORE,fotocamera-frontale,0,1,2026-08-07T23:01:11.319Z,preview,preview-active,0,640x360,30,yuyv422,
+HP HD Camera,yuyv422,640x360,30,Luca - Elitebook,hp-hd-camera,0,1,2026-08-07T23:01:21.453Z,preview,preview-active,0,640x360,30,yuyv422,
+GRANDSTREAM GUV3100,yuyv422,320x180,30,Luca - GrandStream ERRORE,grandstream-guv3100,0,1,2026-08-07T23:01:27.642Z,preview,preview-active,0,320x180,30,yuyv422,
+OBS Virtual Camera,yuyv420,1280x720,30,Luca - software,obs-virtual-camera,0,1,2026-08-07T23:01:32.497Z,preview,preview-active,0,1280x720,30,yuyv420,
+HP IR Camera,,,,Luca - ??? ERRORE,hp-ir-camera,0,1,2026-08-07T23:01:45.958Z,preview,preview-active,0,,,,
+Trust Webcam,yuyv422,640x480,30,Daniele - (Videocamera vecchia) USB TRUST,trust-webcam,0,1,2026-08-07T23:01:51.998Z,preview,preview-active,0,640x480,30,yuyv422,
+Wireless webcam,yuyv422,1920x1080,30,Daniele - (Nuova wireless) TOALLIN WL168,wireless-webcam,0,1,2026-08-07T23:02:03.019Z,preview,preview-active,0,1920x1080,30,yuyv422,
+CyberLink Webcam Splitter,,,,,cyberlink-webcam-splitter,0,1,2026-08-07T23:02:08.722Z,preview,preview-active,0,,,,
+HP TrueVision HD Camera,yuyv422,640x360,30,Daniele - frontale PC Windows,hp-truevision-hd-camera,0,1,2026-08-07T23:02:20.166Z,preview,preview-active,0,640x360,30,yuyv422,
+HD Pro Webcam C920,yuyv422,1280x720,30,Sistema - Webcam auto-rilevata,hd-pro-webcam-c920,1,1,2026-08-07T23:02:38.912Z,preview,live-stop,0,1280x720,30,yuyv422,

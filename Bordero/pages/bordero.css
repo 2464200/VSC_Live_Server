@@ -288,7 +288,8 @@
 }
 
 .p05-webcam-signal {
-  min-width: 116px;
+  min-width: 104px;
+  width: 104px;
   min-height: 156px;
   border: 1px solid rgba(255, 179, 71, 0.42);
   background: linear-gradient(180deg, #2d2d2d 0%, #1f1f1f 100%);
