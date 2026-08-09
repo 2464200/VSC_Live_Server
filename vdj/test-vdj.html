@@ -1,0 +1,384 @@
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Test VirtualDJ</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1e1e1e;
+            color: white;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .box {
+            background: #2b2b2b;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .deck1 {
+            background: #2196f3;
+            color: white;
+        }
+
+        .deck2 {
+            background: #4caf50;
+            color: white;
+        }
+
+        .test {
+            background: #ff9800;
+            color: white;
+        }
+
+        #log {
+            background: #111;
+            padding: 15px;
+            border-radius: 6px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: Consolas, monospace;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎧 Test collegamento VirtualDJ</h1>
+
+    <div class="box">
+
+        <h2>Comunicazione</h2>
+
+        <label>
+            URL VirtualDJ:
+        </label>
+
+        <br><br>
+
+        <input
+            type="text"
+            id="vdjUrl"
+            style="width: 80%; padding: 10px;"
+            value="http://localhost:8080"
+            placeholder="http://localhost:8080"
+        >
+
+        <br><br>
+
+        <button class="test" onclick="testConnessione()">
+            VERIFICA CONNESSIONE
+        </button>
+
+        <button onclick="leggiOrologio()">
+            TEST VIRTUALDJ
+        </button>
+
+        <button onclick="leggiDeck(1)">
+            LEGGI DECK 1
+        </button>
+
+        <button onclick="leggiDeck(2)">
+            LEGGI DECK 2
+        </button>
+
+    </div>
+
+    <div class="box">
+
+        <h2>Caricamento brano</h2>
+
+        <label>
+            Percorso completo del file MP3:
+        </label>
+
+        <br><br>
+
+        <input
+            type="text"
+            id="percorso"
+            style="width: 80%; padding: 10px;"
+            placeholder="C:\Musica\Country\brano.mp3"
+        >
+
+        <br><br>
+
+        <button class="deck1" onclick="caricaBrano(1)">
+            CARICA SU DECK 1
+        </button>
+
+        <button class="deck2" onclick="caricaBrano(2)">
+            CARICA SU DECK 2
+        </button>
+
+    </div>
+
+    <div class="box">
+
+        <h2>Risultato</h2>
+
+        <div id="log">
+            In attesa...
+        </div>
+
+    </div>
+
+
+<script>
+
+    // ============================================================
+    // CONFIGURAZIONE VIRTUALDJ
+    // ============================================================
+
+    const DEFAULT_VDJ_URLS = [
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "https://localhost:8080",
+        "https://127.0.0.1:8080"
+    ];
+
+
+    function leggiVdjUrl() {
+
+        const valore = document.getElementById("vdjUrl").value.trim();
+
+        if (valore) {
+            return valore.replace(/\/+$/, "");
+        }
+
+        return DEFAULT_VDJ_URLS[0];
+    }
+
+
+    function costruisciUrl(endpoint) {
+
+        const base = leggiVdjUrl();
+
+        return base + endpoint;
+    }
+
+
+    function erroreConnessione(errore, dettagli) {
+
+        const messaggio =
+            "ERRORE DI CONNESSIONE\n\n" +
+            "URL richiesto: " + leggiVdjUrl() + "\n\n" +
+            dettagli + "\n\n" +
+            "Dettaglio: " + (errore?.message || errore) + "\n\n" +
+            "Controlla che VirtualDJ sia aperto e che l'URL sia corretto.";
+
+        scriviLog(messaggio);
+
+        console.error(errore);
+
+        return null;
+    }
+
+
+    // ============================================================
+    // FUNZIONE GENERICA PER INVIARE UN COMANDO A VIRTUALDJ
+    // ============================================================
+
+    async function eseguiVDJ(script) {
+
+        try {
+
+            const url =
+                costruisciUrl(
+                    "/execute?script=" +
+                    encodeURIComponent(script)
+                );
+
+            scriviLog(
+                "Invio comando:\n" +
+                script +
+                "\n\nAttendere..."
+            );
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " + response.status
+                );
+
+            }
+
+            const risultato = await response.text();
+
+            scriviLog(
+                "Comando:\n" +
+                script +
+                "\n\nRisposta VirtualDJ:\n" +
+                risultato
+            );
+
+            return risultato;
+
+        } catch (errore) {
+
+            return erroreConnessione(
+                errore,
+                "Impossibile inviare il comando a VirtualDJ."
+            );
+        }
+    }
+
+
+    // ============================================================
+    // FUNZIONE PER INTERROGARE VIRTUALDJ
+    // ============================================================
+
+    async function interrogaVDJ(script) {
+
+        try {
+
+            const url =
+                costruisciUrl(
+                    "/query?script=" +
+                    encodeURIComponent(script)
+                );
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " + response.status
+                );
+
+            }
+
+            const risultato = await response.text();
+
+            scriviLog(
+                "Query:\n" +
+                script +
+                "\n\nRisposta:\n" +
+                risultato
+            );
+
+            return risultato;
+
+        } catch (errore) {
+
+            return erroreConnessione(
+                errore,
+                "Impossibile interrogare VirtualDJ."
+            );
+        }
+    }
+
+
+    // ============================================================
+    // TEST VIRTUALDJ
+    // ============================================================
+
+    async function leggiOrologio() {
+
+        await interrogaVDJ("get_clock");
+
+    }
+
+
+    async function testConnessione() {
+
+        scriviLog(
+            "Sto verificando la connessione a VirtualDJ..."
+        );
+
+        const risultato = await interrogaVDJ("get_clock");
+
+        if (risultato === null) {
+            return;
+        }
+
+        scriviLog(
+            "Connessione OK.\n\n" +
+            "Risposta ricevuta:\n" +
+            risultato
+        );
+
+    }
+
+
+    // ============================================================
+    // LEGGI TITOLO DEL DECK
+    // ============================================================
+
+    async function leggiDeck(deck) {
+
+        await interrogaVDJ(
+            "deck " + deck + " get_title"
+        );
+
+    }
+
+
+    // ============================================================
+    // CARICA UN BRANO
+    // ============================================================
+
+    async function caricaBrano(deck) {
+
+        const percorso =
+            document.getElementById("percorso").value.trim();
+
+
+        if (percorso === "") {
+
+            alert(
+                "Inserisci prima il percorso completo del file MP3."
+            );
+
+            return;
+        }
+
+
+        // Costruiamo il comando VDJScript
+
+        const script =
+            'deck ' +
+            deck +
+            ' load "' +
+            percorso +
+            '"';
+
+
+        await eseguiVDJ(script);
+
+    }
+
+
+    // ============================================================
+    // LOG
+    // ============================================================
+
+    function scriviLog(testo) {
+
+        document.getElementById("log").textContent = testo;
+
+    }
+
+</script>
+
+</body>
+</html>
