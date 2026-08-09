@@ -11,7 +11,8 @@ const pathLog   = path.join(__dirname, 'data', 'log.json');
 const pathDj    = path.join(__dirname, 'data', 'dj.json');
 const pathDjLimits = path.join(__dirname, 'data', 'dj-limits.json');
 const pathCsv   = path.join(__dirname, 'data', 'log.csv');
-const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
+// Directory condivisa export SIAE (allineata a Bordero/unified-server).
+const SIAE_EXPORT_DIR = process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR || 'C:\\VSC_SIAE';
 
 function ensureSiaeExportDir() {
   if (!fs.existsSync(SIAE_EXPORT_DIR)) {

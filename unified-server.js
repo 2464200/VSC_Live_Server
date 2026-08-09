@@ -24,7 +24,9 @@ const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
 const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
-const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
+// Directory condivisa export SIAE (Bordero + Eventi).
+// Priorita: variabile ambiente -> default storico progetto.
+const SIAE_EXPORT_DIR = process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR || 'C:\\VSC_SIAE';
 const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
 const USERFORM_RECORDINGS_DIR = process.env.USERFORM_RECORDINGS_DIR || 'C:\\VSC_WEBCAM';
 const LEGACY_RECORDINGS_DIR = 'C:\\vsc_webcam';
