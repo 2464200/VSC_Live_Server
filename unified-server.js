@@ -3473,6 +3473,46 @@ function normalizeForSort(str) {
         .replace(/[^a-z0-9\s]/g, ''); // mantiene solo lettere, numeri, spazi
 }
 
+function parseCsvLine(line, delimiter = ',') {
+    const cells = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        const next = line[i + 1];
+
+        if (ch === '"') {
+            if (inQuotes && next === '"') {
+                current += '"';
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (ch === delimiter && !inQuotes) {
+            cells.push(current.trim());
+            current = '';
+        } else {
+            current += ch;
+        }
+    }
+
+    cells.push(current.trim());
+    return cells;
+}
+
+function normalizeLogState(state) {
+    if (state === true || state === 1) return 'eseguito';
+    if (state === false || state === 0) return 'disponibile';
+
+    const normalized = String(state || '').trim().toLowerCase();
+    if (normalized === '1' || normalized === 'true' || normalized === 'eseguito') return 'eseguito';
+    if (normalized === '2' || normalized === 'prenotato') return 'prenotato';
+    if (normalized === '0' || normalized === 'false' || normalized === 'disponibile') return 'disponibile';
+
+    return normalized;
+}
+
 // Funzione per ottenere i dettagli di un brano dall'archivio
 function getBraniDetails(id, braniJson, extraCsvPath) {
     // Cerca prima nei brani normali
@@ -3481,26 +3521,27 @@ function getBraniDetails(id, braniJson, extraCsvPath) {
         return {
             titolo: brano.brano || brano.titolo || '',
             autore: brano.autore || '',
-            compositore: '',
+            compositore: brano.compositore || '',
             performer: '',
-            durata: ''
+            durata: brano.durata || ''
         };
     }
     
     // Cerca nelle coreografie aggiuntive
     if (fs.existsSync(extraCsvPath)) {
         const extraContent = fs.readFileSync(extraCsvPath, 'utf-8');
-        const extraLines = extraContent.split('\n').slice(1); // skip header
-        for (const line of extraLines) {
-            if (!line.trim()) continue;
-            const cols = line.split(',');
-            if (cols.length >= 8 && cols[2] === id) {
+        const extraLines = extraContent.replace(/\r/g, '').split('\n').filter(line => line.trim());
+        const delimiter = detectCsvDelimiter(extraLines[0] || extraLines[1] || '');
+
+        for (let idx = 1; idx < extraLines.length; idx += 1) {
+            const cols = parseCsvLine(extraLines[idx], delimiter);
+            if (cols.length >= 8 && String(cols[2] || '').trim() === String(id)) {
                 return {
                     titolo: cols[4] || '', // brano (colonna 5)
                     autore: cols[6] || '', // autore (colonna 7)
-                    compositore: '',
+                    compositore: cols[5] || '', // compositore (colonna 6)
                     performer: '',
-                    durata: ''
+                    durata: cols[7] || '' // durata (colonna 8)
                 };
             }
         }
@@ -3517,7 +3558,7 @@ router.get('/export-csv', (req, res) => {
         // Filtra solo i brani eseguiti (una sola volta per ID)
         const eseguitiMap = new Map();
         for (const entry of log) {
-            if (entry.stato === 'eseguito' || entry.stato === true) {
+            if (normalizeLogState(entry.stato) === 'eseguito') {
                 if (!eseguitiMap.has(entry.id)) {
                     eseguitiMap.set(entry.id, entry);
                 }
@@ -3534,7 +3575,7 @@ router.get('/export-csv', (req, res) => {
         for (const entry of eseguiti) {
             const details = getBraniDetails(entry.id, braniJson, extraCsvPath);
             if (details) {
-                records.push(details);
+                records.push({ ...details, _timestamp: entry.timestamp || '' });
             } else {
                 // Brano non trovato, inserisci con ID come titolo
                 records.push({
@@ -3542,17 +3583,26 @@ router.get('/export-csv', (req, res) => {
                     autore: '',
                     compositore: '',
                     performer: '',
-                    durata: ''
+                    durata: '',
+                    _timestamp: entry.timestamp || ''
                 });
             }
         }
-        
-        // Ordina alfabeticamente (gestisce numeri, accentate, spazi, simboli)
-        records.sort((a, b) => {
-            const normA = normalizeForSort(a.titolo);
-            const normB = normalizeForSort(b.titolo);
-            return normA.localeCompare(normB, 'it');
-        });
+
+        const order = String(req.query.order || '').toLowerCase();
+        if (order === 'alfabetico' || order === 'alphabetical') {
+            records.sort((a, b) => {
+                const normA = normalizeForSort(a.titolo);
+                const normB = normalizeForSort(b.titolo);
+                return normA.localeCompare(normB, 'it');
+            });
+        } else {
+            records.sort((a, b) => {
+                const ta = new Date(a._timestamp || 0).getTime();
+                const tb = new Date(b._timestamp || 0).getTime();
+                return ta - tb;
+            });
+        }
         
         // Costruisci il CSV in formato SIAE
         const siaeHeader = 'Titolo,Autore,Compositore,Performer,Durata';

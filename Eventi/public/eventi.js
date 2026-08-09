@@ -12,29 +12,110 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+function ensurePasswordModal() {
+  let modal = document.getElementById('eventi-password-modal');
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = 'eventi-password-modal';
+  modal.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);z-index:9999;';
+  modal.innerHTML = `
+    <div style="width:min(92vw,420px);background:#171717;color:#fff;border:1px solid #ff7f00;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);font-family:Arial,sans-serif;">
+      <div id="eventi-password-title" style="font-weight:700;font-size:16px;margin-bottom:10px;">Conferma operazione</div>
+      <div style="font-size:13px;color:#ddd;margin-bottom:8px;">Inserisci il codice di sicurezza</div>
+      <input id="eventi-password-input" type="password" autocomplete="current-password" style="width:100%;padding:10px;border-radius:8px;border:1px solid #555;background:#101010;color:#fff;outline:none;" />
+      <div id="eventi-password-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:8px;">Codice errato</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button id="eventi-password-cancel" type="button" style="padding:8px 12px;border-radius:8px;border:1px solid #555;background:#2a2a2a;color:#fff;cursor:pointer;">Annulla</button>
+        <button id="eventi-password-confirm" type="button" style="padding:8px 12px;border-radius:8px;border:none;background:#ff7f00;color:#111;font-weight:700;cursor:pointer;">Conferma</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function askPassword(actionType) {
+  const expected = window.SYSTEM_PASSWORD || '0000';
+  const modal = ensurePasswordModal();
+  const title = modal.querySelector('#eventi-password-title');
+  const input = modal.querySelector('#eventi-password-input');
+  const error = modal.querySelector('#eventi-password-error');
+  const btnCancel = modal.querySelector('#eventi-password-cancel');
+  const btnConfirm = modal.querySelector('#eventi-password-confirm');
+
+  title.textContent = `Conferma: ${actionType}`;
+  input.value = '';
+  error.style.display = 'none';
+  modal.style.display = 'flex';
+
+  return new Promise(resolve => {
+    const close = result => {
+      modal.style.display = 'none';
+      input.removeEventListener('keydown', onKeydown);
+      btnCancel.removeEventListener('click', onCancel);
+      btnConfirm.removeEventListener('click', onConfirm);
+      resolve(result);
+    };
+
+    const onCancel = () => close(false);
+    const onConfirm = () => {
+      if (input.value === expected) {
+        close(true);
+      } else {
+        error.style.display = 'block';
+        input.focus();
+        input.select();
+      }
+    };
+    const onKeydown = e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onConfirm();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+
+    input.addEventListener('keydown', onKeydown);
+    btnCancel.addEventListener('click', onCancel);
+    btnConfirm.addEventListener('click', onConfirm);
+    input.focus();
+  });
+}
+
 // Funzione per verifica password
-function verifyPassword(actionType) {
-  const password = prompt('Inserisci password per confermare: ' + actionType);
-  if (password === null) {
-    // Utente ha premuto Annulla
-    return false;
-  }
-  if (password !== window.SYSTEM_PASSWORD) {
-    alert('Password errata. Verrai reindirizzato alla pagina principale.');
-    goEventiPage('eventi.html');
+async function verifyPassword(actionType) {
+  const ok = await askPassword(actionType);
+  if (!ok) {
+    alert('Codice errato o operazione annullata.');
     return false;
   }
   return true;
 }
+
 // Variante silente della verifica password: non reindirizza, ritorna true/false
-function verifyPasswordSilent(actionType) {
-  const password = prompt('Inserisci password per confermare: ' + actionType);
-  if (password === null) return false; // annulla
-  if (password !== window.SYSTEM_PASSWORD) {
-    alert('Password errata. Selezione annullata.');
+async function verifyPasswordSilent(actionType) {
+  const ok = await askPassword(actionType);
+  if (!ok) {
+    alert('Codice errato o selezione annullata.');
     return false;
   }
   return true;
+}
+
+function triggerFileDownload(downloadUrl) {
+  if (!downloadUrl || typeof downloadUrl !== 'string') {
+    throw new Error('URL download non valido');
+  }
+
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.rel = 'noopener';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function renderAlfabetoFilter() {
@@ -349,10 +430,10 @@ async function caricaDJList() {
 
   // Manteniamo la selezione precedente e chiediamo conferma con password
   let previousDJ = current || '';
-  djInput.addEventListener('change', () => {
+  djInput.addEventListener('change', async () => {
     const newVal = djInput.value.trim();
     if (newVal === previousDJ) return; // nessuna variazione
-    const ok = verifyPasswordSilent(`conferma selezione DJ: ${newVal}`);
+    const ok = await verifyPasswordSilent(`conferma selezione DJ: ${newVal}`);
     if (ok) {
       previousDJ = newVal;
       salvaDJLocal(newVal);
@@ -558,8 +639,83 @@ function startEventiStream() {
   };
 }
 
+function bindProtectedActionButtons() {
+  const exportBtn = document.getElementById('btn-export');
+  if (exportBtn && exportBtn.dataset.bound !== '1') {
+    exportBtn.dataset.bound = '1';
+    exportBtn.addEventListener('click', async () => {
+      if (!(await verifyPassword('Esporta CSV per SIAE'))) {
+        return;
+      }
+
+      const cronologico = window.confirm(
+        'Vuoi che i dati siano ordinati per ordine di esecuzione (cronologico)?\n\nPremi OK per "Cronologico", Annulla per "Alfabetico (per titolo)".'
+      );
+
+      const orderParam = cronologico ? 'cronologico' : 'alfabetico';
+
+      try {
+        const result = await fetchJSON(`/export-csv?siae=1&order=${orderParam}&ts=${Date.now()}`);
+        if (window.showToast) showToast('CSV SIAE generato: ' + result.csv, 4000);
+        triggerFileDownload(result.csv);
+      } catch (error) {
+        console.error('Errore export CSV SIAE:', error);
+        if (window.showToast) showToast('Errore durante export CSV SIAE.', 4000);
+        alert('Errore durante export CSV SIAE.');
+      }
+    });
+  }
+
+  const resetBtn = document.getElementById('btn-reset-times');
+  if (resetBtn && resetBtn.dataset.bound !== '1') {
+    resetBtn.dataset.bound = '1';
+    resetBtn.addEventListener('click', async () => {
+      if (!(await verifyPassword('Reset date e orari'))) {
+        return;
+      }
+
+      const confirmed = window.confirm(
+        'Vuoi resettare date e orari del modulo Eventi per iniziare un nuovo evento?\n\n' +
+        "L'operazione azzera la cronologia corrente delle coreografie eseguite/prenotate, riporta la lista alla situazione iniziale e resetta anche il conteggio delle prenotazioni DJ attive."
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      resetBtn.disabled = true;
+      const originalLabel = resetBtn.textContent;
+      resetBtn.textContent = 'Reset in corso...';
+
+      try {
+        const result = await resetEventTimes();
+        await refreshPageData();
+        alert(result.message || 'Date e orari resettati con successo.');
+      } catch (error) {
+        console.error('Errore reset date/orari:', error);
+        alert(`Errore durante il reset: ${error.message}`);
+      } finally {
+        resetBtn.disabled = false;
+        resetBtn.textContent = originalLabel;
+      }
+    });
+  }
+
+  const impostazioniBtn = document.getElementById('btn-impostazioni');
+  if (impostazioniBtn && impostazioniBtn.dataset.bound !== '1') {
+    impostazioniBtn.dataset.bound = '1';
+    impostazioniBtn.addEventListener('click', async () => {
+      if (!(await verifyPassword('Accesso Impostazioni'))) {
+        return;
+      }
+      goEventiPage('admin.html');
+    });
+  }
+}
+
 async function carica() {
   showListaMessage('lista-brani', 'Caricamento coreografie...');
+  bindProtectedActionButtons();
 
   const serverOnline = await checkServerOnline();
   if (!serverOnline) {
@@ -576,83 +732,14 @@ async function carica() {
     history.replaceState(null, '', window.location.pathname);
   }
   try {
-    await caricaDJList();
+    try {
+      await caricaDJList();
+    } catch (e) {
+      console.error('Errore caricamento DJ list:', e);
+    }
     bindSearch();
     createKeyboard();
     bindExtraCoreoControls();
-
-    const exportBtn = document.getElementById('btn-export');
-    if (exportBtn) {
-      exportBtn.addEventListener('click', async () => {
-        // Verifica password prima di procedere
-        if (!verifyPassword('Esporta CSV per SIAE')) {
-          return;
-        }
-
-        // Chiedi all'utente il tipo di ordinamento desiderato
-        const cronologico = window.confirm(
-          'Vuoi che i dati siano ordinati per ordine di esecuzione (cronologico)?\n\nPremi OK per "Cronologico", Annulla per "Alfabetico (per titolo)".'
-        );
-
-        const orderParam = cronologico ? 'cronologico' : 'alfabetico';
-
-        try {
-          const result = await fetchJSON(`/export-csv?siae=1&order=${orderParam}&ts=${Date.now()}`);
-          if (window.showToast) showToast('CSV SIAE generato: ' + result.csv, 4000);
-          window.open(result.csv, '_blank');
-        } catch (error) {
-          console.error('Errore export CSV SIAE:', error);
-          if (window.showToast) showToast('Errore durante export CSV SIAE.', 4000);
-          alert('Errore durante export CSV SIAE.');
-        }
-      });
-    }
-
-    const resetBtn = document.getElementById('btn-reset-times');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', async () => {
-        // Verifica password prima di procedere
-        if (!verifyPassword('Reset date e orari')) {
-          return;
-        }
-
-        const confirmed = window.confirm(
-          'Vuoi resettare date e orari del modulo Eventi per iniziare un nuovo evento?\n\n' +
-          "L'operazione azzera la cronologia corrente delle coreografie eseguite/prenotate, riporta la lista alla situazione iniziale e resetta anche il conteggio delle prenotazioni DJ attive."
-        );
-
-        if (!confirmed) {
-          return;
-        }
-
-        resetBtn.disabled = true;
-        const originalLabel = resetBtn.textContent;
-        resetBtn.textContent = 'Reset in corso...';
-
-        try {
-          const result = await resetEventTimes();
-          await refreshPageData();
-          alert(result.message || 'Date e orari resettati con successo.');
-        } catch (error) {
-          console.error('Errore reset date/orari:', error);
-          alert(`Errore durante il reset: ${error.message}`);
-        } finally {
-          resetBtn.disabled = false;
-          resetBtn.textContent = originalLabel;
-        }
-      });
-    }
-
-    // Gestione pulsante Impostazioni con verifica password
-    const impostazioniBtn = document.getElementById('btn-impostazioni');
-    if (impostazioniBtn) {
-      impostazioniBtn.addEventListener('click', () => {
-        if (!verifyPassword('Accesso Impostazioni')) {
-          return;
-        }
-        goEventiPage('admin.html');
-      });
-    }
 
     await refreshPageData();
     startEventiStream();

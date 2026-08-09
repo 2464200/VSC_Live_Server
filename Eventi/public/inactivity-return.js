@@ -8,7 +8,8 @@
     }
 
     const protocol = window.location.protocol || 'http:';
-    const hostname = window.location.hostname || '127.0.0.1';
+    const rawHost = window.location.hostname || 'localhost';
+    const hostname = rawHost === '127.0.0.1' ? 'localhost' : rawHost;
     const port = window.location.port;
 
     const targetPort = port === '5500' ? port : '5500';

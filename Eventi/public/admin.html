@@ -354,10 +354,92 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="toast.js"></script>
 <script src="api-helper.js"></script>
 <script>
 console.log('[ADMIN] Pagina caricata, inizializzazione...');
+
+function ensurePasswordModal() {
+  let modal = document.getElementById('admin-password-modal');
+  if (modal) return modal;
+
+  modal = document.createElement('div');
+  modal.id = 'admin-password-modal';
+  modal.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);z-index:9999;';
+  modal.innerHTML = `
+    <div style="width:min(92vw,420px);background:#171717;color:#fff;border:1px solid #ff7f00;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);font-family:Arial,sans-serif;">
+      <div id="admin-password-title" style="font-weight:700;font-size:16px;margin-bottom:10px;">Conferma operazione</div>
+      <div style="font-size:13px;color:#ddd;margin-bottom:8px;">Inserisci il codice di sicurezza</div>
+      <input id="admin-password-input" type="password" autocomplete="current-password" style="width:100%;padding:10px;border-radius:8px;border:1px solid #555;background:#101010;color:#fff;outline:none;" />
+      <div id="admin-password-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:8px;">Codice errato</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button id="admin-password-cancel" type="button" style="padding:8px 12px;border-radius:8px;border:1px solid #555;background:#2a2a2a;color:#fff;cursor:pointer;">Annulla</button>
+        <button id="admin-password-confirm" type="button" style="padding:8px 12px;border-radius:8px;border:none;background:#ff7f00;color:#111;font-weight:700;cursor:pointer;">Conferma</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+function askPassword(actionType) {
+  const expected = window.SYSTEM_PASSWORD || '0000';
+  const modal = ensurePasswordModal();
+  const title = modal.querySelector('#admin-password-title');
+  const input = modal.querySelector('#admin-password-input');
+  const error = modal.querySelector('#admin-password-error');
+  const btnCancel = modal.querySelector('#admin-password-cancel');
+  const btnConfirm = modal.querySelector('#admin-password-confirm');
+
+  title.textContent = `Conferma: ${actionType}`;
+  input.value = '';
+  error.style.display = 'none';
+  modal.style.display = 'flex';
+
+  return new Promise(resolve => {
+    const close = result => {
+      modal.style.display = 'none';
+      input.removeEventListener('keydown', onKeydown);
+      btnCancel.removeEventListener('click', onCancel);
+      btnConfirm.removeEventListener('click', onConfirm);
+      resolve(result);
+    };
+
+    const onCancel = () => close(false);
+    const onConfirm = () => {
+      if (input.value === expected) {
+        close(true);
+      } else {
+        error.style.display = 'block';
+        input.focus();
+        input.select();
+      }
+    };
+    const onKeydown = e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onConfirm();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+
+    input.addEventListener('keydown', onKeydown);
+    btnCancel.addEventListener('click', onCancel);
+    btnConfirm.addEventListener('click', onConfirm);
+    input.focus();
+  });
+}
+
+async function verifyPassword(actionType) {
+  const ok = await askPassword(actionType);
+  if (!ok) {
+    alert('Codice errato o operazione annullata.');
+    return false;
+  }
+  return true;
+}
 
 // Fallback eventiFetch se api-helper.js non è caricato
 window.eventiFetch = window.eventiFetch || async function(path, options = {}) {
@@ -386,9 +468,13 @@ function aggiornaStatisticheBrani(data) {
   document.getElementById('extra-sync-time').textContent = now;
 }
 
-async function eseguiSyncBrani({ buttonId, statusId, loadingText, idleText, successText }) {
+async function eseguiSyncBrani({ buttonId, statusId, loadingText, idleText, successText, authAction }) {
   const btn = document.getElementById(buttonId);
   const statusDiv = document.getElementById(statusId);
+
+  if (authAction && !(await verifyPassword(authAction))) {
+    return;
+  }
 
   btn.disabled = true;
   btn.innerHTML = `<span class="loading"></span> ${loadingText}`;
@@ -421,7 +507,8 @@ async function sincronizzaBrani() {
     statusId: 'sync-status',
     loadingText: 'Sincronizzazione...',
     idleText: 'Sincronizza Brani Ora',
-    successText: 'Sincronizzazione completata.'
+    successText: 'Sincronizzazione completata.',
+    authAction: 'Sincronizza brani da CSV'
   });
 }
 
@@ -431,7 +518,8 @@ async function sincronizzaBraniAggiuntivi() {
     statusId: 'sync-extra-status',
     loadingText: 'Sincronizzazione extra...',
     idleText: 'Sincronizza Brani Aggiuntivi',
-    successText: 'Brani aggiuntivi sincronizzati.'
+    successText: 'Brani aggiuntivi sincronizzati.',
+    authAction: 'Sincronizza brani aggiuntivi'
   });
 }
 
@@ -448,10 +536,24 @@ async function caricaStats() {
     const braniRes = await eventiFetch('/brani');
     const brani = await braniRes.json();
     document.getElementById('brani-count').textContent = brani.length;
-    document.getElementById('extra-count').textContent = brani.filter(item => String(item.id || '').startsWith('EXTRA-')).length;
+    document.getElementById('extra-count').textContent = brani.filter(item => String(item.id || '').startsWith('EXTRA')).length;
   } catch (e) {
     console.error('Errore caricamento stats:', e);
   }
+}
+
+function triggerFileDownload(downloadUrl) {
+  if (!downloadUrl || typeof downloadUrl !== 'string') {
+    throw new Error('URL download non valido');
+  }
+
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.rel = 'noopener';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function scaricaDJ() {
@@ -469,7 +571,7 @@ function scaricaLog() {
 async function esportaCsv() {
   try {
     // Verifica password
-    if (!verifyPassword || !verifyPassword('Esporta CSV per SIAE')) {
+    if (!(await verifyPassword('Esporta CSV per SIAE'))) {
       return;
     }
 
@@ -486,7 +588,7 @@ async function esportaCsv() {
     if (res.ok) {
       // Mostra risultato e apri CSV
       if (window.showToast) showToast('CSV generato: ' + data.csv, 4000);
-      window.open(data.csv, '_blank');
+      triggerFileDownload(data.csv);
     } else {
       if (window.showToast) showToast('Errore export: ' + (data.error || 'errore'), 4000);
       alert(data.error || 'Errore export CSV');
@@ -600,6 +702,10 @@ async function impostaLimiteSingolo(element) {
     statusDiv.className = 'status error';
     statusDiv.textContent = 'Dati non validi';
     statusDiv.style.display = 'block';
+    return;
+  }
+
+  if (!(await verifyPassword(`Modifica limite prenotazioni per ${dj}`))) {
     return;
   }
   

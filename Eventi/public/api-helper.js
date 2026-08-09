@@ -1,7 +1,16 @@
 (() => {
   if (window.location.protocol === 'file:') return;
 
-  const canonicalHost = window.location.hostname || 'localhost';
+  if (window.location.hostname === '127.0.0.1') {
+    const targetPort = window.location.port || '5500';
+    const target = `${window.location.protocol}//localhost:${targetPort}${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
+    console.warn('Host 127.0.0.1 rilevato: redirect automatico a localhost ->', target);
+    window.location.replace(target);
+    return;
+  }
+
+  const normalizedHost = (window.location.hostname || '').toLowerCase();
+  const canonicalHost = normalizedHost === '127.0.0.1' ? 'localhost' : (window.location.hostname || 'localhost');
   const currentPath = window.location.pathname || '';
   const protocol = window.location.protocol || 'http:';
   const currentPort = window.location.port ? `:${window.location.port}` : '';
