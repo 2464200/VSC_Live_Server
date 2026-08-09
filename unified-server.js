@@ -2146,6 +2146,107 @@ app.get('/api/bordero/sync-google/status', (req, res) => {
     res.json({ ok: true, state: borderoGoogleSyncState });
 });
 
+app.post('/api/bordero/open-latest-excel', async (req, res) => {
+    try {
+        const excelDir = path.join(__dirname, 'Excel');
+        if (!fs.existsSync(excelDir) || !fs.statSync(excelDir).isDirectory()) {
+            return res.status(404).json({
+                success: false,
+                error: `Cartella Excel non trovata: ${excelDir}`
+            });
+        }
+
+        const normalizeName = (name) => String(name || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        const candidates = fs.readdirSync(excelDir, { withFileTypes: true })
+            .filter((entry) => entry.isFile())
+            .map((entry) => {
+                const normalized = normalizeName(entry.name);
+                const match = normalized.match(/^bordero\s*-\s*ver\s*13\.1\.(\d{2})\.xlsm$/i);
+                if (!match) return null;
+                return {
+                    name: entry.name,
+                    version: Number(match[1])
+                };
+            })
+            .filter(Boolean)
+            .sort((a, b) => b.version - a.version);
+
+        if (candidates.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Nessun file Bordero - ver 13.1.xx.xlsm trovato nella cartella Excel'
+            });
+        }
+
+        const latest = candidates[0];
+        const targetPath = path.join(excelDir, latest.name);
+
+        const psCommand = `
+$targetPath = '${targetPath.replace(/'/g, "''")}'
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class Win32 {
+    [DllImport("user32.dll")]
+    public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+}
+"@
+
+$excel = New-Object -ComObject Excel.Application
+$excel.Visible = $true
+$excel.DisplayAlerts = $false
+$excel.Workbooks.Open($targetPath)
+
+$windowHandle = $null
+for ($i = 0; $i -lt 30; $i++) {
+    $windowHandle = Get-Process excel -ErrorAction SilentlyContinue |
+        Where-Object { $_.MainWindowHandle -ne 0 } |
+        Sort-Object StartTime |
+        Select-Object -Last 1 -ExpandProperty MainWindowHandle
+
+    if ($windowHandle) {
+        break
+    }
+    Start-Sleep -Milliseconds 200
+}
+
+$screen = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
+if ($windowHandle) {
+    $width = [Math]::Min([int]($screen.Width * 0.95), 1800)
+    $height = [Math]::Min([int]($screen.Height * 0.95), 1100)
+    [void][Win32]::SetWindowPos($windowHandle, [IntPtr]::Zero, $screen.Left, $screen.Top, $width, $height, 0x0001 -bor 0x0020)
+}
+`;
+
+        await execFileAsync('powershell.exe', [
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-Command',
+            psCommand
+        ]);
+
+        return res.json({
+            success: true,
+            fileName: latest.name,
+            filePath: targetPath,
+            version: latest.version
+        });
+    } catch (error) {
+        console.error('Errore API /api/bordero/open-latest-excel:', error);
+        return res.status(500).json({
+            success: false,
+            error: error?.message || String(error)
+        });
+    }
+});
+
 app.get('/api/videoclip/play-secondary', async (req, res) => {
     try {
         const videoUrl = req.query.url;

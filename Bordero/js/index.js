@@ -149,6 +149,30 @@ function setupEventListeners() {
     dataLoader.exportToCSV();
   });
 
+  // Pulsante Apri Excel Bordero (versione piu recente)
+  document.getElementById('btn-open-latest-excel')?.addEventListener('click', async () => {
+    try {
+      const response = await fetch('/api/bordero/open-latest-excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result?.success) {
+        const message = result?.error || 'Impossibile aprire il file Excel';
+        Toast.error(`Errore apertura Excel: ${message}`);
+        return;
+      }
+
+      Toast.success(`Excel aperto: ${result.fileName || 'file selezionato'}`);
+      logger.info('Latest Bordero Excel opened', result);
+    } catch (error) {
+      logger.error('Errore apertura latest Excel Bordero', error);
+      Toast.error(`Errore apertura Excel: ${error?.message || error}`);
+    }
+  });
+
   // Monitora status online/offline
   window.addEventListener('online', () => {
     logger.info('Back online!');
