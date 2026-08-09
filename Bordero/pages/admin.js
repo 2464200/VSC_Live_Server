@@ -765,12 +765,20 @@ class AdminPanel {
         }
         break;
       }
-      case 'serata':
-        data = Storage.get('BORDERO_CURRENT_SERATA');
+      case 'serata': {
+        const currentSerata = typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.getCurrentSerata === 'function'
+          ? window.dataLoader.getCurrentSerata()
+          : null;
+        data = currentSerata || Storage.get(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA, null);
         break;
-      case 'history':
-        data = Storage.get('BORDERO_SERATA_HISTORY');
+      }
+      case 'history': {
+        const history = typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.getSerataHistory === 'function'
+          ? window.dataLoader.getSerataHistory(200)
+          : null;
+        data = history || Storage.get(BORDERO_CONFIG.CACHE_KEY_SERATA_HISTORY, []);
         break;
+      }
       case 'localstorage':
         data = {};
         for (let key in localStorage) {
@@ -788,7 +796,12 @@ class AdminPanel {
 
   renderViewerContent(type, data) {
     if (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0)) {
-      return '<div class="data-viewer-empty">Nessun dato disponibile per questa sezione.</div>';
+      const emptyMessage = type === 'serata'
+        ? 'Nessuna serata corrente salvata ancora. Salva o archivia una serata da Borderò per vederne i dettagli.'
+        : type === 'history'
+          ? 'Nessuna cronologia serate presente ancora. Archivia una serata per popolare questo elenco.'
+          : 'Nessun dato disponibile per questa sezione.';
+      return `<div class="data-viewer-empty">${emptyMessage}</div>`;
     }
 
     if (type === 'brani' && Array.isArray(data)) {
