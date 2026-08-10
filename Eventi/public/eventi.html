@@ -161,6 +161,14 @@
     <button onclick="goEventiPage('visualizer.html')">Apri visualizer</button>
     <button type="button" onclick="window.location.href='/bordero/pages/bordero.html'" style="background:#2563eb;color:#fff;border-color:#2563eb;">Borderò single DJ</button>
     <button onclick="goEventiPage('qr.html')" style="background:#17a2b8;color:#fff;">QR Code</button>
+    <div class="event-name-row">
+      <label class="event-name-field" for="event-name-input">
+        <span>Nome evento</span>
+        <input id="event-name-input" type="text" maxlength="90" placeholder="Inserisci il nome dell'evento" />
+      </label>
+      <button id="btn-save-event-name" type="button">Salva nome evento</button>
+      <span id="event-name-saved" class="badge" style="display:none;">Salvato</span>
+    </div>
   </div>
 
   <div class="labels">

@@ -1914,6 +1914,7 @@ const pathLog = path.join(eventiDataDir, 'log.json');
 const pathDj = path.join(eventiDataDir, 'dj.json');
 const pathDjLimits = path.join(eventiDataDir, 'dj-limits.json');
 const pathCsv = path.join(eventiDataDir, 'log.csv');
+const pathEventMeta = path.join(eventiDataDir, 'event-meta.json');
 
 // ===== INIZIALIZZAZIONE =====
 function initializeEventiFiles() {
@@ -1924,6 +1925,32 @@ function initializeEventiFiles() {
     if (!fs.existsSync(pathLog)) fs.writeFileSync(pathLog, '[]');
     if (!fs.existsSync(pathDj)) fs.writeFileSync(pathDj, '[]');
     if (!fs.existsSync(pathDjLimits)) fs.writeFileSync(pathDjLimits, '{}');
+    if (!fs.existsSync(pathEventMeta)) fs.writeFileSync(pathEventMeta, JSON.stringify({ eventName: '', updatedAt: null }, null, 2));
+}
+
+function normalizeEventName(value) {
+    return (value || '').toString().trim().slice(0, 90);
+}
+
+function readEventMeta() {
+    try {
+        const payload = JSON.parse(fs.readFileSync(pathEventMeta, 'utf-8'));
+        return {
+            eventName: normalizeEventName(payload?.eventName),
+            updatedAt: payload?.updatedAt || null
+        };
+    } catch (e) {
+        return { eventName: '', updatedAt: null };
+    }
+}
+
+function writeEventMeta(eventName) {
+    const payload = {
+        eventName: normalizeEventName(eventName),
+        updatedAt: new Date().toISOString()
+    };
+    fs.writeFileSync(pathEventMeta, JSON.stringify(payload, null, 2));
+    return payload;
 }
 
 function loadOpenedViewersFromFile() {
@@ -3356,6 +3383,24 @@ router.post('/brani-extra', (req, res) => {
     }
 });
 
+router.get('/event-meta', (req, res) => {
+    try {
+        res.json(readEventMeta());
+    } catch (e) {
+        res.status(500).json({ error: 'Impossibile leggere metadati evento' });
+    }
+});
+
+router.post('/event-meta', (req, res) => {
+    try {
+        const saved = writeEventMeta(req.body?.eventName);
+        res.json({ ok: true, ...saved });
+        broadcastEventiUpdate({ type: 'event-meta-updated', eventName: saved.eventName });
+    } catch (e) {
+        res.status(500).json({ error: 'Errore salvataggio metadati evento' });
+    }
+});
+
 // Aggiorna coreografia aggiuntiva
 router.post('/aggiuntive/update', (req, res) => {
     try {
@@ -3455,11 +3500,12 @@ router.post('/log/reset-times', (req, res) => {
 
         fs.writeFileSync(pathLog, JSON.stringify([], null, 2));
         fs.writeFileSync(pathCsv, 'timestamp;id_brano;stato;dj\n');
+        fs.writeFileSync(pathEventMeta, JSON.stringify({ eventName: '', updatedAt: new Date().toISOString() }, null, 2));
 
         res.json({
             ok: true,
             cleared: Array.isArray(log) ? log.length : 0,
-            message: 'Date e orari delle coreografie sono stati resettati. Il nuovo evento puo iniziare con cronologia pulita.'
+            message: 'Date e orari delle coreografie sono stati resettati. Il nuovo evento puo iniziare con cronologia pulita. Anche il nome evento e stato azzerato.'
         });
         broadcastEventiUpdate({ type: 'log-reset' });
     } catch (e) {

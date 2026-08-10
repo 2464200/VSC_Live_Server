@@ -155,11 +155,109 @@ const pageState = {
   summaryBrani: [],
   visibleBrani: [],
   log: [],
+  eventName: '',
   query: '',
   refreshTimer: null,
   addPanelOpen: false,
   eventSource: null
 };
+
+function setEventNameSavedBadge(visible) {
+  const badge = document.getElementById('event-name-saved');
+  if (badge) badge.style.display = visible ? 'inline-block' : 'none';
+}
+
+function updateEventNameUI(name) {
+  const input = document.getElementById('event-name-input');
+  if (!input) return;
+
+  const normalized = (name || '').toString().trim();
+  input.value = normalized;
+  pageState.eventName = normalized;
+  setEventNameSavedBadge(Boolean(normalized));
+}
+
+async function loadEventName() {
+  try {
+    const payload = await fetchEventMetaSafe();
+    updateEventNameUI(payload?.eventName || '');
+  } catch (error) {
+    console.error('Errore caricamento nome evento:', error);
+    updateEventNameUI('');
+  }
+}
+
+async function fetchEventMetaSafe() {
+  try {
+    return await fetchJSON(`/event-meta?ts=${Date.now()}`);
+  } catch (error) {
+    // Compatibilita con server legacy: il nome evento e opzionale.
+    const status = Number(error?.message?.match(/HTTP\s+(\d+)/)?.[1] || 0);
+    if (status === 404) {
+      console.warn('Endpoint /event-meta non disponibile su questo server, uso fallback locale vuoto.');
+      return { eventName: '' };
+    }
+    throw error;
+  }
+}
+
+async function saveEventName() {
+  const input = document.getElementById('event-name-input');
+  const saveBtn = document.getElementById('btn-save-event-name');
+  if (!input || !saveBtn) return;
+
+  const eventName = (input.value || '').trim();
+  if (!(await verifyPassword('Salva nome evento'))) {
+    return;
+  }
+
+  const originalLabel = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Salvataggio...';
+
+  try {
+    const response = await eventiFetch('/event-meta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventName })
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(payload.error || `Salvataggio nome evento fallito (${response.status})`);
+    }
+
+    updateEventNameUI(payload.eventName || eventName);
+    if (window.showToast) showToast('Nome evento salvato.', 2200);
+  } catch (error) {
+    console.error('Errore salvataggio nome evento:', error);
+    alert(`Errore salvataggio nome evento: ${error.message}`);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalLabel;
+  }
+}
+
+function bindEventNameControls() {
+  const input = document.getElementById('event-name-input');
+  const saveBtn = document.getElementById('btn-save-event-name');
+  if (!input || !saveBtn) return;
+
+  if (saveBtn.dataset.bound !== '1') {
+    saveBtn.dataset.bound = '1';
+    saveBtn.addEventListener('click', saveEventName);
+  }
+
+  if (input.dataset.bound !== '1') {
+    input.dataset.bound = '1';
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveEventName();
+      }
+    });
+  }
+}
 
 async function salvaStato(id, stato, addTimestamp = false, djOverride = null) {
   // Verifica limite prenotazioni per prenotato
@@ -445,9 +543,10 @@ async function caricaDJList() {
 }
 
 async function refreshPageData() {
-  const [brani, log] = await Promise.all([
+  const [brani, log, eventMeta] = await Promise.all([
     fetchJSON(`/brani?ts=${Date.now()}`),
-    fetchJSON(`/log?ts=${Date.now()}`)
+    fetchJSON(`/log?ts=${Date.now()}`),
+    fetchEventMetaSafe()
   ]);
 
   if (!Array.isArray(brani) || !Array.isArray(log)) {
@@ -458,6 +557,7 @@ async function refreshPageData() {
   const decorated = EventiState.decorateBrani(brani, EventiState.buildLastStateMap(log));
   pageState.summaryBrani = decorated;
   pageState.allBrani = EventiState.filterBrani(decorated, 'disponibili');
+  updateEventNameUI(eventMeta?.eventName || '');
   updateStatusInfo();
   applySearchAndRender();
 }
@@ -690,6 +790,7 @@ function bindProtectedActionButtons() {
       try {
         const result = await resetEventTimes();
         await refreshPageData();
+        updateEventNameUI('');
         alert(result.message || 'Date e orari resettati con successo.');
       } catch (error) {
         console.error('Errore reset date/orari:', error);
@@ -740,6 +841,8 @@ async function carica() {
     bindSearch();
     createKeyboard();
     bindExtraCoreoControls();
+    bindEventNameControls();
+    await loadEventName();
 
     await refreshPageData();
     startEventiStream();

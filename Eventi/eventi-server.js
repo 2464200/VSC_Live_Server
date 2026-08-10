@@ -11,6 +11,7 @@ const pathLog   = path.join(__dirname, 'data', 'log.json');
 const pathDj    = path.join(__dirname, 'data', 'dj.json');
 const pathDjLimits = path.join(__dirname, 'data', 'dj-limits.json');
 const pathCsv   = path.join(__dirname, 'data', 'log.csv');
+const pathEventMeta = path.join(__dirname, 'data', 'event-meta.json');
 // Directory condivisa export SIAE (allineata a Bordero/unified-server).
 const SIAE_EXPORT_DIR = process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR || 'C:\\VSC_SIAE';
 
@@ -33,8 +34,35 @@ function ensureFiles() {
   if (!fs.existsSync(pathBrani)) fs.writeFileSync(pathBrani, '[]');
   if (!fs.existsSync(pathLog)) fs.writeFileSync(pathLog, '[]');
   if (!fs.existsSync(pathDj)) fs.writeFileSync(pathDj, '[]');
+  if (!fs.existsSync(pathEventMeta)) fs.writeFileSync(pathEventMeta, JSON.stringify({ eventName: '', updatedAt: null }, null, 2));
 }
 ensureFiles();
+
+function normalizeEventName(value) {
+  return (value || '').toString().trim().slice(0, 90);
+}
+
+function readEventMeta() {
+  try {
+    const payload = JSON.parse(fs.readFileSync(pathEventMeta, 'utf-8'));
+    return {
+      eventName: normalizeEventName(payload?.eventName),
+      updatedAt: payload?.updatedAt || null
+    };
+  } catch (e) {
+    return { eventName: '', updatedAt: null };
+  }
+}
+
+function writeEventMeta(eventName) {
+  const normalized = normalizeEventName(eventName);
+  const payload = {
+    eventName: normalized,
+    updatedAt: new Date().toISOString()
+  };
+  fs.writeFileSync(pathEventMeta, JSON.stringify(payload, null, 2));
+  return payload;
+}
 
 // ============================
 //        GET LISTA BRANI
@@ -109,6 +137,23 @@ router.post('/brani-extra', (req, res) => {
   }
 });
 
+router.get('/event-meta', (req, res) => {
+  try {
+    res.json(readEventMeta());
+  } catch (e) {
+    res.status(500).json({ error: 'Impossibile leggere metadati evento' });
+  }
+});
+
+router.post('/event-meta', (req, res) => {
+  try {
+    const saved = writeEventMeta(req.body?.eventName);
+    res.json({ ok: true, ...saved });
+  } catch (e) {
+    res.status(500).json({ error: 'Errore salvataggio metadati evento' });
+  }
+});
+
 // ============================
 //   POST: AGGIORNA COREOGRAFIA
 // ============================
@@ -176,11 +221,12 @@ router.post('/log/reset-times', (req, res) => {
 
     fs.writeFileSync(pathLog, JSON.stringify([], null, 2));
     fs.writeFileSync(pathCsv, 'timestamp;id_brano;stato;dj\n');
+    fs.writeFileSync(pathEventMeta, JSON.stringify({ eventName: '', updatedAt: new Date().toISOString() }, null, 2));
 
     res.json({
       ok: true,
       cleared: Array.isArray(log) ? log.length : 0,
-      message: 'Date e orari delle coreografie sono stati resettati. Il nuovo evento puo iniziare con cronologia pulita.'
+      message: 'Date e orari delle coreografie sono stati resettati. Il nuovo evento puo iniziare con cronologia pulita. Anche il nome evento e stato azzerato.'
     });
   } catch (e) {
     res.status(500).json({ error: 'Errore reset date e orari' });

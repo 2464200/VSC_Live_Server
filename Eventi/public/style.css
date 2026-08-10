@@ -98,10 +98,15 @@ h1 {
 .tools-row,
 .nav {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 14px;
+}
+
+.nav {
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .header {
@@ -243,6 +248,10 @@ button:hover {
 .nav button {
   background: #10253b;
   color: #fff;
+  padding: 11px 14px;
+  font-size: 17px;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(20, 33, 43, 0.05);
 }
 
 .nav .attention-pulse-button {
@@ -496,6 +505,45 @@ hr {
   font-size: 16px;
   font-weight: 700;
   color: var(--muted);
+}
+
+.event-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.event-name-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.event-name-field input {
+  min-height: 34px;
+  min-width: min(36vw, 290px);
+  padding: 6px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+#btn-save-event-name {
+  padding: 7px 10px;
+  font-size: 12px;
+  background: #17a2b8;
+  color: #fff;
+}
+
+#btn-save-event-name:hover {
+  border-color: #0f7b8d;
 }
 
 .page-note,
@@ -776,6 +824,20 @@ hr {
   .header { flex-wrap: wrap; }
   .header label { flex-basis: 100%; }
   .summary-cards { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .event-name-row {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .event-name-field {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .event-name-field input {
+    width: 100%;
+    min-width: 0;
+  }
   .riga-brano { flex-wrap: wrap; }
   .dj-stat-row { grid-template-columns: 1fr; }
   .extra-coreo-grid { grid-template-columns: 1fr; }
