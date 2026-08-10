@@ -20,7 +20,7 @@
         "PAGINA02",
         "PAGINA03",
         "PAGINA04",
-        "PAGINA05",
+        "WEBCAM",
         "PAGINA06",
         "PAGINA07",
         "PAGINA08",
