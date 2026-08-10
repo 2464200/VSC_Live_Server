@@ -87,6 +87,9 @@ WaitForVlcThenShowGui()
 BuildStartupGui() {
     global StartupGui, SlotEdits, HostEdit, PortEdit, AltPortEdit, BaseDir
 
+    ; Carica configurazione prima di popolare i campi GUI.
+    LoadConfigIntoState()
+
     StartupGui := Gui("+AlwaysOnTop +Caption +ToolWindow", "DASH LOOP - Configurazione")
     StartupGui.MarginX := 14
     StartupGui.MarginY := 10
@@ -103,24 +106,32 @@ BuildStartupGui() {
     Loop 4 {
         idx := A_Index
         StartupGui.AddText("y+8", "Slot " idx ":")
-        edit := StartupGui.AddEdit("w520", Slots[idx] ? Slots[idx] : DEFAULT_SLOTS[idx])
-        SlotEdits.Push(edit)
+        slotValue := (idx <= Slots.Length() && Slots[idx] != "") ? Slots[idx] : DEFAULT_SLOTS[idx]
+        slotEdit := StartupGui.AddEdit("w520", slotValue)
+        SlotEdits.Push(slotEdit)
     }
 
     btnStart := StartupGui.AddButton("y+14 w120", "Avvia loop")
     btnSave := StartupGui.AddButton("x+m w120", "Salva config")
     btnCancel := StartupGui.AddButton("x+m w120", "Chiudi")
 
-    btnStart.OnEvent("Click", () => {
-        ValidateAndStart()
-    })
-    btnSave.OnEvent("Click", () => {
-        ValidateAndSave()
-    })
-    btnCancel.OnEvent("Click", () => {
-        StartupGui.Hide()
-        Notify("Configurazione nascosta. Usa Ctrl+Alt+S per avviare.")
-    })
+    btnStart.OnEvent("Click", HandleUnifiedStartClick)
+    btnSave.OnEvent("Click", HandleUnifiedSaveClick)
+    btnCancel.OnEvent("Click", HandleUnifiedCancelClick)
+}
+
+HandleUnifiedStartClick(*) {
+    ValidateAndStart()
+}
+
+HandleUnifiedSaveClick(*) {
+    ValidateAndSave()
+}
+
+HandleUnifiedCancelClick(*) {
+    global StartupGui
+    StartupGui.Hide()
+    Notify("Configurazione nascosta. Usa Ctrl+Alt+S per avviare.")
 }
 
 LoadConfigIntoState() {
