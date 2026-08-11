@@ -44,8 +44,8 @@ body {
 .header {
   background: linear-gradient(135deg, var(--bg-dark), #2a2a2a);
   border-bottom: 3px solid var(--primary-orange);
-  padding: 30px 0;
-  margin-bottom: 20px;
+  padding: 18px 0;
+  margin-bottom: 12px;
   box-shadow: var(--shadow);
 }
 
@@ -54,15 +54,15 @@ body {
 }
 
 .app-title {
-  font-size: 3em;
+  font-size: 2.4em;
   font-weight: bold;
   color: var(--primary-orange);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .app-subtitle {
-  font-size: 1.2em;
+  font-size: 1em;
   color: #ccc;
   font-style: italic;
 }
@@ -256,11 +256,12 @@ body {
 .btn-deck1,
 .btn-deck2 {
   min-width: 220px;
-  min-height: 48px;
-  padding: 12px 25px;
+  min-height: 42px;
+  padding: 10px 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: 10px;
 }
 
 .btn-deck1 {
