@@ -556,6 +556,53 @@
   box-shadow: 0 0 0 2px rgba(231, 190, 37, 0.25);
 }
 
+#btn-load-deck-1,
+#btn-load-deck-2 {
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+}
+
+#btn-load-deck-1[data-deck-state="playing"],
+#btn-load-deck-2[data-deck-state="playing"] {
+  background-color: #5f6368;
+  border-color: #7a7f86;
+  color: #e3e5e8;
+  box-shadow: none;
+}
+
+#btn-load-deck-1[data-deck-state="ready"] {
+  border-color: #6db3ff;
+  box-shadow: 0 0 0 1px rgba(109, 179, 255, 0.55), 0 0 14px rgba(37, 99, 235, 0.42);
+  animation: deck-ready-pulse-blue 1s ease-in-out infinite;
+}
+
+#btn-load-deck-2[data-deck-state="ready"] {
+  border-color: #ff7b7b;
+  box-shadow: 0 0 0 1px rgba(255, 123, 123, 0.55), 0 0 14px rgba(220, 38, 38, 0.42);
+  animation: deck-ready-pulse-red 1s ease-in-out infinite;
+}
+
+@keyframes deck-ready-pulse-blue {
+  0%, 100% {
+    border-color: #6db3ff;
+    box-shadow: 0 0 0 1px rgba(109, 179, 255, 0.5), 0 0 10px rgba(37, 99, 235, 0.35);
+  }
+  50% {
+    border-color: #b5d9ff;
+    box-shadow: 0 0 0 2px rgba(181, 217, 255, 0.8), 0 0 18px rgba(109, 179, 255, 0.72);
+  }
+}
+
+@keyframes deck-ready-pulse-red {
+  0%, 100% {
+    border-color: #ff7b7b;
+    box-shadow: 0 0 0 1px rgba(255, 123, 123, 0.5), 0 0 10px rgba(220, 38, 38, 0.35);
+  }
+  50% {
+    border-color: #ffc2c2;
+    box-shadow: 0 0 0 2px rgba(255, 194, 194, 0.82), 0 0 18px rgba(255, 123, 123, 0.74);
+  }
+}
+
 .console-status-btn[data-state="error"] .console-status-dot {
   background-color: #ef5350;
   box-shadow: 0 0 0 2px rgba(239, 83, 80, 0.3);

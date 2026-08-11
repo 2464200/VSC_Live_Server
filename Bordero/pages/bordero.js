@@ -2272,6 +2272,38 @@ class BorderoTableManager {
     return 'idle';
   }
 
+  setDeckLoadButtonState(deckNumber, state = 'unknown') {
+    const button = document.getElementById(deckNumber === 2 ? 'btn-load-deck-2' : 'btn-load-deck-1');
+    if (!button) return;
+
+    const normalizedState = String(state || '').trim().toLowerCase();
+    button.dataset.deckState = normalizedState;
+  }
+
+  async refreshDeckLoadButtonsState() {
+    try {
+      const [deck1, deck2] = await Promise.all([
+        this.queryVirtualDjDeckState(1),
+        this.queryVirtualDjDeckState(2)
+      ]);
+
+      const mapState = (deckState) => {
+        if (!deckState || deckState.unavailable) {
+          return 'unknown';
+        }
+
+        return deckState.isPlaying ? 'playing' : 'ready';
+      };
+
+      this.setDeckLoadButtonState(1, mapState(deck1));
+      this.setDeckLoadButtonState(2, mapState(deck2));
+    } catch (error) {
+      logger.warn('Errore aggiornamento stato tasti deck', error);
+      this.setDeckLoadButtonState(1, 'unknown');
+      this.setDeckLoadButtonState(2, 'unknown');
+    }
+  }
+
   applyTrackedBranoPlaybackState(branoId, deckNumber, playbackState) {
     let hasChanged = false;
 
@@ -2338,6 +2370,7 @@ class BorderoTableManager {
 
       this.virtualDjConsolePollInProgress = true;
       try {
+        await this.refreshDeckLoadButtonsState();
         await this.refreshVirtualDjConsoleState();
       } finally {
         this.virtualDjConsolePollInProgress = false;
@@ -2369,6 +2402,7 @@ class BorderoTableManager {
     let hasTrack = false;
     let isPlaying = false;
     let isPaused = false;
+    let failedRequests = 0;
 
     for (const script of scripts) {
       try {
@@ -2384,6 +2418,7 @@ class BorderoTableManager {
           isPaused = positive;
         }
       } catch (error) {
+        failedRequests += 1;
         logger.warn('Impossibile interrogare stato deck VirtualDJ', { deck: targetDeck, error: error?.message || error });
       }
     }
@@ -2393,6 +2428,7 @@ class BorderoTableManager {
       hasTrack,
       isPlaying,
       isPaused,
+      unavailable: failedRequests === scripts.length,
       isEmpty: !hasTrack,
       isActive: isPlaying || isPaused || hasTrack
     };
