@@ -19,10 +19,105 @@ class AdminPanel {
     this.setupExportImport();
     this.setupDjManagement();
     this.setupDjSoftwareSelection();
+    this.setupMusicArchiveSettings();
     this.setupConsole();
     this.setupElectronLauncher();
     this.setupMonitorPolicyDiagnostics();
     this.log('✓ Admin Panel initialized', 'success');
+  }
+
+  async fetchMusicArchiveConfig() {
+    const response = await fetch('/api/music-archive/config', { cache: 'no-store' });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  async fetchMusicArchiveStatus(refresh = false) {
+    const suffix = refresh ? '?refresh=1' : '';
+    const response = await fetch(`/api/music-archive/status${suffix}`, { cache: 'no-store' });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  setupMusicArchiveSettings() {
+    const pathInput = document.getElementById('music-archive-path');
+    const saveBtn = document.getElementById('btn-save-music-archive');
+    const checkBtn = document.getElementById('btn-check-music-archive');
+    const statusEl = document.getElementById('music-archive-status');
+
+    if (!pathInput || !saveBtn || !checkBtn || !statusEl) return;
+
+    const renderStatus = (text, level = 'info') => {
+      statusEl.textContent = text;
+      statusEl.style.color = level === 'error' ? '#ff7f7f' : (level === 'success' ? '#9be7a5' : '#ddd');
+    };
+
+    const refreshUi = async (forceScan = false) => {
+      try {
+        const [config, status] = await Promise.all([
+          this.fetchMusicArchiveConfig(),
+          this.fetchMusicArchiveStatus(forceScan)
+        ]);
+
+        pathInput.value = config?.rootPath || '';
+
+        if (!config?.rootPath) {
+          renderStatus('Stato archivio: non configurato', 'info');
+          return;
+        }
+
+        if (!status?.exists) {
+          renderStatus('Stato archivio: cartella configurata ma non raggiungibile', 'error');
+          return;
+        }
+
+        renderStatus(`Stato archivio: OK • ${status.fileCount || 0} file audio indicizzati`, 'success');
+      } catch (error) {
+        renderStatus(`Stato archivio: errore (${error?.message || error})`, 'error');
+      }
+    };
+
+    saveBtn.addEventListener('click', async () => {
+      const rootPath = String(pathInput.value || '').trim();
+      if (!rootPath) {
+        Toast.warning('Inserisci il percorso della cartella archivio');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/music-archive/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rootPath })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload?.ok) {
+          throw new Error(payload?.error || `HTTP ${response.status}`);
+        }
+
+        this.log(`✓ Archivio brani salvato: ${payload.rootPath}`, 'success');
+        Toast.success('Cartella archivio salvata');
+        await refreshUi(true);
+      } catch (error) {
+        this.log(`❌ Errore salvataggio archivio brani: ${error?.message || error}`, 'error');
+        Toast.error('Impossibile salvare la cartella archivio');
+        await refreshUi(false);
+      }
+    });
+
+    checkBtn.addEventListener('click', async () => {
+      renderStatus('Stato archivio: verifica in corso...', 'info');
+      await refreshUi(true);
+    });
+
+    refreshUi(false);
   }
 
   getDjSoftwareStorageKey() {
@@ -31,8 +126,13 @@ class AdminPanel {
 
   normalizeDjSoftware(value) {
     const normalized = String(value || '').trim().toLowerCase();
-    const allowed = ['rekordbox', 'serato', 'traktor', 'virtualdj'];
+    const allowed = ['rekordbox', 'serato', 'djaypro', 'traktor', 'virtualdj'];
     return allowed.includes(normalized) ? normalized : '';
+  }
+
+  isDjSoftwareSelectable(software) {
+    const normalized = this.normalizeDjSoftware(software);
+    return normalized === 'virtualdj' || normalized === 'traktor';
   }
 
   readDjSoftwareSelection() {
@@ -55,6 +155,7 @@ class AdminPanel {
     const map = {
       rekordbox: 'Pioneer DJ Rekordbox',
       serato: 'Serato DJ',
+      djaypro: 'Algoriddim djay Pro',
       traktor: 'Native Instruments Traktor Pro',
       virtualdj: 'VirtualDJ'
     };
@@ -73,13 +174,17 @@ class AdminPanel {
 
     buttons.forEach((button) => {
       const software = this.normalizeDjSoftware(button.getAttribute('data-software'));
+      const selectable = this.isDjSoftwareSelectable(software);
       const isOn = software === normalized;
       button.textContent = isOn ? 'ON' : 'OFF';
       button.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      button.disabled = !selectable;
+      button.title = selectable ? '' : 'Software non ancora abilitato';
       button.classList.toggle('btn-primary', isOn);
       button.classList.toggle('btn-secondary', !isOn);
       button.classList.toggle('is-on', isOn);
       button.classList.toggle('is-off', !isOn);
+      button.classList.toggle('is-disabled', !selectable);
     });
 
     const selectionStatus = document.getElementById('dj-software-selection-status');
@@ -101,6 +206,13 @@ class AdminPanel {
     if (!buttons || buttons.length === 0) return;
 
     const applySelection = (software, notify = true) => {
+      if (software && !this.isDjSoftwareSelectable(software)) {
+        this.log(`⚠️ Software non ancora abilitato: ${this.getDjSoftwareLabel(software)}`, 'warn');
+        Toast.warning('Software non ancora abilitato');
+        this.updateDjSoftwareUi(this.readDjSoftwareSelection());
+        return;
+      }
+
       const selected = this.saveDjSoftwareSelection(software);
       this.updateDjSoftwareUi(selected);
 

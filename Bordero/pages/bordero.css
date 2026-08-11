@@ -495,6 +495,7 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 2px;
+  align-items: flex-start;
 }
 
 .remote-rolling-btn {
@@ -502,6 +503,52 @@
   font-size: 0.8em;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.console-status-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 128px;
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 0.8em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.console-status-btn[data-state="idle"] {
+  border-color: #ffb347;
+  color: #ffb347;
+}
+
+.console-status-btn[data-state="live"] {
+  border-color: #2fcf39;
+  color: #73e67f;
+}
+
+.console-status-btn[data-state="warning"] {
+  border-color: #e7be25;
+  color: #ffd36f;
+}
+
+.console-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ffb347;
+  box-shadow: 0 0 0 2px rgba(255, 179, 71, 0.25);
+}
+
+.console-status-btn[data-state="live"] .console-status-dot {
+  background-color: #2fcf39;
+  box-shadow: 0 0 0 2px rgba(47, 207, 57, 0.25);
+}
+
+.console-status-btn[data-state="warning"] .console-status-dot {
+  background-color: #e7be25;
+  box-shadow: 0 0 0 2px rgba(231, 190, 37, 0.25);
 }
 
 .search-input {
@@ -816,6 +863,115 @@
 
 .deselection-confirm-btn:hover {
   transform: translateY(-1px);
+}
+
+/* ========== MUSIC MATCH MODAL ========== */
+.music-match-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 2350;
+}
+
+.music-match-modal[hidden] {
+  display: none !important;
+}
+
+.music-match-content {
+  width: min(760px, 100%);
+  max-height: 84vh;
+  overflow: hidden;
+  background: #1f1f1f;
+  border: 1px solid var(--primary-orange);
+  border-radius: 12px;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.5);
+}
+
+.music-match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #2b2b2b, #1a1a1a);
+  color: #fff;
+}
+
+.music-match-header h3 {
+  margin: 0;
+  font-size: 1em;
+}
+
+.music-match-close {
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 1.25em;
+  cursor: pointer;
+}
+
+.music-match-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #f1f1f1;
+}
+
+.music-match-message {
+  margin: 0;
+  color: #e2e2e2;
+}
+
+.music-match-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 48vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.music-match-option {
+  width: 100%;
+  text-align: left;
+  background: #2a2a2a;
+  border: 1px solid #4f4f4f;
+  color: #f9f9f9;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.music-match-option:hover {
+  border-color: #ffb347;
+  background: #353535;
+}
+
+.music-match-option-path {
+  display: block;
+  font-size: 0.85em;
+  color: #bdbdbd;
+  margin-top: 3px;
+}
+
+.music-match-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.music-match-btn {
+  min-width: 120px;
+  border-radius: 6px;
+  padding: 10px 14px;
+  border: 1px solid #5a5a5a;
+  font-weight: 700;
+  cursor: pointer;
+  background: #3a3a3a;
+  color: #fff;
 }
 
 /* ========== TABLE ========== */

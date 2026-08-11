@@ -131,6 +131,86 @@
             background: currentColor;
             opacity: 0.85;
         }
+
+        .archive-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .archive-search {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #666;
+            border-radius: 6px;
+            background: #111;
+            color: white;
+            font-size: 13px;
+        }
+
+        .archive-counter {
+            color: #bcdcff;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .archive-list {
+            max-height: 220px;
+            overflow: auto;
+            background: #171717;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .archive-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: #2a2a2a;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .archive-item:hover {
+            background: #333;
+        }
+
+        .archive-item.is-active {
+            background: #295a8a;
+            border: 1px solid #5da9ff;
+        }
+
+        .archive-item .archive-path {
+            color: #9ed0ff;
+            font-size: 11px;
+            word-break: break-all;
+        }
+
+        .archive-item .archive-meta {
+            flex-shrink: 0;
+            color: #9ed0ff;
+            font-size: 11px;
+            border: 1px solid #4b8fc9;
+            border-radius: 999px;
+            padding: 3px 7px;
+            background: rgba(77, 143, 201, 0.16);
+        }
+
+        .archive-empty {
+            color: #aaa;
+            font-size: 13px;
+            padding: 10px 0;
+        }
     </style>
 </head>
 
@@ -160,17 +240,29 @@
 
             <div class="box">
                 <h2>Caricamento brano</h2>
-                <label>Percorso completo del file MP3:</label>
+                <label>Percorso completo del file audio:</label>
                 <br><br>
                 <input
                     type="text"
                     id="percorso"
                     style="width: 100%; padding: 8px; box-sizing: border-box;"
-                    placeholder="C:\Musica\Country\brano.mp3"
+                    placeholder="Inserisci il percorso completo del file audio"
                 >
-                <br><br>
-                <button class="deck1" onclick="caricaBrano(1)">CARICA SU DECK 1</button>
-                <button class="deck2" onclick="caricaBrano(2)">CARICA SU DECK 2</button>
+            </div>
+
+            <div class="box">
+                <h2>Seleziona brano dall'archivio</h2>
+                <label>Elenco completo dei brani audio trovati nella cartella archivio configurata e in tutte le sottocartelle:</label>
+                <div class="archive-controls">
+                    <input id="archive-search" class="archive-search" type="text" placeholder="Cerca nome o percorso..." />
+                    <div id="archive-counter" class="archive-counter">0 brani</div>
+                </div>
+                <div id="archive-list" class="archive-list">
+                    <div class="archive-empty">Caricamento in corso...</div>
+                </div>
+                <br>
+                <button class="test" onclick="caricaBranoSelezionato(1)">CARICA SU DECK 1 DALLE SCELTE</button>
+                <button class="deck2" onclick="caricaBranoSelezionato(2)">CARICA SU DECK 2 DALLE SCELTE</button>
             </div>
         </div>
 
@@ -443,6 +535,118 @@
         await testConnessione();
     }
 
+    let archiveFiles = [];
+    let archiveSelectedPath = '';
+
+    function aggiornaListaArchivio() {
+        const container = document.getElementById('archive-list');
+        const counter = document.getElementById('archive-counter');
+        const searchInput = document.getElementById('archive-search');
+        if (!container || !counter) return;
+
+        const query = (searchInput?.value || '').trim().toLowerCase();
+        const filteredFiles = archiveFiles.filter((file) => {
+            const searchable = `${file.fileName || ''} ${file.relativePath || ''} ${file.baseName || ''}`.toLowerCase();
+            return !query || searchable.includes(query);
+        });
+
+        counter.textContent = `${filteredFiles.length} brani audio`;
+
+        if (filteredFiles.length === 0) {
+            container.innerHTML = '<div class="archive-empty">Nessun risultato corrisponde alla ricerca.</div>';
+            return;
+        }
+
+        container.innerHTML = filteredFiles.map((file) => {
+            const fullPath = file.fullPath || '';
+            const fileName = file.fileName || file.relativePath || '';
+            const relativePath = file.relativePath || '';
+            const extension = (fileName.split('.').pop() || '').toUpperCase();
+            const badge = extension ? extension : 'AUDIO';
+            return `
+                <div class="archive-item${archiveSelectedPath && archiveSelectedPath === fullPath ? ' is-active' : ''}" data-path="${fullPath}">
+                    <div style="min-width: 0;">
+                        <div>${fileName}</div>
+                        <div class="archive-path">${relativePath}</div>
+                    </div>
+                    <div class="archive-meta">${badge}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.archive-item').forEach((item) => {
+            item.addEventListener('click', () => {
+                const path = item.getAttribute('data-path');
+                if (path) {
+                    archiveSelectedPath = path;
+                    document.getElementById('percorso').value = path;
+                    aggiornaListaArchivio();
+                }
+            });
+        });
+    }
+
+    async function aggiornaPlaceholderDaArchivio() {
+        try {
+            const response = await fetch('/api/music-archive/config', { cache: 'no-store' });
+            const risultato = await response.json();
+            const inputPercorso = document.getElementById('percorso');
+            if (!inputPercorso) return;
+
+            const rootPath = risultato?.rootPath || '';
+            if (rootPath) {
+                inputPercorso.placeholder = `Cartella archivio: ${rootPath}`;
+            } else {
+                inputPercorso.placeholder = 'Inserisci il percorso completo del file audio';
+            }
+        } catch (_) {
+            const inputPercorso = document.getElementById('percorso');
+            if (inputPercorso) {
+                inputPercorso.placeholder = 'Inserisci il percorso completo del file audio';
+            }
+        }
+    }
+
+    async function caricaArchivioBrani() {
+        try {
+            const response = await fetch('/api/music-archive/status?refresh=1');
+            const risultato = await response.json();
+            const container = document.getElementById('archive-list');
+            if (!container) return;
+
+            if (!response.ok || !risultato?.ok) {
+                container.innerHTML = '<div class="archive-empty">Errore nel caricamento dell\'archivio audio.</div>';
+                return;
+            }
+
+            archiveFiles = Array.isArray(risultato?.files) ? risultato.files : [];
+            archiveFiles.sort((a, b) => (a?.relativePath || '').localeCompare(b?.relativePath || '', 'it'));
+            archiveSelectedPath = '';
+            if (archiveFiles.length === 0) {
+                container.innerHTML = '<div class="archive-empty">Nessun file audio supportato trovato nella cartella configurata.</div>';
+                document.getElementById('archive-counter').textContent = '0 brani audio';
+                return;
+            }
+
+            aggiornaListaArchivio();
+        } catch (errore) {
+            const container = document.getElementById('archive-list');
+            if (container) {
+                container.innerHTML = '<div class="archive-empty">Errore nel caricamento dell\'archivio audio.</div>';
+            }
+        }
+    }
+
+    async function caricaBranoSelezionato(deck) {
+        const percorsoSelezionato = document.getElementById('percorso').value.trim();
+        if (!percorsoSelezionato) {
+            alert('Seleziona prima un brano dall\'archivio.');
+            return;
+        }
+
+        await caricaBrano(deck, percorsoSelezionato);
+    }
+
 
     // ============================================================
     // LEGGI TITOLO DEL DECK
@@ -461,16 +665,16 @@
     // CARICA UN BRANO
     // ============================================================
 
-    async function caricaBrano(deck) {
+    async function caricaBrano(deck, percorsoOverride) {
 
         const percorso =
-            document.getElementById("percorso").value.trim();
+            (percorsoOverride || document.getElementById("percorso").value.trim());
 
 
         if (percorso === "") {
 
             alert(
-                "Inserisci prima il percorso completo del file MP3."
+                "Inserisci prima il percorso completo del file audio."
             );
 
             return;
@@ -501,6 +705,16 @@
         document.getElementById("log").textContent = testo;
 
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('archive-search');
+        searchInput?.addEventListener('input', () => {
+            archiveSelectedPath = '';
+            aggiornaListaArchivio();
+        });
+        aggiornaPlaceholderDaArchivio();
+        caricaArchivioBrani();
+    });
 
 </script>
 

@@ -209,15 +209,21 @@
           </thead>
           <tbody>
             <tr>
-              <td>Pioneer DJ Rekordbox</td>
+              <td>Pioneer DJ Rekordbox <span class="software-coming-soon">Non ancora supportato</span></td>
               <td>
                 <button id="btn-software-rekordbox" class="btn btn-secondary software-toggle-btn" type="button" data-software="rekordbox" aria-pressed="false">OFF</button>
               </td>
             </tr>
             <tr>
-              <td>Serato DJ</td>
+              <td>Serato DJ <span class="software-coming-soon">Non ancora supportato</span></td>
               <td>
                 <button id="btn-software-serato" class="btn btn-secondary software-toggle-btn" type="button" data-software="serato" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Algoriddim djay Pro <span class="software-coming-soon">Non ancora supportato</span></td>
+              <td>
+                <button id="btn-software-djaypro" class="btn btn-secondary software-toggle-btn" type="button" data-software="djaypro" aria-pressed="false">OFF</button>
               </td>
             </tr>
             <tr>
@@ -238,6 +244,24 @@
 
       <div id="dj-software-selection-status" class="dj-software-status">Software selezionato: Nessuno</div>
       <div id="dj-software-feature-status" class="dj-software-status">Funzione collegata: disabilitata (in attesa specifica)</div>
+      <div class="dj-software-status-note">Nota: al momento sono selezionabili solo VirtualDJ e Traktor Pro. Gli altri software saranno abilitati in un secondo momento.</div>
+    </section>
+
+    <section class="admin-section">
+      <h2>📁 Archivio Brani</h2>
+      <p class="display-scroll-help">
+        Indica la cartella principale che contiene i brani (incluse tutte le sottocartelle). La scelta resta salvata fino alla prossima modifica.
+      </p>
+
+      <div class="music-archive-config">
+        <label for="music-archive-path" class="music-archive-label">Percorso cartella archivio</label>
+        <input id="music-archive-path" class="input" type="text" placeholder="Esempio: D:\\Musica\\Archivio DJ" />
+        <div class="music-archive-actions">
+          <button id="btn-save-music-archive" class="btn btn-primary" type="button">💾 Salva cartella archivio</button>
+          <button id="btn-check-music-archive" class="btn btn-secondary" type="button">🔎 Verifica archivio</button>
+        </div>
+        <div id="music-archive-status" class="dj-software-status">Stato archivio: non configurato</div>
+      </div>
     </section>
 
     <!-- DATA VIEWER -->

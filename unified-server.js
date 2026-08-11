@@ -17,6 +17,7 @@ const net = require('net');
 const os = require('os');
 const { parse: parseCsv } = require('csv-parse/sync');
 const QRCodeLib = require('qrcode');
+const { forwardVdjRequest } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 
@@ -38,6 +39,14 @@ const USERFORM_FFMPEG_CANDIDATES = [
 ].filter(Boolean);
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
 const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 60 * 1000;
+const MUSIC_ARCHIVE_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-config.json');
+const MUSIC_ARCHIVE_INDEX_CSV_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-index.csv');
+const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([
+    '.mp3', '.wav', '.flac', '.m4a', '.m4p', '.mp4', '.m4v', '.mov', '.avi', '.mkv', '.wmv',
+    '.aiff', '.aac', '.ogg', '.wma', '.opus', '.alac', '.mp2', '.mpga', '.mpeg', '.mpg',
+    '.mid', '.midi', '.ape'
+]);
+const MUSIC_ARCHIVE_CACHE_TTL_MS = 30 * 1000;
 
 // ===== STATO GLOBALE =====
 let chromeProcess = null;
@@ -87,6 +96,12 @@ const borderoGoogleSyncState = {
     lastSummary: null
 };
 
+let musicArchiveIndexCache = {
+    rootPath: '',
+    scannedAt: 0,
+    files: []
+};
+
 function ensureSiaeExportDir() {
     if (!fs.existsSync(SIAE_EXPORT_DIR)) {
         fs.mkdirSync(SIAE_EXPORT_DIR, { recursive: true });
@@ -111,6 +126,294 @@ function sanitizeSiaeEventName(value = '') {
         .replace(/^_+|_+$/g, '');
 
     return normalized || 'evento';
+}
+
+function normalizeMusicArchivePath(value = '') {
+    return String(value || '').trim().replace(/^"+|"+$/g, '').replace(/[\\/]+$/, '');
+}
+
+function readMusicArchiveConfig() {
+    try {
+        if (!fs.existsSync(MUSIC_ARCHIVE_CONFIG_FILE)) {
+            return { rootPath: '', updatedAt: null };
+        }
+
+        const raw = fs.readFileSync(MUSIC_ARCHIVE_CONFIG_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+        if (!raw) {
+            return { rootPath: '', updatedAt: null };
+        }
+
+        const parsed = JSON.parse(raw);
+        return {
+            rootPath: normalizeMusicArchivePath(parsed?.rootPath || ''),
+            updatedAt: parsed?.updatedAt || null
+        };
+    } catch (error) {
+        console.warn('⚠️ Lettura config archivio brani fallita:', error?.message || error);
+        return { rootPath: '', updatedAt: null };
+    }
+}
+
+function writeMusicArchiveConfig(rootPath) {
+    const normalized = normalizeMusicArchivePath(rootPath);
+    const payload = {
+        rootPath: normalized,
+        updatedAt: new Date().toISOString()
+    };
+
+    fs.mkdirSync(path.dirname(MUSIC_ARCHIVE_CONFIG_FILE), { recursive: true });
+    fs.writeFileSync(MUSIC_ARCHIVE_CONFIG_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    return payload;
+}
+
+function escapeCsvField(value = '') {
+    return `"${String(value ?? '').replace(/"/g, '""')}"`;
+}
+
+function writeMusicArchiveIndexCsv(rootPath, files, scannedAt = Date.now()) {
+    const rows = Array.isArray(files) ? files : [];
+    const scannedAtIso = new Date(scannedAt).toISOString();
+    fs.mkdirSync(path.dirname(MUSIC_ARCHIVE_INDEX_CSV_FILE), { recursive: true });
+
+    const header = [
+        'rootPath',
+        'scannedAt',
+        'relativePath',
+        'fileName',
+        'baseName',
+        'fullPath',
+        'extension',
+        'size',
+        'modifiedAt'
+    ].map(escapeCsvField).join(',');
+
+    const content = [header].concat(rows.map((file) => [
+        rootPath,
+        scannedAtIso,
+        file.relativePath || '',
+        file.fileName || '',
+        file.baseName || '',
+        file.fullPath || '',
+        path.extname(file.fileName || '').toLowerCase(),
+        file.size ?? '',
+        file.modifiedAt || ''
+    ].map(escapeCsvField).join(','))).join('\n');
+
+    fs.writeFileSync(MUSIC_ARCHIVE_INDEX_CSV_FILE, content, 'utf8');
+    return {
+        csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+        csvCount: rows.length,
+        csvUpdatedAt: scannedAtIso
+    };
+}
+
+function normalizeTextForMatch(value = '') {
+    let text = String(value || '').trim();
+    if (!text) return '';
+
+    try {
+        text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    } catch (_) {
+        text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    return text
+        .toLowerCase()
+        .replace(/&/g, ' e ')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function tokenizeTextForMatch(normalizedText = '') {
+    return String(normalizedText || '')
+        .split(' ')
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 2);
+}
+
+function listMusicFilesRecursive(rootPath) {
+    const files = [];
+    const stack = [rootPath];
+
+    while (stack.length > 0) {
+        const current = stack.pop();
+        let entries = [];
+        try {
+            entries = fs.readdirSync(current, { withFileTypes: true });
+        } catch (_) {
+            continue;
+        }
+
+        for (const entry of entries) {
+            const fullPath = path.join(current, entry.name);
+            if (entry.isDirectory()) {
+                stack.push(fullPath);
+                continue;
+            }
+
+            if (!entry.isFile()) continue;
+
+            const ext = path.extname(entry.name).toLowerCase();
+            if (!MUSIC_ARCHIVE_ALLOWED_EXTENSIONS.has(ext)) continue;
+
+            let stats = null;
+            try {
+                stats = fs.statSync(fullPath);
+            } catch (_) {
+                continue;
+            }
+
+            const relativePath = path.relative(rootPath, fullPath);
+            const baseName = path.basename(entry.name, ext);
+            const normalizedName = normalizeTextForMatch(baseName);
+
+            files.push({
+                fullPath,
+                relativePath,
+                fileName: entry.name,
+                baseName,
+                size: stats?.size || 0,
+                modifiedAt: stats?.mtime ? stats.mtime.toISOString() : '',
+                normalizedName,
+                tokens: tokenizeTextForMatch(normalizedName)
+            });
+        }
+    }
+
+    files.sort((a, b) => a.relativePath.localeCompare(b.relativePath, 'it'));
+    return files;
+}
+
+function getBranoMatchProfile(brano = {}) {
+    const idDigits = String(brano?.id || '').replace(/\D+/g, '');
+    const idPrefix = idDigits ? idDigits.padStart(3, '0') : '';
+
+    const rawNames = [
+        brano?.titolo,
+        brano?.coreografia,
+        brano?.brano,
+        brano?.song,
+        brano?.canzone
+    ].map((value) => String(value || '').trim()).filter(Boolean);
+
+    const normalizedNames = [...new Set(rawNames
+        .map((value) => normalizeTextForMatch(value))
+        .filter((value) => value.length >= 3))];
+
+    const tokenSet = new Set();
+    normalizedNames.forEach((name) => {
+        tokenizeTextForMatch(name).forEach((token) => tokenSet.add(token));
+    });
+
+    return {
+        idPrefix,
+        normalizedNames,
+        tokens: [...tokenSet]
+    };
+}
+
+function extractNumericPrefix(name = '') {
+    const match = String(name || '').match(/^(\d{3})[\s_-]+/);
+    return match ? match[1] : '';
+}
+
+function scoreMusicCandidate(profile, candidate) {
+    let score = 0;
+
+    const filePrefix = extractNumericPrefix(candidate.baseName);
+    if (profile.idPrefix && filePrefix && profile.idPrefix === filePrefix) {
+        score += 1000;
+    }
+
+    if (profile.normalizedNames.includes(candidate.normalizedName)) {
+        score += 450;
+    }
+
+    const includesName = profile.normalizedNames.some((name) =>
+        candidate.normalizedName.includes(name) || name.includes(candidate.normalizedName)
+    );
+    if (includesName) {
+        score += 130;
+    }
+
+    if (profile.tokens.length > 0 && candidate.tokens.length > 0) {
+        const shared = candidate.tokens.filter((token) => profile.tokens.includes(token)).length;
+        const ratio = shared / Math.max(profile.tokens.length, candidate.tokens.length);
+        score += Math.round(ratio * 120);
+    }
+
+    return score;
+}
+
+function refreshMusicArchiveIndex(force = false) {
+    const config = readMusicArchiveConfig();
+    const rootPath = normalizeMusicArchivePath(config.rootPath || '');
+    const now = Date.now();
+
+    if (!rootPath) {
+        musicArchiveIndexCache = { rootPath: '', scannedAt: 0, files: [] };
+        writeMusicArchiveIndexCsv('', [], now);
+        return {
+            rootPath: '',
+            files: [],
+            scannedAt: 0,
+            exists: false,
+            csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: 0,
+            csvUpdatedAt: new Date(now).toISOString()
+        };
+    }
+
+    const exists = fs.existsSync(rootPath) && fs.statSync(rootPath).isDirectory();
+    if (!exists) {
+        musicArchiveIndexCache = { rootPath, scannedAt: now, files: [] };
+        writeMusicArchiveIndexCsv(rootPath, [], now);
+        return {
+            rootPath,
+            files: [],
+            scannedAt: now,
+            exists: false,
+            csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: 0,
+            csvUpdatedAt: new Date(now).toISOString()
+        };
+    }
+
+    const cacheIsValid = !force
+        && musicArchiveIndexCache.rootPath === rootPath
+        && Array.isArray(musicArchiveIndexCache.files)
+        && (now - musicArchiveIndexCache.scannedAt) < MUSIC_ARCHIVE_CACHE_TTL_MS;
+
+    if (cacheIsValid) {
+        return {
+            rootPath,
+            files: musicArchiveIndexCache.files,
+            scannedAt: musicArchiveIndexCache.scannedAt,
+            exists: true,
+            csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: Array.isArray(musicArchiveIndexCache.files) ? musicArchiveIndexCache.files.length : 0,
+            csvUpdatedAt: new Date(musicArchiveIndexCache.scannedAt).toISOString()
+        };
+    }
+
+    const files = listMusicFilesRecursive(rootPath);
+    writeMusicArchiveIndexCsv(rootPath, files, now);
+    musicArchiveIndexCache = {
+        rootPath,
+        scannedAt: now,
+        files
+    };
+
+    return {
+        rootPath,
+        files,
+        scannedAt: now,
+        exists: true,
+        csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+        csvCount: files.length,
+        csvUpdatedAt: new Date(now).toISOString()
+    };
 }
 
 async function runBorderoGoogleSync(trigger = 'manual') {
@@ -2104,6 +2407,118 @@ app.get('/api/vdj/test', async (req, res) => {
     }
 });
 
+app.get('/api/music-archive/config', (req, res) => {
+    try {
+        const config = readMusicArchiveConfig();
+        const normalized = normalizeMusicArchivePath(config.rootPath || '');
+        const exists = normalized ? (fs.existsSync(normalized) && fs.statSync(normalized).isDirectory()) : false;
+        return res.json({
+            ok: true,
+            rootPath: normalized,
+            exists,
+            updatedAt: config.updatedAt || null
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/music-archive/config', (req, res) => {
+    try {
+        const rootPath = normalizeMusicArchivePath(req.body?.rootPath || '');
+        if (!rootPath) {
+            return res.status(400).json({ ok: false, error: 'Percorso cartella mancante' });
+        }
+
+        if (!fs.existsSync(rootPath) || !fs.statSync(rootPath).isDirectory()) {
+            return res.status(400).json({ ok: false, error: 'La cartella indicata non esiste o non e valida' });
+        }
+
+        const saved = writeMusicArchiveConfig(rootPath);
+        refreshMusicArchiveIndex(true);
+        return res.json({ ok: true, rootPath: saved.rootPath, updatedAt: saved.updatedAt });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/music-archive/status', (req, res) => {
+    try {
+        const force = String(req.query.refresh || '').toLowerCase() === '1';
+        const index = refreshMusicArchiveIndex(force);
+        return res.json({
+            ok: true,
+            rootPath: index.rootPath,
+            exists: index.exists,
+            fileCount: Array.isArray(index.files) ? index.files.length : 0,
+            scannedAt: index.scannedAt || 0,
+            csvPath: index.csvPath || MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: index.csvCount ?? (Array.isArray(index.files) ? index.files.length : 0),
+            csvUpdatedAt: index.csvUpdatedAt || null,
+            files: Array.isArray(index.files) ? index.files : [],
+            sample: (index.files || []).slice(0, 5).map((item) => item.relativePath)
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/music-archive/match', (req, res) => {
+    try {
+        const brano = req.body?.brano || req.body || {};
+        const forceRefresh = Boolean(req.body?.refresh);
+        const index = refreshMusicArchiveIndex(forceRefresh);
+
+        if (!index.rootPath) {
+            return res.status(400).json({ ok: false, error: 'Archivio brani non configurato' });
+        }
+
+        if (!index.exists) {
+            return res.status(400).json({ ok: false, error: 'Cartella archivio non raggiungibile' });
+        }
+
+        const profile = getBranoMatchProfile(brano);
+        const scored = (index.files || [])
+            .map((candidate) => ({
+                candidate,
+                score: scoreMusicCandidate(profile, candidate)
+            }))
+            .filter((entry) => entry.score > 0)
+            .sort((a, b) => b.score - a.score);
+
+        if (scored.length === 0 || scored[0].score < 160) {
+            return res.json({ ok: true, status: 'not_found', candidates: [] });
+        }
+
+        const top = scored[0];
+        const second = scored[1];
+        const ambiguous = Boolean(second) && (top.score - second.score) < 70;
+        const candidates = scored.slice(0, 7).map((entry) => ({
+            fullPath: entry.candidate.fullPath,
+            relativePath: entry.candidate.relativePath,
+            fileName: entry.candidate.fileName,
+            score: entry.score
+        }));
+
+        if (ambiguous) {
+            return res.json({
+                ok: true,
+                status: 'ambiguous',
+                candidates
+            });
+        }
+
+        return res.json({
+            ok: true,
+            status: 'exact',
+            match: candidates[0],
+            candidates
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
 // CORS header per permettere connessioni da qualsiasi origin
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -2191,8 +2606,6 @@ app.get('/api/videoclip/list', (req, res) => {
         return res.status(500).json({ error: error.message, files: [] });
     }
 });
-
-const { forwardVdjRequest } = require('./vdj-proxy');
 
 async function handleBorderoSyncGoogle(req, res) {
     try {
@@ -4062,6 +4475,7 @@ app.use('/eventi/api', router);
 initializeEventiFiles();
 loadOpenedViewersFromFile();
 syncBraniOnStartupV2();
+refreshMusicArchiveIndex(true);
 startBorderoGoogleSyncScheduler();
 
 // ===== AVVIO SERVER =====

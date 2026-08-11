@@ -148,6 +148,12 @@
         <button id="btn-reset-filters" class="btn btn-secondary" title="Resetta filtri e ricerca">
           🔄 RESET RICERCA
         </button>
+        <button id="btn-load-deck-1" class="btn btn-deck1" title="Carica il brano selezionato in NEXT sul Deck 1">
+          CARICA SU DECK 1
+        </button>
+        <button id="btn-load-deck-2" class="btn btn-deck2" title="Carica il brano selezionato in NEXT sul Deck 2">
+          CARICA SU DECK 2
+        </button>
       </div>
 
       <div class="toolbar-section">
@@ -208,6 +214,10 @@
           </button>
           <button id="btn-resume-rolling-remote" class="btn btn-secondary remote-rolling-btn" title="Riprende lo scrolling sul monitor secondario">
             RIPRENDI ROLLING
+          </button>
+          <button id="console-status-signal" type="button" class="btn btn-secondary remote-rolling-btn console-status-btn" data-state="idle" aria-live="polite" aria-label="Stato console">
+            <span class="console-status-text">STATO CONSOLE</span>
+            <span class="console-status-dot" aria-hidden="true"></span>
           </button>
         </div>
       </div>
@@ -328,6 +338,22 @@
         <div class="deselection-confirm-actions">
           <button type="button" id="deselection-confirm-cancel" class="deselection-confirm-btn is-cancel">Annulla</button>
           <button type="button" id="deselection-confirm-accept" class="deselection-confirm-btn is-accept">Conferma</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="music-match-modal" class="music-match-modal" role="dialog" aria-modal="true" aria-labelledby="music-match-title" aria-hidden="true" hidden>
+    <div class="music-match-content">
+      <div class="music-match-header">
+        <h3 id="music-match-title">Seleziona il file da eseguire</h3>
+        <button type="button" id="music-match-close" class="music-match-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="music-match-body">
+        <p id="music-match-message" class="music-match-message">Sono stati trovati più file simili. Scegli quello corretto.</p>
+        <div id="music-match-options" class="music-match-options"></div>
+        <div class="music-match-actions">
+          <button type="button" id="music-match-cancel" class="music-match-btn is-cancel">Annulla</button>
         </div>
       </div>
     </div>
