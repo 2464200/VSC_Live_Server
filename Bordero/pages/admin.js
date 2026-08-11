@@ -6,6 +6,8 @@
 class AdminPanel {
   constructor() {
     this.consoleOutput = [];
+    this.currentDataViewerRequestId = 0;
+    this.currentDataViewerType = '';
     this.init();
   }
 
@@ -29,8 +31,7 @@ class AdminPanel {
   }
 
   async fetchCameraProfilesProbe() {
-    const response = await fetch('/api/userform/pagina05/cameras/probe', { cache: 'no-store' });
-    const payload = await response.json().catch(() => ({}));
+    const { response, payload } = await this.fetchJson('/api/userform/pagina05/cameras/probe', { cache: 'no-store' });
     if (!response.ok || !payload?.ok) {
       throw new Error(payload?.error || `HTTP ${response.status}`);
     }
@@ -38,14 +39,23 @@ class AdminPanel {
   }
 
   async reconcileCameraProfiles() {
-    const response = await fetch('/api/userform/pagina05/cameras/reconcile', {
+    const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || !payload?.ok) {
-      throw new Error(payload?.error || `HTTP ${response.status}`);
+    };
+
+    let { response, payload } = await this.fetchJson('/api/userform/pagina05/cameras/reconcile', requestOptions).catch(() => ({ response: null, payload: null }));
+
+    if (!response || !response.ok || !payload?.ok) {
+      if (response && response.status === 405) {
+        ({ response, payload } = await this.fetchJson('/api/userform/pagina05/cameras/reconcile').catch(() => ({ response: null, payload: null })));
+      }
     }
+
+    if (!response || !response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response?.status || 'NETWORK'}`);
+    }
+
     return payload;
   }
 
@@ -165,8 +175,7 @@ class AdminPanel {
   }
 
   async fetchMusicArchiveConfig() {
-    const response = await fetch('/api/music-archive/config', { cache: 'no-store' });
-    const payload = await response.json().catch(() => ({}));
+    const { response, payload } = await this.fetchJson('/api/music-archive/config', { cache: 'no-store' });
     if (!response.ok || !payload?.ok) {
       throw new Error(payload?.error || `HTTP ${response.status}`);
     }
@@ -175,8 +184,7 @@ class AdminPanel {
 
   async fetchMusicArchiveStatus(refresh = false) {
     const suffix = refresh ? '?refresh=1' : '';
-    const response = await fetch(`/api/music-archive/status${suffix}`, { cache: 'no-store' });
-    const payload = await response.json().catch(() => ({}));
+    const { response, payload } = await this.fetchJson(`/api/music-archive/status${suffix}`, { cache: 'no-store' });
     if (!response.ok || !payload?.ok) {
       throw new Error(payload?.error || `HTTP ${response.status}`);
     }
@@ -184,8 +192,7 @@ class AdminPanel {
   }
 
   async fetchMusicArchiveDirectories(targetPath = '') {
-    const response = await fetch(`/api/music-archive/directories?path=${encodeURIComponent(targetPath || '')}`, { cache: 'no-store' });
-    const payload = await response.json().catch(() => ({}));
+    const { response, payload } = await this.fetchJson(`/api/music-archive/directories?path=${encodeURIComponent(targetPath || '')}`, { cache: 'no-store' });
     if (!response.ok || !payload?.ok) {
       throw new Error(payload?.error || `HTTP ${response.status}`);
     }
@@ -328,13 +335,12 @@ class AdminPanel {
       }
 
       try {
-        const response = await fetch('/api/music-archive/config', {
+        const { response, payload } = await this.fetchJson('/api/music-archive/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ rootPath })
         });
 
-        const payload = await response.json().catch(() => ({}));
         if (!response.ok || !payload?.ok) {
           throw new Error(payload?.error || `HTTP ${response.status}`);
         }
@@ -535,8 +541,7 @@ class AdminPanel {
   }
 
   async fetchMonitorPagePolicy() {
-    const response = await fetch('/api/userform/pagina05/electron/page-policy', { cache: 'no-store' });
-    const payload = await response.json().catch(() => ({}));
+    const { response, payload } = await this.fetchJson('/api/userform/pagina05/electron/page-policy', { cache: 'no-store' });
 
     if (!response.ok || !payload?.ok) {
       throw new Error(payload?.error || `HTTP ${response.status}`);
@@ -546,13 +551,12 @@ class AdminPanel {
   }
 
   async saveMonitorPagePolicy(pagePath, primary, secondary) {
-    const response = await fetch('/api/userform/pagina05/electron/page-policy', {
+    const { response, payload } = await this.fetchJson('/api/userform/pagina05/electron/page-policy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: pagePath, primary: Boolean(primary), secondary: Boolean(secondary) })
     });
 
-    const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload?.ok) {
       throw new Error(payload?.error || `HTTP ${response.status}`);
     }
@@ -779,6 +783,43 @@ class AdminPanel {
     return BORDERO_CONFIG?.DISPLAY_SCROLL_SETTINGS_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_SETTINGS';
   }
 
+  getDataViewerStorageKey() {
+    return 'BORDERO_ADMIN_DATA_VIEWER_TYPE';
+  }
+
+  readDataViewerSelection() {
+    return String(localStorage.getItem(this.getDataViewerStorageKey()) || '').trim();
+  }
+
+  saveDataViewerSelection(type) {
+    localStorage.setItem(this.getDataViewerStorageKey(), String(type || ''));
+    return String(type || '');
+  }
+
+  resolveApiUrl(path) {
+    const raw = String(path || '').trim();
+    if (!raw) {
+      throw new Error('Empty API path');
+    }
+    if (/^https?:\/\//i.test(raw)) {
+      return raw;
+    }
+    const originCandidate = (typeof window !== 'undefined' && window.location && window.location.origin)
+      ? String(window.location.origin).trim()
+      : '';
+    const origin = /^https?:\/\//i.test(originCandidate)
+      ? originCandidate.replace(/\/$/, '')
+      : 'http://localhost:5500';
+    return `${origin}${raw.startsWith('/') ? '' : '/'}${raw}`;
+  }
+
+  async fetchJson(path, options = {}) {
+    const url = this.resolveApiUrl(path);
+    const response = await fetch(url, options);
+    const payload = await response.json().catch(() => ({}));
+    return { response, payload };
+  }
+
   readDisplayScrollSettings() {
     const defaults = this.getDisplayScrollDefaults();
     const raw = localStorage.getItem(this.getDisplayScrollStorageKey());
@@ -958,7 +999,7 @@ class AdminPanel {
 
     const persistDjSource = async (djList) => {
       try {
-        const response = await fetch('http://localhost:5500/api/bordero/dj-source', {
+        const { response, payload: result } = await this.fetchJson('/api/bordero/dj-source', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dj: djList })
@@ -967,8 +1008,6 @@ class AdminPanel {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-
-        const result = await response.json();
         this.log(`✓ Sorgente DJ salvata su file (${result.count} DJ)`, 'success');
         return result;
       } catch (error) {
@@ -1388,7 +1427,7 @@ class AdminPanel {
       this.log('🌐 Avvio sync da Google Sheets...', 'warn');
       this.addSyncLog('Avvio sync da Google Sheets...', 'info');
       try {
-        const endpoint = `${window.location.origin || 'http://localhost:5500'}/api/bordero/sync-google`;
+        const endpoint = this.resolveApiUrl('/api/bordero/sync-google');
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -1441,15 +1480,35 @@ class AdminPanel {
 
   /* ========== DATA VIEWER ========== */
   setupDataViewer() {
-    document.getElementById('data-viewer-select').addEventListener('change', (e) => {
-      void this.refreshDataViewer(e.target.value);
+    const select = document.getElementById('data-viewer-select');
+    if (!select) return;
+
+    const savedType = this.readDataViewerSelection();
+    if (savedType && Array.from(select.options).some((option) => option.value === savedType)) {
+      select.value = savedType;
+    }
+
+    select.addEventListener('change', (e) => {
+      const value = e.target.value;
+      this.saveDataViewerSelection(value);
+      void this.refreshDataViewer(value);
     });
+
+    if (select.value) {
+      void this.refreshDataViewer(select.value);
+    }
   }
 
   async refreshDataViewer(type = null) {
     const select = document.getElementById('data-viewer-select');
     const output = document.getElementById('data-viewer-output');
     const activeType = type || select?.value || '';
+    const requestId = ++this.currentDataViewerRequestId;
+    this.currentDataViewerType = activeType;
+
+    if (output) {
+      output.innerHTML = '<div class="data-viewer-empty">Caricamento dati...</div>';
+    }
 
     let data = null;
     switch (activeType) {
@@ -1550,6 +1609,10 @@ class AdminPanel {
           }
         }
         break;
+    }
+
+    if (requestId !== this.currentDataViewerRequestId || (select && select.value !== activeType)) {
+      return;
     }
 
     if (output) {
@@ -1852,14 +1915,13 @@ class AdminPanel {
     const loadSwapStatus = async () => {
       if (!swapBtn && !primaryMonitorSelect) return;
       try {
-        const response = await fetch('/api/electron/monitor-preferences', {
+        const { response, payload } = await this.fetchJson('/api/electron/monitor-preferences', {
           method: 'GET',
           cache: 'no-store'
         });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-        const payload = await response.json();
         updateSwapButton(Boolean(payload.swapPrimarySecondary));
         updatePrimaryMonitorSelect(payload);
       } catch (error) {
@@ -1885,7 +1947,7 @@ class AdminPanel {
       swapBtn.addEventListener('click', async () => {
         swapBtn.disabled = true;
         try {
-          const response = await fetch('/api/electron/swap-monitors', {
+          const { response, payload } = await this.fetchJson('/api/electron/swap-monitors', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -1896,8 +1958,6 @@ class AdminPanel {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
           }
-
-          const payload = await response.json();
           const isEnabled = Boolean(payload.swapPrimarySecondary);
           updateSwapButton(isEnabled);
           updatePrimaryMonitorSelect(payload);
@@ -1921,7 +1981,7 @@ class AdminPanel {
           const requestedChoice = Number(primaryMonitorSelect.value) === 2 ? 2 : 1;
           const shouldSwap = requestedChoice === 2;
 
-          const response = await fetch('/api/electron/swap-monitors', {
+          const { response, payload } = await this.fetchJson('/api/electron/swap-monitors', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -1934,8 +1994,6 @@ class AdminPanel {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
           }
-
-          const payload = await response.json();
           updateSwapButton(Boolean(payload.swapPrimarySecondary));
           updatePrimaryMonitorSelect(payload);
           this.log(`Monitor principale impostato su ${requestedChoice}: applicazione Electron aggiornata`, 'success');

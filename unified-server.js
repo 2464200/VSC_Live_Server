@@ -3145,7 +3145,7 @@ app.get('/api/userform/pagina05/cameras/probe', async (req, res) => {
     }
 });
 
-app.post('/api/userform/pagina05/cameras/reconcile', async (_req, res) => {
+const handleCamerasReconcile = async (_req, res) => {
     try {
         const systemCamera = await ensureSystemWebcamInUserformCsv();
         const cameras = loadUserformCameraProfiles(true);
@@ -3164,7 +3164,10 @@ app.post('/api/userform/pagina05/cameras/reconcile', async (_req, res) => {
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error), cameras: [] });
     }
-});
+};
+
+app.post('/api/userform/pagina05/cameras/reconcile', handleCamerasReconcile);
+app.get('/api/userform/pagina05/cameras/reconcile', handleCamerasReconcile);
 
 app.post('/api/userform/pagina05/cameras/profile/save', (req, res) => {
     try {
@@ -4651,7 +4654,7 @@ router.delete('/dj/:id', (req, res) => {
 });
 
 // Salva la lista DJ nel file CSV di sorgente Borderò
-router.post('/bordero/dj-source', (req, res) => {
+function handleBorderoDjSourceSave(req, res) {
     try {
         const isLegacyDBaseNoise = (value) => {
             const text = String(value || '').trim();
@@ -4690,7 +4693,10 @@ router.post('/bordero/dj-source', (req, res) => {
     } catch (e) {
         res.status(500).json({ error: 'Errore salvataggio sorgente DJ: ' + e.message });
     }
-});
+}
+
+router.post('/bordero/dj-source', handleBorderoDjSourceSave);
+app.post('/api/bordero/dj-source', handleBorderoDjSourceSave);
 
 // ============================
 //    GET: LIMITI PRENOTAZIONI DJ
