@@ -193,6 +193,53 @@
       <button id="btn-sync-dj-source" class="btn btn-warning" type="button" style="margin-left: 8px;">🧠 Sincronizza sorgente DJ</button>
     </section>
 
+    <section class="admin-section">
+      <h2>🎛️ Software Console DJ</h2>
+      <p class="display-scroll-help">
+        Seleziona il software usato dal DJ durante l'evento. La scelta è esclusiva: attivandone uno gli altri vengono automaticamente disattivati.
+      </p>
+
+      <div class="dj-software-table-wrap">
+        <table class="dj-software-table" aria-label="Selezione software console DJ">
+          <thead>
+            <tr>
+              <th>Software</th>
+              <th>On/Off</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pioneer DJ Rekordbox</td>
+              <td>
+                <button id="btn-software-rekordbox" class="btn btn-secondary software-toggle-btn" type="button" data-software="rekordbox" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Serato DJ</td>
+              <td>
+                <button id="btn-software-serato" class="btn btn-secondary software-toggle-btn" type="button" data-software="serato" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Native Instruments Traktor Pro</td>
+              <td>
+                <button id="btn-software-traktor" class="btn btn-secondary software-toggle-btn" type="button" data-software="traktor" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>VirtualDJ</td>
+              <td>
+                <button id="btn-software-virtualdj" class="btn btn-secondary software-toggle-btn" type="button" data-software="virtualdj" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="dj-software-selection-status" class="dj-software-status">Software selezionato: Nessuno</div>
+      <div id="dj-software-feature-status" class="dj-software-status">Funzione collegata: disabilitata (in attesa specifica)</div>
+    </section>
+
     <!-- DATA VIEWER -->
     <section class="admin-section">
       <h2>📋 Data Viewer</h2>

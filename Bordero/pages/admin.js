@@ -18,10 +18,120 @@ class AdminPanel {
     this.setupCacheManagement();
     this.setupExportImport();
     this.setupDjManagement();
+    this.setupDjSoftwareSelection();
     this.setupConsole();
     this.setupElectronLauncher();
     this.setupMonitorPolicyDiagnostics();
     this.log('✓ Admin Panel initialized', 'success');
+  }
+
+  getDjSoftwareStorageKey() {
+    return 'BORDERO_DJ_SOFTWARE';
+  }
+
+  normalizeDjSoftware(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    const allowed = ['rekordbox', 'serato', 'traktor', 'virtualdj'];
+    return allowed.includes(normalized) ? normalized : '';
+  }
+
+  readDjSoftwareSelection() {
+    const raw = localStorage.getItem(this.getDjSoftwareStorageKey());
+    return this.normalizeDjSoftware(raw);
+  }
+
+  saveDjSoftwareSelection(software) {
+    const normalized = this.normalizeDjSoftware(software);
+    if (!normalized) {
+      localStorage.removeItem(this.getDjSoftwareStorageKey());
+      return '';
+    }
+
+    localStorage.setItem(this.getDjSoftwareStorageKey(), normalized);
+    return normalized;
+  }
+
+  getDjSoftwareLabel(software) {
+    const map = {
+      rekordbox: 'Pioneer DJ Rekordbox',
+      serato: 'Serato DJ',
+      traktor: 'Native Instruments Traktor Pro',
+      virtualdj: 'VirtualDJ'
+    };
+
+    return map[this.normalizeDjSoftware(software)] || 'Nessuno';
+  }
+
+  isFeatureEnabledBySelectedSoftware(software) {
+    // Hook pronto per la funzione specifica richiesta in un secondo momento.
+    return this.normalizeDjSoftware(software) === 'virtualdj';
+  }
+
+  updateDjSoftwareUi(selectedSoftware) {
+    const normalized = this.normalizeDjSoftware(selectedSoftware);
+    const buttons = document.querySelectorAll('.software-toggle-btn');
+
+    buttons.forEach((button) => {
+      const software = this.normalizeDjSoftware(button.getAttribute('data-software'));
+      const isOn = software === normalized;
+      button.textContent = isOn ? 'ON' : 'OFF';
+      button.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      button.classList.toggle('btn-primary', isOn);
+      button.classList.toggle('btn-secondary', !isOn);
+      button.classList.toggle('is-on', isOn);
+      button.classList.toggle('is-off', !isOn);
+    });
+
+    const selectionStatus = document.getElementById('dj-software-selection-status');
+    if (selectionStatus) {
+      selectionStatus.textContent = `Software selezionato: ${this.getDjSoftwareLabel(normalized)}`;
+    }
+
+    const featureStatus = document.getElementById('dj-software-feature-status');
+    if (featureStatus) {
+      const enabled = this.isFeatureEnabledBySelectedSoftware(normalized);
+      featureStatus.textContent = enabled
+        ? 'Funzione collegata: abilitata (regola temporanea: VirtualDJ selezionato)'
+        : 'Funzione collegata: disabilitata (in attesa specifica)';
+    }
+  }
+
+  setupDjSoftwareSelection() {
+    const buttons = document.querySelectorAll('.software-toggle-btn');
+    if (!buttons || buttons.length === 0) return;
+
+    const applySelection = (software, notify = true) => {
+      const selected = this.saveDjSoftwareSelection(software);
+      this.updateDjSoftwareUi(selected);
+
+      if (notify) {
+        window.dispatchEvent(new CustomEvent('bordero:dj-software-changed', {
+          detail: {
+            software: selected,
+            featureEnabled: this.isFeatureEnabledBySelectedSoftware(selected)
+          }
+        }));
+      }
+
+      if (selected) {
+        this.log(`✓ Software DJ selezionato: ${this.getDjSoftwareLabel(selected)}`, 'success');
+      }
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const software = this.normalizeDjSoftware(button.getAttribute('data-software'));
+        if (!software) return;
+        applySelection(software, true);
+      });
+    });
+
+    applySelection(this.readDjSoftwareSelection(), false);
+
+    window.addEventListener('storage', (event) => {
+      if (event.key !== this.getDjSoftwareStorageKey()) return;
+      this.updateDjSoftwareUi(this.readDjSoftwareSelection());
+    });
   }
 
   setupMonitorPolicyDiagnostics() {

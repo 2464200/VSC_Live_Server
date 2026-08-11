@@ -81,6 +81,47 @@
   color: #fff;
 }
 
+.dj-software-table-wrap {
+  overflow-x: auto;
+}
+
+.dj-software-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.dj-software-table th,
+.dj-software-table td {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.dj-software-table th {
+  color: #ffcb8f;
+  background: rgba(255, 127, 0, 0.16);
+}
+
+.software-toggle-btn {
+  min-width: 78px;
+  font-weight: 700;
+}
+
+.software-toggle-btn.is-on {
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.35);
+}
+
+.software-toggle-btn.is-off {
+  opacity: 0.9;
+}
+
+.dj-software-status {
+  margin-top: 10px;
+  color: #ddd;
+  font-size: 0.95em;
+}
+
 /* STATUS GRID */
 .status-grid {
   display: grid;
