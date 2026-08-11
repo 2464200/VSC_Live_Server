@@ -751,6 +751,13 @@ class BorderoTableManager {
     document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
+    document.getElementById('btn-webcam-live-toggle')?.addEventListener('click', () => {
+      const button = document.getElementById('btn-webcam-live-toggle');
+      const action = (button?.dataset?.action || 'start').toLowerCase();
+      this.sendWebcamLiveCommand(action).catch((error) => {
+        Toast.error(`Errore ${action === 'stop' ? 'ferma' : 'avvio'} webcam: ${error?.message || error}`);
+      });
+    });
     document.getElementById('btn-stop-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('stop'));
     document.getElementById('btn-resume-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('resume'));
 
@@ -829,6 +836,89 @@ class BorderoTableManager {
     this.setWebcamSignal('idle', 'Riposo');
   }
 
+  async fetchDefaultWebcamCameraName() {
+    try {
+      const response = await fetch('/api/userform/pagina05/cameras', {
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const out = await response.json().catch(() => ({}));
+      if (!response.ok || out?.ok === false) {
+        throw new Error(out?.error || `HTTP ${response.status}`);
+      }
+
+      return String(out?.defaultCameraName || '').trim();
+    } catch (error) {
+      throw new Error(error?.message || String(error));
+    }
+  }
+
+  updateWebcamLiveToggleState(isLive = false) {
+    const button = document.getElementById('btn-webcam-live-toggle');
+    if (!button) {
+      return;
+    }
+
+    if (isLive) {
+      button.dataset.action = 'stop';
+      button.textContent = 'FERMA WEBCAM';
+      button.classList.remove('p05-webcam-control-start');
+      button.classList.add('p05-webcam-control-stop');
+      button.setAttribute('aria-label', 'Ferma la webcam secondaria');
+    } else {
+      button.dataset.action = 'start';
+      button.textContent = 'START WEBCAM';
+      button.classList.remove('p05-webcam-control-stop');
+      button.classList.add('p05-webcam-control-start');
+      button.setAttribute('aria-label', 'Avvia la webcam secondaria');
+    }
+  }
+
+  async sendWebcamLiveCommand(action) {
+    const normalized = String(action || 'start').trim().toLowerCase();
+    if (normalized !== 'start' && normalized !== 'stop') {
+      return;
+    }
+
+    if (normalized === 'stop') {
+      const response = await fetch('/api/userform/pagina05/electron/live/stop', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      const out = await response.json().catch(() => ({}));
+      if (!response.ok || out?.ok === false || out?.success === false) {
+        throw new Error(out?.error || `HTTP ${response.status}`);
+      }
+
+      Toast.success('Comando inviato: FERMA WEBCAM');
+    } else {
+      const cameraName = await this.fetchDefaultWebcamCameraName();
+      if (!cameraName) {
+        throw new Error('Nessuna webcam disponibile per l\'avvio.');
+      }
+
+      const response = await fetch('/api/userform/pagina05/electron/live/start', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cameraName })
+      });
+
+      const out = await response.json().catch(() => ({}));
+      if (!response.ok || out?.ok === false || out?.success === false) {
+        throw new Error(out?.error || `HTTP ${response.status}`);
+      }
+
+      Toast.success('Comando inviato: START WEBCAM');
+    }
+
+    await this.refreshSecondaryPlayerSignalState();
+  }
+
   async refreshSecondaryPlayerSignalState() {
     try {
       const response = await fetch('/api/userform/pagina05/electron/player/state', {
@@ -843,15 +933,19 @@ class BorderoTableManager {
 
       const playerState = out?.playerState || {};
       if (playerState.active) {
-        this.refreshWebcamSignal({ warningReason: '', vlcRunning: playerState.mode === 'webcam-live' });
+        const isLive = playerState.mode === 'webcam-live';
+        this.refreshWebcamSignal({ warningReason: '', vlcRunning: isLive });
+        this.updateWebcamLiveToggleState(isLive);
       } else {
         this.refreshWebcamSignal({ warningReason: '', vlcRunning: false });
+        this.updateWebcamLiveToggleState(false);
       }
     } catch (error) {
       this.refreshWebcamSignal({
         warningReason: error?.message || 'Player Electron non raggiungibile',
         vlcRunning: false
       });
+      this.updateWebcamLiveToggleState(false);
     }
   }
 
@@ -861,6 +955,7 @@ class BorderoTableManager {
     }
 
     this.refreshWebcamSignal({ warningReason: '', vlcRunning: false });
+    this.updateWebcamLiveToggleState(false);
     this.refreshSecondaryPlayerSignalState().catch(() => null);
 
     if (this.webcamSignalPollTimer) {
