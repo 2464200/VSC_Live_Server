@@ -20,10 +20,87 @@ class AdminPanel {
     this.setupDjManagement();
     this.setupDjSoftwareSelection();
     this.setupMusicArchiveSettings();
+    this.setupCameraProfilesPanel();
     this.setupConsole();
     this.setupElectronLauncher();
     this.setupMonitorPolicyDiagnostics();
     this.log('✓ Admin Panel initialized', 'success');
+  }
+
+  async fetchCameraProfilesProbe() {
+    const response = await fetch('/api/userform/pagina05/cameras/probe', { cache: 'no-store' });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  renderCameraProfilesTable(payload = {}) {
+    const cameras = Array.isArray(payload?.cameras) ? payload.cameras : [];
+    if (!cameras.length) {
+      return '<div class="data-viewer-empty">Nessuna webcam disponibile.</div>';
+    }
+
+    const rows = cameras.map((camera) => `
+      <tr>
+        <td>${this.escapeHtml(camera.name || '')}</td>
+        <td>${this.escapeHtml(camera.codec || '-')}</td>
+        <td>${this.escapeHtml(camera.size || '-')}</td>
+        <td>${this.escapeHtml(camera.fps || '-')}</td>
+        <td>${camera.isDefault ? 'SI' : 'NO'}</td>
+        <td>${camera.isEnabled === false ? 'NO' : 'SI'}</td>
+        <td>${this.escapeHtml(camera.lastStatus || '-')}</td>
+      </tr>
+    `).join('');
+
+    return `
+      <table class="data-viewer-table" aria-label="Tabella telecamere di sistema">
+        <thead>
+          <tr>
+            <th>Telecamera</th>
+            <th>Codec</th>
+            <th>Risoluzione</th>
+            <th>FPS</th>
+            <th>Default</th>
+            <th>Abilitata</th>
+            <th>Stato</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  setupCameraProfilesPanel() {
+    const refreshBtn = document.getElementById('btn-refresh-camera-profiles');
+    const summaryNode = document.getElementById('camera-profiles-summary');
+    const outputNode = document.getElementById('camera-profiles-output');
+    if (!refreshBtn || !summaryNode || !outputNode) return;
+
+    const load = async () => {
+      summaryNode.textContent = 'Profilazione telecamere in corso...';
+      outputNode.innerHTML = '<div class="data-viewer-empty">Attendere, recupero dati...</div>';
+
+      try {
+        const payload = await this.fetchCameraProfilesProbe();
+        const total = Number(payload?.count) || 0;
+        const physical = Number(payload?.physicalCount) || 0;
+        const added = Number(payload?.systemCamera?.addedCount || 0);
+        const updated = Number(payload?.systemCamera?.updatedCount || 0);
+        summaryNode.textContent = `Totale profili: ${total} • Webcam fisiche: ${physical} • Nuove: ${added} • Aggiornate: ${updated}`;
+        outputNode.innerHTML = this.renderCameraProfilesTable(payload);
+      } catch (error) {
+        summaryNode.textContent = 'Errore durante il caricamento telecamere';
+        outputNode.innerHTML = `<div class="data-viewer-empty">Errore: ${this.escapeHtml(error?.message || String(error))}</div>`;
+      }
+    };
+
+    refreshBtn.addEventListener('click', () => {
+      void load();
+    });
+
+    void load();
   }
 
   async fetchMusicArchiveConfig() {
@@ -1130,6 +1207,14 @@ class AdminPanel {
         }
         break;
       }
+      case 'cameras': {
+        try {
+          data = await this.fetchCameraProfilesProbe();
+        } catch (error) {
+          data = { error: error?.message || String(error), cameras: [] };
+        }
+        break;
+      }
       case 'music-archive': {
         try {
           const payload = await this.fetchMusicArchiveStatus(false);
@@ -1270,6 +1355,24 @@ class AdminPanel {
           <thead><tr><th>Percorso relativo</th><th>File</th><th>Dimensione</th><th>Ultima modifica</th></tr></thead>
           <tbody>${rows || '<tr><td colspan="4">Nessun file da mostrare in anteprima</td></tr>'}</tbody>
         </table>`;
+    }
+
+    if (type === 'cameras' && data && typeof data === 'object') {
+      if (data.error) {
+        return `<div class="data-viewer-empty">Errore telecamere: ${this.escapeHtml(data.error)}</div>`;
+      }
+
+      const cameras = Array.isArray(data.cameras) ? data.cameras : [];
+      const summary = [
+        `${Number(data.count) || cameras.length} profili`,
+        `${Number(data.physicalCount) || 0} webcam fisiche`,
+        `sorgente: ${data.source || '-'}`
+      ].join(' • ');
+
+      return `
+        <div class="data-viewer-summary">${this.escapeHtml(summary)}</div>
+        ${this.renderCameraProfilesTable(data)}
+      `;
     }
 
     if (typeof data === 'object' && !Array.isArray(data)) {

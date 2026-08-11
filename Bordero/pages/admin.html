@@ -273,6 +273,18 @@
       </div>
     </section>
 
+    <section class="admin-section">
+      <h2>📷 Telecamere di Sistema</h2>
+      <p class="display-scroll-help">
+        Elenco profili webcam da <strong>get-camera-name.csv</strong> con capability rilevate automaticamente da FFmpeg.
+      </p>
+      <div class="display-scroll-actions">
+        <button id="btn-refresh-camera-profiles" class="btn btn-primary" type="button">🔄 Aggiorna e Profila Telecamere</button>
+      </div>
+      <div id="camera-profiles-summary" class="data-viewer-summary">In attesa di caricamento...</div>
+      <div id="camera-profiles-output" class="data-viewer"></div>
+    </section>
+
     <!-- DATA VIEWER -->
     <section class="admin-section">
       <h2>📋 Data Viewer</h2>
@@ -283,6 +295,7 @@
           <option value="comuni">Comuni Italia</option>
           <option value="dbase">dBase (DJ)</option>
           <option value="location">Location</option>
+          <option value="cameras">Telecamere (Webcam)</option>
           <option value="music-archive">File Audio Archivio</option>
           <option value="serata">Current Serata</option>
           <option value="history">Serata History</option>

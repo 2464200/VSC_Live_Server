@@ -982,6 +982,147 @@ function choosePreferredSystemWebcam(deviceNames = []) {
     return physical || deviceNames[0] || '';
 }
 
+function isLikelyVirtualCameraName(name = '') {
+    return /(virtual|splitter|obs|xsplit|manycam|ndi)/i.test(String(name || ''));
+}
+
+function parseCameraCapabilitiesFromDshow(outputText = '') {
+    const lines = String(outputText || '').split(/\r?\n/);
+    const capabilities = [];
+
+    for (const line of lines) {
+        const match = line.match(/(?:pixel_format|vcodec)=([^\s]+).*?max s=(\d+)x(\d+) fps=([\d.]+)/i);
+        if (!match) {
+            continue;
+        }
+
+        const codec = sanitizeCsvValue(match[1]).toLowerCase();
+        const width = Number.parseInt(match[2], 10);
+        const height = Number.parseInt(match[3], 10);
+        const fps = Number.parseFloat(match[4]);
+        if (!Number.isFinite(width) || !Number.isFinite(height) || !Number.isFinite(fps)) {
+            continue;
+        }
+
+        capabilities.push({
+            codec,
+            width,
+            height,
+            fps
+        });
+    }
+
+    return capabilities;
+}
+
+function scoreCameraCapability(cap = {}) {
+    const width = Number(cap.width) || 0;
+    const height = Number(cap.height) || 0;
+    const fps = Number(cap.fps) || 0;
+    const codec = sanitizeCsvValue(cap.codec).toLowerCase();
+
+    const area = Math.max(0, width * height);
+    const fpsWeight = Math.max(0.15, Math.min(fps, 60) / 30);
+    const codecBonus = codec === 'mjpeg' ? 250000 : codec === 'h264' ? 200000 : codec === 'yuyv422' ? 100000 : 0;
+    return (area * fpsWeight) + codecBonus;
+}
+
+function chooseBestCameraCapability(capabilities = []) {
+    if (!Array.isArray(capabilities) || capabilities.length === 0) {
+        return null;
+    }
+
+    let best = capabilities[0];
+    let bestScore = scoreCameraCapability(best);
+    for (let i = 1; i < capabilities.length; i += 1) {
+        const candidate = capabilities[i];
+        const candidateScore = scoreCameraCapability(candidate);
+        if (candidateScore > bestScore) {
+            best = candidate;
+            bestScore = candidateScore;
+        }
+    }
+
+    return best;
+}
+
+function formatCapabilityFps(fps) {
+    const value = Number(fps);
+    if (!Number.isFinite(value) || value <= 0) {
+        return '';
+    }
+    if (Math.abs(value - Math.round(value)) < 0.001) {
+        return String(Math.round(value));
+    }
+    return String(value.toFixed(2)).replace(/\.00$/, '');
+}
+
+async function probeBestCapabilityForDevice(ffmpegPath = '', cameraName = '') {
+    const normalizedName = sanitizeCsvValue(cameraName);
+    if (!ffmpegPath || !normalizedName) {
+        return {
+            name: normalizedName,
+            capability: null,
+            error: 'Nome camera o FFmpeg non valido'
+        };
+    }
+
+    try {
+        const { stderr, stdout } = await execFileAsync(ffmpegPath, [
+            '-hide_banner',
+            '-f', 'dshow',
+            '-list_options', 'true',
+            '-i', `video=${normalizedName}`
+        ], { maxBuffer: 4 * 1024 * 1024 });
+
+        const capabilities = parseCameraCapabilitiesFromDshow(`${stderr || ''}\n${stdout || ''}`);
+        return {
+            name: normalizedName,
+            capability: chooseBestCameraCapability(capabilities),
+            error: ''
+        };
+    } catch (error) {
+        const stderr = String(error?.stderr || '');
+        const stdout = String(error?.stdout || '');
+        const capabilities = parseCameraCapabilitiesFromDshow(`${stderr}\n${stdout}`);
+        return {
+            name: normalizedName,
+            capability: chooseBestCameraCapability(capabilities),
+            error: error?.message || String(error)
+        };
+    }
+}
+
+function buildAutodetectedCameraProfile(cameraName = '', capability = null, options = {}) {
+    const normalizedName = sanitizeCsvValue(cameraName);
+    const cap = capability || {};
+    const codec = sanitizeCsvValue(cap.codec).toLowerCase() || 'mjpeg';
+    const width = Number(cap.width) || 1280;
+    const height = Number(cap.height) || 720;
+    const fps = formatCapabilityFps(cap.fps) || '30';
+    const size = `${width}x${height}`;
+    const nowIso = new Date().toISOString();
+
+    return {
+        name: normalizedName,
+        codec,
+        size,
+        fps,
+        label: sanitizeCsvValue(options.label) || `Sistema - ${normalizedName}`,
+        profileId: sanitizeCsvValue(options.profileId) || ensureProfileId(normalizedName),
+        isDefault: Boolean(options.isDefault),
+        isEnabled: Object.prototype.hasOwnProperty.call(options, 'isEnabled') ? Boolean(options.isEnabled) : true,
+        lastUsedAt: sanitizeCsvValue(options.lastUsedAt),
+        lastMode: sanitizeCsvValue(options.lastMode),
+        lastStatus: sanitizeCsvValue(options.lastStatus) || 'detected-capabilities',
+        usageCount: Number.isFinite(Number(options.usageCount)) ? Math.max(0, Number(options.usageCount)) : 0,
+        lastSize: size,
+        lastFps: fps,
+        lastCodec: codec,
+        notes: sanitizeCsvValue(options.notes) || `Profilo auto-aggiornato da FFmpeg (${nowIso})`
+    };
+}
+
 async function detectSystemWebcamFromFfmpeg() {
     const ffmpegPath = resolveFfmpegExecutable();
     if (!ffmpegPath) {
@@ -1021,6 +1162,42 @@ async function detectSystemWebcamFromFfmpeg() {
     }
 }
 
+async function detectSystemWebcamsWithProfilesFromFfmpeg() {
+    const detection = await detectSystemWebcamFromFfmpeg();
+    const ffmpegPath = sanitizeCsvValue(detection.ffmpegPath);
+    const allCandidates = Array.isArray(detection.candidates) ? detection.candidates : [];
+    const physicalCandidates = allCandidates.filter((name) => !isLikelyVirtualCameraName(name));
+    const preferred = choosePreferredSystemWebcam(physicalCandidates.length ? physicalCandidates : allCandidates);
+
+    if (!ffmpegPath) {
+        return {
+            detectedName: preferred,
+            candidates: allCandidates,
+            physicalCandidates,
+            ffmpegPath: '',
+            probed: [],
+            error: detection.error || 'FFmpeg non trovato'
+        };
+    }
+
+    const probed = [];
+    for (const cameraName of physicalCandidates) {
+        // Sequential probing avoids overloading dshow on systems with multiple devices.
+        // eslint-disable-next-line no-await-in-loop
+        const probe = await probeBestCapabilityForDevice(ffmpegPath, cameraName);
+        probed.push(probe);
+    }
+
+    return {
+        detectedName: preferred,
+        candidates: allCandidates,
+        physicalCandidates,
+        ffmpegPath,
+        probed,
+        error: detection.error || ''
+    };
+}
+
 function writeUserformCameraProfilesCsv(rows = []) {
     const lines = [USERFORM_CAMERA_CSV_HEADER.join(',')];
 
@@ -1055,59 +1232,90 @@ function writeUserformCameraProfilesCsv(rows = []) {
 }
 
 async function ensureSystemWebcamInUserformCsv() {
-    const detection = await detectSystemWebcamFromFfmpeg();
+    const detection = await detectSystemWebcamsWithProfilesFromFfmpeg();
     const detectedName = sanitizeCsvValue(detection.detectedName);
+    const physicalCandidates = Array.isArray(detection.physicalCandidates) ? detection.physicalCandidates : [];
 
-    if (!detectedName) {
+    if (!physicalCandidates.length) {
         return {
             added: false,
-            detectedName: '',
+            updated: false,
+            addedCount: 0,
+            updatedCount: 0,
+            detectedName,
             candidates: detection.candidates || [],
+            physicalCandidates,
+            profiled: [],
             error: detection.error || ''
         };
     }
 
-    const raw = fs.existsSync(USERFORM_CAMERA_CSV)
-        ? fs.readFileSync(USERFORM_CAMERA_CSV, 'utf8').replace(/^\uFEFF/, '')
-        : `${USERFORM_CAMERA_CSV_HEADER.join(',')}\n`;
+    const profiles = loadUserformCameraProfiles(true);
+    const hasDefault = profiles.some((item) => item.isDefault);
+    const preferredName = choosePreferredSystemWebcam(physicalCandidates);
 
-    const rows = parseCsv(raw, {
-        columns: true,
-        skip_empty_lines: true,
-        relax_column_count: true,
-        trim: true
-    });
+    let addedCount = 0;
+    let updatedCount = 0;
+    const profiled = [];
 
-    const existingProfiles = rows
-        .map((row) => mapCsvRowToCameraProfile(row))
-        .filter(Boolean);
-    const alreadyPresent = existingProfiles.some((row) => row.name.toLowerCase() === detectedName.toLowerCase());
-    const hasDefault = existingProfiles.some((row) => row.isDefault);
-
-    if (!alreadyPresent) {
-        rows.push({
-            value: detectedName,
-            Codifica: 'yuyv422',
-            'dshow-size': '1280x720',
-            'dshow-fps': '30',
-            'ELENCO WEBCAM': 'Sistema - Webcam auto-rilevata',
-            'profile-id': ensureProfileId(detectedName),
-            'is-default': hasDefault ? '0' : '1',
-            'is-enabled': '1',
-            'last-status': 'detected',
-            'usage-count': '0',
-            'last-size': '1280x720',
-            'last-fps': '30',
-            'last-codec': 'yuyv422',
-            notes: 'Aggiunta automaticamente da rilevamento sistema'
+    for (const cameraName of physicalCandidates) {
+        const existingIndex = profiles.findIndex((item) => item.name.toLowerCase() === cameraName.toLowerCase());
+        const existing = existingIndex >= 0 ? profiles[existingIndex] : null;
+        const probe = (detection.probed || []).find((item) => sanitizeCsvValue(item.name).toLowerCase() === cameraName.toLowerCase()) || null;
+        const autoProfile = buildAutodetectedCameraProfile(cameraName, probe?.capability, {
+            label: existing?.label || `Sistema - ${cameraName}`,
+            profileId: existing?.profileId,
+            isEnabled: existing ? existing.isEnabled !== false : true,
+            isDefault: existing ? existing.isDefault : (!hasDefault && cameraName === preferredName),
+            usageCount: existing?.usageCount || 0,
+            lastUsedAt: existing?.lastUsedAt || '',
+            lastMode: existing?.lastMode || '',
+            lastStatus: 'detected-capabilities',
+            notes: existing?.notes || ''
         });
-        writeUserformCameraProfilesCsv(rows);
+
+        if (existing) {
+            const changed = existing.codec !== autoProfile.codec
+                || existing.size !== autoProfile.size
+                || existing.fps !== autoProfile.fps
+                || existing.lastCodec !== autoProfile.lastCodec
+                || existing.lastSize !== autoProfile.lastSize
+                || existing.lastFps !== autoProfile.lastFps
+                || existing.lastStatus !== autoProfile.lastStatus;
+            profiles[existingIndex] = {
+                ...existing,
+                ...autoProfile,
+                isDefault: existing.isDefault,
+                usageCount: existing.usageCount
+            };
+            if (changed) {
+                updatedCount += 1;
+            }
+        } else {
+            profiles.push(autoProfile);
+            addedCount += 1;
+        }
+
+        profiled.push({
+            name: cameraName,
+            codec: autoProfile.codec,
+            size: autoProfile.size,
+            fps: autoProfile.fps,
+            probeError: probe?.error || ''
+        });
     }
 
+    saveUserformCameraProfiles(profiles);
+
     return {
-        added: !alreadyPresent,
+        added: addedCount > 0,
+        updated: updatedCount > 0,
+        addedCount,
+        updatedCount,
         detectedName,
         candidates: detection.candidates || [],
+        physicalCandidates,
+        profiled,
         error: detection.error || ''
     };
 }
@@ -2871,6 +3079,26 @@ app.get('/api/userform/pagina05/cameras', async (req, res) => {
     }
 });
 
+app.get('/api/userform/pagina05/cameras/probe', async (req, res) => {
+    try {
+        const systemCamera = await ensureSystemWebcamInUserformCsv();
+        const cameras = loadUserformCameraProfiles(true);
+        const physical = cameras.filter((item) => !isLikelyVirtualCameraName(item.name));
+
+        return res.json({
+            ok: true,
+            source: USERFORM_CAMERA_CSV,
+            count: cameras.length,
+            physicalCount: physical.length,
+            systemCamera,
+            cameras,
+            physical
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error), cameras: [] });
+    }
+});
+
 app.post('/api/userform/pagina05/cameras/profile/save', (req, res) => {
     try {
         const cameraName = sanitizeCsvValue(req.body?.cameraName);
@@ -4520,6 +4748,18 @@ function startServer(port, maxRetries = 5) {
             console.log(`   📄 PDF API: http://localhost:${port}/api/pdf-list`);
             console.log(`   🎵 Eventi:  http://localhost:${port}/eventi/eventi.html`);
             console.log('='.repeat(80) + '\n');
+
+            ensureSystemWebcamInUserformCsv()
+                .then((result) => {
+                    const added = Number(result?.addedCount || 0);
+                    const updated = Number(result?.updatedCount || 0);
+                    const devices = Array.isArray(result?.physicalCandidates) ? result.physicalCandidates.length : 0;
+                    console.log(`[WEBCAM] Profilazione avvio completata: ${devices} webcam fisiche, +${added} nuove, ${updated} aggiornate.`);
+                })
+                .catch((error) => {
+                    console.warn(`[WEBCAM] Profilazione avvio fallita: ${error?.message || error}`);
+                });
+
             PORT = port;
             resolve(server);
         });
