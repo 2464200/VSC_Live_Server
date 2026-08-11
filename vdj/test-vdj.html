@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -6,31 +7,62 @@
     <title>Test VirtualDJ</title>
 
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background: #1e1e1e;
             color: white;
-            padding: 30px;
+            padding: 16px;
+            box-sizing: border-box;
         }
 
         h1 {
-            margin-bottom: 30px;
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 12px;
+            height: calc(100vh - 32px);
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .box {
             background: #2b2b2b;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 14px;
             border-radius: 10px;
+            box-sizing: border-box;
+        }
+
+        .box h2 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+        }
+
+        .box h3 {
+            margin: 8px 0 6px 0;
+            font-size: 14px;
         }
 
         button {
-            padding: 12px 20px;
-            margin: 5px;
+            padding: 8px 12px;
+            margin: 4px 4px 0 0;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .deck1 {
@@ -50,11 +82,54 @@
 
         #log {
             background: #111;
-            padding: 15px;
+            padding: 12px;
             border-radius: 6px;
-            min-height: 100px;
+            min-height: 0;
+            flex: 1;
+            overflow: auto;
             white-space: pre-wrap;
             font-family: Consolas, monospace;
+            line-height: 1.35;
+            font-size: 13px;
+        }
+
+        .status-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: #333;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .pill.ok {
+            background: #2e7d32;
+        }
+
+        .pill.warn {
+            background: #ef6c00;
+        }
+
+        .pill.err {
+            background: #c62828;
+        }
+
+        .pill::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.85;
         }
     </style>
 </head>
@@ -63,81 +138,56 @@
 
     <h1>🎧 Test collegamento VirtualDJ</h1>
 
-    <div class="box">
+    <div class="page">
+        <div class="column">
+            <div class="box">
+                <h2>Comunicazione</h2>
+                <label>URL VirtualDJ:</label>
+                <br><br>
+                <input
+                    type="text"
+                    id="vdjUrl"
+                    style="width: 100%; padding: 8px; box-sizing: border-box;"
+                    value="http://localhost:8080"
+                    placeholder="http://localhost:8080"
+                >
+                <br><br>
+                <button class="test" onclick="testConnessione()">VERIFICA CONNESSIONE</button>
+                <button onclick="leggiOrologio()">TEST VIRTUALDJ</button>
+                <button onclick="leggiDeck(1)">LEGGI DECK 1</button>
+                <button onclick="leggiDeck(2)">LEGGI DECK 2</button>
+            </div>
 
-        <h2>Comunicazione</h2>
-
-        <label>
-            URL VirtualDJ:
-        </label>
-
-        <br><br>
-
-        <input
-            type="text"
-            id="vdjUrl"
-            style="width: 80%; padding: 10px;"
-            value="http://localhost:8080"
-            placeholder="http://localhost:8080"
-        >
-
-        <br><br>
-
-        <button class="test" onclick="testConnessione()">
-            VERIFICA CONNESSIONE
-        </button>
-
-        <button onclick="leggiOrologio()">
-            TEST VIRTUALDJ
-        </button>
-
-        <button onclick="leggiDeck(1)">
-            LEGGI DECK 1
-        </button>
-
-        <button onclick="leggiDeck(2)">
-            LEGGI DECK 2
-        </button>
-
-    </div>
-
-    <div class="box">
-
-        <h2>Caricamento brano</h2>
-
-        <label>
-            Percorso completo del file MP3:
-        </label>
-
-        <br><br>
-
-        <input
-            type="text"
-            id="percorso"
-            style="width: 80%; padding: 10px;"
-            placeholder="C:\Musica\Country\brano.mp3"
-        >
-
-        <br><br>
-
-        <button class="deck1" onclick="caricaBrano(1)">
-            CARICA SU DECK 1
-        </button>
-
-        <button class="deck2" onclick="caricaBrano(2)">
-            CARICA SU DECK 2
-        </button>
-
-    </div>
-
-    <div class="box">
-
-        <h2>Risultato</h2>
-
-        <div id="log">
-            In attesa...
+            <div class="box">
+                <h2>Caricamento brano</h2>
+                <label>Percorso completo del file MP3:</label>
+                <br><br>
+                <input
+                    type="text"
+                    id="percorso"
+                    style="width: 100%; padding: 8px; box-sizing: border-box;"
+                    placeholder="C:\Musica\Country\brano.mp3"
+                >
+                <br><br>
+                <button class="deck1" onclick="caricaBrano(1)">CARICA SU DECK 1</button>
+                <button class="deck2" onclick="caricaBrano(2)">CARICA SU DECK 2</button>
+            </div>
         </div>
 
+        <div class="column">
+            <div class="box">
+                <h2>Stato collegamento</h2>
+                <div class="status-row">
+                    <div id="statusProxy" class="pill warn">Proxy locale: non verificato</div>
+                    <div id="statusVdj" class="pill warn">VirtualDJ: non verificato</div>
+                </div>
+                <button class="test" onclick="verificaTutto()">VERIFICA TUTTO</button>
+                <button onclick="verificaProxyLocale()">TEST PROXY LOCALE</button>
+                <button onclick="verificaVirtualDjDiretto()">TEST VDJ DIRETTO</button>
+                <h3>Risultato</h3>
+                <div id="log">In attesa...</div>
+            </div>
+        </div>
     </div>
 
 
@@ -167,13 +217,35 @@
     }
 
 
-    function costruisciUrl(endpoint) {
+    function costruisciUrl(endpoint, script) {
 
         const base = leggiVdjUrl();
 
-        return base + endpoint;
+        const url = new URL('/api/vdj/proxy', window.location.href);
+        url.searchParams.set('baseUrl', base);
+        url.searchParams.set('endpoint', endpoint);
+        if (script !== undefined && script !== null) {
+            url.searchParams.set('script', script);
+        }
+
+        return url.toString();
     }
 
+    function impostaStato(id, stato, testo) {
+        const elemento = document.getElementById(id);
+        if (!elemento) return;
+
+        elemento.className = 'pill';
+        if (stato === 'ok') {
+            elemento.classList.add('ok');
+        } else if (stato === 'err') {
+            elemento.classList.add('err');
+        } else {
+            elemento.classList.add('warn');
+        }
+
+        elemento.textContent = testo;
+    }
 
     function erroreConnessione(errore, dettagli) {
 
@@ -202,8 +274,8 @@
 
             const url =
                 costruisciUrl(
-                    "/execute?script=" +
-                    encodeURIComponent(script)
+                    "/execute",
+                    script
                 );
 
             scriviLog(
@@ -253,8 +325,8 @@
 
             const url =
                 costruisciUrl(
-                    "/query?script=" +
-                    encodeURIComponent(script)
+                    "/query",
+                    script
                 );
 
             const response = await fetch(url);
@@ -317,6 +389,58 @@
             risultato
         );
 
+    }
+
+    async function verificaProxyLocale() {
+        try {
+            impostaStato('statusProxy', 'warn', 'Proxy locale: verifica in corso...');
+            const url = new URL('/api/vdj/proxy', window.location.href);
+            url.searchParams.set('baseUrl', leggiVdjUrl());
+            url.searchParams.set('endpoint', '/query');
+            url.searchParams.set('script', 'get_clock');
+
+            const response = await fetch(url);
+            const testo = await response.text();
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ' - ' + testo);
+            }
+
+            impostaStato('statusProxy', 'ok', 'Proxy locale: OK');
+            scriviLog('Proxy locale OK.\n\nRisposta:\n' + testo);
+        } catch (errore) {
+            impostaStato('statusProxy', 'err', 'Proxy locale: errore');
+            scriviLog('Errore proxy locale:\n' + (errore?.message || errore));
+        }
+    }
+
+    async function verificaVirtualDjDiretto() {
+        try {
+            impostaStato('statusVdj', 'warn', 'VirtualDJ: verifica in corso...');
+            const base = leggiVdjUrl();
+            const url = new URL('/query', base);
+            url.searchParams.set('script', 'get_clock');
+
+            const response = await fetch(url.toString());
+            const testo = await response.text();
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ' - ' + testo);
+            }
+
+            impostaStato('statusVdj', 'ok', 'VirtualDJ: OK');
+            scriviLog('VirtualDJ diretto OK.\n\nRisposta:\n' + testo);
+        } catch (errore) {
+            impostaStato('statusVdj', 'err', 'VirtualDJ: errore');
+            scriviLog('Errore contatto diretto con VirtualDJ:\n' + (errore?.message || errore));
+        }
+    }
+
+    async function verificaTutto() {
+        scriviLog('Esecuzione verifica completa...');
+        await verificaProxyLocale();
+        await verificaVirtualDjDiretto();
+        await testConnessione();
     }
 
 

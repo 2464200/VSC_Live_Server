@@ -2068,6 +2068,42 @@ function syncBraniOnStartup() {
 // ===== MIDDLEWARE =====
 app.use(express.json());
 
+// VirtualDJ proxy must be available before any generic routing/404 handling.
+app.get('/api/vdj/proxy', async (req, res) => {
+    try {
+        const baseUrl = String(req.query.baseUrl || 'http://localhost:8080').trim();
+        const endpoint = String(req.query.endpoint || '/query').trim();
+        const script = req.query.script !== undefined
+            ? String(req.query.script).trim()
+            : undefined;
+        const timeoutMs = Number(req.query.timeoutMs || 4000);
+        const result = await forwardVdjRequest({
+            baseUrl,
+            endpoint,
+            script,
+            timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : 4000
+        });
+        res.status(result.statusCode >= 400 ? result.statusCode : 200).type('text/plain').send(result.body);
+    } catch (error) {
+        console.error('Errore proxy VirtualDJ:', error);
+        res.status(502).type('text/plain').send(error.message || 'Proxy VirtualDJ fallito');
+    }
+});
+
+app.get('/api/vdj/test', async (req, res) => {
+    try {
+        const result = await forwardVdjRequest({
+            baseUrl: 'http://127.0.0.1:8080',
+            endpoint: '/query',
+            script: 'get_clock',
+            timeoutMs: 4000
+        });
+        res.status(result.statusCode >= 400 ? result.statusCode : 200).type('text/plain').send(result.body);
+    } catch (error) {
+        res.status(502).type('text/plain').send(error.message || 'Test VirtualDJ fallito');
+    }
+});
+
 // CORS header per permettere connessioni da qualsiasi origin
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -2155,6 +2191,8 @@ app.get('/api/videoclip/list', (req, res) => {
         return res.status(500).json({ error: error.message, files: [] });
     }
 });
+
+const { forwardVdjRequest } = require('./vdj-proxy');
 
 async function handleBorderoSyncGoogle(req, res) {
     try {
