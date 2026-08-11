@@ -1,5 +1,4 @@
 window.USERFORM_REGISTRY = [
-  { id: "INDICE", caption: "INDICE", clientWidth: 16755, clientHeight: 12420 },
   { id: "PAGINA01", caption: "frmPagina01", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA02", caption: "frmPagina02", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA03", caption: "frmPagina03", clientWidth: 16770, clientHeight: 12420 },

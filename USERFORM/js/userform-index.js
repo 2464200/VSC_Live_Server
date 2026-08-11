@@ -15,7 +15,6 @@
     .map((form) => {
       const size = `${form.clientWidth} x ${form.clientHeight}`;
       const implemented = new Set([
-        "INDICE",
         "PAGINA01",
         "PAGINA02",
         "PAGINA03",

@@ -44,6 +44,6 @@
 
   document.getElementById("btn-close-acrobat")?.addEventListener("click", () => {
     setStatus("CommandButton65: richiesta chiusura Acrobat simulata in web. Ritorno a indice USERFORM.");
-    window.location.href = "INDICE.html";
+    window.location.href = "../index.html";
   });
 })();
