@@ -20,6 +20,7 @@ const QRCodeLib = require('qrcode');
 const { forwardVdjRequest } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
+const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 
 const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
@@ -207,31 +208,6 @@ function writeMusicArchiveIndexCsv(rootPath, files, scannedAt = Date.now()) {
     };
 }
 
-function normalizeTextForMatch(value = '') {
-    let text = String(value || '').trim();
-    if (!text) return '';
-
-    try {
-        text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
-    } catch (_) {
-        text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    }
-
-    return text
-        .toLowerCase()
-        .replace(/&/g, ' e ')
-        .replace(/[^a-z0-9]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-function tokenizeTextForMatch(normalizedText = '') {
-    return String(normalizedText || '')
-        .split(' ')
-        .map((token) => token.trim())
-        .filter((token) => token.length >= 2);
-}
-
 function listMusicFilesRecursive(rootPath) {
     const files = [];
     const stack = [rootPath];
@@ -283,67 +259,6 @@ function listMusicFilesRecursive(rootPath) {
 
     files.sort((a, b) => a.relativePath.localeCompare(b.relativePath, 'it'));
     return files;
-}
-
-function getBranoMatchProfile(brano = {}) {
-    const idDigits = String(brano?.id || '').replace(/\D+/g, '');
-    const idPrefix = idDigits ? idDigits.padStart(3, '0') : '';
-
-    const rawNames = [
-        brano?.titolo,
-        brano?.coreografia,
-        brano?.brano,
-        brano?.song,
-        brano?.canzone
-    ].map((value) => String(value || '').trim()).filter(Boolean);
-
-    const normalizedNames = [...new Set(rawNames
-        .map((value) => normalizeTextForMatch(value))
-        .filter((value) => value.length >= 3))];
-
-    const tokenSet = new Set();
-    normalizedNames.forEach((name) => {
-        tokenizeTextForMatch(name).forEach((token) => tokenSet.add(token));
-    });
-
-    return {
-        idPrefix,
-        normalizedNames,
-        tokens: [...tokenSet]
-    };
-}
-
-function extractNumericPrefix(name = '') {
-    const match = String(name || '').match(/^(\d{3})[\s_-]+/);
-    return match ? match[1] : '';
-}
-
-function scoreMusicCandidate(profile, candidate) {
-    let score = 0;
-
-    const filePrefix = extractNumericPrefix(candidate.baseName);
-    if (profile.idPrefix && filePrefix && profile.idPrefix === filePrefix) {
-        score += 1000;
-    }
-
-    if (profile.normalizedNames.includes(candidate.normalizedName)) {
-        score += 450;
-    }
-
-    const includesName = profile.normalizedNames.some((name) =>
-        candidate.normalizedName.includes(name) || name.includes(candidate.normalizedName)
-    );
-    if (includesName) {
-        score += 130;
-    }
-
-    if (profile.tokens.length > 0 && candidate.tokens.length > 0) {
-        const shared = candidate.tokens.filter((token) => profile.tokens.includes(token)).length;
-        const ratio = shared / Math.max(profile.tokens.length, candidate.tokens.length);
-        score += Math.round(ratio * 120);
-    }
-
-    return score;
 }
 
 function refreshMusicArchiveIndex(force = false) {
@@ -2478,29 +2393,25 @@ app.post('/api/music-archive/match', (req, res) => {
         }
 
         const profile = getBranoMatchProfile(brano);
-        const scored = (index.files || [])
-            .map((candidate) => ({
-                candidate,
-                score: scoreMusicCandidate(profile, candidate)
-            }))
-            .filter((entry) => entry.score > 0)
-            .sort((a, b) => b.score - a.score);
+        const result = resolveMusicArchiveMatch(profile, (index.files || []).map((candidate) => ({
+            ...candidate,
+            baseName: candidate.baseName,
+            normalizedName: candidate.normalizedName,
+            tokens: candidate.tokens
+        })), { minScore: 160, ambiguityGap: 70 });
 
-        if (scored.length === 0 || scored[0].score < 160) {
-            return res.json({ ok: true, status: 'not_found', candidates: [] });
-        }
-
-        const top = scored[0];
-        const second = scored[1];
-        const ambiguous = Boolean(second) && (top.score - second.score) < 70;
-        const candidates = scored.slice(0, 7).map((entry) => ({
-            fullPath: entry.candidate.fullPath,
-            relativePath: entry.candidate.relativePath,
-            fileName: entry.candidate.fileName,
+        const candidates = (result.candidates || []).map((entry) => ({
+            fullPath: entry.fullPath,
+            relativePath: entry.relativePath,
+            fileName: entry.fileName,
             score: entry.score
         }));
 
-        if (ambiguous) {
+        if (result.status === 'not_found') {
+            return res.json({ ok: true, status: 'not_found', candidates: [] });
+        }
+
+        if (result.status === 'ambiguous') {
             return res.json({
                 ok: true,
                 status: 'ambiguous',
@@ -2511,7 +2422,7 @@ app.post('/api/music-archive/match', (req, res) => {
         return res.json({
             ok: true,
             status: 'exact',
-            match: candidates[0],
+            match: candidates[0] || null,
             candidates
         });
     } catch (error) {
