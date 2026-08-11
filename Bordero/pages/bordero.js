@@ -2454,6 +2454,7 @@ class BorderoTableManager {
 
   async loadSelectedBranoToDeck(deckNumber) {
     const requestedDeck = Number(deckNumber) === 2 ? 2 : 1;
+    const fallbackDeck = requestedDeck === 1 ? 2 : 1;
     const brano = this.allBrani.find((item) => Boolean(item.next_selected));
     if (!brano) {
       Toast.warning('Seleziona prima un brano in NEXT per caricarlo su VirtualDJ.');
@@ -2461,17 +2462,41 @@ class BorderoTableManager {
     }
 
     try {
+      let targetDeck = requestedDeck;
+      const requestedDeckState = await this.queryVirtualDjDeckState(requestedDeck);
+
+      if (requestedDeckState.isPlaying) {
+        const confirmed = await this.showDeselectionConfirm({
+          title: `Deck ${requestedDeck} in riproduzione`,
+          message: `Il Deck ${requestedDeck} e attualmente in PLAY. Vuoi caricare il brano sull'altro deck (Deck ${fallbackDeck})?`,
+          confirmLabel: `Si, usa Deck ${fallbackDeck}`
+        });
+
+        if (!confirmed) {
+          Toast.info('Caricamento annullato dal DJ.');
+          return;
+        }
+
+        const fallbackDeckState = await this.queryVirtualDjDeckState(fallbackDeck);
+        if (fallbackDeckState.isPlaying) {
+          Toast.warning(`Impossibile caricare: anche il Deck ${fallbackDeck} e in PLAY.`);
+          return;
+        }
+
+        targetDeck = fallbackDeck;
+      }
+
       const selectedFile = await this.resolveMusicArchiveMatch(brano);
       if (!selectedFile?.fullPath) {
         Toast.warning('Nessun file selezionato: caricamento annullato.');
         return;
       }
 
-      await this.sendFileToVirtualDj(selectedFile.fullPath, requestedDeck);
-      this.updateConsoleStatus('live', requestedDeck, `✓ DECK ${requestedDeck}`);
-      this.markBranoConsoleFeedback(brano.id, requestedDeck);
+      await this.sendFileToVirtualDj(selectedFile.fullPath, targetDeck);
+      this.updateConsoleStatus('live', targetDeck, `✓ DECK ${targetDeck}`);
+      this.markBranoConsoleFeedback(brano.id, targetDeck);
       await this.refreshVirtualDjConsoleState();
-      Toast.success(`✓ Caricato su Deck ${requestedDeck}: ${selectedFile.fileName || selectedFile.relativePath || selectedFile.fullPath}`);
+      Toast.success(`✓ Caricato su Deck ${targetDeck}: ${selectedFile.fileName || selectedFile.relativePath || selectedFile.fullPath}`);
     } catch (error) {
       logger.error('Errore caricamento brano su VirtualDJ', error);
       this.updateConsoleStatus('warning', null, 'ERRORE');
