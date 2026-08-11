@@ -150,10 +150,21 @@
             font-size: 13px;
         }
 
+        .archive-counter-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
         .archive-counter {
             color: #bcdcff;
             font-size: 12px;
             white-space: nowrap;
+        }
+
+        .archive-counter.muted {
+            color: #9eb8cc;
         }
 
         .archive-list {
@@ -228,8 +239,8 @@
                     type="text"
                     id="vdjUrl"
                     style="width: 100%; padding: 8px; box-sizing: border-box;"
-                    value="http://localhost:8080"
-                    placeholder="http://localhost:8080"
+                    value="http://127.0.0.1:8080"
+                    placeholder="http://127.0.0.1:8080"
                 >
                 <br><br>
                 <button class="test" onclick="testConnessione()">VERIFICA CONNESSIONE</button>
@@ -246,6 +257,7 @@
                     type="text"
                     id="percorso"
                     style="width: 100%; padding: 8px; box-sizing: border-box;"
+                    value="C:\Users\Luca\Music\MUSICA DJ MONSTER LUCAS BERRY\1BASE\(16 STEPS-ELECTRIC STOMP-WESTERN STYLE) - Louisiana.mp3"
                     placeholder="Inserisci il percorso completo del file audio"
                 >
             </div>
@@ -255,7 +267,10 @@
                 <label>Elenco completo dei brani audio trovati nella cartella archivio configurata e in tutte le sottocartelle:</label>
                 <div class="archive-controls">
                     <input id="archive-search" class="archive-search" type="text" placeholder="Cerca nome o percorso..." />
-                    <div id="archive-counter" class="archive-counter">0 brani</div>
+                    <div class="archive-counter-group">
+                        <div id="archive-counter" class="archive-counter">0/0 brani audio</div>
+                        <div id="archive-selection-counter" class="archive-counter muted">Nessun brano selezionato</div>
+                    </div>
                 </div>
                 <div id="archive-list" class="archive-list">
                     <div class="archive-empty">Caricamento in corso...</div>
@@ -276,6 +291,7 @@
                 <button class="test" onclick="verificaTutto()">VERIFICA TUTTO</button>
                 <button onclick="verificaProxyLocale()">TEST PROXY LOCALE</button>
                 <button onclick="verificaVirtualDjDiretto()">TEST VDJ DIRETTO</button>
+                <button onclick="console.log('Origin:', getAppOrigin()); log.innerHTML += '\nOrigin: ' + getAppOrigin();">MOSTRA ORIGIN</button>
                 <h3>Risultato</h3>
                 <div id="log">In attesa...</div>
             </div>
@@ -290,12 +306,55 @@
     // ============================================================
 
     const DEFAULT_VDJ_URLS = [
-        "http://localhost:8080",
         "http://127.0.0.1:8080",
-        "https://localhost:8080",
-        "https://127.0.0.1:8080"
+        "http://localhost:8080",
+        "https://127.0.0.1:8080",
+        "https://localhost:8080"
     ];
 
+    const DEFAULT_SERVER_ORIGINS = [
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000"
+    ];
+
+    function getAppOrigin() {
+        const currentOrigin = window.location?.origin;
+        if (currentOrigin && currentOrigin !== 'null' && currentOrigin !== 'file://') {
+            const normalizedOrigin = String(currentOrigin).replace(/\/+$/, '');
+            const preferred = [
+                normalizedOrigin,
+                'http://127.0.0.1:5500',
+                'http://localhost:5500',
+                'http://127.0.0.1:8000',
+                'http://localhost:8000',
+                'http://127.0.0.1:5501',
+                'http://localhost:5501'
+            ].find((origin) => origin && origin !== 'null' && origin !== 'file://');
+            if (preferred) {
+                return preferred;
+            }
+        }
+
+        return DEFAULT_SERVER_ORIGINS.find((origin) => origin) || 'http://127.0.0.1:5500';
+    }
+
+    function getVirtualDjCandidateBases(baseUrl) {
+        const explicitBase = String(baseUrl || '').trim();
+        const candidates = [];
+        if (explicitBase) {
+            candidates.push(explicitBase.replace(/\/+$/, ''));
+        }
+
+        DEFAULT_VDJ_URLS.forEach((candidate) => {
+            if (!candidates.includes(candidate)) {
+                candidates.push(candidate);
+            }
+        });
+
+        return candidates;
+    }
 
     function leggiVdjUrl() {
 
@@ -312,9 +371,12 @@
     function costruisciUrl(endpoint, script) {
 
         const base = leggiVdjUrl();
+        const candidateBases = getVirtualDjCandidateBases(base);
 
-        const url = new URL('/api/vdj/proxy', window.location.href);
+        const url = new URL('/api/vdj/proxy', getAppOrigin());
         url.searchParams.set('baseUrl', base);
+        url.searchParams.set('appOrigin', getAppOrigin());
+        url.searchParams.set('baseUrls', candidateBases.join(','));
         url.searchParams.set('endpoint', endpoint);
         if (script !== undefined && script !== null) {
             url.searchParams.set('script', script);
@@ -486,12 +548,14 @@
     async function verificaProxyLocale() {
         try {
             impostaStato('statusProxy', 'warn', 'Proxy locale: verifica in corso...');
-            const url = new URL('/api/vdj/proxy', window.location.href);
-            url.searchParams.set('baseUrl', leggiVdjUrl());
+            const base = leggiVdjUrl();
+            const url = new URL('/api/vdj/proxy', getAppOrigin());
+            url.searchParams.set('baseUrl', base);
+            url.searchParams.set('baseUrls', getVirtualDjCandidateBases(base).join(','));
             url.searchParams.set('endpoint', '/query');
             url.searchParams.set('script', 'get_clock');
 
-            const response = await fetch(url);
+            const response = await fetch(url.toString());
             const testo = await response.text();
 
             if (!response.ok) {
@@ -510,18 +574,30 @@
         try {
             impostaStato('statusVdj', 'warn', 'VirtualDJ: verifica in corso...');
             const base = leggiVdjUrl();
-            const url = new URL('/query', base);
-            url.searchParams.set('script', 'get_clock');
+            const candidates = getVirtualDjCandidateBases(base);
+            let lastError = null;
 
-            const response = await fetch(url.toString());
-            const testo = await response.text();
+            for (const candidate of candidates) {
+                try {
+                    const url = new URL('/query', candidate);
+                    url.searchParams.set('script', 'get_clock');
+                    const response = await fetch(url.toString());
+                    const testo = await response.text();
 
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status + ' - ' + testo);
+                    if (!response.ok) {
+                        lastError = new Error('HTTP ' + response.status + ' - ' + testo);
+                        continue;
+                    }
+
+                    impostaStato('statusVdj', 'ok', 'VirtualDJ: OK');
+                    scriviLog('VirtualDJ diretto OK.\n\nRisposta:\n' + testo);
+                    return;
+                } catch (errore) {
+                    lastError = errore;
+                }
             }
 
-            impostaStato('statusVdj', 'ok', 'VirtualDJ: OK');
-            scriviLog('VirtualDJ diretto OK.\n\nRisposta:\n' + testo);
+            throw lastError || new Error('Nessun indirizzo VirtualDJ ha risposto');
         } catch (errore) {
             impostaStato('statusVdj', 'err', 'VirtualDJ: errore');
             scriviLog('Errore contatto diretto con VirtualDJ:\n' + (errore?.message || errore));
@@ -538,19 +614,66 @@
     let archiveFiles = [];
     let archiveSelectedPath = '';
 
+    function normalizzaTestoRicerca(value = '') {
+        let text = String(value || '').trim().toLowerCase();
+        if (!text) return '';
+
+        try {
+            text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+        } catch (_) {
+            text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        return text.replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function corrispondeACriterioRicerca(file, query = '') {
+        const normalizedQuery = normalizzaTestoRicerca(query);
+        if (!normalizedQuery) return true;
+
+        const tokens = normalizedQuery.split(' ').filter(Boolean);
+        const searchableSegments = [
+            file?.fileName || '',
+            file?.baseName || '',
+            file?.relativePath || '',
+            file?.fullPath || '',
+            ...(String(file?.relativePath || '').split(/[\\/]+/).filter(Boolean))
+        ];
+
+        const normalizedText = searchableSegments
+            .map((segment) => normalizzaTestoRicerca(segment))
+            .filter(Boolean)
+            .join(' ');
+
+        return tokens.every((token) => normalizedText.includes(token));
+    }
+
+    function aggiornaContatoriArchivio(filteredFiles = []) {
+        const counter = document.getElementById('archive-counter');
+        const selectionCounter = document.getElementById('archive-selection-counter');
+        if (!counter) return;
+
+        const totalFiles = archiveFiles.length;
+        const visibleFiles = Array.isArray(filteredFiles) ? filteredFiles.length : totalFiles;
+        const selectedCount = archiveSelectedPath ? 1 : 0;
+
+        counter.textContent = `${visibleFiles}/${totalFiles} brani audio`;
+        if (selectionCounter) {
+            selectionCounter.textContent = selectedCount > 0
+                ? `${selectedCount} brano selezionato`
+                : 'Nessun brano selezionato';
+        }
+    }
+
     function aggiornaListaArchivio() {
         const container = document.getElementById('archive-list');
-        const counter = document.getElementById('archive-counter');
         const searchInput = document.getElementById('archive-search');
-        if (!container || !counter) return;
+        if (!container) return;
 
-        const query = (searchInput?.value || '').trim().toLowerCase();
-        const filteredFiles = archiveFiles.filter((file) => {
-            const searchable = `${file.fileName || ''} ${file.relativePath || ''} ${file.baseName || ''}`.toLowerCase();
-            return !query || searchable.includes(query);
-        });
+        const query = (searchInput?.value || '').trim();
+        const filteredFiles = archiveFiles.filter((file) => corrispondeACriterioRicerca(file, query));
 
-        counter.textContent = `${filteredFiles.length} brani audio`;
+        aggiornaContatoriArchivio(filteredFiles);
 
         if (filteredFiles.length === 0) {
             container.innerHTML = '<div class="archive-empty">Nessun risultato corrisponde alla ricerca.</div>';
@@ -624,7 +747,7 @@
             archiveSelectedPath = '';
             if (archiveFiles.length === 0) {
                 container.innerHTML = '<div class="archive-empty">Nessun file audio supportato trovato nella cartella configurata.</div>';
-                document.getElementById('archive-counter').textContent = '0 brani audio';
+                aggiornaContatoriArchivio([]);
                 return;
             }
 

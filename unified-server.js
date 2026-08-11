@@ -49,6 +49,31 @@ const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([
 ]);
 const MUSIC_ARCHIVE_CACHE_TTL_MS = 30 * 1000;
 
+function normalizeTextForMatch(value = '') {
+    let text = String(value || '').trim();
+    if (!text) return '';
+
+    try {
+        text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    } catch (_) {
+        text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    return text
+        .toLowerCase()
+        .replace(/&/g, ' e ')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function tokenizeTextForMatch(normalizedText = '') {
+    return String(normalizedText || '')
+        .split(' ')
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 2);
+}
+
 // ===== STATO GLOBALE =====
 let chromeProcess = null;
 // Mappa dei viewer avviati: pid -> { file, startedAt }
