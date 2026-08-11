@@ -31,6 +31,7 @@ class BorderoTableManager {
     this.webcamSignalWarningReason = '';
     this.virtualDjConsolePollTimer = null;
     this.virtualDjConsolePollInProgress = false;
+    this.virtualDjCompletionTracker = null;
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
@@ -2322,6 +2323,106 @@ class BorderoTableManager {
     return hasChanged;
   }
 
+  ensureVirtualDjCompletionTracker(branoId, deckNumber) {
+    const normalizedBranoId = String(branoId || '');
+    const normalizedDeck = Number(deckNumber) === 2 ? 2 : 1;
+
+    if (
+      !this.virtualDjCompletionTracker ||
+      String(this.virtualDjCompletionTracker.branoId) !== normalizedBranoId ||
+      Number(this.virtualDjCompletionTracker.deckNumber) !== normalizedDeck
+    ) {
+      this.virtualDjCompletionTracker = {
+        branoId: normalizedBranoId,
+        deckNumber: normalizedDeck,
+        hasSeenPlaying: false
+      };
+    }
+
+    return this.virtualDjCompletionTracker;
+  }
+
+  clearVirtualDjCompletionTracker() {
+    this.virtualDjCompletionTracker = null;
+  }
+
+  async maybeFinalizeTrackedVirtualDjBrano(trackedBrano, deckState) {
+    if (!trackedBrano || !deckState || deckState.unavailable) {
+      return false;
+    }
+
+    const tracker = this.ensureVirtualDjCompletionTracker(trackedBrano.id, trackedBrano.consoleDeck);
+
+    if (deckState.isPlaying) {
+      tracker.hasSeenPlaying = true;
+      return false;
+    }
+
+    // Considera completata la riproduzione quando il deck si svuota dopo essere andato in PLAY.
+    if (tracker.hasSeenPlaying && deckState.isEmpty) {
+      this.clearVirtualDjCompletionTracker();
+      this.finalizeBranoAsCompleted(trackedBrano, {
+        source: 'virtualdj',
+        toastMessage: `✓ "${trackedBrano.titolo}" completato (fine riproduzione VirtualDJ)`
+      });
+      return true;
+    }
+
+    return false;
+  }
+
+  finalizeBranoAsCompleted(brano, options = {}) {
+    if (!brano) return false;
+    if (String(brano.flag || '').toUpperCase() === 'X') return false;
+
+    const wasNextSelected = Boolean(brano.next_selected);
+
+    if (wasNextSelected) {
+      this.allBrani.forEach((item) => {
+        item.next_selected = false;
+      });
+      Storage.remove('bordero_next_coreo_selection');
+      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+    }
+
+    this.allBrani.forEach((item) => {
+      item.consoleStatus = '';
+      item.consoleDeck = null;
+    });
+
+    const normalizedId = String(brano.id);
+    const branoInAll = this.allBrani.find((item) => String(item.id) === normalizedId);
+    if (!branoInAll) return false;
+
+    branoInAll.flag = 'X';
+    branoInAll.eseguito = 'X';
+    branoInAll.executed = true;
+    branoInAll.timestamp = DateUtils.formatDate(new Date());
+
+    const index = this.allBrani.indexOf(branoInAll);
+    if (index > -1) {
+      this.allBrani.splice(index, 1);
+      this.allBrani.push(branoInAll);
+    }
+
+    this.reorderBraniByOriginalIndex();
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+    this.autoSaveSerata();
+
+    this.lastActionTime = new Date();
+    this.updateLastActionTime();
+    this.clearVirtualDjCompletionTracker();
+
+    logger.info(`Brano ${normalizedId} marcato come completato`, {
+      source: options.source || 'manual'
+    });
+    Toast.success(options.toastMessage || `✓ "${branoInAll.titolo}" completato`);
+
+    this.applyFilters();
+    return true;
+  }
+
   async refreshVirtualDjConsoleState() {
     if (!this.isVirtualDjBridgeEnabled()) {
       this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
@@ -2338,6 +2439,12 @@ class BorderoTableManager {
 
     try {
       const deckState = await this.queryVirtualDjDeckState(deckNumber);
+      const finalizedByCompletion = await this.maybeFinalizeTrackedVirtualDjBrano(trackedBrano, deckState);
+      if (finalizedByCompletion) {
+        this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
+        return;
+      }
+
       const playbackState = this.resolveDeckPlaybackState(deckState);
       const buttonState = this.mapPlaybackStateToConsoleButtonState(playbackState);
       const rowChanged = this.applyTrackedBranoPlaybackState(trackedBrano.id, deckNumber, playbackState);
@@ -2485,6 +2592,12 @@ class BorderoTableManager {
       brano.consoleDeck = String(deckNumber);
     }
 
+    this.virtualDjCompletionTracker = {
+      branoId: String(branoId),
+      deckNumber: Number(deckNumber) === 2 ? 2 : 1,
+      hasSeenPlaying: false
+    };
+
     this.renderTable();
   }
 
@@ -2594,46 +2707,7 @@ class BorderoTableManager {
       }
     }
 
-    const wasNextSelected = Boolean(brano.next_selected);
-
-    if (wasNextSelected) {
-      this.allBrani.forEach((item) => {
-        item.next_selected = false;
-      });
-      Storage.remove('bordero_next_coreo_selection');
-      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
-      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
-    }
-
-    // Marca flag X
-    brano.flag = 'X';
-    // Aggiungi timestamp automatico
-    brano.timestamp = DateUtils.formatDate(new Date());
-
-    // Move to bottom preserving completed order
-    const index = this.allBrani.indexOf(brano);
-    if (index > -1) {
-      this.allBrani.splice(index, 1);
-      this.allBrani.push(brano);
-    }
-
-    this.reorderBraniByOriginalIndex();
-
-    // Salva in storage
-    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
-
-    // Auto-save serata
-    this.autoSaveSerata();
-
-    // Update last action
-    this.lastActionTime = new Date();
-    this.updateLastActionTime();
-
-    logger.info(`Brano ${branoId} marcato come completato`);
-    Toast.success(`✓ "${brano.titolo}" completato`);
-
-    // Re-render mantenendo filtri
-    this.applyFilters();
+    this.finalizeBranoAsCompleted(brano, { source: 'manual' });
   }
 
   /**
@@ -2648,6 +2722,8 @@ class BorderoTableManager {
     }
 
     brano.flag = '';
+    brano.eseguito = '';
+    brano.executed = false;
     brano.timestamp = '';
 
     this.reorderBraniByOriginalIndex();
