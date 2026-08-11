@@ -533,6 +533,11 @@
   color: #ffd36f;
 }
 
+.console-status-btn[data-state="error"] {
+  border-color: #ef5350;
+  color: #ff8a80;
+}
+
 .console-status-dot {
   width: 10px;
   height: 10px;
@@ -549,6 +554,11 @@
 .console-status-btn[data-state="warning"] .console-status-dot {
   background-color: #e7be25;
   box-shadow: 0 0 0 2px rgba(231, 190, 37, 0.25);
+}
+
+.console-status-btn[data-state="error"] .console-status-dot {
+  background-color: #ef5350;
+  box-shadow: 0 0 0 2px rgba(239, 83, 80, 0.3);
 }
 
 .search-input {
@@ -1067,6 +1077,34 @@
 
 .brani-table tbody tr.completed td {
   color: #888;
+}
+
+.brani-table tbody tr.console-row-playing {
+  background-color: rgba(56, 189, 98, 0.2);
+}
+
+.brani-table tbody tr.console-row-playing td {
+  color: #c9f7d8;
+}
+
+.brani-table tbody tr.console-row-prepared {
+  background-color: rgba(255, 214, 0, 0.16);
+}
+
+.brani-table tbody tr.console-row-prepared td {
+  color: #fff1b8;
+}
+
+.brani-table tbody tr.console-row-available {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.brani-table tbody tr.console-row-error {
+  background-color: rgba(239, 83, 80, 0.24);
+}
+
+.brani-table tbody tr.console-row-error td {
+  color: #ffd8d6;
 }
 
 .brani-table td {
