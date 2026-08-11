@@ -1257,10 +1257,18 @@ async function ensureSystemWebcamInUserformCsv() {
     let addedCount = 0;
     let updatedCount = 0;
     const profiled = [];
+    const comparisons = [];
 
     for (const cameraName of physicalCandidates) {
         const existingIndex = profiles.findIndex((item) => item.name.toLowerCase() === cameraName.toLowerCase());
         const existing = existingIndex >= 0 ? profiles[existingIndex] : null;
+        const before = existing
+            ? {
+                codec: sanitizeCsvValue(existing.codec),
+                size: sanitizeCsvValue(existing.size),
+                fps: sanitizeCsvValue(existing.fps)
+            }
+            : { codec: '', size: '', fps: '' };
         const probe = (detection.probed || []).find((item) => sanitizeCsvValue(item.name).toLowerCase() === cameraName.toLowerCase()) || null;
         const autoProfile = buildAutodetectedCameraProfile(cameraName, probe?.capability, {
             label: existing?.label || `Sistema - ${cameraName}`,
@@ -1291,9 +1299,45 @@ async function ensureSystemWebcamInUserformCsv() {
             if (changed) {
                 updatedCount += 1;
             }
+
+            comparisons.push({
+                name: cameraName,
+                before,
+                recommended: {
+                    codec: autoProfile.codec,
+                    size: autoProfile.size,
+                    fps: autoProfile.fps
+                },
+                after: {
+                    codec: profiles[existingIndex].codec,
+                    size: profiles[existingIndex].size,
+                    fps: profiles[existingIndex].fps
+                },
+                changed,
+                added: false,
+                probeError: probe?.error || ''
+            });
         } else {
             profiles.push(autoProfile);
             addedCount += 1;
+
+            comparisons.push({
+                name: cameraName,
+                before,
+                recommended: {
+                    codec: autoProfile.codec,
+                    size: autoProfile.size,
+                    fps: autoProfile.fps
+                },
+                after: {
+                    codec: autoProfile.codec,
+                    size: autoProfile.size,
+                    fps: autoProfile.fps
+                },
+                changed: true,
+                added: true,
+                probeError: probe?.error || ''
+            });
         }
 
         profiled.push({
@@ -1316,6 +1360,7 @@ async function ensureSystemWebcamInUserformCsv() {
         candidates: detection.candidates || [],
         physicalCandidates,
         profiled,
+        comparisons,
         error: detection.error || ''
     };
 }
@@ -3091,6 +3136,28 @@ app.get('/api/userform/pagina05/cameras/probe', async (req, res) => {
             count: cameras.length,
             physicalCount: physical.length,
             systemCamera,
+            comparisons: Array.isArray(systemCamera?.comparisons) ? systemCamera.comparisons : [],
+            cameras,
+            physical
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error), cameras: [] });
+    }
+});
+
+app.post('/api/userform/pagina05/cameras/reconcile', async (_req, res) => {
+    try {
+        const systemCamera = await ensureSystemWebcamInUserformCsv();
+        const cameras = loadUserformCameraProfiles(true);
+        const physical = cameras.filter((item) => !isLikelyVirtualCameraName(item.name));
+
+        return res.json({
+            ok: true,
+            source: USERFORM_CAMERA_CSV,
+            count: cameras.length,
+            physicalCount: physical.length,
+            systemCamera,
+            comparisons: Array.isArray(systemCamera?.comparisons) ? systemCamera.comparisons : [],
             cameras,
             physical
         });
@@ -3383,6 +3450,32 @@ app.get('/api/userform/pagina05/electron/player/state', async (_req, res) => {
     try {
         const result = await callElectronControl('/video-player/state');
         return res.json({ ok: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/userform/pagina05/electron/page-policy', async (_req, res) => {
+    try {
+        const result = await callElectronControl('/page-policy');
+        return res.json({ ok: true, policy: Array.isArray(result.policy) ? result.policy : [] });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/electron/page-policy', async (req, res) => {
+    try {
+        const pagePath = sanitizeCsvValue(req.body?.path);
+        const primary = req.body?.primary !== undefined ? Boolean(req.body.primary) : undefined;
+        const secondary = req.body?.secondary !== undefined ? Boolean(req.body.secondary) : undefined;
+
+        if (!pagePath) {
+            return res.status(400).json({ ok: false, error: 'path obbligatorio' });
+        }
+
+        const result = await callElectronControl('/page-policy', { path: pagePath, primary, secondary });
+        return res.json({ ok: true, policy: result.policy });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }

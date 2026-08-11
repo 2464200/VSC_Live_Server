@@ -265,6 +265,15 @@
   font-size: 0.9em;
 }
 
+.monitor-pages-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.monitor-pages-panel .data-viewer {
+  max-height: 380px;
+}
+
 .data-viewer-table {
   width: 100%;
   border-collapse: collapse;
@@ -295,6 +304,32 @@
   padding: 1px 4px;
   border-radius: 3px;
   color: #9be7ff;
+}
+
+.camera-status-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+.camera-status-ok {
+  color: #e7f8ec;
+  background: rgba(28, 143, 77, 0.35);
+  border: 1px solid rgba(106, 215, 146, 0.65);
+}
+
+.camera-status-updated {
+  color: #fff3e0;
+  background: rgba(255, 127, 0, 0.35);
+  border: 1px solid rgba(255, 190, 122, 0.7);
+}
+
+.camera-status-added {
+  color: #eaf2ff;
+  background: rgba(64, 118, 255, 0.35);
+  border: 1px solid rgba(146, 181, 255, 0.75);
 }
 
 .select {

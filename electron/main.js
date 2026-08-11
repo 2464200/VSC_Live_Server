@@ -7,6 +7,8 @@ const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectron
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
+const PAGE_POLICY_FILE = path.join(__dirname, 'page-policy.json');
+
 let primaryWindow;
 let secondaryWindow;
 let videoPlayerWindow;
@@ -51,6 +53,107 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
   ['/eventi/eventi.html', { primary: true, secondary: false }]
 ]);
+
+let currentPagePolicy = new Map(PAGE_POLICY);
+
+function normalizePolicyPath(pagePath) {
+  const normalized = normalizePathname(pagePath || '');
+  return normalized || String(pagePath || '').trim().toLowerCase();
+}
+
+function readElectronPagePolicy() {
+  try {
+    if (!fs.existsSync(PAGE_POLICY_FILE)) {
+      return new Map(PAGE_POLICY);
+    }
+
+    const raw = fs.readFileSync(PAGE_POLICY_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+    if (!raw) {
+      return new Map(PAGE_POLICY);
+    }
+
+    const parsed = JSON.parse(raw);
+    const persisted = new Map();
+
+    if (parsed && typeof parsed === 'object') {
+      for (const [pathKey, value] of Object.entries(parsed)) {
+        const normalized = normalizePolicyPath(pathKey);
+        if (!normalized) continue;
+        persisted.set(normalized, {
+          primary: Boolean(value?.primary),
+          secondary: Boolean(value?.secondary)
+        });
+      }
+    }
+
+    const merged = new Map(PAGE_POLICY);
+    for (const [pathKey, policy] of persisted.entries()) {
+      merged.set(pathKey, policy);
+    }
+    return merged;
+  } catch (error) {
+    console.warn('Unable to read page policy file:', error?.message || error);
+    return new Map(PAGE_POLICY);
+  }
+}
+
+function writeElectronPagePolicy(policyMap) {
+  const payload = {};
+  for (const [pathKey, value] of policyMap.entries()) {
+    payload[pathKey] = {
+      primary: Boolean(value.primary),
+      secondary: Boolean(value.secondary)
+    };
+  }
+
+  try {
+    fs.writeFileSync(PAGE_POLICY_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.warn('Unable to write page policy file:', error?.message || error);
+    return false;
+  }
+}
+
+function loadElectronPagePolicy() {
+  currentPagePolicy = readElectronPagePolicy();
+  return currentPagePolicy;
+}
+
+function updateElectronPagePolicy(pathname, primary, secondary) {
+  const normalized = normalizePolicyPath(pathname);
+  if (!normalized) {
+    throw new Error('Invalid page path');
+  }
+
+  const existingPolicy = currentPagePolicy.has(normalized)
+    ? currentPagePolicy.get(normalized)
+    : (PAGE_POLICY.get(normalized) || { primary: true, secondary: false });
+
+  let effectivePrimary = primary !== undefined ? Boolean(primary) : Boolean(existingPolicy.primary);
+  const effectiveSecondary = secondary !== undefined ? Boolean(secondary) : Boolean(existingPolicy.secondary);
+
+  if (!effectivePrimary && !effectiveSecondary) {
+    effectivePrimary = true;
+  }
+
+  currentPagePolicy.set(normalized, {
+    primary: effectivePrimary,
+    secondary: effectiveSecondary
+  });
+  writeElectronPagePolicy(currentPagePolicy);
+  return currentPagePolicy.get(normalized);
+}
+
+function getPagePolicyEntries() {
+  return Array.from(currentPagePolicy.entries()).map(([pathKey, policy]) => ({
+    path: pathKey,
+    primary: Boolean(policy.primary),
+    secondary: Boolean(policy.secondary)
+  }));
+}
+
+loadElectronPagePolicy();
 
 function readMonitorPreferences() {
   try {
@@ -395,6 +498,10 @@ function getMonitorPolicyForUrl(candidateUrl) {
   const normalizedPath = normalizePathname(candidateUrl);
   if (PRIMARY_ONLY_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
     return { primary: true, secondary: false };
+  }
+
+  if (currentPagePolicy.has(normalizedPath)) {
+    return currentPagePolicy.get(normalizedPath);
   }
 
   if (PAGE_POLICY.has(normalizedPath)) {
@@ -763,6 +870,31 @@ function startElectronControlServer() {
 
       if (req.method === 'GET' && requestUrl.pathname === '/health') {
         sendElectronControlJson(res, 200, { ok: true, pid: process.pid, hasVideoPlayerWindow: Boolean(videoPlayerWindow && !videoPlayerWindow.isDestroyed()), playerState: electronVideoPlayerState });
+        return;
+      }
+
+      if (req.method === 'GET' && requestUrl.pathname === '/page-policy') {
+        sendElectronControlJson(res, 200, { ok: true, policy: getPagePolicyEntries() });
+        return;
+      }
+
+      if (req.method === 'POST' && requestUrl.pathname === '/page-policy') {
+        const payload = await readJsonBody(req);
+        const pagePath = String(payload?.path || '').trim();
+        const primary = payload?.primary !== undefined ? Boolean(payload.primary) : undefined;
+        const secondary = payload?.secondary !== undefined ? Boolean(payload.secondary) : undefined;
+
+        if (!pagePath) {
+          sendElectronControlJson(res, 400, { success: false, error: 'path obbligatorio' });
+          return;
+        }
+
+        try {
+          const policy = updateElectronPagePolicy(pagePath, primary, secondary);
+          sendElectronControlJson(res, 200, { ok: true, policy });
+        } catch (error) {
+          sendElectronControlJson(res, 400, { success: false, error: error?.message || String(error) });
+        }
         return;
       }
 

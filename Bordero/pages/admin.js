@@ -23,6 +23,7 @@ class AdminPanel {
     this.setupCameraProfilesPanel();
     this.setupConsole();
     this.setupElectronLauncher();
+    this.setupMonitorPageRoutesPanel();
     this.setupMonitorPolicyDiagnostics();
     this.log('✓ Admin Panel initialized', 'success');
   }
@@ -34,6 +35,66 @@ class AdminPanel {
       throw new Error(payload?.error || `HTTP ${response.status}`);
     }
     return payload;
+  }
+
+  async reconcileCameraProfiles() {
+    const response = await fetch('/api/userform/pagina05/cameras/reconcile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  formatCameraProfileInline(profile = {}) {
+    const codec = this.escapeHtml(profile?.codec || '-');
+    const size = this.escapeHtml(profile?.size || '-');
+    const fps = this.escapeHtml(profile?.fps || '-');
+    return `${codec} • ${size} • ${fps}`;
+  }
+
+  renderCameraProfilesComparisonTable(payload = {}) {
+    const comparisons = Array.isArray(payload?.comparisons) ? payload.comparisons : [];
+    if (!comparisons.length) {
+      return '<div class="data-viewer-empty">Nessuna webcam disponibile.</div>';
+    }
+
+    const rows = comparisons.map((entry) => {
+      const status = entry.added
+        ? 'Nuova'
+        : (entry.changed ? 'Aggiornata' : 'Allineata');
+      const statusClass = entry.added
+        ? 'camera-status-added'
+        : (entry.changed ? 'camera-status-updated' : 'camera-status-ok');
+
+      return `
+      <tr>
+        <td>${this.escapeHtml(entry.name || '')}</td>
+        <td>${this.formatCameraProfileInline(entry.before)}</td>
+        <td>${this.formatCameraProfileInline(entry.recommended)}</td>
+        <td>${this.formatCameraProfileInline(entry.after)}</td>
+        <td><span class="camera-status-chip ${statusClass}">${status}</span></td>
+      </tr>
+      `;
+    }).join('');
+
+    return `
+      <table class="data-viewer-table" aria-label="Confronto profili telecamere di sistema">
+        <thead>
+          <tr>
+            <th>Telecamera</th>
+            <th>CSV prima</th>
+            <th>Massima capability</th>
+            <th>CSV dopo</th>
+            <th>Stato</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
   }
 
   renderCameraProfilesTable(payload = {}) {
@@ -79,17 +140,17 @@ class AdminPanel {
     if (!refreshBtn || !summaryNode || !outputNode) return;
 
     const load = async () => {
-      summaryNode.textContent = 'Profilazione telecamere in corso...';
+      summaryNode.textContent = 'Confronto e aggiornamento CSV telecamere in corso...';
       outputNode.innerHTML = '<div class="data-viewer-empty">Attendere, recupero dati...</div>';
 
       try {
-        const payload = await this.fetchCameraProfilesProbe();
+        const payload = await this.reconcileCameraProfiles();
         const total = Number(payload?.count) || 0;
         const physical = Number(payload?.physicalCount) || 0;
         const added = Number(payload?.systemCamera?.addedCount || 0);
         const updated = Number(payload?.systemCamera?.updatedCount || 0);
-        summaryNode.textContent = `Totale profili: ${total} • Webcam fisiche: ${physical} • Nuove: ${added} • Aggiornate: ${updated}`;
-        outputNode.innerHTML = this.renderCameraProfilesTable(payload);
+        summaryNode.textContent = `Totale profili: ${total} • Webcam fisiche: ${physical} • Nuove: ${added} • Aggiornate: ${updated} • CSV aggiornato subito`;
+        outputNode.innerHTML = this.renderCameraProfilesComparisonTable(payload);
       } catch (error) {
         summaryNode.textContent = 'Errore durante il caricamento telecamere';
         outputNode.innerHTML = `<div class="data-viewer-empty">Errore: ${this.escapeHtml(error?.message || String(error))}</div>`;
@@ -471,6 +532,194 @@ class AdminPanel {
     monitorPolicyBridge.onRouted((eventPayload) => {
       render(eventPayload || null);
     });
+  }
+
+  getMonitorPageRoutes() {
+    return [
+      { path: '/Bordero/pages/admin.html', label: 'Admin', description: 'Pannello amministrazione' },
+      { path: '/Bordero/pages/bordero-presentazione.html', label: 'Bordero Presentazione', description: 'Vista presentazione su entrambi i monitor' },
+      { path: '/Bordero/pages/bordero.html', label: 'Bordero', description: 'Pagina principale del Bordero' },
+      { path: '/Bordero/pages/brani-eseguiti.html', label: 'Brani Eseguiti', description: 'Cronologia brani su entrambi i monitor' },
+      { path: '/Bordero/pages/display.html', label: 'Display', description: 'Monitor secondario live' },
+      { path: '/Bordero/pages/elenco-richieste.html', label: 'Elenco Richieste', description: 'Richieste evento principale' },
+      { path: '/Bordero/pages/lista-serata.html', label: 'Lista Serata', description: 'Riepilogo serata su entrambi i monitor' },
+      { path: '/Bordero/pages/location.html', label: 'Location', description: 'Selezione location principale' },
+      { path: '/Bordero/pages/next-coreo.html', label: 'Next Coreo', description: 'Prossimo coreo su entrambi i monitor' },
+      { path: '/Bordero/pages/risultati.html', label: 'Risultati', description: 'Risultati evento su entrambi i monitor' },
+      { path: '/Bordero/pages/video-player.html', label: 'Video Player', description: 'Player video sul monitor secondario' },
+      { path: '/Bordero/pages/videoclip.html', label: 'VideoClip', description: 'Controllo videoclip principale' },
+      { path: '/eventi/eventi.html', label: 'Eventi', description: 'Pagine eventi principali' }
+    ];
+  }
+
+  normalizeMonitorPagePath(pagePath) {
+    return String(pagePath || '').trim().replace(/\\/g, '/').toLowerCase();
+  }
+
+  async loadMonitorPagePolicy() {
+    const summaryNode = document.getElementById('monitor-pages-summary');
+    const output = document.getElementById('monitor-pages-output');
+    if (!output) return;
+
+    if (summaryNode) {
+      summaryNode.textContent = 'Caricamento policy pagine monitor...';
+    }
+    output.innerHTML = '<div class="data-viewer-empty">Attendere caricamento policy...</div>';
+
+    try {
+      const policyEntries = await this.fetchMonitorPagePolicy();
+      output.innerHTML = this.renderMonitorPagesTable(this.getMonitorPageRoutes(), policyEntries);
+      if (summaryNode) {
+        summaryNode.textContent = 'Policy caricata. Modifica le checkbox per aggiornare la policy Electron.';
+      }
+    } catch (error) {
+      if (summaryNode) {
+        summaryNode.textContent = `Impossibile caricare policy monitor: ${this.escapeHtml(error?.message || String(error))}`;
+      }
+      output.innerHTML = this.renderMonitorPagesTable(this.getMonitorPageRoutes(), []);
+    }
+  }
+
+  async updateMonitorPagePolicy(pagePath, primary, secondary) {
+    const summaryNode = document.getElementById('monitor-pages-summary');
+    if (summaryNode) {
+      summaryNode.textContent = `Salvataggio policy per ${pagePath}...`;
+    }
+
+    const result = await this.saveMonitorPagePolicy(pagePath, primary, secondary);
+    const row = document.querySelector(`.monitor-policy-checkbox[data-page-path="${pagePath}"]`)?.closest('tr');
+    if (result && row) {
+      const primaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="primary"]');
+      const secondaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="secondary"]');
+      if (primaryInput) primaryInput.checked = Boolean(result.primary);
+      if (secondaryInput) secondaryInput.checked = Boolean(result.secondary);
+    }
+
+    if (summaryNode) {
+      summaryNode.textContent = `Policy aggiornata per ${pagePath}.`;
+    }
+
+    return result;
+  }
+
+  renderMonitorPagesTable(pages, policyEntries = []) {
+    const policyMap = new Map((Array.isArray(policyEntries) ? policyEntries : []).map((item) => [this.normalizeMonitorPagePath(item.path), { primary: Boolean(item.primary), secondary: Boolean(item.secondary) }]));
+
+    const rows = pages.map((page) => {
+      const normalizedPath = this.normalizeMonitorPagePath(page.path);
+      const policy = policyMap.get(normalizedPath) || { primary: true, secondary: false };
+      return `
+      <tr>
+        <td>${this.escapeHtml(page.label)}</td>
+        <td>${this.escapeHtml(page.description)}</td>
+        <td><code>${this.escapeHtml(page.path)}</code></td>
+        <td>
+          <label class="monitor-policy-label"><input type="checkbox" class="monitor-policy-checkbox" data-page-path="${this.escapeHtml(page.path)}" data-policy-type="primary" ${policy.primary ? 'checked' : ''}> 1</label>
+        </td>
+        <td>
+          <label class="monitor-policy-label"><input type="checkbox" class="monitor-policy-checkbox" data-page-path="${this.escapeHtml(page.path)}" data-policy-type="secondary" ${policy.secondary ? 'checked' : ''}> 2</label>
+        </td>
+        <td>
+          <button type="button" class="btn btn-primary monitor-page-open-btn" data-page-path="${this.escapeHtml(page.path)}">
+            Apri
+          </button>
+        </td>
+      </tr>
+    `;
+    }).join('');
+
+    return `
+      <table class="data-viewer-table" aria-label="Tabella pagine monitor Borderò">
+        <thead>
+          <tr>
+            <th>Pagina</th>
+            <th>Descrizione</th>
+            <th>URL</th>
+            <th>Monitor 1</th>
+            <th>Monitor 2</th>
+            <th>Azione</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  async openMonitorPageRoute(pagePath) {
+    const summaryNode = document.getElementById('monitor-pages-summary');
+    if (!summaryNode) return;
+
+    if (!window.electronAPI?.windowManager?.openSecondaryPage) {
+      summaryNode.textContent = 'Apertura pagina disponibile solo in runtime Electron.';
+      return;
+    }
+
+    summaryNode.textContent = `Apertura ${pagePath}...`;
+    try {
+      const result = await window.electronAPI.windowManager.openSecondaryPage({ path: pagePath });
+      if (!result || result.success !== true) {
+        throw new Error(result?.error || 'Apertura non riuscita');
+      }
+      const target = this.escapeHtml(pagePath);
+      const primary = result.primaryUpdated ? 'SI' : 'NO';
+      const secondary = result.secondaryUpdated ? 'SI' : 'NO';
+      summaryNode.textContent = `Pagina ${target} aperta. Principale: ${primary}, Secondario: ${secondary}`;
+    } catch (error) {
+      summaryNode.textContent = `Errore apertura pagina: ${this.escapeHtml(error?.message || String(error))}`;
+    }
+  }
+
+  setupMonitorPageRoutesPanel() {
+    const summary = document.getElementById('monitor-pages-summary');
+    const output = document.getElementById('monitor-pages-output');
+    if (!summary || !output) return;
+
+    const handlePolicyToggle = async (checkbox) => {
+      const pagePath = checkbox.getAttribute('data-page-path');
+      if (!pagePath) return;
+
+      const row = checkbox.closest('tr');
+      if (!row) return;
+
+      const primaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="primary"]');
+      const secondaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="secondary"]');
+      const primary = Boolean(primaryInput?.checked);
+      const secondary = Boolean(secondaryInput?.checked);
+
+      try {
+        await this.updateMonitorPagePolicy(pagePath, primary, secondary);
+      } catch (error) {
+        summary.textContent = `Errore salvataggio policy: ${this.escapeHtml(error?.message || String(error))}`;
+        if (primaryInput) primaryInput.checked = !primary;
+        if (secondaryInput) secondaryInput.checked = !secondary;
+      }
+    };
+
+    output.addEventListener('click', (event) => {
+      const button = event.target.closest('.monitor-page-open-btn');
+      if (!button) return;
+      const pagePath = button.getAttribute('data-page-path');
+      if (!pagePath) return;
+      button.disabled = true;
+      this.openMonitorPageRoute(pagePath).finally(() => {
+        button.disabled = false;
+      });
+    });
+
+    output.addEventListener('change', (event) => {
+      const checkbox = event.target.closest('.monitor-policy-checkbox');
+      if (checkbox) {
+        void handlePolicyToggle(checkbox);
+      }
+    });
+
+    if (!window.electronAPI?.windowManager?.openSecondaryPage) {
+      summary.textContent = 'Modalità browser: la funzione di apertura pagine monitor è disponibile solo in runtime Electron.';
+    } else {
+      summary.textContent = 'Seleziona una pagina e premi Apri per caricarla nei monitor secondo la policy Electron.';
+    }
+
+    void this.loadMonitorPagePolicy();
   }
 
   getDisplayScrollDefaults() {
@@ -1363,6 +1612,7 @@ class AdminPanel {
       }
 
       const cameras = Array.isArray(data.cameras) ? data.cameras : [];
+      const comparisons = Array.isArray(data.comparisons) ? data.comparisons : [];
       const summary = [
         `${Number(data.count) || cameras.length} profili`,
         `${Number(data.physicalCount) || 0} webcam fisiche`,
@@ -1371,8 +1621,12 @@ class AdminPanel {
 
       return `
         <div class="data-viewer-summary">${this.escapeHtml(summary)}</div>
-        ${this.renderCameraProfilesTable(data)}
+        ${comparisons.length ? this.renderCameraProfilesComparisonTable(data) : this.renderCameraProfilesTable(data)}
       `;
+    }
+
+    if (type === 'cameras' && Array.isArray(data)) {
+      return this.renderCameraProfilesTable({ cameras: data });
     }
 
     if (typeof data === 'object' && !Array.isArray(data)) {
