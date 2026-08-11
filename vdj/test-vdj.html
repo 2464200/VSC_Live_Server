@@ -222,20 +222,55 @@
             font-size: 13px;
             padding: 10px 0;
         }
+
+        .nav-breadcrumb {
+            background-color: #222;
+            padding: 4px 12px;
+            margin-bottom: 12px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: #aaa;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0;
+        }
+
+        .nav-breadcrumb a {
+            color: #ff7f00;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-breadcrumb a:hover {
+            color: #ff9933;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-sep {
+            color: #666;
+            margin: 0 10px;
+        }
+
+        .breadcrumb-current {
+            color: #ccc;
+        }
     </style>
 </head>
 
 <body>
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagine Bordero">
+        <a href="../Bordero/index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="../Bordero/pages/bordero.html">Bordero</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="../Bordero/pages/next-coreo.html">NextCoreo</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Test VirtualDJ</span>
+    </nav>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="../Bordero/index.html" style="display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:6px; background:#2f3b4a; color:#fff; text-decoration:none; font-size:13px;">← Torna a Borderò</a>
-            <a href="../Bordero/pages/bordero.html" style="display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:6px; background:#2f3b4a; color:#fff; text-decoration:none; font-size:13px;">Borderò</a>
-            <a href="../Bordero/pages/display.html" style="display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:6px; background:#2f3b4a; color:#fff; text-decoration:none; font-size:13px;">Display</a>
-            <a href="../Bordero/pages/next-coreo.html" style="display:inline-flex; align-items:center; justify-content:center; padding:8px 12px; border-radius:6px; background:#2f3b4a; color:#fff; text-decoration:none; font-size:13px;">NextCoreo</a>
-        </div>
-        <h1 style="margin:0; font-size:22px;">🎧 Test collegamento VirtualDJ</h1>
-    </div>
+    <h1 style="margin:0 0 10px 0; font-size:22px;">🎧 Test collegamento VirtualDJ</h1>
 
     <div class="page">
         <div class="column">

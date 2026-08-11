@@ -203,6 +203,10 @@
   margin-bottom: 15px;
 }
 
+.sync-panel-data-sync {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .sync-item {
   background-color: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--border-color);

@@ -16,14 +16,54 @@
 
     body {
       display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .nav-breadcrumb {
+      background-color: #222;
+      padding: 4px 12px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      color: #aaa;
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
+      gap: 0;
+      flex: 0 0 auto;
+    }
+
+    .nav-breadcrumb a {
+      color: #ff7f00;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .nav-breadcrumb a:hover {
+      color: #ff9933;
+      text-decoration: underline;
+    }
+
+    .breadcrumb-sep {
+      color: #666;
+      margin: 0 10px;
+    }
+
+    .breadcrumb-current {
+      color: #ccc;
     }
 
     .player-shell {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: auto;
+      min-height: 0;
+      flex: 1;
       background: #000;
     }
 
@@ -116,6 +156,14 @@
   <script defer src="video-player.js?v=20260802-1"></script>
 </head>
 <body>
+  <nav class="nav-breadcrumb" aria-label="Navigazione pagine Bordero">
+    <a href="../index.html">Home</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="bordero.html">Bordero</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Video Player</span>
+  </nav>
+
   <div class="player-shell">
     <video id="electron-video" playsinline preload="auto"></video>
     <div id="live-disclaimer" class="live-disclaimer">Avviso informativa privacy: questa ripresa video è trasmessa solo in diretta e non viene nè registrata nè salvata.</div>

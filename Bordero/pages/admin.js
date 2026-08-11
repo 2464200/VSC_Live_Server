@@ -829,6 +829,21 @@ class AdminPanel {
       document.getElementById('sync-comuni-status').textContent = `${comuniCount} comuni cached`;
       document.getElementById('sync-dbase-status').textContent = `${dbaseCount} DJ cached`;
       document.getElementById('sync-location-status').textContent = `${locationCount} location cached`;
+
+      const musicArchiveStatusEl = document.getElementById('sync-music-archive-status');
+      if (musicArchiveStatusEl) {
+        try {
+          const payload = await this.fetchMusicArchiveStatus(false);
+          const fileCount = Number(payload?.fileCount) || 0;
+          const exists = payload?.exists !== false;
+          musicArchiveStatusEl.textContent = exists
+            ? `${fileCount} file audio trovati`
+            : 'Archivio non raggiungibile';
+        } catch (error) {
+          musicArchiveStatusEl.textContent = 'Archivio non verificato';
+        }
+      }
+
       void this.refreshDataViewer();
     };
 
@@ -936,6 +951,35 @@ class AdminPanel {
         this.log(`❌ Errore sync Location: ${error.message}`, 'error');
         this.addSyncLog(`Errore sync Location: ${error.message}`, 'error');
         Toast.error('Errore sincronizzazione Location');
+      }
+    });
+
+    document.getElementById('btn-sync-music-archive').addEventListener('click', async () => {
+      const statusEl = document.getElementById('sync-music-archive-status');
+      if (statusEl) {
+        statusEl.textContent = 'Verifica archivio in corso...';
+      }
+
+      try {
+        const payload = await this.fetchMusicArchiveStatus(true);
+        const fileCount = Number(payload?.fileCount) || 0;
+        const exists = payload?.exists !== false;
+        if (statusEl) {
+          statusEl.textContent = exists
+            ? `${fileCount} file audio trovati`
+            : 'Archivio non raggiungibile';
+        }
+        this.addSyncLog(
+          exists
+            ? `Archivio verificato: ${fileCount} file audio trovati.`
+            : 'Archivio verificato ma non raggiungibile.',
+          exists ? 'success' : 'warn'
+        );
+      } catch (error) {
+        if (statusEl) {
+          statusEl.textContent = 'Archivio non verificato';
+        }
+        this.addSyncLog(`Errore verifica archivio: ${error.message}`, 'error');
       }
     });
 
@@ -1086,6 +1130,25 @@ class AdminPanel {
         }
         break;
       }
+      case 'music-archive': {
+        try {
+          const payload = await this.fetchMusicArchiveStatus(false);
+          data = {
+            rootPath: payload?.rootPath || '',
+            exists: Boolean(payload?.exists),
+            fileCount: Number(payload?.fileCount) || 0,
+            scannedAt: payload?.scannedAt || 0,
+            csvPath: payload?.csvPath || '',
+            csvCount: Number(payload?.csvCount) || 0,
+            sample: Array.isArray(payload?.files) ? payload.files.slice(0, 30) : []
+          };
+        } catch (error) {
+          data = {
+            error: error?.message || String(error)
+          };
+        }
+        break;
+      }
       case 'serata': {
         const currentSerata = typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.getCurrentSerata === 'function'
           ? window.dataLoader.getCurrentSerata()
@@ -1180,6 +1243,35 @@ class AdminPanel {
         </table>`;
     }
 
+    if (type === 'music-archive' && data && typeof data === 'object') {
+      if (data.error) {
+        return `<div class="data-viewer-empty">Errore archivio: ${this.escapeHtml(data.error)}</div>`;
+      }
+
+      const sample = Array.isArray(data.sample) ? data.sample : [];
+      const rows = sample.slice(0, 20).map((item) => `
+        <tr>
+          <td>${this.escapeHtml(item.relativePath || '')}</td>
+          <td>${this.escapeHtml(item.fileName || '')}</td>
+          <td>${this.escapeHtml(this.formatBytes(item.size || 0))}</td>
+          <td>${this.escapeHtml(item.modifiedAt || '')}</td>
+        </tr>
+      `).join('');
+
+      const summary = [
+        `${Number(data.fileCount) || 0} file audio trovati`,
+        data.exists ? 'cartella raggiungibile' : 'cartella non raggiungibile',
+        data.rootPath ? `root: ${data.rootPath}` : null
+      ].filter(Boolean).join(' • ');
+
+      return `
+        <div class="data-viewer-summary">${this.escapeHtml(summary)}</div>
+        <table class="data-viewer-table">
+          <thead><tr><th>Percorso relativo</th><th>File</th><th>Dimensione</th><th>Ultima modifica</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="4">Nessun file da mostrare in anteprima</td></tr>'}</tbody>
+        </table>`;
+    }
+
     if (typeof data === 'object' && !Array.isArray(data)) {
       const rows = Object.entries(data).slice(0, 20).map(([key, value]) => {
         const displayValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
@@ -1191,6 +1283,14 @@ class AdminPanel {
     }
 
     return `<pre>${this.escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+  }
+
+  formatBytes(bytes) {
+    const value = Number(bytes) || 0;
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    if (value < 1024 * 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(value / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
 
   escapeHtml(value) {

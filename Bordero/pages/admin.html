@@ -127,7 +127,7 @@
         </small>
       </div>
 
-      <div class="sync-panel">
+      <div class="sync-panel sync-panel-data-sync">
         <div class="sync-item">
           <h3>Brani (Songs)</h3>
           <p id="sync-brani-status">Checking...</p>
@@ -147,6 +147,11 @@
           <h3>Location</h3>
           <p id="sync-location-status">Checking...</p>
           <button id="btn-sync-location" class="btn btn-primary">🔄 Sync Location</button>
+        </div>
+        <div class="sync-item">
+          <h3>File Audio Archivio</h3>
+          <p id="sync-music-archive-status">Checking...</p>
+          <button id="btn-sync-music-archive" class="btn btn-primary">🔎 Verifica Archivio</button>
         </div>
       </div>
       <button id="btn-sync-all" class="btn btn-secondary" style="margin-top: 15px; width: 100%;">
@@ -278,6 +283,7 @@
           <option value="comuni">Comuni Italia</option>
           <option value="dbase">dBase (DJ)</option>
           <option value="location">Location</option>
+          <option value="music-archive">File Audio Archivio</option>
           <option value="serata">Current Serata</option>
           <option value="history">Serata History</option>
           <option value="localstorage">All localStorage Keys</option>
