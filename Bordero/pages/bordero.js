@@ -2355,17 +2355,39 @@ class BorderoTableManager {
 
     if (deckState.isPlaying) {
       tracker.hasSeenPlaying = true;
+      logger.debug('VirtualDJ deck still playing, completion deferred', {
+        branoId: trackedBrano.id,
+        deckState,
+        tracker
+      });
       return false;
     }
 
     const remainingSeconds = Number(deckState.timeRemainSeconds);
     const hasValidRemaining = Number.isFinite(remainingSeconds);
     const reachedNaturalEnd = hasValidRemaining && remainingSeconds <= 0.75;
+    const endedByNotPlaying = !deckState.isPlaying && !deckState.isPaused && deckState.hasTrack;
+
+    logger.debug('VirtualDJ completion check', {
+      branoId: trackedBrano.id,
+      deckState,
+      tracker,
+      hasValidRemaining,
+      reachedNaturalEnd,
+      endedByNotPlaying
+    });
 
     // Considera completata la riproduzione quando:
     // 1) il deck si svuota dopo essere andato in PLAY, oppure
-    // 2) il deck non e in PLAY/PAUSE e il tempo residuo e sostanzialmente a zero.
-    if (tracker.hasSeenPlaying && (deckState.isEmpty || (!deckState.isPlaying && !deckState.isPaused && reachedNaturalEnd))) {
+    // 2) il deck non e in PLAY/PAUSE e il tempo residuo e sostanzialmente a zero, oppure
+    // 3) il deck resta caricato ma smette di suonare (VirtualDJ potrebbe lasciare il file caricato dopo la fine).
+    if (tracker.hasSeenPlaying && (deckState.isEmpty || reachedNaturalEnd || endedByNotPlaying)) {
+      logger.debug('VirtualDJ brano riconosciuto come completato', {
+        branoId: trackedBrano.id,
+        deckState,
+        reachedNaturalEnd,
+        endedByNotPlaying
+      });
       this.clearVirtualDjCompletionTracker();
       this.finalizeBranoAsCompleted(trackedBrano, {
         source: 'virtualdj',
