@@ -2206,7 +2206,9 @@ class BorderoTableManager {
 
   async queryVirtualDjScript(script, timeoutMs = 2500) {
     const url = new URL('/api/vdj/proxy', window.location.origin);
-    url.searchParams.set('baseUrl', 'http://localhost:8080');
+    const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+    url.searchParams.set('baseUrl', candidateBases[0]);
+    url.searchParams.set('baseUrls', candidateBases.join(','));
     url.searchParams.set('endpoint', '/execute');
     url.searchParams.set('script', script);
     url.searchParams.set('timeoutMs', String(timeoutMs));
@@ -2294,7 +2296,9 @@ class BorderoTableManager {
     const targetDeck = await this.selectBestDeckForLoad(deckNumber);
     const script = `deck ${targetDeck} load "${safePath}"`;
     const url = new URL('/api/vdj/proxy', window.location.origin);
-    url.searchParams.set('baseUrl', 'http://localhost:8080');
+    const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+    url.searchParams.set('baseUrl', candidateBases[0]);
+    url.searchParams.set('baseUrls', candidateBases.join(','));
     url.searchParams.set('endpoint', '/execute');
     url.searchParams.set('script', script);
 

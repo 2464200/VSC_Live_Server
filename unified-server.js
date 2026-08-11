@@ -2358,8 +2358,14 @@ app.get('/api/vdj/proxy', async (req, res) => {
             ? String(req.query.script).trim()
             : undefined;
         const timeoutMs = Number(req.query.timeoutMs || 4000);
+        const baseUrlsParam = req.query.baseUrls || req.query.baseUrlList || '';
+        const baseUrls = String(baseUrlsParam || '')
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
         const result = await forwardVdjRequest({
             baseUrl,
+            baseUrls,
             endpoint,
             script,
             timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : 4000
