@@ -3,7 +3,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
-const { resolveDisplayTargetsForWindows, getWindowBoundsForDisplay, buildElectronAppConfig } = require('./display-manager');
+const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectronAppConfig } = require('./display-manager');
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
@@ -14,6 +14,8 @@ let serverProcess;
 let electronControlServer = null;
 let ensureUnifiedServerPromise = null;
 let currentSwapMonitors = false;
+let currentAutoConfigureDisplay = true;
+let currentDpiAutoScale = true;
 let monitorPreferenceWatcher = null;
 let isProgrammaticPrimaryLoad = false;
 let isProgrammaticSecondaryLoad = false;
@@ -56,7 +58,10 @@ function readMonitorPreferences() {
       return {
         swapPrimarySecondary: false,
         primaryMonitorChoice: null,
-        selectionConfirmed: false
+        selectionConfirmed: false,
+        autoConfigureDisplay: true,
+        dpiAutoScale: true,
+        secondaryMonitorAutoScale: true
       };
     }
     const raw = fs.readFileSync(MONITOR_PREFERENCES_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
@@ -64,7 +69,10 @@ function readMonitorPreferences() {
       return {
         swapPrimarySecondary: false,
         primaryMonitorChoice: null,
-        selectionConfirmed: false
+        selectionConfirmed: false,
+        autoConfigureDisplay: true,
+        dpiAutoScale: true,
+        secondaryMonitorAutoScale: true
       };
     }
     const parsed = JSON.parse(raw);
@@ -82,46 +90,76 @@ function readMonitorPreferences() {
     return {
       swapPrimarySecondary,
       primaryMonitorChoice,
-      selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed)
+      selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed),
+      autoConfigureDisplay: parsed?.autoConfigureDisplay !== false,
+      dpiAutoScale: parsed?.dpiAutoScale !== false,
+      secondaryMonitorAutoScale: parsed?.secondaryMonitorAutoScale !== false
     };
   } catch (error) {
     console.warn('Failed to read monitor preferences, using default:', error.message || error);
     return {
       swapPrimarySecondary: false,
       primaryMonitorChoice: null,
-      selectionConfirmed: false
+      selectionConfirmed: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+      secondaryMonitorAutoScale: true
     };
   }
 }
 
 function applyWindowLayout() {
-  if (!primaryWindow || primaryWindow.isDestroyed() || !secondaryWindow || secondaryWindow.isDestroyed()) {
-    if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
-      const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
-        swapPrimarySecondary: currentSwapMonitors
-      });
-      const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
-      videoPlayerWindow.setBounds(monitorBounds);
-      videoPlayerWindow.setFullScreen(true);
-    }
-    return;
-  }
-
-  const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
+  const displays = screen.getAllDisplays();
+  const targets = resolveDisplayTargetsForWindows(displays, {
     swapPrimarySecondary: currentSwapMonitors
   });
 
-  const mainBounds = getWindowBoundsForDisplay(targets.mainDisplay, { width: 1400, height: 900 });
-  primaryWindow.setBounds(mainBounds);
-  primaryWindow.setFullScreen(true);
+  const primaryLayout = currentAutoConfigureDisplay
+    ? buildDisplayLayoutConfig(targets.mainDisplay, { width: 1400, height: 900, fullscreen: true })
+    : { x: 0, y: 0, width: 1400, height: 900, zoomFactor: 1 };
+  const secondaryLayout = currentAutoConfigureDisplay
+    ? buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true })
+    : { x: 0, y: 0, width: 1280, height: 720, zoomFactor: 1 };
 
-  const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
-  secondaryWindow.setBounds(monitorBounds);
-  secondaryWindow.setFullScreen(true);
+  const applyLayout = (win, layout) => {
+    if (!win || win.isDestroyed()) {
+      return;
+    }
+
+    try {
+      win.setBounds({
+        x: layout.x,
+        y: layout.y,
+        width: layout.width,
+        height: layout.height
+      });
+    } catch (error) {
+      console.warn('Unable to set window bounds:', error?.message || error);
+    }
+
+    try {
+      win.setFullScreen(true);
+    } catch (error) {
+      console.warn('Unable to set fullscreen for window:', error?.message || error);
+    }
+
+    try {
+      win.webContents.setZoomFactor(layout.zoomFactor);
+    } catch (error) {
+      console.warn('Unable to apply zoom factor:', error?.message || error);
+    }
+  };
+
+  if (primaryWindow && !primaryWindow.isDestroyed()) {
+    applyLayout(primaryWindow, primaryLayout);
+  }
+
+  if (secondaryWindow && !secondaryWindow.isDestroyed()) {
+    applyLayout(secondaryWindow, secondaryLayout);
+  }
 
   if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
-    videoPlayerWindow.setBounds(monitorBounds);
-    videoPlayerWindow.setFullScreen(true);
+    applyLayout(videoPlayerWindow, secondaryLayout);
   }
 }
 
@@ -142,6 +180,9 @@ function buildMonitorPreferencesPayload(preferences = {}, defaults = {}) {
     primaryMonitorChoice,
     swapPrimarySecondary,
     selectionConfirmed,
+    autoConfigureDisplay: Object.prototype.hasOwnProperty.call(preferences, 'autoConfigureDisplay') ? Boolean(preferences.autoConfigureDisplay !== false) : true,
+    dpiAutoScale: Object.prototype.hasOwnProperty.call(preferences, 'dpiAutoScale') ? Boolean(preferences.dpiAutoScale !== false) : true,
+    secondaryMonitorAutoScale: Object.prototype.hasOwnProperty.call(preferences, 'secondaryMonitorAutoScale') ? Boolean(preferences.secondaryMonitorAutoScale !== false) : true,
     updatedAt: new Date().toISOString()
   };
 
@@ -205,6 +246,9 @@ function syncMonitorPreferencesFromDisk() {
     currentSwapMonitors = shouldSwap;
     console.log(`Monitor swap preference changed: ${currentSwapMonitors ? 'ON' : 'OFF'}`);
   }
+
+  currentAutoConfigureDisplay = Boolean(preferences.autoConfigureDisplay !== false);
+  currentDpiAutoScale = Boolean(preferences.dpiAutoScale !== false);
   applyWindowLayout();
 }
 
@@ -595,14 +639,14 @@ function createVideoPlayerWindow() {
   const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
     swapPrimarySecondary: currentSwapMonitors
   });
-  const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
+  const secondaryLayout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
 
   const win = new BrowserWindow({
     ...config.windowOptions,
-    x: monitorBounds.x,
-    y: monitorBounds.y,
-    width: monitorBounds.width,
-    height: monitorBounds.height,
+    x: secondaryLayout.x,
+    y: secondaryLayout.y,
+    width: secondaryLayout.width,
+    height: secondaryLayout.height,
     show: false,
     fullscreen: true,
     kiosk: true,
@@ -856,16 +900,23 @@ async function ensureWindows() {
   await ensureUnifiedServer();
   const monitorPreferences = await ensurePrimaryMonitorSelectionPreference();
   currentSwapMonitors = Boolean(monitorPreferences.swapPrimarySecondary);
+  currentAutoConfigureDisplay = Boolean(monitorPreferences.autoConfigureDisplay !== false);
+  currentDpiAutoScale = Boolean(monitorPreferences.dpiAutoScale !== false);
 
   if (!primaryWindow || primaryWindow.isDestroyed()) {
     const config = buildElectronAppConfig({ baseUrl: 'http://localhost:5500' });
+    const displays = screen.getAllDisplays();
+    const targets = resolveDisplayTargetsForWindows(displays, {
+      swapPrimarySecondary: currentSwapMonitors
+    });
+    const primaryLayout = buildDisplayLayoutConfig(targets.mainDisplay, { width: 1400, height: 900, fullscreen: true });
 
     primaryWindow = createWindow(config.primaryUrl, {
       ...config.windowOptions,
-      x: 0,
-      y: 0,
-      width: 1400,
-      height: 900,
+      x: primaryLayout.x,
+      y: primaryLayout.y,
+      width: primaryLayout.width,
+      height: primaryLayout.height,
       show: false,
       fullscreen: true,
       autoHideMenuBar: true
@@ -878,12 +929,14 @@ async function ensureWindows() {
       primaryWindow = null;
     });
 
+    const secondaryLayout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
+
     secondaryWindow = createWindow(config.secondaryUrl, {
       ...config.windowOptions,
-      x: 0,
-      y: 0,
-      width: 1280,
-      height: 720,
+      x: secondaryLayout.x,
+      y: secondaryLayout.y,
+      width: secondaryLayout.width,
+      height: secondaryLayout.height,
       show: false,
       fullscreen: true,
       kiosk: true,
