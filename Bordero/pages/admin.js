@@ -534,20 +534,64 @@ class AdminPanel {
     });
   }
 
+  async fetchMonitorPagePolicy() {
+    const response = await fetch('/api/userform/pagina05/electron/page-policy', { cache: 'no-store' });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+
+    return Array.isArray(payload.policy) ? payload.policy : [];
+  }
+
+  async saveMonitorPagePolicy(pagePath, primary, secondary) {
+    const response = await fetch('/api/userform/pagina05/electron/page-policy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: pagePath, primary: Boolean(primary), secondary: Boolean(secondary) })
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+
+    return payload.policy || { path: pagePath, primary: Boolean(primary), secondary: Boolean(secondary) };
+  }
+
+  getMonitorPageRouteDefaults() {
+    return [
+      { path: '/bordero/pages/admin.html', primary: true, secondary: false },
+      { path: '/bordero/pages/bordero-presentazione.html', primary: true, secondary: true },
+      { path: '/bordero/pages/bordero.html', primary: true, secondary: false },
+      { path: '/bordero/pages/brani-eseguiti.html', primary: true, secondary: true },
+      { path: '/bordero/pages/display.html', primary: false, secondary: true },
+      { path: '/bordero/pages/elenco-richieste.html', primary: true, secondary: false },
+      { path: '/bordero/pages/lista-serata.html', primary: true, secondary: true },
+      { path: '/bordero/pages/location.html', primary: true, secondary: false },
+      { path: '/bordero/pages/next-coreo.html', primary: true, secondary: true },
+      { path: '/bordero/pages/risultati.html', primary: true, secondary: true },
+      { path: '/bordero/pages/video-player.html', primary: false, secondary: true },
+      { path: '/bordero/pages/videoclip.html', primary: true, secondary: false },
+      { path: '/eventi/eventi.html', primary: true, secondary: false }
+    ];
+  }
+
   getMonitorPageRoutes() {
     return [
-      { path: '/Bordero/pages/admin.html', label: 'Admin', description: 'Pannello amministrazione' },
-      { path: '/Bordero/pages/bordero-presentazione.html', label: 'Bordero Presentazione', description: 'Vista presentazione su entrambi i monitor' },
-      { path: '/Bordero/pages/bordero.html', label: 'Bordero', description: 'Pagina principale del Bordero' },
-      { path: '/Bordero/pages/brani-eseguiti.html', label: 'Brani Eseguiti', description: 'Cronologia brani su entrambi i monitor' },
-      { path: '/Bordero/pages/display.html', label: 'Display', description: 'Monitor secondario live' },
-      { path: '/Bordero/pages/elenco-richieste.html', label: 'Elenco Richieste', description: 'Richieste evento principale' },
-      { path: '/Bordero/pages/lista-serata.html', label: 'Lista Serata', description: 'Riepilogo serata su entrambi i monitor' },
-      { path: '/Bordero/pages/location.html', label: 'Location', description: 'Selezione location principale' },
-      { path: '/Bordero/pages/next-coreo.html', label: 'Next Coreo', description: 'Prossimo coreo su entrambi i monitor' },
-      { path: '/Bordero/pages/risultati.html', label: 'Risultati', description: 'Risultati evento su entrambi i monitor' },
-      { path: '/Bordero/pages/video-player.html', label: 'Video Player', description: 'Player video sul monitor secondario' },
-      { path: '/Bordero/pages/videoclip.html', label: 'VideoClip', description: 'Controllo videoclip principale' },
+      { path: '/bordero/pages/admin.html', label: 'Admin', description: 'Pannello amministrazione' },
+      { path: '/bordero/pages/bordero-presentazione.html', label: 'Bordero Presentazione', description: 'Vista presentazione su entrambi i monitor' },
+      { path: '/bordero/pages/bordero.html', label: 'Bordero', description: 'Pagina principale del Bordero' },
+      { path: '/bordero/pages/brani-eseguiti.html', label: 'Brani Eseguiti', description: 'Cronologia brani su entrambi i monitor' },
+      { path: '/bordero/pages/display.html', label: 'Display', description: 'Monitor secondario live' },
+      { path: '/bordero/pages/elenco-richieste.html', label: 'Elenco Richieste', description: 'Richieste evento principale' },
+      { path: '/bordero/pages/lista-serata.html', label: 'Lista Serata', description: 'Riepilogo serata su entrambi i monitor' },
+      { path: '/bordero/pages/location.html', label: 'Location', description: 'Selezione location principale' },
+      { path: '/bordero/pages/next-coreo.html', label: 'Next Coreo', description: 'Prossimo coreo su entrambi i monitor' },
+      { path: '/bordero/pages/risultati.html', label: 'Risultati', description: 'Risultati evento su entrambi i monitor' },
+      { path: '/bordero/pages/video-player.html', label: 'Video Player', description: 'Player video sul monitor secondario' },
+      { path: '/bordero/pages/videoclip.html', label: 'VideoClip', description: 'Controllo videoclip principale' },
       { path: '/eventi/eventi.html', label: 'Eventi', description: 'Pagine eventi principali' }
     ];
   }
@@ -573,10 +617,11 @@ class AdminPanel {
         summaryNode.textContent = 'Policy caricata. Modifica le checkbox per aggiornare la policy Electron.';
       }
     } catch (error) {
+      const defaultPolicyEntries = this.getMonitorPageRouteDefaults();
       if (summaryNode) {
-        summaryNode.textContent = `Impossibile caricare policy monitor: ${this.escapeHtml(error?.message || String(error))}`;
+        summaryNode.textContent = `Impossibile caricare policy monitor da Electron: uso valori predefiniti.`;
       }
-      output.innerHTML = this.renderMonitorPagesTable(this.getMonitorPageRoutes(), []);
+      output.innerHTML = this.renderMonitorPagesTable(this.getMonitorPageRoutes(), defaultPolicyEntries);
     }
   }
 
