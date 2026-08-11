@@ -2358,8 +2358,14 @@ class BorderoTableManager {
       return false;
     }
 
-    // Considera completata la riproduzione quando il deck si svuota dopo essere andato in PLAY.
-    if (tracker.hasSeenPlaying && deckState.isEmpty) {
+    const remainingSeconds = Number(deckState.timeRemainSeconds);
+    const hasValidRemaining = Number.isFinite(remainingSeconds);
+    const reachedNaturalEnd = hasValidRemaining && remainingSeconds <= 0.75;
+
+    // Considera completata la riproduzione quando:
+    // 1) il deck si svuota dopo essere andato in PLAY, oppure
+    // 2) il deck non e in PLAY/PAUSE e il tempo residuo e sostanzialmente a zero.
+    if (tracker.hasSeenPlaying && (deckState.isEmpty || (!deckState.isPlaying && !deckState.isPaused && reachedNaturalEnd))) {
       this.clearVirtualDjCompletionTracker();
       this.finalizeBranoAsCompleted(trackedBrano, {
         source: 'virtualdj',
@@ -2503,13 +2509,15 @@ class BorderoTableManager {
     const scripts = [
       `deck ${targetDeck} get_loaded`,
       `deck ${targetDeck} get_play`,
-      `deck ${targetDeck} get_pause`
+      `deck ${targetDeck} get_pause`,
+      `deck ${targetDeck} get_time_remain`
     ];
 
     let hasTrack = false;
     let isPlaying = false;
     let isPaused = false;
     let failedRequests = 0;
+    let timeRemainSeconds = null;
 
     for (const script of scripts) {
       try {
@@ -2523,6 +2531,11 @@ class BorderoTableManager {
           isPlaying = positive;
         } else if (script.includes('get_pause')) {
           isPaused = positive;
+        } else if (script.includes('get_time_remain')) {
+          const parsed = this.parseVirtualDjTimeValue(response);
+          if (Number.isFinite(parsed)) {
+            timeRemainSeconds = parsed;
+          }
         }
       } catch (error) {
         failedRequests += 1;
@@ -2535,10 +2548,40 @@ class BorderoTableManager {
       hasTrack,
       isPlaying,
       isPaused,
+      timeRemainSeconds,
       unavailable: failedRequests === scripts.length,
       isEmpty: !hasTrack,
       isActive: isPlaying || isPaused || hasTrack
     };
+  }
+
+  parseVirtualDjTimeValue(rawValue) {
+    const text = String(rawValue || '').trim();
+    if (!text) return null;
+
+    const numeric = Number(text.replace(',', '.'));
+    if (Number.isFinite(numeric)) {
+      return numeric;
+    }
+
+    const mmssMatch = text.match(/^-?(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+    if (!mmssMatch) {
+      return null;
+    }
+
+    const first = Number(mmssMatch[1] || 0);
+    const second = Number(mmssMatch[2] || 0);
+    const third = Number(mmssMatch[3] || 0);
+
+    if (Number.isNaN(first) || Number.isNaN(second) || Number.isNaN(third)) {
+      return null;
+    }
+
+    if (mmssMatch[3] !== undefined) {
+      return (first * 3600) + (second * 60) + third;
+    }
+
+    return (first * 60) + second;
   }
 
   async queryVirtualDjScript(script, timeoutMs = 2500) {

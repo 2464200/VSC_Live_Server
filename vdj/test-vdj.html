@@ -356,24 +356,106 @@
     ];
 
     const DEFAULT_SERVER_ORIGINS = [
-        "http://127.0.0.1:5500",
         "http://localhost:5500",
+        "http://127.0.0.1:5500",
         "http://127.0.0.1:8000",
-        "http://localhost:8000"
+        "http://localhost:8000",
+        "http://localhost:5501",
+        "http://127.0.0.1:5501"
     ];
 
+    let cachedServerOrigin = '';
+
+    function getServerOriginCandidates() {
+        const currentOrigin = String(window.location?.origin || '').replace(/\/+$/, '');
+        const candidates = [];
+
+        const add = (origin) => {
+            const value = String(origin || '').trim().replace(/\/+$/, '');
+            if (!value || value === 'null' || value === 'file://') return;
+            if (!candidates.includes(value)) {
+                candidates.push(value);
+            }
+        };
+
+        if (currentOrigin) {
+            add(currentOrigin);
+
+            try {
+                const current = new URL(currentOrigin);
+                const port = current.port || (current.protocol === 'https:' ? '443' : '80');
+                const swappedHost = current.hostname === '127.0.0.1'
+                    ? 'localhost'
+                    : (current.hostname === 'localhost' ? '127.0.0.1' : '');
+                if (swappedHost) {
+                    add(`${current.protocol}//${swappedHost}:${port}`);
+                }
+            } catch (_) {
+                // ignore invalid origin
+            }
+        }
+
+        DEFAULT_SERVER_ORIGINS.forEach(add);
+        return candidates;
+    }
+
+    async function fetchFromServerOrigins(pathname, searchParams = {}, fetchOptions = {}) {
+        const queryEntries = Object.entries(searchParams || {});
+        const knownOrigins = [];
+
+        if (cachedServerOrigin) {
+            knownOrigins.push(cachedServerOrigin);
+        }
+
+        getServerOriginCandidates().forEach((origin) => {
+            if (!knownOrigins.includes(origin)) {
+                knownOrigins.push(origin);
+            }
+        });
+
+        let lastError = null;
+
+        for (const origin of knownOrigins) {
+            try {
+                const url = new URL(pathname, origin);
+                queryEntries.forEach(([key, value]) => {
+                    if (value !== undefined && value !== null) {
+                        url.searchParams.set(key, String(value));
+                    }
+                });
+
+                const response = await fetch(url.toString(), fetchOptions);
+                if (response.status === 404 || response.status === 405) {
+                    lastError = new Error(`HTTP ${response.status} su ${origin}`);
+                    continue;
+                }
+
+                cachedServerOrigin = origin;
+                return { response, origin, url: url.toString() };
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        throw lastError || new Error('Nessun server locale raggiungibile');
+    }
+
     function getAppOrigin() {
+        if (cachedServerOrigin) {
+            return cachedServerOrigin;
+        }
+
         const currentOrigin = window.location?.origin;
         if (currentOrigin && currentOrigin !== 'null' && currentOrigin !== 'file://') {
             const normalizedOrigin = String(currentOrigin).replace(/\/+$/, '');
             const preferred = [
                 normalizedOrigin,
-                'http://127.0.0.1:5500',
                 'http://localhost:5500',
+                'http://127.0.0.1:5500',
                 'http://127.0.0.1:8000',
                 'http://localhost:8000',
-                'http://127.0.0.1:5501',
-                'http://localhost:5501'
+                'http://localhost:5501',
+                'http://127.0.0.1:5501'
             ].find((origin) => origin && origin !== 'null' && origin !== 'file://');
             if (preferred) {
                 return preferred;
@@ -469,11 +551,8 @@
 
         try {
 
-            const url =
-                costruisciUrl(
-                    "/execute",
-                    script
-                );
+            const base = leggiVdjUrl();
+            const candidateBases = getVirtualDjCandidateBases(base);
 
             scriviLog(
                 "Invio comando:\n" +
@@ -481,12 +560,18 @@
                 "\n\nAttendere..."
             );
 
-            const response = await fetch(url);
+            const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                baseUrl: base,
+                appOrigin: getAppOrigin(),
+                baseUrls: candidateBases.join(','),
+                endpoint: '/execute',
+                script
+            });
 
             if (!response.ok) {
 
                 throw new Error(
-                    "HTTP " + response.status
+                    "HTTP " + response.status + " (server " + origin + ")"
                 );
 
             }
@@ -520,18 +605,20 @@
 
         try {
 
-            const url =
-                costruisciUrl(
-                    "/query",
-                    script
-                );
-
-            const response = await fetch(url);
+            const base = leggiVdjUrl();
+            const candidateBases = getVirtualDjCandidateBases(base);
+            const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                baseUrl: base,
+                appOrigin: getAppOrigin(),
+                baseUrls: candidateBases.join(','),
+                endpoint: '/query',
+                script
+            });
 
             if (!response.ok) {
 
                 throw new Error(
-                    "HTTP " + response.status
+                    "HTTP " + response.status + " (server " + origin + ")"
                 );
 
             }
@@ -592,13 +679,12 @@
         try {
             impostaStato('statusProxy', 'warn', 'Proxy locale: verifica in corso...');
             const base = leggiVdjUrl();
-            const url = new URL('/api/vdj/proxy', getAppOrigin());
-            url.searchParams.set('baseUrl', base);
-            url.searchParams.set('baseUrls', getVirtualDjCandidateBases(base).join(','));
-            url.searchParams.set('endpoint', '/query');
-            url.searchParams.set('script', 'get_clock');
-
-            const response = await fetch(url.toString());
+            const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                baseUrl: base,
+                baseUrls: getVirtualDjCandidateBases(base).join(','),
+                endpoint: '/query',
+                script: 'get_clock'
+            });
             const testo = await response.text();
 
             if (!response.ok) {
@@ -606,7 +692,7 @@
             }
 
             impostaStato('statusProxy', 'ok', 'Proxy locale: OK');
-            scriviLog('Proxy locale OK.\n\nRisposta:\n' + testo);
+            scriviLog('Proxy locale OK (' + origin + ').\n\nRisposta:\n' + testo);
         } catch (errore) {
             impostaStato('statusProxy', 'err', 'Proxy locale: errore');
             scriviLog('Errore proxy locale:\n' + (errore?.message || errore));
@@ -619,6 +705,7 @@
             const base = leggiVdjUrl();
             const candidates = getVirtualDjCandidateBases(base);
             let lastError = null;
+            let corsBlocked = false;
 
             for (const candidate of candidates) {
                 try {
@@ -636,8 +723,29 @@
                     scriviLog('VirtualDJ diretto OK.\n\nRisposta:\n' + testo);
                     return;
                 } catch (errore) {
+                    const message = String(errore?.message || errore || '').toLowerCase();
+                    if (message.includes('failed to fetch') || message.includes('cors')) {
+                        corsBlocked = true;
+                    }
                     lastError = errore;
                 }
+            }
+
+            if (corsBlocked) {
+                const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                    baseUrl: base,
+                    baseUrls: candidates.join(','),
+                    endpoint: '/query',
+                    script: 'get_clock'
+                });
+                const testo = await response.text();
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ' - ' + testo);
+                }
+
+                impostaStato('statusVdj', 'ok', 'VirtualDJ: OK (via proxy)');
+                scriviLog('Test diretto browser bloccato da CORS.\nProxy locale funzionante (' + origin + ').\n\nRisposta:\n' + testo);
+                return;
             }
 
             throw lastError || new Error('Nessun indirizzo VirtualDJ ha risposto');
@@ -754,7 +862,7 @@
 
     async function aggiornaPlaceholderDaArchivio() {
         try {
-            const response = await fetch('/api/music-archive/config', { cache: 'no-store' });
+            const { response } = await fetchFromServerOrigins('/api/music-archive/config', {}, { cache: 'no-store' });
             const risultato = await response.json();
             const inputPercorso = document.getElementById('percorso');
             if (!inputPercorso) return;
@@ -775,7 +883,7 @@
 
     async function caricaArchivioBrani() {
         try {
-            const response = await fetch('/api/music-archive/status?refresh=1');
+            const { response } = await fetchFromServerOrigins('/api/music-archive/status', { refresh: 1 }, { cache: 'no-store' });
             const risultato = await response.json();
             const container = document.getElementById('archive-list');
             if (!container) return;
