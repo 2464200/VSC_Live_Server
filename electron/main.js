@@ -896,6 +896,50 @@ ipcMain.handle('bordero-monitor-policy:last-event', async () => {
   };
 });
 
+ipcMain.handle('bordero-file-picker:pick-directory', async () => {
+  try {
+    const { dialog } = require('electron');
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    });
+
+    if (result.canceled) {
+      return '';
+    }
+
+    const selected = result.filePaths && result.filePaths[0] ? result.filePaths[0] : '';
+    return selected;
+  } catch (error) {
+    console.warn('Unable to open directory picker:', error?.message || error);
+    return '';
+  }
+});
+
+ipcMain.handle('bordero-file-picker:list-directory', async (_event, targetPath = '') => {
+  try {
+    const candidate = String(targetPath || '').trim();
+    const resolved = candidate && fs.existsSync(candidate) ? candidate : (process.env.HOMEDRIVE && process.env.HOMEPATH ? path.join(process.env.HOMEDRIVE, process.env.HOMEPATH) : 'C:\\');
+    const stats = fs.existsSync(resolved) && fs.statSync(resolved).isDirectory() ? fs.statSync(resolved) : null;
+    if (!stats) {
+      return { entries: [] };
+    }
+
+    const entries = fs.readdirSync(resolved, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => ({
+        name: entry.name,
+        path: path.join(resolved, entry.name),
+        isDirectory: true
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    return { entries };
+  } catch (error) {
+    console.warn('Unable to list directory for picker:', error?.message || error);
+    return { entries: [] };
+  }
+});
+
 async function ensureWindows() {
   await ensureUnifiedServer();
   const monitorPreferences = await ensurePrimaryMonitorSelectionPreference();

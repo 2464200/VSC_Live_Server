@@ -255,11 +255,15 @@
 
       <div class="music-archive-config">
         <label for="music-archive-path" class="music-archive-label">Percorso cartella archivio</label>
-        <input id="music-archive-path" class="input" type="text" placeholder="Esempio: D:\\Musica\\Archivio DJ" />
         <div class="music-archive-actions">
+          <select id="music-archive-path" class="select" aria-label="Seleziona cartella archivio"></select>
+          <button id="btn-browse-music-archive" class="btn btn-secondary" type="button">📁 Sfoglia cartella</button>
+        </div>
+        <div class="music-archive-actions" style="margin-top: 8px;">
           <button id="btn-save-music-archive" class="btn btn-primary" type="button">💾 Salva cartella archivio</button>
           <button id="btn-check-music-archive" class="btn btn-secondary" type="button">🔎 Verifica archivio</button>
         </div>
+        <div id="music-archive-recent-path" aria-live="polite" style="margin-top: 10px; font-size: 13px; color: #dfe6ff; line-height: 1.4;">Nessun percorso salvato. Seleziona una cartella e premi Salva.</div>
         <div id="music-archive-status" class="dj-software-status">Stato archivio: non configurato</div>
       </div>
     </section>

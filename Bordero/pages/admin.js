@@ -45,17 +45,93 @@ class AdminPanel {
     return payload;
   }
 
+  async fetchMusicArchiveDirectories(targetPath = '') {
+    const response = await fetch(`/api/music-archive/directories?path=${encodeURIComponent(targetPath || '')}`, { cache: 'no-store' });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
   setupMusicArchiveSettings() {
     const pathInput = document.getElementById('music-archive-path');
+    const browseBtn = document.getElementById('btn-browse-music-archive');
     const saveBtn = document.getElementById('btn-save-music-archive');
     const checkBtn = document.getElementById('btn-check-music-archive');
     const statusEl = document.getElementById('music-archive-status');
+    const recentPathEl = document.getElementById('music-archive-recent-path');
 
-    if (!pathInput || !saveBtn || !checkBtn || !statusEl) return;
+    if (!pathInput || !browseBtn || !saveBtn || !checkBtn || !statusEl) return;
 
     const renderStatus = (text, level = 'info') => {
       statusEl.textContent = text;
       statusEl.style.color = level === 'error' ? '#ff7f7f' : (level === 'success' ? '#9be7a5' : '#ddd');
+    };
+
+    const renderRecentPathHint = (configuredPath = '', selectedPath = '') => {
+      if (!recentPathEl) return;
+
+      const effectivePath = String(configuredPath || selectedPath || '').trim();
+      if (!effectivePath) {
+        recentPathEl.textContent = 'Nessun percorso salvato. Seleziona una cartella e premi Salva.';
+        recentPathEl.style.color = '#dfe6ff';
+        return;
+      }
+
+      recentPathEl.textContent = `Ultimo percorso usato: ${effectivePath}`;
+      recentPathEl.style.color = '#9be7a5';
+    };
+
+    const populatePathOptions = async (currentPath = '') => {
+      const options = [];
+      const seen = new Set();
+      const normalizedCurrent = String(currentPath || '').trim();
+      const current = normalizedCurrent || '';
+
+      const addOption = (value, label) => {
+        const safeValue = String(value || '').trim();
+        if (!safeValue || seen.has(safeValue)) {
+          return;
+        }
+        seen.add(safeValue);
+        options.push({ value: safeValue, label: String(label || safeValue) });
+      };
+
+      if (current) {
+        addOption(current, current || 'Cartella corrente');
+      }
+
+      try {
+        const payload = await this.fetchMusicArchiveDirectories(current);
+        const entries = Array.isArray(payload?.entries) ? payload.entries : [];
+        if (payload?.parentPath) {
+          addOption(payload.parentPath, '⬆️ Cartella superiore');
+        }
+        entries.forEach((entry) => {
+          if (entry?.isDirectory !== false) {
+            addOption(entry.path || entry.name, entry.name || entry.path);
+          }
+        });
+      } catch (error) {
+        this.log(`⚠️ Impossibile caricare la lista cartelle: ${error?.message || error}`, 'warning');
+      }
+
+      pathInput.innerHTML = '';
+      options.forEach((option) => {
+        const element = document.createElement('option');
+        element.value = option.value;
+        element.textContent = option.label;
+        pathInput.appendChild(element);
+      });
+
+      if (current) {
+        pathInput.value = current;
+      }
+
+      if (current) {
+        renderRecentPathHint(current, current);
+      }
     };
 
     const refreshUi = async (forceScan = false) => {
@@ -65,9 +141,11 @@ class AdminPanel {
           this.fetchMusicArchiveStatus(forceScan)
         ]);
 
-        pathInput.value = config?.rootPath || '';
+        const configuredPath = String(config?.rootPath || '').trim();
+        await populatePathOptions(configuredPath);
+        renderRecentPathHint(configuredPath, pathInput.value);
 
-        if (!config?.rootPath) {
+        if (!configuredPath) {
           renderStatus('Stato archivio: non configurato', 'info');
           return;
         }
@@ -82,6 +160,27 @@ class AdminPanel {
         renderStatus(`Stato archivio: errore (${error?.message || error})`, 'error');
       }
     };
+
+    pathInput.addEventListener('change', async () => {
+      const selectedPath = String(pathInput.value || '').trim();
+      if (!selectedPath) {
+        return;
+      }
+      await populatePathOptions(selectedPath);
+    });
+
+    browseBtn.addEventListener('click', async () => {
+      const currentPath = String(pathInput.value || '').trim();
+      try {
+        const payload = await this.fetchMusicArchiveDirectories(currentPath || '');
+        if (payload?.path) {
+          await populatePathOptions(payload.path);
+        }
+      } catch (error) {
+        this.log(`❌ Impossibile aprire la navigazione archivio: ${error?.message || error}`, 'error');
+        Toast.error('Impossibile caricare la cartella archivio');
+      }
+    });
 
     saveBtn.addEventListener('click', async () => {
       const rootPath = String(pathInput.value || '').trim();

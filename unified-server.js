@@ -133,6 +133,69 @@ function normalizeMusicArchivePath(value = '') {
     return String(value || '').trim().replace(/^"+|"+$/g, '').replace(/[\\/]+$/, '');
 }
 
+function getWindowsDriveRoots() {
+    const roots = [];
+    if (process.platform === 'win32') {
+        for (let drive = 67; drive <= 90; drive += 1) {
+            const candidate = `${String.fromCharCode(drive)}:\\`;
+            try {
+                if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+                    roots.push(candidate);
+                }
+            } catch (error) {
+                // ignore
+            }
+        }
+    }
+
+    if (!roots.length) {
+        const home = os.homedir();
+        if (home) {
+            roots.push(home);
+        }
+    }
+
+    return roots.sort((left, right) => left.localeCompare(right));
+}
+
+function listMusicArchiveDirectories(targetPath = '') {
+    const normalizedTarget = normalizeMusicArchivePath(targetPath);
+    if (!normalizedTarget) {
+        return {
+            path: '',
+            parentPath: '',
+            entries: getWindowsDriveRoots().map((root) => ({
+                name: root,
+                path: root,
+                isDirectory: true
+            }))
+        };
+    }
+
+    if (!fs.existsSync(normalizedTarget) || !fs.statSync(normalizedTarget).isDirectory()) {
+        return {
+            path: normalizedTarget,
+            parentPath: path.dirname(normalizedTarget),
+            entries: []
+        };
+    }
+
+    const entries = fs.readdirSync(normalizedTarget, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => ({
+            name: entry.name,
+            path: path.join(normalizedTarget, entry.name),
+            isDirectory: true
+        }))
+        .sort((left, right) => left.name.localeCompare(right.name));
+
+    return {
+        path: normalizedTarget,
+        parentPath: path.dirname(normalizedTarget),
+        entries
+    };
+}
+
 function readMusicArchiveConfig() {
     try {
         if (!fs.existsSync(MUSIC_ARCHIVE_CONFIG_FILE)) {
@@ -2352,6 +2415,16 @@ app.post('/api/music-archive/config', (req, res) => {
         const saved = writeMusicArchiveConfig(rootPath);
         refreshMusicArchiveIndex(true);
         return res.json({ ok: true, rootPath: saved.rootPath, updatedAt: saved.updatedAt });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/music-archive/directories', (req, res) => {
+    try {
+        const targetPath = String(req.query.path || '').trim();
+        const payload = listMusicArchiveDirectories(targetPath);
+        return res.json({ ok: true, ...payload });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
