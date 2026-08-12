@@ -155,7 +155,17 @@ function sanitizeSiaeEventName(value = '') {
 }
 
 function normalizeMusicArchivePath(value = '') {
-    return String(value || '').trim().replace(/^"+|"+$/g, '').replace(/[\\/]+$/, '');
+    const raw = String(value || '').trim().replace(/^"+|"+$/g, '');
+    if (!raw) {
+        return '';
+    }
+
+    const normalized = raw.replace(/[\\/]+$/, '');
+    if (/^[A-Za-z]:$/.test(normalized)) {
+        return `${normalized}\\`;
+    }
+
+    return normalized;
 }
 
 function getWindowsDriveRoots() {
