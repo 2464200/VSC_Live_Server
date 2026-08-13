@@ -1,10 +1,10 @@
 (function () {
-  const captionNode = document.getElementById("pagina02-caption");
+  const captionNode = document.getElementById("servizio-caption");
   const listBody = document.getElementById("listbox-richieste-body");
   const textbox6 = document.getElementById("textbox6");
   const nextPreview = document.getElementById("nextcoreo-preview");
-  const statusNode = document.getElementById("pagina02-status");
-  const btnCloseForm = document.getElementById("btn-close-pagina02");
+  const statusNode = document.getElementById("servizio-status");
+  const btnCloseForm = document.getElementById("btn-close-servizio");
   const btnOpenLogo = document.getElementById("btn-open-logo");
   const btnOpenImage = document.getElementById("btn-open-image");
   const btnOpenServizio = document.getElementById("btn-open-servizio");

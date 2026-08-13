@@ -3,31 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USERFORM - PAGINA02</title>
+  <title>USERFORM - SERVIZIO</title>
   <link rel="stylesheet" href="../assets/css/userform.css" />
   <script defer src="../js/userform-registry.js"></script>
   <script defer src="../js/userform-page.js"></script>
-  <script defer src="../js/pagina02-actions.js"></script>
+  <script defer src="../js/servizio-actions.js"></script>
 </head>
 <body class="fit-video-frame">
   <div class="layout">
     <header class="topbar">
       <div>
-        <h1 id="form-name">PAGINA02</h1>
-        <p class="subtitle" id="pagina02-caption">DJ'S BORDERO' - 2025 [DJ LUCAS BERRY]</p>
+        <h1 id="form-name">SERVIZIO</h1>
+        <p class="subtitle" id="servizio-caption">DJ'S BORDERO' - 2025 [DJ LUCAS BERRY]</p>
       </div>
       <nav class="top-actions" aria-label="Azioni principali">
         <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
       </nav>
     </header>
 
+    <nav class="nav-breadcrumb">
+      <a href="../../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="../index.html">USERFORM</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">SERVIZIO</span>
+    </nav>
+
     <main class="page-shell">
       <section class="panel">
         <h2>Metadati VBA</h2>
-        <p class="meta">Nome form: <strong id="form-name-copy">PAGINA02</strong></p>
+        <p class="meta">Nome form: <strong id="form-name-copy">SERVIZIO</strong></p>
         <p class="meta">Caption: <strong id="form-caption">-</strong></p>
         <p class="meta">Client size: <strong id="form-size">-</strong></p>
-        <div class="route-group" aria-label="Mappa eventi VBA PAGINA02">
+        <div class="route-group" aria-label="Mappa eventi VBA SERVIZIO">
           <span class="route-pill">CommandButton31 -> INDICE</span>
           <span class="route-pill">CommandButton32 -> Chiudi</span>
           <span class="route-pill">ListBoxRichieste <- Publisher-Show A1:B20</span>
@@ -44,7 +52,7 @@
         <div class="control-box">
           <div class="control-row">
             <a class="btn" href="../index.html">CommandButton31: Torna a INDICE</a>
-            <button class="btn btn-secondary" id="btn-close-pagina02" type="button">CommandButton32: Chiudi form</button>
+            <button class="btn btn-secondary" id="btn-close-servizio" type="button">CommandButton32: Chiudi form</button>
           </div>
         </div>
       </section>
@@ -110,7 +118,7 @@
             <button class="btn btn-block btn-secondary" id="btn-close-external" type="button">Chiudi finestra esterna</button>
           </article>
         </div>
-        <div id="pagina02-status" class="status-box" role="status" aria-live="polite">
+        <div id="servizio-status" class="status-box" role="status" aria-live="polite">
           <strong>Stato:</strong> pronto.
         </div>
       </section>
@@ -122,6 +130,11 @@
           <a id="next-form" class="btn" href="#">Form successivo</a>
         </div>
       </section>
+
+      <nav class="bottom-bar" aria-label="Navigazione pagina">
+        <a href="../index.html">Indice</a>
+        <button id="btn-close-servizio-bottom" type="button">CHIUDI</button>
+      </nav>
     </main>
   </div>
 </body>

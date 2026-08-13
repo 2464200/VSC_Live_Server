@@ -16,7 +16,7 @@
       const size = `${form.clientWidth} x ${form.clientHeight}`;
       const implemented = new Set([
         "QRCODE",
-        "PAGINA02",
+        "SERVIZIO",
         "PAGINA03",
         "PAGINA04",
         "WEBCAM",

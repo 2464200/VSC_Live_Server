@@ -1,6 +1,6 @@
 window.USERFORM_REGISTRY = [
   { id: "QRCODE", caption: "frmQRCode", clientWidth: 16770, clientHeight: 12420 },
-  { id: "PAGINA02", caption: "frmPagina02", clientWidth: 16770, clientHeight: 12420 },
+  { id: "SERVIZIO", caption: "frmServizio", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA03", caption: "frmPagina03", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA04", caption: "frmPAGINA04", clientWidth: 6930, clientHeight: 9255 },
   { id: "WEBCAM", caption: "frmPagina05", clientWidth: 16770, clientHeight: 12420 },
