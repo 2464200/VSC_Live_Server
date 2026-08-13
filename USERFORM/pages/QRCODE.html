@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QRCODE</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    .qr-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 4px solid #ffa200;
+      border-radius: 20px;
+      animation: neonPulse 2s infinite ease-in-out;
+      width: auto;
+      max-width: 90vw;
+      max-height: 90vh;
+      aspect-ratio: 8.5 / 11;
+    }
+    #pdf-viewer {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+    @keyframes neonPulse {
+      0% { box-shadow: 0 0 8px #ffa200; }
+      50% { box-shadow: 0 0 25px #ffcc66; }
+      100% { box-shadow: 0 0 8px #ffa200; }
+    }
+  </style>
+</head>
+<body>
+  <div class="qr-container">
+    <embed id="pdf-viewer" src="../../Prova/Cartello-QR-CODE.pdf#toolbar=0&view=fitH" type="application/pdf" width="600" height="800">
+  </div>
+
+  <script src="../js/qrcode-actions.js"></script>
+</body>
+</html>
+
