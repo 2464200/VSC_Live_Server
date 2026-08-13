@@ -62,6 +62,18 @@ class DataLoader {
     );
     normalized.brano = getFirstValue(brano.brano, brano.song, brano.canzone, brano['brano']);
     normalized.autore = getFirstValue(brano.autore, brano.author, brano['autore']);
+    normalized.nome = getFirstValue(
+      brano.nome,
+      brano.name,
+      brano['nome'],
+      brano['Nome'],
+      brano.richiedente,
+      brano.requester,
+      brano.requested_by,
+      brano['richiedente'],
+      brano['requester'],
+      brano['requested by']
+    );
     normalized.richieste = getFirstValue(brano.richieste, brano['richieste'], brano['Richieste']);
     normalized.genere = getFirstValue(brano.genere, brano['genere']);
     normalized.next_coreo = getFirstValue(brano.next_coreo, brano.nextCoreo, brano['next coreo'], brano['Next Coreo'], brano['NEXT COREO']);

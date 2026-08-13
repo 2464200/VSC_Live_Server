@@ -475,13 +475,16 @@ class ElencoRichiestePage {
           ? `<button type="button" class="videoclip-open${videoButtonDisabledClass}" data-brano-id="${brano.id}" aria-label="Apri VideoClip per ${String(brano.titolo || brano.id || 'brano')}" title="${videoButtonTitle}"${videoButtonDisabledAttr}>🎬</button>`
           : '-';
 
+        const richiedenteNome = brano.nome || brano.requester || brano.richiedente || brano.requestedBy || '--';
+
         return `
           <tr class="requested-row" data-brano-id="${brano.id}">
             <td class="col-number">${index + 1}</td>
             <td class="col-titolo">${titolo}</td>
             <td class="col-autore">${brano.autore || '--'}</td>
-            <td class="col-richieste">${brano.richieste || '--'}</td>
             <td class="col-coreografo">${brano.coreografo || '--'}</td>
+            <td class="col-richieste">${brano.richieste || '--'}</td>
+            <td class="col-nome">${richiedenteNome}</td>
             <td class="col-timestamp">${brano.timestamp || '--'}</td>
             <td>
               <span class="action-inline ${statoClass}" aria-live="polite">
