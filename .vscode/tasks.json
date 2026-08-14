@@ -198,6 +198,27 @@
       },
       "problemMatcher": [],
       "group": "build"
+    },
+    {
+      "label": "Windows: Update Dev Environment",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\VSC_script_software\\Aggiorna-Sviluppo.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
     }
   ],
   "inputs": [
