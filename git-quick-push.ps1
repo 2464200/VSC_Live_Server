@@ -5,6 +5,27 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Remove-StaleGitLock {
+    $gitDir = (& git rev-parse --git-dir 2>$null)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($gitDir)) {
+        return
+    }
+
+    $lockPath = Join-Path (Get-Location).Path $gitDir | Join-Path -ChildPath 'index.lock'
+    if (-not (Test-Path $lockPath)) {
+        return
+    }
+
+    $gitProcesses = @(Get-Process git -ErrorAction SilentlyContinue)
+    if ($gitProcesses.Count -gt 0) {
+        Write-Warning "Rilevato un processo Git attivo; non rimuovo il lock per evitare di corrompere l'operazione in corso."
+        return
+    }
+
+    Remove-Item $lockPath -Force -ErrorAction Stop
+    Write-Host "Rimosso lock Git stale: $lockPath"
+}
+
 function Invoke-Git {
     param(
         [Parameter(Mandatory = $true)]
@@ -19,6 +40,7 @@ function Invoke-Git {
 
 try {
     Invoke-Git -Args @('rev-parse', '--is-inside-work-tree') | Out-Null
+    Remove-StaleGitLock
 
     if ([string]::IsNullOrWhiteSpace($CommitMessage)) {
         $CommitMessage = "chore: auto commit $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"

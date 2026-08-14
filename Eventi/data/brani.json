@@ -4017,7 +4017,7 @@
   },
   {
     "id": "503",
-    "titolo": "HOUSE OF BAMB",
+    "titolo": "HOUSE OF BAMBOO",
     "brano": "house of mamboo",
     "autore": "andy williams",
     "compositore": "",
@@ -4049,7 +4049,7 @@
   },
   {
     "id": "507",
-    "titolo": "HOUSE OF BAMBOO",
+    "titolo": "4 COWBOY",
     "brano": "rough ride for a cowboy",
     "autore": "mackenzie porter",
     "compositore": "",
@@ -4377,7 +4377,7 @@
   },
   {
     "id": "548",
-    "titolo": "I SHOWED THE DOOR",
+    "titolo": "I SHOWED YOU THE DOOR",
     "brano": "the door",
     "autore": "teddy swims",
     "compositore": "",
@@ -4558,6 +4558,14 @@
     "autore": "keith urban",
     "compositore": "",
     "durata": "INTERMEDIO"
+  },
+  {
+    "id": "571",
+    "titolo": "NUMBER 7",
+    "brano": "numer 7's gone",
+    "autore": "blake whiten",
+    "compositore": "",
+    "durata": "ALTRE COREO"
   },
   {
     "id": "598",
