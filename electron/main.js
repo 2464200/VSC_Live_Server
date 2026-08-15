@@ -51,7 +51,19 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/risultati.html', { primary: true, secondary: true }],
   ['/bordero/pages/video-player.html', { primary: false, secondary: true }],
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
-  ['/eventi/eventi.html', { primary: true, secondary: false }]
+  ['/eventi/eventi.html', { primary: true, secondary: false }],
+  ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
+  ['/userform/pages/servizio.html', { primary: true, secondary: false }],
+  ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
+  ['/userform/pages/wecam.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina04.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina06.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina07.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina08.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina09.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina10.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina11.html', { primary: true, secondary: false }]
 ]);
 
 let currentPagePolicy = new Map(PAGE_POLICY);
@@ -494,11 +506,19 @@ function isManagedHtmlAppUrl(candidateUrl) {
   return normalizePathname(parsed.toString()).endsWith('.html');
 }
 
+const USERFORM_CANONICAL_PAGE_IDS = new Set(
+  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'wecam', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
+);
+
+function isCanonicalUserFormPage(candidateUrl) {
+  const normalizedPath = normalizePathname(candidateUrl);
+  const fileName = normalizedPath.split('/').filter(Boolean).pop() || '';
+  const stem = fileName.replace(/\.html$/i, '').toLowerCase();
+  return Boolean(stem) && USERFORM_CANONICAL_PAGE_IDS.has(stem) && normalizedPath.includes('/userform/pages/');
+}
+
 function getMonitorPolicyForUrl(candidateUrl) {
   const normalizedPath = normalizePathname(candidateUrl);
-  if (PRIMARY_ONLY_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
-    return { primary: true, secondary: false };
-  }
 
   if (currentPagePolicy.has(normalizedPath)) {
     return currentPagePolicy.get(normalizedPath);
@@ -508,8 +528,16 @@ function getMonitorPolicyForUrl(candidateUrl) {
     return PAGE_POLICY.get(normalizedPath);
   }
 
-  // Default prudente: pagine non mappate sul monitor principale.
-  return { primary: true, secondary: false };
+  if (isCanonicalUserFormPage(candidateUrl)) {
+    return { primary: true, secondary: false };
+  }
+
+  if (PRIMARY_ONLY_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
+    return { primary: true, secondary: false };
+  }
+
+  // Default prudente: pagine non canonicali o non gestite non vengono routeate come pagine USERFORM.
+  return { primary: false, secondary: false };
 }
 
 function broadcastMonitorPolicyRouteEvent(payload = {}) {

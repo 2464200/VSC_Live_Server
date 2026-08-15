@@ -50,8 +50,21 @@
     window.open(target, "_blank", "noopener,noreferrer");
   }
 
-  function openPublishWindow(text) {
+  async function openPublishWindow(text) {
     const message = (text || "").trim() || defaultBannerText;
+    const appRoute = `/userform/pages/servizio-pubblica.html?text=${encodeURIComponent(message)}`;
+
+    if (window.electronAPI?.windowManager?.openSecondaryPage) {
+      try {
+        const result = await window.electronAPI.windowManager.openSecondaryPage({ path: appRoute });
+        if (result?.success) {
+          return;
+        }
+      } catch (error) {
+        console.warn("Impossibile aprire la pagina servizio via Electron, fallback browser:", error);
+      }
+    }
+
     const url = `../pages/SERVIZIO-PUBBLICA.html?text=${encodeURIComponent(message)}`;
     const width = 900;
     const height = 700;
@@ -64,14 +77,14 @@
     window.open(url, "_blank", features);
   }
 
-  function publishText() {
+  async function publishText() {
     const value = input ? input.value : "";
     const text = saveInputValue(value);
     if (input) {
       input.value = text;
       input.blur();
     }
-    openPublishWindow(text);
+    await openPublishWindow(text);
   }
 
   function stopText() {

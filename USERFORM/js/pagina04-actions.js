@@ -14,14 +14,14 @@
     btn.addEventListener("click", () => {
       const path = btn.getAttribute("data-open") || "";
       const full = `${baseUrl}${path}`;
-      window.open(full, "_blank", "noopener,noreferrer");
+      openManagedPage(full);
       setStatus(`apertura richiesta: ${full}`);
     });
   });
 
   document.getElementById("btn-open-pdf-legacy")?.addEventListener("click", () => {
     const full = "http://localhost:8765/Prova/ScriptPDF1.html";
-    window.open(full, "_blank", "noopener,noreferrer");
+    openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   });
 

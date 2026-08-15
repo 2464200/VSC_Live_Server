@@ -578,7 +578,19 @@ class AdminPanel {
       { path: '/bordero/pages/risultati.html', primary: true, secondary: true },
       { path: '/bordero/pages/video-player.html', primary: false, secondary: true },
       { path: '/bordero/pages/videoclip.html', primary: true, secondary: false },
-      { path: '/eventi/eventi.html', primary: true, secondary: false }
+      { path: '/eventi/eventi.html', primary: true, secondary: false },
+      { path: '/userform/pages/qrcode.html', primary: true, secondary: false },
+      { path: '/userform/pages/servizio.html', primary: true, secondary: false },
+      { path: '/userform/pages/servizio-pubblica.html', primary: false, secondary: true },
+      { path: '/userform/pages/wecam.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina03.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina04.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina06.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina07.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina08.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina09.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina10.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina11.html', primary: true, secondary: false }
     ];
   }
 
@@ -596,7 +608,19 @@ class AdminPanel {
       { path: '/bordero/pages/risultati.html', label: 'Risultati', description: 'Risultati evento su entrambi i monitor' },
       { path: '/bordero/pages/video-player.html', label: 'Video Player', description: 'Player video sul monitor secondario' },
       { path: '/bordero/pages/videoclip.html', label: 'VideoClip', description: 'Controllo videoclip principale' },
-      { path: '/eventi/eventi.html', label: 'Eventi', description: 'Pagine eventi principali' }
+      { path: '/eventi/eventi.html', label: 'Eventi', description: 'Pagine eventi principali' },
+      { path: '/userform/pages/qrcode.html', label: 'QRCode', description: 'Pagina QR code del form USERFORM' },
+      { path: '/userform/pages/servizio.html', label: 'Servizio', description: 'Pagina di servizio sul monitor principale' },
+      { path: '/userform/pages/servizio-pubblica.html', label: 'Servizio Pubblica', description: 'Testo da pubblicare sul monitor secondario' },
+      { path: '/userform/pages/wecam.html', label: 'Webcam', description: 'Pagina webcam del form USERFORM' },
+      { path: '/userform/pages/pagina03.html', label: 'Pagina 03', description: 'Pagina USERFORM 03' },
+      { path: '/userform/pages/pagina04.html', label: 'Pagina 04', description: 'Pagina USERFORM 04' },
+      { path: '/userform/pages/pagina06.html', label: 'Pagina 06', description: 'Pagina USERFORM 06' },
+      { path: '/userform/pages/pagina07.html', label: 'Pagina 07', description: 'Pagina USERFORM 07' },
+      { path: '/userform/pages/pagina08.html', label: 'Pagina 08', description: 'Pagina USERFORM 08' },
+      { path: '/userform/pages/pagina09.html', label: 'Pagina 09', description: 'Pagina USERFORM 09' },
+      { path: '/userform/pages/pagina10.html', label: 'Pagina 10', description: 'Pagina USERFORM 10' },
+      { path: '/userform/pages/pagina11.html', label: 'Pagina 11', description: 'Pagina USERFORM 11' }
     ];
   }
 
