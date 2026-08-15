@@ -1,96 +1,135 @@
 (function () {
-  const captionNode = document.getElementById("servizio-caption");
-  const listBody = document.getElementById("listbox-richieste-body");
-  const textbox6 = document.getElementById("textbox6");
-  const nextPreview = document.getElementById("nextcoreo-preview");
-  const statusNode = document.getElementById("servizio-status");
-  const btnCloseForm = document.getElementById("btn-close-servizio");
-  const btnOpenLogo = document.getElementById("btn-open-logo");
-  const btnOpenImage = document.getElementById("btn-open-image");
-  const btnOpenServizio = document.getElementById("btn-open-servizio");
-  const btnCloseExternal = document.getElementById("btn-close-external");
+  const input = document.getElementById("service-message-input");
+  const publishTextBtn = document.getElementById("publish-text-btn");
+  const stopTextBtn = document.getElementById("stop-text-btn");
+  const publishLogoBtn = document.getElementById("publish-logo-btn");
+  const publishFileBtn = document.getElementById("publish-file-btn");
+  const indexBtn = document.getElementById("index-btn");
+  const closeBtn = document.getElementById("close-btn");
+  const closeWindowBtn = document.getElementById("close-window-btn");
 
-  let externalWindow = null;
+  const defaultBannerText = "la serata inizierà a breve";
 
-  const baseUrl = window.location.origin && window.location.origin !== "null"
-    ? window.location.origin
-    : "http://localhost:5500";
-
-  const setStatus = (msg) => {
-    if (statusNode) {
-      statusNode.innerHTML = `<strong>Stato:</strong> ${msg}`;
+  function moveToPrimaryMonitor() {
+    try {
+      const primaryLeft = screen.availLeft || 0;
+      const primaryTop = screen.availTop || 0;
+      window.moveTo(primaryLeft + 20, primaryTop + 20);
+    } catch (error) {
+      // Ignora in browser dove il movimento di finestra è bloccato.
     }
-  };
-
-  if (captionNode) {
-    captionNode.textContent = "DJ'S BORDERO' - 2025 [DJ LUCAS BERRY]";
   }
 
-  if (listBody) {
-    const rows = [];
-    for (let i = 1; i <= 20; i += 1) {
-      rows.push({
-        colA: `A${i}`,
-        colB: `Publisher row ${i}`
-      });
-    }
-
-    listBody.innerHTML = rows
-      .map((row) => `<tr><td>${row.colA}</td><td>${row.colB}</td></tr>`)
-      .join("");
+  if (window.addEventListener) {
+    window.addEventListener("load", moveToPrimaryMonitor, { once: true });
   }
 
-  if (textbox6) {
-    textbox6.addEventListener("input", () => {
-      const phrase = textbox6.value || "";
+  const storageKey = "userform-servizio-input";
 
-      if (nextPreview) {
-        nextPreview.textContent = phrase || "(vuoto)";
+  function saveInputValue(value) {
+    const clean = (value || "").trim();
+    const text = clean || defaultBannerText;
+    try {
+      localStorage.setItem(storageKey, text);
+    } catch (error) {
+      console.warn("Impossibile salvare nel localStorage:", error);
+    }
+    return text;
+  }
+
+  function readInputValue() {
+    try {
+      return localStorage.getItem(storageKey) || defaultBannerText;
+    } catch (error) {
+      return defaultBannerText;
+    }
+  }
+
+  function openExternal(url) {
+    const target = new URL(url, window.location.href).toString();
+    window.open(target, "_blank", "noopener,noreferrer");
+  }
+
+  function openPublishWindow(text) {
+    const message = (text || "").trim() || defaultBannerText;
+    const url = `../pages/SERVIZIO-PUBBLICA.html?text=${encodeURIComponent(message)}`;
+    const width = 900;
+    const height = 700;
+    const primaryLeft = screen.availLeft || 0;
+    const primaryWidth = screen.availWidth || screen.width || 1600;
+    const secondaryLeft = primaryLeft + primaryWidth + 40;
+    const top = (screen.availTop || 0) + 60;
+    const features = `width=${width},height=${height},left=${secondaryLeft},top=${top},resizable=yes,scrollbars=no`;
+
+    window.open(url, "_blank", features);
+  }
+
+  function publishText() {
+    const value = input ? input.value : "";
+    const text = saveInputValue(value);
+    if (input) {
+      input.value = text;
+      input.blur();
+    }
+    openPublishWindow(text);
+  }
+
+  function stopText() {
+    if (input) {
+      input.value = "";
+    }
+    saveInputValue("");
+  }
+
+  if (input) {
+    const storedValue = readInputValue();
+    input.value = storedValue === defaultBannerText ? "" : storedValue;
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        publishText();
       }
-
-      setStatus("TextBox6_Change simulato: aggiornato NEXTCOREO!A10 e richiesta scrittura CSV.");
     });
   }
 
-  const openExternal = (path) => {
-    const full = `${baseUrl}${path}`;
-    externalWindow = window.open(full, "_blank", "noopener,noreferrer");
-    setStatus(`apertura richiesta: ${full}`);
-  };
-
-  if (btnOpenLogo) {
-    btnOpenLogo.addEventListener("click", () => openExternal("/prova/logo.html"));
+  if (publishTextBtn) {
+    publishTextBtn.addEventListener("click", publishText);
   }
 
-  if (btnOpenImage) {
-    btnOpenImage.addEventListener("click", () => openExternal("/prova/image.html"));
+  if (stopTextBtn) {
+    stopTextBtn.addEventListener("click", stopText);
   }
 
-  if (btnOpenServizio) {
-    btnOpenServizio.addEventListener("click", () => openExternal("/servizio.html"));
+  if (publishLogoBtn) {
+    publishLogoBtn.addEventListener("click", () => openExternal("../../Prova/Logo.html"));
   }
 
-  if (btnCloseExternal) {
-    btnCloseExternal.addEventListener("click", () => {
-      if (externalWindow && !externalWindow.closed) {
-        externalWindow.close();
-        setStatus("finestra esterna chiusa (quando consentito dal browser).");
-        return;
-      }
-
-      setStatus("nessuna finestra esterna tracciata da chiudere.");
-    });
+  if (publishFileBtn) {
+    publishFileBtn.addEventListener("click", () => openExternal("../../Prova/Image.html"));
   }
 
-  if (btnCloseForm) {
-    btnCloseForm.addEventListener("click", () => {
-      const referrer = document.referrer || "";
-      if (referrer.includes("/USERFORM/")) {
-        window.history.back();
-        return;
-      }
-
+  if (indexBtn) {
+    indexBtn.addEventListener("click", () => {
       window.location.href = "../index.html";
+    });
+  }
+
+  if (closeBtn || closeWindowBtn) {
+    const closeAction = () => {
+      if (window.close) {
+        window.close();
+      }
+      try {
+        window.open("", "_self").close();
+      } catch (error) {
+        // browser blocks immediate close in some contexts: ignore
+      }
+    };
+
+    [closeBtn, closeWindowBtn].forEach((button) => {
+      if (button) {
+        button.addEventListener("click", closeAction);
+      }
     });
   }
 })();
