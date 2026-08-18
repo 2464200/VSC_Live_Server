@@ -9,6 +9,8 @@
  * - Gestione automatica ciclo di vita PDF
  */
 
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -17,26 +19,28 @@ const net = require('net');
 const os = require('os');
 const { parse: parseCsv } = require('csv-parse/sync');
 const QRCodeLib = require('qrcode');
+const { projectConfig } = require('./config/config');
 const { forwardVdjRequest } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 
 const app = express();
-let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
-const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
-const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
+let PORT = Number.isFinite(Number(process.env.UNIFIED_PORT)) ? Number(process.env.UNIFIED_PORT) : projectConfig.port;
+const PDF_FOLDER = projectConfig.pdfFolder;
+const VIDEOCLIP_DIR = projectConfig.videoClipDir;
 // Directory condivisa export SIAE (Bordero + Eventi).
-// Priorita: variabile ambiente -> default storico progetto.
-const SIAE_EXPORT_DIR = process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR || 'C:\\VSC_SIAE';
+// Priorita: variabile ambiente -> default storico progetto -> percorso portabile di progetto.
+const SIAE_EXPORT_DIR = projectConfig.siaeExportDir;
 const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
-const USERFORM_RECORDINGS_DIR = process.env.USERFORM_RECORDINGS_DIR || 'C:\\VSC_WEBCAM';
-const LEGACY_RECORDINGS_DIR = 'C:\\vsc_webcam';
-const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : 5512;
+const USERFORM_RECORDINGS_DIR = projectConfig.userformRecordingsDir;
+const LEGACY_RECORDINGS_DIR = projectConfig.legacyRecordingsDir;
+const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : projectConfig.electronControlPort;
 const USERFORM_FFMPEG_CANDIDATES = [
     process.env.FFMPEG_PATH,
-    'C:/FFMPEG/bin/ffmpeg.exe',
-    'C:/ffmpeg/bin/ffmpeg.exe'
+    projectConfig.ffmpegCandidates[0],
+    projectConfig.ffmpegCandidates[1],
+    ...(projectConfig.ffmpegCandidates.slice(2))
 ].filter(Boolean);
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
 const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 60 * 1000;
