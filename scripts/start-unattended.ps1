@@ -9,6 +9,8 @@ $logsDir = Join-Path $root 'logs'
 $pidDir = Join-Path $root 'pids'
 $serverLog = Join-Path $logsDir 'server-portable.log'
 $serverErr = Join-Path $logsDir 'server-portable.err.log'
+$envFile = Join-Path $root '.env'
+$envExample = Join-Path $root '.env.example'
 
 function Ensure-Dir($Path) {
     if (-not (Test-Path $Path)) {
@@ -69,6 +71,14 @@ Ensure-Dir $pidDir
 
 if (-not (Test-Path (Join-Path $root 'package.json'))) {
     throw 'package.json non trovato nella cartella del progetto.'
+}
+
+# Crea .env da .env.example se mancante
+if (-not (Test-Path $envFile)) {
+    if (Test-Path $envExample) {
+        Copy-Item $envExample $envFile -Force
+        Write-Host '[INFO] Creato .env da .env.example' -ForegroundColor Green
+    }
 }
 
 if (-not (Test-Path (Join-Path $root 'node_modules'))) {
