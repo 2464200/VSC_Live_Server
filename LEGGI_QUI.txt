@@ -1,0 +1,48 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║          MONSTER COUNTRY DJ - SERVER PORTABILE                ║
+║                                                                ║
+║                  ⚡ AVVIA IN 30 SECONDI ⚡                     ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+📌 PRIMA VOLTA? LEGGI QUI:
+   └─→ Apri il file: INSTALLA_NUOVO_PC.md
+
+🚀 AVVIO RAPIDO:
+   1. Doppio-click su: START-UNATTENDED.bat
+   2. Aspetta 10-15 secondi
+   3. Il browser si apre automaticamente
+   4. Fatto! 🎉
+
+📁 FILE IMPORTANTI:
+   ├─ START-UNATTENDED.bat    ← Avvia il server (CLICCA QUI)
+   ├─ STOP.bat                ← Ferma il server
+   ├─ DIAGNOSTICA.bat         ← Se hai problemi
+   ├─ INSTALLA_NUOVO_PC.md    ← Istruzioni dettagliate (LEGGI QUI)
+   └─ STARTUP_GUIDE.md        ← Guida completa
+
+⚙️ PRIMO AVVIO:
+   Il sistema configurerà tutto automaticamente:
+   ✓ Scarica dipendenze (npm install)
+   ✓ Crea file di configurazione
+   ✓ Sceglie una porta libera
+   ✓ Avvia il server
+
+🌐 ACCEDI A:
+   http://localhost:5500/
+   
+   (Se la porta è occupata, il sistema usa automaticamente
+    un'altra porta. Controlla la finestra PowerShell)
+
+❓ PROBLEMI?
+   1. Esegui: DIAGNOSTICA.bat
+   2. Leggi: INSTALLA_NUOVO_PC.md (sezione "PROBLEMI COMUNI")
+
+═══════════════════════════════════════════════════════════════════
+
+PASSO 1: Apri INSTALLA_NUOVO_PC.md
+PASSO 2: Clicca su START-UNATTENDED.bat
+PASSO 3: Aspetta e divertiti! 🎵
+
+═══════════════════════════════════════════════════════════════════
