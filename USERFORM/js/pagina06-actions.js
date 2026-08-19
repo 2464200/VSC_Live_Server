@@ -13,7 +13,7 @@
       if (!url) {
         return;
       }
-      window.open(url, "_blank", "noopener,noreferrer");
+      openManagedPage(url);
       setStatus(`apertura link richiesta: ${url}`);
     });
   });

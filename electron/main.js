@@ -3,9 +3,11 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
-const { resolveDisplayTargetsForWindows, getWindowBoundsForDisplay, buildElectronAppConfig } = require('./display-manager');
+const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectronAppConfig } = require('./display-manager');
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
+const PAGE_POLICY_FILE = path.join(__dirname, 'page-policy.json');
 
 let primaryWindow;
 let secondaryWindow;
@@ -14,6 +16,8 @@ let serverProcess;
 let electronControlServer = null;
 let ensureUnifiedServerPromise = null;
 let currentSwapMonitors = false;
+let currentAutoConfigureDisplay = true;
+let currentDpiAutoScale = true;
 let monitorPreferenceWatcher = null;
 let isProgrammaticPrimaryLoad = false;
 let isProgrammaticSecondaryLoad = false;
@@ -47,8 +51,121 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/risultati.html', { primary: true, secondary: true }],
   ['/bordero/pages/video-player.html', { primary: false, secondary: true }],
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
-  ['/eventi/eventi.html', { primary: true, secondary: false }]
+  ['/eventi/eventi.html', { primary: true, secondary: false }],
+  ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
+  ['/userform/pages/servizio.html', { primary: true, secondary: false }],
+  ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
+  ['/userform/pages/wecam.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina04.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina06.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina07.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina08.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina09.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina10.html', { primary: true, secondary: false }],
+  ['/userform/pages/pagina11.html', { primary: true, secondary: false }]
 ]);
+
+let currentPagePolicy = new Map(PAGE_POLICY);
+
+function normalizePolicyPath(pagePath) {
+  const normalized = normalizePathname(pagePath || '');
+  return normalized || String(pagePath || '').trim().toLowerCase();
+}
+
+function readElectronPagePolicy() {
+  try {
+    if (!fs.existsSync(PAGE_POLICY_FILE)) {
+      return new Map(PAGE_POLICY);
+    }
+
+    const raw = fs.readFileSync(PAGE_POLICY_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+    if (!raw) {
+      return new Map(PAGE_POLICY);
+    }
+
+    const parsed = JSON.parse(raw);
+    const persisted = new Map();
+
+    if (parsed && typeof parsed === 'object') {
+      for (const [pathKey, value] of Object.entries(parsed)) {
+        const normalized = normalizePolicyPath(pathKey);
+        if (!normalized) continue;
+        persisted.set(normalized, {
+          primary: Boolean(value?.primary),
+          secondary: Boolean(value?.secondary)
+        });
+      }
+    }
+
+    const merged = new Map(PAGE_POLICY);
+    for (const [pathKey, policy] of persisted.entries()) {
+      merged.set(pathKey, policy);
+    }
+    return merged;
+  } catch (error) {
+    console.warn('Unable to read page policy file:', error?.message || error);
+    return new Map(PAGE_POLICY);
+  }
+}
+
+function writeElectronPagePolicy(policyMap) {
+  const payload = {};
+  for (const [pathKey, value] of policyMap.entries()) {
+    payload[pathKey] = {
+      primary: Boolean(value.primary),
+      secondary: Boolean(value.secondary)
+    };
+  }
+
+  try {
+    fs.writeFileSync(PAGE_POLICY_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.warn('Unable to write page policy file:', error?.message || error);
+    return false;
+  }
+}
+
+function loadElectronPagePolicy() {
+  currentPagePolicy = readElectronPagePolicy();
+  return currentPagePolicy;
+}
+
+function updateElectronPagePolicy(pathname, primary, secondary) {
+  const normalized = normalizePolicyPath(pathname);
+  if (!normalized) {
+    throw new Error('Invalid page path');
+  }
+
+  const existingPolicy = currentPagePolicy.has(normalized)
+    ? currentPagePolicy.get(normalized)
+    : (PAGE_POLICY.get(normalized) || { primary: true, secondary: false });
+
+  let effectivePrimary = primary !== undefined ? Boolean(primary) : Boolean(existingPolicy.primary);
+  const effectiveSecondary = secondary !== undefined ? Boolean(secondary) : Boolean(existingPolicy.secondary);
+
+  if (!effectivePrimary && !effectiveSecondary) {
+    effectivePrimary = true;
+  }
+
+  currentPagePolicy.set(normalized, {
+    primary: effectivePrimary,
+    secondary: effectiveSecondary
+  });
+  writeElectronPagePolicy(currentPagePolicy);
+  return currentPagePolicy.get(normalized);
+}
+
+function getPagePolicyEntries() {
+  return Array.from(currentPagePolicy.entries()).map(([pathKey, policy]) => ({
+    path: pathKey,
+    primary: Boolean(policy.primary),
+    secondary: Boolean(policy.secondary)
+  }));
+}
+
+loadElectronPagePolicy();
 
 function readMonitorPreferences() {
   try {
@@ -56,7 +173,10 @@ function readMonitorPreferences() {
       return {
         swapPrimarySecondary: false,
         primaryMonitorChoice: null,
-        selectionConfirmed: false
+        selectionConfirmed: false,
+        autoConfigureDisplay: true,
+        dpiAutoScale: true,
+        secondaryMonitorAutoScale: true
       };
     }
     const raw = fs.readFileSync(MONITOR_PREFERENCES_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
@@ -64,7 +184,10 @@ function readMonitorPreferences() {
       return {
         swapPrimarySecondary: false,
         primaryMonitorChoice: null,
-        selectionConfirmed: false
+        selectionConfirmed: false,
+        autoConfigureDisplay: true,
+        dpiAutoScale: true,
+        secondaryMonitorAutoScale: true
       };
     }
     const parsed = JSON.parse(raw);
@@ -82,46 +205,76 @@ function readMonitorPreferences() {
     return {
       swapPrimarySecondary,
       primaryMonitorChoice,
-      selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed)
+      selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed),
+      autoConfigureDisplay: parsed?.autoConfigureDisplay !== false,
+      dpiAutoScale: parsed?.dpiAutoScale !== false,
+      secondaryMonitorAutoScale: parsed?.secondaryMonitorAutoScale !== false
     };
   } catch (error) {
     console.warn('Failed to read monitor preferences, using default:', error.message || error);
     return {
       swapPrimarySecondary: false,
       primaryMonitorChoice: null,
-      selectionConfirmed: false
+      selectionConfirmed: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+      secondaryMonitorAutoScale: true
     };
   }
 }
 
 function applyWindowLayout() {
-  if (!primaryWindow || primaryWindow.isDestroyed() || !secondaryWindow || secondaryWindow.isDestroyed()) {
-    if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
-      const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
-        swapPrimarySecondary: currentSwapMonitors
-      });
-      const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
-      videoPlayerWindow.setBounds(monitorBounds);
-      videoPlayerWindow.setFullScreen(true);
-    }
-    return;
-  }
-
-  const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
+  const displays = screen.getAllDisplays();
+  const targets = resolveDisplayTargetsForWindows(displays, {
     swapPrimarySecondary: currentSwapMonitors
   });
 
-  const mainBounds = getWindowBoundsForDisplay(targets.mainDisplay, { width: 1400, height: 900 });
-  primaryWindow.setBounds(mainBounds);
-  primaryWindow.setFullScreen(true);
+  const primaryLayout = currentAutoConfigureDisplay
+    ? buildDisplayLayoutConfig(targets.mainDisplay, { width: 1400, height: 900, fullscreen: true })
+    : { x: 0, y: 0, width: 1400, height: 900, zoomFactor: 1 };
+  const secondaryLayout = currentAutoConfigureDisplay
+    ? buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true })
+    : { x: 0, y: 0, width: 1280, height: 720, zoomFactor: 1 };
 
-  const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
-  secondaryWindow.setBounds(monitorBounds);
-  secondaryWindow.setFullScreen(true);
+  const applyLayout = (win, layout) => {
+    if (!win || win.isDestroyed()) {
+      return;
+    }
+
+    try {
+      win.setBounds({
+        x: layout.x,
+        y: layout.y,
+        width: layout.width,
+        height: layout.height
+      });
+    } catch (error) {
+      console.warn('Unable to set window bounds:', error?.message || error);
+    }
+
+    try {
+      win.setFullScreen(true);
+    } catch (error) {
+      console.warn('Unable to set fullscreen for window:', error?.message || error);
+    }
+
+    try {
+      win.webContents.setZoomFactor(layout.zoomFactor);
+    } catch (error) {
+      console.warn('Unable to apply zoom factor:', error?.message || error);
+    }
+  };
+
+  if (primaryWindow && !primaryWindow.isDestroyed()) {
+    applyLayout(primaryWindow, primaryLayout);
+  }
+
+  if (secondaryWindow && !secondaryWindow.isDestroyed()) {
+    applyLayout(secondaryWindow, secondaryLayout);
+  }
 
   if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
-    videoPlayerWindow.setBounds(monitorBounds);
-    videoPlayerWindow.setFullScreen(true);
+    applyLayout(videoPlayerWindow, secondaryLayout);
   }
 }
 
@@ -142,6 +295,9 @@ function buildMonitorPreferencesPayload(preferences = {}, defaults = {}) {
     primaryMonitorChoice,
     swapPrimarySecondary,
     selectionConfirmed,
+    autoConfigureDisplay: Object.prototype.hasOwnProperty.call(preferences, 'autoConfigureDisplay') ? Boolean(preferences.autoConfigureDisplay !== false) : true,
+    dpiAutoScale: Object.prototype.hasOwnProperty.call(preferences, 'dpiAutoScale') ? Boolean(preferences.dpiAutoScale !== false) : true,
+    secondaryMonitorAutoScale: Object.prototype.hasOwnProperty.call(preferences, 'secondaryMonitorAutoScale') ? Boolean(preferences.secondaryMonitorAutoScale !== false) : true,
     updatedAt: new Date().toISOString()
   };
 
@@ -205,6 +361,9 @@ function syncMonitorPreferencesFromDisk() {
     currentSwapMonitors = shouldSwap;
     console.log(`Monitor swap preference changed: ${currentSwapMonitors ? 'ON' : 'OFF'}`);
   }
+
+  currentAutoConfigureDisplay = Boolean(preferences.autoConfigureDisplay !== false);
+  currentDpiAutoScale = Boolean(preferences.dpiAutoScale !== false);
   applyWindowLayout();
 }
 
@@ -347,18 +506,38 @@ function isManagedHtmlAppUrl(candidateUrl) {
   return normalizePathname(parsed.toString()).endsWith('.html');
 }
 
+const USERFORM_CANONICAL_PAGE_IDS = new Set(
+  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'wecam', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
+);
+
+function isCanonicalUserFormPage(candidateUrl) {
+  const normalizedPath = normalizePathname(candidateUrl);
+  const fileName = normalizedPath.split('/').filter(Boolean).pop() || '';
+  const stem = fileName.replace(/\.html$/i, '').toLowerCase();
+  return Boolean(stem) && USERFORM_CANONICAL_PAGE_IDS.has(stem) && normalizedPath.includes('/userform/pages/');
+}
+
 function getMonitorPolicyForUrl(candidateUrl) {
   const normalizedPath = normalizePathname(candidateUrl);
-  if (PRIMARY_ONLY_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
-    return { primary: true, secondary: false };
+
+  if (currentPagePolicy.has(normalizedPath)) {
+    return currentPagePolicy.get(normalizedPath);
   }
 
   if (PAGE_POLICY.has(normalizedPath)) {
     return PAGE_POLICY.get(normalizedPath);
   }
 
-  // Default prudente: pagine non mappate sul monitor principale.
-  return { primary: true, secondary: false };
+  if (isCanonicalUserFormPage(candidateUrl)) {
+    return { primary: true, secondary: false };
+  }
+
+  if (PRIMARY_ONLY_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
+    return { primary: true, secondary: false };
+  }
+
+  // Default prudente: pagine non canonicali o non gestite non vengono routeate come pagine USERFORM.
+  return { primary: false, secondary: false };
 }
 
 function broadcastMonitorPolicyRouteEvent(payload = {}) {
@@ -595,14 +774,14 @@ function createVideoPlayerWindow() {
   const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
     swapPrimarySecondary: currentSwapMonitors
   });
-  const monitorBounds = getWindowBoundsForDisplay(targets.monitorDisplay, { width: 1280, height: 720 });
+  const secondaryLayout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
 
   const win = new BrowserWindow({
     ...config.windowOptions,
-    x: monitorBounds.x,
-    y: monitorBounds.y,
-    width: monitorBounds.width,
-    height: monitorBounds.height,
+    x: secondaryLayout.x,
+    y: secondaryLayout.y,
+    width: secondaryLayout.width,
+    height: secondaryLayout.height,
     show: false,
     fullscreen: true,
     kiosk: true,
@@ -719,6 +898,31 @@ function startElectronControlServer() {
 
       if (req.method === 'GET' && requestUrl.pathname === '/health') {
         sendElectronControlJson(res, 200, { ok: true, pid: process.pid, hasVideoPlayerWindow: Boolean(videoPlayerWindow && !videoPlayerWindow.isDestroyed()), playerState: electronVideoPlayerState });
+        return;
+      }
+
+      if (req.method === 'GET' && requestUrl.pathname === '/page-policy') {
+        sendElectronControlJson(res, 200, { ok: true, policy: getPagePolicyEntries() });
+        return;
+      }
+
+      if (req.method === 'POST' && requestUrl.pathname === '/page-policy') {
+        const payload = await readJsonBody(req);
+        const pagePath = String(payload?.path || '').trim();
+        const primary = payload?.primary !== undefined ? Boolean(payload.primary) : undefined;
+        const secondary = payload?.secondary !== undefined ? Boolean(payload.secondary) : undefined;
+
+        if (!pagePath) {
+          sendElectronControlJson(res, 400, { success: false, error: 'path obbligatorio' });
+          return;
+        }
+
+        try {
+          const policy = updateElectronPagePolicy(pagePath, primary, secondary);
+          sendElectronControlJson(res, 200, { ok: true, policy });
+        } catch (error) {
+          sendElectronControlJson(res, 400, { success: false, error: error?.message || String(error) });
+        }
         return;
       }
 
@@ -852,20 +1056,71 @@ ipcMain.handle('bordero-monitor-policy:last-event', async () => {
   };
 });
 
+ipcMain.handle('bordero-file-picker:pick-directory', async () => {
+  try {
+    const { dialog } = require('electron');
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+    });
+
+    if (result.canceled) {
+      return '';
+    }
+
+    const selected = result.filePaths && result.filePaths[0] ? result.filePaths[0] : '';
+    return selected;
+  } catch (error) {
+    console.warn('Unable to open directory picker:', error?.message || error);
+    return '';
+  }
+});
+
+ipcMain.handle('bordero-file-picker:list-directory', async (_event, targetPath = '') => {
+  try {
+    const candidate = String(targetPath || '').trim();
+    const resolved = candidate && fs.existsSync(candidate) ? candidate : (process.env.HOMEDRIVE && process.env.HOMEPATH ? path.join(process.env.HOMEDRIVE, process.env.HOMEPATH) : 'C:\\');
+    const stats = fs.existsSync(resolved) && fs.statSync(resolved).isDirectory() ? fs.statSync(resolved) : null;
+    if (!stats) {
+      return { entries: [] };
+    }
+
+    const entries = fs.readdirSync(resolved, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => ({
+        name: entry.name,
+        path: path.join(resolved, entry.name),
+        isDirectory: true
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    return { entries };
+  } catch (error) {
+    console.warn('Unable to list directory for picker:', error?.message || error);
+    return { entries: [] };
+  }
+});
+
 async function ensureWindows() {
   await ensureUnifiedServer();
   const monitorPreferences = await ensurePrimaryMonitorSelectionPreference();
   currentSwapMonitors = Boolean(monitorPreferences.swapPrimarySecondary);
+  currentAutoConfigureDisplay = Boolean(monitorPreferences.autoConfigureDisplay !== false);
+  currentDpiAutoScale = Boolean(monitorPreferences.dpiAutoScale !== false);
 
   if (!primaryWindow || primaryWindow.isDestroyed()) {
     const config = buildElectronAppConfig({ baseUrl: 'http://localhost:5500' });
+    const displays = screen.getAllDisplays();
+    const targets = resolveDisplayTargetsForWindows(displays, {
+      swapPrimarySecondary: currentSwapMonitors
+    });
+    const primaryLayout = buildDisplayLayoutConfig(targets.mainDisplay, { width: 1400, height: 900, fullscreen: true });
 
     primaryWindow = createWindow(config.primaryUrl, {
       ...config.windowOptions,
-      x: 0,
-      y: 0,
-      width: 1400,
-      height: 900,
+      x: primaryLayout.x,
+      y: primaryLayout.y,
+      width: primaryLayout.width,
+      height: primaryLayout.height,
       show: false,
       fullscreen: true,
       autoHideMenuBar: true
@@ -878,12 +1133,14 @@ async function ensureWindows() {
       primaryWindow = null;
     });
 
+    const secondaryLayout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
+
     secondaryWindow = createWindow(config.secondaryUrl, {
       ...config.windowOptions,
-      x: 0,
-      y: 0,
-      width: 1280,
-      height: 720,
+      x: secondaryLayout.x,
+      y: secondaryLayout.y,
+      width: secondaryLayout.width,
+      height: secondaryLayout.height,
       show: false,
       fullscreen: true,
       kiosk: true,

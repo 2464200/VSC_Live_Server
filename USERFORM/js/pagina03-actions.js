@@ -35,7 +35,7 @@
 
   const openPath = (path) => {
     const full = `${baseUrl}${path}`;
-    window.open(full, "_blank", "noopener,noreferrer");
+    openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   };
 

@@ -6,6 +6,8 @@
 class AdminPanel {
   constructor() {
     this.consoleOutput = [];
+    this.currentDataViewerRequestId = 0;
+    this.currentDataViewerType = '';
     this.init();
   }
 
@@ -18,10 +20,473 @@ class AdminPanel {
     this.setupCacheManagement();
     this.setupExportImport();
     this.setupDjManagement();
+    this.setupDjSoftwareSelection();
+    this.setupMusicArchiveSettings();
+    this.setupCameraProfilesPanel();
     this.setupConsole();
     this.setupElectronLauncher();
+    this.setupMonitorPageRoutesPanel();
     this.setupMonitorPolicyDiagnostics();
     this.log('✓ Admin Panel initialized', 'success');
+  }
+
+  async fetchCameraProfilesProbe() {
+    const { response, payload } = await this.fetchJson('/api/userform/pagina05/cameras/probe', { cache: 'no-store' });
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  async reconcileCameraProfiles() {
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    };
+
+    let { response, payload } = await this.fetchJson('/api/userform/pagina05/cameras/reconcile', requestOptions).catch(() => ({ response: null, payload: null }));
+
+    if (!response || !response.ok || !payload?.ok) {
+      if (response && response.status === 405) {
+        ({ response, payload } = await this.fetchJson('/api/userform/pagina05/cameras/reconcile').catch(() => ({ response: null, payload: null })));
+      }
+    }
+
+    if (!response || !response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response?.status || 'NETWORK'}`);
+    }
+
+    return payload;
+  }
+
+  formatCameraProfileInline(profile = {}) {
+    const codec = this.escapeHtml(profile?.codec || '-');
+    const size = this.escapeHtml(profile?.size || '-');
+    const fps = this.escapeHtml(profile?.fps || '-');
+    return `${codec} • ${size} • ${fps}`;
+  }
+
+  renderCameraProfilesComparisonTable(payload = {}) {
+    const comparisons = Array.isArray(payload?.comparisons) ? payload.comparisons : [];
+    if (!comparisons.length) {
+      return '<div class="data-viewer-empty">Nessuna webcam disponibile.</div>';
+    }
+
+    const rows = comparisons.map((entry) => {
+      const status = entry.added
+        ? 'Nuova'
+        : (entry.changed ? 'Aggiornata' : 'Allineata');
+      const statusClass = entry.added
+        ? 'camera-status-added'
+        : (entry.changed ? 'camera-status-updated' : 'camera-status-ok');
+
+      return `
+      <tr>
+        <td>${this.escapeHtml(entry.name || '')}</td>
+        <td>${this.formatCameraProfileInline(entry.before)}</td>
+        <td>${this.formatCameraProfileInline(entry.recommended)}</td>
+        <td>${this.formatCameraProfileInline(entry.after)}</td>
+        <td><span class="camera-status-chip ${statusClass}">${status}</span></td>
+      </tr>
+      `;
+    }).join('');
+
+    return `
+      <table class="data-viewer-table" aria-label="Confronto profili telecamere di sistema">
+        <thead>
+          <tr>
+            <th>Telecamera</th>
+            <th>CSV prima</th>
+            <th>Massima capability</th>
+            <th>CSV dopo</th>
+            <th>Stato</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  renderCameraProfilesTable(payload = {}) {
+    const cameras = Array.isArray(payload?.cameras) ? payload.cameras : [];
+    if (!cameras.length) {
+      return '<div class="data-viewer-empty">Nessuna webcam disponibile.</div>';
+    }
+
+    const rows = cameras.map((camera) => `
+      <tr>
+        <td>${this.escapeHtml(camera.name || '')}</td>
+        <td>${this.escapeHtml(camera.codec || '-')}</td>
+        <td>${this.escapeHtml(camera.size || '-')}</td>
+        <td>${this.escapeHtml(camera.fps || '-')}</td>
+        <td>${camera.isDefault ? 'SI' : 'NO'}</td>
+        <td>${camera.isEnabled === false ? 'NO' : 'SI'}</td>
+        <td>${this.escapeHtml(camera.lastStatus || '-')}</td>
+      </tr>
+    `).join('');
+
+    return `
+      <table class="data-viewer-table" aria-label="Tabella telecamere di sistema">
+        <thead>
+          <tr>
+            <th>Telecamera</th>
+            <th>Codec</th>
+            <th>Risoluzione</th>
+            <th>FPS</th>
+            <th>Default</th>
+            <th>Abilitata</th>
+            <th>Stato</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  setupCameraProfilesPanel() {
+    const refreshBtn = document.getElementById('btn-refresh-camera-profiles');
+    const summaryNode = document.getElementById('camera-profiles-summary');
+    const outputNode = document.getElementById('camera-profiles-output');
+    if (!refreshBtn || !summaryNode || !outputNode) return;
+
+    const load = async () => {
+      summaryNode.textContent = 'Confronto e aggiornamento CSV telecamere in corso...';
+      outputNode.innerHTML = '<div class="data-viewer-empty">Attendere, recupero dati...</div>';
+
+      try {
+        const payload = await this.reconcileCameraProfiles();
+        const total = Number(payload?.count) || 0;
+        const physical = Number(payload?.physicalCount) || 0;
+        const added = Number(payload?.systemCamera?.addedCount || 0);
+        const updated = Number(payload?.systemCamera?.updatedCount || 0);
+        summaryNode.textContent = `Totale profili: ${total} • Webcam fisiche: ${physical} • Nuove: ${added} • Aggiornate: ${updated} • CSV aggiornato subito`;
+        outputNode.innerHTML = this.renderCameraProfilesComparisonTable(payload);
+      } catch (error) {
+        summaryNode.textContent = 'Errore durante il caricamento telecamere';
+        outputNode.innerHTML = `<div class="data-viewer-empty">Errore: ${this.escapeHtml(error?.message || String(error))}</div>`;
+      }
+    };
+
+    refreshBtn.addEventListener('click', () => {
+      void load();
+    });
+
+    void load();
+  }
+
+  async fetchMusicArchiveConfig() {
+    const { response, payload } = await this.fetchJson('/api/music-archive/config', { cache: 'no-store' });
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  async fetchMusicArchiveStatus(refresh = false) {
+    const suffix = refresh ? '?refresh=1' : '';
+    const { response, payload } = await this.fetchJson(`/api/music-archive/status${suffix}`, { cache: 'no-store' });
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  async fetchMusicArchiveDirectories(targetPath = '') {
+    const { response, payload } = await this.fetchJson(`/api/music-archive/directories?path=${encodeURIComponent(targetPath || '')}`, { cache: 'no-store' });
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+    return payload;
+  }
+
+  setupMusicArchiveSettings() {
+    const pathInput = document.getElementById('music-archive-path');
+    const browseBtn = document.getElementById('btn-browse-music-archive');
+    const saveBtn = document.getElementById('btn-save-music-archive');
+    const checkBtn = document.getElementById('btn-check-music-archive');
+    const statusEl = document.getElementById('music-archive-status');
+    const recentPathEl = document.getElementById('music-archive-recent-path');
+
+    if (!pathInput || !browseBtn || !saveBtn || !checkBtn || !statusEl) return;
+
+    const renderStatus = (text, level = 'info') => {
+      statusEl.textContent = text;
+      statusEl.style.color = level === 'error' ? '#ff7f7f' : (level === 'success' ? '#9be7a5' : '#ddd');
+    };
+
+    const renderRecentPathHint = (configuredPath = '', selectedPath = '') => {
+      if (!recentPathEl) return;
+
+      const effectivePath = String(configuredPath || selectedPath || '').trim();
+      if (!effectivePath) {
+        recentPathEl.textContent = 'Nessun percorso salvato. Seleziona una cartella e premi Salva.';
+        recentPathEl.style.color = '#dfe6ff';
+        return;
+      }
+
+      recentPathEl.textContent = `Ultimo percorso usato: ${effectivePath}`;
+      recentPathEl.style.color = '#9be7a5';
+    };
+
+    const populatePathOptions = async (currentPath = '') => {
+      const options = [];
+      const seen = new Set();
+      const normalizedCurrent = String(currentPath || '').trim();
+      const current = normalizedCurrent || '';
+
+      const addOption = (value, label) => {
+        const safeValue = String(value || '').trim();
+        if (!safeValue || seen.has(safeValue)) {
+          return;
+        }
+        seen.add(safeValue);
+        options.push({ value: safeValue, label: String(label || safeValue) });
+      };
+
+      if (current) {
+        addOption(current, current || 'Cartella corrente');
+      }
+
+      try {
+        const payload = await this.fetchMusicArchiveDirectories(current);
+        const entries = Array.isArray(payload?.entries) ? payload.entries : [];
+        if (payload?.parentPath) {
+          addOption(payload.parentPath, '⬆️ Cartella superiore');
+        }
+        entries.forEach((entry) => {
+          if (entry?.isDirectory !== false) {
+            addOption(entry.path || entry.name, entry.name || entry.path);
+          }
+        });
+      } catch (error) {
+        this.log(`⚠️ Impossibile caricare la lista cartelle: ${error?.message || error}`, 'warning');
+      }
+
+      pathInput.innerHTML = '';
+      options.forEach((option) => {
+        const element = document.createElement('option');
+        element.value = option.value;
+        element.textContent = option.label;
+        pathInput.appendChild(element);
+      });
+
+      if (current) {
+        pathInput.value = current;
+      }
+
+      if (current) {
+        renderRecentPathHint(current, current);
+      }
+    };
+
+    const refreshUi = async (forceScan = false) => {
+      try {
+        const [config, status] = await Promise.all([
+          this.fetchMusicArchiveConfig(),
+          this.fetchMusicArchiveStatus(forceScan)
+        ]);
+
+        const configuredPath = String(config?.rootPath || '').trim();
+        await populatePathOptions(configuredPath);
+        renderRecentPathHint(configuredPath, pathInput.value);
+
+        if (!configuredPath) {
+          renderStatus('Stato archivio: non configurato', 'info');
+          return;
+        }
+
+        if (!status?.exists) {
+          renderStatus('Stato archivio: cartella configurata ma non raggiungibile', 'error');
+          return;
+        }
+
+        renderStatus(`Stato archivio: OK • ${status.fileCount || 0} file audio indicizzati`, 'success');
+      } catch (error) {
+        renderStatus(`Stato archivio: errore (${error?.message || error})`, 'error');
+      }
+    };
+
+    pathInput.addEventListener('change', async () => {
+      const selectedPath = String(pathInput.value || '').trim();
+      if (!selectedPath) {
+        return;
+      }
+      await populatePathOptions(selectedPath);
+    });
+
+    browseBtn.addEventListener('click', async () => {
+      const currentPath = String(pathInput.value || '').trim();
+      try {
+        const payload = await this.fetchMusicArchiveDirectories(currentPath || '');
+        if (payload?.path) {
+          await populatePathOptions(payload.path);
+        }
+      } catch (error) {
+        this.log(`❌ Impossibile aprire la navigazione archivio: ${error?.message || error}`, 'error');
+        Toast.error('Impossibile caricare la cartella archivio');
+      }
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      const rootPath = String(pathInput.value || '').trim();
+      if (!rootPath) {
+        Toast.warning('Inserisci il percorso della cartella archivio');
+        return;
+      }
+
+      try {
+        const { response, payload } = await this.fetchJson('/api/music-archive/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rootPath })
+        });
+
+        if (!response.ok || !payload?.ok) {
+          throw new Error(payload?.error || `HTTP ${response.status}`);
+        }
+
+        this.log(`✓ Archivio brani salvato: ${payload.rootPath}`, 'success');
+        Toast.success('Cartella archivio salvata');
+        await refreshUi(true);
+      } catch (error) {
+        this.log(`❌ Errore salvataggio archivio brani: ${error?.message || error}`, 'error');
+        Toast.error('Impossibile salvare la cartella archivio');
+        await refreshUi(false);
+      }
+    });
+
+    checkBtn.addEventListener('click', async () => {
+      renderStatus('Stato archivio: verifica in corso...', 'info');
+      await refreshUi(true);
+    });
+
+    refreshUi(false);
+  }
+
+  getDjSoftwareStorageKey() {
+    return 'BORDERO_DJ_SOFTWARE';
+  }
+
+  normalizeDjSoftware(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    const allowed = ['rekordbox', 'serato', 'djaypro', 'traktor', 'virtualdj'];
+    return allowed.includes(normalized) ? normalized : '';
+  }
+
+  isDjSoftwareSelectable(software) {
+    const normalized = this.normalizeDjSoftware(software);
+    return normalized === 'virtualdj' || normalized === 'traktor';
+  }
+
+  readDjSoftwareSelection() {
+    const raw = localStorage.getItem(this.getDjSoftwareStorageKey());
+    return this.normalizeDjSoftware(raw);
+  }
+
+  saveDjSoftwareSelection(software) {
+    const normalized = this.normalizeDjSoftware(software);
+    if (!normalized) {
+      localStorage.removeItem(this.getDjSoftwareStorageKey());
+      return '';
+    }
+
+    localStorage.setItem(this.getDjSoftwareStorageKey(), normalized);
+    return normalized;
+  }
+
+  getDjSoftwareLabel(software) {
+    const map = {
+      rekordbox: 'Pioneer DJ Rekordbox',
+      serato: 'Serato DJ',
+      djaypro: 'Algoriddim djay Pro',
+      traktor: 'Native Instruments Traktor Pro',
+      virtualdj: 'VirtualDJ'
+    };
+
+    return map[this.normalizeDjSoftware(software)] || 'Nessuno';
+  }
+
+  isFeatureEnabledBySelectedSoftware(software) {
+    // Hook pronto per la funzione specifica richiesta in un secondo momento.
+    return this.normalizeDjSoftware(software) === 'virtualdj';
+  }
+
+  updateDjSoftwareUi(selectedSoftware) {
+    const normalized = this.normalizeDjSoftware(selectedSoftware);
+    const buttons = document.querySelectorAll('.software-toggle-btn');
+
+    buttons.forEach((button) => {
+      const software = this.normalizeDjSoftware(button.getAttribute('data-software'));
+      const selectable = this.isDjSoftwareSelectable(software);
+      const isOn = software === normalized;
+      button.textContent = isOn ? 'ON' : 'OFF';
+      button.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+      button.disabled = !selectable;
+      button.title = selectable ? '' : 'Software non ancora abilitato';
+      button.classList.toggle('btn-primary', isOn);
+      button.classList.toggle('btn-secondary', !isOn);
+      button.classList.toggle('is-on', isOn);
+      button.classList.toggle('is-off', !isOn);
+      button.classList.toggle('is-disabled', !selectable);
+    });
+
+    const selectionStatus = document.getElementById('dj-software-selection-status');
+    if (selectionStatus) {
+      selectionStatus.textContent = `Software selezionato: ${this.getDjSoftwareLabel(normalized)}`;
+    }
+
+    const featureStatus = document.getElementById('dj-software-feature-status');
+    if (featureStatus) {
+      const enabled = this.isFeatureEnabledBySelectedSoftware(normalized);
+      featureStatus.textContent = enabled
+        ? 'Funzione collegata: abilitata (regola temporanea: VirtualDJ selezionato)'
+        : 'Funzione collegata: disabilitata (in attesa specifica)';
+    }
+  }
+
+  setupDjSoftwareSelection() {
+    const buttons = document.querySelectorAll('.software-toggle-btn');
+    if (!buttons || buttons.length === 0) return;
+
+    const applySelection = (software, notify = true) => {
+      if (software && !this.isDjSoftwareSelectable(software)) {
+        this.log(`⚠️ Software non ancora abilitato: ${this.getDjSoftwareLabel(software)}`, 'warn');
+        Toast.warning('Software non ancora abilitato');
+        this.updateDjSoftwareUi(this.readDjSoftwareSelection());
+        return;
+      }
+
+      const selected = this.saveDjSoftwareSelection(software);
+      this.updateDjSoftwareUi(selected);
+
+      if (notify) {
+        window.dispatchEvent(new CustomEvent('bordero:dj-software-changed', {
+          detail: {
+            software: selected,
+            featureEnabled: this.isFeatureEnabledBySelectedSoftware(selected)
+          }
+        }));
+      }
+
+      if (selected) {
+        this.log(`✓ Software DJ selezionato: ${this.getDjSoftwareLabel(selected)}`, 'success');
+      }
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const software = this.normalizeDjSoftware(button.getAttribute('data-software'));
+        if (!software) return;
+        applySelection(software, true);
+      });
+    });
+
+    applySelection(this.readDjSoftwareSelection(), false);
+
+    window.addEventListener('storage', (event) => {
+      if (event.key !== this.getDjSoftwareStorageKey()) return;
+      this.updateDjSoftwareUi(this.readDjSoftwareSelection());
+    });
   }
 
   setupMonitorPolicyDiagnostics() {
@@ -75,6 +540,261 @@ class AdminPanel {
     });
   }
 
+  async fetchMonitorPagePolicy() {
+    const { response, payload } = await this.fetchJson('/api/userform/pagina05/electron/page-policy', { cache: 'no-store' });
+
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+
+    return Array.isArray(payload.policy) ? payload.policy : [];
+  }
+
+  async saveMonitorPagePolicy(pagePath, primary, secondary) {
+    const { response, payload } = await this.fetchJson('/api/userform/pagina05/electron/page-policy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: pagePath, primary: Boolean(primary), secondary: Boolean(secondary) })
+    });
+
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `HTTP ${response.status}`);
+    }
+
+    return payload.policy || { path: pagePath, primary: Boolean(primary), secondary: Boolean(secondary) };
+  }
+
+  getMonitorPageRouteDefaults() {
+    return [
+      { path: '/bordero/pages/admin.html', primary: true, secondary: false },
+      { path: '/bordero/pages/bordero-presentazione.html', primary: true, secondary: true },
+      { path: '/bordero/pages/bordero.html', primary: true, secondary: false },
+      { path: '/bordero/pages/brani-eseguiti.html', primary: true, secondary: true },
+      { path: '/bordero/pages/display.html', primary: false, secondary: true },
+      { path: '/bordero/pages/elenco-richieste.html', primary: true, secondary: false },
+      { path: '/bordero/pages/lista-serata.html', primary: true, secondary: true },
+      { path: '/bordero/pages/location.html', primary: true, secondary: false },
+      { path: '/bordero/pages/next-coreo.html', primary: true, secondary: true },
+      { path: '/bordero/pages/risultati.html', primary: true, secondary: true },
+      { path: '/bordero/pages/video-player.html', primary: false, secondary: true },
+      { path: '/bordero/pages/videoclip.html', primary: true, secondary: false },
+      { path: '/eventi/eventi.html', primary: true, secondary: false },
+      { path: '/userform/pages/qrcode.html', primary: true, secondary: false },
+      { path: '/userform/pages/servizio.html', primary: true, secondary: false },
+      { path: '/userform/pages/servizio-pubblica.html', primary: false, secondary: true },
+      { path: '/userform/pages/wecam.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina03.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina04.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina06.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina07.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina08.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina09.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina10.html', primary: true, secondary: false },
+      { path: '/userform/pages/pagina11.html', primary: true, secondary: false }
+    ];
+  }
+
+  getMonitorPageRoutes() {
+    return [
+      { path: '/bordero/pages/admin.html', label: 'Admin', description: 'Pannello amministrazione' },
+      { path: '/bordero/pages/bordero-presentazione.html', label: 'Bordero Presentazione', description: 'Vista presentazione su entrambi i monitor' },
+      { path: '/bordero/pages/bordero.html', label: 'Bordero', description: 'Pagina principale del Bordero' },
+      { path: '/bordero/pages/brani-eseguiti.html', label: 'Brani Eseguiti', description: 'Cronologia brani su entrambi i monitor' },
+      { path: '/bordero/pages/display.html', label: 'Display', description: 'Monitor secondario live' },
+      { path: '/bordero/pages/elenco-richieste.html', label: 'Elenco Richieste', description: 'Richieste evento principale' },
+      { path: '/bordero/pages/lista-serata.html', label: 'Lista Serata', description: 'Riepilogo serata su entrambi i monitor' },
+      { path: '/bordero/pages/location.html', label: 'Location', description: 'Selezione location principale' },
+      { path: '/bordero/pages/next-coreo.html', label: 'Next Coreo', description: 'Prossimo coreo su entrambi i monitor' },
+      { path: '/bordero/pages/risultati.html', label: 'Risultati', description: 'Risultati evento su entrambi i monitor' },
+      { path: '/bordero/pages/video-player.html', label: 'Video Player', description: 'Player video sul monitor secondario' },
+      { path: '/bordero/pages/videoclip.html', label: 'VideoClip', description: 'Controllo videoclip principale' },
+      { path: '/eventi/eventi.html', label: 'Eventi', description: 'Pagine eventi principali' },
+      { path: '/userform/pages/qrcode.html', label: 'QRCode', description: 'Pagina QR code del form USERFORM' },
+      { path: '/userform/pages/servizio.html', label: 'Servizio', description: 'Pagina di servizio sul monitor principale' },
+      { path: '/userform/pages/servizio-pubblica.html', label: 'Servizio Pubblica', description: 'Testo da pubblicare sul monitor secondario' },
+      { path: '/userform/pages/wecam.html', label: 'Webcam', description: 'Pagina webcam del form USERFORM' },
+      { path: '/userform/pages/pagina03.html', label: 'Pagina 03', description: 'Pagina USERFORM 03' },
+      { path: '/userform/pages/pagina04.html', label: 'Pagina 04', description: 'Pagina USERFORM 04' },
+      { path: '/userform/pages/pagina06.html', label: 'Pagina 06', description: 'Pagina USERFORM 06' },
+      { path: '/userform/pages/pagina07.html', label: 'Pagina 07', description: 'Pagina USERFORM 07' },
+      { path: '/userform/pages/pagina08.html', label: 'Pagina 08', description: 'Pagina USERFORM 08' },
+      { path: '/userform/pages/pagina09.html', label: 'Pagina 09', description: 'Pagina USERFORM 09' },
+      { path: '/userform/pages/pagina10.html', label: 'Pagina 10', description: 'Pagina USERFORM 10' },
+      { path: '/userform/pages/pagina11.html', label: 'Pagina 11', description: 'Pagina USERFORM 11' }
+    ];
+  }
+
+  normalizeMonitorPagePath(pagePath) {
+    return String(pagePath || '').trim().replace(/\\/g, '/').toLowerCase();
+  }
+
+  async loadMonitorPagePolicy() {
+    const summaryNode = document.getElementById('monitor-pages-summary');
+    const output = document.getElementById('monitor-pages-output');
+    if (!output) return;
+
+    if (summaryNode) {
+      summaryNode.textContent = 'Caricamento policy pagine monitor...';
+    }
+    output.innerHTML = '<div class="data-viewer-empty">Attendere caricamento policy...</div>';
+
+    try {
+      const policyEntries = await this.fetchMonitorPagePolicy();
+      output.innerHTML = this.renderMonitorPagesTable(this.getMonitorPageRoutes(), policyEntries);
+      if (summaryNode) {
+        summaryNode.textContent = 'Policy caricata. Modifica le checkbox per aggiornare la policy Electron.';
+      }
+    } catch (error) {
+      const defaultPolicyEntries = this.getMonitorPageRouteDefaults();
+      if (summaryNode) {
+        summaryNode.textContent = `Impossibile caricare policy monitor da Electron: uso valori predefiniti.`;
+      }
+      output.innerHTML = this.renderMonitorPagesTable(this.getMonitorPageRoutes(), defaultPolicyEntries);
+    }
+  }
+
+  async updateMonitorPagePolicy(pagePath, primary, secondary) {
+    const summaryNode = document.getElementById('monitor-pages-summary');
+    if (summaryNode) {
+      summaryNode.textContent = `Salvataggio policy per ${pagePath}...`;
+    }
+
+    const result = await this.saveMonitorPagePolicy(pagePath, primary, secondary);
+    const row = document.querySelector(`.monitor-policy-checkbox[data-page-path="${pagePath}"]`)?.closest('tr');
+    if (result && row) {
+      const primaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="primary"]');
+      const secondaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="secondary"]');
+      if (primaryInput) primaryInput.checked = Boolean(result.primary);
+      if (secondaryInput) secondaryInput.checked = Boolean(result.secondary);
+    }
+
+    if (summaryNode) {
+      summaryNode.textContent = `Policy aggiornata per ${pagePath}.`;
+    }
+
+    return result;
+  }
+
+  renderMonitorPagesTable(pages, policyEntries = []) {
+    const policyMap = new Map((Array.isArray(policyEntries) ? policyEntries : []).map((item) => [this.normalizeMonitorPagePath(item.path), { primary: Boolean(item.primary), secondary: Boolean(item.secondary) }]));
+
+    const rows = pages.map((page) => {
+      const normalizedPath = this.normalizeMonitorPagePath(page.path);
+      const policy = policyMap.get(normalizedPath) || { primary: true, secondary: false };
+      return `
+      <tr>
+        <td>${this.escapeHtml(page.label)}</td>
+        <td>${this.escapeHtml(page.description)}</td>
+        <td><code>${this.escapeHtml(page.path)}</code></td>
+        <td>
+          <label class="monitor-policy-label"><input type="checkbox" class="monitor-policy-checkbox" data-page-path="${this.escapeHtml(page.path)}" data-policy-type="primary" ${policy.primary ? 'checked' : ''}> 1</label>
+        </td>
+        <td>
+          <label class="monitor-policy-label"><input type="checkbox" class="monitor-policy-checkbox" data-page-path="${this.escapeHtml(page.path)}" data-policy-type="secondary" ${policy.secondary ? 'checked' : ''}> 2</label>
+        </td>
+        <td>
+          <button type="button" class="btn btn-primary monitor-page-open-btn" data-page-path="${this.escapeHtml(page.path)}">
+            Apri
+          </button>
+        </td>
+      </tr>
+    `;
+    }).join('');
+
+    return `
+      <table class="data-viewer-table" aria-label="Tabella pagine monitor Borderò">
+        <thead>
+          <tr>
+            <th>Pagina</th>
+            <th>Descrizione</th>
+            <th>URL</th>
+            <th>Monitor 1</th>
+            <th>Monitor 2</th>
+            <th>Azione</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  async openMonitorPageRoute(pagePath) {
+    const summaryNode = document.getElementById('monitor-pages-summary');
+    if (!summaryNode) return;
+
+    if (!window.electronAPI?.windowManager?.openSecondaryPage) {
+      summaryNode.textContent = 'Apertura pagina disponibile solo in runtime Electron.';
+      return;
+    }
+
+    summaryNode.textContent = `Apertura ${pagePath}...`;
+    try {
+      const result = await window.electronAPI.windowManager.openSecondaryPage({ path: pagePath });
+      if (!result || result.success !== true) {
+        throw new Error(result?.error || 'Apertura non riuscita');
+      }
+      const target = this.escapeHtml(pagePath);
+      const primary = result.primaryUpdated ? 'SI' : 'NO';
+      const secondary = result.secondaryUpdated ? 'SI' : 'NO';
+      summaryNode.textContent = `Pagina ${target} aperta. Principale: ${primary}, Secondario: ${secondary}`;
+    } catch (error) {
+      summaryNode.textContent = `Errore apertura pagina: ${this.escapeHtml(error?.message || String(error))}`;
+    }
+  }
+
+  setupMonitorPageRoutesPanel() {
+    const summary = document.getElementById('monitor-pages-summary');
+    const output = document.getElementById('monitor-pages-output');
+    if (!summary || !output) return;
+
+    const handlePolicyToggle = async (checkbox) => {
+      const pagePath = checkbox.getAttribute('data-page-path');
+      if (!pagePath) return;
+
+      const row = checkbox.closest('tr');
+      if (!row) return;
+
+      const primaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="primary"]');
+      const secondaryInput = row.querySelector('.monitor-policy-checkbox[data-policy-type="secondary"]');
+      const primary = Boolean(primaryInput?.checked);
+      const secondary = Boolean(secondaryInput?.checked);
+
+      try {
+        await this.updateMonitorPagePolicy(pagePath, primary, secondary);
+      } catch (error) {
+        summary.textContent = `Errore salvataggio policy: ${this.escapeHtml(error?.message || String(error))}`;
+        if (primaryInput) primaryInput.checked = !primary;
+        if (secondaryInput) secondaryInput.checked = !secondary;
+      }
+    };
+
+    output.addEventListener('click', (event) => {
+      const button = event.target.closest('.monitor-page-open-btn');
+      if (!button) return;
+      const pagePath = button.getAttribute('data-page-path');
+      if (!pagePath) return;
+      button.disabled = true;
+      this.openMonitorPageRoute(pagePath).finally(() => {
+        button.disabled = false;
+      });
+    });
+
+    output.addEventListener('change', (event) => {
+      const checkbox = event.target.closest('.monitor-policy-checkbox');
+      if (checkbox) {
+        void handlePolicyToggle(checkbox);
+      }
+    });
+
+    if (!window.electronAPI?.windowManager?.openSecondaryPage) {
+      summary.textContent = 'Modalità browser: la funzione di apertura pagine monitor è disponibile solo in runtime Electron.';
+    } else {
+      summary.textContent = 'Seleziona una pagina e premi Apri per caricarla nei monitor secondo la policy Electron.';
+    }
+
+    void this.loadMonitorPagePolicy();
+  }
+
   getDisplayScrollDefaults() {
     return {
       stepMs: Number(BORDERO_CONFIG?.DISPLAY_SCROLL_DEFAULT_STEP_MS ?? 16),
@@ -85,6 +805,43 @@ class AdminPanel {
 
   getDisplayScrollStorageKey() {
     return BORDERO_CONFIG?.DISPLAY_SCROLL_SETTINGS_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_SETTINGS';
+  }
+
+  getDataViewerStorageKey() {
+    return 'BORDERO_ADMIN_DATA_VIEWER_TYPE';
+  }
+
+  readDataViewerSelection() {
+    return String(localStorage.getItem(this.getDataViewerStorageKey()) || '').trim();
+  }
+
+  saveDataViewerSelection(type) {
+    localStorage.setItem(this.getDataViewerStorageKey(), String(type || ''));
+    return String(type || '');
+  }
+
+  resolveApiUrl(path) {
+    const raw = String(path || '').trim();
+    if (!raw) {
+      throw new Error('Empty API path');
+    }
+    if (/^https?:\/\//i.test(raw)) {
+      return raw;
+    }
+    const originCandidate = (typeof window !== 'undefined' && window.location && window.location.origin)
+      ? String(window.location.origin).trim()
+      : '';
+    const origin = /^https?:\/\//i.test(originCandidate)
+      ? originCandidate.replace(/\/$/, '')
+      : 'http://localhost:5500';
+    return `${origin}${raw.startsWith('/') ? '' : '/'}${raw}`;
+  }
+
+  async fetchJson(path, options = {}) {
+    const url = this.resolveApiUrl(path);
+    const response = await fetch(url, options);
+    const payload = await response.json().catch(() => ({}));
+    return { response, payload };
   }
 
   readDisplayScrollSettings() {
@@ -266,7 +1023,7 @@ class AdminPanel {
 
     const persistDjSource = async (djList) => {
       try {
-        const response = await fetch('http://localhost:5500/api/bordero/dj-source', {
+        const { response, payload: result } = await this.fetchJson('/api/bordero/dj-source', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dj: djList })
@@ -275,8 +1032,6 @@ class AdminPanel {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-
-        const result = await response.json();
         this.log(`✓ Sorgente DJ salvata su file (${result.count} DJ)`, 'success');
         return result;
       } catch (error) {
@@ -508,6 +1263,21 @@ class AdminPanel {
       document.getElementById('sync-comuni-status').textContent = `${comuniCount} comuni cached`;
       document.getElementById('sync-dbase-status').textContent = `${dbaseCount} DJ cached`;
       document.getElementById('sync-location-status').textContent = `${locationCount} location cached`;
+
+      const musicArchiveStatusEl = document.getElementById('sync-music-archive-status');
+      if (musicArchiveStatusEl) {
+        try {
+          const payload = await this.fetchMusicArchiveStatus(false);
+          const fileCount = Number(payload?.fileCount) || 0;
+          const exists = payload?.exists !== false;
+          musicArchiveStatusEl.textContent = exists
+            ? `${fileCount} file audio trovati`
+            : 'Archivio non raggiungibile';
+        } catch (error) {
+          musicArchiveStatusEl.textContent = 'Archivio non verificato';
+        }
+      }
+
       void this.refreshDataViewer();
     };
 
@@ -618,6 +1388,35 @@ class AdminPanel {
       }
     });
 
+    document.getElementById('btn-sync-music-archive').addEventListener('click', async () => {
+      const statusEl = document.getElementById('sync-music-archive-status');
+      if (statusEl) {
+        statusEl.textContent = 'Verifica archivio in corso...';
+      }
+
+      try {
+        const payload = await this.fetchMusicArchiveStatus(true);
+        const fileCount = Number(payload?.fileCount) || 0;
+        const exists = payload?.exists !== false;
+        if (statusEl) {
+          statusEl.textContent = exists
+            ? `${fileCount} file audio trovati`
+            : 'Archivio non raggiungibile';
+        }
+        this.addSyncLog(
+          exists
+            ? `Archivio verificato: ${fileCount} file audio trovati.`
+            : 'Archivio verificato ma non raggiungibile.',
+          exists ? 'success' : 'warn'
+        );
+      } catch (error) {
+        if (statusEl) {
+          statusEl.textContent = 'Archivio non verificato';
+        }
+        this.addSyncLog(`Errore verifica archivio: ${error.message}`, 'error');
+      }
+    });
+
     // Pulsante: Sincronizza TUTTO
     document.getElementById('btn-sync-all').addEventListener('click', async () => {
       this.log('🔄 Sincronizzando TUTTI i dati dal file Excel...', 'warn');
@@ -652,7 +1451,7 @@ class AdminPanel {
       this.log('🌐 Avvio sync da Google Sheets...', 'warn');
       this.addSyncLog('Avvio sync da Google Sheets...', 'info');
       try {
-        const endpoint = `${window.location.origin || 'http://localhost:5500'}/api/bordero/sync-google`;
+        const endpoint = this.resolveApiUrl('/api/bordero/sync-google');
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -705,15 +1504,35 @@ class AdminPanel {
 
   /* ========== DATA VIEWER ========== */
   setupDataViewer() {
-    document.getElementById('data-viewer-select').addEventListener('change', (e) => {
-      void this.refreshDataViewer(e.target.value);
+    const select = document.getElementById('data-viewer-select');
+    if (!select) return;
+
+    const savedType = this.readDataViewerSelection();
+    if (savedType && Array.from(select.options).some((option) => option.value === savedType)) {
+      select.value = savedType;
+    }
+
+    select.addEventListener('change', (e) => {
+      const value = e.target.value;
+      this.saveDataViewerSelection(value);
+      void this.refreshDataViewer(value);
     });
+
+    if (select.value) {
+      void this.refreshDataViewer(select.value);
+    }
   }
 
   async refreshDataViewer(type = null) {
     const select = document.getElementById('data-viewer-select');
     const output = document.getElementById('data-viewer-output');
     const activeType = type || select?.value || '';
+    const requestId = ++this.currentDataViewerRequestId;
+    this.currentDataViewerType = activeType;
+
+    if (output) {
+      output.innerHTML = '<div class="data-viewer-empty">Caricamento dati...</div>';
+    }
 
     let data = null;
     switch (activeType) {
@@ -765,6 +1584,33 @@ class AdminPanel {
         }
         break;
       }
+      case 'cameras': {
+        try {
+          data = await this.fetchCameraProfilesProbe();
+        } catch (error) {
+          data = { error: error?.message || String(error), cameras: [] };
+        }
+        break;
+      }
+      case 'music-archive': {
+        try {
+          const payload = await this.fetchMusicArchiveStatus(false);
+          data = {
+            rootPath: payload?.rootPath || '',
+            exists: Boolean(payload?.exists),
+            fileCount: Number(payload?.fileCount) || 0,
+            scannedAt: payload?.scannedAt || 0,
+            csvPath: payload?.csvPath || '',
+            csvCount: Number(payload?.csvCount) || 0,
+            sample: Array.isArray(payload?.files) ? payload.files.slice(0, 30) : []
+          };
+        } catch (error) {
+          data = {
+            error: error?.message || String(error)
+          };
+        }
+        break;
+      }
       case 'serata': {
         const currentSerata = typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.getCurrentSerata === 'function'
           ? window.dataLoader.getCurrentSerata()
@@ -787,6 +1633,10 @@ class AdminPanel {
           }
         }
         break;
+    }
+
+    if (requestId !== this.currentDataViewerRequestId || (select && select.value !== activeType)) {
+      return;
     }
 
     if (output) {
@@ -859,6 +1709,58 @@ class AdminPanel {
         </table>`;
     }
 
+    if (type === 'music-archive' && data && typeof data === 'object') {
+      if (data.error) {
+        return `<div class="data-viewer-empty">Errore archivio: ${this.escapeHtml(data.error)}</div>`;
+      }
+
+      const sample = Array.isArray(data.sample) ? data.sample : [];
+      const rows = sample.slice(0, 20).map((item) => `
+        <tr>
+          <td>${this.escapeHtml(item.relativePath || '')}</td>
+          <td>${this.escapeHtml(item.fileName || '')}</td>
+          <td>${this.escapeHtml(this.formatBytes(item.size || 0))}</td>
+          <td>${this.escapeHtml(item.modifiedAt || '')}</td>
+        </tr>
+      `).join('');
+
+      const summary = [
+        `${Number(data.fileCount) || 0} file audio trovati`,
+        data.exists ? 'cartella raggiungibile' : 'cartella non raggiungibile',
+        data.rootPath ? `root: ${data.rootPath}` : null
+      ].filter(Boolean).join(' • ');
+
+      return `
+        <div class="data-viewer-summary">${this.escapeHtml(summary)}</div>
+        <table class="data-viewer-table">
+          <thead><tr><th>Percorso relativo</th><th>File</th><th>Dimensione</th><th>Ultima modifica</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="4">Nessun file da mostrare in anteprima</td></tr>'}</tbody>
+        </table>`;
+    }
+
+    if (type === 'cameras' && data && typeof data === 'object') {
+      if (data.error) {
+        return `<div class="data-viewer-empty">Errore telecamere: ${this.escapeHtml(data.error)}</div>`;
+      }
+
+      const cameras = Array.isArray(data.cameras) ? data.cameras : [];
+      const comparisons = Array.isArray(data.comparisons) ? data.comparisons : [];
+      const summary = [
+        `${Number(data.count) || cameras.length} profili`,
+        `${Number(data.physicalCount) || 0} webcam fisiche`,
+        `sorgente: ${data.source || '-'}`
+      ].join(' • ');
+
+      return `
+        <div class="data-viewer-summary">${this.escapeHtml(summary)}</div>
+        ${comparisons.length ? this.renderCameraProfilesComparisonTable(data) : this.renderCameraProfilesTable(data)}
+      `;
+    }
+
+    if (type === 'cameras' && Array.isArray(data)) {
+      return this.renderCameraProfilesTable({ cameras: data });
+    }
+
     if (typeof data === 'object' && !Array.isArray(data)) {
       const rows = Object.entries(data).slice(0, 20).map(([key, value]) => {
         const displayValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
@@ -870,6 +1772,14 @@ class AdminPanel {
     }
 
     return `<pre>${this.escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+  }
+
+  formatBytes(bytes) {
+    const value = Number(bytes) || 0;
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    if (value < 1024 * 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(value / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
 
   escapeHtml(value) {
@@ -1029,14 +1939,13 @@ class AdminPanel {
     const loadSwapStatus = async () => {
       if (!swapBtn && !primaryMonitorSelect) return;
       try {
-        const response = await fetch('/api/electron/monitor-preferences', {
+        const { response, payload } = await this.fetchJson('/api/electron/monitor-preferences', {
           method: 'GET',
           cache: 'no-store'
         });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-        const payload = await response.json();
         updateSwapButton(Boolean(payload.swapPrimarySecondary));
         updatePrimaryMonitorSelect(payload);
       } catch (error) {
@@ -1062,7 +1971,7 @@ class AdminPanel {
       swapBtn.addEventListener('click', async () => {
         swapBtn.disabled = true;
         try {
-          const response = await fetch('/api/electron/swap-monitors', {
+          const { response, payload } = await this.fetchJson('/api/electron/swap-monitors', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -1073,8 +1982,6 @@ class AdminPanel {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
           }
-
-          const payload = await response.json();
           const isEnabled = Boolean(payload.swapPrimarySecondary);
           updateSwapButton(isEnabled);
           updatePrimaryMonitorSelect(payload);
@@ -1098,7 +2005,7 @@ class AdminPanel {
           const requestedChoice = Number(primaryMonitorSelect.value) === 2 ? 2 : 1;
           const shouldSwap = requestedChoice === 2;
 
-          const response = await fetch('/api/electron/swap-monitors', {
+          const { response, payload } = await this.fetchJson('/api/electron/swap-monitors', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -1111,8 +2018,6 @@ class AdminPanel {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
           }
-
-          const payload = await response.json();
           updateSwapButton(Boolean(payload.swapPrimarySecondary));
           updatePrimaryMonitorSelect(payload);
           this.log(`Monitor principale impostato su ${requestedChoice}: applicazione Electron aggiornata`, 'success');

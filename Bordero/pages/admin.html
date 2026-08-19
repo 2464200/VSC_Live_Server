@@ -127,7 +127,7 @@
         </small>
       </div>
 
-      <div class="sync-panel">
+      <div class="sync-panel sync-panel-data-sync">
         <div class="sync-item">
           <h3>Brani (Songs)</h3>
           <p id="sync-brani-status">Checking...</p>
@@ -147,6 +147,11 @@
           <h3>Location</h3>
           <p id="sync-location-status">Checking...</p>
           <button id="btn-sync-location" class="btn btn-primary">🔄 Sync Location</button>
+        </div>
+        <div class="sync-item">
+          <h3>File Audio Archivio</h3>
+          <p id="sync-music-archive-status">Checking...</p>
+          <button id="btn-sync-music-archive" class="btn btn-primary">🔎 Verifica Archivio</button>
         </div>
       </div>
       <button id="btn-sync-all" class="btn btn-secondary" style="margin-top: 15px; width: 100%;">
@@ -193,6 +198,93 @@
       <button id="btn-sync-dj-source" class="btn btn-warning" type="button" style="margin-left: 8px;">🧠 Sincronizza sorgente DJ</button>
     </section>
 
+    <section class="admin-section">
+      <h2>🎛️ Software Console DJ</h2>
+      <p class="display-scroll-help">
+        Seleziona il software usato dal DJ durante l'evento. La scelta è esclusiva: attivandone uno gli altri vengono automaticamente disattivati.
+      </p>
+
+      <div class="dj-software-table-wrap">
+        <table class="dj-software-table" aria-label="Selezione software console DJ">
+          <thead>
+            <tr>
+              <th>Software</th>
+              <th>On/Off</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pioneer DJ Rekordbox <span class="software-coming-soon">Non ancora supportato</span></td>
+              <td>
+                <button id="btn-software-rekordbox" class="btn btn-secondary software-toggle-btn" type="button" data-software="rekordbox" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Serato DJ <span class="software-coming-soon">Non ancora supportato</span></td>
+              <td>
+                <button id="btn-software-serato" class="btn btn-secondary software-toggle-btn" type="button" data-software="serato" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Algoriddim djay Pro <span class="software-coming-soon">Non ancora supportato</span></td>
+              <td>
+                <button id="btn-software-djaypro" class="btn btn-secondary software-toggle-btn" type="button" data-software="djaypro" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Native Instruments Traktor Pro</td>
+              <td>
+                <button id="btn-software-traktor" class="btn btn-secondary software-toggle-btn" type="button" data-software="traktor" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>VirtualDJ</td>
+              <td>
+                <button id="btn-software-virtualdj" class="btn btn-secondary software-toggle-btn" type="button" data-software="virtualdj" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="dj-software-selection-status" class="dj-software-status">Software selezionato: Nessuno</div>
+      <div id="dj-software-feature-status" class="dj-software-status">Funzione collegata: disabilitata (in attesa specifica)</div>
+      <div class="dj-software-status-note">Nota: al momento sono selezionabili solo VirtualDJ e Traktor Pro. Gli altri software saranno abilitati in un secondo momento.</div>
+    </section>
+
+    <section class="admin-section">
+      <h2>📁 Archivio Brani</h2>
+      <p class="display-scroll-help">
+        Indica la cartella principale che contiene i brani (incluse tutte le sottocartelle). La scelta resta salvata fino alla prossima modifica.
+      </p>
+
+      <div class="music-archive-config">
+        <label for="music-archive-path" class="music-archive-label">Percorso cartella archivio</label>
+        <div class="music-archive-actions">
+          <select id="music-archive-path" class="select" aria-label="Seleziona cartella archivio"></select>
+          <button id="btn-browse-music-archive" class="btn btn-secondary" type="button">📁 Sfoglia cartella</button>
+        </div>
+        <div class="music-archive-actions" style="margin-top: 8px;">
+          <button id="btn-save-music-archive" class="btn btn-primary" type="button">💾 Salva cartella archivio</button>
+          <button id="btn-check-music-archive" class="btn btn-secondary" type="button">🔎 Verifica archivio</button>
+        </div>
+        <div id="music-archive-recent-path" aria-live="polite" style="margin-top: 10px; font-size: 13px; color: #dfe6ff; line-height: 1.4;">Nessun percorso salvato. Seleziona una cartella e premi Salva.</div>
+        <div id="music-archive-status" class="dj-software-status">Stato archivio: non configurato</div>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>📷 Telecamere di Sistema</h2>
+      <p class="display-scroll-help">
+        Elenco profili webcam da <strong>get-camera-name.csv</strong> con capability rilevate automaticamente da FFmpeg.
+      </p>
+      <div class="display-scroll-actions">
+        <button id="btn-refresh-camera-profiles" class="btn btn-primary" type="button">🔄 Aggiorna e Profila Telecamere</button>
+      </div>
+      <div id="camera-profiles-summary" class="data-viewer-summary">In attesa di caricamento...</div>
+      <div id="camera-profiles-output" class="data-viewer"></div>
+    </section>
+
     <!-- DATA VIEWER -->
     <section class="admin-section">
       <h2>📋 Data Viewer</h2>
@@ -203,6 +295,8 @@
           <option value="comuni">Comuni Italia</option>
           <option value="dbase">dBase (DJ)</option>
           <option value="location">Location</option>
+          <option value="cameras">Telecamere (Webcam)</option>
+          <option value="music-archive">File Audio Archivio</option>
           <option value="serata">Current Serata</option>
           <option value="history">Serata History</option>
           <option value="localstorage">All localStorage Keys</option>
@@ -277,7 +371,20 @@
         </select>
         <button id="btn-apply-primary-monitor" class="btn btn-info" type="button">Applica monitor</button>
       </div>
+    </section>
 
+    <section class="admin-section">
+      <h2>🗂️ Pagine Monitor</h2>
+      <p class="display-scroll-help">
+        Apri le pagine HTML di Borderò sul monitor principale o sul monitor secondario in base alla policy Electron.
+      </p>
+      <div class="monitor-pages-panel">
+        <div id="monitor-pages-summary" class="data-viewer-summary">Disponibile solo in runtime Electron.</div>
+        <div id="monitor-pages-output" class="data-viewer"></div>
+      </div>
+    </section>
+
+    <section class="admin-section">
       <div style="margin-top: 14px; border: 1px solid #d8d8d8; border-radius: 8px; padding: 10px; background: #fafafa;">
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
           <strong>Diagnostica Routing Monitor (Electron)</strong>

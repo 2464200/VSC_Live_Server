@@ -11,6 +11,7 @@ class ElencoRichiestePage {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
+    this.requestersByBranoId = new Map();
     this.autoRefreshIntervalMs = 60 * 1000;
     this.autoRefreshTimer = null;
     this.autoRefreshInProgress = false;
@@ -21,6 +22,7 @@ class ElencoRichiestePage {
     try {
       await dataLoader.initialize();
       await this.refreshFromCurrentData({ forceRemote: true, silent: true });
+      await this.loadRequestersFromAccoda();
       await this.refreshSyncDiagnostic();
       this.render();
       this.setupAutoRefresh();
@@ -108,6 +110,7 @@ class ElencoRichiestePage {
       this.applyVideoClipAvailabilityToBrani();
 
       this.requested = this.getUniqueRequestedBrani(this.brani);
+      await this.loadRequestersFromAccoda();
     } finally {
       this.autoRefreshInProgress = false;
     }
@@ -123,6 +126,61 @@ class ElencoRichiestePage {
     }
 
     return false;
+  }
+
+  async loadRequestersFromAccoda() {
+    this.requestersByBranoId = new Map();
+
+    try {
+      const accodaUrl = new URL('../data/Accoda 8+12.csv', window.location.href).href + '?t=' + Date.now();
+      const response = await fetch(accodaUrl, { cache: 'no-store' });
+      if (!response.ok) return;
+
+      const csvText = await response.text();
+      const lines = csvText.split(/\r?\n/).filter((line) => line.trim().length > 0);
+      if (lines.length < 2) return;
+
+      const rows = lines.slice(1).map((line) => CSVParser.parseCSVLine(line));
+      const requestedNames = new Map();
+
+      for (const row of rows) {
+        const requester = String(row[1] || '').trim();
+        if (!requester) continue;
+
+        const relevantCells = row.slice(2).filter((cell) => typeof cell === 'string' && cell.trim().length > 0);
+        for (const brano of this.brani) {
+          const variants = [brano.titolo, brano.coreografia, brano.brano, brano.song, brano.canzone]
+            .filter(Boolean)
+            .map((value) => this.normalizeForMatch(value));
+
+          const matched = relevantCells.some((cell) => {
+            const cellText = String(cell).trim();
+            const normalizedCell = this.normalizeForMatch(cellText);
+            return variants.some((variant) => variant && (
+              variant === normalizedCell ||
+              variant.includes(normalizedCell) ||
+              normalizedCell.includes(variant)
+            ));
+          });
+
+          if (!matched) continue;
+
+          const key = String(brano.id || '').trim();
+          if (!key) continue;
+
+          const current = requestedNames.get(key) || [];
+          if (!current.includes(requester)) {
+            current.push(requester);
+            requestedNames.set(key, current);
+          }
+        }
+      }
+
+      this.requestersByBranoId = requestedNames;
+    } catch (error) {
+      logger.debug('Nessun mapping richiedenti da Accoda CSV disponibile', error?.message || error);
+      this.requestersByBranoId = new Map();
+    }
   }
 
   isExecutedBrano(brano) {
@@ -475,13 +533,17 @@ class ElencoRichiestePage {
           ? `<button type="button" class="videoclip-open${videoButtonDisabledClass}" data-brano-id="${brano.id}" aria-label="Apri VideoClip per ${String(brano.titolo || brano.id || 'brano')}" title="${videoButtonTitle}"${videoButtonDisabledAttr}>🎬</button>`
           : '-';
 
+        const richiedenteNome = brano.nome || brano.requester || brano.richiedente || brano.requestedBy ||
+          (this.requestersByBranoId.get(String(brano.id || '')) || []).join(', ') || '--';
+
         return `
           <tr class="requested-row" data-brano-id="${brano.id}">
             <td class="col-number">${index + 1}</td>
             <td class="col-titolo">${titolo}</td>
             <td class="col-autore">${brano.autore || '--'}</td>
-            <td class="col-richieste">${brano.richieste || '--'}</td>
             <td class="col-coreografo">${brano.coreografo || '--'}</td>
+            <td class="col-richieste">${brano.richieste || '--'}</td>
+            <td class="col-nome">${richiedenteNome}</td>
             <td class="col-timestamp">${brano.timestamp || '--'}</td>
             <td>
               <span class="action-inline ${statoClass}" aria-live="polite">

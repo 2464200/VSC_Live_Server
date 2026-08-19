@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - PAGINA02</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/servizio-actions.js"></script>
+  <style>
+    :root {
+      --p02-bg: #dfe3df;
+      --p02-panel: #e7e9e7;
+      --p02-dark: #1d1d1d;
+      --p02-line: #9f9f9f;
+      --p02-muted: #4b4b4b;
+      --p02-text: #1f1f1f;
+      --p02-btn: #f0f0f0;
+      --p02-btn-text: #111;
+      --p02-accent: #ff7f00;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #b9babb;
+      color: var(--p02-text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .p02-shell {
+      width: 100%;
+      min-height: 100vh;
+      padding: 14px 12px 10px;
+      background: var(--p02-bg);
+      position: relative;
+    }
+
+    .nav-breadcrumb {
+      margin: 0 0 8px;
+      padding-left: 8px;
+      font-size: 12px;
+      min-height: auto;
+    }
+
+    .p02-window {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid #9ea39d;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+      min-height: calc(100vh - 62px);
+      padding: 0;
+      position: relative;
+    }
+
+    .p02-window-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 28px;
+      padding: 0 8px 0 10px;
+      border-bottom: 1px solid rgba(0,0,0,0.18);
+      background: rgba(255,255,255,0.08);
+      font-size: 12px;
+      color: #111;
+      font-weight: 600;
+    }
+
+    .p02-window-header .title {
+      letter-spacing: 0.02em;
+    }
+
+    .p02-close {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(0,0,0,0.25);
+      background: rgba(255,255,255,0.15);
+      color: #111;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .p02-body {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      padding: 12px 14px 14px;
+      min-height: 720px;
+    }
+
+    .p02-message {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 8px 8px 0;
+    }
+
+    .p02-message p {
+      margin: 0;
+      font-size: clamp(18px, 2vw, 34px);
+      line-height: 1.25;
+      color: var(--p02-text);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    .p02-message .small-note {
+      margin-top: 18px;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: #5a5a5a;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.2);
+    }
+
+    .p02-brand {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding-top: 10px;
+    }
+
+    .p02-logo-mark {
+      width: 156px;
+      height: 156px;
+      border-radius: 18px;
+      border: 2px solid #000;
+      background: linear-gradient(135deg, #f7f7f7, #d9d9d9);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .p02-logo-mark::before {
+      content: "DANIEL WEST";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      transform: rotate(-12deg);
+    }
+
+    .p02-banner {
+      grid-column: 1 / -1;
+      margin: 0 0 8px;
+      padding: 16px 18px 14px;
+      min-height: 120px;
+      border-top: 1px solid rgba(0,0,0,0.25);
+      border-bottom: 1px solid rgba(0,0,0,0.25);
+      background: rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: clamp(28px, 3vw, 55px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: #202020;
+      letter-spacing: -0.04em;
+    }
+
+    .p02-input-wrap {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+      margin-bottom: 8px;
+    }
+
+    .p02-input-label {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #3d3d3d;
+      font-weight: 700;
+    }
+
+    .p02-input {
+      width: min(100%, 520px);
+      padding: 12px 14px;
+      border: 1px solid rgba(0,0,0,0.28);
+      background: rgba(255,255,255,0.18);
+      color: #111;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .p02-input:focus {
+      border-color: var(--p02-accent);
+      box-shadow: 0 0 0 2px rgba(255,127,0,0.18);
+    }
+
+    .p02-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 2px;
+      margin-bottom: 8px;
+    }
+
+    .p02-button {
+      min-width: 170px;
+      min-height: 42px;
+      border: 1px solid rgba(0,0,0,0.35);
+      background: rgba(255,255,255,0.15);
+      color: #111;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 0;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+    }
+
+    .p02-button.primary {
+      background: rgba(255,255,255,0.4);
+    }
+
+    .p02-grid {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 18px;
+      margin-top: 8px;
+      align-items: end;
+    }
+
+    .p02-card {
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      text-align: center;
+      color: var(--p02-text);
+      padding: 16px 12px 12px;
+    }
+
+    .p02-card .label {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--p02-text);
+    }
+
+    .p02-poster {
+      width: 220px;
+      height: 220px;
+      border: 1px solid rgba(0,0,0,0.25);
+      background: #0e0e0f;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .p02-poster.logo {
+      background: radial-gradient(circle at 50% 35%, rgba(42, 143, 255, 0.35), transparent 35%), #0a0d12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .p02-poster.logo::before {
+      content: "M";
+      font-size: 120px;
+      color: #ffde59;
+      font-weight: 900;
+      text-shadow: 0 0 18px rgba(255, 196, 0, 0.55);
+    }
+
+    .p02-poster.file {
+      background: linear-gradient(135deg, rgba(255, 194, 55, 0.18), rgba(255,255,255,0.06));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #111;
+      position: relative;
+    }
+
+    .p02-poster.file::before {
+      content: "BUFFALO GRILL";
+      position: absolute;
+      inset: 16px 12px auto 12px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #f1d146;
+      text-shadow: 0 0 12px rgba(242, 165, 0, 0.8);
+      text-align: center;
+    }
+
+    .p02-poster.file::after {
+      content: "Serata Country\A\A 18 / 12 / 2025";
+      white-space: pre-line;
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 18px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .p02-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      border-top: 1px solid rgba(0,0,0,0.22);
+      padding-top: 12px;
+      font-size: 12px;
+      color: #1c1c1c;
+    }
+
+    .p02-footer-left,
+    .p02-footer-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .p02-footer .mini-btn {
+      min-width: 0;
+      padding: 8px 16px;
+      font-size: 12px;
+      border: 1px solid rgba(0,0,0,0.25);
+      background: rgba(255,255,255,0.18);
+      color: #111;
+    }
+
+    @media (max-width: 900px) {
+      .p02-body {
+        grid-template-columns: 1fr;
+      }
+
+      .p02-brand {
+        justify-content: center;
+      }
+
+      .p02-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .p02-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="p02-shell">
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">PAGINA02</span>
+    </nav>
+
+    <div class="p02-window">
+      <div class="p02-window-header">
+        <span class="title">frmPagina02</span>
+        <button id="close-window-btn" class="p02-close" type="button" aria-label="Chiudi">×</button>
+      </div>
+
+      <div class="p02-body">
+        <div class="p02-message">
+          <p>Digitare il testo da visualizzare sullo schema</p>
+          <p>premi INVIO per confermare il testo</p>
+          <p>- premi PUBBLICA per visualizzare un HTML</p>
+          <p>- premi STOP per terminare</p>
+          <p class="small-note">NON utilizzare caratteri speciali o punteggiatura</p>
+        </div>
+
+        <div class="p02-brand">
+          <div class="p02-logo-mark" aria-label="Logo Danie West"></div>
+        </div>
+
+        <div class="p02-input-wrap" aria-label="Inserimento testo da pubblicare">
+          <label class="p02-input-label" for="service-message-input">Inserisci il testo da pubblicare</label>
+          <input id="service-message-input" class="p02-input" type="text" maxlength="160" placeholder="Inserisci il testo da pubblicare" />
+        </div>
+
+        <div class="p02-actions" aria-label="Azioni pagina">
+          <button id="publish-text-btn" type="button" class="p02-button primary">Pubblica</button>
+          <button id="stop-text-btn" type="button" class="p02-button">STOP</button>
+        </div>
+
+        <div class="p02-grid">
+          <div class="p02-card">
+            <button id="publish-logo-btn" type="button" class="p02-poster logo" aria-label="Pubblica il logo"></button>
+            <span class="label">Pubblica il logo</span>
+          </div>
+
+          <div class="p02-card">
+            <button id="publish-file-btn" type="button" class="p02-poster file" aria-label="Pubblica un file"></button>
+            <span class="label">Pubblica un file</span>
+          </div>
+        </div>
+
+        <div class="p02-footer">
+          <div class="p02-footer-left">
+            <span>© 2025</span>
+            <span>DJ'S BORDERO'</span>
+            <span>Tutti i diritti riservati.</span>
+          </div>
+          <div class="p02-footer-right">
+            <button id="index-btn" type="button" class="mini-btn">Indice</button>
+            <button id="close-btn" type="button" class="mini-btn">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

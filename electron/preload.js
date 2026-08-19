@@ -41,5 +41,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onPause: (callback) => createSubscription('bordero-video-player:pause', callback),
     onStop: (callback) => createSubscription('bordero-video-player:stop', callback),
     complete: (payload) => ipcRenderer.send('bordero-video-player:ended', payload)
+  },
+  filePicker: {
+    pickDirectory: () => ipcRenderer.invoke('bordero-file-picker:pick-directory'),
+    listDirectory: (targetPath) => ipcRenderer.invoke('bordero-file-picker:list-directory', targetPath)
   }
 });

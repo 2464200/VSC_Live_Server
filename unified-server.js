@@ -17,8 +17,10 @@ const net = require('net');
 const os = require('os');
 const { parse: parseCsv } = require('csv-parse/sync');
 const QRCodeLib = require('qrcode');
+const { forwardVdjRequest } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
+const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 
 const app = express();
 let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5500;
@@ -38,6 +40,39 @@ const USERFORM_FFMPEG_CANDIDATES = [
 ].filter(Boolean);
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
 const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 60 * 1000;
+const MUSIC_ARCHIVE_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-config.json');
+const MUSIC_ARCHIVE_INDEX_CSV_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-index.csv');
+const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([
+    '.mp3', '.wav', '.flac', '.m4a', '.m4p', '.mp4', '.m4v', '.mov', '.avi', '.mkv', '.wmv',
+    '.aiff', '.aac', '.ogg', '.wma', '.opus', '.alac', '.mp2', '.mpga', '.mpeg', '.mpg',
+    '.mid', '.midi', '.ape'
+]);
+const MUSIC_ARCHIVE_CACHE_TTL_MS = 30 * 1000;
+
+function normalizeTextForMatch(value = '') {
+    let text = String(value || '').trim();
+    if (!text) return '';
+
+    try {
+        text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    } catch (_) {
+        text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    return text
+        .toLowerCase()
+        .replace(/&/g, ' e ')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function tokenizeTextForMatch(normalizedText = '') {
+    return String(normalizedText || '')
+        .split(' ')
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 2);
+}
 
 // ===== STATO GLOBALE =====
 let chromeProcess = null;
@@ -87,6 +122,12 @@ const borderoGoogleSyncState = {
     lastSummary: null
 };
 
+let musicArchiveIndexCache = {
+    rootPath: '',
+    scannedAt: 0,
+    files: []
+};
+
 function ensureSiaeExportDir() {
     if (!fs.existsSync(SIAE_EXPORT_DIR)) {
         fs.mkdirSync(SIAE_EXPORT_DIR, { recursive: true });
@@ -111,6 +152,281 @@ function sanitizeSiaeEventName(value = '') {
         .replace(/^_+|_+$/g, '');
 
     return normalized || 'evento';
+}
+
+function normalizeMusicArchivePath(value = '') {
+    const raw = String(value || '').trim().replace(/^"+|"+$/g, '');
+    if (!raw) {
+        return '';
+    }
+
+    const normalized = raw.replace(/[\\/]+$/, '');
+    if (/^[A-Za-z]:$/.test(normalized)) {
+        return `${normalized}\\`;
+    }
+
+    return normalized;
+}
+
+function getWindowsDriveRoots() {
+    const roots = [];
+    if (process.platform === 'win32') {
+        for (let drive = 67; drive <= 90; drive += 1) {
+            const candidate = `${String.fromCharCode(drive)}:\\`;
+            try {
+                if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+                    roots.push(candidate);
+                }
+            } catch (error) {
+                // ignore
+            }
+        }
+    }
+
+    if (!roots.length) {
+        const home = os.homedir();
+        if (home) {
+            roots.push(home);
+        }
+    }
+
+    return roots.sort((left, right) => left.localeCompare(right));
+}
+
+function listMusicArchiveDirectories(targetPath = '') {
+    const normalizedTarget = normalizeMusicArchivePath(targetPath);
+    if (!normalizedTarget) {
+        return {
+            path: '',
+            parentPath: '',
+            entries: getWindowsDriveRoots().map((root) => ({
+                name: root,
+                path: root,
+                isDirectory: true
+            }))
+        };
+    }
+
+    if (!fs.existsSync(normalizedTarget) || !fs.statSync(normalizedTarget).isDirectory()) {
+        return {
+            path: normalizedTarget,
+            parentPath: path.dirname(normalizedTarget),
+            entries: []
+        };
+    }
+
+    const entries = fs.readdirSync(normalizedTarget, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => ({
+            name: entry.name,
+            path: path.join(normalizedTarget, entry.name),
+            isDirectory: true
+        }))
+        .sort((left, right) => left.name.localeCompare(right.name));
+
+    return {
+        path: normalizedTarget,
+        parentPath: path.dirname(normalizedTarget),
+        entries
+    };
+}
+
+function readMusicArchiveConfig() {
+    try {
+        if (!fs.existsSync(MUSIC_ARCHIVE_CONFIG_FILE)) {
+            return { rootPath: '', updatedAt: null };
+        }
+
+        const raw = fs.readFileSync(MUSIC_ARCHIVE_CONFIG_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+        if (!raw) {
+            return { rootPath: '', updatedAt: null };
+        }
+
+        const parsed = JSON.parse(raw);
+        return {
+            rootPath: normalizeMusicArchivePath(parsed?.rootPath || ''),
+            updatedAt: parsed?.updatedAt || null
+        };
+    } catch (error) {
+        console.warn('⚠️ Lettura config archivio brani fallita:', error?.message || error);
+        return { rootPath: '', updatedAt: null };
+    }
+}
+
+function writeMusicArchiveConfig(rootPath) {
+    const normalized = normalizeMusicArchivePath(rootPath);
+    const payload = {
+        rootPath: normalized,
+        updatedAt: new Date().toISOString()
+    };
+
+    fs.mkdirSync(path.dirname(MUSIC_ARCHIVE_CONFIG_FILE), { recursive: true });
+    fs.writeFileSync(MUSIC_ARCHIVE_CONFIG_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    return payload;
+}
+
+function escapeCsvField(value = '') {
+    return `"${String(value ?? '').replace(/"/g, '""')}"`;
+}
+
+function writeMusicArchiveIndexCsv(rootPath, files, scannedAt = Date.now()) {
+    const rows = Array.isArray(files) ? files : [];
+    const scannedAtIso = new Date(scannedAt).toISOString();
+    fs.mkdirSync(path.dirname(MUSIC_ARCHIVE_INDEX_CSV_FILE), { recursive: true });
+
+    const header = [
+        'rootPath',
+        'scannedAt',
+        'relativePath',
+        'fileName',
+        'baseName',
+        'fullPath',
+        'extension',
+        'size',
+        'modifiedAt'
+    ].map(escapeCsvField).join(',');
+
+    const content = [header].concat(rows.map((file) => [
+        rootPath,
+        scannedAtIso,
+        file.relativePath || '',
+        file.fileName || '',
+        file.baseName || '',
+        file.fullPath || '',
+        path.extname(file.fileName || '').toLowerCase(),
+        file.size ?? '',
+        file.modifiedAt || ''
+    ].map(escapeCsvField).join(','))).join('\n');
+
+    fs.writeFileSync(MUSIC_ARCHIVE_INDEX_CSV_FILE, content, 'utf8');
+    return {
+        csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+        csvCount: rows.length,
+        csvUpdatedAt: scannedAtIso
+    };
+}
+
+function listMusicFilesRecursive(rootPath) {
+    const files = [];
+    const stack = [rootPath];
+
+    while (stack.length > 0) {
+        const current = stack.pop();
+        let entries = [];
+        try {
+            entries = fs.readdirSync(current, { withFileTypes: true });
+        } catch (_) {
+            continue;
+        }
+
+        for (const entry of entries) {
+            const fullPath = path.join(current, entry.name);
+            if (entry.isDirectory()) {
+                stack.push(fullPath);
+                continue;
+            }
+
+            if (!entry.isFile()) continue;
+
+            const ext = path.extname(entry.name).toLowerCase();
+            if (!MUSIC_ARCHIVE_ALLOWED_EXTENSIONS.has(ext)) continue;
+
+            let stats = null;
+            try {
+                stats = fs.statSync(fullPath);
+            } catch (_) {
+                continue;
+            }
+
+            const relativePath = path.relative(rootPath, fullPath);
+            const baseName = path.basename(entry.name, ext);
+            const normalizedName = normalizeTextForMatch(baseName);
+
+            files.push({
+                fullPath,
+                relativePath,
+                fileName: entry.name,
+                baseName,
+                size: stats?.size || 0,
+                modifiedAt: stats?.mtime ? stats.mtime.toISOString() : '',
+                normalizedName,
+                tokens: tokenizeTextForMatch(normalizedName)
+            });
+        }
+    }
+
+    files.sort((a, b) => a.relativePath.localeCompare(b.relativePath, 'it'));
+    return files;
+}
+
+function refreshMusicArchiveIndex(force = false) {
+    const config = readMusicArchiveConfig();
+    const rootPath = normalizeMusicArchivePath(config.rootPath || '');
+    const now = Date.now();
+
+    if (!rootPath) {
+        musicArchiveIndexCache = { rootPath: '', scannedAt: 0, files: [] };
+        writeMusicArchiveIndexCsv('', [], now);
+        return {
+            rootPath: '',
+            files: [],
+            scannedAt: 0,
+            exists: false,
+            csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: 0,
+            csvUpdatedAt: new Date(now).toISOString()
+        };
+    }
+
+    const exists = fs.existsSync(rootPath) && fs.statSync(rootPath).isDirectory();
+    if (!exists) {
+        musicArchiveIndexCache = { rootPath, scannedAt: now, files: [] };
+        writeMusicArchiveIndexCsv(rootPath, [], now);
+        return {
+            rootPath,
+            files: [],
+            scannedAt: now,
+            exists: false,
+            csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: 0,
+            csvUpdatedAt: new Date(now).toISOString()
+        };
+    }
+
+    const cacheIsValid = !force
+        && musicArchiveIndexCache.rootPath === rootPath
+        && Array.isArray(musicArchiveIndexCache.files)
+        && (now - musicArchiveIndexCache.scannedAt) < MUSIC_ARCHIVE_CACHE_TTL_MS;
+
+    if (cacheIsValid) {
+        return {
+            rootPath,
+            files: musicArchiveIndexCache.files,
+            scannedAt: musicArchiveIndexCache.scannedAt,
+            exists: true,
+            csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: Array.isArray(musicArchiveIndexCache.files) ? musicArchiveIndexCache.files.length : 0,
+            csvUpdatedAt: new Date(musicArchiveIndexCache.scannedAt).toISOString()
+        };
+    }
+
+    const files = listMusicFilesRecursive(rootPath);
+    writeMusicArchiveIndexCsv(rootPath, files, now);
+    musicArchiveIndexCache = {
+        rootPath,
+        scannedAt: now,
+        files
+    };
+
+    return {
+        rootPath,
+        files,
+        scannedAt: now,
+        exists: true,
+        csvPath: MUSIC_ARCHIVE_INDEX_CSV_FILE,
+        csvCount: files.length,
+        csvUpdatedAt: new Date(now).toISOString()
+    };
 }
 
 async function runBorderoGoogleSync(trigger = 'manual') {
@@ -676,6 +992,147 @@ function choosePreferredSystemWebcam(deviceNames = []) {
     return physical || deviceNames[0] || '';
 }
 
+function isLikelyVirtualCameraName(name = '') {
+    return /(virtual|splitter|obs|xsplit|manycam|ndi)/i.test(String(name || ''));
+}
+
+function parseCameraCapabilitiesFromDshow(outputText = '') {
+    const lines = String(outputText || '').split(/\r?\n/);
+    const capabilities = [];
+
+    for (const line of lines) {
+        const match = line.match(/(?:pixel_format|vcodec)=([^\s]+).*?max s=(\d+)x(\d+) fps=([\d.]+)/i);
+        if (!match) {
+            continue;
+        }
+
+        const codec = sanitizeCsvValue(match[1]).toLowerCase();
+        const width = Number.parseInt(match[2], 10);
+        const height = Number.parseInt(match[3], 10);
+        const fps = Number.parseFloat(match[4]);
+        if (!Number.isFinite(width) || !Number.isFinite(height) || !Number.isFinite(fps)) {
+            continue;
+        }
+
+        capabilities.push({
+            codec,
+            width,
+            height,
+            fps
+        });
+    }
+
+    return capabilities;
+}
+
+function scoreCameraCapability(cap = {}) {
+    const width = Number(cap.width) || 0;
+    const height = Number(cap.height) || 0;
+    const fps = Number(cap.fps) || 0;
+    const codec = sanitizeCsvValue(cap.codec).toLowerCase();
+
+    const area = Math.max(0, width * height);
+    const fpsWeight = Math.max(0.15, Math.min(fps, 60) / 30);
+    const codecBonus = codec === 'mjpeg' ? 250000 : codec === 'h264' ? 200000 : codec === 'yuyv422' ? 100000 : 0;
+    return (area * fpsWeight) + codecBonus;
+}
+
+function chooseBestCameraCapability(capabilities = []) {
+    if (!Array.isArray(capabilities) || capabilities.length === 0) {
+        return null;
+    }
+
+    let best = capabilities[0];
+    let bestScore = scoreCameraCapability(best);
+    for (let i = 1; i < capabilities.length; i += 1) {
+        const candidate = capabilities[i];
+        const candidateScore = scoreCameraCapability(candidate);
+        if (candidateScore > bestScore) {
+            best = candidate;
+            bestScore = candidateScore;
+        }
+    }
+
+    return best;
+}
+
+function formatCapabilityFps(fps) {
+    const value = Number(fps);
+    if (!Number.isFinite(value) || value <= 0) {
+        return '';
+    }
+    if (Math.abs(value - Math.round(value)) < 0.001) {
+        return String(Math.round(value));
+    }
+    return String(value.toFixed(2)).replace(/\.00$/, '');
+}
+
+async function probeBestCapabilityForDevice(ffmpegPath = '', cameraName = '') {
+    const normalizedName = sanitizeCsvValue(cameraName);
+    if (!ffmpegPath || !normalizedName) {
+        return {
+            name: normalizedName,
+            capability: null,
+            error: 'Nome camera o FFmpeg non valido'
+        };
+    }
+
+    try {
+        const { stderr, stdout } = await execFileAsync(ffmpegPath, [
+            '-hide_banner',
+            '-f', 'dshow',
+            '-list_options', 'true',
+            '-i', `video=${normalizedName}`
+        ], { maxBuffer: 4 * 1024 * 1024 });
+
+        const capabilities = parseCameraCapabilitiesFromDshow(`${stderr || ''}\n${stdout || ''}`);
+        return {
+            name: normalizedName,
+            capability: chooseBestCameraCapability(capabilities),
+            error: ''
+        };
+    } catch (error) {
+        const stderr = String(error?.stderr || '');
+        const stdout = String(error?.stdout || '');
+        const capabilities = parseCameraCapabilitiesFromDshow(`${stderr}\n${stdout}`);
+        return {
+            name: normalizedName,
+            capability: chooseBestCameraCapability(capabilities),
+            error: error?.message || String(error)
+        };
+    }
+}
+
+function buildAutodetectedCameraProfile(cameraName = '', capability = null, options = {}) {
+    const normalizedName = sanitizeCsvValue(cameraName);
+    const cap = capability || {};
+    const codec = sanitizeCsvValue(cap.codec).toLowerCase() || 'mjpeg';
+    const width = Number(cap.width) || 1280;
+    const height = Number(cap.height) || 720;
+    const fps = formatCapabilityFps(cap.fps) || '30';
+    const size = `${width}x${height}`;
+    const nowIso = new Date().toISOString();
+
+    return {
+        name: normalizedName,
+        codec,
+        size,
+        fps,
+        label: sanitizeCsvValue(options.label) || `Sistema - ${normalizedName}`,
+        profileId: sanitizeCsvValue(options.profileId) || ensureProfileId(normalizedName),
+        isDefault: Boolean(options.isDefault),
+        isEnabled: Object.prototype.hasOwnProperty.call(options, 'isEnabled') ? Boolean(options.isEnabled) : true,
+        lastUsedAt: sanitizeCsvValue(options.lastUsedAt),
+        lastMode: sanitizeCsvValue(options.lastMode),
+        lastStatus: sanitizeCsvValue(options.lastStatus) || 'detected-capabilities',
+        usageCount: Number.isFinite(Number(options.usageCount)) ? Math.max(0, Number(options.usageCount)) : 0,
+        lastSize: size,
+        lastFps: fps,
+        lastCodec: codec,
+        notes: sanitizeCsvValue(options.notes) || `Profilo auto-aggiornato da FFmpeg (${nowIso})`
+    };
+}
+
 async function detectSystemWebcamFromFfmpeg() {
     const ffmpegPath = resolveFfmpegExecutable();
     if (!ffmpegPath) {
@@ -715,6 +1172,42 @@ async function detectSystemWebcamFromFfmpeg() {
     }
 }
 
+async function detectSystemWebcamsWithProfilesFromFfmpeg() {
+    const detection = await detectSystemWebcamFromFfmpeg();
+    const ffmpegPath = sanitizeCsvValue(detection.ffmpegPath);
+    const allCandidates = Array.isArray(detection.candidates) ? detection.candidates : [];
+    const physicalCandidates = allCandidates.filter((name) => !isLikelyVirtualCameraName(name));
+    const preferred = choosePreferredSystemWebcam(physicalCandidates.length ? physicalCandidates : allCandidates);
+
+    if (!ffmpegPath) {
+        return {
+            detectedName: preferred,
+            candidates: allCandidates,
+            physicalCandidates,
+            ffmpegPath: '',
+            probed: [],
+            error: detection.error || 'FFmpeg non trovato'
+        };
+    }
+
+    const probed = [];
+    for (const cameraName of physicalCandidates) {
+        // Sequential probing avoids overloading dshow on systems with multiple devices.
+        // eslint-disable-next-line no-await-in-loop
+        const probe = await probeBestCapabilityForDevice(ffmpegPath, cameraName);
+        probed.push(probe);
+    }
+
+    return {
+        detectedName: preferred,
+        candidates: allCandidates,
+        physicalCandidates,
+        ffmpegPath,
+        probed,
+        error: detection.error || ''
+    };
+}
+
 function writeUserformCameraProfilesCsv(rows = []) {
     const lines = [USERFORM_CAMERA_CSV_HEADER.join(',')];
 
@@ -749,59 +1242,135 @@ function writeUserformCameraProfilesCsv(rows = []) {
 }
 
 async function ensureSystemWebcamInUserformCsv() {
-    const detection = await detectSystemWebcamFromFfmpeg();
+    const detection = await detectSystemWebcamsWithProfilesFromFfmpeg();
     const detectedName = sanitizeCsvValue(detection.detectedName);
+    const physicalCandidates = Array.isArray(detection.physicalCandidates) ? detection.physicalCandidates : [];
 
-    if (!detectedName) {
+    if (!physicalCandidates.length) {
         return {
             added: false,
-            detectedName: '',
+            updated: false,
+            addedCount: 0,
+            updatedCount: 0,
+            detectedName,
             candidates: detection.candidates || [],
+            physicalCandidates,
+            profiled: [],
             error: detection.error || ''
         };
     }
 
-    const raw = fs.existsSync(USERFORM_CAMERA_CSV)
-        ? fs.readFileSync(USERFORM_CAMERA_CSV, 'utf8').replace(/^\uFEFF/, '')
-        : `${USERFORM_CAMERA_CSV_HEADER.join(',')}\n`;
+    const profiles = loadUserformCameraProfiles(true);
+    const hasDefault = profiles.some((item) => item.isDefault);
+    const preferredName = choosePreferredSystemWebcam(physicalCandidates);
 
-    const rows = parseCsv(raw, {
-        columns: true,
-        skip_empty_lines: true,
-        relax_column_count: true,
-        trim: true
-    });
+    let addedCount = 0;
+    let updatedCount = 0;
+    const profiled = [];
+    const comparisons = [];
 
-    const existingProfiles = rows
-        .map((row) => mapCsvRowToCameraProfile(row))
-        .filter(Boolean);
-    const alreadyPresent = existingProfiles.some((row) => row.name.toLowerCase() === detectedName.toLowerCase());
-    const hasDefault = existingProfiles.some((row) => row.isDefault);
-
-    if (!alreadyPresent) {
-        rows.push({
-            value: detectedName,
-            Codifica: 'yuyv422',
-            'dshow-size': '1280x720',
-            'dshow-fps': '30',
-            'ELENCO WEBCAM': 'Sistema - Webcam auto-rilevata',
-            'profile-id': ensureProfileId(detectedName),
-            'is-default': hasDefault ? '0' : '1',
-            'is-enabled': '1',
-            'last-status': 'detected',
-            'usage-count': '0',
-            'last-size': '1280x720',
-            'last-fps': '30',
-            'last-codec': 'yuyv422',
-            notes: 'Aggiunta automaticamente da rilevamento sistema'
+    for (const cameraName of physicalCandidates) {
+        const existingIndex = profiles.findIndex((item) => item.name.toLowerCase() === cameraName.toLowerCase());
+        const existing = existingIndex >= 0 ? profiles[existingIndex] : null;
+        const before = existing
+            ? {
+                codec: sanitizeCsvValue(existing.codec),
+                size: sanitizeCsvValue(existing.size),
+                fps: sanitizeCsvValue(existing.fps)
+            }
+            : { codec: '', size: '', fps: '' };
+        const probe = (detection.probed || []).find((item) => sanitizeCsvValue(item.name).toLowerCase() === cameraName.toLowerCase()) || null;
+        const autoProfile = buildAutodetectedCameraProfile(cameraName, probe?.capability, {
+            label: existing?.label || `Sistema - ${cameraName}`,
+            profileId: existing?.profileId,
+            isEnabled: existing ? existing.isEnabled !== false : true,
+            isDefault: existing ? existing.isDefault : (!hasDefault && cameraName === preferredName),
+            usageCount: existing?.usageCount || 0,
+            lastUsedAt: existing?.lastUsedAt || '',
+            lastMode: existing?.lastMode || '',
+            lastStatus: 'detected-capabilities',
+            notes: existing?.notes || ''
         });
-        writeUserformCameraProfilesCsv(rows);
+
+        if (existing) {
+            const changed = existing.codec !== autoProfile.codec
+                || existing.size !== autoProfile.size
+                || existing.fps !== autoProfile.fps
+                || existing.lastCodec !== autoProfile.lastCodec
+                || existing.lastSize !== autoProfile.lastSize
+                || existing.lastFps !== autoProfile.lastFps
+                || existing.lastStatus !== autoProfile.lastStatus;
+            profiles[existingIndex] = {
+                ...existing,
+                ...autoProfile,
+                isDefault: existing.isDefault,
+                usageCount: existing.usageCount
+            };
+            if (changed) {
+                updatedCount += 1;
+            }
+
+            comparisons.push({
+                name: cameraName,
+                before,
+                recommended: {
+                    codec: autoProfile.codec,
+                    size: autoProfile.size,
+                    fps: autoProfile.fps
+                },
+                after: {
+                    codec: profiles[existingIndex].codec,
+                    size: profiles[existingIndex].size,
+                    fps: profiles[existingIndex].fps
+                },
+                changed,
+                added: false,
+                probeError: probe?.error || ''
+            });
+        } else {
+            profiles.push(autoProfile);
+            addedCount += 1;
+
+            comparisons.push({
+                name: cameraName,
+                before,
+                recommended: {
+                    codec: autoProfile.codec,
+                    size: autoProfile.size,
+                    fps: autoProfile.fps
+                },
+                after: {
+                    codec: autoProfile.codec,
+                    size: autoProfile.size,
+                    fps: autoProfile.fps
+                },
+                changed: true,
+                added: true,
+                probeError: probe?.error || ''
+            });
+        }
+
+        profiled.push({
+            name: cameraName,
+            codec: autoProfile.codec,
+            size: autoProfile.size,
+            fps: autoProfile.fps,
+            probeError: probe?.error || ''
+        });
     }
 
+    saveUserformCameraProfiles(profiles);
+
     return {
-        added: !alreadyPresent,
+        added: addedCount > 0,
+        updated: updatedCount > 0,
+        addedCount,
+        updatedCount,
         detectedName,
         candidates: detection.candidates || [],
+        physicalCandidates,
+        profiled,
+        comparisons,
         error: detection.error || ''
     };
 }
@@ -2068,6 +2637,166 @@ function syncBraniOnStartup() {
 // ===== MIDDLEWARE =====
 app.use(express.json());
 
+// VirtualDJ proxy must be available before any generic routing/404 handling.
+app.get('/api/vdj/proxy', async (req, res) => {
+    try {
+        const baseUrl = String(req.query.baseUrl || 'http://localhost:8080').trim();
+        const endpoint = String(req.query.endpoint || '/query').trim();
+        const script = req.query.script !== undefined
+            ? String(req.query.script).trim()
+            : undefined;
+        const timeoutMs = Number(req.query.timeoutMs || 4000);
+        const baseUrlsParam = req.query.baseUrls || req.query.baseUrlList || '';
+        const baseUrls = String(baseUrlsParam || '')
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+        const result = await forwardVdjRequest({
+            baseUrl,
+            baseUrls,
+            endpoint,
+            script,
+            timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : 4000
+        });
+        res.status(result.statusCode >= 400 ? result.statusCode : 200).type('text/plain').send(result.body);
+    } catch (error) {
+        console.error('Errore proxy VirtualDJ:', error);
+        res.status(502).type('text/plain').send(error.message || 'Proxy VirtualDJ fallito');
+    }
+});
+
+app.get('/api/vdj/test', async (req, res) => {
+    try {
+        const result = await forwardVdjRequest({
+            baseUrl: 'http://127.0.0.1:8080',
+            endpoint: '/query',
+            script: 'get_clock',
+            timeoutMs: 4000
+        });
+        res.status(result.statusCode >= 400 ? result.statusCode : 200).type('text/plain').send(result.body);
+    } catch (error) {
+        res.status(502).type('text/plain').send(error.message || 'Test VirtualDJ fallito');
+    }
+});
+
+app.get('/api/music-archive/config', (req, res) => {
+    try {
+        const config = readMusicArchiveConfig();
+        const normalized = normalizeMusicArchivePath(config.rootPath || '');
+        const exists = normalized ? (fs.existsSync(normalized) && fs.statSync(normalized).isDirectory()) : false;
+        return res.json({
+            ok: true,
+            rootPath: normalized,
+            exists,
+            updatedAt: config.updatedAt || null
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/music-archive/config', (req, res) => {
+    try {
+        const rootPath = normalizeMusicArchivePath(req.body?.rootPath || '');
+        if (!rootPath) {
+            return res.status(400).json({ ok: false, error: 'Percorso cartella mancante' });
+        }
+
+        if (!fs.existsSync(rootPath) || !fs.statSync(rootPath).isDirectory()) {
+            return res.status(400).json({ ok: false, error: 'La cartella indicata non esiste o non e valida' });
+        }
+
+        const saved = writeMusicArchiveConfig(rootPath);
+        refreshMusicArchiveIndex(true);
+        return res.json({ ok: true, rootPath: saved.rootPath, updatedAt: saved.updatedAt });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/music-archive/directories', (req, res) => {
+    try {
+        const targetPath = String(req.query.path || '').trim();
+        const payload = listMusicArchiveDirectories(targetPath);
+        return res.json({ ok: true, ...payload });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/music-archive/status', (req, res) => {
+    try {
+        const force = String(req.query.refresh || '').toLowerCase() === '1';
+        const index = refreshMusicArchiveIndex(force);
+        return res.json({
+            ok: true,
+            rootPath: index.rootPath,
+            exists: index.exists,
+            fileCount: Array.isArray(index.files) ? index.files.length : 0,
+            scannedAt: index.scannedAt || 0,
+            csvPath: index.csvPath || MUSIC_ARCHIVE_INDEX_CSV_FILE,
+            csvCount: index.csvCount ?? (Array.isArray(index.files) ? index.files.length : 0),
+            csvUpdatedAt: index.csvUpdatedAt || null,
+            files: Array.isArray(index.files) ? index.files : [],
+            sample: (index.files || []).slice(0, 5).map((item) => item.relativePath)
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/music-archive/match', (req, res) => {
+    try {
+        const brano = req.body?.brano || req.body || {};
+        const forceRefresh = Boolean(req.body?.refresh);
+        const index = refreshMusicArchiveIndex(forceRefresh);
+
+        if (!index.rootPath) {
+            return res.status(400).json({ ok: false, error: 'Archivio brani non configurato' });
+        }
+
+        if (!index.exists) {
+            return res.status(400).json({ ok: false, error: 'Cartella archivio non raggiungibile' });
+        }
+
+        const profile = getBranoMatchProfile(brano);
+        const result = resolveMusicArchiveMatch(profile, (index.files || []).map((candidate) => ({
+            ...candidate,
+            baseName: candidate.baseName,
+            normalizedName: candidate.normalizedName,
+            tokens: candidate.tokens
+        })), { minScore: 160, ambiguityGap: 70 });
+
+        const candidates = (result.candidates || []).map((entry) => ({
+            fullPath: entry.fullPath,
+            relativePath: entry.relativePath,
+            fileName: entry.fileName,
+            score: entry.score
+        }));
+
+        if (result.status === 'not_found') {
+            return res.json({ ok: true, status: 'not_found', candidates: [] });
+        }
+
+        if (result.status === 'ambiguous') {
+            return res.json({
+                ok: true,
+                status: 'ambiguous',
+                candidates
+            });
+        }
+
+        return res.json({
+            ok: true,
+            status: 'exact',
+            match: candidates[0] || null,
+            candidates
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
 // CORS header per permettere connessioni da qualsiasi origin
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -2405,6 +3134,51 @@ app.get('/api/userform/pagina05/cameras', async (req, res) => {
     }
 });
 
+app.get('/api/userform/pagina05/cameras/probe', async (req, res) => {
+    try {
+        const systemCamera = await ensureSystemWebcamInUserformCsv();
+        const cameras = loadUserformCameraProfiles(true);
+        const physical = cameras.filter((item) => !isLikelyVirtualCameraName(item.name));
+
+        return res.json({
+            ok: true,
+            source: USERFORM_CAMERA_CSV,
+            count: cameras.length,
+            physicalCount: physical.length,
+            systemCamera,
+            comparisons: Array.isArray(systemCamera?.comparisons) ? systemCamera.comparisons : [],
+            cameras,
+            physical
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error), cameras: [] });
+    }
+});
+
+const handleCamerasReconcile = async (_req, res) => {
+    try {
+        const systemCamera = await ensureSystemWebcamInUserformCsv();
+        const cameras = loadUserformCameraProfiles(true);
+        const physical = cameras.filter((item) => !isLikelyVirtualCameraName(item.name));
+
+        return res.json({
+            ok: true,
+            source: USERFORM_CAMERA_CSV,
+            count: cameras.length,
+            physicalCount: physical.length,
+            systemCamera,
+            comparisons: Array.isArray(systemCamera?.comparisons) ? systemCamera.comparisons : [],
+            cameras,
+            physical
+        });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error), cameras: [] });
+    }
+};
+
+app.post('/api/userform/pagina05/cameras/reconcile', handleCamerasReconcile);
+app.get('/api/userform/pagina05/cameras/reconcile', handleCamerasReconcile);
+
 app.post('/api/userform/pagina05/cameras/profile/save', (req, res) => {
     try {
         const cameraName = sanitizeCsvValue(req.body?.cameraName);
@@ -2689,6 +3463,32 @@ app.get('/api/userform/pagina05/electron/player/state', async (_req, res) => {
     try {
         const result = await callElectronControl('/video-player/state');
         return res.json({ ok: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/userform/pagina05/electron/page-policy', async (_req, res) => {
+    try {
+        const result = await callElectronControl('/page-policy');
+        return res.json({ ok: true, policy: Array.isArray(result.policy) ? result.policy : [] });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/electron/page-policy', async (req, res) => {
+    try {
+        const pagePath = sanitizeCsvValue(req.body?.path);
+        const primary = req.body?.primary !== undefined ? Boolean(req.body.primary) : undefined;
+        const secondary = req.body?.secondary !== undefined ? Boolean(req.body.secondary) : undefined;
+
+        if (!pagePath) {
+            return res.status(400).json({ ok: false, error: 'path obbligatorio' });
+        }
+
+        const result = await callElectronControl('/page-policy', { path: pagePath, primary, secondary });
+        return res.json({ ok: true, policy: result.policy });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
@@ -3864,7 +4664,7 @@ router.delete('/dj/:id', (req, res) => {
 });
 
 // Salva la lista DJ nel file CSV di sorgente Borderò
-router.post('/bordero/dj-source', (req, res) => {
+function handleBorderoDjSourceSave(req, res) {
     try {
         const isLegacyDBaseNoise = (value) => {
             const text = String(value || '').trim();
@@ -3903,7 +4703,10 @@ router.post('/bordero/dj-source', (req, res) => {
     } catch (e) {
         res.status(500).json({ error: 'Errore salvataggio sorgente DJ: ' + e.message });
     }
-});
+}
+
+router.post('/bordero/dj-source', handleBorderoDjSourceSave);
+app.post('/api/bordero/dj-source', handleBorderoDjSourceSave);
 
 // ============================
 //    GET: LIMITI PRENOTAZIONI DJ
@@ -4024,6 +4827,7 @@ app.use('/eventi/api', router);
 initializeEventiFiles();
 loadOpenedViewersFromFile();
 syncBraniOnStartupV2();
+refreshMusicArchiveIndex(true);
 startBorderoGoogleSyncScheduler();
 
 // ===== AVVIO SERVER =====
@@ -4053,6 +4857,18 @@ function startServer(port, maxRetries = 5) {
             console.log(`   📄 PDF API: http://localhost:${port}/api/pdf-list`);
             console.log(`   🎵 Eventi:  http://localhost:${port}/eventi/eventi.html`);
             console.log('='.repeat(80) + '\n');
+
+            ensureSystemWebcamInUserformCsv()
+                .then((result) => {
+                    const added = Number(result?.addedCount || 0);
+                    const updated = Number(result?.updatedCount || 0);
+                    const devices = Array.isArray(result?.physicalCandidates) ? result.physicalCandidates.length : 0;
+                    console.log(`[WEBCAM] Profilazione avvio completata: ${devices} webcam fisiche, +${added} nuove, ${updated} aggiornate.`);
+                })
+                .catch((error) => {
+                    console.warn(`[WEBCAM] Profilazione avvio fallita: ${error?.message || error}`);
+                });
+
             PORT = port;
             resolve(server);
         });

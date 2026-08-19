@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -6,31 +7,62 @@
     <title>Test VirtualDJ</title>
 
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background: #1e1e1e;
             color: white;
-            padding: 30px;
+            padding: 16px;
+            box-sizing: border-box;
         }
 
         h1 {
-            margin-bottom: 30px;
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 12px;
+            height: calc(100vh - 32px);
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .box {
             background: #2b2b2b;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 14px;
             border-radius: 10px;
+            box-sizing: border-box;
+        }
+
+        .box h2 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+        }
+
+        .box h3 {
+            margin: 8px 0 6px 0;
+            font-size: 14px;
         }
 
         button {
-            padding: 12px 20px;
-            margin: 5px;
+            padding: 8px 12px;
+            margin: 4px 4px 0 0;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .deck1 {
@@ -50,94 +82,263 @@
 
         #log {
             background: #111;
-            padding: 15px;
+            padding: 12px;
             border-radius: 6px;
-            min-height: 100px;
+            min-height: 0;
+            flex: 1;
+            overflow: auto;
             white-space: pre-wrap;
             font-family: Consolas, monospace;
+            line-height: 1.35;
+            font-size: 13px;
+        }
+
+        .status-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: #333;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .pill.ok {
+            background: #2e7d32;
+        }
+
+        .pill.warn {
+            background: #ef6c00;
+        }
+
+        .pill.err {
+            background: #c62828;
+        }
+
+        .pill::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.85;
+        }
+
+        .archive-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .archive-search {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #666;
+            border-radius: 6px;
+            background: #111;
+            color: white;
+            font-size: 13px;
+        }
+
+        .archive-counter-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .archive-counter {
+            color: #bcdcff;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .archive-counter.muted {
+            color: #9eb8cc;
+        }
+
+        .archive-list {
+            max-height: 220px;
+            overflow: auto;
+            background: #171717;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .archive-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: #2a2a2a;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .archive-item:hover {
+            background: #333;
+        }
+
+        .archive-item.is-active {
+            background: #295a8a;
+            border: 1px solid #5da9ff;
+        }
+
+        .archive-item .archive-path {
+            color: #9ed0ff;
+            font-size: 11px;
+            word-break: break-all;
+        }
+
+        .archive-item .archive-meta {
+            flex-shrink: 0;
+            color: #9ed0ff;
+            font-size: 11px;
+            border: 1px solid #4b8fc9;
+            border-radius: 999px;
+            padding: 3px 7px;
+            background: rgba(77, 143, 201, 0.16);
+        }
+
+        .archive-empty {
+            color: #aaa;
+            font-size: 13px;
+            padding: 10px 0;
+        }
+
+        .nav-breadcrumb {
+            background-color: #222;
+            padding: 4px 12px;
+            margin-bottom: 12px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: #aaa;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0;
+        }
+
+        .nav-breadcrumb a {
+            color: #ff7f00;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-breadcrumb a:hover {
+            color: #ff9933;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-sep {
+            color: #666;
+            margin: 0 10px;
+        }
+
+        .breadcrumb-current {
+            color: #ccc;
         }
     </style>
 </head>
 
 <body>
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagine Bordero">
+        <a href="../Bordero/index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="../Bordero/pages/bordero.html">Bordero</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="../Bordero/pages/next-coreo.html">NextCoreo</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Test VirtualDJ</span>
+    </nav>
 
-    <h1>🎧 Test collegamento VirtualDJ</h1>
+    <h1 style="margin:0 0 10px 0; font-size:22px;">🎧 Test collegamento VirtualDJ</h1>
 
-    <div class="box">
+    <div class="page">
+        <div class="column">
+            <div class="box">
+                <h2>Comunicazione</h2>
+                <label>URL VirtualDJ:</label>
+                <br><br>
+                <input
+                    type="text"
+                    id="vdjUrl"
+                    style="width: 100%; padding: 8px; box-sizing: border-box;"
+                    value="http://127.0.0.1:8080"
+                    placeholder="http://127.0.0.1:8080"
+                >
+                <br><br>
+                <button class="test" onclick="testConnessione()">VERIFICA CONNESSIONE</button>
+                <button onclick="leggiOrologio()">TEST VIRTUALDJ</button>
+                <button onclick="leggiDeck(1)">LEGGI DECK 1</button>
+                <button onclick="leggiDeck(2)">LEGGI DECK 2</button>
+            </div>
 
-        <h2>Comunicazione</h2>
+            <div class="box">
+                <h2>Caricamento brano</h2>
+                <label>Percorso completo del file audio:</label>
+                <br><br>
+                <input
+                    type="text"
+                    id="percorso"
+                    style="width: 100%; padding: 8px; box-sizing: border-box;"
+                    value="C:\Users\Luca\Music\MUSICA DJ MONSTER LUCAS BERRY\1BASE\(16 STEPS-ELECTRIC STOMP-WESTERN STYLE) - Louisiana.mp3"
+                    placeholder="Inserisci il percorso completo del file audio"
+                >
+            </div>
 
-        <label>
-            URL VirtualDJ:
-        </label>
-
-        <br><br>
-
-        <input
-            type="text"
-            id="vdjUrl"
-            style="width: 80%; padding: 10px;"
-            value="http://localhost:8080"
-            placeholder="http://localhost:8080"
-        >
-
-        <br><br>
-
-        <button class="test" onclick="testConnessione()">
-            VERIFICA CONNESSIONE
-        </button>
-
-        <button onclick="leggiOrologio()">
-            TEST VIRTUALDJ
-        </button>
-
-        <button onclick="leggiDeck(1)">
-            LEGGI DECK 1
-        </button>
-
-        <button onclick="leggiDeck(2)">
-            LEGGI DECK 2
-        </button>
-
-    </div>
-
-    <div class="box">
-
-        <h2>Caricamento brano</h2>
-
-        <label>
-            Percorso completo del file MP3:
-        </label>
-
-        <br><br>
-
-        <input
-            type="text"
-            id="percorso"
-            style="width: 80%; padding: 10px;"
-            placeholder="C:\Musica\Country\brano.mp3"
-        >
-
-        <br><br>
-
-        <button class="deck1" onclick="caricaBrano(1)">
-            CARICA SU DECK 1
-        </button>
-
-        <button class="deck2" onclick="caricaBrano(2)">
-            CARICA SU DECK 2
-        </button>
-
-    </div>
-
-    <div class="box">
-
-        <h2>Risultato</h2>
-
-        <div id="log">
-            In attesa...
+            <div class="box">
+                <h2>Seleziona brano dall'archivio</h2>
+                <label>Elenco completo dei brani audio trovati nella cartella archivio configurata e in tutte le sottocartelle:</label>
+                <div class="archive-controls">
+                    <input id="archive-search" class="archive-search" type="text" placeholder="Cerca nome o percorso..." />
+                    <div class="archive-counter-group">
+                        <div id="archive-counter" class="archive-counter">0/0 brani audio</div>
+                        <div id="archive-selection-counter" class="archive-counter muted">Nessun brano selezionato</div>
+                    </div>
+                </div>
+                <div id="archive-list" class="archive-list">
+                    <div class="archive-empty">Caricamento in corso...</div>
+                </div>
+                <br>
+                <button class="test" onclick="caricaBranoSelezionato(1)">CARICA SU DECK 1 DALLE SCELTE</button>
+                <button class="deck2" onclick="caricaBranoSelezionato(2)">CARICA SU DECK 2 DALLE SCELTE</button>
+            </div>
         </div>
 
+        <div class="column">
+            <div class="box">
+                <h2>Stato collegamento</h2>
+                <div class="status-row">
+                    <div id="statusProxy" class="pill warn">Proxy locale: non verificato</div>
+                    <div id="statusVdj" class="pill warn">VirtualDJ: non verificato</div>
+                </div>
+                <button class="test" onclick="verificaTutto()">VERIFICA TUTTO</button>
+                <button onclick="verificaProxyLocale()">TEST PROXY LOCALE</button>
+                <button onclick="verificaVirtualDjDiretto()">TEST VDJ DIRETTO</button>
+                <button onclick="console.log('Origin:', getAppOrigin()); log.innerHTML += '\nOrigin: ' + getAppOrigin();">MOSTRA ORIGIN</button>
+                <h3>Risultato</h3>
+                <div id="log">In attesa...</div>
+            </div>
+        </div>
     </div>
 
 
@@ -148,12 +349,137 @@
     // ============================================================
 
     const DEFAULT_VDJ_URLS = [
-        "http://localhost:8080",
         "http://127.0.0.1:8080",
-        "https://localhost:8080",
-        "https://127.0.0.1:8080"
+        "http://localhost:8080",
+        "https://127.0.0.1:8080",
+        "https://localhost:8080"
     ];
 
+    const DEFAULT_SERVER_ORIGINS = [
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://localhost:5501",
+        "http://127.0.0.1:5501"
+    ];
+
+    let cachedServerOrigin = '';
+
+    function getServerOriginCandidates() {
+        const currentOrigin = String(window.location?.origin || '').replace(/\/+$/, '');
+        const candidates = [];
+
+        const add = (origin) => {
+            const value = String(origin || '').trim().replace(/\/+$/, '');
+            if (!value || value === 'null' || value === 'file://') return;
+            if (!candidates.includes(value)) {
+                candidates.push(value);
+            }
+        };
+
+        if (currentOrigin) {
+            add(currentOrigin);
+
+            try {
+                const current = new URL(currentOrigin);
+                const port = current.port || (current.protocol === 'https:' ? '443' : '80');
+                const swappedHost = current.hostname === '127.0.0.1'
+                    ? 'localhost'
+                    : (current.hostname === 'localhost' ? '127.0.0.1' : '');
+                if (swappedHost) {
+                    add(`${current.protocol}//${swappedHost}:${port}`);
+                }
+            } catch (_) {
+                // ignore invalid origin
+            }
+        }
+
+        DEFAULT_SERVER_ORIGINS.forEach(add);
+        return candidates;
+    }
+
+    async function fetchFromServerOrigins(pathname, searchParams = {}, fetchOptions = {}) {
+        const queryEntries = Object.entries(searchParams || {});
+        const knownOrigins = [];
+
+        if (cachedServerOrigin) {
+            knownOrigins.push(cachedServerOrigin);
+        }
+
+        getServerOriginCandidates().forEach((origin) => {
+            if (!knownOrigins.includes(origin)) {
+                knownOrigins.push(origin);
+            }
+        });
+
+        let lastError = null;
+
+        for (const origin of knownOrigins) {
+            try {
+                const url = new URL(pathname, origin);
+                queryEntries.forEach(([key, value]) => {
+                    if (value !== undefined && value !== null) {
+                        url.searchParams.set(key, String(value));
+                    }
+                });
+
+                const response = await fetch(url.toString(), fetchOptions);
+                if (response.status === 404 || response.status === 405) {
+                    lastError = new Error(`HTTP ${response.status} su ${origin}`);
+                    continue;
+                }
+
+                cachedServerOrigin = origin;
+                return { response, origin, url: url.toString() };
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        throw lastError || new Error('Nessun server locale raggiungibile');
+    }
+
+    function getAppOrigin() {
+        if (cachedServerOrigin) {
+            return cachedServerOrigin;
+        }
+
+        const currentOrigin = window.location?.origin;
+        if (currentOrigin && currentOrigin !== 'null' && currentOrigin !== 'file://') {
+            const normalizedOrigin = String(currentOrigin).replace(/\/+$/, '');
+            const preferred = [
+                normalizedOrigin,
+                'http://localhost:5500',
+                'http://127.0.0.1:5500',
+                'http://127.0.0.1:8000',
+                'http://localhost:8000',
+                'http://localhost:5501',
+                'http://127.0.0.1:5501'
+            ].find((origin) => origin && origin !== 'null' && origin !== 'file://');
+            if (preferred) {
+                return preferred;
+            }
+        }
+
+        return DEFAULT_SERVER_ORIGINS.find((origin) => origin) || 'http://127.0.0.1:5500';
+    }
+
+    function getVirtualDjCandidateBases(baseUrl) {
+        const explicitBase = String(baseUrl || '').trim();
+        const candidates = [];
+        if (explicitBase) {
+            candidates.push(explicitBase.replace(/\/+$/, ''));
+        }
+
+        DEFAULT_VDJ_URLS.forEach((candidate) => {
+            if (!candidates.includes(candidate)) {
+                candidates.push(candidate);
+            }
+        });
+
+        return candidates;
+    }
 
     function leggiVdjUrl() {
 
@@ -167,13 +493,38 @@
     }
 
 
-    function costruisciUrl(endpoint) {
+    function costruisciUrl(endpoint, script) {
 
         const base = leggiVdjUrl();
+        const candidateBases = getVirtualDjCandidateBases(base);
 
-        return base + endpoint;
+        const url = new URL('/api/vdj/proxy', getAppOrigin());
+        url.searchParams.set('baseUrl', base);
+        url.searchParams.set('appOrigin', getAppOrigin());
+        url.searchParams.set('baseUrls', candidateBases.join(','));
+        url.searchParams.set('endpoint', endpoint);
+        if (script !== undefined && script !== null) {
+            url.searchParams.set('script', script);
+        }
+
+        return url.toString();
     }
 
+    function impostaStato(id, stato, testo) {
+        const elemento = document.getElementById(id);
+        if (!elemento) return;
+
+        elemento.className = 'pill';
+        if (stato === 'ok') {
+            elemento.classList.add('ok');
+        } else if (stato === 'err') {
+            elemento.classList.add('err');
+        } else {
+            elemento.classList.add('warn');
+        }
+
+        elemento.textContent = testo;
+    }
 
     function erroreConnessione(errore, dettagli) {
 
@@ -200,11 +551,8 @@
 
         try {
 
-            const url =
-                costruisciUrl(
-                    "/execute?script=" +
-                    encodeURIComponent(script)
-                );
+            const base = leggiVdjUrl();
+            const candidateBases = getVirtualDjCandidateBases(base);
 
             scriviLog(
                 "Invio comando:\n" +
@@ -212,12 +560,18 @@
                 "\n\nAttendere..."
             );
 
-            const response = await fetch(url);
+            const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                baseUrl: base,
+                appOrigin: getAppOrigin(),
+                baseUrls: candidateBases.join(','),
+                endpoint: '/execute',
+                script
+            });
 
             if (!response.ok) {
 
                 throw new Error(
-                    "HTTP " + response.status
+                    "HTTP " + response.status + " (server " + origin + ")"
                 );
 
             }
@@ -251,18 +605,20 @@
 
         try {
 
-            const url =
-                costruisciUrl(
-                    "/query?script=" +
-                    encodeURIComponent(script)
-                );
-
-            const response = await fetch(url);
+            const base = leggiVdjUrl();
+            const candidateBases = getVirtualDjCandidateBases(base);
+            const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                baseUrl: base,
+                appOrigin: getAppOrigin(),
+                baseUrls: candidateBases.join(','),
+                endpoint: '/query',
+                script
+            });
 
             if (!response.ok) {
 
                 throw new Error(
-                    "HTTP " + response.status
+                    "HTTP " + response.status + " (server " + origin + ")"
                 );
 
             }
@@ -319,6 +675,252 @@
 
     }
 
+    async function verificaProxyLocale() {
+        try {
+            impostaStato('statusProxy', 'warn', 'Proxy locale: verifica in corso...');
+            const base = leggiVdjUrl();
+            const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                baseUrl: base,
+                baseUrls: getVirtualDjCandidateBases(base).join(','),
+                endpoint: '/query',
+                script: 'get_clock'
+            });
+            const testo = await response.text();
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ' - ' + testo);
+            }
+
+            impostaStato('statusProxy', 'ok', 'Proxy locale: OK');
+            scriviLog('Proxy locale OK (' + origin + ').\n\nRisposta:\n' + testo);
+        } catch (errore) {
+            impostaStato('statusProxy', 'err', 'Proxy locale: errore');
+            scriviLog('Errore proxy locale:\n' + (errore?.message || errore));
+        }
+    }
+
+    async function verificaVirtualDjDiretto() {
+        try {
+            impostaStato('statusVdj', 'warn', 'VirtualDJ: verifica in corso...');
+            const base = leggiVdjUrl();
+            const candidates = getVirtualDjCandidateBases(base);
+            let lastError = null;
+            let corsBlocked = false;
+
+            for (const candidate of candidates) {
+                try {
+                    const url = new URL('/query', candidate);
+                    url.searchParams.set('script', 'get_clock');
+                    const response = await fetch(url.toString());
+                    const testo = await response.text();
+
+                    if (!response.ok) {
+                        lastError = new Error('HTTP ' + response.status + ' - ' + testo);
+                        continue;
+                    }
+
+                    impostaStato('statusVdj', 'ok', 'VirtualDJ: OK');
+                    scriviLog('VirtualDJ diretto OK.\n\nRisposta:\n' + testo);
+                    return;
+                } catch (errore) {
+                    const message = String(errore?.message || errore || '').toLowerCase();
+                    if (message.includes('failed to fetch') || message.includes('cors')) {
+                        corsBlocked = true;
+                    }
+                    lastError = errore;
+                }
+            }
+
+            if (corsBlocked) {
+                const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
+                    baseUrl: base,
+                    baseUrls: candidates.join(','),
+                    endpoint: '/query',
+                    script: 'get_clock'
+                });
+                const testo = await response.text();
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ' - ' + testo);
+                }
+
+                impostaStato('statusVdj', 'ok', 'VirtualDJ: OK (via proxy)');
+                scriviLog('Test diretto browser bloccato da CORS.\nProxy locale funzionante (' + origin + ').\n\nRisposta:\n' + testo);
+                return;
+            }
+
+            throw lastError || new Error('Nessun indirizzo VirtualDJ ha risposto');
+        } catch (errore) {
+            impostaStato('statusVdj', 'err', 'VirtualDJ: errore');
+            scriviLog('Errore contatto diretto con VirtualDJ:\n' + (errore?.message || errore));
+        }
+    }
+
+    async function verificaTutto() {
+        scriviLog('Esecuzione verifica completa...');
+        await verificaProxyLocale();
+        await verificaVirtualDjDiretto();
+        await testConnessione();
+    }
+
+    let archiveFiles = [];
+    let archiveSelectedPath = '';
+
+    function normalizzaTestoRicerca(value = '') {
+        let text = String(value || '').trim().toLowerCase();
+        if (!text) return '';
+
+        try {
+            text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+        } catch (_) {
+            text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        return text.replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    function corrispondeACriterioRicerca(file, query = '') {
+        const normalizedQuery = normalizzaTestoRicerca(query);
+        if (!normalizedQuery) return true;
+
+        const tokens = normalizedQuery.split(' ').filter(Boolean);
+        const searchableSegments = [
+            file?.fileName || '',
+            file?.baseName || '',
+            file?.relativePath || '',
+            file?.fullPath || '',
+            ...(String(file?.relativePath || '').split(/[\\/]+/).filter(Boolean))
+        ];
+
+        const normalizedText = searchableSegments
+            .map((segment) => normalizzaTestoRicerca(segment))
+            .filter(Boolean)
+            .join(' ');
+
+        return tokens.every((token) => normalizedText.includes(token));
+    }
+
+    function aggiornaContatoriArchivio(filteredFiles = []) {
+        const counter = document.getElementById('archive-counter');
+        const selectionCounter = document.getElementById('archive-selection-counter');
+        if (!counter) return;
+
+        const totalFiles = archiveFiles.length;
+        const visibleFiles = Array.isArray(filteredFiles) ? filteredFiles.length : totalFiles;
+        const selectedCount = archiveSelectedPath ? 1 : 0;
+
+        counter.textContent = `${visibleFiles}/${totalFiles} brani audio`;
+        if (selectionCounter) {
+            selectionCounter.textContent = selectedCount > 0
+                ? `${selectedCount} brano selezionato`
+                : 'Nessun brano selezionato';
+        }
+    }
+
+    function aggiornaListaArchivio() {
+        const container = document.getElementById('archive-list');
+        const searchInput = document.getElementById('archive-search');
+        if (!container) return;
+
+        const query = (searchInput?.value || '').trim();
+        const filteredFiles = archiveFiles.filter((file) => corrispondeACriterioRicerca(file, query));
+
+        aggiornaContatoriArchivio(filteredFiles);
+
+        if (filteredFiles.length === 0) {
+            container.innerHTML = '<div class="archive-empty">Nessun risultato corrisponde alla ricerca.</div>';
+            return;
+        }
+
+        container.innerHTML = filteredFiles.map((file) => {
+            const fullPath = file.fullPath || '';
+            const fileName = file.fileName || file.relativePath || '';
+            const relativePath = file.relativePath || '';
+            const extension = (fileName.split('.').pop() || '').toUpperCase();
+            const badge = extension ? extension : 'AUDIO';
+            return `
+                <div class="archive-item${archiveSelectedPath && archiveSelectedPath === fullPath ? ' is-active' : ''}" data-path="${fullPath}">
+                    <div style="min-width: 0;">
+                        <div>${fileName}</div>
+                        <div class="archive-path">${relativePath}</div>
+                    </div>
+                    <div class="archive-meta">${badge}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.archive-item').forEach((item) => {
+            item.addEventListener('click', () => {
+                const path = item.getAttribute('data-path');
+                if (path) {
+                    archiveSelectedPath = path;
+                    document.getElementById('percorso').value = path;
+                    aggiornaListaArchivio();
+                }
+            });
+        });
+    }
+
+    async function aggiornaPlaceholderDaArchivio() {
+        try {
+            const { response } = await fetchFromServerOrigins('/api/music-archive/config', {}, { cache: 'no-store' });
+            const risultato = await response.json();
+            const inputPercorso = document.getElementById('percorso');
+            if (!inputPercorso) return;
+
+            const rootPath = risultato?.rootPath || '';
+            if (rootPath) {
+                inputPercorso.placeholder = `Cartella archivio: ${rootPath}`;
+            } else {
+                inputPercorso.placeholder = 'Inserisci il percorso completo del file audio';
+            }
+        } catch (_) {
+            const inputPercorso = document.getElementById('percorso');
+            if (inputPercorso) {
+                inputPercorso.placeholder = 'Inserisci il percorso completo del file audio';
+            }
+        }
+    }
+
+    async function caricaArchivioBrani() {
+        try {
+            const { response } = await fetchFromServerOrigins('/api/music-archive/status', { refresh: 1 }, { cache: 'no-store' });
+            const risultato = await response.json();
+            const container = document.getElementById('archive-list');
+            if (!container) return;
+
+            if (!response.ok || !risultato?.ok) {
+                container.innerHTML = '<div class="archive-empty">Errore nel caricamento dell\'archivio audio.</div>';
+                return;
+            }
+
+            archiveFiles = Array.isArray(risultato?.files) ? risultato.files : [];
+            archiveFiles.sort((a, b) => (a?.relativePath || '').localeCompare(b?.relativePath || '', 'it'));
+            archiveSelectedPath = '';
+            if (archiveFiles.length === 0) {
+                container.innerHTML = '<div class="archive-empty">Nessun file audio supportato trovato nella cartella configurata.</div>';
+                aggiornaContatoriArchivio([]);
+                return;
+            }
+
+            aggiornaListaArchivio();
+        } catch (errore) {
+            const container = document.getElementById('archive-list');
+            if (container) {
+                container.innerHTML = '<div class="archive-empty">Errore nel caricamento dell\'archivio audio.</div>';
+            }
+        }
+    }
+
+    async function caricaBranoSelezionato(deck) {
+        const percorsoSelezionato = document.getElementById('percorso').value.trim();
+        if (!percorsoSelezionato) {
+            alert('Seleziona prima un brano dall\'archivio.');
+            return;
+        }
+
+        await caricaBrano(deck, percorsoSelezionato);
+    }
+
 
     // ============================================================
     // LEGGI TITOLO DEL DECK
@@ -337,16 +939,16 @@
     // CARICA UN BRANO
     // ============================================================
 
-    async function caricaBrano(deck) {
+    async function caricaBrano(deck, percorsoOverride) {
 
         const percorso =
-            document.getElementById("percorso").value.trim();
+            (percorsoOverride || document.getElementById("percorso").value.trim());
 
 
         if (percorso === "") {
 
             alert(
-                "Inserisci prima il percorso completo del file MP3."
+                "Inserisci prima il percorso completo del file audio."
             );
 
             return;
@@ -377,6 +979,16 @@
         document.getElementById("log").textContent = testo;
 
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('archive-search');
+        searchInput?.addEventListener('input', () => {
+            archiveSelectedPath = '';
+            aggiornaListaArchivio();
+        });
+        aggiornaPlaceholderDaArchivio();
+        caricaArchivioBrani();
+    });
 
 </script>
 

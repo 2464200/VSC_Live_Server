@@ -12,13 +12,13 @@
 
   document.getElementById("btn-scriptpdf-root")?.addEventListener("click", () => {
     const full = `${baseUrl}/ScriptPDF1.html`;
-    window.open(full, "_blank", "noopener,noreferrer");
+    openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   });
 
   document.getElementById("btn-scriptpdf-prova")?.addEventListener("click", () => {
     const full = `${baseUrl}/prova/ScriptPDF1.html`;
-    window.open(full, "_blank", "noopener,noreferrer");
+    openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   });
 

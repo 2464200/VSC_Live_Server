@@ -375,6 +375,30 @@ function Start-BorderoSyncServer {
     }
 }
 
+function Invoke-WebcamProfiling {
+    param(
+        [int]$Port
+    )
+
+    $probeUrl = "http://localhost:$($Port)/api/userform/pagina05/cameras/probe"
+    Write-Host "Profilazione webcam di sistema (FFmpeg + CSV)..."
+
+    try {
+        $response = Invoke-RestMethod -Uri $probeUrl -Method Get -TimeoutSec 30
+        if ($response -and $response.ok) {
+            $count = [int]($response.count | ForEach-Object { $_ })
+            $physical = [int]($response.physicalCount | ForEach-Object { $_ })
+            $added = [int]($response.systemCamera.addedCount | ForEach-Object { $_ })
+            $updated = [int]($response.systemCamera.updatedCount | ForEach-Object { $_ })
+            Write-Host "OK Profilazione completata: profili=$count, webcam fisiche=$physical, nuove=$added, aggiornate=$updated"
+        } else {
+            Write-Host "AVVISO: Profilazione webcam non riuscita (risposta inattesa)" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "AVVISO: Profilazione webcam non disponibile - $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 try {
     $nodeVersion = & node --version 2>$null
     if (-not $nodeVersion) {
@@ -414,6 +438,8 @@ if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-Http
     Write-Host "  Homepage:    http://localhost:$($UnifiedPort)/index.html"
     Write-Host "  Mobile:      http://localhost:$($UnifiedPort)/public/mobile1.html"
     Write-Host ""
+    Invoke-WebcamProfiling -Port $UnifiedPort
+    Write-Host ""
     try {
         $electronPid = Start-MonitorLaunchers -RootPath $RootPath
         if ($electronPid) { $startedPids += [int]$electronPid; Save-Pids -Pids $startedPids }
@@ -431,6 +457,8 @@ if ($processId) { $startedPids += $processId }
 $syncProcessId = Start-BorderoSyncServer
 if ($syncProcessId) { $startedPids += $syncProcessId }
 Save-Pids -Pids $startedPids
+
+Invoke-WebcamProfiling -Port $UnifiedPort
 
 Write-Host ""
 Write-Host "Generazione iniziale dati report..."

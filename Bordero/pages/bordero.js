@@ -29,6 +29,9 @@ class BorderoTableManager {
     this.searchButtonsResizeScheduled = false;
     this.webcamSignalPollTimer = null;
     this.webcamSignalWarningReason = '';
+    this.virtualDjConsolePollTimer = null;
+    this.virtualDjConsolePollInProgress = false;
+    this.virtualDjCompletionTracker = null;
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
@@ -37,6 +40,7 @@ class BorderoTableManager {
     this.autoRefreshInProgress = false;
     this.displayScrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
     this.deselectionConfirmState = null;
+    this.musicMatchSelectionState = null;
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
@@ -673,6 +677,9 @@ class BorderoTableManager {
   setupEventListeners() {
     this.setupFilterValuePicker();
     this.setupDeselectionConfirmModal();
+    this.setupMusicMatchModal();
+    this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
+    this.setupVirtualDjConsolePolling();
 
     // Sort buttons (esclusivi)
     this.bindSortButton('btn-sort-id', 'id', 'ID');
@@ -729,6 +736,8 @@ class BorderoTableManager {
     document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
       this.resetFilters();
     });
+    document.getElementById('btn-load-deck-1')?.addEventListener('click', () => this.loadSelectedBranoToDeck(1));
+    document.getElementById('btn-load-deck-2')?.addEventListener('click', () => this.loadSelectedBranoToDeck(2));
     document.getElementById('btn-reset-filters-empty')?.addEventListener('click', () => {
       this.resetFilters();
     });
@@ -742,6 +751,13 @@ class BorderoTableManager {
     document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
+    document.getElementById('btn-webcam-live-toggle')?.addEventListener('click', () => {
+      const button = document.getElementById('btn-webcam-live-toggle');
+      const action = (button?.dataset?.action || 'start').toLowerCase();
+      this.sendWebcamLiveCommand(action).catch((error) => {
+        Toast.error(`Errore ${action === 'stop' ? 'ferma' : 'avvio'} webcam: ${error?.message || error}`);
+      });
+    });
     document.getElementById('btn-stop-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('stop'));
     document.getElementById('btn-resume-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('resume'));
 
@@ -820,6 +836,89 @@ class BorderoTableManager {
     this.setWebcamSignal('idle', 'Riposo');
   }
 
+  async fetchDefaultWebcamCameraName() {
+    try {
+      const response = await fetch('/api/userform/pagina05/cameras', {
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const out = await response.json().catch(() => ({}));
+      if (!response.ok || out?.ok === false) {
+        throw new Error(out?.error || `HTTP ${response.status}`);
+      }
+
+      return String(out?.defaultCameraName || '').trim();
+    } catch (error) {
+      throw new Error(error?.message || String(error));
+    }
+  }
+
+  updateWebcamLiveToggleState(isLive = false) {
+    const button = document.getElementById('btn-webcam-live-toggle');
+    if (!button) {
+      return;
+    }
+
+    if (isLive) {
+      button.dataset.action = 'stop';
+      button.textContent = 'FERMA WEBCAM';
+      button.classList.remove('p05-webcam-control-start');
+      button.classList.add('p05-webcam-control-stop');
+      button.setAttribute('aria-label', 'Ferma la webcam secondaria');
+    } else {
+      button.dataset.action = 'start';
+      button.textContent = 'START WEBCAM';
+      button.classList.remove('p05-webcam-control-stop');
+      button.classList.add('p05-webcam-control-start');
+      button.setAttribute('aria-label', 'Avvia la webcam secondaria');
+    }
+  }
+
+  async sendWebcamLiveCommand(action) {
+    const normalized = String(action || 'start').trim().toLowerCase();
+    if (normalized !== 'start' && normalized !== 'stop') {
+      return;
+    }
+
+    if (normalized === 'stop') {
+      const response = await fetch('/api/userform/pagina05/electron/live/stop', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      const out = await response.json().catch(() => ({}));
+      if (!response.ok || out?.ok === false || out?.success === false) {
+        throw new Error(out?.error || `HTTP ${response.status}`);
+      }
+
+      Toast.success('Comando inviato: FERMA WEBCAM');
+    } else {
+      const cameraName = await this.fetchDefaultWebcamCameraName();
+      if (!cameraName) {
+        throw new Error('Nessuna webcam disponibile per l\'avvio.');
+      }
+
+      const response = await fetch('/api/userform/pagina05/electron/live/start', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cameraName })
+      });
+
+      const out = await response.json().catch(() => ({}));
+      if (!response.ok || out?.ok === false || out?.success === false) {
+        throw new Error(out?.error || `HTTP ${response.status}`);
+      }
+
+      Toast.success('Comando inviato: START WEBCAM');
+    }
+
+    await this.refreshSecondaryPlayerSignalState();
+  }
+
   async refreshSecondaryPlayerSignalState() {
     try {
       const response = await fetch('/api/userform/pagina05/electron/player/state', {
@@ -834,15 +933,19 @@ class BorderoTableManager {
 
       const playerState = out?.playerState || {};
       if (playerState.active) {
-        this.refreshWebcamSignal({ warningReason: '', vlcRunning: playerState.mode === 'webcam-live' });
+        const isLive = playerState.mode === 'webcam-live';
+        this.refreshWebcamSignal({ warningReason: '', vlcRunning: isLive });
+        this.updateWebcamLiveToggleState(isLive);
       } else {
         this.refreshWebcamSignal({ warningReason: '', vlcRunning: false });
+        this.updateWebcamLiveToggleState(false);
       }
     } catch (error) {
       this.refreshWebcamSignal({
         warningReason: error?.message || 'Player Electron non raggiungibile',
         vlcRunning: false
       });
+      this.updateWebcamLiveToggleState(false);
     }
   }
 
@@ -852,6 +955,7 @@ class BorderoTableManager {
     }
 
     this.refreshWebcamSignal({ warningReason: '', vlcRunning: false });
+    this.updateWebcamLiveToggleState(false);
     this.refreshSecondaryPlayerSignalState().catch(() => null);
 
     if (this.webcamSignalPollTimer) {
@@ -1726,7 +1830,7 @@ class BorderoTableManager {
             return;
           }
 
-          this.markAsCompleted(branoId);
+          await this.markAsCompleted(branoId);
           return;
         }
 
@@ -1850,8 +1954,12 @@ class BorderoTableManager {
     const nextCellValue = brano.next_coreo || brano.nextCoreo || brano['next coreo'] || '';
     const nextSelectionMarker = brano.next_selected ? '<span class="next-choice-icon" aria-label="Scelta NEXT effettuata">✓</span>' : '';
 
+    const consoleStatusClass = !isCompleted
+      ? this.getConsoleRowStatusClass(brano.consoleStatus)
+      : '';
+
     return `
-      <tr class="brani-row ${completedClass}" data-brano-id="${brano.id}">
+      <tr class="brani-row ${completedClass} ${consoleStatusClass}" data-brano-id="${brano.id}">
         <td class="col-flag">
           <span class="flag-icon">${flagIcon}</span>
         </td>
@@ -2101,17 +2209,294 @@ class BorderoTableManager {
     return best.item.fullName;
   }
 
-  /**
-   * Marca brano come completato (X) e fa scivolare al fondo
-   */
-  markAsCompleted(branoId) {
-    const brano = this.allBrani.find(b => String(b.id) === String(branoId));
-    if (!brano) return;
+  getSelectedDjSoftware() {
+    return String(Storage.get('BORDERO_DJ_SOFTWARE', '') || '').trim().toLowerCase();
+  }
 
-    if (!brano.next_selected) {
-      Toast.warning('FLAG non consentito: seleziona prima questo brano in NEXT.');
-      return;
+  isVirtualDjBridgeEnabled() {
+    return this.getSelectedDjSoftware() === 'virtualdj';
+  }
+
+  async resolveMusicArchiveMatch(brano) {
+    const response = await fetch('/api/music-archive/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        brano: {
+          id: brano?.id,
+          titolo: brano?.titolo,
+          coreografia: brano?.coreografia,
+          brano: brano?.brano,
+          autore: brano?.autore
+        }
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result?.ok) {
+      throw new Error(result?.error || `Errore match archivio (HTTP ${response.status})`);
     }
+
+    if (result.status === 'exact' && result.match?.fullPath) {
+      return result.match;
+    }
+
+    if (result.status === 'ambiguous' && Array.isArray(result.candidates) && result.candidates.length > 0) {
+      return this.showMusicMatchSelection(brano, result.candidates, {
+        message: `Match ambiguo per "${brano?.titolo || brano?.coreografia || brano?.brano || brano?.id || 'brano selezionato'}". Seleziona il file corretto da eseguire.`
+      });
+    }
+
+    return this.showManualMusicMatchSelection(brano);
+  }
+
+  async fetchMusicArchiveFilesForSelection() {
+    const response = await fetch('/api/music-archive/status', { cache: 'no-store' });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || `Errore archivio audio (HTTP ${response.status})`);
+    }
+
+    return Array.isArray(payload.files) ? payload.files : [];
+  }
+
+  rankMusicArchiveCandidates(brano, files) {
+    const profile = this.buildBranoMatchProfile(brano);
+    const mapped = (Array.isArray(files) ? files : []).map((file) => {
+      const fileName = String(file?.fileName || '').trim();
+      const relativePath = String(file?.relativePath || '').trim();
+      const fullPath = String(file?.fullPath || '').trim();
+      const fallbackName = relativePath.split(/[\\/]/).pop() || fullPath.split(/[\\/]/).pop() || 'File audio';
+      const effectiveFileName = fileName || fallbackName;
+      const baseName = String(file?.baseName || '').trim() || effectiveFileName.replace(/\.[^.]+$/, '');
+      const parsed = this.parseVideoFileReference(baseName);
+      const normalizedName = this.normalizeForMatch(parsed.name || baseName);
+      const tokens = this.tokenizeForMatch(normalizedName);
+      const score = this.scoreVideoCandidate(profile, {
+        prefix: parsed.prefix || '',
+        normalizedName,
+        tokens
+      });
+
+      return {
+        fullPath,
+        relativePath: relativePath || effectiveFileName,
+        fileName: effectiveFileName,
+        score
+      };
+    }).filter((entry) => entry.fullPath);
+
+    mapped.sort((left, right) => {
+      const scoreDiff = (Number(right.score) || 0) - (Number(left.score) || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+      return String(left.relativePath || '').localeCompare(String(right.relativePath || ''), 'it');
+    });
+
+    return mapped.slice(0, 120);
+  }
+
+  async showManualMusicMatchSelection(brano) {
+    let files = [];
+    try {
+      files = await this.fetchMusicArchiveFilesForSelection();
+    } catch (error) {
+      logger.warn('Impossibile ottenere archivio audio per selezione manuale', error);
+      Toast.error(`Errore archivio audio: ${error?.message || error}`);
+      return null;
+    }
+
+    if (!files.length) {
+      Toast.warning('Archivio audio vuoto: nessun file disponibile per la selezione manuale.');
+      return null;
+    }
+
+    const rankedCandidates = this.rankMusicArchiveCandidates(brano, files);
+    if (!rankedCandidates.length) {
+      Toast.warning('Nessun file disponibile per la selezione manuale.');
+      return null;
+    }
+
+    const title = brano?.titolo || brano?.coreografia || brano?.brano || brano?.id || 'brano selezionato';
+    return this.showMusicMatchSelection(brano, rankedCandidates, {
+      message: `Nessun match automatico affidabile per "${title}". Seleziona manualmente il file audio dall'archivio.`
+    });
+  }
+
+  getConsoleStatusElement() {
+    return document.getElementById('console-status-signal');
+  }
+
+  getConsoleRowStatusClass(status) {
+    const normalized = String(status || '').trim().toLowerCase();
+    if (normalized === 'playing') return 'console-row-playing';
+    if (normalized === 'prepared' || normalized === 'loaded') return 'console-row-prepared';
+    if (normalized === 'error') return 'console-row-error';
+    if (normalized === 'available') return 'console-row-available';
+    return '';
+  }
+
+  updateConsoleStatus(state = 'idle', deckNumber = null, label = 'STATO CONSOLE') {
+    const element = this.getConsoleStatusElement();
+    if (!element) return;
+
+    element.dataset.state = state;
+    const textNode = element.querySelector('.console-status-text');
+    if (textNode) {
+      textNode.textContent = deckNumber ? `✓ DECK ${deckNumber}` : label;
+    } else {
+      element.textContent = deckNumber ? `✓ DECK ${deckNumber}` : label;
+    }
+  }
+
+  getTrackedConsoleBrano() {
+    return this.allBrani.find((item) => item && item.consoleDeck);
+  }
+
+  resolveDeckPlaybackState(deckState) {
+    if (!deckState || typeof deckState !== 'object') return 'error';
+    if (deckState.isPlaying) return 'playing';
+    if (deckState.hasTrack || deckState.isPaused) return 'prepared';
+    return 'available';
+  }
+
+  mapPlaybackStateToConsoleButtonState(playbackState) {
+    const normalized = String(playbackState || '').trim().toLowerCase();
+    if (normalized === 'playing') return 'live';
+    if (normalized === 'prepared') return 'warning';
+    if (normalized === 'error') return 'error';
+    return 'idle';
+  }
+
+  setDeckLoadButtonState(deckNumber, state = 'unknown') {
+    const button = document.getElementById(deckNumber === 2 ? 'btn-load-deck-2' : 'btn-load-deck-1');
+    if (!button) return;
+
+    const normalizedState = String(state || '').trim().toLowerCase();
+    button.dataset.deckState = normalizedState;
+  }
+
+  async refreshDeckLoadButtonsState() {
+    try {
+      const [deck1, deck2] = await Promise.all([
+        this.queryVirtualDjDeckState(1),
+        this.queryVirtualDjDeckState(2)
+      ]);
+
+      const mapState = (deckState) => {
+        if (!deckState || deckState.unavailable) {
+          return 'unknown';
+        }
+
+        return deckState.isPlaying ? 'playing' : 'ready';
+      };
+
+      this.setDeckLoadButtonState(1, mapState(deck1));
+      this.setDeckLoadButtonState(2, mapState(deck2));
+    } catch (error) {
+      logger.warn('Errore aggiornamento stato tasti deck', error);
+      this.setDeckLoadButtonState(1, 'unknown');
+      this.setDeckLoadButtonState(2, 'unknown');
+    }
+  }
+
+  applyTrackedBranoPlaybackState(branoId, deckNumber, playbackState) {
+    let hasChanged = false;
+
+    this.allBrani.forEach((item) => {
+      const isTarget = String(item.id) === String(branoId);
+      const nextStatus = isTarget ? playbackState : '';
+      const nextDeck = isTarget ? String(deckNumber) : null;
+
+      if (item.consoleStatus !== nextStatus || item.consoleDeck !== nextDeck) {
+        item.consoleStatus = nextStatus;
+        item.consoleDeck = nextDeck;
+        hasChanged = true;
+      }
+    });
+
+    return hasChanged;
+  }
+
+  ensureVirtualDjCompletionTracker(branoId, deckNumber) {
+    const normalizedBranoId = String(branoId || '');
+    const normalizedDeck = Number(deckNumber) === 2 ? 2 : 1;
+
+    if (
+      !this.virtualDjCompletionTracker ||
+      String(this.virtualDjCompletionTracker.branoId) !== normalizedBranoId ||
+      Number(this.virtualDjCompletionTracker.deckNumber) !== normalizedDeck
+    ) {
+      this.virtualDjCompletionTracker = {
+        branoId: normalizedBranoId,
+        deckNumber: normalizedDeck,
+        hasSeenPlaying: false
+      };
+    }
+
+    return this.virtualDjCompletionTracker;
+  }
+
+  clearVirtualDjCompletionTracker() {
+    this.virtualDjCompletionTracker = null;
+  }
+
+  async maybeFinalizeTrackedVirtualDjBrano(trackedBrano, deckState) {
+    if (!trackedBrano || !deckState || deckState.unavailable) {
+      return false;
+    }
+
+    const tracker = this.ensureVirtualDjCompletionTracker(trackedBrano.id, trackedBrano.consoleDeck);
+
+    if (deckState.isPlaying) {
+      tracker.hasSeenPlaying = true;
+      logger.debug('VirtualDJ deck still playing, completion deferred', {
+        branoId: trackedBrano.id,
+        deckState,
+        tracker
+      });
+      return false;
+    }
+
+    const remainingSeconds = Number(deckState.timeRemainSeconds);
+    const hasValidRemaining = Number.isFinite(remainingSeconds);
+    const reachedNaturalEnd = hasValidRemaining && remainingSeconds <= 0.75;
+    const endedByNotPlaying = !deckState.isPlaying && !deckState.isPaused && deckState.hasTrack;
+
+    logger.debug('VirtualDJ completion check', {
+      branoId: trackedBrano.id,
+      deckState,
+      tracker,
+      hasValidRemaining,
+      reachedNaturalEnd,
+      endedByNotPlaying
+    });
+
+    // Considera completata la riproduzione quando:
+    // 1) il deck si svuota dopo essere andato in PLAY, oppure
+    // 2) il deck non e in PLAY/PAUSE e il tempo residuo e sostanzialmente a zero, oppure
+    // 3) il deck resta caricato ma smette di suonare (VirtualDJ potrebbe lasciare il file caricato dopo la fine).
+    if (tracker.hasSeenPlaying && (deckState.isEmpty || reachedNaturalEnd || endedByNotPlaying)) {
+      logger.debug('VirtualDJ brano riconosciuto come completato', {
+        branoId: trackedBrano.id,
+        deckState,
+        reachedNaturalEnd,
+        endedByNotPlaying
+      });
+      this.clearVirtualDjCompletionTracker();
+      this.finalizeBranoAsCompleted(trackedBrano, {
+        source: 'virtualdj',
+        toastMessage: `✓ "${trackedBrano.titolo}" completato (fine riproduzione VirtualDJ)`
+      });
+      return true;
+    }
+
+    return false;
+  }
+
+  finalizeBranoAsCompleted(brano, options = {}) {
+    if (!brano) return false;
+    if (String(brano.flag || '').toUpperCase() === 'X') return false;
 
     const wasNextSelected = Boolean(brano.next_selected);
 
@@ -2124,35 +2509,365 @@ class BorderoTableManager {
       window.dispatchEvent(new Event('bordero:next-coreo-updated'));
     }
 
-    // Marca flag X
-    brano.flag = 'X';
-    // Aggiungi timestamp automatico
-    brano.timestamp = DateUtils.formatDate(new Date());
+    this.allBrani.forEach((item) => {
+      item.consoleStatus = '';
+      item.consoleDeck = null;
+    });
 
-    // Move to bottom preserving completed order
-    const index = this.allBrani.indexOf(brano);
+    const normalizedId = String(brano.id);
+    const branoInAll = this.allBrani.find((item) => String(item.id) === normalizedId);
+    if (!branoInAll) return false;
+
+    branoInAll.flag = 'X';
+    branoInAll.eseguito = 'X';
+    branoInAll.executed = true;
+    branoInAll.timestamp = DateUtils.formatDate(new Date());
+
+    const index = this.allBrani.indexOf(branoInAll);
     if (index > -1) {
       this.allBrani.splice(index, 1);
-      this.allBrani.push(brano);
+      this.allBrani.push(branoInAll);
     }
 
     this.reorderBraniByOriginalIndex();
-
-    // Salva in storage
     Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
-
-    // Auto-save serata
     this.autoSaveSerata();
 
-    // Update last action
     this.lastActionTime = new Date();
     this.updateLastActionTime();
+    this.clearVirtualDjCompletionTracker();
 
-    logger.info(`Brano ${branoId} marcato come completato`);
-    Toast.success(`✓ "${brano.titolo}" completato`);
+    logger.info(`Brano ${normalizedId} marcato come completato`, {
+      source: options.source || 'manual'
+    });
+    Toast.success(options.toastMessage || `✓ "${branoInAll.titolo}" completato`);
 
-    // Re-render mantenendo filtri
     this.applyFilters();
+    return true;
+  }
+
+  async refreshVirtualDjConsoleState() {
+    if (!this.isVirtualDjBridgeEnabled()) {
+      this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
+      return;
+    }
+
+    const trackedBrano = this.getTrackedConsoleBrano();
+    if (!trackedBrano) {
+      this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
+      return;
+    }
+
+    const deckNumber = Number(trackedBrano.consoleDeck) === 2 ? 2 : 1;
+
+    try {
+      const deckState = await this.queryVirtualDjDeckState(deckNumber);
+      const finalizedByCompletion = await this.maybeFinalizeTrackedVirtualDjBrano(trackedBrano, deckState);
+      if (finalizedByCompletion) {
+        this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
+        return;
+      }
+
+      const playbackState = this.resolveDeckPlaybackState(deckState);
+      const buttonState = this.mapPlaybackStateToConsoleButtonState(playbackState);
+      const rowChanged = this.applyTrackedBranoPlaybackState(trackedBrano.id, deckNumber, playbackState);
+
+      this.updateConsoleStatus(buttonState, deckNumber, `✓ DECK ${deckNumber}`);
+
+      if (rowChanged) {
+        this.renderTable();
+      }
+    } catch (error) {
+      logger.warn('Errore aggiornamento stato console VirtualDJ', error);
+      const rowChanged = this.applyTrackedBranoPlaybackState(trackedBrano.id, deckNumber, 'error');
+      this.updateConsoleStatus('error', deckNumber, 'ERRORE');
+      if (rowChanged) {
+        this.renderTable();
+      }
+    }
+  }
+
+  setupVirtualDjConsolePolling() {
+    if (this.virtualDjConsolePollTimer) {
+      clearInterval(this.virtualDjConsolePollTimer);
+      this.virtualDjConsolePollTimer = null;
+    }
+
+    const runPoll = async () => {
+      if (this.virtualDjConsolePollInProgress) {
+        return;
+      }
+
+      this.virtualDjConsolePollInProgress = true;
+      try {
+        await this.refreshDeckLoadButtonsState();
+        await this.refreshVirtualDjConsoleState();
+      } finally {
+        this.virtualDjConsolePollInProgress = false;
+      }
+    };
+
+    runPoll().catch(() => null);
+
+    this.virtualDjConsolePollTimer = setInterval(() => {
+      runPoll().catch(() => null);
+    }, 2000);
+
+    window.addEventListener('pagehide', () => {
+      if (this.virtualDjConsolePollTimer) {
+        clearInterval(this.virtualDjConsolePollTimer);
+        this.virtualDjConsolePollTimer = null;
+      }
+    }, { once: true });
+  }
+
+  async queryVirtualDjDeckState(deckNumber) {
+    const targetDeck = Number(deckNumber) || 1;
+    const scripts = [
+      `deck ${targetDeck} get_loaded`,
+      `deck ${targetDeck} get_play`,
+      `deck ${targetDeck} get_pause`,
+      `deck ${targetDeck} get_time_remain`
+    ];
+
+    let hasTrack = false;
+    let isPlaying = false;
+    let isPaused = false;
+    let failedRequests = 0;
+    let timeRemainSeconds = null;
+
+    for (const script of scripts) {
+      try {
+        const response = await this.queryVirtualDjScript(script, 2500);
+        const normalized = String(response || '').trim().toLowerCase();
+        const positive = normalized === 'true' || normalized === '1' || normalized === 'yes';
+
+        if (script.includes('get_loaded')) {
+          hasTrack = positive;
+        } else if (script.includes('get_play')) {
+          isPlaying = positive;
+        } else if (script.includes('get_pause')) {
+          isPaused = positive;
+        } else if (script.includes('get_time_remain')) {
+          const parsed = this.parseVirtualDjTimeValue(response);
+          if (Number.isFinite(parsed)) {
+            timeRemainSeconds = parsed;
+          }
+        }
+      } catch (error) {
+        failedRequests += 1;
+        logger.warn('Impossibile interrogare stato deck VirtualDJ', { deck: targetDeck, error: error?.message || error });
+      }
+    }
+
+    return {
+      deck: targetDeck,
+      hasTrack,
+      isPlaying,
+      isPaused,
+      timeRemainSeconds,
+      unavailable: failedRequests === scripts.length,
+      isEmpty: !hasTrack,
+      isActive: isPlaying || isPaused || hasTrack
+    };
+  }
+
+  parseVirtualDjTimeValue(rawValue) {
+    const text = String(rawValue || '').trim();
+    if (!text) return null;
+
+    const numeric = Number(text.replace(',', '.'));
+    if (Number.isFinite(numeric)) {
+      return numeric;
+    }
+
+    const mmssMatch = text.match(/^-?(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+    if (!mmssMatch) {
+      return null;
+    }
+
+    const first = Number(mmssMatch[1] || 0);
+    const second = Number(mmssMatch[2] || 0);
+    const third = Number(mmssMatch[3] || 0);
+
+    if (Number.isNaN(first) || Number.isNaN(second) || Number.isNaN(third)) {
+      return null;
+    }
+
+    if (mmssMatch[3] !== undefined) {
+      return (first * 3600) + (second * 60) + third;
+    }
+
+    return (first * 60) + second;
+  }
+
+  async queryVirtualDjScript(script, timeoutMs = 2500) {
+    const url = new URL('/api/vdj/proxy', window.location.origin);
+    const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+    url.searchParams.set('baseUrl', candidateBases[0]);
+    url.searchParams.set('baseUrls', candidateBases.join(','));
+    url.searchParams.set('endpoint', '/execute');
+    url.searchParams.set('script', script);
+    url.searchParams.set('timeoutMs', String(timeoutMs));
+
+    const response = await fetch(url.toString(), { cache: 'no-store' });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`VirtualDJ ha risposto con HTTP ${response.status}: ${text}`);
+    }
+
+    return text;
+  }
+
+  async selectBestDeckForLoad(preferredDeck = null) {
+    if (Number.isInteger(preferredDeck) && preferredDeck >= 1 && preferredDeck <= 2) {
+      return preferredDeck;
+    }
+
+    const states = await Promise.all([1, 2].map((deck) => this.queryVirtualDjDeckState(deck)));
+    const emptyDeck = states.find((state) => state.isEmpty);
+    if (emptyDeck) {
+      return emptyDeck.deck;
+    }
+
+    const notPlayingDeck = states.find((state) => !state.isPlaying);
+    if (notPlayingDeck) {
+      return notPlayingDeck.deck;
+    }
+
+    return states[0]?.deck || 1;
+  }
+
+  markBranoConsoleFeedback(branoId, deckNumber) {
+    const brano = this.allBrani.find((item) => String(item.id) === String(branoId));
+    if (!brano) return;
+
+    this.allBrani.forEach((item) => {
+      item.consoleStatus = '';
+      item.consoleDeck = null;
+    });
+
+    if (brano) {
+      brano.consoleStatus = 'prepared';
+      brano.consoleDeck = String(deckNumber);
+    }
+
+    this.virtualDjCompletionTracker = {
+      branoId: String(branoId),
+      deckNumber: Number(deckNumber) === 2 ? 2 : 1,
+      hasSeenPlaying: false
+    };
+
+    this.renderTable();
+  }
+
+  async loadSelectedBranoToDeck(deckNumber) {
+    const requestedDeck = Number(deckNumber) === 2 ? 2 : 1;
+    const fallbackDeck = requestedDeck === 1 ? 2 : 1;
+    const brano = this.allBrani.find((item) => Boolean(item.next_selected));
+    if (!brano) {
+      Toast.warning('Seleziona prima un brano in NEXT per caricarlo su VirtualDJ.');
+      return;
+    }
+
+    try {
+      let targetDeck = requestedDeck;
+      const requestedDeckState = await this.queryVirtualDjDeckState(requestedDeck);
+
+      if (requestedDeckState.isPlaying) {
+        const confirmed = await this.showDeselectionConfirm({
+          title: `Deck ${requestedDeck} in riproduzione`,
+          message: `Il Deck ${requestedDeck} e attualmente in PLAY. Vuoi caricare il brano sull'altro deck (Deck ${fallbackDeck})?`,
+          confirmLabel: `Si, usa Deck ${fallbackDeck}`
+        });
+
+        if (!confirmed) {
+          Toast.info('Caricamento annullato dal DJ.');
+          return;
+        }
+
+        const fallbackDeckState = await this.queryVirtualDjDeckState(fallbackDeck);
+        if (fallbackDeckState.isPlaying) {
+          Toast.warning(`Impossibile caricare: anche il Deck ${fallbackDeck} e in PLAY.`);
+          return;
+        }
+
+        targetDeck = fallbackDeck;
+      }
+
+      const selectedFile = await this.resolveMusicArchiveMatch(brano);
+      if (!selectedFile?.fullPath) {
+        Toast.warning('Nessun file selezionato: caricamento annullato.');
+        return;
+      }
+
+      await this.sendFileToVirtualDj(selectedFile.fullPath, targetDeck);
+      this.updateConsoleStatus('live', targetDeck, `✓ DECK ${targetDeck}`);
+      this.markBranoConsoleFeedback(brano.id, targetDeck);
+      await this.refreshVirtualDjConsoleState();
+      Toast.success(`✓ Caricato su Deck ${targetDeck}: ${selectedFile.fileName || selectedFile.relativePath || selectedFile.fullPath}`);
+    } catch (error) {
+      logger.error('Errore caricamento brano su VirtualDJ', error);
+      this.updateConsoleStatus('warning', null, 'ERRORE');
+      Toast.error(`Errore VirtualDJ: ${error?.message || error}`);
+    }
+  }
+
+  async sendFileToVirtualDj(filePath, deckNumber = null) {
+    const safePath = String(filePath || '').trim().replace(/"/g, '\\"');
+    if (!safePath) return false;
+
+    const explicitDeck = Number(deckNumber);
+    const targetDeck = Number.isInteger(explicitDeck) && explicitDeck >= 1 && explicitDeck <= 2
+      ? explicitDeck
+      : await this.selectBestDeckForLoad(null);
+    const script = `deck ${targetDeck} load "${safePath}"`;
+    const url = new URL('/api/vdj/proxy', window.location.origin);
+    const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+    url.searchParams.set('baseUrl', candidateBases[0]);
+    url.searchParams.set('baseUrls', candidateBases.join(','));
+    url.searchParams.set('endpoint', '/execute');
+    url.searchParams.set('script', script);
+
+    const response = await fetch(url.toString(), { cache: 'no-store' });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`VirtualDJ ha risposto con HTTP ${response.status}: ${text}`);
+    }
+
+    return { ok: true, deck: targetDeck };
+  }
+
+  /**
+   * Marca brano come completato (X) e fa scivolare al fondo
+   */
+  async markAsCompleted(branoId) {
+    const brano = this.allBrani.find(b => String(b.id) === String(branoId));
+    if (!brano) return;
+
+    if (!brano.next_selected) {
+      Toast.warning('FLAG non consentito: seleziona prima questo brano in NEXT.');
+      return;
+    }
+
+    if (this.isVirtualDjBridgeEnabled()) {
+      try {
+        const selectedFile = await this.resolveMusicArchiveMatch(brano);
+        if (!selectedFile?.fullPath) {
+          Toast.warning('Nessun file selezionato: FLAG non applicato.');
+          return;
+        }
+
+        await this.sendFileToVirtualDj(selectedFile.fullPath);
+        Toast.success(`✓ Caricato in VirtualDJ: ${selectedFile.fileName || selectedFile.relativePath || selectedFile.fullPath}`);
+      } catch (error) {
+        logger.error('Errore invio brano a VirtualDJ', error);
+        Toast.error(`Errore VirtualDJ: ${error?.message || error}`);
+        return;
+      }
+    }
+
+    this.finalizeBranoAsCompleted(brano, { source: 'manual' });
   }
 
   /**
@@ -2167,6 +2882,8 @@ class BorderoTableManager {
     }
 
     brano.flag = '';
+    brano.eseguito = '';
+    brano.executed = false;
     brano.timestamp = '';
 
     this.reorderBraniByOriginalIndex();
@@ -2662,6 +3379,92 @@ class BorderoTableManager {
         this.resolveDeselectionConfirm(false);
       }
     });
+  }
+
+  setupMusicMatchModal() {
+    const modal = document.getElementById('music-match-modal');
+    const closeBtn = document.getElementById('music-match-close');
+    const cancelBtn = document.getElementById('music-match-cancel');
+
+    closeBtn?.addEventListener('click', () => this.resolveMusicMatchSelection(null));
+    cancelBtn?.addEventListener('click', () => this.resolveMusicMatchSelection(null));
+
+    modal?.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        this.resolveMusicMatchSelection(null);
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.musicMatchSelectionState) {
+        this.resolveMusicMatchSelection(null);
+      }
+    });
+  }
+
+  showMusicMatchSelection(brano, candidates, options = {}) {
+    const modal = document.getElementById('music-match-modal');
+    const messageEl = document.getElementById('music-match-message');
+    const optionsEl = document.getElementById('music-match-options');
+
+    if (!modal || !messageEl || !optionsEl) {
+      return Promise.resolve(candidates[0] || null);
+    }
+
+    if (this.musicMatchSelectionState) {
+      this.resolveMusicMatchSelection(null);
+    }
+
+    const title = brano?.titolo || brano?.coreografia || brano?.brano || brano?.id || 'brano selezionato';
+    messageEl.textContent = options?.message || `Match ambiguo per "${title}". Seleziona il file corretto da eseguire.`;
+
+    optionsEl.innerHTML = candidates.map((candidate) => {
+      const label = this.escapeHtml(candidate.fileName || candidate.relativePath || candidate.fullPath || 'File audio');
+      const pathText = this.escapeHtml(candidate.relativePath || candidate.fullPath || '');
+      const scoreText = Number.isFinite(candidate.score) ? ` (score ${candidate.score})` : '';
+      return `
+        <button type="button" class="music-match-option" data-full-path="${this.escapeHtml(candidate.fullPath || '')}" data-relative-path="${this.escapeHtml(candidate.relativePath || '')}" data-file-name="${this.escapeHtml(candidate.fileName || '')}">
+          ${label}${scoreText}
+          <span class="music-match-option-path">${pathText}</span>
+        </button>
+      `;
+    }).join('');
+
+    optionsEl.querySelectorAll('.music-match-option').forEach((button, index) => {
+      button.addEventListener('click', () => {
+        const selected = {
+          fullPath: button.getAttribute('data-full-path') || '',
+          relativePath: button.getAttribute('data-relative-path') || '',
+          fileName: button.getAttribute('data-file-name') || ''
+        };
+        this.resolveMusicMatchSelection(selected.fullPath ? selected : null);
+      });
+
+      if (index === 0) {
+        setTimeout(() => button.focus(), 0);
+      }
+    });
+
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+
+    return new Promise((resolve) => {
+      this.musicMatchSelectionState = { resolve };
+    });
+  }
+
+  resolveMusicMatchSelection(selection) {
+    const modal = document.getElementById('music-match-modal');
+    if (modal) {
+      modal.hidden = true;
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    const state = this.musicMatchSelectionState;
+    this.musicMatchSelectionState = null;
+    if (state && typeof state.resolve === 'function') {
+      state.resolve(selection || null);
+    }
   }
 
   showDeselectionConfirm({ title, message, confirmLabel }) {

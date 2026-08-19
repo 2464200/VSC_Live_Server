@@ -12,13 +12,13 @@
 
   document.getElementById("btn-open-bordero")?.addEventListener("click", () => {
     const full = `${baseUrl}/Bordero/pages/bordero.html`;
-    window.open(full, "_blank", "noopener,noreferrer");
+    openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   });
 
   document.getElementById("btn-open-eventi")?.addEventListener("click", () => {
     const full = `${baseUrl}/Eventi/public/eventi.html`;
-    window.open(full, "_blank", "noopener,noreferrer");
+    openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   });
 

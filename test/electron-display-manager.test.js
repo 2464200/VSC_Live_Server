@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { pickDisplayTargets, resolveDisplayTargetsForWindows } = require('../electron/display-manager');
+const { pickDisplayTargets, resolveDisplayTargetsForWindows, buildDisplayLayoutConfig } = require('../electron/display-manager');
 
 test('pickDisplayTargets chooses the primary display and a secondary one', () => {
   const displays = [
@@ -38,4 +38,20 @@ test('resolveDisplayTargetsForWindows swaps displays when requested', () => {
   assert.equal(normal.monitorDisplay.id, 20);
   assert.equal(swapped.mainDisplay.id, 20);
   assert.equal(swapped.monitorDisplay.id, 10);
+});
+
+test('buildDisplayLayoutConfig uses the actual monitor size and DPI-aware zoom', () => {
+  const display = {
+    id: 20,
+    isPrimary: false,
+    bounds: { x: 2560, y: 0, width: 2560, height: 1440 },
+    scaleFactor: 1.25
+  };
+
+  const layout = buildDisplayLayoutConfig(display, { width: 1280, height: 720, fullscreen: true });
+
+  assert.equal(layout.width, 2560);
+  assert.equal(layout.height, 1440);
+  assert.equal(layout.zoomFactor, 0.8);
+  assert.equal(layout.scaleFactor, 1.25);
 });

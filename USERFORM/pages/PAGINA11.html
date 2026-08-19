@@ -20,6 +20,12 @@
       </nav>
     </header>
 
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">PAGINA11</span>
+    </nav>
+
     <main class="page-shell">
       <section class="panel">
         <h2>Metadati VBA</h2>
@@ -38,8 +44,8 @@
         <div class="control-box">
           <p class="action-desc">Questa pagina USERFORM non duplica la logica: apre direttamente la pagina Location gia completa nella sezione Bordero.</p>
           <div class="control-toolbar">
-            <a class="btn" href="../../Bordero/pages/location.html" target="_blank" rel="noopener noreferrer">Apri Bordero Location</a>
-            <a class="btn btn-secondary" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+            <a class="btn" href="../../Bordero/pages/location.html" data-open="../../Bordero/pages/location.html" rel="noopener noreferrer">Apri Bordero Location</a>
+            <a class="btn btn-secondary" href="../index.html">CommandButton31: Torna a INDICE</a>
           </div>
         </div>
       </section>
@@ -47,7 +53,7 @@
       <section class="panel">
         <h2>Navigazione Form</h2>
         <div class="control-toolbar">
-          <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+          <a class="btn" href="../index.html">CommandButton31: Torna a INDICE</a>
           <a class="btn btn-secondary" href="../index.html">CommandButton32: Chiudi form</a>
         </div>
         <div class="status-box" role="status" aria-live="polite"><strong>Stato:</strong> pagina delegata a Bordero Location.</div>
@@ -60,6 +66,11 @@
           <a id="next-form" class="btn" href="#">Form successivo</a>
         </div>
       </section>
+
+      <nav class="bottom-bar" aria-label="Navigazione pagina">
+        <a href="../index.html" class="btn btn-secondary">Indice</a>
+        <button id="btn-close-pagina11-bottom" class="btn btn-primary" type="button">CHIUDI</button>
+      </nav>
     </main>
   </div>
 </body>

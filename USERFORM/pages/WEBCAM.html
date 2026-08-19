@@ -411,6 +411,44 @@
       cursor: pointer;
     }
 
+    /* Override per i bottoni .btn dentro .p05-bottom-bar */
+    .p05-bottom-bar .btn {
+      min-width: 100px;
+      height: auto;
+      padding: 10px 20px;
+      border: none;
+      background: #ff7f00;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      box-shadow: none;
+    }
+
+    .p05-bottom-bar .btn-primary {
+      background-color: #ff7f00;
+      color: #fff;
+    }
+
+    .p05-bottom-bar .btn-primary:hover {
+      background-color: #ff9933;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .p05-bottom-bar .btn-secondary {
+      background-color: #2f2f2f;
+      color: #fff;
+      border: 1px solid #ff7f00;
+    }
+
+    .p05-bottom-bar .btn-secondary:hover {
+      background-color: #ff7f00;
+      color: #fff;
+    }
+
     .p05-side-tools {
       position: absolute;
       right: 12px;
@@ -544,6 +582,11 @@
 </head>
 <body class="p05-body fit-video-frame">
   <main class="p05-form">
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">WEBCAM</span>
+    </nav>
     <h1 id="form-name" class="p05-title">frmPagina05</h1>
 
     <section class="p05-top" aria-label="Comandi principali">
@@ -619,8 +662,8 @@
     </aside>
 
     <nav class="p05-bottom-bar" aria-label="Navigazione">
-      <a href="INDICE.html">Indice</a>
-      <button id="btn-close-pagina05" type="button">CHIUDI</button>
+      <a href="../index.html" class="btn btn-secondary">Indice</a>
+      <button id="btn-close-pagina05" class="btn btn-primary" type="button">CHIUDI</button>
     </nav>
 
     <div class="p05-hidden-meta" aria-hidden="true">
@@ -633,4 +676,3 @@
   </main>
 </body>
 </html>
-

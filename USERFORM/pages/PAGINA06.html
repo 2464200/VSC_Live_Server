@@ -21,6 +21,12 @@
       </nav>
     </header>
 
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">PAGINA06</span>
+    </nav>
+
     <main class="page-shell">
       <section class="panel">
         <h2>Metadati VBA</h2>
@@ -51,7 +57,7 @@
       <section class="panel">
         <h2>Navigazione Form</h2>
         <div class="control-toolbar">
-          <a class="btn" href="INDICE.html">CommandButton31: Torna a INDICE</a>
+          <a class="btn" href="../index.html">CommandButton31: Torna a INDICE</a>
           <button class="btn btn-secondary" id="btn-close-pagina06" type="button">CommandButton32: Chiudi form</button>
         </div>
         <div id="pagina06-status" class="status-box" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>
@@ -64,6 +70,11 @@
           <a id="next-form" class="btn" href="#">Form successivo</a>
         </div>
       </section>
+
+      <nav class="bottom-bar" aria-label="Navigazione pagina">
+        <a href="../index.html" class="btn btn-secondary">Indice</a>
+        <button id="btn-close-pagina06-bottom" class="btn btn-primary" type="button">CHIUDI</button>
+      </nav>
     </main>
   </div>
 </body>
