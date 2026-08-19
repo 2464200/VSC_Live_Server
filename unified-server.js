@@ -29,6 +29,13 @@ const app = express();
 let PORT = Number.isFinite(Number(process.env.UNIFIED_PORT)) ? Number(process.env.UNIFIED_PORT) : projectConfig.port;
 const PDF_FOLDER = projectConfig.pdfFolder;
 const VIDEOCLIP_DIR = projectConfig.videoClipDir;
+const BORDERO_DATA_DIR = path.join(__dirname, 'Bordero', 'data');
+const BORDERO_CSV_FILES = {
+    brani: path.join(BORDERO_DATA_DIR, 'brani.csv'),
+    comuni: path.join(BORDERO_DATA_DIR, 'comuni_italia.csv'),
+    location: path.join(BORDERO_DATA_DIR, 'location.csv'),
+    locationOptions: path.join(BORDERO_DATA_DIR, 'location_popup_options.csv')
+};
 // Directory condivisa export SIAE (Bordero + Eventi).
 // Priorita: variabile ambiente -> default storico progetto -> percorso portabile di progetto.
 const SIAE_EXPORT_DIR = projectConfig.siaeExportDir;
@@ -2640,6 +2647,120 @@ function syncBraniOnStartup() {
 
 // ===== MIDDLEWARE =====
 app.use(express.json());
+
+function escapeBorderoCsvValue(value) {
+    if (value === null || value === undefined) return '';
+    const text = String(value);
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function borderoJsonToCsv(rows, headers = null) {
+    if (!Array.isArray(rows) || rows.length === 0) return '';
+    const columns = headers || Object.keys(rows[0]);
+    return [
+        columns.map(escapeBorderoCsvValue).join(','),
+        ...rows.map((row) => columns.map((column) => escapeBorderoCsvValue(row?.[column])).join(','))
+    ].join('\n') + '\n';
+}
+
+function validateBorderoSyncPayload(req, res) {
+    const { data } = req.body || {};
+    if (!Array.isArray(data)) {
+        res.status(400).json({ error: 'Dati non validi. Inviare array di oggetti in body.data' });
+        return null;
+    }
+    if (data.length === 0) {
+        res.status(400).json({ error: 'Nessun dato da sincronizzare' });
+        return null;
+    }
+    return data;
+}
+
+async function writeBorderoCsv(res, data, filePath, label, headers = null) {
+    try {
+        await fs.promises.mkdir(BORDERO_DATA_DIR, { recursive: true });
+        await fs.promises.writeFile(filePath, borderoJsonToCsv(data, headers), 'utf8');
+        return res.json({
+            success: true,
+            message: `✅ ${data.length} ${label} sincronizzati`,
+            file: filePath,
+            rows: data.length,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error(`❌ Errore sync ${label}:`, error);
+        return res.status(500).json({ error: error.message, path: filePath });
+    }
+}
+
+async function readBorderoCsvRows(filePath) {
+    try {
+        const content = await fs.promises.readFile(filePath, 'utf8');
+        return parseCsv(content, { columns: true, skip_empty_lines: true, bom: true });
+    } catch (_) {
+        return [];
+    }
+}
+
+function preserveBorderoRichieste(nextRows, existingRows) {
+    const existingById = new Map(existingRows.map((row) => [String(row.id || '').trim(), row.richieste]));
+    return nextRows.map((row) => {
+        const id = String(row.id || '').trim();
+        if (id && (row.richieste === undefined || row.richieste === '') && existingById.has(id)) {
+            return { ...row, richieste: existingById.get(id) };
+        }
+        return row;
+    });
+}
+
+async function handleBorderoCsvSync(req, res, type) {
+    const data = validateBorderoSyncPayload(req, res);
+    if (!data) return;
+
+    if (type === 'dbase') {
+        return res.status(410).json({
+            success: false,
+            error: 'Endpoint deprecato: deejay.csv non viene piu sincronizzato da dBase Excel.',
+            hint: 'Usare la gestione DJ in ADMIN e l\'endpoint /api/bordero/dj-source.',
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    const filePath = BORDERO_CSV_FILES[type];
+    if (!filePath) return res.status(404).json({ error: `Tipo di sincronizzazione non supportato: ${type}` });
+    const rows = type === 'brani'
+        ? preserveBorderoRichieste(data, await readBorderoCsvRows(filePath))
+        : data;
+    const label = type === 'locationOptions' ? 'opzioni Location' : type;
+    const headers = type === 'locationOptions' ? ['group', 'parent', 'value'] : null;
+    return writeBorderoCsv(res, rows, filePath, label, headers);
+}
+
+for (const [legacyType, currentType] of Object.entries({
+    brani: 'brani',
+    comuni: 'comuni',
+    dbase: 'dbase',
+    location: 'location',
+    'location-options': 'locationOptions'
+})) {
+    app.post(`/api/sync/${legacyType}`, (req, res) => handleBorderoCsvSync(req, res, currentType));
+}
+
+for (const currentType of ['brani', 'comuni', 'location', 'location-options']) {
+    app.post(`/api/bordero/sync-${currentType}`, (req, res) => {
+        const normalizedType = currentType === 'location-options' ? 'locationOptions' : currentType;
+        return handleBorderoCsvSync(req, res, normalizedType);
+    });
+}
+
+app.get('/api/status', (req, res) => {
+    res.json({
+        server: 'unified-server',
+        port: PORT,
+        status: 'online',
+        timestamp: new Date().toISOString()
+    });
+});
 
 // VirtualDJ proxy must be available before any generic routing/404 handling.
 app.get('/api/vdj/proxy', async (req, res) => {

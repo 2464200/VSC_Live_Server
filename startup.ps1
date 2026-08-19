@@ -334,47 +334,6 @@ function Start-UnifiedServer {
     }
 }
 
-function Start-BorderoSyncServer {
-    $serverScript = Join-Path $RootPath 'Bordero\server\sync-server.js'
-    if (-not (Test-Path $serverScript)) {
-        Write-Host "AVVISO: server sync Bordero non trovato: $serverScript" -ForegroundColor Yellow
-        return $null
-    }
-
-    $primaryPort = 5501
-    $fallbackPort = 5511
-    $syncPort = $primaryPort
-
-    if (Test-PortListening -Port $primaryPort) {
-        if (Test-HttpEndpoint -Uri "http://localhost:$($primaryPort)/api/status") {
-            Write-Host "Bordero Sync Server già in esecuzione sulla porta $primaryPort"
-            return $null
-        }
-
-        Write-Host "Porta $primaryPort occupata ma non risponde al sync endpoint; provo fallback $fallbackPort"
-        $syncPort = $fallbackPort
-    }
-
-    Write-Host "Avvio Bordero Sync Server sulla porta $syncPort..."
-    try {
-        $proc = Start-ProcessSafe -FilePath 'node' -ArgumentList @($serverScript, '--port', $syncPort) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
-        if (-not $proc) {
-            Write-Host "ERRORE: impossibile avviare Bordero Sync Server" -ForegroundColor Red
-            return $null
-        }
-
-        Write-Host "OK Bordero Sync Server avviato (PID: $($proc.Id))"
-        if (-not (Wait-ForPort -Port $syncPort -TimeoutSeconds 10)) {
-            Write-Host "AVVISO: Bordero Sync Server non risponde sulla porta $syncPort" -ForegroundColor Yellow
-        }
-
-        return $proc.Id
-    } catch {
-        Write-Host "ERRORE: impossibile avviare Bordero Sync Server - $_" -ForegroundColor Red
-        return $null
-    }
-}
-
 function Invoke-WebcamProfiling {
     param(
         [int]$Port
@@ -418,7 +377,7 @@ $startedPids = @()
 
 # Verifica se il server è già in esecuzione
 if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2)) {
-    Write-Host "Server già in esecuzione sulle porte $UnifiedPort e 5501 - Nessuna azione necessaria"
+    Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."
     try {
@@ -454,7 +413,7 @@ Stop-NodeListenersOnPort -Port $UnifiedPort
 
 $processId = Start-UnifiedServer
 if ($processId) { $startedPids += $processId }
-$syncProcessId = Start-BorderoSyncServer
+$syncProcessId = $null
 if ($syncProcessId) { $startedPids += $syncProcessId }
 Save-Pids -Pids $startedPids
 
@@ -490,7 +449,7 @@ Write-Host "  Eventi:      http://localhost:$($UnifiedPort)/eventi/eventi.html"
 Write-Host ""
 Write-Host "Server integrati:"
 Write-Host "  - Unified Server (porta $UnifiedPort): Web + PDF + Eventi"
-Write-Host "  - Bordero Sync Server (porta 5501): video + sincronizzazione dati"
+Write-Host "  - Bordero Sync API integrato nel Unified Server (porta $UnifiedPort)"
 Write-Host ""
 
 if (-not $NoWait) {

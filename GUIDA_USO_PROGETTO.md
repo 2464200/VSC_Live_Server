@@ -6,7 +6,7 @@
 ## Panoramica
 Questo progetto usa il server unificato `unified-server.js` sulla porta standard `5500`. Tutte le pagine principali del progetto e i mock API Eventi sono servite da questo server.
 
-VS Code Live Server può essere usato per anteprime statiche su una porta separata (`5501`) ma non può sostituire il server unificato su `5500`.
+VS Code Live Server puo' essere usato solo facoltativamente per anteprime statiche; non fa parte del runtime del progetto e non deve essere avviato insieme al server unificato.
 
 ## Server e porte
 
@@ -14,19 +14,6 @@ VS Code Live Server può essere usato per anteprime statiche su una porta separa
   - serve file statici dalla root del progetto
   - serve il modulo Eventi su `/eventi`
   - serve API Eventi su `/eventi/api`
-- `5501` → Live Server (anteprima statica)
-  - utile solo per visualizzare HTML/CSS/JS statico
-  - non serve le API Eventi del progetto
-
-## Configurazione corrente
-Nel file `c:\VSC_Live_Server\.vscode\settings.json` è impostato:
-
-```json
-{
-  "liveServer.settings.port": 5501,
-  "liveServer.settings.host": "127.0.0.1"
-}
-```
 
 ## Come avviare il progetto reale
 
@@ -37,18 +24,6 @@ Nel file `c:\VSC_Live_Server\.vscode\settings.json` è impostato:
    - `http://localhost:5500/index.html`
    - `http://localhost:5500/diagnostica.html`
    - `http://localhost:5500/eventi/eventi.html`
-
-## Uso di Live Server
-
-Se vuoi usare Live Server per anteprime veloci:
-
-1. Avvia Live Server da VS Code nella cartella `c:\VSC_Live_Server`
-2. Accertati che usi porta `5501`
-3. Apri:
-   - `http://localhost:5500/index.html`
-   - `http://localhost:5500/eventi/eventi.html`
-
-> Nota: le pagine Eventi aperte da Live Server cercheranno comunque le API su `5500`. Per funzionare correttamente, `unified-server.js` deve restare attivo.
 
 ## Percorsi importanti
 

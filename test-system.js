@@ -6,16 +6,48 @@
 
 const http = require('http');
 
+const BASE_URL = process.env.DIAGNOSTIC_BASE_URL || 'http://localhost:5500';
 const tests = [
-    { name: 'Unified Server', url: 'http://localhost:5500/', port: 5500 },
-    { name: 'Unified PDF API', url: 'http://localhost:5500/api/pdf-list', port: 5500 },
-    { name: 'Unified Eventi API', url: 'http://localhost:5500/eventi/api/ping', port: 5500 },
-    { name: 'Unified Eventi DJ API', url: 'http://localhost:5500/eventi/api/dj', port: 5500 }
+    { name: 'Unified Server', path: '/', expected: [200] },
+    { name: 'Health API', path: '/api/health', expected: [200] },
+    { name: 'Status API', path: '/api/status', expected: [200] },
+    { name: 'PDF API', path: '/api/pdf-list', expected: [200] },
+    { name: 'Eventi ping API', path: '/eventi/api/ping', expected: [200] },
+    { name: 'Eventi status API', path: '/eventi/api/status', expected: [200] },
+    { name: 'Eventi DJ API', path: '/eventi/api/dj', expected: [200] },
+    { name: 'Eventi QR API', path: '/eventi/api/qr', expected: [200] },
+    { name: 'Videoclip API', path: '/api/videoclip/list', expected: [200] },
+    { name: 'Homepage', path: '/index.html', expected: [200] },
+    { name: 'Diagnostica page', path: '/diagnostica.html', expected: [200] },
+    { name: 'Bordero page', path: '/Bordero/pages/bordero.html', expected: [200] },
+    { name: 'Mobile page', path: '/public/mobile1.html', expected: [200] }
+].map((test) => ({ ...test, url: `${BASE_URL}${test.path}` }));
+
+const csvTests = [
+    'display.csv',
+    'NextCoreo.csv',
+    'servizio.csv',
+    'Bordero/data/brani.csv',
+    'Bordero/data/comuni_italia.csv',
+    'Bordero/data/location.csv',
+    'Bordero/data/location_popup_options.csv'
+].map((path) => ({ name: `CSV ${path}`, path, url: `${BASE_URL}/${path}` }));
+
+const borderoSyncTests = [
+    '/api/bordero/sync-brani',
+    '/api/bordero/sync-comuni',
+    '/api/bordero/sync-location',
+    '/api/bordero/sync-location-options',
+    '/api/sync/brani',
+    '/api/sync/comuni',
+    '/api/sync/location',
+    '/api/sync/location-options'
 ];
 
-function testEndpoint(test) {
+function request(test, options = {}) {
     return new Promise((resolve) => {
-        const req = http.get(test.url, { timeout: 5000 }, (res) => {
+        const req = http.request(test.url, { timeout: 5000, ...options }, (res) => {
+            res.resume();
             resolve({ ...test, status: res.statusCode, success: res.statusCode < 400 });
         });
 
@@ -27,14 +59,51 @@ function testEndpoint(test) {
             req.destroy();
             resolve({ ...test, status: null, success: false });
         });
+        req.end(options.body || undefined);
     });
+}
+
+function testEndpoint(test) {
+    return request(test);
+}
+
+async function runPortTests() {
+    const active = await request({ name: 'Canonical port 5500', url: `${BASE_URL}/api/health` });
+    const legacy = await request({ name: 'Legacy port 5501 disabled', url: 'http://localhost:5501/api/status' });
+    return [
+        { ...active, success: active.status === 200 },
+        { ...legacy, success: legacy.status === null, status: legacy.status === null ? 'closed' : legacy.status }
+    ];
+}
+
+async function runCsvTests() {
+    return Promise.all(csvTests.map(async (test) => {
+        const result = await request(test);
+        return { ...result, success: result.status === 200 };
+    }));
+}
+
+async function runBorderoSyncTests() {
+    return Promise.all(borderoSyncTests.map(async (path) => {
+        const result = await request({ name: `Sync route ${path}`, url: `${BASE_URL}${path}` }, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}'
+        });
+        return { ...result, success: result.status === 400 };
+    }));
 }
 
 async function runTests() {
     console.log('Test di integrita sistema automatizzato');
     console.log('='.repeat(50));
 
-    const results = await Promise.all(tests.map(testEndpoint));
+    const results = [
+        ...(await Promise.all(tests.map(testEndpoint))),
+        ...(await runPortTests()),
+        ...(await runCsvTests()),
+        ...(await runBorderoSyncTests())
+    ];
 
     let allGood = true;
     results.forEach(result => {
@@ -46,7 +115,7 @@ async function runTests() {
 
     console.log('='.repeat(50));
     if (allGood) {
-        console.log('Sistema completamente operativo');
+        console.log(`Sistema completamente operativo (${results.length} controlli)`);
         console.log('');
         console.log('URL di accesso:');
         console.log('  Homepage:    http://localhost:5500/index.html');

@@ -8,6 +8,7 @@
     "dev": "nodemon unified-server.js",
     "electron": "electron electron/main.js",
     "diagnostic": "node scripts/diagnostic-check.js",
+    "test:system": "node test-system.js",
     "test:bordero": "node test/bordero-finish.test.js",
     "build:brani": "node Eventi/sync-brani.js",
     "eventi": "npm run build:brani && node unified-server.js",

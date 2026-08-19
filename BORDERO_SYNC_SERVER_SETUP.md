@@ -8,7 +8,7 @@
 Il **Sync Server** Ã¨ un server Node.js che riceve i dati Excel dal browser e li sincronizza direttamente nei file CSV su disco.
 
 Nota runtime: il progetto completo usa come standard `unified-server.js` su `http://localhost:5500`.
-Il Sync Server Bordero su `5501` resta un servizio dedicato solo alla sincronizzazione CSV.
+La sincronizzazione Bordero e' ora integrata nel server unificato su `5500`. `sync-server.js` resta disponibile solo come componente legacy e non viene avviato dal flusso standard.
 
 ### Flow:
 ```
@@ -46,16 +46,16 @@ npm install express
 ### Opzione 1: Manuale (PowerShell)
 
 ```powershell
-# Nel terminale di VS Code o PowerShell
+# Avvio standard: usare unified-server.js
 cd 'C:\VSC_Live_Server'
-node Bordero/server/sync-server.js
+node unified-server.js
 ```
 
 Dovresti vedere:
 ```
 â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
 â•‘  ðŸš€ BORDERO SYNC SERVER                      â•‘
-â•‘  Porta: 5501                                  â•‘
+â•‘  Porta: 5500                                  â•‘
 â•‘  Data Dir: Bordero\data                       â•‘
 â•‘                                               â•‘
 â•‘  Endpoint disponibili:                        â•‘

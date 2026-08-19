@@ -88,6 +88,10 @@
         <button onclick="testEventiApi()">Test Eventi API</button>
         <button onclick="testEventiDjApi()">Test Eventi DJ API</button>
         <button onclick="testCsvFiles()">Test CSV Files</button>
+        <button onclick="testPorts()">Test porte</button>
+        <button onclick="testProjectPages()">Test pagine e link</button>
+        <button onclick="testBorderoSyncApi()">Test API Bordero</button>
+        <button onclick="testAutomationEndpoints()">Test automatismi</button>
         <button onclick="testLegacyComponents()">Test Legacy opzionali</button>
         <button onclick="clearTests()">Pulisci risultati</button>
     </div>
@@ -386,7 +390,15 @@
 
     async function testCsvFiles(clearPrevious = true) {
         if (clearPrevious) resetTests();
-        const csvFiles = ["display.csv", "NextCoreo.csv", "servizio.csv"];
+        const csvFiles = [
+            "display.csv",
+            "NextCoreo.csv",
+            "servizio.csv",
+            "Bordero/data/brani.csv",
+            "Bordero/data/comuni_italia.csv",
+            "Bordero/data/location.csv",
+            "Bordero/data/location_popup_options.csv"
+        ];
 
         for (const file of csvFiles) {
             try {
@@ -415,6 +427,117 @@
         }
     }
 
+    async function testPorts(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        try {
+            const { response, data } = await fetchJsonStatus(`${DIAGNOSTICA_BASE_URL}/api/health`);
+            log("Porta canonica 5500", response.ok ? "success" : "error", [
+                `Status: ${response.status}`,
+                `Server: ${data && data.server ? data.server : "N/D"}`
+            ]);
+        } catch (error) {
+            log("Porta canonica 5500", "error", [`Errore: ${error.message}`]);
+        }
+
+        try {
+            const response = await fetch("http://localhost:5501/api/status", { cache: "no-store" });
+            log("Porta legacy 5501 disattivata", "warning", [
+                `Risposta inattesa: HTTP ${response.status}`,
+                "Il runtime standard dovrebbe usare solo la porta 5500"
+            ]);
+        } catch (error) {
+            log("Porta legacy 5501 disattivata", "success", [
+                "Nessun servizio raggiungibile su 5501",
+                "Runtime correttamente unificato su 5500"
+            ]);
+        }
+    }
+
+    async function testProjectPages(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const pages = [
+            "/index.html",
+            "/diagnostica.html",
+            "/Bordero/pages/bordero.html",
+            "/Bordero/pages/admin.html",
+            "/Bordero/pages/display.html",
+            "/Bordero/pages/next-coreo.html",
+            "/eventi/eventi.html",
+            "/eventi/visualizer.html",
+            "/Prova/ScriptPDF1.html",
+            "/public/mobile1.html"
+        ];
+
+        for (const page of pages) {
+            try {
+                const response = await fetch(`${DIAGNOSTICA_BASE_URL}${page}`, { cache: "no-store" });
+                log(`Pagina: ${page}`, response.ok ? "success" : "error", [
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            } catch (error) {
+                log(`Pagina: ${page}`, "error", [`Errore: ${error.message}`]);
+            }
+        }
+    }
+
+    async function testBorderoSyncApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const endpoints = [
+            "/api/bordero/sync-brani",
+            "/api/bordero/sync-comuni",
+            "/api/bordero/sync-location",
+            "/api/bordero/sync-location-options",
+            "/api/sync/brani",
+            "/api/sync/comuni",
+            "/api/sync/location",
+            "/api/sync/location-options"
+        ];
+
+        for (const endpoint of endpoints) {
+            try {
+                const response = await fetch(`${DIAGNOSTICA_BASE_URL}${endpoint}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: "{}",
+                    cache: "no-store"
+                });
+                const expected = response.status === 400;
+                log(`API Bordero: ${endpoint}`, expected ? "success" : "error", [
+                    `Status: ${response.status}`,
+                    "Payload vuoto usato: verifica non distruttiva, nessun CSV modificato"
+                ]);
+            } catch (error) {
+                log(`API Bordero: ${endpoint}`, "error", [`Errore: ${error.message}`]);
+            }
+        }
+    }
+
+    async function testAutomationEndpoints(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const endpoints = [
+            ["Health server", "/api/health"],
+            ["Status server", "/api/status"],
+            ["Lista videoclip", "/api/videoclip/list"],
+            ["PDF disponibili", "/api/pdf-list"],
+            ["Eventi ping", "/eventi/api/ping"],
+            ["Eventi host IP", "/eventi/api/host-ip"],
+            ["Eventi QR", "/eventi/api/qr"]
+        ];
+
+        for (const [name, path] of endpoints) {
+            try {
+                const { response, data } = await fetchJsonStatus(`${DIAGNOSTICA_BASE_URL}${path}`);
+                log(name, response.ok ? "success" : "error", [
+                    `URL: ${path}`,
+                    `Status: ${response.status}`,
+                    `Risposta JSON: ${data ? "valida" : "non JSON"}`
+                ]);
+            } catch (error) {
+                log(name, "error", [`Errore: ${error.message}`]);
+            }
+        }
+    }
+
     async function runAllTests() {
         resetTests();
         await testUnifiedServer(false);
@@ -425,7 +548,17 @@
         await new Promise(r => setTimeout(r, 250));
         await testEventiDjApi(false);
         await new Promise(r => setTimeout(r, 250));
+        await testEventiQr(false);
+        await new Promise(r => setTimeout(r, 250));
         await testCsvFiles(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testPorts(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testProjectPages(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testBorderoSyncApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testAutomationEndpoints(false);
         updateSummary();
     }
 
