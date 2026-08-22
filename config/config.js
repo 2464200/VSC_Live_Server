@@ -16,7 +16,7 @@ const config = {
   port: Number(process.env.UNIFIED_PORT || 5500),
   pdfFolder: resolvePortablePath(process.env.VSC_SCRIPT_PDF_DIR, path.join(projectRoot, 'pdf')),
   videoClipDir: resolvePortablePath(process.env.VSC_VIDEOCLIP_PATH, path.join(projectRoot, 'videos')),
-  siaeExportDir: resolvePortablePath(process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR, path.join(projectRoot, 'exports', 'siae')),
+  siaeExportDir: resolvePortablePath(process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR, 'C:\\VSC_SIAE'),
   userformRecordingsDir: resolvePortablePath(process.env.USERFORM_RECORDINGS_DIR, path.join(projectRoot, 'userform-recordings')),
   legacyRecordingsDir: resolvePortablePath(process.env.LEGACY_RECORDINGS_DIR, path.join(projectRoot, 'legacy-recordings')),
   electronControlPort: Number(process.env.ELECTRON_CONTROL_PORT || 5512),

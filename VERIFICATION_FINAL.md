@@ -123,7 +123,7 @@ Result: ✅ SERVER ONLINE
 
 **Dipendenze rimosse:**
 - ❌ Hard-coded `C:\VSC_Live_Server` → ✅ calcolato da `__dirname`
-- ❌ Hard-coded `C:\VSC_SIAE` → ✅ da `.env` (default: `./exports/siae`)
+- ✅ Destinazione standard `C:\VSC_SIAE` centralizzata in `config/config.js`
 - ❌ Hard-coded `C:\VSC_SCRIPT_PDF` → ✅ da `.env` (default: `./pdf`)
 - ❌ Hardcoded User path → ✅ auto-detect da sistema
 

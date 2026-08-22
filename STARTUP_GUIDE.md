@@ -71,7 +71,7 @@ Questo mostrerà:
 UNIFIED_PORT=5500
 VSC_SCRIPT_PDF_DIR=./exports/pdfs
 VSC_VIDEOCLIP_PATH=./exports/videoclips
-VSC_SIAE_DIR=./exports/siae
+VSC_SIAE_DIR=C:\VSC_SIAE
 USERFORM_RECORDINGS_DIR=./exports/recordings
 ```
 

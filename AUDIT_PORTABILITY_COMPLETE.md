@@ -127,7 +127,7 @@ const config = {
 - `pids/` - PID file
 - `pdf/` - PDF storage
 - `videos/` - video clips
-- `exports/siae/` - SIAE export
+- `C:\VSC_SIAE\` - SIAE export
 - `userform-recordings/` - Recordings
 - `legacy-recordings/` - Legacy data
 

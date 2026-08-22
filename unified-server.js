@@ -280,6 +280,14 @@ function escapeCsvField(value = '') {
     return `"${String(value ?? '').replace(/"/g, '""')}"`;
 }
 
+function formatSiaeField(value = '') {
+    return String(value ?? '')
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/,/g, ' ')
+        .replace(/"/g, '')
+        .trim();
+}
+
 function writeMusicArchiveIndexCsv(rootPath, files, scannedAt = Date.now()) {
     const rows = Array.isArray(files) ? files : [];
     const scannedAtIso = new Date(scannedAt).toISOString();
@@ -3940,7 +3948,7 @@ app.post('/api/bordero/export-siae', (req, res) => {
             completed.sort((left, right) => left.titolo.localeCompare(right.titolo, 'it', { sensitivity: 'base' }));
         }
 
-        const rows = completed.map(item => [item.titolo, item.autore, '', '', includeDuration ? item.durata : ''].map(escapeCsvField).join(','));
+        const rows = completed.map(item => [item.titolo, item.autore, '', '', includeDuration ? item.durata : ''].map(formatSiaeField).join(','));
         const csvContent = ['Titolo,Autore,Compositore,Performer,Durata', ...rows].join('\r\n');
 
         const now = new Date();
@@ -4618,21 +4626,12 @@ router.get('/export-csv', (req, res) => {
         // Costruisci il CSV in formato SIAE
         const siaeHeader = 'Titolo,Autore,Compositore,Performer,Durata';
         const siaeRows = records.map(r => {
-            // Funzione per escapare campi con virgole, virgolette, etc.
-            const escapeCsv = (val) => {
-                if (!val) return '';
-                const str = String(val);
-                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-                    return '"' + str.replace(/"/g, '""') + '"';
-                }
-                return str;
-            };
             return [
-                escapeCsv(r.titolo),
-                escapeCsv(r.autore),
-                escapeCsv(r.compositore),
-                escapeCsv(r.performer),
-                escapeCsv(r.durata)
+                formatSiaeField(r.titolo),
+                formatSiaeField(r.autore),
+                formatSiaeField(r.compositore),
+                formatSiaeField(r.performer),
+                formatSiaeField(r.durata)
             ].join(',');
         });
         

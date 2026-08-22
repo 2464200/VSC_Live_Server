@@ -38,7 +38,6 @@ function ensureRootPaths() {
     'pids',
     'videos',
     'exports',
-    'exports/siae',
     'userform-recordings',
     'legacy-recordings',
     'pdf'

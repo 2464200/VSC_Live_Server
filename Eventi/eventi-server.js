@@ -3,6 +3,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
+const { projectConfig } = require('../config/config');
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ const pathDjLimits = path.join(__dirname, 'data', 'dj-limits.json');
 const pathCsv   = path.join(__dirname, 'data', 'log.csv');
 const pathEventMeta = path.join(__dirname, 'data', 'event-meta.json');
 // Directory condivisa export SIAE (allineata a Bordero/unified-server).
-const SIAE_EXPORT_DIR = process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR || 'C:\\VSC_SIAE';
+const SIAE_EXPORT_DIR = projectConfig.siaeExportDir;
 
 function ensureSiaeExportDir() {
   if (!fs.existsSync(SIAE_EXPORT_DIR)) {
@@ -293,7 +294,11 @@ router.get('/export-csv', (req, res) => {
 
       const braniById = new Map((Array.isArray(brani) ? brani : []).map(item => [String(item?.id || ''), item]));
       const includeDuration = String(req.query.duration || '').toLowerCase() === '1';
-      const escapeSiaeField = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+      const formatSiaeField = value => String(value ?? '')
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/,/g, ' ')
+        .replace(/"/g, '')
+        .trim();
       const siaeRows = rowsArray.map(row => {
         const item = braniById.get(String(row.id || '')) || {};
         return [
@@ -302,7 +307,7 @@ router.get('/export-csv', (req, res) => {
           item.compositore || '',
           '',
           includeDuration ? item.durata || '' : ''
-        ].map(escapeSiaeField).join(',');
+        ].map(formatSiaeField).join(',');
       });
       const now = new Date();
       const gg = String(now.getDate()).padStart(2, '0');
