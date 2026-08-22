@@ -114,6 +114,9 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
 
   const csvContent = fs.readFileSync(csvPath, 'utf-8');
   const lines = csvContent.replace(/\r/g, '').split('\n');
+  const headerDelimiter = sourceName === 'base-static' ? ';' : detectCsvDelimiter(lines[0] || '');
+  const header = parseCSVLine(lines[0] || '', headerDelimiter).map(c => normalizeKey(c));
+  const findColumn = (...names) => names.map(name => header.indexOf(normalizeKey(name))).find(index => index >= 0);
   const rows = [];
   let skipped = 0;
 
@@ -130,26 +133,26 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
 
     let idIndex, titoloIndex, branoIndex, autoreIndex, compositoreIndex, durataIndex;
     if (sourceName === 'base-static') {
-      idIndex = 2;
-      titoloIndex = 3;
-      branoIndex = 4;
-      autoreIndex = 5;
-      compositoreIndex = 6; // colonna 7 (nuovo campo)
-      durataIndex = 7;      // colonna 8 (nuovo campo)
+      idIndex = findColumn('ID') ?? 2;
+      titoloIndex = findColumn('coreografia') ?? 3;
+      branoIndex = findColumn('brano') ?? 4;
+      autoreIndex = findColumn('autore') ?? 5;
+      compositoreIndex = findColumn('compositore');
+      durataIndex = findColumn('durata');
     } else if (sourceName === 'base-legacy') {
       idIndex = 1;
       titoloIndex = 2;
       branoIndex = 3;
       autoreIndex = 4;
-      compositoreIndex = undefined;
-      durataIndex = undefined;
+      compositoreIndex = findColumn('compositore');
+      durataIndex = findColumn('durata');
     } else {
-      idIndex = 2;
-      titoloIndex = 3;
-      branoIndex = 4;
-      autoreIndex = 5;
-      compositoreIndex = 6;
-      durataIndex = 7;
+      idIndex = findColumn('ID') ?? 2;
+      titoloIndex = findColumn('coreografia') ?? 3;
+      branoIndex = findColumn('brano') ?? 4;
+      autoreIndex = findColumn('autore') ?? 5;
+      compositoreIndex = findColumn('compositore');
+      durataIndex = findColumn('durata');
     }
 
     const titolo = cols[titoloIndex];

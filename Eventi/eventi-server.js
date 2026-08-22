@@ -284,6 +284,26 @@ router.get('/export-csv', (req, res) => {
     const isSiaeExport = String(req.query.siae || '').toLowerCase() === '1';
 
     if (isSiaeExport) {
+      let brani = [];
+      try {
+        brani = JSON.parse(fs.readFileSync(pathBrani, 'utf-8'));
+      } catch (e) {
+        brani = [];
+      }
+
+      const braniById = new Map((Array.isArray(brani) ? brani : []).map(item => [String(item?.id || ''), item]));
+      const includeDuration = String(req.query.duration || '').toLowerCase() === '1';
+      const escapeSiaeField = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+      const siaeRows = rowsArray.map(row => {
+        const item = braniById.get(String(row.id || '')) || {};
+        return [
+          item.titolo || item.coreografia || row.id,
+          item.autore || '',
+          item.compositore || '',
+          '',
+          includeDuration ? item.durata || '' : ''
+        ].map(escapeSiaeField).join(',');
+      });
       const now = new Date();
       const gg = String(now.getDate()).padStart(2, '0');
       const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -291,7 +311,7 @@ router.get('/export-csv', (req, res) => {
       const hhhh = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
       const siaeFileName = `${gg}-${mm}-${aaaa}-${hhhh}_SIAE_VSC.csv`;
       const siaePath = getSiaeExportPath(siaeFileName);
-      fs.writeFileSync(siaePath, header + rows);
+      fs.writeFileSync(siaePath, '\uFEFF' + ['Titolo,Autore,Compositore,Performer,Durata', ...siaeRows].join('\r\n'));
       res.json({ ok: true, csv: `/eventi/api/download-siae/${encodeURIComponent(siaeFileName)}`, fileName: siaeFileName });
       return;
     }

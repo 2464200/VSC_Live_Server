@@ -5,7 +5,7 @@
     "brano": "lost in the shuffle",
     "autore": "michael peterson",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "002",
@@ -13,7 +13,7 @@
     "brano": "what the heaven",
     "autore": "kyle park",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "003",
@@ -21,7 +21,7 @@
     "brano": "16 bars",
     "autore": "the southern gothic",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "004",
@@ -29,7 +29,7 @@
     "brano": "crime of the century",
     "autore": "shania twain",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "005",
@@ -37,7 +37,7 @@
     "brano": "sixteen tons",
     "autore": "tennessee ernie ford",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "006",
@@ -45,7 +45,7 @@
     "brano": "19 forever",
     "autore": "granger smith",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "007",
@@ -53,7 +53,7 @@
     "brano": "1929",
     "autore": "tara oram",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "008",
@@ -61,7 +61,7 @@
     "brano": "1 2 3",
     "autore": "ann tayler",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "009",
@@ -69,7 +69,7 @@
     "brano": "get it got it god",
     "autore": "billy gilman",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "010",
@@ -77,7 +77,7 @@
     "brano": "miss me more",
     "autore": "kelsea ballerini",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "011",
@@ -85,7 +85,7 @@
     "brano": "3 tequila floor",
     "autore": "josiah siska",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "012",
@@ -93,7 +93,7 @@
     "brano": "shoulda",
     "autore": "kylie morgan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "013",
@@ -101,7 +101,7 @@
     "brano": "outback booty call",
     "autore": "8 ball aitken",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "014",
@@ -109,7 +109,7 @@
     "brano": "99 bottles",
     "autore": "zane williams",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "015",
@@ -117,7 +117,7 @@
     "brano": "a bar song (tipsy)",
     "autore": "shaboozey",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "016",
@@ -125,7 +125,7 @@
     "brano": "nothing that a beer can't fix",
     "autore": "thomas rhett",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "017",
@@ -133,7 +133,7 @@
     "brano": "whole lotta quit",
     "autore": "randy houser",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "018",
@@ -141,7 +141,7 @@
     "brano": "aa",
     "autore": "walker hayes",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "019",
@@ -149,7 +149,7 @@
     "brano": "walkin' after midnight",
     "autore": "the groovegrass boyz",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "020",
@@ -157,7 +157,7 @@
     "brano": "paradise",
     "autore": "thomas rhett",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "021",
@@ -165,7 +165,7 @@
     "brano": "you shock me all night long",
     "autore": "steve' n' seagulls",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "022",
@@ -173,7 +173,7 @@
     "brano": "all shook up",
     "autore": "billy joel",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "023",
@@ -181,7 +181,7 @@
     "brano": "all to myself",
     "autore": "dan + shy",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "024",
@@ -189,7 +189,7 @@
     "brano": "altitude",
     "autore": "jarrod morris",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "025",
@@ -197,7 +197,7 @@
     "brano": "american kids",
     "autore": "kenny chesney",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "026",
@@ -205,7 +205,7 @@
     "brano": "look what gone god gave her",
     "autore": "thomas rhett",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "027",
@@ -213,7 +213,7 @@
     "brano": "anthem",
     "autore": "brett kissel",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "028",
@@ -221,7 +221,7 @@
     "brano": "she loves me anyway",
     "autore": "chancey williams",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "029",
@@ -229,7 +229,7 @@
     "brano": "old country barn",
     "autore": "james johnston",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "030",
@@ -237,7 +237,7 @@
     "brano": "askin' questions",
     "autore": "brady seals",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "031",
@@ -245,7 +245,7 @@
     "brano": "austin",
     "autore": "dasha",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "032",
@@ -253,7 +253,7 @@
     "brano": "authority song",
     "autore": "chancey williams",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "033",
@@ -261,7 +261,7 @@
     "brano": "aw naw",
     "autore": "chris young",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "034",
@@ -269,7 +269,7 @@
     "brano": "break it back down",
     "autore": "pat green",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "035",
@@ -277,7 +277,7 @@
     "brano": "bad bad leroy brown",
     "autore": "jim croce",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "036",
@@ -285,7 +285,7 @@
     "brano": "beautiful drug",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "037",
@@ -293,7 +293,7 @@
     "brano": "beer for my horses",
     "autore": "toby keith & willie nelson",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "038",
@@ -301,7 +301,7 @@
     "brano": "boogie and beethoven",
     "autore": "the gatlin brothers band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "039",
@@ -309,7 +309,7 @@
     "brano": "best adventure",
     "autore": "leaving thomas",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "040",
@@ -317,7 +317,7 @@
     "brano": "better country",
     "autore": "paul brandt",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "041",
@@ -325,7 +325,7 @@
     "brano": "i don't need the booze",
     "autore": "alan jackson",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "042",
@@ -333,7 +333,7 @@
     "brano": "lord have marcy on a country boy",
     "autore": "josh turner",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "043",
@@ -341,7 +341,7 @@
     "brano": "somebody take me home",
     "autore": "kenny chesney",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "044",
@@ -349,7 +349,7 @@
     "brano": "winter wonderland",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "045",
@@ -357,7 +357,7 @@
     "brano": "name on a billboard",
     "autore": "charley crockett",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "046",
@@ -365,7 +365,7 @@
     "brano": "all i want for christmas is you",
     "autore": "mariah carey",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "047",
@@ -373,7 +373,7 @@
     "brano": "black coffee",
     "autore": "lacy j dalton",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "048",
@@ -381,7 +381,7 @@
     "brano": "last christmas",
     "autore": "taylor swift",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "049",
@@ -389,7 +389,7 @@
     "brano": "party for two",
     "autore": "shania twain feat. billy currington",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "050",
@@ -397,7 +397,7 @@
     "brano": "some town somewhere",
     "autore": "kenny chesney",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "051",
@@ -405,7 +405,7 @@
     "brano": "the salt in my tears",
     "autore": "dolly parton",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "052",
@@ -413,7 +413,7 @@
     "brano": "undone",
     "autore": "dean brody",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "053",
@@ -421,7 +421,7 @@
     "brano": "why couldn't be christmas everyday?",
     "autore": "bianca ryan",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "054",
@@ -429,7 +429,7 @@
     "brano": "i'm still falling",
     "autore": "slow horses",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "055",
@@ -437,7 +437,7 @@
     "brano": "daisy dukes and cowboy boots",
     "autore": "cowboy troy",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "056",
@@ -445,7 +445,7 @@
     "brano": "the booze cruise",
     "autore": "blackjack billy",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "057",
@@ -453,7 +453,7 @@
     "brano": "born free",
     "autore": "kid rock",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "058",
@@ -461,7 +461,7 @@
     "brano": "some town somewhere",
     "autore": "kenny chesney",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "059",
@@ -469,7 +469,7 @@
     "brano": "borrow my heart",
     "autore": "taylor henderson",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "060",
@@ -477,7 +477,7 @@
     "brano": "bring down the house",
     "autore": "dean brody",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "061",
@@ -485,7 +485,7 @@
     "brano": "broken heels",
     "autore": "alexandra burke",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "062",
@@ -493,7 +493,7 @@
     "brano": "good people",
     "autore": "josh grider",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "063",
@@ -501,7 +501,7 @@
     "brano": "one step forward",
     "autore": "desert rose band",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "064",
@@ -509,7 +509,7 @@
     "brano": "build a fire",
     "autore": "the wanderings hearts",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "065",
@@ -517,7 +517,7 @@
     "brano": "i hope it's me",
     "autore": "brett kissel",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "066",
@@ -525,7 +525,7 @@
     "brano": "burning love",
     "autore": "travis tritt",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "067",
@@ -533,7 +533,7 @@
     "brano": "firefly",
     "autore": "east love",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "068",
@@ -541,7 +541,7 @@
     "brano": "bush party",
     "autore": "dean brody",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "069",
@@ -549,7 +549,7 @@
     "brano": "by and by",
     "autore": "the olson band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "070",
@@ -557,7 +557,7 @@
     "brano": "all i want for christmas is a real good than",
     "autore": "kenny chesney",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "071",
@@ -565,7 +565,7 @@
     "brano": "cabo san lucas",
     "autore": "toby keith",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "072",
@@ -573,7 +573,7 @@
     "brano": "bottoms up",
     "autore": "brantley gilbert",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "073",
@@ -581,7 +581,7 @@
     "brano": "kick the dust up",
     "autore": "luke bryan",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "074",
@@ -589,7 +589,7 @@
     "brano": "sweet home alabama",
     "autore": "lynyrd skynyrd",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "075",
@@ -597,7 +597,7 @@
     "brano": "castaway",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "076",
@@ -605,7 +605,7 @@
     "brano": "my heart's broke down",
     "autore": "dean miller",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "077",
@@ -613,7 +613,7 @@
     "brano": "cha cha slide",
     "autore": "dj casper",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "078",
@@ -621,7 +621,7 @@
     "brano": "all over again",
     "autore": "the mavericks",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "079",
@@ -629,7 +629,7 @@
     "brano": "dance the night away",
     "autore": "the mavericks",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "080",
@@ -637,7 +637,7 @@
     "brano": "oh suzanna",
     "autore": "yamboo",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "081",
@@ -645,7 +645,7 @@
     "brano": "chasing down a good time",
     "autore": "randy houser",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "082",
@@ -653,7 +653,7 @@
     "brano": "stay in your line",
     "autore": "hinterland",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "083",
@@ -661,7 +661,7 @@
     "brano": "check it out",
     "autore": "on the larceny",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "084",
@@ -669,7 +669,7 @@
     "brano": "bailando",
     "autore": "enrique iglesias",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "085",
@@ -677,7 +677,7 @@
     "brano": "stuck like glue",
     "autore": "sugarland",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "086",
@@ -685,7 +685,7 @@
     "brano": "cheerleader",
     "autore": "omi",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "087",
@@ -693,7 +693,7 @@
     "brano": "cadillac tears",
     "autore": "kevin denney",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "088",
@@ -701,7 +701,7 @@
     "brano": "feels just liken a love song",
     "autore": "sara evans",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "089",
@@ -709,7 +709,7 @@
     "brano": "i'm gonna getcha good",
     "autore": "shania twain",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "090",
@@ -717,7 +717,7 @@
     "brano": "mamma mia",
     "autore": "elena feat glance",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "091",
@@ -725,7 +725,7 @@
     "brano": "original ghostbusters theme song",
     "autore": "ray parker jr",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "092",
@@ -733,7 +733,7 @@
     "brano": "santa's gonna take it all black",
     "autore": "toby keith",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "093",
@@ -741,7 +741,7 @@
     "brano": "the big one",
     "autore": "george strait",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "094",
@@ -749,7 +749,7 @@
     "brano": "up",
     "autore": "shania twain",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "095",
@@ -757,7 +757,7 @@
     "brano": "white christmas",
     "autore": "giuliano palma",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "096",
@@ -765,7 +765,7 @@
     "brano": "it's late",
     "autore": "shakin' stevens",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "097",
@@ -773,7 +773,7 @@
     "brano": "born it to the ground",
     "autore": "nickelback",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "098",
@@ -781,7 +781,7 @@
     "brano": "calling all the monster",
     "autore": "china anne mcclain",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "099",
@@ -789,7 +789,7 @@
     "brano": "last night (line dance party)",
     "autore": "madison cowboy & dj robbie",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "100",
@@ -797,7 +797,7 @@
     "brano": "last night (original version)",
     "autore": "chris handerson feat dj robbie",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "101",
@@ -805,7 +805,7 @@
     "brano": "rock on",
     "autore": "hunter",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "102",
@@ -813,7 +813,7 @@
     "brano": "baby likes to rock it",
     "autore": "the tractors",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "103",
@@ -821,7 +821,7 @@
     "brano": "shut up and fish",
     "autore": "maddie & tae",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "104",
@@ -829,7 +829,7 @@
     "brano": "chop chop",
     "autore": "bruno legrizzly",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "105",
@@ -837,7 +837,7 @@
     "brano": "creekwater clear",
     "autore": "charlie worsham with elle king",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "106",
@@ -845,7 +845,7 @@
     "brano": "city of music",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "107",
@@ -853,7 +853,7 @@
     "brano": "southbound train",
     "autore": "travis tritt",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "108",
@@ -861,7 +861,7 @@
     "brano": "lord of the dance",
     "autore": "ronan hardiman",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "109",
@@ -869,7 +869,7 @@
     "brano": "why wouldn't wanna be me",
     "autore": "keith urban",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "110",
@@ -877,7 +877,7 @@
     "brano": "come my way",
     "autore": "raynes",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "111",
@@ -885,7 +885,7 @@
     "brano": "carry me to back virginia",
     "autore": "old crow medicine show",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "112",
@@ -893,7 +893,7 @@
     "brano": "copperhead road",
     "autore": "steve earle",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "113",
@@ -901,7 +901,7 @@
     "brano": "cotton eye joe",
     "autore": "rednex",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "114",
@@ -909,7 +909,7 @@
     "brano": "hooked on country music",
     "autore": "djtexx",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "115",
@@ -917,7 +917,7 @@
     "brano": "christmas (baby please come home)",
     "autore": "lady antebellum",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "116",
@@ -925,7 +925,7 @@
     "brano": "country as a boy can be",
     "autore": "brady seals",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "117",
@@ -933,7 +933,7 @@
     "brano": "country girl (shake it for me)",
     "autore": "luke bryan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "118",
@@ -941,7 +941,7 @@
     "brano": "country roads",
     "autore": "hermes house band",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "119",
@@ -949,7 +949,7 @@
     "brano": "cowboy up",
     "autore": "jill johnson",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "120",
@@ -957,7 +957,7 @@
     "brano": "blue christmas",
     "autore": "sheryl crow",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "121",
@@ -965,7 +965,7 @@
     "brano": "cowboy casanova",
     "autore": "carrie underwood",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "122",
@@ -973,7 +973,7 @@
     "brano": "must be a woman",
     "autore": "gord bamford",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "123",
@@ -981,7 +981,7 @@
     "brano": "true blue",
     "autore": "madonna",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "124",
@@ -989,7 +989,7 @@
     "brano": "my next broken heart",
     "autore": "brooks & dunn",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "125",
@@ -997,7 +997,7 @@
     "brano": "bury the shovel",
     "autore": "clay walker",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "126",
@@ -1005,7 +1005,7 @@
     "brano": "crush and burn",
     "autore": "thomas rhett",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "127",
@@ -1013,7 +1013,7 @@
     "brano": "what a song can do",
     "autore": "lady a",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "128",
@@ -1021,7 +1021,7 @@
     "brano": "down south shuffle",
     "autore": "r3 feat big robb",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "129",
@@ -1029,7 +1029,7 @@
     "brano": "roxanne's bayou",
     "autore": "billy yates",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "130",
@@ -1037,7 +1037,7 @@
     "brano": "suds in the bucket",
     "autore": "sara evans",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "131",
@@ -1045,7 +1045,7 @@
     "brano": "daddy's money",
     "autore": "ricochet",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "132",
@@ -1053,7 +1053,7 @@
     "brano": "damn (feat dave mustaine)",
     "autore": "brett kissel",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "133",
@@ -1061,7 +1061,7 @@
     "brano": "standin' still",
     "autore": "the clark family experience",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "134",
@@ -1069,7 +1069,7 @@
     "brano": "duelling violins",
     "autore": "ronan hardiman",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "135",
@@ -1077,7 +1077,7 @@
     "brano": "hell if i know",
     "autore": "chase bryant",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "136",
@@ -1085,7 +1085,7 @@
     "brano": "new day dawning",
     "autore": "wynonna judd",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "137",
@@ -1093,7 +1093,7 @@
     "brano": "day job",
     "autore": "gord bamford",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "138",
@@ -1101,7 +1101,7 @@
     "brano": "dear life",
     "autore": "high valley",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "139",
@@ -1109,7 +1109,7 @@
     "brano": "bad side",
     "autore": "moonlight social",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "140",
@@ -1117,7 +1117,7 @@
     "brano": "diane",
     "autore": "cam",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "141",
@@ -1125,7 +1125,7 @@
     "brano": "here's to & I",
     "autore": "the mc clymons",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "142",
@@ -1133,7 +1133,7 @@
     "brano": "the kind of love we make",
     "autore": "luke combos",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "143",
@@ -1141,7 +1141,7 @@
     "brano": "din dang darn it",
     "autore": "ken domash",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "144",
@@ -1149,7 +1149,7 @@
     "brano": "bad case of loving you",
     "autore": "robert palmer",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "145",
@@ -1157,7 +1157,7 @@
     "brano": "don't drink the wather",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "146",
@@ -1165,7 +1165,7 @@
     "brano": "don't make me beg",
     "autore": "steve holy",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "147",
@@ -1173,7 +1173,7 @@
     "brano": "some beach",
     "autore": "blake shelton",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "148",
@@ -1181,7 +1181,7 @@
     "brano": "driven",
     "autore": "casey james",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "149",
@@ -1189,7 +1189,7 @@
     "brano": "natural disaster",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "150",
@@ -1197,7 +1197,7 @@
     "brano": "hillbilly rock hillibilly roll",
     "autore": "die campbell",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "151",
@@ -1205,7 +1205,7 @@
     "brano": "anyone can play",
     "autore": "gle campbell",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "152",
@@ -1213,7 +1213,7 @@
     "brano": "just be you",
     "autore": "billy yates",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "153",
@@ -1221,7 +1221,7 @@
     "brano": "eight second ride",
     "autore": "jake owen",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "154",
@@ -1229,7 +1229,7 @@
     "brano": "achy breaky heart",
     "autore": "billy ray",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "155",
@@ -1237,7 +1237,7 @@
     "brano": "jingle bell rock",
     "autore": "rascal flatts",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "156",
@@ -1245,7 +1245,7 @@
     "brano": "let me be there",
     "autore": "nathan carter",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "157",
@@ -1253,7 +1253,7 @@
     "brano": "long road to nashville",
     "autore": "the woolpackers",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "158",
@@ -1261,7 +1261,7 @@
     "brano": "less and less",
     "autore": "travis tritt",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "159",
@@ -1269,7 +1269,7 @@
     "brano": "even the stars fall for you",
     "autore": "keith urban",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "160",
@@ -1277,7 +1277,7 @@
     "brano": "fake id",
     "autore": "big & rich",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "161",
@@ -1285,7 +1285,7 @@
     "brano": "walla walla prison",
     "autore": "scotty alexander",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "162",
@@ -1293,7 +1293,7 @@
     "brano": "beers ago",
     "autore": "toby keith",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "163",
@@ -1301,7 +1301,7 @@
     "brano": "fight!",
     "autore": "lee dewyze",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "164",
@@ -1309,7 +1309,7 @@
     "brano": "fine",
     "autore": "the abrams",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "165",
@@ -1317,7 +1317,7 @@
     "brano": "fireball",
     "autore": "pitbull",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "166",
@@ -1325,7 +1325,7 @@
     "brano": "cotton eyed joe",
     "autore": "rednex",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "167",
@@ -1333,7 +1333,7 @@
     "brano": "old pop in a oak",
     "autore": "rednex",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "168",
@@ -1341,7 +1341,7 @@
     "brano": "texas as hell",
     "autore": "miranda lambert",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "169",
@@ -1349,7 +1349,7 @@
     "brano": "still in love with you",
     "autore": "travis tritt",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "170",
@@ -1357,7 +1357,7 @@
     "brano": "freag flag",
     "autore": "alex williams",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "171",
@@ -1365,7 +1365,7 @@
     "brano": "i'm holdin'on to love",
     "autore": "shania twain",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "172",
@@ -1373,7 +1373,7 @@
     "brano": "flowers",
     "autore": "miley cyrus",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "173",
@@ -1381,7 +1381,7 @@
     "brano": "mary",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "174",
@@ -1389,7 +1389,7 @@
     "brano": "footloose",
     "autore": "blake shelton",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "175",
@@ -1397,7 +1397,7 @@
     "brano": "for better for worse",
     "autore": "old man markley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "176",
@@ -1405,7 +1405,7 @@
     "brano": "27 in the checking",
     "autore": "kendall shaffer",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "177",
@@ -1413,7 +1413,7 @@
     "brano": "young forever",
     "autore": "high valley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "178",
@@ -1421,7 +1421,7 @@
     "brano": "forgive me friend",
     "autore": "smith & thell",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "179",
@@ -1429,7 +1429,7 @@
     "brano": "get over it",
     "autore": "eagles",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "180",
@@ -1437,7 +1437,7 @@
     "brano": "our first kiss",
     "autore": "jeff wood",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "181",
@@ -1445,7 +1445,7 @@
     "brano": "you've been a friend to me",
     "autore": "bryan adams",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "182",
@@ -1453,7 +1453,7 @@
     "brano": "trip around the sound",
     "autore": "kenny chesney",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "183",
@@ -1461,7 +1461,7 @@
     "brano": "no night like this",
     "autore": "cath purcell",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "184",
@@ -1469,7 +1469,7 @@
     "brano": "games people play",
     "autore": "tracy bird",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "185",
@@ -1477,7 +1477,7 @@
     "brano": "justin sayin",
     "autore": "james parker band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "186",
@@ -1485,7 +1485,7 @@
     "brano": "get along",
     "autore": "surrender hill",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "187",
@@ -1493,7 +1493,7 @@
     "brano": "up",
     "autore": "olly murs",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "188",
@@ -1501,7 +1501,7 @@
     "brano": "ghost town",
     "autore": "sam outlaw",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "189",
@@ -1509,7 +1509,7 @@
     "brano": "giddy up!",
     "autore": "shania twain",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "190",
@@ -1517,7 +1517,7 @@
     "brano": "shivers",
     "autore": "ed sheeran",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "191",
@@ -1525,7 +1525,7 @@
     "brano": "cry to me",
     "autore": "kilotile",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "192",
@@ -1533,7 +1533,7 @@
     "brano": "please mama please",
     "autore": "go cat go",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "193",
@@ -1541,7 +1541,7 @@
     "brano": "you're drunk go home",
     "autore": "kelsea ballerini",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "194",
@@ -1549,7 +1549,7 @@
     "brano": "god is good",
     "autore": "paul overstreet",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "195",
@@ -1557,7 +1557,7 @@
     "brano": "going going gone",
     "autore": "maddie poppe",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "196",
@@ -1565,7 +1565,7 @@
     "brano": "goliath",
     "autore": "smith & thell",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "197",
@@ -1573,7 +1573,7 @@
     "brano": "gone, gone, gone",
     "autore": "phillip phillips",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "198",
@@ -1581,7 +1581,7 @@
     "brano": "good things",
     "autore": "keith urban",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "199",
@@ -1589,7 +1589,7 @@
     "brano": "movin' on",
     "autore": "the crazy bulls band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "200",
@@ -1597,7 +1597,7 @@
     "brano": "gravity",
     "autore": "stephen kellog & the sixers",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "201",
@@ -1605,7 +1605,7 @@
     "brano": "losing at loving",
     "autore": "blue county",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "202",
@@ -1613,7 +1613,7 @@
     "brano": "if jesus love me",
     "autore": "saint lanvain",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "203",
@@ -1621,7 +1621,7 @@
     "brano": "grawing pains",
     "autore": "breland",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "204",
@@ -1629,7 +1629,7 @@
     "brano": "blown away",
     "autore": "carrie underwood",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "205",
@@ -1637,7 +1637,7 @@
     "brano": "halleluy'all",
     "autore": "bomshel",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "206",
@@ -1645,7 +1645,7 @@
     "brano": "joy's gonna come",
     "autore": "the kingsmen",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "207",
@@ -1653,7 +1653,7 @@
     "brano": "do you wanna?",
     "autore": "kyle shobe & the walk 'em boys",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "208",
@@ -1661,7 +1661,7 @@
     "brano": "she had me (at heads carolina)",
     "autore": "cole swindell",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "209",
@@ -1669,7 +1669,7 @@
     "brano": "headin' west",
     "autore": "daly stephenson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "210",
@@ -1677,7 +1677,7 @@
     "brano": "heart attack",
     "autore": "boy named banjo",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "211",
@@ -1685,7 +1685,7 @@
     "brano": "heaven on dirt",
     "autore": "doc walker",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "212",
@@ -1693,7 +1693,7 @@
     "brano": "barn dance",
     "autore": "mark geslison & geoff groberg",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "213",
@@ -1701,7 +1701,7 @@
     "brano": "heyday tonight",
     "autore": "aaron watson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "214",
@@ -1709,7 +1709,7 @@
     "brano": "hillbilly girl",
     "autore": "lisa mchugh",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "215",
@@ -1717,7 +1717,7 @@
     "brano": "maybe i shouldn't",
     "autore": "matt borden",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "216",
@@ -1725,7 +1725,7 @@
     "brano": "hold on to me",
     "autore": "music travel love",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "217",
@@ -1733,7 +1733,7 @@
     "brano": "hold your horses",
     "autore": "e type",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "218",
@@ -1741,7 +1741,7 @@
     "brano": "my church",
     "autore": "maren morris",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "219",
@@ -1749,7 +1749,7 @@
     "brano": "honey honey",
     "autore": "derek ryan & lisa mchugh",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "220",
@@ -1757,7 +1757,7 @@
     "brano": "i see country",
     "autore": "ian munsick",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "221",
@@ -1765,7 +1765,7 @@
     "brano": "hurry up, slow down",
     "autore": "don derby",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "222",
@@ -1773,7 +1773,7 @@
     "brano": "i believe in you",
     "autore": "ward thomas",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "223",
@@ -1781,7 +1781,7 @@
     "brano": "i told you so",
     "autore": "keith urban",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "224",
@@ -1789,7 +1789,7 @@
     "brano": "fiddle",
     "autore": "bomshel",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "225",
@@ -1797,7 +1797,7 @@
     "brano": "tell me ma",
     "autore": "sham rock",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "226",
@@ -1805,7 +1805,7 @@
     "brano": "celtic rock",
     "autore": "david king",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "227",
@@ -1813,7 +1813,7 @@
     "brano": "american land",
     "autore": "bruce springsteen",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "228",
@@ -1821,7 +1821,7 @@
     "brano": "cowboy yodel song",
     "autore": "cliona hagan",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "229",
@@ -1829,7 +1829,7 @@
     "brano": "cowboy's sweetheart",
     "autore": "leann rimes",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "230",
@@ -1837,7 +1837,7 @@
     "brano": "irish stew",
     "autore": "sham rock",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "231",
@@ -1845,7 +1845,7 @@
     "brano": "the merry christmas polka",
     "autore": "jim reeves",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "232",
@@ -1853,7 +1853,7 @@
     "brano": "islands in the stream",
     "autore": "dolly parton",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "233",
@@ -1861,7 +1861,7 @@
     "brano": "it happens",
     "autore": "sugarland",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "234",
@@ -1869,7 +1869,7 @@
     "brano": "it's alright to be a redneck",
     "autore": "alan jackson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "235",
@@ -1877,7 +1877,7 @@
     "brano": "it's america",
     "autore": "rodney atkins",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "236",
@@ -1885,7 +1885,7 @@
     "brano": "you lied to me",
     "autore": "wynonna judd",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "237",
@@ -1893,7 +1893,7 @@
     "brano": "italian line dance crowd",
     "autore": "george mc anthony",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "238",
@@ -1901,7 +1901,7 @@
     "brano": "favorite state of mind",
     "autore": "josh gracin",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "239",
@@ -1909,7 +1909,7 @@
     "brano": "trapper jacket joe",
     "autore": "george mc anthony",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "240",
@@ -1917,7 +1917,7 @@
     "brano": "all you need is me",
     "autore": "joey + rory",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "241",
@@ -1925,7 +1925,7 @@
     "brano": "dephine",
     "autore": "ranchhands",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "242",
@@ -1933,7 +1933,7 @@
     "brano": "just a girl",
     "autore": "lady antebellum",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "243",
@@ -1941,7 +1941,7 @@
     "brano": "billy the kid",
     "autore": "chris ledoux",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "244",
@@ -1949,7 +1949,7 @@
     "brano": "it's not ok",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "245",
@@ -1957,7 +1957,7 @@
     "brano": "kill the spider",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "246",
@@ -1965,7 +1965,7 @@
     "brano": "kinda like now",
     "autore": "aaron scherz",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "247",
@@ -1973,7 +1973,7 @@
     "brano": "this is not goodbye",
     "autore": "jhonny reid",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "248",
@@ -1981,7 +1981,7 @@
     "brano": "larger than life",
     "autore": "pinkzebra",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "249",
@@ -1989,7 +1989,7 @@
     "brano": "shout mountain music",
     "autore": "old crow medicine show",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "250",
@@ -1997,7 +1997,7 @@
     "brano": "baptized",
     "autore": "daughtry",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "251",
@@ -2005,7 +2005,7 @@
     "brano": "baby let's lay down and dance",
     "autore": "garth brooks",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "252",
@@ -2013,7 +2013,7 @@
     "brano": "lay low",
     "autore": "josh turner",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "253",
@@ -2021,7 +2021,7 @@
     "brano": "i'm your man",
     "autore": "bon jovi",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "254",
@@ -2029,7 +2029,7 @@
     "brano": "we got it going on",
     "autore": "bon jovi",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "255",
@@ -2037,7 +2037,7 @@
     "brano": "a bar song (tipsy)",
     "autore": "shaboozey",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "256",
@@ -2045,7 +2045,7 @@
     "brano": "good to go",
     "autore": "lonis",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "257",
@@ -2053,7 +2053,7 @@
     "brano": "you're gonna get back up",
     "autore": "lisa mchugh",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "258",
@@ -2061,7 +2061,7 @@
     "brano": "liar",
     "autore": "jelly roll",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "259",
@@ -2069,7 +2069,7 @@
     "brano": "the wind",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "260",
@@ -2077,7 +2077,7 @@
     "brano": "like it's christmas",
     "autore": "jonas brothers",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "261",
@@ -2085,7 +2085,7 @@
     "brano": "i need more of you",
     "autore": "the bellamy brothers",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "262",
@@ -2093,7 +2093,7 @@
     "brano": "lit",
     "autore": "trace adkins",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "263",
@@ -2101,7 +2101,7 @@
     "brano": "little bit later on",
     "autore": "luke bryan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "264",
@@ -2109,7 +2109,7 @@
     "brano": "my people",
     "autore": "james johnston",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "265",
@@ -2117,7 +2117,7 @@
     "brano": "little white church",
     "autore": "little big town",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "266",
@@ -2125,7 +2125,7 @@
     "brano": "lonely drum",
     "autore": "aaron goodvin",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "267",
@@ -2133,7 +2133,7 @@
     "brano": "long long way",
     "autore": "alan jackson",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "268",
@@ -2141,7 +2141,7 @@
     "brano": "no stone unterned",
     "autore": "randy houser",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "269",
@@ -2149,7 +2149,7 @@
     "brano": "lordy lordy",
     "autore": "brave giant",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "270",
@@ -2157,7 +2157,7 @@
     "brano": "lost",
     "autore": "hunter brother",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "271",
@@ -2165,7 +2165,7 @@
     "brano": "wagon wheel",
     "autore": "nathan carter",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "272",
@@ -2173,7 +2173,7 @@
     "brano": "hard not to love it",
     "autore": "steve moakler",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "273",
@@ -2181,7 +2181,7 @@
     "brano": "love someone",
     "autore": "brett eldredge",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "274",
@@ -2189,7 +2189,7 @@
     "brano": "how i'll always be",
     "autore": "tim mcgraw",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "275",
@@ -2197,7 +2197,7 @@
     "brano": "lucky me",
     "autore": "randy houser",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "276",
@@ -2205,7 +2205,7 @@
     "brano": "make you mine",
     "autore": "high valley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "277",
@@ -2213,7 +2213,7 @@
     "brano": "me and jhonny cash",
     "autore": "rainey qualley",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "278",
@@ -2221,7 +2221,7 @@
     "brano": "slow burn",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "279",
@@ -2229,7 +2229,7 @@
     "brano": "midnight train",
     "autore": "the washboard union",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "280",
@@ -2237,7 +2237,7 @@
     "brano": "anywhere you wanna go",
     "autore": "alan doyle",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "281",
@@ -2245,7 +2245,7 @@
     "brano": "miss our days",
     "autore": "aalwoods",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "282",
@@ -2253,7 +2253,7 @@
     "brano": "money on you",
     "autore": "chad brownlee",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "283",
@@ -2261,7 +2261,7 @@
     "brano": "hillibillies",
     "autore": "hot apple pie",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "284",
@@ -2269,7 +2269,7 @@
     "brano": "mr lonely",
     "autore": "midland",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "285",
@@ -2277,7 +2277,7 @@
     "brano": "mr. policeman",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "286",
@@ -2285,7 +2285,7 @@
     "brano": "if you love somebody",
     "autore": "kevin sharp",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "287",
@@ -2293,7 +2293,7 @@
     "brano": "breakin up thing",
     "autore": "terri clark",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "288",
@@ -2301,7 +2301,7 @@
     "brano": "crying on a suitcase",
     "autore": "casey james",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "289",
@@ -2309,7 +2309,7 @@
     "brano": "me and maxine",
     "autore": "sammy kershaw",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "290",
@@ -2317,7 +2317,7 @@
     "brano": "my maria",
     "autore": "brooks & dunn",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "291",
@@ -2325,7 +2325,7 @@
     "brano": "need you no",
     "autore": "lady antebellum",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "292",
@@ -2333,7 +2333,7 @@
     "brano": "that look",
     "autore": "aaron watson",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "293",
@@ -2341,7 +2341,7 @@
     "brano": "tougher than the rest",
     "autore": "chris ledoux",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "294",
@@ -2349,7 +2349,7 @@
     "brano": "when your lips are so close",
     "autore": "gord bamford",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "295",
@@ -2357,7 +2357,7 @@
     "brano": "99.9% sure",
     "autore": "the nashville stars",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "296",
@@ -2365,7 +2365,7 @@
     "brano": "nancy mulligan",
     "autore": "ed sheeran",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "297",
@@ -2373,7 +2373,7 @@
     "brano": "las vegas gold",
     "autore": "austin whalert",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "298",
@@ -2381,7 +2381,7 @@
     "brano": "new tattoo",
     "autore": "tim hicks",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "299",
@@ -2389,7 +2389,7 @@
     "brano": "new truck",
     "autore": "dylan scott",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "300",
@@ -2397,7 +2397,7 @@
     "brano": "throwback",
     "autore": "homegrown band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "301",
@@ -2405,7 +2405,7 @@
     "brano": "blame",
     "autore": "james johnston",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "302",
@@ -2413,7 +2413,7 @@
     "brano": "dark horse",
     "autore": "aaron watson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "303",
@@ -2421,7 +2421,7 @@
     "brano": "nothing but you",
     "autore": "leaving thomas",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "304",
@@ -2429,7 +2429,7 @@
     "brano": "ain't seen nothing",
     "autore": "paper kings",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "305",
@@ -2437,7 +2437,7 @@
     "brano": "the old stuff",
     "autore": "b thomas",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "306",
@@ -2445,7 +2445,7 @@
     "brano": "one margarita",
     "autore": "luke bryan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "307",
@@ -2453,7 +2453,7 @@
     "brano": "only in america",
     "autore": "brooks & dunn",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "308",
@@ -2461,7 +2461,7 @@
     "brano": "little yellow blanket",
     "autore": "dean brody",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "309",
@@ -2469,7 +2469,7 @@
     "brano": "getaway truck",
     "autore": "aaron watson",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "310",
@@ -2477,7 +2477,7 @@
     "brano": "drive out of my mind",
     "autore": "kassi ashton",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "311",
@@ -2485,7 +2485,7 @@
     "brano": "overrated",
     "autore": "tim mcgraw",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "312",
@@ -2493,7 +2493,7 @@
     "brano": "take it or break it",
     "autore": "wilson fairchild",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "313",
@@ -2501,7 +2501,7 @@
     "brano": "boys in boots",
     "autore": "tania kernaghan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "314",
@@ -2509,7 +2509,7 @@
     "brano": "paris tennessee",
     "autore": "tracy lawrence",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "315",
@@ -2517,7 +2517,7 @@
     "brano": "patient hearts",
     "autore": "bekka & billy",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "316",
@@ -2525,7 +2525,7 @@
     "brano": "pay me my money down",
     "autore": "bruce springsteen",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "317",
@@ -2533,7 +2533,7 @@
     "brano": "better off in love",
     "autore": "george canyon",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "318",
@@ -2541,7 +2541,7 @@
     "brano": "when im grow up",
     "autore": "the raging idiots",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "319",
@@ -2549,7 +2549,7 @@
     "brano": "pick a bale of cotton",
     "autore": "riverside",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "320",
@@ -2557,7 +2557,7 @@
     "brano": "dreaming enough to get me by",
     "autore": "tony ramey",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "321",
@@ -2565,7 +2565,7 @@
     "brano": "corn",
     "autore": "blake shelton",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "322",
@@ -2573,7 +2573,7 @@
     "brano": "kentucky",
     "autore": "tiziano incani",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "323",
@@ -2581,7 +2581,7 @@
     "brano": "powerfull stuff",
     "autore": "rascal flatts",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "324",
@@ -2589,7 +2589,7 @@
     "brano": "take it back",
     "autore": "jef miles",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "325",
@@ -2597,7 +2597,7 @@
     "brano": "ballad of pretty mae",
     "autore": "phill vassar",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "326",
@@ -2605,7 +2605,7 @@
     "brano": "priscilla",
     "autore": "miranda lambert",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "327",
@@ -2613,7 +2613,7 @@
     "brano": "puddle of love",
     "autore": "mason ramsey",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "328",
@@ -2621,7 +2621,7 @@
     "brano": "working on a tan",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "329",
@@ -2629,7 +2629,7 @@
     "brano": "quitter",
     "autore": "carrie underwood",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "330",
@@ -2637,7 +2637,7 @@
     "brano": "radar love",
     "autore": "the bunch",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "331",
@@ -2645,7 +2645,7 @@
     "brano": "raise some hell",
     "autore": "dirty river boys",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "332",
@@ -2653,7 +2653,7 @@
     "brano": "rampampam",
     "autore": "minelli",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "333",
@@ -2661,7 +2661,7 @@
     "brano": "this is it",
     "autore": "oh the larceny",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "334",
@@ -2669,7 +2669,7 @@
     "brano": "carry you home",
     "autore": "thomas ward",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "335",
@@ -2677,7 +2677,7 @@
     "brano": "recreation land",
     "autore": "tristan horncastle",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "336",
@@ -2685,7 +2685,7 @@
     "brano": "something to die for",
     "autore": "fiona culley",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "337",
@@ -2693,7 +2693,7 @@
     "brano": "shot in the dark",
     "autore": "trea landon",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "338",
@@ -2701,7 +2701,7 @@
     "brano": "brighter than the sun",
     "autore": "colbie cailat",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "339",
@@ -2709,7 +2709,7 @@
     "brano": "if today was your last day",
     "autore": "nickelback",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "340",
@@ -2717,7 +2717,7 @@
     "brano": "merry go round",
     "autore": "the janedear girls",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "341",
@@ -2725,7 +2725,7 @@
     "brano": "don't wanna love him",
     "autore": "adley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "342",
@@ -2733,7 +2733,7 @@
     "brano": "rhinestone world",
     "autore": "dallas smith",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "343",
@@ -2741,7 +2741,7 @@
     "brano": "if i knew",
     "autore": "parker redmond",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "344",
@@ -2749,7 +2749,7 @@
     "brano": "sea of cowboy hats",
     "autore": "chely wright",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "345",
@@ -2757,7 +2757,7 @@
     "brano": "roots",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "346",
@@ -2765,7 +2765,7 @@
     "brano": "roundtable rival",
     "autore": "lindsey stirling",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "347",
@@ -2773,7 +2773,7 @@
     "brano": "runaround sue",
     "autore": "the overtones",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "348",
@@ -2781,7 +2781,7 @@
     "brano": "sailor boy",
     "autore": "george mc anthony",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "349",
@@ -2789,7 +2789,7 @@
     "brano": "salt lime & tequila",
     "autore": "ryan griffin",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "350",
@@ -2797,7 +2797,7 @@
     "brano": "scrap piece of paper",
     "autore": "paul brandt",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "351",
@@ -2805,7 +2805,7 @@
     "brano": "in hell i'll be in good company",
     "autore": "the dead south",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "352",
@@ -2813,7 +2813,7 @@
     "brano": "drinking all weekend",
     "autore": "blakjack billy & tim hicks",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "353",
@@ -2821,7 +2821,7 @@
     "brano": "settle down",
     "autore": "the mc clymons",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "354",
@@ -2829,7 +2829,7 @@
     "brano": "seven drunken nights",
     "autore": "mike denver",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "355",
@@ -2837,7 +2837,7 @@
     "brano": "i'm not going home",
     "autore": "jess and the bandits",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "356",
@@ -2845,7 +2845,7 @@
     "brano": "standing me up",
     "autore": "shannon hynes",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "357",
@@ -2853,7 +2853,7 @@
     "brano": "thicc as thieves",
     "autore": "lauren alaina & lainey wilson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "358",
@@ -2861,7 +2861,7 @@
     "brano": "shore thing",
     "autore": "luke bryan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "359",
@@ -2869,7 +2869,7 @@
     "brano": "chicken pickin",
     "autore": "cory hargreaves",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "360",
@@ -2877,7 +2877,7 @@
     "brano": "shot of glory",
     "autore": "the washboard union",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "361",
@@ -2885,7 +2885,7 @@
     "brano": "simple",
     "autore": "florida georgia line",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "362",
@@ -2893,7 +2893,7 @@
     "brano": "simple things",
     "autore": "alexander cardinale",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "363",
@@ -2901,7 +2901,7 @@
     "brano": "single man",
     "autore": "high valley",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "364",
@@ -2909,7 +2909,7 @@
     "brano": "sinner",
     "autore": "andy grammer",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "365",
@@ -2917,7 +2917,7 @@
     "brano": "mama don't alow",
     "autore": "the jive aces",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "366",
@@ -2925,7 +2925,7 @@
     "brano": "snap (high and fast)",
     "autore": "rosa linn",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "367",
@@ -2933,7 +2933,7 @@
     "brano": "soldier",
     "autore": "high valley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "368",
@@ -2941,7 +2941,7 @@
     "brano": "somebody to you",
     "autore": "the vamps",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "369",
@@ -2949,7 +2949,7 @@
     "brano": "something in the water",
     "autore": "brooke fraser",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "370",
@@ -2957,7 +2957,7 @@
     "brano": "somewhere else",
     "autore": "toby keith",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "371",
@@ -2965,7 +2965,7 @@
     "brano": "somewhere in my car",
     "autore": "keith urban",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "372",
@@ -2973,7 +2973,7 @@
     "brano": "south of santa fe",
     "autore": "brooks & dunn",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "373",
@@ -2981,7 +2981,7 @@
     "brano": "stand out",
     "autore": "queeva",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "374",
@@ -2989,7 +2989,7 @@
     "brano": "farm girl strong",
     "autore": "gord bamford",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "375",
@@ -2997,7 +2997,7 @@
     "brano": "i feel lucky",
     "autore": "mary chapin carpenter",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "376",
@@ -3005,7 +3005,7 @@
     "brano": "kerosene kid",
     "autore": "jimmy wayne",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "377",
@@ -3013,7 +3013,7 @@
     "brano": "limes",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "378",
@@ -3021,7 +3021,7 @@
     "brano": "start the car",
     "autore": "travis tritt",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "379",
@@ -3029,7 +3029,7 @@
     "brano": "elvis medley",
     "autore": "the deans brother",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "380",
@@ -3037,7 +3037,7 @@
     "brano": "jingle bells",
     "autore": "tracy bird",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "381",
@@ -3045,7 +3045,7 @@
     "brano": "run",
     "autore": "storm & stone",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "382",
@@ -3053,7 +3053,7 @@
     "brano": "story",
     "autore": "drake white",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "383",
@@ -3061,7 +3061,7 @@
     "brano": "long goodbye",
     "autore": "dwight yoakam",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "384",
@@ -3069,7 +3069,7 @@
     "brano": "make it sweet",
     "autore": "old dominion",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "385",
@@ -3077,7 +3077,7 @@
     "brano": "summer fly",
     "autore": "hayley westenra",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "386",
@@ -3085,7 +3085,7 @@
     "brano": "sunbeam",
     "autore": "jack county",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "387",
@@ -3093,7 +3093,7 @@
     "brano": "wildfire and whiskey",
     "autore": "tenille arts",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "388",
@@ -3101,7 +3101,7 @@
     "brano": "you belong with me",
     "autore": "taylor swift",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "389",
@@ -3109,7 +3109,7 @@
     "brano": "small town big time",
     "autore": "blake shelton",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "390",
@@ -3117,7 +3117,7 @@
     "brano": "don't close your eyes",
     "autore": "ritchie remo",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "391",
@@ -3125,7 +3125,7 @@
     "brano": "georgia peaches",
     "autore": "lauren alaina",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "392",
@@ -3133,7 +3133,7 @@
     "brano": "honey hush",
     "autore": "scooter lee",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "393",
@@ -3141,7 +3141,7 @@
     "brano": "praise of the lord",
     "autore": "breland",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "394",
@@ -3149,7 +3149,7 @@
     "brano": "too strong to break",
     "autore": "beccy cole",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "395",
@@ -3157,7 +3157,7 @@
     "brano": "long live the night",
     "autore": "the reklaws",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "396",
@@ -3165,7 +3165,7 @@
     "brano": "girl with the fishing rod",
     "autore": "lisa mchugh",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "397",
@@ -3173,7 +3173,7 @@
     "brano": "somethin' in the water",
     "autore": "the cheap seats",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "398",
@@ -3181,7 +3181,7 @@
     "brano": "anywhere for you",
     "autore": "mackenzie porter",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "399",
@@ -3189,7 +3189,7 @@
     "brano": "the difference",
     "autore": "carolina jones",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "400",
@@ -3197,7 +3197,7 @@
     "brano": "year of the young",
     "autore": "smith & thell",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "401",
@@ -3205,7 +3205,7 @@
     "brano": "the story of us",
     "autore": "taylor swift",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "402",
@@ -3213,7 +3213,7 @@
     "brano": "fall into you",
     "autore": "houses on the hill",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "403",
@@ -3221,7 +3221,7 @@
     "brano": "the world",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "404",
@@ -3229,7 +3229,7 @@
     "brano": "thelma and louise",
     "autore": "anna bergendahl",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "405",
@@ -3237,7 +3237,7 @@
     "brano": "there is a fire",
     "autore": "national park radio",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "406",
@@ -3245,7 +3245,7 @@
     "brano": "think of you",
     "autore": "chris young",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "407",
@@ -3253,7 +3253,7 @@
     "brano": "this world is our home",
     "autore": "douwe bob",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "408",
@@ -3261,7 +3261,7 @@
     "brano": "head over heels",
     "autore": "the washboard union",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "409",
@@ -3269,7 +3269,7 @@
     "brano": "throwback love",
     "autore": "meghan trainor",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "410",
@@ -3277,7 +3277,7 @@
     "brano": "1 2 mary",
     "autore": "brooks & dunn",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "411",
@@ -3285,7 +3285,7 @@
     "brano": "rude",
     "autore": "sorbye jennebo",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "412",
@@ -3293,7 +3293,7 @@
     "brano": "if you're going through hell",
     "autore": "rodney atkins",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "413",
@@ -3301,7 +3301,7 @@
     "brano": "country roads",
     "autore": "holly spears",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "414",
@@ -3309,7 +3309,7 @@
     "brano": "toes",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "415",
@@ -3317,7 +3317,7 @@
     "brano": "tomorrow never comes",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "416",
@@ -3325,7 +3325,7 @@
     "brano": "i hate you when you're drunk",
     "autore": "olly murs",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "417",
@@ -3333,7 +3333,7 @@
     "brano": "on top of the world",
     "autore": "tim mcmorris",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "418",
@@ -3341,7 +3341,7 @@
     "brano": "tornado",
     "autore": "little big town",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "419",
@@ -3349,7 +3349,7 @@
     "brano": "go to mexico",
     "autore": "coffey anderson",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "420",
@@ -3357,7 +3357,7 @@
     "brano": "train",
     "autore": "manny blu",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "421",
@@ -3365,7 +3365,7 @@
     "brano": "she cranks me traktor",
     "autore": "dustin lynch",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "422",
@@ -3373,7 +3373,7 @@
     "brano": "trampoline",
     "autore": "the unlikely candidates",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "423",
@@ -3381,7 +3381,7 @@
     "brano": "trespassing",
     "autore": "adam lambert",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "424",
@@ -3389,7 +3389,7 @@
     "brano": "old dirt roads",
     "autore": "owen riegling",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "425",
@@ -3397,7 +3397,7 @@
     "brano": "live laugh and love",
     "autore": "lonestar",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "426",
@@ -3405,7 +3405,7 @@
     "brano": "don't know why i do it",
     "autore": "mark chesnutt",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "427",
@@ -3413,7 +3413,7 @@
     "brano": "honky tonk twist",
     "autore": "scooter lee",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "428",
@@ -3421,7 +3421,7 @@
     "brano": "santa looked a lot like daddy",
     "autore": "brad paisley",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "429",
@@ -3429,7 +3429,7 @@
     "brano": "splish splash",
     "autore": "scooter lee",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "430",
@@ -3437,7 +3437,7 @@
     "brano": "t r o u b l e",
     "autore": "travis tritt",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "431",
@@ -3445,7 +3445,7 @@
     "brano": "we didn't have much",
     "autore": "justin moore",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "432",
@@ -3453,7 +3453,7 @@
     "brano": "untamed",
     "autore": "cam",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "433",
@@ -3461,7 +3461,7 @@
     "brano": "better life",
     "autore": "keith urban",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "434",
@@ -3469,7 +3469,7 @@
     "brano": "gotta be somebody",
     "autore": "nickelback",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "435",
@@ -3477,7 +3477,7 @@
     "brano": "gotta be somebody",
     "autore": "bucky covington",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "436",
@@ -3485,7 +3485,7 @@
     "brano": "vodka time",
     "autore": "urban trad",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "437",
@@ -3493,7 +3493,7 @@
     "brano": "cut loose",
     "autore": "blue broussard band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "438",
@@ -3501,7 +3501,7 @@
     "brano": "if that ain't love",
     "autore": "jaida dreyer",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "439",
@@ -3509,7 +3509,7 @@
     "brano": "4th of july",
     "autore": "shooter jennings",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "440",
@@ -3517,7 +3517,7 @@
     "brano": "breathless",
     "autore": "the corrs",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "441",
@@ -3525,7 +3525,7 @@
     "brano": "crazy",
     "autore": "alee",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "442",
@@ -3533,7 +3533,7 @@
     "brano": "walk the line",
     "autore": "dave sheriff",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "443",
@@ -3541,7 +3541,7 @@
     "brano": "wild angels",
     "autore": "martina mcbride",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "444",
@@ -3549,7 +3549,7 @@
     "brano": "getcha",
     "autore": "matt lang",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "445",
@@ -3557,7 +3557,7 @@
     "brano": "if it gets you where you wanna go",
     "autore": "dallas smith",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "446",
@@ -3565,7 +3565,7 @@
     "brano": "we are tonight",
     "autore": "billy currington",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "447",
@@ -3573,7 +3573,7 @@
     "brano": "dirt on my boots",
     "autore": "jon pardi",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "448",
@@ -3581,7 +3581,7 @@
     "brano": "we went",
     "autore": "randy houser",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "449",
@@ -3589,7 +3589,7 @@
     "brano": "young love & saturday nights",
     "autore": "chris young",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "450",
@@ -3597,7 +3597,7 @@
     "brano": "can't get myself over getting over you",
     "autore": "the woolpackers",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "451",
@@ -3605,7 +3605,7 @@
     "brano": "louisiana",
     "autore": "the woolpackers",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "452",
@@ -3613,7 +3613,7 @@
     "brano": "no one needs to know",
     "autore": "shania twain",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "453",
@@ -3621,7 +3621,7 @@
     "brano": "tell me why",
     "autore": "wynonna judd",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "454",
@@ -3629,7 +3629,7 @@
     "brano": "what do i know",
     "autore": "ricochet",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "455",
@@ -3637,7 +3637,7 @@
     "brano": "when you smile",
     "autore": "rune rudberg",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "456",
@@ -3645,7 +3645,7 @@
     "brano": "1 2 3 4",
     "autore": "alan doyle",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "457",
@@ -3653,7 +3653,7 @@
     "brano": "every little thing",
     "autore": "carlene carter",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "458",
@@ -3661,7 +3661,7 @@
     "brano": "when i'm gone",
     "autore": "the wild horses",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "459",
@@ -3669,7 +3669,7 @@
     "brano": "wild at heart",
     "autore": "gloriana",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "460",
@@ -3677,7 +3677,7 @@
     "brano": "wild night",
     "autore": "martina mcbride",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "461",
@@ -3685,7 +3685,7 @@
     "brano": "one of a kind",
     "autore": "nasco brothers",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "462",
@@ -3693,7 +3693,7 @@
     "brano": "wobble",
     "autore": "v i c",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "463",
@@ -3701,7 +3701,7 @@
     "brano": "woman amen",
     "autore": "dierks bentley",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "464",
@@ -3709,7 +3709,7 @@
     "brano": "memory lane",
     "autore": "old dominion",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "465",
@@ -3717,7 +3717,7 @@
     "brano": "doreen",
     "autore": "kerosene brothers",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "466",
@@ -3725,7 +3725,7 @@
     "brano": "wont't ya come down",
     "autore": "derek ryan",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "467",
@@ -3733,7 +3733,7 @@
     "brano": "long time gone",
     "autore": "nathan carter",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "468",
@@ -3741,7 +3741,7 @@
     "brano": "right about now",
     "autore": "curtis grimes",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "469",
@@ -3749,7 +3749,7 @@
     "brano": "yes",
     "autore": "chad brock",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "470",
@@ -3757,7 +3757,7 @@
     "brano": "ready to go",
     "autore": "bryce pallister",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "471",
@@ -3765,7 +3765,7 @@
     "brano": "no hard feelings",
     "autore": "old dominion",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "472",
@@ -3773,7 +3773,7 @@
     "brano": "bacco perbacco",
     "autore": "zucchero fornaciari",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "473",
@@ -3781,7 +3781,7 @@
     "brano": "zorba's dance",
     "autore": "lcd",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "474",
@@ -3789,7 +3789,7 @@
     "brano": "miracle",
     "autore": "tors",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "475",
@@ -3797,7 +3797,7 @@
     "brano": "tippin’ it up to nancy",
     "autore": "sean magee",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "476",
@@ -3805,7 +3805,7 @@
     "brano": "your man",
     "autore": "josh turner",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "477",
@@ -3813,7 +3813,7 @@
     "brano": "buzzkill",
     "autore": "lanie gardner",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "478",
@@ -3821,7 +3821,7 @@
     "brano": "feliz navidad",
     "autore": "josè feliciano",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "479",
@@ -3829,7 +3829,7 @@
     "brano": "love somebody",
     "autore": "morgan wallen",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "480",
@@ -3837,7 +3837,7 @@
     "brano": "long live the cowboy",
     "autore": "clay walker",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "481",
@@ -3845,7 +3845,7 @@
     "brano": "beautiful rose",
     "autore": "sean mc connell",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "482",
@@ -3853,7 +3853,7 @@
     "brano": "cut 'em all",
     "autore": "colt ford ft. willie robertson",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "483",
@@ -3861,7 +3861,7 @@
     "brano": "forever and ever amen",
     "autore": "randy travis",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "484",
@@ -3869,7 +3869,7 @@
     "brano": "until the money's gone",
     "autore": "the bellamy brothers",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "485",
@@ -3877,7 +3877,7 @@
     "brano": "footloose",
     "autore": "blake shelton",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "486",
@@ -3885,7 +3885,7 @@
     "brano": "be my baby tonight",
     "autore": "jhon michael montgomery",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "487",
@@ -3893,7 +3893,7 @@
     "brano": "yeah boy",
     "autore": "kelsea ballerini",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "488",
@@ -3901,7 +3901,7 @@
     "brano": "your love is a miracle",
     "autore": "mark chesnutt",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "489",
@@ -3909,7 +3909,7 @@
     "brano": "authority song",
     "autore": "chancey williams",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "490",
@@ -3917,7 +3917,7 @@
     "brano": "this old boots have roots",
     "autore": "aaron watson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "491",
@@ -3925,7 +3925,7 @@
     "brano": "better than this",
     "autore": "hunter hayes",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "492",
@@ -3933,7 +3933,7 @@
     "brano": "renegades",
     "autore": "x ambassador",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "493",
@@ -3941,7 +3941,7 @@
     "brano": "every other memory",
     "autore": "ryan hurd",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "494",
@@ -3949,7 +3949,7 @@
     "brano": "kick it up",
     "autore": "the mc clymons",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "495",
@@ -3957,7 +3957,7 @@
     "brano": "i wanna be your cowboy",
     "autore": "coffey anderson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "496",
@@ -3965,7 +3965,7 @@
     "brano": "you are",
     "autore": "aaron goodvin",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "497",
@@ -3973,7 +3973,7 @@
     "brano": "listen to your senses",
     "autore": "slim attraction",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "498",
@@ -3981,7 +3981,7 @@
     "brano": "didn't I",
     "autore": "dasha",
     "compositore": "",
-    "durata": "AVANZATO 2"
+    "durata": ""
   },
   {
     "id": "499",
@@ -3989,7 +3989,7 @@
     "brano": "you'll always find your way back home",
     "autore": "miley cyrus",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "500",
@@ -3997,7 +3997,7 @@
     "brano": "still gonna be",
     "autore": "brandon davies",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "501",
@@ -4005,7 +4005,7 @@
     "brano": "liquor talkin'",
     "autore": "don luis",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "502",
@@ -4013,7 +4013,7 @@
     "brano": "back to the start",
     "autore": "michael schulte",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "503",
@@ -4021,7 +4021,7 @@
     "brano": "house of mamboo",
     "autore": "andy williams",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "504",
@@ -4029,7 +4029,7 @@
     "brano": "bad decisions",
     "autore": "dylan schneider",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "505",
@@ -4037,7 +4037,7 @@
     "brano": "wave on wave",
     "autore": "pat green",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "506",
@@ -4045,7 +4045,7 @@
     "brano": "all day",
     "autore": "locash",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "507",
@@ -4053,7 +4053,7 @@
     "brano": "rough ride for a cowboy",
     "autore": "mackenzie porter",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "508",
@@ -4061,7 +4061,7 @@
     "brano": "scooby doo",
     "autore": "redneck rockus 2",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "509",
@@ -4069,7 +4069,7 @@
     "brano": "something in your mouth",
     "autore": "nickelback",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "510",
@@ -4077,7 +4077,7 @@
     "brano": "cinderella",
     "autore": "dan davidson",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "511",
@@ -4085,7 +4085,7 @@
     "brano": "tutta l'italia",
     "autore": "gabry ponte",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "512",
@@ -4093,7 +4093,7 @@
     "brano": "old town road",
     "autore": "lil nas x feat billy ray cyrus",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "513",
@@ -4101,7 +4101,7 @@
     "brano": "gypsy woman",
     "autore": "eamonn jackson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "514",
@@ -4109,7 +4109,7 @@
     "brano": "where the wild things are",
     "autore": "luke combs",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "515",
@@ -4117,7 +4117,7 @@
     "brano": "carry you home",
     "autore": "tim hicks & dyana reid",
     "compositore": "",
-    "durata": "SUPER AVANZATO 1+2"
+    "durata": ""
   },
   {
     "id": "516",
@@ -4125,7 +4125,7 @@
     "brano": "i like it i love it",
     "autore": "tim mc graw",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "517",
@@ -4133,7 +4133,7 @@
     "brano": "spirit in the sky",
     "autore": "kentucky headhunters",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "518",
@@ -4141,7 +4141,7 @@
     "brano": "all you ever do is bring me down",
     "autore": "the mavericks",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "519",
@@ -4149,7 +4149,7 @@
     "brano": "i play chicken with the train",
     "autore": "cowboy troy with big & ritch",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "520",
@@ -4157,7 +4157,7 @@
     "brano": "turn on the radio",
     "autore": "reba mcentire",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "521",
@@ -4165,7 +4165,7 @@
     "brano": "eyes on you",
     "autore": "trent tomlisson",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "522",
@@ -4173,7 +4173,7 @@
     "brano": "that girl's got a cowboy heart",
     "autore": "todd fritsch",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "523",
@@ -4181,7 +4181,7 @@
     "brano": "two black cadillacs",
     "autore": "carrie underwood",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "524",
@@ -4189,7 +4189,7 @@
     "brano": "oh love",
     "autore": "thorstein einarsson",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "525",
@@ -4197,7 +4197,7 @@
     "brano": "over all over again",
     "autore": "james barker band",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "526",
@@ -4205,7 +4205,7 @@
     "brano": "i feel it in the wind",
     "autore": "smith & thell",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "527",
@@ -4213,7 +4213,7 @@
     "brano": "ex's and oh's",
     "autore": "saddle up",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "528",
@@ -4221,7 +4221,7 @@
     "brano": "the hangman",
     "autore": "war hippies",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "529",
@@ -4229,7 +4229,7 @@
     "brano": "dance with everybody",
     "autore": "drew holcomb & the neighbors and the national park",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "530",
@@ -4237,7 +4237,7 @@
     "brano": "what the heart want",
     "autore": "collin raye",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "531",
@@ -4245,7 +4245,7 @@
     "brano": "nice to meet you",
     "autore": "myles smith feat lainey wilson",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "532",
@@ -4253,7 +4253,7 @@
     "brano": "rumor has it",
     "autore": "clay walker",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "533",
@@ -4261,7 +4261,7 @@
     "brano": "work for it",
     "autore": "daphne willis & lonis",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "534",
@@ -4269,7 +4269,7 @@
     "brano": "just like magic",
     "autore": "casey barnes",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "535",
@@ -4277,7 +4277,7 @@
     "brano": "so far so good",
     "autore": "dalton davis",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "536",
@@ -4285,7 +4285,7 @@
     "brano": "no rompas mi corazon",
     "autore": "caballo dorado",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "537",
@@ -4293,7 +4293,7 @@
     "brano": "choosin' texas",
     "autore": "ella langley",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "538",
@@ -4301,7 +4301,7 @@
     "brano": "swiss guy",
     "autore": "florian fox",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "539",
@@ -4309,7 +4309,7 @@
     "brano": "love runs out",
     "autore": "onerepublic",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "540",
@@ -4317,7 +4317,7 @@
     "brano": "big butch bass bull fiddle",
     "autore": "corb lund",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "541",
@@ -4325,7 +4325,7 @@
     "brano": "texas hold'em",
     "autore": "beyoncè",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "542",
@@ -4333,7 +4333,7 @@
     "brano": "ophelia",
     "autore": "taylor swift",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "543",
@@ -4341,7 +4341,7 @@
     "brano": "fast as you",
     "autore": "dwight yoakam",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "544",
@@ -4349,7 +4349,7 @@
     "brano": "lake darbonne",
     "autore": "katie knight",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "545",
@@ -4357,7 +4357,7 @@
     "brano": "man on a mission",
     "autore": "oh the lacerny",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "546",
@@ -4365,7 +4365,7 @@
     "brano": "man i feel like a woman",
     "autore": "shania twain",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "547",
@@ -4373,7 +4373,7 @@
     "brano": "the last shanty",
     "autore": "derina harvey band",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "548",
@@ -4381,7 +4381,7 @@
     "brano": "the door",
     "autore": "teddy swims",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "549",
@@ -4389,7 +4389,7 @@
     "brano": "drunken sailor",
     "autore": "malinda feat. bobby waters",
     "compositore": "",
-    "durata": "BASE"
+    "durata": ""
   },
   {
     "id": "550",
@@ -4397,7 +4397,7 @@
     "brano": "the thing i love",
     "autore": "max & andy grammer",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "551",
@@ -4405,7 +4405,7 @@
     "brano": "bed dreams",
     "autore": "teddy swims",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "552",
@@ -4413,7 +4413,7 @@
     "brano": "two blue chairs & you",
     "autore": "zac brown band",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "553",
@@ -4421,7 +4421,7 @@
     "brano": "(it's a) monsters holiday",
     "autore": "buck owens and the buckaroos",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "554",
@@ -4429,7 +4429,7 @@
     "brano": "doodles",
     "autore": "rose betts",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "555",
@@ -4437,7 +4437,7 @@
     "brano": "love potion 666",
     "autore": "djtexx",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "556",
@@ -4445,7 +4445,7 @@
     "brano": "one more for the road",
     "autore": "ceol",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "557",
@@ -4453,7 +4453,7 @@
     "brano": "good girl",
     "autore": "carrie underwood",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "558",
@@ -4461,7 +4461,7 @@
     "brano": "miles on it",
     "autore": "marshmello & kane brown",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "559",
@@ -4469,7 +4469,7 @@
     "brano": "boots back",
     "autore": "jeorgia rose",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "560",
@@ -4477,7 +4477,7 @@
     "brano": "for a boat",
     "autore": "luke bryan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "561",
@@ -4485,7 +4485,7 @@
     "brano": "eye of the storm",
     "autore": "melanie ryan & jop dorris",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "562",
@@ -4493,7 +4493,7 @@
     "brano": "psalm 119 (back to you)",
     "autore": "lost & found",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "563",
@@ -4501,7 +4501,7 @@
     "brano": "feel good feelin'",
     "autore": "me and mae",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "564",
@@ -4509,7 +4509,7 @@
     "brano": "1 (800) dump him",
     "autore": "kylie morgan",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "565",
@@ -4517,7 +4517,7 @@
     "brano": "banjo",
     "autore": "rascal flatts",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "566",
@@ -4525,7 +4525,7 @@
     "brano": "dance above the rainbow",
     "autore": "ronan hardiman",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "567",
@@ -4533,7 +4533,7 @@
     "brano": "kingdom of fear",
     "autore": "cameron whitcomb",
     "compositore": "",
-    "durata": "SUPER AVANZATO 3"
+    "durata": ""
   },
   {
     "id": "568",
@@ -4541,7 +4541,7 @@
     "brano": "cheek to cheek",
     "autore": "frank sinatra",
     "compositore": "",
-    "durata": "AVANZATO 1"
+    "durata": ""
   },
   {
     "id": "569",
@@ -4549,7 +4549,7 @@
     "brano": "sixteen tons",
     "autore": "tennessee ernie ford",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "570",
@@ -4557,7 +4557,7 @@
     "brano": "but for the grace of god",
     "autore": "keith urban",
     "compositore": "",
-    "durata": "INTERMEDIO"
+    "durata": ""
   },
   {
     "id": "571",
@@ -4565,7 +4565,7 @@
     "brano": "numer 7's gone",
     "autore": "blake whiten",
     "compositore": "",
-    "durata": "ALTRE COREO"
+    "durata": ""
   },
   {
     "id": "598",
@@ -4604,7 +4604,7 @@
     "titolo": "The Sphinx",
     "brano": "Medellin (Offer Nissim Madame X In The Sphinx Mix) (2022 Remaster)",
     "autore": "Madonna & Maluma",
-    "compositore": "Madonna & Maluma",
-    "durata": "06:40"
+    "compositore": "",
+    "durata": ""
   }
 ]

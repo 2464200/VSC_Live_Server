@@ -753,9 +753,13 @@ function bindProtectedActionButtons() {
       );
 
       const orderParam = cronologico ? 'cronologico' : 'alfabetico';
+      const includeDuration = window.confirm(
+        'Vuoi includere la durata dei singoli brani nel file SIAE?\n\nPremi OK per includerla, Annulla per escluderla.'
+      );
 
       try {
-        const result = await fetchJSON(`/export-csv?siae=1&order=${orderParam}&ts=${Date.now()}`);
+        const durationParam = includeDuration ? '1' : '0';
+        const result = await fetchJSON(`/export-csv?siae=1&order=${orderParam}&duration=${durationParam}&ts=${Date.now()}`);
         if (window.showToast) showToast('CSV SIAE generato: ' + result.csv, 4000);
         triggerFileDownload(result.csv);
       } catch (error) {

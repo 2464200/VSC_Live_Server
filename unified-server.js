@@ -3913,12 +3913,16 @@ app.post('/api/bordero/export-siae', (req, res) => {
         setBorderoApiCors(res);
         const brani = Array.isArray(req.body?.brani) ? req.body.brani : [];
         const evento = sanitizeSiaeEventName(req.body?.evento || req.body?.eventName || '');
+        const order = String(req.body?.order || 'alfabetico').trim().toLowerCase();
+        const includeDuration = req.body?.includeDuration === true;
         const completed = brani
             .filter(item => String(item?.flag || '').trim().toUpperCase() === 'X')
             .map(item => {
                 const titolo = String(item?.titolo || '').replace(/"/g, '').trim();
                 const autore = String(item?.autore || '').replace(/"/g, '').trim();
-                return { titolo, autore };
+                const durata = String(item?.durata || item?.duration || '').replace(/"/g, '').trim();
+                const timestamp = item?.timestamp ? new Date(item.timestamp).getTime() : Number.NaN;
+                return { titolo, autore, durata, timestamp, originalIndex: Number(item?.originalIndex) || 0 };
             })
             .filter(item => item.titolo || item.autore);
 
@@ -3926,9 +3930,17 @@ app.post('/api/bordero/export-siae', (req, res) => {
             return res.status(400).json({ error: 'Nessun record valido da esportare.' });
         }
 
-        completed.sort((left, right) => left.titolo.localeCompare(right.titolo, 'it', { sensitivity: 'base' }));
+        if (order === 'cronologico' || order === 'chronological') {
+            completed.sort((left, right) => {
+                const leftTime = Number.isNaN(left.timestamp) ? Number.POSITIVE_INFINITY : left.timestamp;
+                const rightTime = Number.isNaN(right.timestamp) ? Number.POSITIVE_INFINITY : right.timestamp;
+                return leftTime - rightTime || left.originalIndex - right.originalIndex;
+            });
+        } else {
+            completed.sort((left, right) => left.titolo.localeCompare(right.titolo, 'it', { sensitivity: 'base' }));
+        }
 
-        const rows = completed.map(item => [item.titolo, item.autore, '', '', ''].join(','));
+        const rows = completed.map(item => [item.titolo, item.autore, '', '', includeDuration ? item.durata : ''].map(escapeCsvField).join(','));
         const csvContent = ['Titolo,Autore,Compositore,Performer,Durata', ...rows].join('\r\n');
 
         const now = new Date();

@@ -3214,6 +3214,13 @@ class BorderoTableManager {
       return;
     }
 
+    const cronologico = window.confirm(
+      'Vuoi i brani in ordine di esecuzione?\n\nPremi OK per "Cronologico", Annulla per "Alfabetico (per titolo)".'
+    );
+    const includeDuration = window.confirm(
+      'Vuoi includere la durata dei singoli brani nel file SIAE?\n\nPremi OK per includerla, Annulla per escluderla.'
+    );
+
     try {
       const exportCandidates = [
         'http://localhost:5500/api/bordero/export-siae',
@@ -3234,7 +3241,9 @@ class BorderoTableManager {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               brani: completed,
-              evento: this.serata?.evento || ''
+              evento: this.serata?.evento || '',
+              order: cronologico ? 'cronologico' : 'alfabetico',
+              includeDuration
             }),
           });
 
