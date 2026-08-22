@@ -302,7 +302,7 @@ router.get('/export-csv', (req, res) => {
       const siaeRows = rowsArray.map(row => {
         const item = braniById.get(String(row.id || '')) || {};
         return [
-          item.titolo || item.coreografia || row.id,
+          item.brano || item.song || item.titolo || item.coreografia || row.id,
           item.autore || '',
           item.compositore || '',
           '',

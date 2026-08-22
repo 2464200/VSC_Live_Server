@@ -760,8 +760,7 @@ function bindProtectedActionButtons() {
       try {
         const durationParam = includeDuration ? '1' : '0';
         const result = await fetchJSON(`/export-csv?siae=1&order=${orderParam}&duration=${durationParam}&ts=${Date.now()}`);
-        if (window.showToast) showToast('CSV SIAE generato: ' + result.csv, 4000);
-        triggerFileDownload(result.csv);
+        if (window.showToast) showToast('CSV SIAE salvato automaticamente in C:\\VSC_SIAE: ' + (result.fileName || ''), 4000);
       } catch (error) {
         console.error('Errore export CSV SIAE:', error);
         if (window.showToast) showToast('Errore durante export CSV SIAE.', 4000);

@@ -3232,7 +3232,6 @@ class BorderoTableManager {
 
       let result = null;
       let lastError = null;
-      let apiOrigin = '';
 
       for (const endpoint of exportCandidates) {
         try {
@@ -3253,7 +3252,6 @@ class BorderoTableManager {
           }
 
           result = candidateResult;
-          apiOrigin = new URL(endpoint, window.location.origin).origin;
           break;
         } catch (candidateError) {
           lastError = candidateError;
@@ -3262,16 +3260,6 @@ class BorderoTableManager {
 
       if (!result) {
         throw lastError || new Error('Errore durante la generazione del file SIAE');
-      }
-
-      if (result.downloadUrl) {
-        const link = document.createElement('a');
-        link.href = new URL(result.downloadUrl, apiOrigin || window.location.origin).href;
-        link.download = result.fileName || '';
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
       }
 
       logger.info(`Esportati ${result.count || completed.length} brani in formato SIAE`, result);

@@ -3926,7 +3926,7 @@ app.post('/api/bordero/export-siae', (req, res) => {
         const completed = brani
             .filter(item => String(item?.flag || '').trim().toUpperCase() === 'X')
             .map(item => {
-                const titolo = String(item?.titolo || '').replace(/"/g, '').trim();
+                const titolo = String(item?.brano || item?.song || item?.titolo || '').replace(/"/g, '').trim();
                 const autore = String(item?.autore || '').replace(/"/g, '').trim();
                 const durata = String(item?.durata || item?.duration || '').replace(/"/g, '').trim();
                 const timestamp = item?.timestamp ? new Date(item.timestamp).getTime() : Number.NaN;
