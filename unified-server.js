@@ -4625,13 +4625,14 @@ router.get('/export-csv', (req, res) => {
         
         // Costruisci il CSV in formato SIAE
         const siaeHeader = 'Titolo,Autore,Compositore,Performer,Durata';
+        const includeDuration = String(req.query.duration || '').toLowerCase() === '1';
         const siaeRows = records.map(r => {
             return [
                 formatSiaeField(r.titolo),
                 formatSiaeField(r.autore),
                 formatSiaeField(r.compositore),
                 formatSiaeField(r.performer),
-                formatSiaeField(r.durata)
+                includeDuration ? formatSiaeField(r.durata) : ''
             ].join(',');
         });
         
