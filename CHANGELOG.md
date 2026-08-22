@@ -245,7 +245,7 @@ Tutte le pagine HTML e gli script sono stati rivisti e corretti per garantire **
 - âœ… Migliorato error handling con messaggi descrittivi
 - âœ… Aggiunto logging in console per debug
 
-### 2. **servizio2.html** âœï¸
+### 2. **servizio.html** âœï¸
 - âœ… Aggiunto cache-busting a `servizio.csv` e `NextCoreo.csv`
 - âœ… Implementati fallback intelligenti (servizio.csv â†’ NextCoreo.csv)
 - âœ… Aggiunto BOM stripping

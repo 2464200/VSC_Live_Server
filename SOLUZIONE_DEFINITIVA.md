@@ -29,7 +29,7 @@ Ho ricreato **ScriptPDF1.html** con una **soluzione completa e dinamica** che:
 - **`pdf-server.js`** - Porta corretta (8765 default)
 
 ### **Invariati:**
-- `index.html`, `servizio2.html`, `script.js` (funzionano giÃ  bene)
+- `index.html`, `servizio.html`, `script.js` (funzionano giÃ  bene)
 
 ---
 
@@ -100,7 +100,7 @@ http://localhost:5500/Prova/ScriptPDF1.html
 
 ## ðŸ” Cosa Ã¨ uguale agli altri HTML?
 
-**index.html** e **servizio2.html** fanno fetch cosÃ¬:
+**index.html** e **servizio.html** fanno fetch cosÃ¬:
 ```javascript
 fetch("display.csv?t=" + Date.now(), { cache: "no-store" })
 // Host: da window.location.hostname

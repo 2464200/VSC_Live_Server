@@ -23,7 +23,7 @@
 Il PDF Server (`pdf-server.js`) deve essere **avviato esplicitamente** prima che ScriptPDF1.html possa caricarlo. Non c'era alcun meccanismo di auto-start/stop.
 
 ### Pattern Working
-Le altre pagine HTML del progetto (`index.html`, `servizio2.html`) funzionano perfettamente perchÃ©:
+Le altre pagine HTML del progetto (`index.html`, `servizio.html`) funzionano perfettamente perchÃ©:
 1. Usano **relative paths** mit cache-busting: `fetch("display.csv?t=" + Date.now())`
 2. Sfruttano il **VSCode Live Server** sulla porta 5500
 3. Non hanno bisogno di server esterni (API)
@@ -444,7 +444,7 @@ Aggiornato per avviare:
                        â–¼
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
 â”‚     Live Server (VSCode) - Porta 5500                â”‚
-â”‚  Serve: index.html, servizio2.html, api-config.js   â”‚
+â”‚  Serve: index.html, servizio.html, api-config.js   â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
                â”‚ <script src="/api-config.js"></script>
                â”‚ DOMContentLoaded â†’ setupServerLifecycle()
@@ -609,7 +609,7 @@ http://localhost:5500/Prova/ScriptPDF1.html
 | `README_SERVER_MANAGER.md` | **CREATED** | Complete documentation |
 | `pdf-server.js` | **UNCHANGED** | Spawned by Server Manager |
 | `index.html` | **UNCHANGED** | Reference pattern |
-| `servizio2.html` | **UNCHANGED** | Reference pattern |
+| `servizio.html` | **UNCHANGED** | Reference pattern |
 
 ---
 

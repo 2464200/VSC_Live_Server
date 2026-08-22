@@ -34,7 +34,7 @@
 #### âœ… Modulo Root (Prova) - **OPERATIVO**
 - Porta: `5500`
 - `index.html` - Nessun cambiamento
-- `servizio2.html` - Nessun cambiamento
+- `servizio.html` - Nessun cambiamento
 - `diagnostica.html` - Nessun cambiamento
 
 ---

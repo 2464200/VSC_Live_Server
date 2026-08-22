@@ -52,7 +52,7 @@ Il sistema funziona con una **architettura a tre livelli**:
 â”‚               â†“ (fetch con auto-start)                       â”‚
 â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
 â”‚          TIER 1: Live Server (porta 5500)                   â”‚
-â”‚   Serve le pagine HTML (index.html, servizio2.html, etc)   â”‚
+â”‚   Serve le pagine HTML (index.html, servizio.html, etc)   â”‚
 â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
 â”‚          TIER 2: Server Manager (porta 3000)                â”‚
 â”‚   Gestisce il ciclo di vita del PDF Server                 â”‚

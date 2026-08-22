@@ -68,7 +68,7 @@ Apri nel browser:
 ```
 http://localhost:5500/                      # Home
 http://localhost:5500/index.html            # Coreografie
-http://localhost:5500/servizio2.html        # Servizio
+http://localhost:5500/servizio.html        # Servizio
 http://localhost:5500/Prova/ScriptPDF1.html # â† PROVA QUESTA!
 ```
 

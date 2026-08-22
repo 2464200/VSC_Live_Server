@@ -851,7 +851,8 @@ function resolveVlcExecutable() {
         }
     }
 
-    return candidates[0] || '';
+    // If no candidate exists on disk, return empty string so callers handle missing VLC.
+    return '';
 }
 
 function ensureUserformRecordingDir() {
@@ -2376,7 +2377,32 @@ async function launchVlcForSecondary(fullPath) {
         }
 
         try {
+            // Spawn and wait briefly for either 'spawn' or 'error' event so we don't miss async errors
             const child = spawn(candidatePath, vlcArgs, { detached: true, stdio: 'ignore' });
+
+            try {
+                await new Promise((resolve, reject) => {
+                    let settled = false;
+                    const onSpawn = () => { if (!settled) { settled = true; resolve(); } };
+                    const onError = (err) => { if (!settled) { settled = true; reject(err); } };
+
+                    child.once('spawn', onSpawn);
+                    child.once('error', onError);
+
+                    // Safety timeout: assume spawned if no error within 500ms
+                    setTimeout(() => { if (!settled) { settled = true; resolve(); } }, 500);
+                });
+            } catch (err) {
+                lastError = err;
+                // If error is not ENOENT propagate
+                if (!/ENOENT/i.test(String(err?.message || ''))) {
+                    throw err;
+                }
+                // otherwise continue to next candidate
+                continue;
+            }
+
+            // If we reach here, the child was spawned successfully (or assumed spawned)
             child.unref();
             vlcProcess = child;
             vlcCurrentFile = fullPath;

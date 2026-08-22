@@ -10,7 +10,7 @@ Ho rivisto **TUTTO il codice** e applicato correzioni complete per risolvere i p
 
 ### âœ… **File modificati (5):**
 - âœï¸ `index.html` â†’ Cache-busting, error handling, timeout robusto
-- âœï¸ `servizio2.html` â†’ Cache-busting, fallback intelligenti, logging
+- âœï¸ `servizio.html` â†’ Cache-busting, fallback intelligenti, logging
 - âœï¸ `Prova/ScriptPDF1.html` â†’ URL corretti (127.0.0.1:8765), timeout, retry
 - âœï¸ `pdf-server.js` â†’ Porta configurabile via env, log migliorati
 - âœï¸ `script.js` â†’ GiÃ  stabile (nessuna modifica)
@@ -65,7 +65,7 @@ Dopo l'avvio, apri nel browser:
 | Pagina | URL |
 |--------|-----|
 | **ðŸ  Home** | http://127.0.0.1:5500/index.html |
-| **ðŸ“Š Servizio** | http://127.0.0.1:5500/servizio2.html |
+| **ðŸ“Š Servizio** | http://127.0.0.1:5500/servizio.html |
 | **ðŸ“„ Gestione PDF** | http://127.0.0.1:5500/Prova/ScriptPDF1.html |
 | **ðŸ” Diagnostica** | http://127.0.0.1:5500/diagnostica.html |
 
@@ -98,7 +98,7 @@ Clicca "Esegui tutti i test" â†’ Se vedi âœ… su tutto = **STABILE E FUN
 ```
 C:\VSC_Live_Server\
 â”œâ”€â”€ index.html âœï¸ (modificato)
-â”œâ”€â”€ servizio2.html âœï¸ (modificato)
+â”œâ”€â”€ servizio.html âœï¸ (modificato)
 â”œâ”€â”€ script.js (stabile)
 â”œâ”€â”€ style.css
 â”œâ”€â”€ utility.js ðŸ†• (creato)
