@@ -9,5 +9,5 @@ HP IR Camera,,,,Luca - ??? ERRORE,hp-ir-camera,0,1,2026-08-11T22:55:11.610Z,prev
 Trust Webcam,yuyv422,640x480,30,Daniele - (Videocamera vecchia) USB TRUST,trust-webcam,0,1,2026-08-07T23:01:51.998Z,preview,preview-active,0,640x480,30,yuyv422,
 Wireless webcam,yuyv422,1920x1080,30,Daniele - (Nuova wireless) TOALLIN WL168,wireless-webcam,0,1,2026-08-07T23:02:03.019Z,preview,preview-active,0,1920x1080,30,yuyv422,
 CyberLink Webcam Splitter,,,,,cyberlink-webcam-splitter,0,1,2026-08-07T23:02:08.722Z,preview,preview-active,0,,,,
-HP TrueVision HD Camera,yuyv422,640x360,30,Daniele - frontale PC Windows,hp-truevision-hd-camera,0,1,2026-08-07T23:02:20.166Z,preview,preview-active,0,640x360,30,yuyv422,
+HP TrueVision HD Camera,mjpeg,1280x720,30,Daniele - frontale PC Windows,hp-truevision-hd-camera,0,1,2026-08-07T23:02:20.166Z,preview,detected-capabilities,0,1280x720,30,mjpeg,Profilo auto-aggiornato da FFmpeg (2026-08-23T11:50:36.412Z)
 HD Pro Webcam C920,mjpeg,1920x1080,30,Sistema - Webcam auto-rilevata,hd-pro-webcam-c920,1,1,2026-08-12T10:13:04.039Z,preview,detected-capabilities,0,1920x1080,30,mjpeg,Profilo auto-aggiornato da FFmpeg (2026-08-13T12:12:11.024Z)

@@ -31,7 +31,11 @@ console.log('   Bordero/GOOGLE_SHEETS_API_SETUP.md');
 console.log('');
 
 rl.question('📝 Incolla la tua API Key di Google Cloud: ', (apiKey) => {
-  const trimmedKey = apiKey.trim();
+  const trimmedKey = apiKey.trim()
+    .replace(/^\*+/, '')
+    .replace(/^GOOGLE_API_KEY\s*=\s*/i, '')
+    .replace(/\*+$/, '')
+    .trim();
 
   if (!trimmedKey) {
     console.log('❌ Errore: API Key vuota');
