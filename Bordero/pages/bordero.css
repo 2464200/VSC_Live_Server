@@ -120,6 +120,11 @@
   z-index: 2000;
 }
 
+.location-picker-modal[hidden] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 .location-picker-content {
   width: min(420px, 100%);
   background: #1f1f1f;
