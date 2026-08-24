@@ -1590,6 +1590,8 @@ class VideoClipManager {
         });
         return null;
       }
+
+      return null;
     }
 
     const exactNameMatches = this.videoCatalog.filter(item => normalizedNameSet.has(item.normalizedName));
