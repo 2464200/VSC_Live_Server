@@ -81,3 +81,6 @@ archivio/repo_full_*.bundle
 # Python cache
 __pycache__/
 *.pyc
+
+# Local-only protection snapshots and patches
+.local/

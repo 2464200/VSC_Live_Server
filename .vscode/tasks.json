@@ -200,6 +200,84 @@
       "group": "build"
     },
     {
+      "label": "Git: Safe Pull Develop (Keep Local Fix)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\git-safe-pull-develop.ps1",
+        "-PatchPath",
+        "${input:localPatchPath}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Git: Protect Google Sync - Snapshot",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\protect-google-sync-local.ps1",
+        "-Action",
+        "snapshot"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Git: Protect Google Sync - Install Hooks",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\protect-google-sync-local.ps1",
+        "-Action",
+        "install-hooks"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
       "label": "Windows: Update Dev Environment",
       "type": "shell",
       "command": "powershell",
@@ -227,6 +305,12 @@
       "type": "promptString",
       "description": "Messaggio del commit",
       "default": "chore: aggiornamenti"
+    },
+    {
+      "id": "localPatchPath",
+      "type": "promptString",
+      "description": "Percorso patch locale da riapplicare dopo il pull",
+      "default": ".local/my-fix.patch"
     }
   ]
 }

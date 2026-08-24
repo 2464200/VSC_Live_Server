@@ -675,6 +675,7 @@ class BorderoTableManager {
    * Setup event listeners
    */
   setupEventListeners() {
+    this.setupHomeNavigation();
     this.setupFilterValuePicker();
     this.setupDeselectionConfirmModal();
     this.setupMusicMatchModal();
@@ -766,6 +767,27 @@ class BorderoTableManager {
     document.getElementById('btn-prev-page')?.addEventListener('click', () => this.prevPage());
     document.getElementById('btn-next-page')?.addEventListener('click', () => this.nextPage());
     document.getElementById('btn-last-page')?.addEventListener('click', () => this.lastPage());
+  }
+
+  setupHomeNavigation() {
+    const homeLink = document.getElementById('nav-home-link');
+    if (!homeLink || homeLink.dataset.boundHomeNav === 'true') {
+      return;
+    }
+
+    homeLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Close transient overlays before navigation to avoid stale UI state.
+      this.closeLocationPicker();
+      this.closeFilterValuePicker();
+
+      const targetUrl = homeLink.getAttribute('href') || '../index.html';
+      window.location.assign(targetUrl);
+    });
+
+    homeLink.dataset.boundHomeNav = 'true';
   }
 
   scheduleSearchButtonsResize() {
