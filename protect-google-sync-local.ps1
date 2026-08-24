@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('snapshot', 'restore', 'install-hooks', 'status')]
+    [ValidateSet('snapshot', 'restore', 'install-hooks', 'verify', 'status')]
     [string]$Action = 'status',
     [switch]$Quiet
 )
@@ -24,6 +24,7 @@ function Get-ProtectedFiles {
     return @(
         'Bordero/server/google-sheets-sync.js',
         'Bordero/server/sync-server.js',
+        'electron/main.js',
         'Bordero/js/home-nav-guard.js',
         'Bordero/pages/bordero.html',
         'Bordero/pages/bordero.css',
@@ -107,21 +108,99 @@ function Install-Hook([string]$HookPath, [string]$ScriptPath, [ValidateSet('rest
     Set-Content -Path $HookPath -Value $hookContent -Encoding ASCII
 }
 
+function Install-PreCommitHook([string]$HookPath, [string]$ScriptPath) {
+    $hookContent = @(
+        '#!/bin/sh',
+        '# Bypass only when explicitly requested: ALLOW_PROTECTED_CHANGES=1 git commit ...',
+        'if [ "$ALLOW_PROTECTED_CHANGES" = "1" ]; then',
+        '  exit 0',
+        'fi',
+        'if command -v powershell.exe >/dev/null 2>&1; then',
+        "  powershell.exe -NoProfile -ExecutionPolicy Bypass -File '$ScriptPath' -Action verify -Quiet",
+        '  status=$?',
+        '  if [ $status -ne 0 ]; then',
+        '    exit $status',
+        '  fi',
+        'fi',
+        'exit 0'
+    ) -join "`n"
+
+    Set-Content -Path $HookPath -Value $hookContent -Encoding ASCII
+}
+
+function Get-StagedFiles([string]$RepoRoot) {
+    Push-Location $RepoRoot
+    try {
+        $output = & git diff --cached --name-only --diff-filter=ACMR
+        if ($LASTEXITCODE -ne 0) {
+            throw 'Impossibile leggere i file staged.'
+        }
+
+        $items = @()
+        foreach ($line in $output) {
+            $value = [string]$line
+            if (-not [string]::IsNullOrWhiteSpace($value)) {
+                $items += $value.Trim()
+            }
+        }
+
+        return $items
+    } finally {
+        Pop-Location
+    }
+}
+
+function Invoke-Verify([string]$RepoRoot, [string[]]$Files) {
+    $staged = Get-StagedFiles -RepoRoot $RepoRoot
+    if (-not $staged -or $staged.Count -eq 0) {
+        return
+    }
+
+    $protectedSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($path in $Files) {
+        [void]$protectedSet.Add($path)
+    }
+
+    $blocked = @()
+    foreach ($candidate in $staged) {
+        if ($protectedSet.Contains($candidate)) {
+            $blocked += $candidate
+        }
+    }
+
+    if ($blocked.Count -gt 0) {
+        $lines = @(
+            'Commit bloccato: stai modificando file protetti.',
+            'Se la modifica e voluta e approvata, riesegui il commit con:',
+            '  ALLOW_PROTECTED_CHANGES=1 git commit ...',
+            'File bloccati:'
+        ) + ($blocked | ForEach-Object { " - $_" })
+        throw ($lines -join [Environment]::NewLine)
+    }
+}
+
 function Invoke-InstallHooks([string]$RepoRoot, [string]$ScriptPath) {
     $hooksDir = Join-Path $RepoRoot '.git/hooks'
     New-DirIfMissing $hooksDir
 
     $postMergeHook = Join-Path $hooksDir 'post-merge'
     $postRewriteHook = Join-Path $hooksDir 'post-rewrite'
+    $postCheckoutHook = Join-Path $hooksDir 'post-checkout'
+    $preCommitHook = Join-Path $hooksDir 'pre-commit'
     $postCommitHook = Join-Path $hooksDir 'post-commit'
 
     Install-Hook -HookPath $postMergeHook -ScriptPath $ScriptPath -Action 'restore'
     Install-Hook -HookPath $postRewriteHook -ScriptPath $ScriptPath -Action 'restore'
-    Install-Hook -HookPath $postCommitHook -ScriptPath $ScriptPath -Action 'snapshot'
+    Install-Hook -HookPath $postCheckoutHook -ScriptPath $ScriptPath -Action 'restore'
+    Install-PreCommitHook -HookPath $preCommitHook -ScriptPath $ScriptPath
 
-    Write-Info 'Hook installati: .git/hooks/post-merge, .git/hooks/post-rewrite, .git/hooks/post-commit'
-    Write-Info 'Dopo pull/merge/rebase, i file protetti verranno ripristinati automaticamente.'
-    Write-Info 'Dopo ogni commit, lo snapshot locale verra aggiornato automaticamente.'
+    if (Test-Path $postCommitHook) {
+        Remove-Item -Path $postCommitHook -Force
+    }
+
+    Write-Info 'Hook installati: .git/hooks/pre-commit, .git/hooks/post-merge, .git/hooks/post-rewrite, .git/hooks/post-checkout'
+    Write-Info 'Dopo pull/merge/rebase/checkout, i file protetti verranno ripristinati automaticamente.'
+    Write-Info 'I commit che toccano file protetti vengono bloccati (override esplicito con ALLOW_PROTECTED_CHANGES=1).'
 }
 
 try {
@@ -140,6 +219,9 @@ try {
         'install-hooks' {
             Invoke-InstallHooks -RepoRoot $repoRoot -ScriptPath $scriptPath
         }
+        'verify' {
+            Invoke-Verify -RepoRoot $repoRoot -Files $files
+        }
         'status' {
             Write-Info 'File protetti:'
             $files | ForEach-Object { Write-Info " - $_" }
@@ -154,9 +236,13 @@ try {
 
             $postMergeHook = Join-Path $repoRoot '.git/hooks/post-merge'
             $postRewriteHook = Join-Path $repoRoot '.git/hooks/post-rewrite'
+            $postCheckoutHook = Join-Path $repoRoot '.git/hooks/post-checkout'
+            $preCommitHook = Join-Path $repoRoot '.git/hooks/pre-commit'
             $postCommitHook = Join-Path $repoRoot '.git/hooks/post-commit'
             Write-Info ("Hook post-merge: " + (Test-Path $postMergeHook))
             Write-Info ("Hook post-rewrite: " + (Test-Path $postRewriteHook))
+            Write-Info ("Hook post-checkout: " + (Test-Path $postCheckoutHook))
+            Write-Info ("Hook pre-commit (blocco file protetti): " + (Test-Path $preCommitHook))
             Write-Info ("Hook post-commit (auto-snapshot): " + (Test-Path $postCommitHook))
         }
     }
