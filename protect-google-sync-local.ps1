@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('snapshot', 'restore', 'install-hooks', 'verify', 'status')]
+    [ValidateSet('snapshot', 'restore', 'install-hooks', 'verify', 'auto-backup', 'status')]
     [string]$Action = 'status',
     [switch]$Quiet
 )
@@ -179,6 +179,113 @@ function Invoke-Verify([string]$RepoRoot, [string[]]$Files) {
     }
 }
 
+function Get-AutoBackupEveryCommits {
+    $defaultValue = 5
+    $envValue = [Environment]::GetEnvironmentVariable('VSC_AUTO_BACKUP_EVERY_COMMITS', 'Process')
+    if ([string]::IsNullOrWhiteSpace($envValue)) {
+        $envValue = [Environment]::GetEnvironmentVariable('VSC_AUTO_BACKUP_EVERY_COMMITS', 'User')
+    }
+    if ([string]::IsNullOrWhiteSpace($envValue)) {
+        $envValue = [Environment]::GetEnvironmentVariable('VSC_AUTO_BACKUP_EVERY_COMMITS', 'Machine')
+    }
+
+    $parsed = 0
+    if ([int]::TryParse([string]$envValue, [ref]$parsed) -and $parsed -gt 0) {
+        return $parsed
+    }
+
+    return $defaultValue
+}
+
+function Invoke-AutoBackup([string]$RepoRoot) {
+    $every = Get-AutoBackupEveryCommits
+    $backupDir = Join-Path $RepoRoot '.local/git-backups'
+    $docBackupDir = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'VSC_Live_Server_backups'
+    $stateFile = Join-Path $backupDir 'auto-backup-state.json'
+
+    New-DirIfMissing $backupDir
+    New-DirIfMissing $docBackupDir
+
+    $counter = 0
+    if (Test-Path $stateFile) {
+        try {
+            $state = Get-Content -Path $stateFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($state -and $state.counter -as [int] -ge 0) {
+                $counter = [int]$state.counter
+            }
+        } catch {
+            $counter = 0
+        }
+    }
+
+    $counter += 1
+
+    if ($counter -lt $every) {
+        @{
+            counter = $counter
+            every = $every
+            updatedAt = (Get-Date).ToString('o')
+        } | ConvertTo-Json | Set-Content -Path $stateFile -Encoding UTF8
+        return
+    }
+
+    $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $name = "VSC_Live_Server-$timestamp.bundle"
+    $repoBundle = Join-Path $backupDir $name
+    $docBundle = Join-Path $docBackupDir $name
+
+    Push-Location $RepoRoot
+    try {
+        & git bundle create $repoBundle --all
+        if ($LASTEXITCODE -ne 0) {
+            throw 'Creazione bundle automatica fallita.'
+        }
+    } finally {
+        Pop-Location
+    }
+
+    Copy-Item -Path $repoBundle -Destination $docBundle -Force
+
+    $head = ''
+    Push-Location $RepoRoot
+    try {
+        $head = (& git rev-parse --short HEAD 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            $head = ''
+        }
+    } finally {
+        Pop-Location
+    }
+
+    @{
+        counter = 0
+        every = $every
+        updatedAt = (Get-Date).ToString('o')
+        lastBackupCommit = [string]$head
+        lastBackupRepoPath = $repoBundle
+        lastBackupDocPath = $docBundle
+    } | ConvertTo-Json | Set-Content -Path $stateFile -Encoding UTF8
+
+    Write-Info "Backup automatico creato: $repoBundle"
+    Write-Info "Copia backup automatico: $docBundle"
+}
+
+function Install-PostCommitBackupHook([string]$HookPath, [string]$ScriptPath) {
+    $hookContent = @(
+        '#!/bin/sh',
+        '# Disable if needed for a single commit: DISABLE_AUTO_LOCAL_BACKUP=1 git commit ...',
+        'if [ "$DISABLE_AUTO_LOCAL_BACKUP" = "1" ]; then',
+        '  exit 0',
+        'fi',
+        'if command -v powershell.exe >/dev/null 2>&1; then',
+        "  powershell.exe -NoProfile -ExecutionPolicy Bypass -File '$ScriptPath' -Action auto-backup || true",
+        'fi',
+        'exit 0'
+    ) -join "`n"
+
+    Set-Content -Path $HookPath -Value $hookContent -Encoding ASCII
+}
+
 function Invoke-InstallHooks([string]$RepoRoot, [string]$ScriptPath) {
     $hooksDir = Join-Path $RepoRoot '.git/hooks'
     New-DirIfMissing $hooksDir
@@ -193,14 +300,12 @@ function Invoke-InstallHooks([string]$RepoRoot, [string]$ScriptPath) {
     Install-Hook -HookPath $postRewriteHook -ScriptPath $ScriptPath -Action 'restore'
     Install-Hook -HookPath $postCheckoutHook -ScriptPath $ScriptPath -Action 'restore'
     Install-PreCommitHook -HookPath $preCommitHook -ScriptPath $ScriptPath
+    Install-PostCommitBackupHook -HookPath $postCommitHook -ScriptPath $ScriptPath
 
-    if (Test-Path $postCommitHook) {
-        Remove-Item -Path $postCommitHook -Force
-    }
-
-    Write-Info 'Hook installati: .git/hooks/pre-commit, .git/hooks/post-merge, .git/hooks/post-rewrite, .git/hooks/post-checkout'
+    Write-Info 'Hook installati: .git/hooks/pre-commit, .git/hooks/post-merge, .git/hooks/post-rewrite, .git/hooks/post-checkout, .git/hooks/post-commit'
     Write-Info 'Dopo pull/merge/rebase/checkout, i file protetti verranno ripristinati automaticamente.'
     Write-Info 'I commit che toccano file protetti vengono bloccati (override esplicito con ALLOW_PROTECTED_CHANGES=1).'
+    Write-Info "Backup locale automatico: bundle ogni $(Get-AutoBackupEveryCommits) commit (override env: VSC_AUTO_BACKUP_EVERY_COMMITS)."
 }
 
 try {
@@ -221,6 +326,9 @@ try {
         }
         'verify' {
             Invoke-Verify -RepoRoot $repoRoot -Files $files
+        }
+        'auto-backup' {
+            Invoke-AutoBackup -RepoRoot $repoRoot
         }
         'status' {
             Write-Info 'File protetti:'
@@ -243,7 +351,8 @@ try {
             Write-Info ("Hook post-rewrite: " + (Test-Path $postRewriteHook))
             Write-Info ("Hook post-checkout: " + (Test-Path $postCheckoutHook))
             Write-Info ("Hook pre-commit (blocco file protetti): " + (Test-Path $preCommitHook))
-            Write-Info ("Hook post-commit (auto-snapshot): " + (Test-Path $postCommitHook))
+            Write-Info ("Hook post-commit (auto-backup bundle): " + (Test-Path $postCommitHook))
+            Write-Info ("Soglia backup automatico commit: " + (Get-AutoBackupEveryCommits))
         }
     }
 } catch {
