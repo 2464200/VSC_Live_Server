@@ -39,6 +39,7 @@ const DISPLAY_PAGE_PATH = '/Bordero/pages/display.html';
 const PRIMARY_DEFAULT_PAGE_PATH = '/Bordero/pages/bordero.html';
 const PRIMARY_ONLY_PREFIXES = ['/userform/', '/operatore/', '/operator/'];
 const PAGE_POLICY = new Map([
+  ['/bordero/index.html', { primary: true, secondary: false }],
   ['/bordero/pages/admin.html', { primary: true, secondary: false }],
   ['/bordero/pages/bordero-presentazione.html', { primary: true, secondary: true }],
   ['/bordero/pages/bordero.html', { primary: true, secondary: false }],
