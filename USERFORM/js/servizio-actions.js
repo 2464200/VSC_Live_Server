@@ -41,6 +41,7 @@
     const text = clean || defaultBannerText;
     try {
       localStorage.setItem(storageKey, text);
+      window.dispatchEvent(new StorageEvent('storage', { key: storageKey, newValue: text }));
     } catch (error) {
       console.warn("Impossibile salvare nel localStorage:", error);
     }

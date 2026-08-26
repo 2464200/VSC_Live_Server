@@ -168,7 +168,7 @@ class DisplayMonitor {
     const requestedBrani = this.filterRequestedBrani(brani);
     if (!Array.isArray(requestedBrani) || requestedBrani.length === 0) {
       this.lastRenderedSignature = '';
-      this.showEmptyState('Potete nel frattempo cercare il QR Code in sala e richiedere le vostre coreografie preferite!');
+      this.showEmptyState();
       return;
     }
 
@@ -682,6 +682,15 @@ class DisplayMonitor {
     update();
     if (this.clockInterval) clearInterval(this.clockInterval);
     this.clockInterval = setInterval(update, 1000);
+
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'userform-servizio-input') {
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState && emptyState.classList.contains('show')) {
+          this.showEmptyState();
+        }
+      }
+    });
   }
 
   setupNextCoreoSync() {
@@ -912,8 +921,14 @@ class DisplayMonitor {
 
     tbody.innerHTML = '';
     DOMUtils.show(emptyState);
-    if (emptyText && message) {
-      emptyText.innerHTML = this.escapeHtml(message).replace(/\n/g, '<br>');
+    
+    // Controlla se c'è un messaggio personalizzato salvato da SERVIZIO (USERFORM)
+    const customServiceMsg = localStorage.getItem('userform-servizio-input');
+    const defaultMsg = 'Potete nel frattempo cercare il QR Code in sala e richiedere le vostre coreografie preferite!';
+    const effectiveMsg = (customServiceMsg && customServiceMsg.trim()) ? customServiceMsg.trim() : defaultMsg;
+
+    if (emptyText) {
+      emptyText.innerHTML = this.escapeHtml(message || effectiveMsg).replace(/\n/g, '<br>');
     }
 
     document.getElementById('header-dj').textContent = '--';
