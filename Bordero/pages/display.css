@@ -77,6 +77,25 @@
   margin-bottom: 12px;
 }
 
+.display-clock-top-left {
+  position: absolute;
+  top: 6px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 162, 0, 0.7);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
 .display-title-row {
   position: relative;
   text-align: center;

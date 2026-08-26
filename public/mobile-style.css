@@ -27,6 +27,24 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   border-bottom: 3px solid #ff6b35;
 }
+.date-top-left {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 162, 0, 0.7);
+  padding: 4px 10px;
+  border-radius: 6px;
+  z-index: 102;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.header:has(.logo-img) .date-top-left {
+  left: 68px;
+}
 .logo-img {
   position: absolute;
   top: 10px;

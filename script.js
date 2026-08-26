@@ -291,30 +291,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function aggiornaDataOra() {
-  const elemento = document.getElementById("data-ora");
-  const adesso = new Date();
+    const elemento = document.getElementById("data-ora") || document.getElementById("dateTime");
+    if (!elemento) return;
+    const adesso = new Date();
 
-  const opzioniData = {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  };
+    const opzioniData = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    };
 
-  const opzioniOra = {
-    hour: "2-digit",
-    minute: "2-digit",
-    //second: "2-digit"
-  };
+    const opzioniOra = {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    };
 
-  const dataFormattata = adesso.toLocaleDateString("it-IT", opzioniData);
-  const oraFormattata = adesso.toLocaleTimeString("it-IT", opzioniOra);
+    const dataFormattata = adesso.toLocaleDateString("it-IT", opzioniData);
+    const oraFormattata = adesso.toLocaleTimeString("it-IT", opzioniOra);
 
-  elemento.textContent = `Data: ${dataFormattata} - Ore: ${oraFormattata}`;
-}
+    elemento.textContent = `📅 ${dataFormattata}  🕒 ${oraFormattata}`;
+  }
 
   // Aggiornamento immediato e schedule
   aggiornaDataOra();
-  setInterval(aggiornaDataOra, 60000); // ogni 60s
+  setInterval(aggiornaDataOra, 1000); // ogni secondo
 
   // Avvio
   scheduleRefresh();

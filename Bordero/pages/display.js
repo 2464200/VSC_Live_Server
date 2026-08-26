@@ -679,17 +679,17 @@ class DisplayMonitor {
 
   setupDateTimeClock() {
     const update = () => {
-      const el = document.getElementById('data-ora');
+      const el = document.getElementById('data-ora') || document.getElementById('dateTime');
       if (!el) return;
       const now = new Date();
       const date = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const time = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-      el.textContent = `Data: ${date} - Ore: ${time}`;
+      const time = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      el.textContent = `📅 ${date}  🕒 ${time}`;
     };
 
     update();
     if (this.clockInterval) clearInterval(this.clockInterval);
-    this.clockInterval = setInterval(update, 60000);
+    this.clockInterval = setInterval(update, 1000);
   }
 
   setupNextCoreoSync() {

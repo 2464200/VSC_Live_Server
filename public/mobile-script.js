@@ -459,20 +459,23 @@ function handleSwipe() {
 }
 
 function aggiornaDataEOra() {
+  const el = document.getElementById("dateTime") || document.getElementById("data-ora");
+  if (!el) return;
   const ora = new Date();
   const giorno = String(ora.getDate()).padStart(2, '0');
   const mese = String(ora.getMonth() + 1).padStart(2, '0');
   const anno = ora.getFullYear();
   const ore = String(ora.getHours()).padStart(2, '0');
   const minuti = String(ora.getMinutes()).padStart(2, '0');
+  const secondi = String(ora.getSeconds()).padStart(2, '0');
 
-  const dataOra = `📅 ${giorno}/${mese}/${anno} 🕒 ${ore}:${minuti}`;
-  document.getElementById("dateTime").textContent = dataOra;
+  const dataOra = `📅 ${giorno}/${mese}/${anno}  🕒 ${ore}:${minuti}:${secondi}`;
+  el.textContent = dataOra;
 }
 
 // aggiorna subito
 aggiornaDataEOra();
-setInterval(aggiornaDataEOra, 60000); // aggiorna ogni 60 secondi
+setInterval(aggiornaDataEOra, 1000); // aggiorna ogni secondo
 
 // schedule refresh loop
 async function scheduleRefresh() {
