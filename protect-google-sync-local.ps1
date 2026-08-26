@@ -39,7 +39,15 @@ function Get-ProtectedFiles {
         'Bordero/pages/next-coreo.html',
         'Bordero/pages/risultati.html',
         'Bordero/pages/video-player.html',
-        'Bordero/pages/videoclip.html'
+        'Bordero/pages/videoclip.html',
+        'Bordero/data/brani.csv',
+        'Bordero/data/comuni_italia.csv',
+        'Bordero/pages/elenco-richieste.js',
+        'unified-server.js',
+        'protect-google-sync-local.ps1',
+        'Bordero/pages/display.js',
+        'Bordero/pages/display.css',
+        'Bordero/pages/videoclip.js'
     )
 }
 

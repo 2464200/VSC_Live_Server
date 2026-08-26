@@ -534,6 +534,18 @@
   pointer-events: none;
 }
 
+.service-logo-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.service-logo-controls .btn {
+  width: 100%;
+  min-height: 42px;
+  white-space: nowrap;
+}
+
 .remote-rolling-controls {
   display: flex;
   flex-wrap: wrap;
@@ -543,6 +555,9 @@
 }
 
 .remote-rolling-btn {
+  width: 150px;
+  min-width: 150px;
+  min-height: 34px;
   padding: 6px 10px;
   font-size: 0.8em;
   line-height: 1.2;
@@ -1251,6 +1266,14 @@
   color: #888;
 }
 
+.col-durata {
+  width: 80px;
+  min-width: 80px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+}
+
 .col-titolo {
   width: 180px;
   min-width: 150px;
@@ -1299,6 +1322,7 @@
 }
 
 .col-collaboratori {
+  display: none !important;
   width: 150px;
   font-size: 0.85em;
 }

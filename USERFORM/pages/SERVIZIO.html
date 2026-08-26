@@ -232,6 +232,13 @@
       background: rgba(255,255,255,0.4);
     }
 
+    .p02-button.stop {
+      background: rgba(198,40,40,0.18);
+      border-color: #a52222;
+      color: #7d1111;
+      font-weight: 700;
+    }
+
     .p02-grid {
       grid-column: 1 / -1;
       display: grid;
@@ -239,6 +246,60 @@
       gap: 18px;
       margin-top: 8px;
       align-items: end;
+    }
+
+    .p02-carousel {
+      grid-column: 1 / -1;
+      margin-top: 12px;
+      padding: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      background: rgba(255, 255, 255, 0.14);
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .p02-carousel-title {
+      grid-column: 1 / -1;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #2d2d2d;
+    }
+
+    .p02-file-input,
+    .p02-interval-input {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 10px;
+      color: #111;
+      font-size: 14px;
+    }
+
+    .p02-interval-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 130px;
+    }
+
+    .p02-interval-wrap label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #333;
+    }
+
+    .p02-carousel-status {
+      grid-column: 1 / -1;
+      min-height: 20px;
+      font-size: 12px;
+      color: #1d1d1d;
     }
 
     .p02-card {
@@ -363,6 +424,10 @@
         grid-template-columns: 1fr;
       }
 
+      .p02-carousel {
+        grid-template-columns: 1fr;
+      }
+
       .p02-footer {
         flex-direction: column;
         align-items: flex-start;
@@ -410,13 +475,22 @@
         <div class="p02-grid">
           <div class="p02-card">
             <button id="publish-logo-btn" type="button" class="p02-poster logo" aria-label="Pubblica il logo"></button>
-            <span class="label">Pubblica il logo</span>
+            <span id="publish-logo-label" class="label" role="button" tabindex="0">Pubblica il logo</span>
           </div>
 
-          <div class="p02-card">
-            <button id="publish-file-btn" type="button" class="p02-poster file" aria-label="Pubblica un file"></button>
-            <span class="label">Pubblica un file</span>
+        </div>
+
+        <div class="p02-carousel" aria-label="Carrellata immagini su monitor secondario">
+          <div class="p02-carousel-title">Carrellata immagini (monitor 2)</div>
+          <input id="carousel-images-input" class="p02-file-input" type="file" accept="image/*" multiple />
+          <div class="p02-interval-wrap">
+            <label for="carousel-interval-input">Secondi / slide</label>
+            <input id="carousel-interval-input" class="p02-interval-input" type="number" min="1" max="60" value="6" />
           </div>
+          <button id="publish-carousel-btn" type="button" class="p02-button primary">PUBBLICA SOLO FOTO SELEZIONATE</button>
+          <button id="publish-carousel-folder-btn" type="button" class="p02-button">PUBBLICA TUTTA LA CARTELLA</button>
+          <button id="stop-carousel-btn" type="button" class="p02-button stop">STOP CARRELLATA</button>
+          <div id="carousel-status" class="p02-carousel-status" aria-live="polite"></div>
         </div>
 
         <div class="p02-footer">

@@ -62,6 +62,7 @@ class DataLoader {
     );
     normalized.brano = getFirstValue(brano.brano, brano.song, brano.canzone, brano['brano']);
     normalized.autore = getFirstValue(brano.autore, brano.author, brano['autore']);
+    normalized.durata = getFirstValue(brano.durata, brano.DURATA, brano['Durata'], brano.duration);
     normalized.nome = getFirstValue(
       brano.nome,
       brano.name,

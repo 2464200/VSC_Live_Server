@@ -9,7 +9,7 @@ const dataBasePath = isPagePath ? '../data/' : './data/';
 const BORDERO_CONFIG = {
   // ========== APPLICAZIONE ==========
   APP_NAME: 'BORDERÒ DJ Manager',
-  APP_VERSION: '1.0.0',
+  APP_VERSION: '1.1.0',
   APP_AUTHOR: 'Copilot',
   
   // ========== DATI & STORAGE ==========
@@ -48,13 +48,13 @@ const BORDERO_CONFIG = {
     { id: 'id', label: 'ID', width: '60px', sortable: true },
     { id: 'titolo', label: 'Titolo', width: '200px', sortable: true },
     { id: 'autore', label: 'Autore', width: '150px', sortable: true },
+    { id: 'durata', label: 'Durata', width: '80px', sortable: true },
     { id: 'richieste', label: 'Richieste', width: '130px', sortable: true },
     { id: 'genere', label: 'Genere', width: '100px', sortable: true },
     { id: 'info_livello', label: 'Info Livello', width: '120px', sortable: true },
     { id: 'info_coreo_1', label: 'Info Coreo 1', width: '150px', sortable: true },
     { id: 'info_coreo_2', label: 'Info Coreo 2', width: '150px', sortable: true },
     { id: 'coreografo', label: 'Coreografo', width: '150px', sortable: true },
-    { id: 'collaboratori', label: 'Collaboratori', width: '200px', sortable: true },
   ],
 
   // ========== COLONNE SIAE EXPORT ==========

@@ -1690,6 +1690,10 @@ class VideoClipManager {
           return;
         }
 
+        if (!this.isBranoExecuted(this.currentBrano)) {
+          this.markBranoExecutedFromVideoEnd(this.currentBrano);
+        }
+
         try {
           event.preventDefault();
           event.stopPropagation();
@@ -1811,7 +1815,7 @@ class VideoClipManager {
 
     // Fallback robusto: se VLC termina senza evento completion mappabile,
     // usa il brano in riproduzione corrente (a meno che sia stato stop manuale).
-    if (this.vlcWasAlive && !alive && !handledByCompletionEvent) {
+    if ((this.vlcWasAlive || this.currentPlaybackBranoId) && !alive && !handledByCompletionEvent) {
       if (this.manualStopPending) {
         this.manualStopPending = false;
       } else {

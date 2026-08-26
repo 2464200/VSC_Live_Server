@@ -36,6 +36,8 @@ class DisplayMonitor {
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
+    this.lastNextCoreoAnnouncementTimestamp = null;
+    this.nextCoreoAnnouncementTimer = null;
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
@@ -62,8 +64,8 @@ class DisplayMonitor {
       this.setupControls();
       this.setupDateTimeClock();
       this.setupNextCoreoSync();
-      this.loadNextCoreo();
-      this.nextCoreoInterval = setInterval(() => this.loadNextCoreo(), 30000);
+      await this.loadNextCoreo({ initialize: true });
+      this.nextCoreoInterval = setInterval(() => this.loadNextCoreo({ announce: true }), 1000);
 
       // Deve restare sul monitor secondario (best effort con fallback UX)
       await this.setupSecondaryMonitorGuard();
@@ -218,8 +220,27 @@ class DisplayMonitor {
     document.getElementById('header-luogo').textContent = this.serata.luogo || '--';
     document.getElementById('header-evento').textContent = this.serata.evento || '--';
 
-    const completed = brani.filter(b => this.isBranoExecuted(b)).length;
-    document.getElementById('header-completed').textContent = `${completed}/${brani.length}`;
+    const uniqueStats = this.getUniqueCoreografieStats(brani);
+    document.getElementById('header-completed').textContent = `${uniqueStats.completed}/${uniqueStats.total}`;
+  }
+
+  getUniqueCoreografieStats(brani) {
+    const uniqueCoreografie = new Map();
+
+    (Array.isArray(brani) ? brani : []).forEach((brano) => {
+      const title = String(brano?.titolo || brano?.coreografia || '').trim();
+      if (!title) return;
+
+      const key = title.toLocaleLowerCase('it-IT').replace(/\s+/g, ' ');
+      const alreadyCompleted = uniqueCoreografie.get(key) || false;
+      uniqueCoreografie.set(key, alreadyCompleted || this.isBranoExecuted(brano));
+    });
+
+    const completed = Array.from(uniqueCoreografie.values()).filter(Boolean).length;
+    return {
+      completed,
+      total: uniqueCoreografie.size,
+    };
   }
 
   isRichiesteZeroValue(value) {
@@ -674,11 +695,11 @@ class DisplayMonitor {
   setupNextCoreoSync() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
-      this.loadNextCoreo();
+      this.loadNextCoreo({ announce: true });
     });
 
     window.addEventListener('bordero:next-coreo-updated', () => {
-      this.loadNextCoreo();
+      this.loadNextCoreo({ announce: true });
     });
 
     this.nextCoreoBroadcastChannel?.addEventListener('message', (event) => {
@@ -688,11 +709,32 @@ class DisplayMonitor {
       } else if (event.data.type === 'clear') {
         Storage.remove(this.nextCoreoSelectionStorageKey);
       }
-      this.loadNextCoreo();
+      this.loadNextCoreo({ announce: true });
     });
   }
 
-  async loadNextCoreo() {
+  showNextCoreoAnnouncement(title, timestamp) {
+    if (!title || !timestamp || String(timestamp) === String(this.lastNextCoreoAnnouncementTimestamp)) return;
+
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (!overlay || !announcementTitle) return;
+
+    this.lastNextCoreoAnnouncementTimestamp = timestamp;
+    announcementTitle.textContent = title;
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('is-active');
+    void overlay.offsetWidth;
+    overlay.classList.add('is-active');
+
+    if (this.nextCoreoAnnouncementTimer) clearTimeout(this.nextCoreoAnnouncementTimer);
+    this.nextCoreoAnnouncementTimer = setTimeout(() => {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }, 15000);
+  }
+
+  async loadNextCoreo({ announce = false, initialize = false } = {}) {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
@@ -701,34 +743,13 @@ class DisplayMonitor {
       const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
       if (title) {
         target.textContent = title;
+        if (initialize) this.lastNextCoreoAnnouncementTimestamp = storedSelection.timestamp || null;
+        if (announce) this.showNextCoreoAnnouncement(title, storedSelection.timestamp);
         return;
       }
     }
 
-    const candidates = [
-      '/NextCoreo.csv',
-      `${window.location.origin}/NextCoreo.csv`,
-      `${window.location.origin}/public/NextCoreo.csv`
-    ];
-
-    for (const baseUrl of candidates) {
-      try {
-        const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) continue;
-        const text = (await response.text()).replace(/^\uFEFF/, '').trim();
-        if (!text) continue;
-
-        const firstRow = text.split(/\r?\n/)[0] || '';
-        const cols = firstRow.split(',').map((cell) => String(cell || '').replace(/(^"|"$)/g, '').trim());
-        const nextValue = cols[1] || cols[0] || '--';
-        target.textContent = nextValue || '--';
-        return;
-      } catch (error) {
-        logger.debug('loadNextCoreo failed for candidate', { baseUrl, message: error?.message || error });
-      }
-    }
-
-    target.textContent = '--';
+    target.textContent = '';
   }
 
   toggleFullscreen() {

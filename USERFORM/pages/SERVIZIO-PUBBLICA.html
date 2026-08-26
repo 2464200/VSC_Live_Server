@@ -92,6 +92,66 @@
       filter: brightness(1.1);
     }
 
+    .hidden {
+      display: none !important;
+    }
+
+    .carousel-root {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .carousel-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border: 3px solid rgba(255, 127, 0, 0.5);
+      border-radius: 18px;
+      overflow: hidden;
+      background: radial-gradient(circle at center, rgba(255, 130, 0, 0.15), #050505 60%);
+    }
+
+    .carousel-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      transform: scale(1.02);
+      transition: opacity 400ms ease, transform 1200ms linear;
+      will-change: transform, opacity;
+    }
+
+    .carousel-image.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .carousel-caption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 16px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.05));
+      color: #f7f7f7;
+      font-size: clamp(14px, 1.5vw, 24px);
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
+    .carousel-error {
+      margin: 0;
+      font-size: clamp(22px, 2.4vw, 40px);
+      text-align: center;
+      color: #ffd6a6;
+      max-width: 80ch;
+      line-height: 1.25;
+    }
+
     @keyframes neonPulse {
       0% { box-shadow: 0 0 8px var(--shadow); }
       50% { box-shadow: 0 0 25px rgba(255, 206, 99, 0.7); }
@@ -102,16 +162,33 @@
 <body>
   <button class="close-button" type="button" onclick="closePage()">Chiudi</button>
 
-  <div class="window">
+  <div id="text-root" class="window">
     <div class="content">
       <p id="publishing-message" class="message">la serata inizierà a breve</p>
+    </div>
+  </div>
+
+  <div id="carousel-root" class="carousel-root hidden">
+    <div class="carousel-stage">
+      <img id="carousel-image" class="carousel-image" alt="Slide servizio" />
+      <div id="carousel-caption" class="carousel-caption"></div>
     </div>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const text = params.get('text') || 'la serata inizierà a breve';
+    const mode = params.get('mode') || 'text';
+    const carouselId = params.get('id') || '';
+    const intervalFromQuery = Number(params.get('interval') || 6);
+    const carouselStoragePrefix = 'userform-servizio-carousel:';
+    const logoStoragePrefix = 'userform-servizio-logo:';
     const node = document.getElementById('publishing-message');
+    const textRoot = document.getElementById('text-root');
+    const carouselRoot = document.getElementById('carousel-root');
+    const carouselImage = document.getElementById('carousel-image');
+    const carouselCaption = document.getElementById('carousel-caption');
+    let carouselTimer = null;
 
     function fitTextSize() {
       if (!node) return;
@@ -125,13 +202,145 @@
       node.style.lineHeight = '1.02';
     }
 
-    if (node) {
-      node.textContent = text;
-      fitTextSize();
-      window.addEventListener('resize', fitTextSize);
+    function showCarouselError(message) {
+      if (!carouselRoot) return;
+      carouselRoot.classList.remove('hidden');
+      if (textRoot) {
+        textRoot.classList.add('hidden');
+      }
+      carouselRoot.innerHTML = `<p class="carousel-error">${message}</p>`;
+    }
+
+    function normalizeInterval(intervalSecRaw) {
+      const candidate = Number(intervalSecRaw || 6);
+      if (!Number.isFinite(candidate)) return 6;
+      return Math.min(60, Math.max(1, Math.round(candidate)));
+    }
+
+    function startCarousel(slides, intervalSec) {
+      if (!Array.isArray(slides) || slides.length === 0 || !carouselImage || !carouselCaption || !carouselRoot) {
+        showCarouselError('Nessuna immagine disponibile per la carrellata.');
+        return;
+      }
+
+      carouselRoot.classList.remove('hidden');
+      if (textRoot) {
+        textRoot.classList.add('hidden');
+      }
+
+      let currentIndex = 0;
+      const safeIntervalSec = normalizeInterval(intervalSec);
+
+      const renderSlide = () => {
+        const slide = slides[currentIndex];
+        carouselImage.classList.remove('active');
+
+        window.requestAnimationFrame(() => {
+          carouselImage.src = String(slide?.url || slide?.dataUrl || '');
+          carouselCaption.textContent = `${currentIndex + 1}/${slides.length}`;
+          carouselImage.classList.add('active');
+        });
+      };
+
+      renderSlide();
+      carouselTimer = window.setInterval(() => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        renderSlide();
+      }, safeIntervalSec * 1000);
+    }
+
+    function initTextMode() {
+      if (node) {
+        node.textContent = text;
+        fitTextSize();
+        window.addEventListener('resize', fitTextSize);
+      }
+    }
+
+    function initLocalCarouselMode() {
+      if (!carouselId) {
+        showCarouselError('ID carrellata mancante. Riapri la pagina dal pannello SERVIZIO.');
+        return;
+      }
+
+      let payload = null;
+      try {
+        const raw = localStorage.getItem(`${carouselStoragePrefix}${carouselId}`);
+        payload = raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        console.error('Errore lettura carrellata da localStorage:', error);
+      }
+
+      if (!payload || !Array.isArray(payload.slides) || payload.slides.length === 0) {
+        showCarouselError('Carrellata non trovata. Seleziona di nuovo le immagini e ripubblica.');
+        return;
+      }
+
+      startCarousel(payload.slides, payload.intervalSec);
+    }
+
+    function initLogoMode() {
+      if (!carouselId) {
+        showCarouselError('ID immagine mancante. Riapri la pagina dal pannello SERVIZIO.');
+        return;
+      }
+
+      let payload = null;
+      try {
+        const raw = localStorage.getItem(`${logoStoragePrefix}${carouselId}`);
+        payload = raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        console.error('Errore lettura immagine da localStorage:', error);
+      }
+
+      if (!payload?.dataUrl || !carouselImage || !carouselCaption || !carouselRoot) {
+        showCarouselError('Immagine non trovata. Selezionala di nuovo e ripubblica.');
+        return;
+      }
+
+      carouselRoot.classList.remove('hidden');
+      if (textRoot) textRoot.classList.add('hidden');
+      carouselImage.src = payload.dataUrl;
+      carouselImage.alt = payload.name || 'Immagine servizio';
+      carouselImage.classList.add('active');
+      carouselCaption.textContent = '';
+    }
+
+    async function initFolderCarouselMode() {
+      try {
+        const response = await fetch(`/api/servizio/images?t=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const slides = Array.isArray(payload?.files) ? payload.files : [];
+        if (!slides.length) {
+          showCarouselError('La cartella C:/VSC_Servizio non contiene immagini valide.');
+          return;
+        }
+
+        startCarousel(slides, intervalFromQuery);
+      } catch (error) {
+        console.error('Errore caricamento carrellata da cartella:', error);
+        showCarouselError('Errore caricamento immagini da C:/VSC_Servizio. Verifica il server.');
+      }
+    }
+
+    if (mode === 'logo') {
+      initLogoMode();
+    } else if (mode === 'carousel') {
+      initLocalCarouselMode();
+    } else if (mode === 'folder') {
+      initFolderCarouselMode();
+    } else {
+      initTextMode();
     }
 
     function closePage() {
+      if (carouselTimer) {
+        window.clearInterval(carouselTimer);
+      }
       window.close();
       try {
         window.open('', '_self').close();

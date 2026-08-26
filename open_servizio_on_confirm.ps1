@@ -13,8 +13,8 @@ public static class Win32 {
 Add-Type $signature
 
 # Chiedi conferma all'utente
-$msg = "Aprire servizio.html sul monitor secondario?"
-$title = "Apri servizio.html"
+$msg = "Aprire la carrellata SERVIZIO sul monitor secondario?"
+$title = "Apri carrellata SERVIZIO"
 $res = [System.Windows.Forms.MessageBox]::Show($msg, $title, [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
 if ($res -ne [System.Windows.Forms.DialogResult]::Yes) { exit }
 
@@ -37,7 +37,7 @@ if (-not $httpRunning) {
     Start-Sleep -Seconds 1
 }
 
-$url = "http://localhost:5500/servizio.html"
+$url = "http://localhost:5500/USERFORM/pages/SERVIZIO-PUBBLICA.html?mode=folder&interval=6"
 
 # Usa Chrome se disponibile
 $chromePaths = @("C:\Program Files\Google\Chrome\Application\chrome.exe", "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
@@ -60,7 +60,7 @@ for ($i=0; $i -lt 30; $i++) {
 # Se non trovato, prova a cercare finestra con titolo
 if ($handle -eq 0 -or $handle -eq [IntPtr]::Zero) {
     Start-Sleep -Seconds 1
-    $procs = Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -match 'servizio2' }
+    $procs = Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -match 'USERFORM - PUBBLICA|SERVIZIO' }
     if ($procs) { $proc = $procs[0]; $handle = $proc.MainWindowHandle }
 }
 

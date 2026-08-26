@@ -11,12 +11,15 @@ body {
     position: sticky;
     top: 0;
     background: #222;
-    padding: 10px;
+    padding: 12px 10px;
+    margin-bottom: 16px;
     z-index: 10;
 }
 
 .titoli-tabella {   
     background: #222;
+    margin-top: 16px;
+    margin-bottom: 6px;
 }
 
 .logo-container {

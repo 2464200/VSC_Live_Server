@@ -360,9 +360,8 @@ class ElencoRichiestePage {
     let pool = this.videoClipCatalog;
     if (profile.idPrefix) {
       const byPrefix = this.videoClipCatalog.filter(item => item.prefix === profile.idPrefix);
-      if (byPrefix.length > 0) {
-        pool = byPrefix;
-      }
+      if (byPrefix.length === 0) return null;
+      pool = byPrefix;
     }
 
     const scored = pool

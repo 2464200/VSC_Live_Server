@@ -318,9 +318,7 @@ class AdminPanel {
       const currentPath = String(pathInput.value || '').trim();
       try {
         const payload = await this.fetchMusicArchiveDirectories(currentPath || '');
-        if (payload?.path) {
-          await populatePathOptions(payload.path);
-        }
+        await populatePathOptions(payload?.path || '');
       } catch (error) {
         this.log(`❌ Impossibile aprire la navigazione archivio: ${error?.message || error}`, 'error');
         Toast.error('Impossibile caricare la cartella archivio');
@@ -580,8 +578,7 @@ class AdminPanel {
       { path: '/bordero/pages/videoclip.html', primary: true, secondary: false },
       { path: '/eventi/eventi.html', primary: true, secondary: false },
       { path: '/userform/pages/qrcode.html', primary: true, secondary: false },
-      { path: '/userform/pages/servizio.html', primary: true, secondary: false },
-      { path: '/userform/pages/servizio-pubblica.html', primary: false, secondary: true },
+      { path: '/userform/pages/servizio.html', primary: false, secondary: true },
       { path: '/userform/pages/wecam.html', primary: true, secondary: false },
       { path: '/userform/pages/pagina03.html', primary: true, secondary: false },
       { path: '/userform/pages/pagina04.html', primary: true, secondary: false },
@@ -611,7 +608,6 @@ class AdminPanel {
       { path: '/eventi/eventi.html', label: 'Eventi', description: 'Pagine eventi principali' },
       { path: '/userform/pages/qrcode.html', label: 'QRCode', description: 'Pagina QR code del form USERFORM' },
       { path: '/userform/pages/servizio.html', label: 'Servizio', description: 'Pagina di servizio sul monitor principale' },
-      { path: '/userform/pages/servizio-pubblica.html', label: 'Servizio Pubblica', description: 'Testo da pubblicare sul monitor secondario' },
       { path: '/userform/pages/wecam.html', label: 'Webcam', description: 'Pagina webcam del form USERFORM' },
       { path: '/userform/pages/pagina03.html', label: 'Pagina 03', description: 'Pagina USERFORM 03' },
       { path: '/userform/pages/pagina04.html', label: 'Pagina 04', description: 'Pagina USERFORM 04' },

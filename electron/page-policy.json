@@ -1,0 +1,110 @@
+{
+  "/bordero/index.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/bordero/pages/admin.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/bordero/pages/bordero-presentazione.html": {
+    "primary": true,
+    "secondary": true
+  },
+  "/bordero/pages/bordero.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/bordero/pages/brani-eseguiti.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/bordero/pages/display.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/bordero/pages/elenco-richieste.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/bordero/pages/lista-serata.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/bordero/pages/location.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/bordero/pages/next-coreo.html": {
+    "primary": true,
+    "secondary": true
+  },
+  "/bordero/pages/risultati.html": {
+    "primary": true,
+    "secondary": true
+  },
+  "/bordero/pages/video-player.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/bordero/pages/videoclip.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/eventi.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/qrcode.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/servizio.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/servizio-logo.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/servizio-pubblica.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/userform/pages/wecam.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina03.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina04.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina06.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina07.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina08.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina09.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina10.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/pagina11.html": {
+    "primary": true,
+    "secondary": false
+  }
+}

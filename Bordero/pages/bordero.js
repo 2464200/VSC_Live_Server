@@ -752,6 +752,8 @@ class BorderoTableManager {
     document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
+    document.getElementById('btn-start-service-logo')?.addEventListener('click', () => this.startServiceLogo());
+    document.getElementById('btn-stop-service-logo')?.addEventListener('click', () => this.stopServiceLogo());
     document.getElementById('btn-webcam-live-toggle')?.addEventListener('click', () => {
       const button = document.getElementById('btn-webcam-live-toggle');
       const action = (button?.dataset?.action || 'start').toLowerCase();
@@ -1014,6 +1016,56 @@ class BorderoTableManager {
       Toast.warning('Comando inviato: FERMA ROLLING (monitor secondario)');
     } else {
       Toast.success('Comando inviato: RIPRENDI ROLLING (monitor secondario)');
+    }
+  }
+
+  async startServiceLogo() {
+    const latestKey = 'userform-servizio-logo:last';
+    let latest = null;
+
+    try {
+      latest = JSON.parse(localStorage.getItem(latestKey) || 'null');
+    } catch (error) {
+      logger.warn('Ultimo logo non leggibile', error);
+    }
+
+    if (!latest?.id || !latest?.dataUrl) {
+      Toast.warning('Nessun logo disponibile: seleziona prima un’immagine da SERVIZIO.');
+      return;
+    }
+
+    const route = `/userform/pages/servizio-pubblica.html?mode=logo&id=${encodeURIComponent(latest.id)}`;
+    try {
+      if (window.electronAPI?.windowManager?.openSecondaryPage) {
+        const result = await window.electronAPI.windowManager.openSecondaryPage({ path: route });
+        if (!result?.success) {
+          throw new Error(result?.error || 'Apertura monitor secondario non riuscita');
+        }
+      } else {
+        window.open(route, 'bordero-service-logo');
+      }
+      Toast.success(`START LOGO: ${latest.name || 'ultimo logo'}`);
+    } catch (error) {
+      logger.error('Errore avvio pubblicazione logo', error);
+      Toast.error(`Errore START LOGO: ${error?.message || error}`);
+    }
+  }
+
+  async stopServiceLogo() {
+    const route = '/bordero/pages/display.html';
+    try {
+      if (window.electronAPI?.windowManager?.openSecondaryPage) {
+        const result = await window.electronAPI.windowManager.openSecondaryPage({ path: route });
+        if (!result?.success) {
+          throw new Error(result?.error || 'Ripristino display non riuscito');
+        }
+      } else {
+        window.open(route, 'bordero-display-secondary');
+      }
+      Toast.success('STOP LOGO: display ripristinato');
+    } catch (error) {
+      logger.error('Errore stop pubblicazione logo', error);
+      Toast.error(`Errore STOP LOGO: ${error?.message || error}`);
     }
   }
 
@@ -1990,12 +2042,12 @@ class BorderoTableManager {
         <td class="col-timestamp">${timestamp}</td>
         <td class="col-titolo">${brano.titolo || brano.coreografia || brano.brano || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
+        <td class="col-durata">${brano.durata || '-'}</td>
         <td class="col-richieste${richiesteHighlightClass}">${brano.richieste || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
         <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
         <td class="col-coreo-2">${brano.info_coreo_2 || '-'}</td>
         <td class="col-coreografo">${brano.coreografo || '-'}</td>
-        <td class="col-collaboratori">${brano.collaboratori || '-'}</td>
         <td class="col-videoclip">${videoClipMarker}</td>
       </tr>
     `;
@@ -2179,9 +2231,8 @@ class BorderoTableManager {
     let pool = this.videoClipCatalog;
     if (profile.idPrefix) {
       const byPrefix = this.videoClipCatalog.filter(item => item.prefix === profile.idPrefix);
-      if (byPrefix.length > 0) {
-        pool = byPrefix;
-      }
+      if (byPrefix.length === 0) return null;
+      pool = byPrefix;
     }
 
     const scored = pool
@@ -3285,6 +3336,15 @@ class BorderoTableManager {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+      }
+
+      try {
+        await fetch(new URL('/api/bordero/open-siae-folder', apiOrigin || window.location.origin), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (folderError) {
+        logger.warn('Impossibile aprire automaticamente la cartella SIAE', folderError);
       }
 
       logger.info(`Esportati ${result.count || completed.length} brani in formato SIAE`, result);
