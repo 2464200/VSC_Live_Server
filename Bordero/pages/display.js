@@ -168,7 +168,7 @@ class DisplayMonitor {
     const requestedBrani = this.filterRequestedBrani(brani);
     if (!Array.isArray(requestedBrani) || requestedBrani.length === 0) {
       this.lastRenderedSignature = '';
-      this.showEmptyState('Nessun brano richiesto da visualizzare');
+      this.showEmptyState('Potete nel frattempo cercare il QR Code in sala e richiedere le vostre coreografie preferite!');
       return;
     }
 
@@ -330,15 +330,7 @@ class DisplayMonitor {
   filterRequestedBrani(brani) {
     if (!Array.isArray(brani)) return [];
 
-    const requestedBrani = brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
-    if (requestedBrani.length > 0) {
-      return requestedBrani;
-    }
-
-    return brani.filter((brano) => {
-      const text = [brano?.titolo, brano?.coreografia, brano?.brano, brano?.id].filter(Boolean).join(' ');
-      return text.trim().length > 0;
-    });
+    return brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
   }
 
   orderRequestedBrani(brani) {
@@ -913,15 +905,15 @@ class DisplayMonitor {
   /**
    * Mostra empty state
    */
-  showEmptyState(message = 'Nessun dato da visualizzare') {
+  showEmptyState(message) {
     const tbody = document.getElementById('display-tbody');
     const emptyState = document.getElementById('empty-state');
-    const emptyMessage = emptyState?.querySelector('p');
+    const emptyText = emptyState?.querySelector('.empty-text') || emptyState?.querySelector('p');
 
     tbody.innerHTML = '';
     DOMUtils.show(emptyState);
-    if (emptyMessage) {
-      emptyMessage.textContent = message;
+    if (emptyText && message) {
+      emptyText.innerHTML = this.escapeHtml(message).replace(/\n/g, '<br>');
     }
 
     document.getElementById('header-dj').textContent = '--';
@@ -930,7 +922,7 @@ class DisplayMonitor {
     document.getElementById('header-evento').textContent = '--';
     document.getElementById('header-completed').textContent = '0/0';
 
-    logger.debug('Nessuna serata in corso');
+    logger.debug('Nessun brano richiesto in display');
   }
 
   /**
