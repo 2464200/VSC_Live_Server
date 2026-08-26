@@ -49,6 +49,11 @@ class DisplayMonitor {
   async init() {
     logger.info('DisplayMonitor initializing...');
 
+    // Inizializza subito l'orologio live in modo che data e ora partano all'istante
+    this.setupDateTimeClock();
+    this.setupControls();
+    this.setupNextCoreoSync();
+
     try {
       this.applyScrollSettings(this.readScrollSettings());
 
@@ -61,9 +66,6 @@ class DisplayMonitor {
       // Refresh iniziale
       this.refresh();
 
-      this.setupControls();
-      this.setupDateTimeClock();
-      this.setupNextCoreoSync();
       await this.loadNextCoreo({ initialize: true });
       this.nextCoreoInterval = setInterval(() => this.loadNextCoreo({ announce: true }), 1000);
 
@@ -390,14 +392,20 @@ class DisplayMonitor {
 
     if (!brani || brani.length === 0) {
       tbody.innerHTML = '';
-      DOMUtils.show(emptyState);
+      if (emptyState) {
+        emptyState.classList.add('show');
+        emptyState.style.display = 'block';
+      }
       if (tableLive) {
         tableLive.scrollTop = 0;
       }
       return;
     }
 
-    DOMUtils.hide(emptyState);
+    if (emptyState) {
+      emptyState.classList.remove('show');
+      emptyState.style.display = 'none';
+    }
 
     const previousTop = tableLive ? tableLive.scrollTop : 0;
 
@@ -920,15 +928,25 @@ class DisplayMonitor {
     const emptyText = emptyState?.querySelector('.empty-text') || emptyState?.querySelector('p');
 
     tbody.innerHTML = '';
-    DOMUtils.show(emptyState);
-    
-    // Controlla se c'è un messaggio personalizzato salvato da SERVIZIO (USERFORM)
+    if (emptyState) {
+      emptyState.classList.add('show');
+      emptyState.style.display = 'block';
+    }
+
     const customServiceMsg = localStorage.getItem('userform-servizio-input');
     const defaultMsg = 'Potete nel frattempo cercare il QR Code in sala e richiedere le vostre coreografie preferite!';
-    const effectiveMsg = (customServiceMsg && customServiceMsg.trim()) ? customServiceMsg.trim() : defaultMsg;
+    
+    let effectiveMsg = message;
+    if (!effectiveMsg) {
+      if (customServiceMsg && customServiceMsg.trim()) {
+        effectiveMsg = customServiceMsg.trim();
+      } else {
+        effectiveMsg = defaultMsg;
+      }
+    }
 
     if (emptyText) {
-      emptyText.innerHTML = this.escapeHtml(message || effectiveMsg).replace(/\n/g, '<br>');
+      emptyText.innerHTML = this.escapeHtml(effectiveMsg).replace(/\n/g, '<br>');
     }
 
     document.getElementById('header-dj').textContent = '--';

@@ -447,7 +447,7 @@
 }
 
 .empty-state.show {
-  display: block;
+  display: block !important;
 }
 
 .empty-content {
