@@ -723,13 +723,15 @@ class DisplayMonitor {
   }
 
   showNextCoreoAnnouncement(title, timestamp) {
-    if (!title || !timestamp || String(timestamp) === String(this.lastNextCoreoAnnouncementTimestamp)) return;
+    if (!title) return;
+    const announceId = String(timestamp || title).trim();
+    if (!announceId || announceId === String(this.lastNextCoreoAnnouncementTimestamp)) return;
 
     const overlay = document.getElementById('next-coreo-announcement');
     const announcementTitle = document.getElementById('next-coreo-announcement-title');
     if (!overlay || !announcementTitle) return;
 
-    this.lastNextCoreoAnnouncementTimestamp = timestamp;
+    this.lastNextCoreoAnnouncementTimestamp = announceId;
     announcementTitle.textContent = title;
     overlay.setAttribute('aria-hidden', 'false');
     overlay.classList.remove('is-active');
@@ -747,18 +749,48 @@ class DisplayMonitor {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
+    let title = '';
+    let timestamp = null;
+
+    // 1. Dati da localStorage / evento NEXT
     const storedSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
     if (storedSelection && typeof storedSelection === 'object') {
-      const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
-      if (title) {
-        target.textContent = title;
-        if (initialize) this.lastNextCoreoAnnouncementTimestamp = storedSelection.timestamp || null;
-        if (announce) this.showNextCoreoAnnouncement(title, storedSelection.timestamp);
-        return;
+      title = String(storedSelection.title || storedSelection.nextValue || '').trim();
+      timestamp = storedSelection.timestamp || null;
+    }
+
+    // 2. Fallback da NextCoreo.csv
+    if (!title) {
+      try {
+        const res = await fetch('/public/NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const text = await res.text();
+          const clean = text.replace(/^\uFEFF/, '').trim();
+          const firstLine = clean.split(/\r?\n/).find(l => l.trim().length > 0) || '';
+          let firstValue = firstLine.split(',')[1] ?? firstLine.split(',')[0] ?? '';
+          firstValue = firstValue.replace(/^"(.*)"$/, '$1').trim();
+          if (firstValue && firstValue.toUpperCase() !== 'CARICAMENTO...') {
+            title = firstValue;
+            timestamp = firstValue;
+          }
+        }
+      } catch (e) {
+        logger.debug('Errore lettura NextCoreo.csv fallback', e);
       }
     }
 
-    target.textContent = '';
+    if (title) {
+      target.textContent = title;
+      const effectiveId = String(timestamp || title);
+      if (initialize) {
+        this.lastNextCoreoAnnouncementTimestamp = effectiveId;
+      }
+      if (announce) {
+        this.showNextCoreoAnnouncement(title, effectiveId);
+      }
+    } else {
+      target.textContent = '--';
+    }
   }
 
   toggleFullscreen() {
