@@ -42,7 +42,7 @@ const USERFORM_FFMPEG_CANDIDATES = [
     'C:/ffmpeg/bin/ffmpeg.exe'
 ].filter(Boolean);
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
-const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 60 * 1000;
+const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 30 * 1000;
 const MUSIC_ARCHIVE_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-config.json');
 const MUSIC_ARCHIVE_INDEX_CSV_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-index.csv');
 const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([

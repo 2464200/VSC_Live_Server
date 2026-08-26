@@ -35,7 +35,7 @@ class BorderoTableManager {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
-    this.autoRefreshIntervalMs = 60 * 1000;
+    this.autoRefreshIntervalMs = 30 * 1000;
     this.autoRefreshTimer = null;
     this.autoRefreshInProgress = false;
     this.displayScrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
