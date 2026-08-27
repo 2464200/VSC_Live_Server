@@ -1,5 +1,5 @@
 # CSV Sync Script for VSC_Live_Server
-# Copies display.csv and NextCoreo.csv from root to public/
+# Copies public-facing CSV files to public/
 
 param(
     [string]$SourceDir = (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))),  # Workspace root
@@ -7,6 +7,16 @@ param(
 )
 
 $csvFiles = @("display.csv", "NextCoreo.csv")
+$braniSourcePath = Join-Path $SourceDir "Bordero\data\brani.csv"
+$braniDestPath = Join-Path $DestDir "brani.csv"
+
+if (Test-Path $braniSourcePath) {
+    Copy-Item -Path $braniSourcePath -Destination $braniDestPath -Force
+    Write-Host "Copied Bordero/data/brani.csv to public/"
+} else {
+    Write-Error "Source file $braniSourcePath not found"
+    exit 1
+}
 
 foreach ($file in $csvFiles) {
     $sourcePath = Join-Path $SourceDir $file

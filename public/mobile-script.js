@@ -24,9 +24,8 @@ let lastTimestamp = 0;        // per calcolare il delta tempo tra frame
 // Dati coreografie per le card (display.csv)
 let choreographies = [];
 const MAX_ROWS = 600;
-const REFRESH_MS = 200000;
+const REFRESH_MS = 30000;
 let refreshTimeoutId = null;
-// NOTE: nextCoreoValue will always blink when updated
 
 // --- util: robust CSV parser (handles quoted fields with commas/newlines)
 function parseCSV(text) {
@@ -75,103 +74,51 @@ async function fetchWithTimeoutAndRetry(url, opts = {}, timeout = 10000, retries
    MENU E SCHERMO INTERO
    =========================== */
 
-/**
- * Apre/chiude il pannello del menu dei controlli (aggiunge/rimuove la classe .active).
- */
 function toggleMenu() {
   if (!menuPanel) return;
   menuPanel.classList.toggle('active');
 }
 
-/**
- * Attiva/disattiva lo schermo intero della pagina.
- * Nota: su iOS potrebbero esserci limitazioni al fullscreen.
- */
 function toggleFullscreen() {
   const target = document.documentElement || document.body;
   if (!document.fullscreenElement) {
     const request = target.requestFullscreen?.() || target.webkitRequestFullscreen?.() || target.msRequestFullscreen?.();
-    Promise.resolve(request).catch((err) => {
-      console.log('Errore fullscreen:', err);
-    });
-  } else {
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    else if (document.msExitFullscreen) document.msExitFullscreen();
+    Promise.resolve(request).catch((err) => console.log('Errore fullscreen:', err));
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen();
   }
 }
 
-/* ===========================
-   CONTROLLI DI SCROLL (SLIDER E PULSANTI)
-   =========================== */
-
-/**
- * Aggiorna il valore mostrato accanto agli slider (velocità e pausa).
- */
 function updateControlsUI() {
-  if (speedInput && speedValue)  speedValue.textContent = String(speedInput.value);
-  if (pauseInput && pauseValue)  pauseValue.textContent = String(pauseInput.value);
+  if (speedInput && speedValue) speedValue.textContent = String(speedInput.value);
+  if (pauseInput && pauseValue) pauseValue.textContent = String(pauseInput.value);
 }
 
-/**
- * Gestione slider della velocità:
- * il valore dello slider modula i pixel al secondo (px/s) usati nello scroll.
- */
 if (speedInput) {
   speedInput.addEventListener('input', () => {
-    speedValue.textContent = speedInput.value;
-    // Applichiamo subito la nuova velocità riavviando l’animazione se attiva
-    if (isScrolling) restartScrolling();
+    updateControlsUI();
+    restartScrolling();
   });
 }
 
-/**
- * Gestione slider della pausa:
- * controlla la pausa ai bordi (in secondi -> convertiti in millisecondi).
- */
 if (pauseInput) {
-  // Valore iniziale dalla UI
-  pauseTime = (parseInt(pauseInput.value || '2', 10)) * 1000;
   pauseInput.addEventListener('input', () => {
-    const value = parseInt(pauseInput.value || '0', 10);
-    pauseValue.textContent = value;
-    pauseTime = value * 1000; // converti in ms
+    pauseTime = Number(pauseInput.value) * 1000;
+    updateControlsUI();
   });
 }
 
-/**
- * Pulsante “Pausa”: ferma lo scroll automatico.
- */
 if (stopButton) {
   stopButton.addEventListener('click', () => {
     isScrolling = false;
     cancelAnimationFrame(rafHandle);
-    stopButton.textContent = '⏸️ In Pausa';
-    stopButton.setAttribute('aria-pressed', 'true');
-    stopButton.style.opacity = '0.7';
-    if (resumeButton) {
-      resumeButton.textContent = '▶️ Riprendi';
-      resumeButton.setAttribute('aria-pressed', 'false');
-    }
   });
 }
 
-/**
- * Pulsante “Riprendi”: riattiva lo scroll automatico.
- */
 if (resumeButton) {
   resumeButton.addEventListener('click', () => {
-    if (!isScrolling) {
-      isScrolling = true;
-      if (stopButton) {
-        stopButton.textContent = '⏸️ Pausa';
-        stopButton.setAttribute('aria-pressed', 'false');
-        stopButton.style.opacity = '1';
-      }
-      resumeButton.textContent = '▶️ In esecuzione';
-      resumeButton.setAttribute('aria-pressed', 'true');
-      startScrolling();
-    }
+    isScrolling = true;
+    startScrolling();
   });
 }
 
@@ -259,35 +206,35 @@ function createChoreoCard(choreo) {
     <div class="choreo-details">
       <div class="detail-row">
         <span class="detail-icon">🎵</span>
-        <span class="detail-label">Brano:</span>
-        <span class="detail-value">${choreo.song}</span>
+        <span class="detail-label">Brano / Autore:</span>
+        <span class="detail-value">${choreo.song || '--'}${choreo.author ? ` / ${choreo.author}` : ''}</span>
       </div>
-      <div class="detail-row">
-        <span class="detail-icon">🎤</span>
-        <span class="detail-label">Autore:</span>
-        <span class="detail-value">${choreo.author}</span>
-      </div>
-      ${choreo.choreographer ? `
       <div class="detail-row">
         <span class="detail-icon">💃</span>
         <span class="detail-label">Coreografo:</span>
-        <span class="detail-value">${choreo.choreographer}</span>
-      </div>` : ''}
+        <span class="detail-value">${choreo.choreographer || '--'}</span>
+      </div>
     </div>
   `;
   dataBody.appendChild(card);
 }
 
 /**
- * Carica e parse-a il file display.csv (saltando le prime 3 righe di intestazione),
- * crea le card e avvia lo scroll.
+ * Carica la stessa sorgente dati del DISPLAY e mostra solo i brani richiesti.
+ * La prima riga di brani.csv contiene le intestazioni delle colonne.
  */
 async function loadDisplayCsv() {
   try {
-    const res = await fetchWithTimeoutAndRetry(window.resolveAppUrl ? window.resolveAppUrl('display.csv?t=' + Date.now()) : '/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
+    const dataUrl = window.resolveAppUrl
+      ? window.resolveAppUrl('brani.csv?t=' + Date.now())
+      : 'brani.csv?t=' + Date.now();
+    const res = await fetchWithTimeoutAndRetry(dataUrl, { cache: 'no-store' }, 12000, 2);
     const text = await res.text();
     const rows = parseCSV(text);
-    const dataRows = rows.slice(3).filter(r => r.length && r.some(c => c !== ''));
+    const dataRows = rows.slice(1).filter(r => {
+      const requests = String(r[7] || '').trim().replace(',', '.');
+      return r.length && r.some(c => c !== '') && requests && requests !== '-' && Number(requests) !== 0;
+    });
 
     choreographies = [];
     dataBody.innerHTML = '';
@@ -300,16 +247,16 @@ async function loadDisplayCsv() {
 
     toRender.forEach((cols, index) => {
       const normalized = cols.map(c => String(c || '').trim().replace(/^"+|"+$/g, ''));
-      if (normalized.length >= 6) {
+      if (normalized.length >= 2) {
         const isExecuted = String(normalized[0]).toUpperCase().startsWith('X');
         const choreo = {
           number: index + 1,
           mark: normalized[0],
-          id: normalized[1],
-          name: normalized[2],
-          song: normalized[3],
-          author: normalized[4],
-          choreographer: normalized[5],
+          id: normalized[2],
+          name: normalized[3],
+          song: normalized[4],
+          author: normalized[5],
+          choreographer: normalized[12],
           executed: isExecuted
         };
         choreographies.push(choreo);
@@ -323,92 +270,6 @@ async function loadDisplayCsv() {
     console.error('Errore caricamento display.csv:', err);
     loader.innerHTML = '<p style="color: #e74c3c;">❌ Errore nel caricamento dei dati</p>';
   }
-}
-
-/* ===========================
-   NEXTCOREO: LETTURA DINAMICA DA NextCoreo.csv
-   =========================== */
-
-/**
- * Rimuove l’eventuale BOM (Byte Order Mark) all’inizio del testo.
- */
-function stripBOM(text) {
-  return text.replace(/^\uFEFF/, '');
-}
-
-/**
- * Estrae il PRIMO VALORE della PRIMA RIGA (cella B1),
- * cioè tutto fino alla prima virgola. Se non c’è virgola, restituisce l’intera riga.
- * Rimuove eventuali virgolette esterne e spazi superflui.
- */
-function parseFirstValueB1(csvText) {
-  const clean = stripBOM(csvText);
-  const firstLine = clean.split(/\r?\n/).find(line => line.trim().length > 0) || '';
-  let firstValue = firstLine.split(',')[1] ?? '';
-  firstValue = firstValue.replace(/^"(.*)"$/, '$1').trim();
-  return firstValue;
-}
-
-/**
- * Carica dal server il file NextCoreo.csv e aggiorna l’etichetta nella barra info.
- * - Cache busting per evitare versioni vecchie.
- * - In caso di errore, mostra messaggio esplicito.
- * - Converte il valore in MAIUSCOLO e lo mostra come “Prossima Coreo: …”.
- */
-async function loadNextCoreo() {
-  const target = document.getElementById("nextCoreoValue");
-  if (!target) return;
-
-  // Testo iniziale durante il caricamento
-  target.textContent = 'Prossima Coreo: Caricamento...';
-
-  try {
-    const url = window.resolveAppUrl ? window.resolveAppUrl(`NextCoreo.csv?t=${Date.now()}`) : `/public/NextCoreo.csv?t=${Date.now()}`; // cache busting
-    const response = await fetchWithTimeoutAndRetry(url, { cache: 'no-store' }, 8000, 1);
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const text = await response.text();
-    const b1FirstValue = parseFirstValueB1(text);
-
-    if (b1FirstValue && b1FirstValue.length > 0) {
-      const upperValue = b1FirstValue.toUpperCase();
-      target.textContent = `${upperValue}`;
-      target.title = `${upperValue}`;
-      // blink sempre quando viene aggiornato
-      target.classList.add('blink');
-      target.classList.remove('fade-out');
-    } else {
-      target.textContent = '(Nessun valore in B1)';
-      // anche in assenza di valore manteniamo il lampeggio visibile
-      target.classList.add('blink');
-    }
-  } catch (err) {
-    console.error('Errore nel caricamento di NextCoreo.csv:', err);
-    target.textContent = '(Errore nel caricamento)';
-  }
-}
-
-async function aggiornaScrittaRossa() {
-  (async () => {
-    try {
-      const res = await fetchWithTimeoutAndRetry(window.resolveAppUrl ? window.resolveAppUrl('NextCoreo.csv?t=' + Date.now()) : '/public/NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' }, 8000, 1);
-      const text = await res.text();
-      const rows = text.split(/\r?\n/);
-      const primaCoreo = (rows[0] || '').split(',')[1] || '';
-      const coreoElem = document.getElementById('nextCoreoValue');
-      if (coreoElem) {
-        const value = (primaCoreo || '').toString().trim();
-        coreoElem.textContent = value;
-        // Applicare lampeggio sempre
-        coreoElem.classList.add('blink');
-        coreoElem.classList.remove('fade-out');
-      }
-    } catch (err) {
-      console.error('aggiornaScrittaRossa error', err);
-    }
-  })();
-
 }
 
 /* ===========================
@@ -529,12 +390,9 @@ adjustScrollContainer();
  * Inizializza:
  * - UI degli slider
  * - Caricamento delle coreografie da display.csv
- * - Caricamento “Prossima Coreo” e refresh ogni 45s
  * - Avvio dello scroll automatico dopo il caricamento
  */
 document.addEventListener('DOMContentLoaded', () => {
   updateControlsUI();        // valori iniziali accanto agli slider
   loadDisplayCsv();          // carica le coreografie (cards)
-  loadNextCoreo();           // carica “Prossima Coreo” subito
-  setInterval(loadNextCoreo, 45000); // refresh automatico ogni 45 secondi
 });

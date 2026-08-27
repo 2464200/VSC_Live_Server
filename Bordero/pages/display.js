@@ -38,6 +38,7 @@ class DisplayMonitor {
       : null;
     this.lastNextCoreoAnnouncementTimestamp = null;
     this.nextCoreoAnnouncementTimer = null;
+    this.nextCoreoDisplaySuppressed = false;
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
@@ -60,8 +61,8 @@ class DisplayMonitor {
       // Carica dati
       this.allBrani = await dataLoader.loadBrani();
 
-      // Auto-refresh ogni 1 secondo
-      this.refreshInterval = setInterval(() => this.refresh(), 1000);
+      // Auto-refresh ogni 30 secondi, allineato alla pagina MOBILE
+      this.refreshInterval = setInterval(() => this.refresh(), 30000);
 
       // Refresh iniziale
       this.refresh();
@@ -704,22 +705,56 @@ class DisplayMonitor {
   setupNextCoreoSync() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
-      this.loadNextCoreo({ announce: true });
+      if (event.newValue === null) {
+        this.nextCoreoDisplaySuppressed = true;
+        this.clearNextCoreoDisplay();
+      } else {
+        this.nextCoreoDisplaySuppressed = false;
+        this.loadNextCoreo({ announce: true });
+      }
     });
 
-    window.addEventListener('bordero:next-coreo-updated', () => {
+    window.addEventListener('bordero:next-coreo-updated', (event) => {
+      if (event.detail?.reason === 'completed' || event.detail?.reason === 'deselected') {
+        this.nextCoreoDisplaySuppressed = true;
+        this.clearNextCoreoDisplay();
+        return;
+      }
+      this.nextCoreoDisplaySuppressed = false;
       this.loadNextCoreo({ announce: true });
     });
 
     this.nextCoreoBroadcastChannel?.addEventListener('message', (event) => {
       if (!event?.data) return;
       if (event.data.type === 'update' && event.data.payload) {
+        this.nextCoreoDisplaySuppressed = false;
         Storage.set(this.nextCoreoSelectionStorageKey, event.data.payload);
       } else if (event.data.type === 'clear') {
+        this.nextCoreoDisplaySuppressed = true;
         Storage.remove(this.nextCoreoSelectionStorageKey);
       }
-      this.loadNextCoreo({ announce: true });
+      if (event.data.type === 'clear') {
+        this.clearNextCoreoDisplay();
+      } else {
+        this.loadNextCoreo({ announce: true });
+      }
     });
+  }
+
+  clearNextCoreoDisplay() {
+    const target = document.getElementById('next-coreo');
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (target) target.textContent = '--';
+    if (announcementTitle) announcementTitle.textContent = '';
+    if (overlay) {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    if (this.nextCoreoAnnouncementTimer) {
+      clearTimeout(this.nextCoreoAnnouncementTimer);
+      this.nextCoreoAnnouncementTimer = null;
+    }
   }
 
   showNextCoreoAnnouncement(title, timestamp) {
@@ -759,6 +794,11 @@ class DisplayMonitor {
       timestamp = storedSelection.timestamp || null;
     }
 
+    if (!title && this.nextCoreoDisplaySuppressed) {
+      this.clearNextCoreoDisplay();
+      return;
+    }
+
     // 2. Fallback da NextCoreo.csv
     if (!title) {
       try {
@@ -782,7 +822,7 @@ class DisplayMonitor {
     if (title) {
       target.textContent = title;
       const effectiveId = String(timestamp || title);
-      if (initialize) {
+      if (initialize || !announce) {
         this.lastNextCoreoAnnouncementTimestamp = effectiveId;
       }
       if (announce) {

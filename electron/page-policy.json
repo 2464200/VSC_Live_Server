@@ -3,13 +3,17 @@
     "primary": true,
     "secondary": false
   },
+  "/public/mobile.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/bordero/pages/admin.html": {
     "primary": true,
     "secondary": false
   },
   "/bordero/pages/bordero-presentazione.html": {
     "primary": true,
-    "secondary": true
+    "secondary": false
   },
   "/bordero/pages/bordero.html": {
     "primary": true,
@@ -41,7 +45,7 @@
   },
   "/bordero/pages/risultati.html": {
     "primary": true,
-    "secondary": true
+    "secondary": false
   },
   "/bordero/pages/video-player.html": {
     "primary": false,

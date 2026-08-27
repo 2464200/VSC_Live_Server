@@ -1967,7 +1967,7 @@ class BorderoTableManager {
     this.filteredBrani = this.sortCollection(this.filteredBrani, this.currentSort, ascending);
   }
 
-  toggleNextCoreoSelection(branoId) {
+  async toggleNextCoreoSelection(branoId) {
     const brano = this.allBrani.find((item) => String(item.id) === String(branoId));
     if (!brano) return;
 
@@ -1999,8 +1999,8 @@ class BorderoTableManager {
       Toast.success(`NEXT selezionato: ${title || brano.id}`);
     } else {
       Storage.remove('bordero_next_coreo_selection');
-      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
-      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear', reason: 'completed' });
+      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', { detail: { reason: 'completed' } }));
       Toast.info('Selezione NEXT rimossa');
     }
 

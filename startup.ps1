@@ -294,44 +294,60 @@ function Start-UnifiedServer {
     $stdoutLog = Join-Path $LogsDir 'unified-server.stdout.log'
     $stderrLog = Join-Path $LogsDir 'unified-server.stderr.log'
 
-    Write-Host "Avvio Unified Server..."
-    try {
-        $proc = Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
-                '-ExecutionPolicy',
-                'Bypass',
-                '-File',
-                $runnerScript,
-                '-RootPath',
-                $RootPath,
-                '-StdoutLog',
-                $stdoutLog,
-                '-StderrLog',
-                $stderrLog
-            ) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
+    # Log troncati ad ogni avvio: altrimenti si accumulano errori di run precedenti e confondono la diagnosi
+    Remove-Item -Path $stdoutLog, $stderrLog -Force -ErrorAction SilentlyContinue
 
-        if (-not $proc) {
-            Write-Host "ERRORE FATALE: impossibile avviare il processo host PowerShell" -ForegroundColor Red
-            exit 1
-        }
+    $maxAttempts = 3
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        Write-Host "Avvio Unified Server (tentativo $attempt/$maxAttempts)..."
+        try {
+            $proc = Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
+                    '-ExecutionPolicy',
+                    'Bypass',
+                    '-File',
+                    $runnerScript,
+                    '-RootPath',
+                    $RootPath,
+                    '-StdoutLog',
+                    $stdoutLog,
+                    '-StderrLog',
+                    $stderrLog
+                ) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
 
-        Write-Host "OK Unified Server avviato (PID: $($proc.Id))"
+            if (-not $proc) {
+                Write-Host "AVVISO: impossibile avviare il processo host PowerShell" -ForegroundColor Yellow
+                continue
+            }
 
-        if (-not (Wait-ForPort -Port $UnifiedPort -TimeoutSeconds 15)) {
-            Write-Host "ERRORE FATALE: Unified Server non risponde sulla porta $UnifiedPort" -ForegroundColor Red
-            Write-Host "  Log stdout: $stdoutLog"
-            Write-Host "  Log stderr: $stderrLog"
+            Write-Host "OK Unified Server avviato (PID: $($proc.Id))"
+
+            if (Wait-ForPort -Port $UnifiedPort -TimeoutSeconds 15) {
+                return $proc.Id
+            }
+
+            # Riprova: il crash immediato del processo Node (es. modulo non trovato per scansione antivirus in corso
+            # subito dopo l'apertura della cartella) e' quasi sempre transitorio e si risolve al tentativo successivo
+            Write-Host "AVVISO: Unified Server non risponde sulla porta $UnifiedPort al tentativo $attempt" -ForegroundColor Yellow
             try {
                 Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
             } catch {
             }
-            exit 1
-        }
 
-        return $proc.Id
-    } catch {
-        Write-Host "ERRORE FATALE: Impossibile avviare Unified Server - $_" -ForegroundColor Red
-        exit 1
+            if ($attempt -lt $maxAttempts) {
+                Start-Sleep -Seconds 2
+            }
+        } catch {
+            Write-Host "AVVISO: Errore avvio Unified Server (tentativo $attempt) - $_" -ForegroundColor Yellow
+            if ($attempt -lt $maxAttempts) {
+                Start-Sleep -Seconds 2
+            }
+        }
     }
+
+    Write-Host "ERRORE FATALE: Unified Server non risponde sulla porta $UnifiedPort dopo $maxAttempts tentativi" -ForegroundColor Red
+    Write-Host "  Log stdout: $stdoutLog"
+    Write-Host "  Log stderr: $stderrLog"
+    exit 1
 }
 
 function Start-BorderoSyncServer {
@@ -355,24 +371,37 @@ function Start-BorderoSyncServer {
         $syncPort = $fallbackPort
     }
 
-    Write-Host "Avvio Bordero Sync Server sulla porta $syncPort..."
-    try {
-        $proc = Start-ProcessSafe -FilePath 'node' -ArgumentList @($serverScript, '--port', $syncPort) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
-        if (-not $proc) {
-            Write-Host "ERRORE: impossibile avviare Bordero Sync Server" -ForegroundColor Red
-            return $null
-        }
+    $maxAttempts = 3
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        Write-Host "Avvio Bordero Sync Server sulla porta $syncPort (tentativo $attempt/$maxAttempts)..."
+        try {
+            $proc = Start-ProcessSafe -FilePath 'node' -ArgumentList @($serverScript, '--port', $syncPort) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
+            if (-not $proc) {
+                Write-Host "AVVISO: impossibile avviare il processo Bordero Sync Server" -ForegroundColor Yellow
+                if ($attempt -lt $maxAttempts) { Start-Sleep -Seconds 2 }
+                continue
+            }
 
-        Write-Host "OK Bordero Sync Server avviato (PID: $($proc.Id))"
-        if (-not (Wait-ForPort -Port $syncPort -TimeoutSeconds 10)) {
-            Write-Host "AVVISO: Bordero Sync Server non risponde sulla porta $syncPort" -ForegroundColor Yellow
-        }
+            Write-Host "OK Bordero Sync Server avviato (PID: $($proc.Id))"
+            if (Wait-ForPort -Port $syncPort -TimeoutSeconds 10) {
+                return $proc.Id
+            }
 
-        return $proc.Id
-    } catch {
-        Write-Host "ERRORE: impossibile avviare Bordero Sync Server - $_" -ForegroundColor Red
-        return $null
+            # Stesso pattern di Start-UnifiedServer: un crash immediato (es. require bloccato dall'antivirus) si risolve al retry
+            Write-Host "AVVISO: Bordero Sync Server non risponde sulla porta $syncPort al tentativo $attempt" -ForegroundColor Yellow
+            try {
+                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            } catch {
+            }
+            if ($attempt -lt $maxAttempts) { Start-Sleep -Seconds 2 }
+        } catch {
+            Write-Host "AVVISO: Errore avvio Bordero Sync Server (tentativo $attempt) - $_" -ForegroundColor Yellow
+            if ($attempt -lt $maxAttempts) { Start-Sleep -Seconds 2 }
+        }
     }
+
+    Write-Host "ERRORE: Bordero Sync Server non risponde sulla porta $syncPort dopo $maxAttempts tentativi" -ForegroundColor Red
+    return $null
 }
 
 function Invoke-WebcamProfiling {

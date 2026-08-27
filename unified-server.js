@@ -3676,10 +3676,6 @@ app.get('/index.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/mobile.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
-});
-
 app.get('/mobile1.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
 });

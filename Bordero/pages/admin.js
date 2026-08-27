@@ -564,6 +564,7 @@ class AdminPanel {
 
   getMonitorPageRouteDefaults() {
     return [
+      { path: '/public/mobile.html', primary: true, secondary: false },
       { path: '/bordero/pages/admin.html', primary: true, secondary: false },
       { path: '/bordero/pages/bordero-presentazione.html', primary: true, secondary: true },
       { path: '/bordero/pages/bordero.html', primary: true, secondary: false },
@@ -593,6 +594,7 @@ class AdminPanel {
 
   getMonitorPageRoutes() {
     return [
+      { path: '/public/mobile.html', label: 'MOBILE', description: 'Pagina mobile delle richieste attive' },
       { path: '/bordero/pages/admin.html', label: 'Admin', description: 'Pannello amministrazione' },
       { path: '/bordero/pages/bordero-presentazione.html', label: 'Bordero Presentazione', description: 'Vista presentazione su entrambi i monitor' },
       { path: '/bordero/pages/bordero.html', label: 'Bordero', description: 'Pagina principale del Bordero' },
