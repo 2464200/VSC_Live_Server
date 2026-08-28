@@ -113,31 +113,23 @@
     // Carico il CSV principale
     caricaCSV();
 
-    // Carico NextCoreo.csv e gestisco lampeggio + fade-out
+    // Mostra solo la selezione manuale effettuata da Bordero.
     async function mostraNextCoreo() {
+      const span = document.getElementById("next-coreo");
+      if (!span) return;
+
       try {
-        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { cache: "no-store" });
-        const text = await response.text();
-
-        const primaRiga = text.trim().split("\n")[0];
-        const valoreB1 = primaRiga.split(",")[1].replace(/(^\"|\"$)/g, "").trim();
-
-        const span = document.getElementById("next-coreo");
-        span.textContent = valoreB1;
-        span.classList.add("blink");
-
-        // Dopo 2 minuti attivo fade-out
-        setTimeout(() => {
-          span.classList.remove("blink");
-          span.classList.add("fade-out");
-        }, 120000);
-
+        const selection = JSON.parse(localStorage.getItem("bordero_next_coreo_selection") || "null");
+        span.textContent = selection && selection.title ? String(selection.title).trim() : "--";
       } catch (err) {
-        console.error("Errore nel caricamento di NextCoreo.csv:", err);
+        span.textContent = "--";
       }
     }
 
     mostraNextCoreo();
+    window.addEventListener("storage", (event) => {
+      if (event.key === "bordero_next_coreo_selection") mostraNextCoreo();
+    });
   });
 
   function toggleFullscreen() {

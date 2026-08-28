@@ -28,6 +28,7 @@ const BORDERO_CONFIG = {
   CACHE_KEY_PREFS: 'bordero_userPrefs',
   CACHE_KEY_CURRENT_SERATA: 'bordero_currentSerata',      // Serata in corso (brani + metadata)
   CACHE_KEY_SERATA_HISTORY: 'bordero_serataHistory',      // Array of completed serata
+  CACHE_KEY_NEXT_COREO_SESSION_RESET: 'bordero_next_coreo_session_reset',
   CACHE_KEY_SERATA_ARCHIVE_DIR: 'C:\\VSC_SIAE\\Storico Serate\\', // Directory archivio
   SYNC_INTERVAL_MS: 30 * 1000, // 30 secondi
   

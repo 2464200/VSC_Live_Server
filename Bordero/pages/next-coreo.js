@@ -96,17 +96,16 @@ class NextCoreoDisplay {
     const selection = Storage.get('bordero_next_coreo_selection', null);
     let nextBrano = null;
 
-    if (selection && selection.id) {
-      nextBrano = braniWithFlags.find(b => String(b.id) === String(selection.id))
-        || this.allBrani.find(b => String(b.id) === String(selection.id));
+    if (!selection || !selection.id) {
+      this.showEmptyState();
+      return;
     }
 
-    if (!nextBrano) {
-      nextBrano = braniWithFlags.find(b => String(b.flag || '').toUpperCase() !== 'X');
-    }
+    nextBrano = braniWithFlags.find(b => String(b.id) === String(selection.id))
+      || this.allBrani.find(b => String(b.id) === String(selection.id));
 
     if (!nextBrano) {
-      this.showEmptyState('Serata terminata!', 'Tutti i brani sono stati eseguiti');
+      this.showEmptyState();
       return;
     }
 

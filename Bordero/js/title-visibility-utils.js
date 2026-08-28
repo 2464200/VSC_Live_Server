@@ -1,5 +1,17 @@
 function normalizeTitle(value) {
-  return String(value ?? '').trim().toLowerCase();
+  const text = String(value ?? '').trim();
+  if (!text) return '';
+
+  try {
+    return text
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  } catch (error) {
+    return text.toLowerCase().replace(/\s+/g, ' ').trim();
+  }
 }
 
 function createTitleVisibilityGroups(brani) {

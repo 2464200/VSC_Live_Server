@@ -176,47 +176,23 @@
     // Carico il CSV principale
     caricaCSV();
 
-    // Carico NextCoreo.csv e gestisco lampeggio + fade-out
+    // Mostra solo la selezione manuale effettuata da Bordero.
     async function mostraNextCoreo() {
+      const span = document.getElementById("next-coreo");
+      if (!span) return;
+
       try {
-        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { 
-          cache: "no-store" 
-        });
-        
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status + ": NextCoreo.csv non trovato");
-        }
-        
-        const text = await response.text();
-        
-        // Rimuovi BOM se presente
-        const cleanText = text.replace(/^\uFEFF/, "").trim();
-        const primaRiga = cleanText.split("\n")[0];
-        const valoreB1 = primaRiga.split(",")[1].replace(/(^\"|\"$)/g, "").trim();
-
-        const span = document.getElementById("next-coreo");
-        if (span) {
-          span.textContent = valoreB1;
-          span.classList.add("blink");
-          console.log(" NextCoreo caricato: " + valoreB1);
-
-          // Dopo 2 minuti attivo fade-out
-          setTimeout(() => {
-            span.classList.remove("blink");
-            span.classList.add("fade-out");
-          }, 120000);
-        }
+        const selection = JSON.parse(localStorage.getItem("bordero_next_coreo_selection") || "null");
+        span.textContent = selection && selection.title ? String(selection.title).trim() : "--";
       } catch (err) {
-        console.error("❌ Errore nel caricamento di NextCoreo.csv:", err);
-        const span = document.getElementById("next-coreo");
-        if (span) {
-          span.textContent = "ERRORE CARICAMENTO";
-          span.style.color = "#ff0000";
-        }
+        span.textContent = "--";
       }
     }
 
     mostraNextCoreo();
+    window.addEventListener("storage", (event) => {
+      if (event.key === "bordero_next_coreo_selection") mostraNextCoreo();
+    });
   });
 
   function toggleFullscreen() {

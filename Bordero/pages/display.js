@@ -799,26 +799,6 @@ class DisplayMonitor {
       return;
     }
 
-    // 2. Fallback da NextCoreo.csv
-    if (!title) {
-      try {
-        const res = await fetch('/public/NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' });
-        if (res.ok) {
-          const text = await res.text();
-          const clean = text.replace(/^\uFEFF/, '').trim();
-          const firstLine = clean.split(/\r?\n/).find(l => l.trim().length > 0) || '';
-          let firstValue = firstLine.split(',')[1] ?? firstLine.split(',')[0] ?? '';
-          firstValue = firstValue.replace(/^"(.*)"$/, '$1').trim();
-          if (firstValue && firstValue.toUpperCase() !== 'CARICAMENTO...') {
-            title = firstValue;
-            timestamp = firstValue;
-          }
-        }
-      } catch (e) {
-        logger.debug('Errore lettura NextCoreo.csv fallback', e);
-      }
-    }
-
     if (title) {
       target.textContent = title;
       const effectiveId = String(timestamp || title);

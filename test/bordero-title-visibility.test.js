@@ -44,6 +44,18 @@ assert.deepStrictEqual(
   'I brani non richiesti non devono essere nascosti dalla regola'
 );
 
+const similarButNotDuplicate = [
+  { id: '7', titolo: 'Black Coffee', richieste: '2', flag: 'X' },
+  { id: '8', titolo: 'Black Coffee!', richieste: '2', flag: '' },
+  { id: '9', titolo: 'Another Song', richieste: '1', flag: '' },
+];
+const visibleForSimilarTitles = filterBraniByTitleVisibility(similarButNotDuplicate, { isExecuted, isRequested });
+assert.deepStrictEqual(
+  visibleForSimilarTitles.map((item) => item.id),
+  ['7', '8', '9'],
+  'Titoli simili ma non identici non devono essere trattati come duplicati eseguiti'
+);
+
 const annotated = annotateBraniByTitleVisibility(brani, { isExecuted, isRequested });
 assert.strictEqual(annotated.find((item) => item.id === '4').displayState, 'executed');
 assert.strictEqual(annotated.find((item) => item.id === '1').displayState, 'blocked');

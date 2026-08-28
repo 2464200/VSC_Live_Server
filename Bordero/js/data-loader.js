@@ -896,6 +896,16 @@ class DataLoader {
     return Storage.get(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA, null);
   }
 
+  newSerata() {
+    const emptyMeta = { dj: '', data: '', luogo: '', evento: '' };
+    Storage.remove('bordero_next_coreo_selection');
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_NEXT_COREO_SESSION_RESET, Date.now());
+    this.saveCurrentSerata(emptyMeta, []);
+    window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
+      detail: { reason: 'new-serata' },
+    }));
+  }
+
   /**
    * Archivia la serata corrente (completa) nella cronologia
    */
