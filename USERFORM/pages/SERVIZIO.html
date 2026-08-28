@@ -72,6 +72,33 @@
       letter-spacing: 0.02em;
     }
 
+    .p02-window-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .p02-bordero-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 10px;
+      border: 1px solid #b65300;
+      background: var(--p02-accent);
+      color: #111;
+      font-size: 11px;
+      font-weight: 800;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .p02-bordero-link:hover,
+    .p02-bordero-link:focus-visible {
+      background: #ff9f33;
+      outline: 2px solid rgba(181, 83, 0, 0.35);
+      outline-offset: 1px;
+    }
+
     .p02-close {
       width: 18px;
       height: 18px;
@@ -280,6 +307,41 @@
       font-size: 14px;
     }
 
+    .p02-file-input { display: none; }
+
+    .servizio-gallery {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0,0,0,.68);
+    }
+
+    .servizio-gallery.is-visible { display: grid; }
+
+    .servizio-gallery-window {
+      width: min(100%, 900px);
+      max-height: min(90vh, 760px);
+      overflow: auto;
+      padding: 18px;
+      border: 2px solid var(--p02-accent);
+      background: var(--p02-bg);
+      box-shadow: 0 12px 40px rgba(0,0,0,.45);
+    }
+
+    .servizio-gallery-header,
+    .servizio-gallery-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .servizio-gallery-header { margin-bottom: 14px; }
+    .servizio-gallery-header h2 { margin: 0; font-size: 20px; }
+    .servizio-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .servizio-gallery-card { padding: 6px; border: 2px solid transparent; background: #f7f7f7; cursor: pointer; text-align: left; }
+    .servizio-gallery-card:hover, .servizio-gallery-card.is-selected { border-color: var(--p02-accent); }
+    .servizio-gallery-card img { display: block; width: 100%; height: 120px; object-fit: cover; }
+    .servizio-gallery-card span { display: block; overflow: hidden; padding-top: 6px; text-overflow: ellipsis; white-space: nowrap; color: #111; font-size: 11px; }
+    .servizio-gallery-actions { justify-content: flex-end; margin-top: 16px; }
+
     .p02-interval-wrap {
       display: flex;
       flex-direction: column;
@@ -446,7 +508,10 @@
     <div class="p02-window">
       <div class="p02-window-header">
         <span class="title">frmPagina02</span>
-        <button id="close-window-btn" class="p02-close" type="button" aria-label="Chiudi">×</button>
+        <div class="p02-window-header-actions">
+          <a class="p02-bordero-link" href="../../Bordero/pages/bordero.html">Torna a Borderò</a>
+          <button id="close-window-btn" class="p02-close" type="button" aria-label="Chiudi">×</button>
+        </div>
       </div>
 
       <div class="p02-body">
@@ -483,6 +548,7 @@
         <div class="p02-carousel" aria-label="Carrellata immagini su monitor secondario">
           <div class="p02-carousel-title">Carrellata immagini (monitor 2)</div>
           <input id="carousel-images-input" class="p02-file-input" type="file" accept="image/*" multiple />
+          <button id="choose-carousel-btn" class="p02-button" type="button">SCEGLI FOTO DA VSC_SERVIZIO</button>
           <div class="p02-interval-wrap">
             <label for="carousel-interval-input">Secondi / slide</label>
             <input id="carousel-interval-input" class="p02-interval-input" type="number" min="1" max="60" value="6" />
@@ -491,6 +557,20 @@
           <button id="publish-carousel-folder-btn" type="button" class="p02-button">PUBBLICA TUTTA LA CARTELLA</button>
           <button id="stop-carousel-btn" type="button" class="p02-button stop">STOP CARRELLATA</button>
           <div id="carousel-status" class="p02-carousel-status" aria-live="polite"></div>
+        </div>
+
+        <div id="servizio-gallery" class="servizio-gallery" role="dialog" aria-modal="true" aria-labelledby="servizio-gallery-title">
+          <div class="servizio-gallery-window">
+            <div class="servizio-gallery-header">
+              <h2 id="servizio-gallery-title">Immagini da VSC_SERVIZIO</h2>
+              <button id="servizio-gallery-close" class="p02-close" type="button" aria-label="Chiudi galleria">×</button>
+            </div>
+            <div id="servizio-gallery-grid" class="servizio-gallery-grid"></div>
+            <div class="servizio-gallery-actions">
+              <button id="servizio-gallery-cancel" class="p02-button" type="button">Annulla</button>
+              <button id="servizio-gallery-confirm" class="p02-button primary" type="button">Conferma selezione</button>
+            </div>
+          </div>
         </div>
 
         <div class="p02-footer">

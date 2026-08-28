@@ -6,6 +6,7 @@
   const publishLogoLabel = document.getElementById("publish-logo-label");
   const publishFileBtn = document.getElementById("publish-file-btn");
   const carouselImagesInput = document.getElementById("carousel-images-input");
+  const chooseCarouselBtn = document.getElementById("choose-carousel-btn");
   const carouselIntervalInput = document.getElementById("carousel-interval-input");
   const publishCarouselBtn = document.getElementById("publish-carousel-btn");
   const publishCarouselFolderBtn = document.getElementById("publish-carousel-folder-btn");
@@ -17,8 +18,13 @@
 
   const defaultBannerText = "la serata inizierà a breve";
   const carouselStoragePrefix = "userform-servizio-carousel:";
-  const servizioBaseDirDefault = "C:\\VSC_Servizio";
+  const servizioBaseDirDefault = "C:\\VSC_SERVIZIO";
   let selectedElectronSlides = [];
+  const gallery = document.getElementById("servizio-gallery");
+  const galleryGrid = document.getElementById("servizio-gallery-grid");
+  const galleryClose = document.getElementById("servizio-gallery-close");
+  const galleryCancel = document.getElementById("servizio-gallery-cancel");
+  const galleryConfirm = document.getElementById("servizio-gallery-confirm");
 
   function moveToPrimaryMonitor() {
     try {
@@ -63,7 +69,10 @@
 
   function openLogoPicker() {
     const target = new URL("../pages/SERVIZIO-LOGO.html", window.location.href).toString();
-    window.open(target, "_blank", "width=900,height=760,resizable=yes,scrollbars=yes");
+    const popup = window.open(target, "servizio-logo-picker", "width=900,height=760,resizable=yes,scrollbars=yes");
+    if (!popup) {
+      window.location.assign(target);
+    }
   }
 
   function setCarouselStatus(message, isError = false) {
@@ -72,6 +81,47 @@
     }
     carouselStatus.textContent = message || "";
     carouselStatus.style.color = isError ? "#8f0000" : "#1d1d1d";
+  }
+
+  async function openServizioGallery() {
+    if (!gallery || !galleryGrid) return;
+    try {
+      const response = await fetch(`/api/servizio/images?t=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const files = Array.isArray(payload?.files) ? payload.files : [];
+      galleryGrid.innerHTML = '';
+      files.forEach((file) => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'servizio-gallery-card';
+        card.dataset.url = file.url;
+        card.dataset.name = file.name;
+        const image = document.createElement('img');
+        image.src = file.url;
+        image.alt = file.name;
+        const name = document.createElement('span');
+        name.textContent = file.name;
+        card.append(image, name);
+        card.addEventListener('click', () => card.classList.toggle('is-selected'));
+        galleryGrid.appendChild(card);
+      });
+      gallery.classList.add('is-visible');
+      if (!files.length) setCarouselStatus('La cartella C:\\VSC_SERVIZIO non contiene immagini.', true);
+    } catch (error) {
+      setCarouselStatus('Impossibile leggere la cartella C:\\VSC_SERVIZIO.', true);
+    }
+  }
+
+  function closeServizioGallery() { gallery?.classList.remove('is-visible'); }
+
+  function confirmServizioGallery() {
+    selectedElectronSlides = Array.from(galleryGrid?.querySelectorAll('.is-selected') || []).map((card) => ({
+      name: card.dataset.name,
+      url: card.dataset.url
+    }));
+    setCarouselStatus(`Selezionate ${selectedElectronSlides.length} immagini da C:\\VSC_SERVIZIO.`, !selectedElectronSlides.length);
+    closeServizioGallery();
   }
 
   function pruneOldCarouselEntries() {
@@ -220,7 +270,7 @@
     const intervalRaw = Number(carouselIntervalInput?.value || 6);
     const intervalSec = Number.isFinite(intervalRaw) ? Math.min(60, Math.max(1, Math.round(intervalRaw))) : 6;
 
-    setCarouselStatus("Apertura carrellata da cartella VSC_Servizio...");
+    setCarouselStatus("Apertura carrellata da cartella VSC_SERVIZIO...");
     const opened = await openPublishFolderCarouselWindow(intervalSec);
     if (!opened) {
       setCarouselStatus("Popup bloccato: abilita i popup o usa lo script PowerShell monitor 2.", true);
@@ -333,9 +383,31 @@
     publishCarouselBtn.addEventListener("click", publishCarousel);
   }
 
+  if (chooseCarouselBtn) {
+    chooseCarouselBtn.addEventListener('click', openServizioGallery);
+  }
+
+  [galleryClose, galleryCancel].forEach((button) => button?.addEventListener('click', closeServizioGallery));
+  galleryConfirm?.addEventListener('click', confirmServizioGallery);
+
   if (carouselImagesInput) {
     const pickFromServizioFolder = async (event) => {
       if (!window.electronAPI?.filePicker?.pickImagesFromServizio) {
+        event.preventDefault();
+        event.stopPropagation();
+        try {
+          const response = await fetch(`/api/servizio/images?t=${Date.now()}`, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          const files = Array.isArray(payload?.files) ? payload.files : [];
+          selectedElectronSlides = files;
+          setCarouselStatus(files.length
+            ? `Selezionate ${files.length} immagini da C:\\VSC_SERVIZIO.`
+            : 'La cartella C:\\VSC_SERVIZIO non contiene immagini.', !files.length);
+        } catch (error) {
+          console.error('Errore lettura cartella servizio:', error);
+          setCarouselStatus('Impossibile leggere la cartella C:\\VSC_SERVIZIO.', true);
+        }
         return;
       }
 
@@ -387,7 +459,7 @@
         setCarouselStatus(`Selezionate ${mapped.length} immagini da ${servizioBaseDirDefault}.`);
       } catch (error) {
         console.error('Errore selezione immagini servizio:', error);
-        setCarouselStatus('Errore apertura selettore file VSC_Servizio.', true);
+        setCarouselStatus('Errore apertura selettore file VSC_SERVIZIO.', true);
       }
     };
 

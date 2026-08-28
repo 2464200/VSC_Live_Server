@@ -316,14 +316,14 @@
         const payload = await response.json();
         const slides = Array.isArray(payload?.files) ? payload.files : [];
         if (!slides.length) {
-          showCarouselError('La cartella C:/VSC_Servizio non contiene immagini valide.');
+          showCarouselError('La cartella C:/VSC_SERVIZIO non contiene immagini valide.');
           return;
         }
 
         startCarousel(slides, intervalFromQuery);
       } catch (error) {
         console.error('Errore caricamento carrellata da cartella:', error);
-        showCarouselError('Errore caricamento immagini da C:/VSC_Servizio. Verifica il server.');
+        showCarouselError('Errore caricamento immagini da C:/VSC_SERVIZIO. Verifica il server.');
       }
     }
 

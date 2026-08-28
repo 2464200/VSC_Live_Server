@@ -1103,14 +1103,20 @@ ipcMain.handle('bordero-file-picker:list-directory', async (_event, targetPath =
   }
 });
 
+function ensureServizioDirectory() {
+  const servizioDir = process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_SERVIZIO';
+  fs.mkdirSync(servizioDir, { recursive: true });
+  return servizioDir;
+}
+
 ipcMain.handle('bordero-file-picker:pick-images-servizio', async () => {
   try {
     const { dialog } = require('electron');
-    const servizioDir = process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_Servizio';
-    const defaultPath = fs.existsSync(servizioDir) ? servizioDir : 'C:\\';
+    const servizioDir = ensureServizioDirectory();
+    const defaultPath = servizioDir;
 
     const result = await dialog.showOpenDialog({
-      title: 'Seleziona immagini da VSC_Servizio',
+      title: 'Seleziona immagini da VSC_SERVIZIO',
       defaultPath,
       properties: ['openFile', 'multiSelections', 'showHiddenFiles'],
       filters: [
@@ -1135,8 +1141,53 @@ ipcMain.handle('bordero-file-picker:pick-images-servizio', async () => {
     console.warn('Unable to open servizio image picker:', error?.message || error);
     return {
       canceled: true,
-      baseDir: process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_Servizio',
+      baseDir: process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_SERVIZIO',
       filePaths: [],
+      error: error?.message || String(error)
+    };
+  }
+});
+
+ipcMain.handle('bordero-file-picker:pick-image-servizio', async () => {
+  try {
+    const { dialog } = require('electron');
+    const servizioDir = ensureServizioDirectory();
+    const result = await dialog.showOpenDialog({
+      title: 'Scegli immagine da VSC_SERVIZIO',
+      defaultPath: servizioDir,
+      properties: ['openFile', 'showHiddenFiles'],
+      filters: [
+        { name: 'Immagini', extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'] }
+      ]
+    });
+
+    if (result.canceled || !result.filePaths?.[0]) {
+      return { canceled: true, baseDir: servizioDir };
+    }
+
+    const filePath = result.filePaths[0];
+    const extension = path.extname(filePath).toLowerCase();
+    const mimeTypes = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.webp': 'image/webp',
+      '.gif': 'image/gif',
+      '.bmp': 'image/bmp'
+    };
+    const dataUrl = `data:${mimeTypes[extension] || 'application/octet-stream'};base64,${fs.readFileSync(filePath).toString('base64')}`;
+
+    return {
+      canceled: false,
+      baseDir: servizioDir,
+      name: path.basename(filePath),
+      dataUrl
+    };
+  } catch (error) {
+    console.warn('Unable to open single servizio image picker:', error?.message || error);
+    return {
+      canceled: true,
+      baseDir: process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_SERVIZIO',
       error: error?.message || String(error)
     };
   }

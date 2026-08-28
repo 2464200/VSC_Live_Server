@@ -27,7 +27,7 @@ let PORT = process.env.UNIFIED_PORT ? parseInt(process.env.UNIFIED_PORT, 10) : 5
 const PDF_FOLDER = 'C:\\VSC_SCRIPT_PDF';
 const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
 const VIDEOCLIP_EXTENSIONS = new Set(['.mp4', '.m4v', '.mov', '.avi', '.mkv', '.wmv', '.webm']);
-const SERVIZIO_IMAGES_DIR = process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_Servizio';
+const SERVIZIO_IMAGES_DIR = process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_SERVIZIO';
 const SERVIZIO_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp']);
 // Directory condivisa export SIAE (Bordero + Eventi).
 // Priorita: variabile ambiente -> default storico progetto.
@@ -885,6 +885,13 @@ function ensureUserformRecordingDir() {
         fs.mkdirSync(USERFORM_RECORDINGS_DIR, { recursive: true });
     }
     return USERFORM_RECORDINGS_DIR;
+}
+
+function ensureServizioImagesDir() {
+    if (!fs.existsSync(SERVIZIO_IMAGES_DIR)) {
+        fs.mkdirSync(SERVIZIO_IMAGES_DIR, { recursive: true });
+    }
+    return SERVIZIO_IMAGES_DIR;
 }
 
 function resolveFfmpegExecutable() {
@@ -2913,13 +2920,7 @@ app.use('/userform-recordings', express.static(USERFORM_RECORDINGS_DIR));
 
 app.get('/api/servizio/images', (req, res) => {
     try {
-        if (!fs.existsSync(SERVIZIO_IMAGES_DIR)) {
-            return res.json({
-                ok: true,
-                dir: SERVIZIO_IMAGES_DIR,
-                files: []
-            });
-        }
+        ensureServizioImagesDir();
 
         const items = fs.readdirSync(SERVIZIO_IMAGES_DIR, { withFileTypes: true });
         const files = items
@@ -4929,6 +4930,7 @@ router.post('/check-prenotazione-limit', (req, res) => {
 app.use('/eventi/api', router);
 
 initializeEventiFiles();
+ensureServizioImagesDir();
 loadOpenedViewersFromFile();
 scanVideoClipDirectory();
 syncBraniOnStartupV2();
