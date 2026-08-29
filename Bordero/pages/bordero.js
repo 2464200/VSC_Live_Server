@@ -11,7 +11,7 @@ class BorderoTableManager {
     this.currentSort = null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = null;
-    this.keepExecutedAtBottom = false;
+    this.keepExecutedAtBottom = true;
     this.currentFilters = {};
     this.currentSearch = '';
     this.searchMode = 'general';
@@ -688,7 +688,6 @@ class BorderoTableManager {
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
     this.bindSortButton('btn-sort-richieste', 'richieste', 'RICHIESTE');
     this.setupColumnHeaderSorting();
-    this.bindMoveExecutedBottomButton('btn-move-executed-bottom', 'SPOSTA IN FONDO GLI ESEGUITI');
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
       window.location.href = 'brani-eseguiti.html';
     });
@@ -1466,11 +1465,13 @@ class BorderoTableManager {
   }
 
   reorderBraniByOriginalIndex() {
-    const available = this.allBrani
-      .filter(b => String(b.flag || '').toUpperCase() !== 'X')
+    const grouped = partitionBraniByExecutedTitle(this.allBrani, {
+      isExecuted: (brano) => this.isExecutedBrano(brano),
+    });
+    const available = grouped.main
       .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
-
-    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
+    const completed = grouped.bottom
+      .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
 
     this.allBrani = [...available, ...completed];
     // If a sort is active, re-apply it so reorder doesn't wipe user sorting
@@ -1510,8 +1511,11 @@ class BorderoTableManager {
         : ObjectUtils.sortByField(prioritized, field, ascending);
     }
 
-    const pending = remainingItems.filter(item => !this.isExecutedBrano(item));
-    const executed = remainingItems.filter(item => this.isExecutedBrano(item));
+    const grouped = partitionBraniByExecutedTitle(remainingItems, {
+      isExecuted: (brano) => this.isExecutedBrano(brano),
+    });
+    const pending = grouped.main;
+    const executed = grouped.bottom;
 
     const pendingSorted = ObjectUtils.sortByField(pending, field, ascending);
     const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
@@ -1629,11 +1633,6 @@ class BorderoTableManager {
 
     // Start con tutti i brani
     this.filteredBrani = [...this.allBrani];
-
-    this.filteredBrani = filterBraniByTitleVisibility(this.filteredBrani, {
-      isExecuted: (brano) => this.isExecutedBrano(brano),
-      isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
-    });
 
     // Applica filtri
     Object.entries(this.currentFilters).forEach(([key, config]) => {

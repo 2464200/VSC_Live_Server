@@ -166,7 +166,7 @@ class DisplayMonitor {
     const requestedBrani = this.filterRequestedBrani(brani);
     if (!Array.isArray(requestedBrani) || requestedBrani.length === 0) {
       this.lastRenderedSignature = '';
-      this.showEmptyState('Nessun brano richiesto da visualizzare');
+      this.showEmptyState();
       return;
     }
 
@@ -328,15 +328,7 @@ class DisplayMonitor {
   filterRequestedBrani(brani) {
     if (!Array.isArray(brani)) return [];
 
-    const requestedBrani = brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
-    if (requestedBrani.length > 0) {
-      return requestedBrani;
-    }
-
-    return brani.filter((brano) => {
-      const text = [brano?.titolo, brano?.coreografia, brano?.brano, brano?.id].filter(Boolean).join(' ');
-      return text.trim().length > 0;
-    });
+    return brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
   }
 
   orderRequestedBrani(brani) {
@@ -403,6 +395,7 @@ class DisplayMonitor {
       return;
     }
 
+    emptyState?.classList.remove('show');
     DOMUtils.hide(emptyState);
 
     const previousTop = tableLive ? tableLive.scrollTop : 0;
@@ -724,29 +717,6 @@ class DisplayMonitor {
       }
     }
 
-    const candidates = [
-      '/NextCoreo.csv',
-      `${window.location.origin}/NextCoreo.csv`,
-      `${window.location.origin}/public/NextCoreo.csv`
-    ];
-
-    for (const baseUrl of candidates) {
-      try {
-        const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) continue;
-        const text = (await response.text()).replace(/^\uFEFF/, '').trim();
-        if (!text) continue;
-
-        const firstRow = text.split(/\r?\n/)[0] || '';
-        const cols = firstRow.split(',').map((cell) => String(cell || '').replace(/(^"|"$)/g, '').trim());
-        const nextValue = cols[1] || cols[0] || '--';
-        target.textContent = nextValue || '--';
-        return;
-      } catch (error) {
-        logger.debug('loadNextCoreo failed for candidate', { baseUrl, message: error?.message || error });
-      }
-    }
-
     target.textContent = '--';
   }
 
@@ -911,15 +881,17 @@ class DisplayMonitor {
   /**
    * Mostra empty state
    */
-  showEmptyState(message = 'Nessun dato da visualizzare') {
+  showEmptyState() {
     const tbody = document.getElementById('display-tbody');
     const emptyState = document.getElementById('empty-state');
-    const emptyMessage = emptyState?.querySelector('p');
+    const emptyMessage = emptyState?.querySelector('.empty-text') || emptyState?.querySelector('p');
+    const serviceMessage = localStorage.getItem('userform-servizio-input')?.trim();
 
     tbody.innerHTML = '';
+    emptyState?.classList.add('show');
     DOMUtils.show(emptyState);
     if (emptyMessage) {
-      emptyMessage.textContent = message;
+      emptyMessage.textContent = serviceMessage || 'Potete nel frattempo cercare il QR Code in sala e richiedere le vostre coreografie preferite!';
     }
 
     document.getElementById('header-dj').textContent = '--';
