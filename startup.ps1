@@ -268,7 +268,12 @@ function Stop-NodeListenersOnPort {
     }
 
     if ($stopped -gt 0) {
-        Start-Sleep -Seconds 1
+        # Attende che il socket OS liberi la porta (TIME_WAIT)
+        $maxWait = 10
+        while ((Test-PortListening -Port $Port) -and $maxWait -gt 0) {
+            Start-Sleep -Milliseconds 300
+            $maxWait--
+        }
         Write-Host "  OK Pulizia porta $Port completata ($stopped processi terminati)"
     } else {
         Write-Host "  Nessun processo Node.js da terminare sulla porta $Port"
@@ -446,7 +451,7 @@ Write-Host ""
 $startedPids = @()
 
 # Verifica se il server è già in esecuzione
-if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2)) {
+if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 5)) {
     Write-Host "Server già in esecuzione sulle porte $UnifiedPort e 5501 - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."

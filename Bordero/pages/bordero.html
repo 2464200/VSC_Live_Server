@@ -11,7 +11,7 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css?v=20260826-3" />
+  <link rel="stylesheet" href="bordero.css?v=20260811-3" />
   
   <!-- XLSX Library locale per lettura file Excel -->
   <script src="../assets/lib/xlsx.min.js"></script>
@@ -26,13 +26,13 @@
   </script>
   
   <!-- Config globale -->
-  <script defer src="../js/config.js?v=20260826-2"></script>
+  <script defer src="../js/config.js?v=20260711-2"></script>
   <script defer src="../js/utils.js?v=20260711-2"></script>
   <script defer src="../js/excel-file-manager.js?v=20260711-2"></script>
   <script defer src="../js/excel-sync.js?v=20260711-2"></script>
-  <script defer src="../js/data-loader.js?v=20260826-2"></script>
+  <script defer src="../js/data-loader.js?v=20260711-2"></script>
   <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
-  <script defer src="bordero.js?v=20260826-2"></script>
+  <script defer src="bordero.js?v=20260811-4"></script>
 </head>
 
 <body>
@@ -120,6 +120,9 @@
         <button id="btn-sort-richieste" class="btn btn-sort" title="Ordina per richieste">
           ORDINA PER RICHIESTE
         </button>
+        <button id="btn-move-executed-bottom" class="btn btn-sort btn-success" title="Sposta tutti i brani eseguiti in fondo alla lista">
+          SPOSTA IN FONDO GLI ESEGUITI
+        </button>
         <button id="btn-view-executed" class="btn btn-sort btn-success" title="Visualizza i brani già eseguiti">
           BRANI ESEGUITI
         </button>
@@ -150,10 +153,6 @@
         </button>
         <button id="btn-load-deck-2" class="btn btn-deck2" title="Carica il brano selezionato in NEXT sul Deck 2">
           CARICA SU DECK 2
-        </button>
-        <button id="console-status-signal" type="button" class="btn btn-secondary console-status-btn" data-state="idle" aria-live="polite" aria-label="Stato console">
-          <span class="console-status-text">STATO CONSOLE</span>
-          <span class="console-status-dot" aria-hidden="true"></span>
         </button>
       </div>
 
@@ -212,20 +211,16 @@
         <button id="btn-finish-serata" class="btn btn-danger" title="Termina e archivia la serata corrente">
           🕒 FINALIZZA SERATA
         </button>
-        <div class="service-logo-controls" aria-label="Pubblicazione logo sul monitor secondario">
-          <button id="btn-start-service-logo" class="btn btn-success" type="button" title="Avvia l'ultimo logo selezionato sul monitor secondario">
-            START LOGO
-          </button>
-          <button id="btn-stop-service-logo" class="btn btn-danger" type="button" title="Ferma la pubblicazione del logo e ripristina il display">
-            STOP LOGO
-          </button>
-        </div>
         <div class="remote-rolling-controls" aria-label="Controlli rolling monitor secondario">
           <button id="btn-stop-rolling-remote" class="btn btn-secondary remote-rolling-btn" title="Ferma lo scrolling sul monitor secondario">
             FERMA ROLLING
           </button>
           <button id="btn-resume-rolling-remote" class="btn btn-secondary remote-rolling-btn" title="Riprende lo scrolling sul monitor secondario">
             RIPRENDI ROLLING
+          </button>
+          <button id="console-status-signal" type="button" class="btn btn-secondary remote-rolling-btn console-status-btn" data-state="idle" aria-live="polite" aria-label="Stato console">
+            <span class="console-status-text">STATO CONSOLE</span>
+            <span class="console-status-dot" aria-hidden="true"></span>
           </button>
         </div>
       </div>
@@ -259,6 +254,10 @@
           RESET FILTRI + ID ↑
         </button>
       </div>
+      <div class="stat-badge stat-mode" role="status" aria-live="polite">
+        <span class="stat-label">Eseguiti in fondo:</span>
+        <span class="stat-value stat-value-mode mode-off" id="stat-executed-bottom-mode">OFF</span>
+      </div>
     </section>
 
     <!-- TABELLA PRINCIPALE -->
@@ -273,12 +272,12 @@
               <th class="col-timestamp" data-col="timestamp">Timestamp</th>
               <th class="col-titolo" data-col="titolo">Titolo</th>
               <th class="col-autore" data-col="autore">Autore</th>
-              <th class="col-durata" data-col="durata">Durata</th>
               <th class="col-richieste" data-col="richieste">Richieste</th>
               <th class="col-livello" data-col="info_livello">Info Livello</th>
               <th class="col-coreo-1" data-col="info_coreo_1">Info Coreo 1</th>
               <th class="col-coreo-2" data-col="info_coreo_2">Info Coreo 2</th>
               <th class="col-coreografo" data-col="coreografo">Coreografo</th>
+              <th class="col-collaboratori" data-col="collaboratori">Collaboratori</th>
               <th class="col-videoclip" data-col="videoclip" data-filter-only="true">VideoClip</th>
             </tr>
           </thead>

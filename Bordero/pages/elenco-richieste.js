@@ -12,7 +12,7 @@ class ElencoRichiestePage {
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
     this.requestersByBranoId = new Map();
-    this.autoRefreshIntervalMs = 30 * 1000;
+    this.autoRefreshIntervalMs = 60 * 1000;
     this.autoRefreshTimer = null;
     this.autoRefreshInProgress = false;
     this.init();

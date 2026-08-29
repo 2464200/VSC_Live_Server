@@ -1,82 +1,28 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<title>Coreografie Monster Country Group</title>
-<link rel="stylesheet" href="mobile-style.css">
-<script src="base-path.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#15251f">
+  <title>Monster Country Group | Display Mobile</title>
+  <link rel="stylesheet" href="mobile-style.css">
 </head>
 <body>
-<div id="global-nav-container"></div>
-<script src="../nav.js"></script>
-  <!-- Header fisso -->
-  <div class="header">
-    <div class="logo">
-      <h1>🤠 Monster Country Group</h1>
-      <p class="subtitle">Coreografie Richieste</p>
-    </div>
-    <div class="info-bar">
-      <span class="live-status" role="status" aria-live="polite">Richieste live</span>
-
-      <a class="btn-home" href="../Bordero/index.html" aria-label="Torna alla Home">⌂ Home</a>
-      <button class="btn-menu" onclick="toggleMenu()">⚙️</button>
-    </div>
-  </div>
-
-  <!-- Menu controlli (nascosto di default) -->
-  <div class="menu-panel" id="menuPanel">
-    <div class="menu-content">
-      <h3>⚙️ Controlli</h3>
-      
-      <div class="control-group">
-        <label>🚀 Velocità Scroll</label>
-        <input type="range" id="speed" min="1" max="30" value="20">
-        <span id="speedValue">20</span>
-      </div>
-
-      <div class="control-group">
-        <label>⏱️ Pausa (secondi)</label>
-        <input type="range" id="pause" min="0" max="10" value="2">
-        <span id="pauseValue">2</span>
-      </div>
-
-      <div class="control-buttons">
-        <button class="btn-control btn-stop" id="stopScroll">⏸️ Pausa</button>
-        <button class="btn-control btn-play" id="resumeScroll">▶️ Riprendi</button>
-      </div>
-
-      <div class="control-buttons">
-        <button class="btn-control btn-fullscreen" onclick="toggleFullscreen()" aria-label="Attiva o disattiva schermo intero">📱 Schermo Intero</button>
-      </div>
-
-      <button class="btn-close" onclick="toggleMenu()" aria-label="Chiudi menu">✖️ Chiudi</button>
-    </div>
-  </div>
-
-  <!-- Legenda -->
-  <div class="legend">
-    <span class="legend-item">
-      <span class="badge badge-done">✓</span> = Già eseguita
-    </span>
-  </div>
-
-  <!-- Contenitore scroll -->
-  <div class="scroll-container" id="scrollContainer">
-    <div id="data-body">
-      <!-- Le coreografie verranno caricate qui -->
-    </div>
-  </div>
-
-  <!-- Indicatore di caricamento -->
-  <div class="loader" id="loader">
-    <div class="spinner"></div>
-    <p>Caricamento coreografie...</p>
-  </div>
-
-
+  <header class="app-header">
+    <div class="brand-row"><div><p class="eyebrow">Monster Country Group</p><h1>Display live</h1></div><div class="connection-state" id="connectionState" aria-live="polite">Connessione...</div></div>
+    <section class="next-card"><span class="next-label">Prossima coreografia</span><strong class="next-title" id="nextCoreoValue">--</strong><span class="next-detail" id="nextCoreoDetail"></span></section>
+    <dl class="event-details">
+      <div><dt>DJ</dt><dd id="mobileDj">--</dd></div><div><dt>Data</dt><dd id="mobileData">--</dd></div><div><dt>Luogo</dt><dd id="mobileLuogo">--</dd></div><div><dt>Evento</dt><dd id="mobileEvento">--</dd></div><div class="completed"><dt>Eseguite</dt><dd id="mobileCompleted">0/0</dd></div>
+    </dl>
+  </header>
+  <main class="display-content" id="scrollContainer">
+    <div class="list-header"><span>Coreografie richieste</span><time id="updatedAt">In attesa dati</time></div>
+    <section class="choreography-list" id="dataBody" aria-live="polite"></section>
+    <section class="empty-state" id="emptyState" hidden><h2>Nessuna coreografia richiesta</h2><p>Il display si aggiorna automaticamente quando la serata viene avviata.</p></section>
+  </main>
+  <dialog class="settings-panel" id="settingsPanel"><form method="dialog"><div class="settings-heading"><h2>Scorrimento</h2><button class="icon-button" value="close" aria-label="Chiudi impostazioni">x</button></div><label>Velocita <output id="speedValue">18</output><input type="range" id="speed" min="1" max="30" value="18"></label><label>Pausa ai bordi <output id="pauseValue">2 s</output><input type="range" id="pause" min="0" max="10" value="2"></label><div class="settings-actions"><button type="button" id="scrollToggle">Pausa</button><button type="button" id="fullscreenToggle">Schermo intero</button></div></form></dialog>
+  <nav class="bottom-bar" aria-label="Comandi display"><a href="../Bordero/index.html">Torna a Bordero</a><button id="refreshButton">Aggiorna</button><button id="settingsButton">Impostazioni</button></nav>
+  <script src="mobile-google-config.js"></script>
   <script src="mobile-script.js"></script>
 </body>
 </html>

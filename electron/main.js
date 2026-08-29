@@ -40,7 +40,6 @@ const PRIMARY_DEFAULT_PAGE_PATH = '/Bordero/pages/bordero.html';
 const PRIMARY_ONLY_PREFIXES = ['/userform/', '/operatore/', '/operator/'];
 const PAGE_POLICY = new Map([
   ['/bordero/index.html', { primary: true, secondary: false }],
-  ['/public/mobile.html', { primary: true, secondary: false }],
   ['/bordero/pages/admin.html', { primary: true, secondary: false }],
   ['/bordero/pages/bordero-presentazione.html', { primary: true, secondary: true }],
   ['/bordero/pages/bordero.html', { primary: true, secondary: false }],
@@ -55,8 +54,7 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
   ['/eventi/eventi.html', { primary: true, secondary: false }],
   ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
-  ['/userform/pages/servizio.html', { primary: false, secondary: true }],
-  ['/userform/pages/servizio-logo.html', { primary: true, secondary: false }],
+  ['/userform/pages/servizio.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
   ['/userform/pages/wecam.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
@@ -1100,96 +1098,6 @@ ipcMain.handle('bordero-file-picker:list-directory', async (_event, targetPath =
   } catch (error) {
     console.warn('Unable to list directory for picker:', error?.message || error);
     return { entries: [] };
-  }
-});
-
-function ensureServizioDirectory() {
-  const servizioDir = process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_SERVIZIO';
-  fs.mkdirSync(servizioDir, { recursive: true });
-  return servizioDir;
-}
-
-ipcMain.handle('bordero-file-picker:pick-images-servizio', async () => {
-  try {
-    const { dialog } = require('electron');
-    const servizioDir = ensureServizioDirectory();
-    const defaultPath = servizioDir;
-
-    const result = await dialog.showOpenDialog({
-      title: 'Seleziona immagini da VSC_SERVIZIO',
-      defaultPath,
-      properties: ['openFile', 'multiSelections', 'showHiddenFiles'],
-      filters: [
-        { name: 'Immagini', extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'] }
-      ]
-    });
-
-    if (result.canceled) {
-      return {
-        canceled: true,
-        baseDir: servizioDir,
-        filePaths: []
-      };
-    }
-
-    return {
-      canceled: false,
-      baseDir: servizioDir,
-      filePaths: Array.isArray(result.filePaths) ? result.filePaths : []
-    };
-  } catch (error) {
-    console.warn('Unable to open servizio image picker:', error?.message || error);
-    return {
-      canceled: true,
-      baseDir: process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_SERVIZIO',
-      filePaths: [],
-      error: error?.message || String(error)
-    };
-  }
-});
-
-ipcMain.handle('bordero-file-picker:pick-image-servizio', async () => {
-  try {
-    const { dialog } = require('electron');
-    const servizioDir = ensureServizioDirectory();
-    const result = await dialog.showOpenDialog({
-      title: 'Scegli immagine da VSC_SERVIZIO',
-      defaultPath: servizioDir,
-      properties: ['openFile', 'showHiddenFiles'],
-      filters: [
-        { name: 'Immagini', extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'] }
-      ]
-    });
-
-    if (result.canceled || !result.filePaths?.[0]) {
-      return { canceled: true, baseDir: servizioDir };
-    }
-
-    const filePath = result.filePaths[0];
-    const extension = path.extname(filePath).toLowerCase();
-    const mimeTypes = {
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.webp': 'image/webp',
-      '.gif': 'image/gif',
-      '.bmp': 'image/bmp'
-    };
-    const dataUrl = `data:${mimeTypes[extension] || 'application/octet-stream'};base64,${fs.readFileSync(filePath).toString('base64')}`;
-
-    return {
-      canceled: false,
-      baseDir: servizioDir,
-      name: path.basename(filePath),
-      dataUrl
-    };
-  } catch (error) {
-    console.warn('Unable to open single servizio image picker:', error?.message || error);
-    return {
-      canceled: true,
-      baseDir: process.env.VSC_SERVIZIO_DIR || 'C:\\VSC_SERVIZIO',
-      error: error?.message || String(error)
-    };
   }
 });
 

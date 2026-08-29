@@ -24,17 +24,17 @@
 </head>
 
 <body class="display-body">
-  <div id="next-coreo-announcement" class="next-coreo-announcement" role="status" aria-live="assertive" aria-hidden="true">
-    <div class="next-coreo-announcement-label">PROSSIMA COREO</div>
-    <div id="next-coreo-announcement-title" class="next-coreo-announcement-title"></div>
-  </div>
   <div class="display-container">
     <!-- HEADER TABELLONE -->
     <header class="display-header">
-      <div class="display-clock-top-left" id="display-clock-wrap">
-        <span id="data-ora">📅 --/--/---- 🕒 --:--:--</span>
+      <div class="display-title-row">
+        <h1 class="display-title">DISPLAY COREOGRAFIE RICHIESTE</h1>
+        <button id="btn-close-display" class="display-close-btn" type="button" title="Chiudi finestra">✕</button>
       </div>
-      <button id="btn-close-display" class="display-close-btn" type="button" title="Chiudi finestra">✕</button>
+
+      <div class="display-info-row">
+        Le righe evidenziate in giallo indicano i brani gia eseguiti
+      </div>
 
       <div class="display-live-row">
         <div class="next-coreo-wrap">
@@ -98,10 +98,8 @@
       <!-- EMPTY STATE -->
       <div class="empty-state" id="empty-state">
         <div class="empty-content">
-          <div class="empty-icon">🤠 💃 🕺</div>
-          <h2 class="empty-title">A breve inizieremo la serata di ballo!</h2>
-          <p class="empty-text">Potete nel frattempo cercare il QR Code in sala e richiedere le vostre coreografie preferite!</p>
-          <div class="empty-subtext"> Non appena arriverà la prima richiesta, le coreografie appariranno qui sul tabellone.</div>
+          <div class="empty-icon"></div>
+          <p>Nessun dato da visualizzare</p>
         </div>
       </div>
     </section>
