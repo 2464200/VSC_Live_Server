@@ -375,8 +375,8 @@ Write-Host ""
 
 $startedPids = @()
 
-# Verifica se il server è già in esecuzione
-if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2)) {
+# Verifica se il server già in esecuzione espone tutte le route richieste.
+if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/led-display/" -TimeoutSeconds 2)) {
     Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."
