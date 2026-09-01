@@ -39,6 +39,7 @@ class BorderoTableManager {
     this.autoRefreshTimer = null;
     this.autoRefreshInProgress = false;
     this.displayScrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
+    this.ledDisplayActiveStorageKey = 'bordero_led_display_active';
     this.deselectionConfirmState = null;
     this.musicMatchSelectionState = null;
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
@@ -122,6 +123,8 @@ class BorderoTableManager {
       this.setupDataRefreshListeners();
       this.setupAutoRefresh();
       this.setupStorageSync();
+      this.updateRemoteDisplayIndicators();
+      this.setupLedDisplayMonitorSync();
       this.updateSearchPlaceholder();
       this.equalizeSearchActionButtons();
       this.setupWebcamSignalBox();
@@ -760,6 +763,8 @@ class BorderoTableManager {
     });
     document.getElementById('btn-stop-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('stop'));
     document.getElementById('btn-resume-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('resume'));
+    document.getElementById('btn-enable-led-remote')?.addEventListener('click', () => this.sendLedDisplayCommand('enable'));
+    document.getElementById('btn-disable-led-remote')?.addEventListener('click', () => this.sendLedDisplayCommand('disable'));
 
     // Pagination
     document.getElementById('btn-first-page')?.addEventListener('click', () => this.firstPage());
@@ -987,11 +992,65 @@ class BorderoTableManager {
     };
 
     localStorage.setItem(this.displayScrollCommandStorageKey, JSON.stringify(payload));
+    this.updateRemoteDisplayIndicators();
 
     if (normalized === 'stop') {
       Toast.warning('Comando inviato: FERMA ROLLING (monitor secondario)');
     } else {
       Toast.success('Comando inviato: RIPRENDI ROLLING (monitor secondario)');
+    }
+  }
+
+  updateRemoteDisplayIndicators() {
+    const resumeButton = document.getElementById('btn-resume-rolling-remote');
+    const disableLedButton = document.getElementById('btn-disable-led-remote');
+    let rollingStopped = false;
+
+    try {
+      const command = JSON.parse(localStorage.getItem(this.displayScrollCommandStorageKey) || '{}');
+      rollingStopped = command?.action === 'stop';
+    } catch (_) {
+      rollingStopped = false;
+    }
+
+    resumeButton?.classList.toggle('remote-action-pending', rollingStopped);
+    disableLedButton?.classList.toggle('remote-action-pending', localStorage.getItem(this.ledDisplayActiveStorageKey) === 'true');
+  }
+
+  setupLedDisplayMonitorSync() {
+    const applyRoute = (route) => {
+      if (!route?.secondaryUpdated) return;
+      const isLedDisplay = String(route.path || '').toLowerCase() === '/led-display/';
+      localStorage.setItem(this.ledDisplayActiveStorageKey, String(isLedDisplay));
+      this.updateRemoteDisplayIndicators();
+    };
+
+    window.electronAPI?.monitorPolicy?.onRouted?.(applyRoute);
+    window.electronAPI?.monitorPolicy?.getLastRoute?.().then((result) => applyRoute(result?.event));
+  }
+
+  async sendLedDisplayCommand(action) {
+    if (!window.electronAPI?.windowManager) {
+      Toast.warning('Controllo LED disponibile nell\'app Electron');
+      return;
+    }
+
+    try {
+      const result = action === 'enable'
+        ? await window.electronAPI.windowManager.openSecondaryPage({ path: '/led-display/' })
+        : await window.electronAPI.windowManager.restoreSecondaryPage();
+
+      if (!result?.success) {
+        throw new Error('Monitor secondario non disponibile');
+      }
+
+      Toast.success(action === 'enable'
+        ? 'Comando inviato: ACCENDI LED (monitor secondario)'
+        : 'Comando inviato: SPEGNI LED (pagina precedente ripristinata)');
+      localStorage.setItem(this.ledDisplayActiveStorageKey, action === 'enable' ? 'true' : 'false');
+      this.updateRemoteDisplayIndicators();
+    } catch (error) {
+      Toast.error(`Errore comando LED: ${error?.message || error}`);
     }
   }
 

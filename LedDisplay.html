@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LedDisplay | Bordero</title>
+    <link rel="stylesheet" href="LedDisplay/server/static/styles.css">
+</head>
+<body class="control-page">
+    <main class="control-shell">
+        <header class="control-header">
+            <div><p class="eyebrow">BORDERO / MONITOR 2</p><h1>LedDisplay</h1></div>
+            <div class="screen-actions">
+                <a id="open-secondary" class="screen-button" href="/led-display/" target="_blank">Mostra su monitor 2</a>
+                <button id="turn-off-secondary" class="screen-button screen-button-secondary" type="button">Spegni Display</button>
+            </div>
+        </header>
+        <section class="control-grid">
+            <section class="panel panel-messages">
+                <div class="panel-heading"><h2>Sequenza messaggi</h2><button id="load-next" class="icon-button" title="Leggi NextCoreo.csv">Aggiorna</button></div>
+                <p class="field-help">Un messaggio per riga. Il display li ripete in sequenza.</p>
+                <textarea id="messages" rows="8" spellcheck="false"></textarea>
+                <label class="toggle-row"><input id="use-next" type="checkbox"><span>Inserisci automaticamente la prossima coreografia</span></label>
+            </section>
+            <section class="panel">
+                <div class="panel-heading"><h2>Movimento</h2><button id="pause" class="icon-button" title="Pausa o riprendi">Pausa</button></div>
+                <label class="range-row">Velocita <input id="speed" type="range" min="15" max="600" step="5" value="55"><output id="speed-output">55 px/s</output></label>
+                <label class="select-row">Direzione <select id="direction"><option value="left">Destra a sinistra</option><option value="right">Sinistra a destra</option></select></label>
+                <label class="range-row">Pausa tra messaggi <input id="hold" type="range" min="0" max="8" value="2"><output id="hold-output">2 s</output></label>
+                <label class="toggle-row"><input id="blink" type="checkbox"><span>Lampeggio all'avvio del messaggio</span></label>
+            </section>
+            <section class="panel preview-panel">
+                <div class="panel-heading"><h2>Anteprima</h2><span id="status" class="status-dot">Salvato</span></div>
+                <iframe title="Anteprima LedDisplay" src="/led-display/"></iframe>
+            </section>
+        </section>
+    </main>
+    <script src="LedDisplay/server/static/control.js"></script>
+</body>
+</html>
