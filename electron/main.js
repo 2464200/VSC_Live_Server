@@ -21,6 +21,7 @@ let currentDpiAutoScale = true;
 let monitorPreferenceWatcher = null;
 let isProgrammaticPrimaryLoad = false;
 let isProgrammaticSecondaryLoad = false;
+let secondaryPageBeforeLedDisplay = '';
 let lastMonitorRouteEvent = null;
 let electronVideoPlayerState = {
   active: false,
@@ -42,6 +43,7 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/admin.html', { primary: true, secondary: false }],
   ['/bordero/pages/bordero-presentazione.html', { primary: true, secondary: true }],
   ['/bordero/pages/bordero.html', { primary: true, secondary: false }],
+  ['/bordero/index.html', { primary: true, secondary: false }],
   ['/bordero/pages/brani-eseguiti.html', { primary: true, secondary: true }],
   ['/bordero/pages/display.html', { primary: false, secondary: true }],
   ['/bordero/pages/elenco-richieste.html', { primary: true, secondary: false }],
@@ -52,6 +54,9 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/video-player.html', { primary: false, secondary: true }],
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
   ['/eventi/eventi.html', { primary: true, secondary: false }],
+  ['/led-display/', { primary: false, secondary: true }],
+  ['/led-display/off.html', { primary: false, secondary: true }],
+  ['/leddisplay.html', { primary: true, secondary: false }],
   ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
@@ -559,6 +564,11 @@ function isDisplayPageUrl(candidateUrl) {
   return normalizePathname(candidateUrl).endsWith(DISPLAY_PAGE_PATH.toLowerCase());
 }
 
+function isLedDisplayPageUrl(candidateUrl) {
+  const pathname = normalizePathname(candidateUrl);
+  return pathname === '/led-display' || pathname === '/led-display/';
+}
+
 function getPrimaryDefaultUrl() {
   return `http://localhost:5500${PRIMARY_DEFAULT_PAGE_PATH}`;
 }
@@ -598,8 +608,13 @@ async function loadInSecondaryWindow(url) {
   }
 
   try {
+    const targetUrl = url || `http://localhost:5500${DISPLAY_PAGE_PATH}`;
+    const currentUrl = secondaryWindow.webContents.getURL();
+    if (isLedDisplayPageUrl(targetUrl) && currentUrl && !isLedDisplayPageUrl(currentUrl)) {
+      secondaryPageBeforeLedDisplay = currentUrl;
+    }
     isProgrammaticSecondaryLoad = true;
-    await secondaryWindow.loadURL(url || `http://localhost:5500${DISPLAY_PAGE_PATH}`);
+    await secondaryWindow.loadURL(targetUrl);
     secondaryWindow.setFullScreen(true);
     secondaryWindow.show();
     secondaryWindow.focus();
@@ -631,6 +646,12 @@ async function ensureSecondaryDisplayPage() {
   secondaryWindow.show();
   applyWindowLayout();
   return true;
+}
+
+async function restoreSecondaryPageBeforeLedDisplay() {
+  const restoreUrl = secondaryPageBeforeLedDisplay || `http://localhost:5500${DISPLAY_PAGE_PATH}`;
+  secondaryPageBeforeLedDisplay = '';
+  return loadInSecondaryWindow(restoreUrl);
 }
 
 async function routeUrlByPolicy(targetUrl, source = 'unknown') {
@@ -1024,6 +1045,14 @@ ipcMain.handle('bordero-window:open-secondary', async (_event, payload) => {
       primaryUpdated: routeResult.primaryUpdated,
       secondaryUpdated: routeResult.secondaryUpdated
     };
+  } catch (error) {
+    return { success: false, error: error?.message || String(error) };
+  }
+});
+
+ipcMain.handle('bordero-window:restore-secondary', async () => {
+  try {
+    return { success: await restoreSecondaryPageBeforeLedDisplay() };
   } catch (error) {
     return { success: false, error: error?.message || String(error) };
   }
