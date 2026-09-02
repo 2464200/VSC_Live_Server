@@ -30,6 +30,8 @@ class VideoClipManager {
     this.vlcWasAlive = false;
     this.manualStopPending = false;
     this.pendingMainVideoPlay = false;
+    this.videoCompletionThresholdSeconds = 30;
+    this.thresholdCompletionBranoId = null;
 
     this.init();
   }
@@ -1358,6 +1360,10 @@ class VideoClipManager {
 
         this.updateMainVideoDebugIndicator(evt);
 
+        if (evt === 'timeupdate') {
+          this.handleMainVideoPlaybackThreshold(mainVideo);
+        }
+
         if (evt === 'ended') {
           this.handleMainVideoEnded();
           return;
@@ -1386,6 +1392,30 @@ class VideoClipManager {
     });
 
     this.updateMainVideoDebugIndicator('initialized');
+  }
+
+  handleMainVideoPlaybackThreshold(mainVideo) {
+    if (this.manualStopPending || !mainVideo || mainVideo.paused || mainVideo.currentTime < this.videoCompletionThresholdSeconds) {
+      return;
+    }
+
+    const targetId = this.currentPlaybackBranoId || this.currentBrano?.id;
+    if (!targetId || String(targetId) === String(this.thresholdCompletionBranoId)) {
+      return;
+    }
+
+    const brano = this.brani.find((item) => String(item.id) === String(targetId));
+    if (!brano || this.isBranoExecuted(brano)) {
+      return;
+    }
+
+    this.thresholdCompletionBranoId = targetId;
+    this.appendPersistentLog('info', 'html5-playback-threshold-reached', {
+      branoId: brano.id,
+      titolo: brano.titolo || '',
+      seconds: this.videoCompletionThresholdSeconds
+    });
+    this.markBranoExecutedFromVideoEnd(brano);
   }
 
   handleMainVideoEnded() {
@@ -1929,6 +1959,7 @@ class VideoClipManager {
     this.filterVideos();
     this.updatePlayerInfo();
     this.currentPlaybackBranoId = null;
+    this.thresholdCompletionBranoId = targetId;
     this.appendPersistentLog('info', 'mark-executed', {
       branoId: brano.id,
       titolo: brano.titolo || '',
