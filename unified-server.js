@@ -52,7 +52,9 @@ const USERFORM_FFMPEG_CANDIDATES = [
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
 const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 60 * 1000;
 const MUSIC_ARCHIVE_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-config.json');
+const MUSIC_ARCHIVE_LOCAL_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-local-config.json');
 const MUSIC_ARCHIVE_INDEX_CSV_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-index.csv');
+const MUSIC_ARCHIVE_BASE_DIR = __dirname;
 const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([
     '.mp3', '.wav', '.flac', '.m4a', '.m4p', '.mp4', '.m4v', '.mov', '.avi', '.mkv', '.wmv',
     '.aiff', '.aac', '.ogg', '.wma', '.opus', '.alac', '.mp2', '.mpga', '.mpeg', '.mpg',
@@ -165,18 +167,51 @@ function sanitizeSiaeEventName(value = '') {
     return normalized || 'evento';
 }
 
-function normalizeMusicArchivePath(value = '') {
+function normalizeMusicArchiveRelativePath(value = '') {
     const raw = String(value || '').trim().replace(/^"+|"+$/g, '');
     if (!raw) {
         return '';
     }
 
-    const normalized = raw.replace(/[\\/]+$/, '');
-    if (/^[A-Za-z]:$/.test(normalized)) {
-        return `${normalized}\\`;
+    if (path.isAbsolute(raw) || path.win32.isAbsolute(raw)) {
+        return '';
     }
 
-    return normalized;
+    const normalized = path.normalize(raw.replace(/[\\/]+/g, path.sep));
+    if (!normalized || normalized === '.' || normalized === '..' || normalized.startsWith(`..${path.sep}`)) {
+        return '';
+    }
+
+    return normalized.split(path.sep).join('/');
+}
+
+function normalizeMusicArchiveLocalPath(value = '') {
+    const raw = String(value || '').trim().replace(/^"+|"+$/g, '');
+    if (!raw || (!path.isAbsolute(raw) && !path.win32.isAbsolute(raw))) {
+        return '';
+    }
+
+    return path.normalize(raw);
+}
+
+function resolveMusicArchiveRootPath(relativePath = '') {
+    const normalized = normalizeMusicArchiveRelativePath(relativePath);
+    if (!normalized) {
+        return '';
+    }
+
+    const resolved = path.resolve(MUSIC_ARCHIVE_BASE_DIR, normalized);
+    const relativeToBase = path.relative(MUSIC_ARCHIVE_BASE_DIR, resolved);
+    if (!relativeToBase || relativeToBase === '..' || relativeToBase.startsWith(`..${path.sep}`) || path.isAbsolute(relativeToBase)) {
+        return '';
+    }
+
+    return resolved;
+}
+
+function toMusicArchiveRelativePath(absolutePath = '') {
+    const relative = path.relative(MUSIC_ARCHIVE_BASE_DIR, absolutePath);
+    return normalizeMusicArchiveRelativePath(relative);
 }
 
 function getWindowsDriveRoots() {
@@ -205,39 +240,44 @@ function getWindowsDriveRoots() {
 }
 
 function listMusicArchiveDirectories(targetPath = '') {
-    const normalizedTarget = normalizeMusicArchivePath(targetPath);
-    if (!normalizedTarget) {
-        return {
-            path: '',
-            parentPath: '',
-            entries: getWindowsDriveRoots().map((root) => ({
-                name: root,
-                path: root,
-                isDirectory: true
-            }))
-        };
-    }
+    const rawTarget = String(targetPath || '').trim();
+    const localTarget = normalizeMusicArchiveLocalPath(rawTarget);
+    const normalizedTarget = localTarget ? '' : normalizeMusicArchiveRelativePath(rawTarget);
+    const absoluteTarget = localTarget || (normalizedTarget
+        ? resolveMusicArchiveRootPath(normalizedTarget)
+        : MUSIC_ARCHIVE_BASE_DIR);
+    const isLocalTarget = Boolean(localTarget);
 
-    if (!fs.existsSync(normalizedTarget) || !fs.statSync(normalizedTarget).isDirectory()) {
+    if (!absoluteTarget || !fs.existsSync(absoluteTarget) || !fs.statSync(absoluteTarget).isDirectory()) {
         return {
-            path: normalizedTarget,
-            parentPath: path.dirname(normalizedTarget),
+            path: localTarget || normalizedTarget,
+            parentPath: isLocalTarget ? path.dirname(localTarget) : (normalizedTarget ? toMusicArchiveRelativePath(path.dirname(absoluteTarget || MUSIC_ARCHIVE_BASE_DIR)) : ''),
             entries: []
         };
     }
 
-    const entries = fs.readdirSync(normalizedTarget, { withFileTypes: true })
+    const entries = fs.readdirSync(absoluteTarget, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
         .map((entry) => ({
             name: entry.name,
-            path: path.join(normalizedTarget, entry.name),
+            path: isLocalTarget
+                ? path.join(absoluteTarget, entry.name)
+                : toMusicArchiveRelativePath(path.join(absoluteTarget, entry.name)),
             isDirectory: true
         }))
         .sort((left, right) => left.name.localeCompare(right.name));
 
+    if (!rawTarget) {
+        getWindowsDriveRoots().forEach((root) => {
+            entries.push({ name: root, path: root, isDirectory: true });
+        });
+    }
+
     return {
-        path: normalizedTarget,
-        parentPath: path.dirname(normalizedTarget),
+        path: localTarget || normalizedTarget,
+        parentPath: isLocalTarget
+            ? (path.dirname(localTarget) === localTarget ? '' : path.dirname(localTarget))
+            : (normalizedTarget ? toMusicArchiveRelativePath(path.dirname(absoluteTarget)) : ''),
         entries
     };
 }
@@ -254,8 +294,13 @@ function readMusicArchiveConfig() {
         }
 
         const parsed = JSON.parse(raw);
+        const rootPath = normalizeMusicArchiveRelativePath(parsed?.rootPath || '');
+        if (parsed?.rootPath && !rootPath) {
+            console.warn('⚠️ Config archivio brani ignorata: il percorso deve essere relativo alla root del progetto.');
+            return { rootPath: '', updatedAt: null };
+        }
         return {
-            rootPath: normalizeMusicArchivePath(parsed?.rootPath || ''),
+            rootPath,
             updatedAt: parsed?.updatedAt || null
         };
     } catch (error) {
@@ -265,7 +310,7 @@ function readMusicArchiveConfig() {
 }
 
 function writeMusicArchiveConfig(rootPath) {
-    const normalized = normalizeMusicArchivePath(rootPath);
+    const normalized = normalizeMusicArchiveRelativePath(rootPath);
     const payload = {
         rootPath: normalized,
         updatedAt: new Date().toISOString()
@@ -274,6 +319,62 @@ function writeMusicArchiveConfig(rootPath) {
     fs.mkdirSync(path.dirname(MUSIC_ARCHIVE_CONFIG_FILE), { recursive: true });
     fs.writeFileSync(MUSIC_ARCHIVE_CONFIG_FILE, JSON.stringify(payload, null, 2), 'utf8');
     return payload;
+}
+
+function readMusicArchiveLocalConfig() {
+    try {
+        if (!fs.existsSync(MUSIC_ARCHIVE_LOCAL_CONFIG_FILE)) {
+            return { rootPath: '', updatedAt: null };
+        }
+
+        const raw = fs.readFileSync(MUSIC_ARCHIVE_LOCAL_CONFIG_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+        const parsed = raw ? JSON.parse(raw) : {};
+        return {
+            rootPath: normalizeMusicArchiveLocalPath(parsed?.rootPath || ''),
+            updatedAt: parsed?.updatedAt || null
+        };
+    } catch (error) {
+        console.warn('⚠️ Lettura config locale archivio brani fallita:', error?.message || error);
+        return { rootPath: '', updatedAt: null };
+    }
+}
+
+function writeMusicArchiveLocalConfig(rootPath) {
+    const normalized = normalizeMusicArchiveLocalPath(rootPath);
+    const payload = {
+        rootPath: normalized,
+        updatedAt: new Date().toISOString()
+    };
+
+    fs.mkdirSync(path.dirname(MUSIC_ARCHIVE_LOCAL_CONFIG_FILE), { recursive: true });
+    fs.writeFileSync(MUSIC_ARCHIVE_LOCAL_CONFIG_FILE, JSON.stringify(payload, null, 2), 'utf8');
+    return payload;
+}
+
+function removeMusicArchiveLocalConfig() {
+    if (fs.existsSync(MUSIC_ARCHIVE_LOCAL_CONFIG_FILE)) {
+        fs.unlinkSync(MUSIC_ARCHIVE_LOCAL_CONFIG_FILE);
+    }
+}
+
+function readActiveMusicArchiveConfig() {
+    const localConfig = readMusicArchiveLocalConfig();
+    if (localConfig.rootPath) {
+        return {
+            rootPath: localConfig.rootPath,
+            resolvedRootPath: localConfig.rootPath,
+            scope: 'local',
+            updatedAt: localConfig.updatedAt
+        };
+    }
+
+    const projectConfig = readMusicArchiveConfig();
+    return {
+        rootPath: projectConfig.rootPath,
+        resolvedRootPath: resolveMusicArchiveRootPath(projectConfig.rootPath),
+        scope: 'project',
+        updatedAt: projectConfig.updatedAt
+    };
 }
 
 function escapeCsvField(value = '') {
@@ -379,8 +480,9 @@ function listMusicFilesRecursive(rootPath) {
 }
 
 function refreshMusicArchiveIndex(force = false) {
-    const config = readMusicArchiveConfig();
-    const rootPath = normalizeMusicArchivePath(config.rootPath || '');
+    const config = readActiveMusicArchiveConfig();
+    const rootPath = config.rootPath;
+    const resolvedRootPath = config.resolvedRootPath;
     const now = Date.now();
 
     if (!rootPath) {
@@ -397,7 +499,7 @@ function refreshMusicArchiveIndex(force = false) {
         };
     }
 
-    const exists = fs.existsSync(rootPath) && fs.statSync(rootPath).isDirectory();
+    const exists = Boolean(resolvedRootPath) && fs.existsSync(resolvedRootPath) && fs.statSync(resolvedRootPath).isDirectory();
     if (!exists) {
         musicArchiveIndexCache = { rootPath, scannedAt: now, files: [] };
         writeMusicArchiveIndexCsv(rootPath, [], now);
@@ -429,7 +531,7 @@ function refreshMusicArchiveIndex(force = false) {
         };
     }
 
-    const files = listMusicFilesRecursive(rootPath);
+    const files = listMusicFilesRecursive(resolvedRootPath);
     writeMusicArchiveIndexCsv(rootPath, files, now);
     musicArchiveIndexCache = {
         rootPath,
@@ -2840,13 +2942,15 @@ app.get('/api/vdj/test', async (req, res) => {
 
 app.get('/api/music-archive/config', (req, res) => {
     try {
-        const config = readMusicArchiveConfig();
-        const normalized = normalizeMusicArchivePath(config.rootPath || '');
-        const exists = normalized ? (fs.existsSync(normalized) && fs.statSync(normalized).isDirectory()) : false;
+        const config = readActiveMusicArchiveConfig();
+        const normalized = config.rootPath;
+        const resolvedRootPath = config.resolvedRootPath;
+        const exists = Boolean(resolvedRootPath) && fs.existsSync(resolvedRootPath) && fs.statSync(resolvedRootPath).isDirectory();
         return res.json({
             ok: true,
             rootPath: normalized,
             exists,
+            scope: config.scope,
             updatedAt: config.updatedAt || null
         });
     } catch (error) {
@@ -2856,18 +2960,27 @@ app.get('/api/music-archive/config', (req, res) => {
 
 app.post('/api/music-archive/config', (req, res) => {
     try {
-        const rootPath = normalizeMusicArchivePath(req.body?.rootPath || '');
-        if (!rootPath) {
-            return res.status(400).json({ ok: false, error: 'Percorso cartella mancante' });
+        const rawRootPath = req.body?.rootPath || '';
+        const rootPath = normalizeMusicArchiveRelativePath(rawRootPath);
+        const localRootPath = rootPath ? '' : normalizeMusicArchiveLocalPath(rawRootPath);
+        const selectedRootPath = localRootPath || rootPath;
+        const resolvedRootPath = localRootPath || resolveMusicArchiveRootPath(rootPath);
+        if (!selectedRootPath || !resolvedRootPath) {
+            return res.status(400).json({ ok: false, error: 'Indica una cartella del progetto o una cartella locale valida' });
         }
 
-        if (!fs.existsSync(rootPath) || !fs.statSync(rootPath).isDirectory()) {
+        if (!resolvedRootPath || !fs.existsSync(resolvedRootPath) || !fs.statSync(resolvedRootPath).isDirectory()) {
             return res.status(400).json({ ok: false, error: 'La cartella indicata non esiste o non e valida' });
         }
 
-        const saved = writeMusicArchiveConfig(rootPath);
+        const saved = localRootPath
+            ? writeMusicArchiveLocalConfig(localRootPath)
+            : writeMusicArchiveConfig(rootPath);
+        if (!localRootPath) {
+            removeMusicArchiveLocalConfig();
+        }
         refreshMusicArchiveIndex(true);
-        return res.json({ ok: true, rootPath: saved.rootPath, updatedAt: saved.updatedAt });
+        return res.json({ ok: true, rootPath: saved.rootPath, scope: localRootPath ? 'local' : 'project', updatedAt: saved.updatedAt });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }

@@ -81,3 +81,6 @@ archivio/repo_full_*.bundle
 # Python cache
 __pycache__/
 *.pyc
+
+# Per-machine external music archive selection
+Bordero/data/music-archive-local-config.json

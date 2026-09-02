@@ -234,14 +234,16 @@ class AdminPanel {
       const normalizedCurrent = String(currentPath || '').trim();
       const current = normalizedCurrent || '';
 
-      const addOption = (value, label) => {
+      const addOption = (value, label, allowEmpty = false) => {
         const safeValue = String(value || '').trim();
-        if (!safeValue || seen.has(safeValue)) {
+        if ((!safeValue && !allowEmpty) || seen.has(safeValue)) {
           return;
         }
         seen.add(safeValue);
         options.push({ value: safeValue, label: String(label || safeValue) });
       };
+
+      addOption('', 'Root del progetto', true);
 
       if (current) {
         addOption(current, current || 'Cartella corrente');
@@ -252,6 +254,8 @@ class AdminPanel {
         const entries = Array.isArray(payload?.entries) ? payload.entries : [];
         if (payload?.parentPath) {
           addOption(payload.parentPath, '⬆️ Cartella superiore');
+        } else if (current) {
+          addOption('', '⬆️ Root del progetto', true);
         }
         entries.forEach((entry) => {
           if (entry?.isDirectory !== false) {
@@ -270,13 +274,7 @@ class AdminPanel {
         pathInput.appendChild(element);
       });
 
-      if (current) {
-        pathInput.value = current;
-      }
-
-      if (current) {
-        renderRecentPathHint(current, current);
-      }
+      pathInput.value = current;
     };
 
     const refreshUi = async (forceScan = false) => {
@@ -308,19 +306,12 @@ class AdminPanel {
 
     pathInput.addEventListener('change', async () => {
       const selectedPath = String(pathInput.value || '').trim();
-      if (!selectedPath) {
-        return;
-      }
       await populatePathOptions(selectedPath);
     });
 
     browseBtn.addEventListener('click', async () => {
-      const currentPath = String(pathInput.value || '').trim();
       try {
-        const payload = await this.fetchMusicArchiveDirectories(currentPath || '');
-        if (payload?.path) {
-          await populatePathOptions(payload.path);
-        }
+        await populatePathOptions('');
       } catch (error) {
         this.log(`❌ Impossibile aprire la navigazione archivio: ${error?.message || error}`, 'error');
         Toast.error('Impossibile caricare la cartella archivio');
@@ -579,6 +570,9 @@ class AdminPanel {
       { path: '/bordero/pages/video-player.html', primary: false, secondary: true },
       { path: '/bordero/pages/videoclip.html', primary: true, secondary: false },
       { path: '/eventi/eventi.html', primary: true, secondary: false },
+      { path: '/led-display/', primary: false, secondary: true },
+      { path: '/led-display/off.html', primary: false, secondary: true },
+      { path: '/leddisplay.html', primary: true, secondary: false },
       { path: '/userform/pages/qrcode.html', primary: true, secondary: false },
       { path: '/userform/pages/servizio.html', primary: true, secondary: false },
       { path: '/userform/pages/servizio-pubblica.html', primary: false, secondary: true },
@@ -609,6 +603,9 @@ class AdminPanel {
       { path: '/bordero/pages/video-player.html', label: 'Video Player', description: 'Player video sul monitor secondario' },
       { path: '/bordero/pages/videoclip.html', label: 'VideoClip', description: 'Controllo videoclip principale' },
       { path: '/eventi/eventi.html', label: 'Eventi', description: 'Pagine eventi principali' },
+      { path: '/leddisplay.html', label: 'LedDisplay', description: 'Pannello di controllo del display LED' },
+      { path: '/led-display/', label: 'Display LED', description: 'Messaggi LED sul monitor secondario' },
+      { path: '/led-display/off.html', label: 'Display LED spento', description: 'Schermata di spegnimento LED sul monitor secondario' },
       { path: '/userform/pages/qrcode.html', label: 'QRCode', description: 'Pagina QR code del form USERFORM' },
       { path: '/userform/pages/servizio.html', label: 'Servizio', description: 'Pagina di servizio sul monitor principale' },
       { path: '/userform/pages/servizio-pubblica.html', label: 'Servizio Pubblica', description: 'Testo da pubblicare sul monitor secondario' },
