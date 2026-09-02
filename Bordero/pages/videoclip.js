@@ -1281,7 +1281,8 @@ class VideoClipManager {
     });
   }
 
-  updatePlayerInfo() {
+  updatePlayerInfo(options = {}) {
+    const { preserveMainPlayback = false } = options;
     if (!this.currentBrano) {
       const noVideo = document.getElementById('no-video');
       const mainVideo = document.getElementById('main-video');
@@ -1310,7 +1311,7 @@ class VideoClipManager {
         const url = this.buildVideoFileUrl(matchedFile);
         this.currentVideoUrl = url;
         this.secondaryVideoUrl = url;
-        if (mainVideo) {
+        if (mainVideo && !preserveMainPlayback) {
           this.setMainVideoSource(url);
           mainVideo.pause();
           mainVideo.currentTime = 0;
@@ -1913,6 +1914,13 @@ class VideoClipManager {
   markBranoExecutedFromVideoEnd(brano) {
     const targetId = String(brano.id);
     const nowTimestamp = DateUtils.formatDate(new Date());
+    const mainVideo = document.getElementById('main-video');
+    const preserveMainPlayback = Boolean(
+      mainVideo &&
+      !mainVideo.paused &&
+      !mainVideo.ended &&
+      String(this.currentPlaybackBranoId) === targetId
+    );
 
     this.brani = this.brani.map((item) => {
       if (String(item.id) !== targetId) return item;
@@ -1957,7 +1965,7 @@ class VideoClipManager {
     }
 
     this.filterVideos();
-    this.updatePlayerInfo();
+  this.updatePlayerInfo({ preserveMainPlayback });
     this.currentPlaybackBranoId = null;
     this.thresholdCompletionBranoId = targetId;
     this.appendPersistentLog('info', 'mark-executed', {
