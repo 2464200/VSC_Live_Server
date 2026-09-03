@@ -27,6 +27,7 @@
                 <label class="range-row">Velocita <input id="speed" type="range" min="15" max="600" step="5" value="55"><output id="speed-output">55 px/s</output></label>
                 <label class="select-row">Direzione <select id="direction"><option value="left">Destra a sinistra</option><option value="right">Sinistra a destra</option></select></label>
                 <label class="select-row">Colore testo <select id="text-color"><option value="#ff0000">Rosso</option><option value="#000000">Nero</option><option value="#ffffff">Bianco</option><option value="#008000">Verde</option><option value="#0000ff">Blu</option><option value="#ffff00">Giallo</option><option value="#ff00ff">Magenta</option><option value="#00ffff">Ciano</option><option value="#808080">Grigio</option></select></label>
+                <label class="toggle-row"><input id="rainbow" type="checkbox"><span>Testo arcobaleno (ciclo colori)</span></label>
                 <label class="range-row">Pausa tra messaggi <input id="hold" type="range" min="0" max="8" value="2"><output id="hold-output">2 s</output></label>
                 <label class="toggle-row"><input id="blink" type="checkbox"><span>Lampeggio all'avvio del messaggio</span></label>
             </section>
@@ -36,7 +37,8 @@
             </section>
         </section>
     </main>
-    <script src="LedDisplay/server/static/control.js"></script>
+    <script src="LedDisplay/server/static/rainbow.js?v=20260903-3"></script>
+    <script src="LedDisplay/server/static/control.js?v=20260903-2"></script>
 
     <script src="/nav.js"></script></body>
 </html>
