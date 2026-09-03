@@ -5,18 +5,12 @@ name: Deploy to Firebase Hosting on merge
 on:
   push:
     branches:
-      - main
+      - portability-stabilization
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Sync Bordero & CSVs to public folder
-        run: node scripts/sync-public.js
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
