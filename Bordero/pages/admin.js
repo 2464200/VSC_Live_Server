@@ -1667,6 +1667,21 @@ class AdminPanel {
         }
         break;
       }
+      case 'videoclip': {
+        try {
+          const { response, payload } = await this.fetchJson('/api/videoclip/list', { cache: 'no-store' });
+          if (!response.ok || !Array.isArray(payload?.files)) {
+            throw new Error(payload?.error || `HTTP ${response.status}`);
+          }
+          data = {
+            rootPath: payload.dir || '',
+            files: payload.files
+          };
+        } catch (error) {
+          data = { error: error?.message || String(error) };
+        }
+        break;
+      }
       case 'serata': {
         const currentSerata = typeof window !== 'undefined' && window.dataLoader && typeof window.dataLoader.getCurrentSerata === 'function'
           ? window.dataLoader.getCurrentSerata()
@@ -1791,6 +1806,28 @@ class AdminPanel {
         <table class="data-viewer-table">
           <thead><tr><th>Percorso relativo</th><th>File</th><th>Dimensione</th><th>Ultima modifica</th></tr></thead>
           <tbody>${rows || '<tr><td colspan="4">Nessun file da mostrare in anteprima</td></tr>'}</tbody>
+        </table>`;
+    }
+
+    if (type === 'videoclip' && data && typeof data === 'object') {
+      if (data.error) {
+        return `<div class="data-viewer-empty">Errore VideoClip: ${this.escapeHtml(data.error)}</div>`;
+      }
+
+      const files = Array.isArray(data.files) ? data.files : [];
+      const rows = files.slice(0, 30).map((fileName) => `
+        <tr><td>${this.escapeHtml(fileName)}</td></tr>
+      `).join('');
+      const summary = [
+        `${files.length} VideoClip trovati`,
+        data.rootPath ? `cartella: ${data.rootPath}` : null
+      ].filter(Boolean).join(' • ');
+
+      return `
+        <div class="data-viewer-summary">${this.escapeHtml(summary)} • anteprima 30 file</div>
+        <table class="data-viewer-table">
+          <thead><tr><th>File VideoClip</th></tr></thead>
+          <tbody>${rows || '<tr><td>Nessun file VideoClip disponibile</td></tr>'}</tbody>
         </table>`;
     }
 
