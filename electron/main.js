@@ -54,6 +54,7 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/video-player.html', { primary: false, secondary: true }],
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
   ['/eventi/eventi.html', { primary: true, secondary: false }],
+  ['/diagnostica.html', { primary: true, secondary: false }],
   ['/led-display/', { primary: false, secondary: true }],
   ['/led-display/off.html', { primary: false, secondary: true }],
   ['/leddisplay.html', { primary: true, secondary: false }],

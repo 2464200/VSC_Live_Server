@@ -109,6 +109,11 @@ body {
   color: var(--text-dark);
 }
 
+.nav-link-placeholder {
+  pointer-events: none;
+  cursor: default;
+}
+
 .nav-link.active {
   background-color: var(--primary-orange);
   color: var(--text-dark);

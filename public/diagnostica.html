@@ -69,11 +69,29 @@
         .summary h3 { margin-top: 0; color: #4fc3f7; }
         .summary-item { margin: 8px 0; display: flex; align-items: center; }
         .summary-badge { display: inline-block; min-width: 20px; text-align: center; margin-right: 10px; font-weight: bold; }
+        .nav-breadcrumb {
+            max-width: 1200px;
+            margin: 0 auto 16px;
+            color: #fff;
+            font: 600 16px "Segoe UI", Tahoma, sans-serif;
+        }
+        .nav-breadcrumb a {
+            color: #ff7f00;
+            text-decoration: none;
+        }
+        .nav-breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb-sep { margin: 0 8px; color: #ccc; }
+        .breadcrumb-current { color: #fff; }
     </style>
 </head>
 <body>
-<div id="global-nav-container"></div>
-<script src="../nav.js"></script>
+<nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+    <a href="/Bordero/index.html">Home</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="/Bordero/pages/bordero.html">Borderò</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Diagnostica</span>
+</nav>
 <div class="container">
     <h1>Diagnostica Sistema VSC Live Server</h1>
 
