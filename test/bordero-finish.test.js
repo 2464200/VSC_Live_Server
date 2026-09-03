@@ -15,6 +15,17 @@ const context = {
   RegExp,
   Boolean,
   Promise,
+  CustomEvent: class CustomEvent {
+    constructor(type, options = {}) {
+      this.type = type;
+      this.detail = options.detail;
+    }
+  },
+  Event: class Event {
+    constructor(type) {
+      this.type = type;
+    }
+  },
 };
 
 context.window = context;
@@ -38,6 +49,7 @@ const elements = {
   'stat-total': createElement(),
   'stat-completed': createElement(),
   'stat-pending': createElement(),
+  'stat-requested': createElement(),
   'stat-last-action': createElement(),
   'pagination-info': createElement(),
   'btn-first-page': createElement(),
@@ -76,6 +88,9 @@ context.window.Object = Object;
 context.window.RegExp = RegExp;
 context.window.Boolean = Boolean;
 context.window.Promise = Promise;
+context.window.CustomEvent = context.CustomEvent;
+context.window.Event = context.Event;
+context.window.dispatchEvent = () => {};
 context.window.localStorage = {
   store: {},
   setItem(key, value) { this.store[key] = String(value); },
@@ -154,8 +169,10 @@ context.dataLoader = {
   newSerata() { this._current = null; },
 };
 
+const titleVisibilityUtils = fs.readFileSync('Bordero/js/title-visibility-utils.js', 'utf8');
 const scriptContent = fs.readFileSync('Bordero/pages/bordero.js', 'utf8');
 vm.createContext(context);
+vm.runInContext(titleVisibilityUtils, context);
 vm.runInContext(scriptContent, context);
 
 const BaseManager = context.BorderoTableManager;
@@ -181,7 +198,9 @@ BaseManager.prototype.init = function initStub() {
 };
 
 const manager = new BaseManager();
+manager.allBrani.find((brano) => brano.id === '2').next_selected = true;
 manager.markAsCompleted('2');
+manager.allBrani.find((brano) => brano.id === '4').next_selected = true;
 manager.markAsCompleted('4');
 manager.moveExecutedToBottom();
 
