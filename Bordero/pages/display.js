@@ -52,6 +52,10 @@ class DisplayMonitor {
 
       // Carica dati
       this.allBrani = await dataLoader.loadBrani();
+      const csvDisplay = await this.loadDisplayCsvData();
+      if (Array.isArray(csvDisplay) && csvDisplay.length > 0) {
+        this.displayCsvBrani = csvDisplay;
+      }
 
       // Auto-refresh ogni 1 secondo
       this.refreshInterval = setInterval(() => this.refresh(), 1000);
@@ -63,7 +67,10 @@ class DisplayMonitor {
       this.setupDateTimeClock();
       this.setupNextCoreoSync();
       this.loadNextCoreo();
-      this.nextCoreoInterval = setInterval(() => this.loadNextCoreo(), 30000);
+      this.nextCoreoInterval = setInterval(() => {
+        this.loadNextCoreo();
+        this.reloadDisplayCsvIfNoSerata();
+      }, 3000);
 
       // Deve restare sul monitor secondario (best effort con fallback UX)
       await this.setupSecondaryMonitorGuard();
@@ -247,6 +254,10 @@ class DisplayMonitor {
   }
 
   buildDisplaySourceBrani(currentSerata) {
+    if ((!currentSerata || !Array.isArray(currentSerata.brani) || currentSerata.brani.length === 0) && Array.isArray(this.displayCsvBrani) && this.displayCsvBrani.length > 0) {
+      return this.displayCsvBrani;
+    }
+
     const baseBrani = Array.isArray(this.allBrani) ? this.allBrani : [];
     const serataBrani = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
 
@@ -707,6 +718,8 @@ class DisplayMonitor {
 
     const candidates = [
       '/NextCoreo.csv',
+      '../../NextCoreo.csv',
+      '../NextCoreo.csv',
       `${window.location.origin}/NextCoreo.csv`,
       `${window.location.origin}/public/NextCoreo.csv`
     ];
@@ -729,6 +742,81 @@ class DisplayMonitor {
     }
 
     target.textContent = '--';
+  }
+
+  async loadDisplayCsvData() {
+    const candidates = [
+      '/display.csv',
+      '/public/display.csv',
+      '../../display.csv',
+      '../display.csv',
+      `${window.location.origin}/display.csv`,
+      `${window.location.origin}/public/display.csv`
+    ];
+
+    for (const baseUrl of candidates) {
+      try {
+        const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) continue;
+        const text = (await response.text()).replace(/^\uFEFF/, '').trim();
+        if (!text) continue;
+
+        const lines = text.split(/\r?\n/);
+        if (lines.length >= 3) {
+          const metaLine = lines[1] || '';
+          const dataMatch = metaLine.match(/Data:\s*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})/i);
+          if (dataMatch && (!this.serata.data || this.serata.data === '--')) {
+            this.serata.data = dataMatch[1];
+          }
+
+          const items = [];
+          for (let i = 3; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const cols = line.split(',').map((c) => c.replace(/^"+|"+$/g, '').trim());
+            if (cols.length < 3) continue;
+            const flag = String(cols[0] || '').toUpperCase().startsWith('X') ? 'X' : '';
+            const id = cols[1] || '';
+            const titolo = cols[2] || '';
+            const brano = cols[3] || '';
+            const autore = cols[4] || '';
+            const coreografo = cols[5] || '';
+
+            if (titolo) {
+              items.push({
+                flag,
+                id,
+                titolo,
+                brano,
+                autore,
+                coreografo,
+                richieste: '1'
+              });
+            }
+          }
+
+          if (items.length > 0) {
+            return items;
+          }
+        }
+      } catch (err) {
+        logger.debug('loadDisplayCsvData candidate failed', { baseUrl, message: err?.message || err });
+      }
+    }
+    return null;
+  }
+
+  async reloadDisplayCsvIfNoSerata() {
+    const currentSerata = typeof dataLoader !== 'undefined' && dataLoader.getCurrentSerata
+      ? dataLoader.getCurrentSerata()
+      : null;
+    if (!currentSerata || !Array.isArray(currentSerata.brani) || currentSerata.brani.length === 0) {
+      const csvDisplay = await this.loadDisplayCsvData();
+      if (Array.isArray(csvDisplay) && csvDisplay.length > 0) {
+        this.displayCsvBrani = csvDisplay;
+        this.refresh();
+      }
+    }
   }
 
   toggleFullscreen() {

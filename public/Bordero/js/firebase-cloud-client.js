@@ -43,6 +43,7 @@
       } else {
         console.log('[FirebaseCloudClient] Modalità Locale attiva. Sincronizzazione automatica verso Cloud.');
         this.setupLocalSyncTriggers();
+        window.setTimeout(() => this.pushCurrentLocalStateToBackend(), 1500);
       }
       this.injectStatusIndicator();
     }

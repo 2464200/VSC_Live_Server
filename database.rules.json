@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "bordero": {
+      "display_state": {
+        ".read": true,
+        ".write": false,
+        ".validate": "newData.hasChildren(['updatedAt', 'brani']) && newData.child('brani').isList()"
+      }
+    }
+  }
+}

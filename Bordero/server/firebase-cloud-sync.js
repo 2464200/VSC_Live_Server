@@ -13,7 +13,7 @@ const { URL } = require('url');
 class FirebaseCloudSync {
   constructor(options = {}) {
     this.enabled = process.env.FIREBASE_CLOUD_SYNC_ENABLED !== 'false';
-    this.databaseUrl = process.env.FIREBASE_DATABASE_URL || 'https://my-project-1525790600392-default-rtdb.firebaseio.com';
+    this.databaseUrl = process.env.FIREBASE_DATABASE_URL || 'https://my-project-1525790600392-default-rtdb.europe-west1.firebasedatabase.app';
     this.databaseSecret = process.env.FIREBASE_DATABASE_SECRET || process.env.FIREBASE_AUTH_TOKEN || '';
     this.syncPath = '/bordero/display_state.json';
     this.lastSyncTime = null;
@@ -36,6 +36,9 @@ class FirebaseCloudSync {
     };
 
     this.initWatchers();
+    if (this.enabled) {
+      setImmediate(() => this.syncFromLocalFiles());
+    }
   }
 
   getDbUrl() {

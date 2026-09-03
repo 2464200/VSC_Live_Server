@@ -33,7 +33,7 @@ const BORDERO_CONFIG = {
   
   // ========== FIREBASE CLOUD REALTIME SYNC ==========
   FIREBASE_PROJECT_ID: 'my-project-1525790600392',
-  FIREBASE_REALTIME_DB_URL: 'https://my-project-1525790600392-default-rtdb.firebaseio.com',
+  FIREBASE_REALTIME_DB_URL: 'https://my-project-1525790600392-default-rtdb.europe-west1.firebasedatabase.app',
   
   // ========== GOOGLE SHEETS API ==========
   GOOGLE_SHEETS_API_KEY: 'YOUR_API_KEY_HERE', // Da configurare
