@@ -71,6 +71,10 @@ async function fetchWithTimeoutAndRetry(url, opts = {}, timeout = 10000, retries
   }
 }
 
+function getDataUrl(fileName) {
+  return window.resolveAppUrl ? window.resolveAppUrl(fileName) : fileName;
+}
+
 /* ===========================
    MENU E SCHERMO INTERO
    =========================== */
@@ -284,7 +288,7 @@ function createChoreoCard(choreo) {
  */
 async function loadDisplayCsv() {
   try {
-    const res = await fetchWithTimeoutAndRetry(window.resolveAppUrl ? window.resolveAppUrl('display.csv?t=' + Date.now()) : '/public/display.csv?t=' + Date.now(), { cache: 'no-store' }, 12000, 2);
+    const res = await fetchWithTimeoutAndRetry(getDataUrl(`display.csv?t=${Date.now()}`), { cache: 'no-store' }, 12000, 2);
     const text = await res.text();
     const rows = parseCSV(text);
     const dataRows = rows.slice(3).filter(r => r.length && r.some(c => c !== ''));
@@ -363,7 +367,7 @@ async function loadNextCoreo() {
   target.textContent = 'Prossima Coreo: Caricamento...';
 
   try {
-    const url = window.resolveAppUrl ? window.resolveAppUrl(`NextCoreo.csv?t=${Date.now()}`) : `/public/NextCoreo.csv?t=${Date.now()}`; // cache busting
+    const url = getDataUrl(`NextCoreo.csv?t=${Date.now()}`);
     const response = await fetchWithTimeoutAndRetry(url, { cache: 'no-store' }, 8000, 1);
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -392,7 +396,7 @@ async function loadNextCoreo() {
 async function aggiornaScrittaRossa() {
   (async () => {
     try {
-      const res = await fetchWithTimeoutAndRetry(window.resolveAppUrl ? window.resolveAppUrl('NextCoreo.csv?t=' + Date.now()) : '/public/NextCoreo.csv?t=' + Date.now(), { cache: 'no-store' }, 8000, 1);
+      const res = await fetchWithTimeoutAndRetry(getDataUrl(`NextCoreo.csv?t=${Date.now()}`), { cache: 'no-store' }, 8000, 1);
       const text = await res.text();
       const rows = text.split(/\r?\n/);
       const primaCoreo = (rows[0] || '').split(',')[1] || '';
@@ -513,8 +517,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// init load
-scheduleRefresh();
 // layout adjustment
 adjustScrollContainer();
 
@@ -530,8 +532,8 @@ adjustScrollContainer();
  * - Avvio dello scroll automatico dopo il caricamento
  */
 document.addEventListener('DOMContentLoaded', () => {
-  updateControlsUI();        // valori iniziali accanto agli slider
-  loadDisplayCsv();          // carica le coreografie (cards)
-  loadNextCoreo();           // carica “Prossima Coreo” subito
-  setInterval(loadNextCoreo, 45000); // refresh automatico ogni 45 secondi
+  updateControlsUI();
+  scheduleRefresh();
+  loadNextCoreo();
+  setInterval(loadNextCoreo, 45000);
 });
