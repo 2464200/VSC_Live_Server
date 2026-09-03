@@ -22,6 +22,7 @@ class AdminPanel {
     this.setupDjManagement();
     this.setupDjSoftwareSelection();
     this.setupMusicArchiveSettings();
+    this.setupVideoClipSettings();
     this.setupCameraProfilesPanel();
     this.setupConsole();
     this.setupElectronLauncher();
@@ -352,6 +353,64 @@ class AdminPanel {
     });
 
     refreshUi(false);
+  }
+
+  setupVideoClipSettings() {
+    const pathInput = document.getElementById('videoclip-path');
+    const saveBtn = document.getElementById('btn-save-videoclip-path');
+    const checkBtn = document.getElementById('btn-check-videoclip-path');
+    const statusEl = document.getElementById('videoclip-path-status');
+    if (!pathInput || !saveBtn || !checkBtn || !statusEl) return;
+
+    const renderStatus = (text, level = 'info') => {
+      statusEl.textContent = text;
+      statusEl.style.color = level === 'error' ? '#ff7f7f' : (level === 'success' ? '#9be7a5' : '#ddd');
+    };
+
+    const load = async () => {
+      try {
+        const { response, payload } = await this.fetchJson('/api/videoclip/config', { cache: 'no-store' });
+        if (!response.ok || !payload?.ok) throw new Error(payload?.error || `HTTP ${response.status}`);
+        pathInput.value = payload.rootPath || 'C:\\VSC_VIDEOCLIP';
+        if (!payload.exists) {
+          renderStatus('Stato VideoClip: cartella configurata ma non raggiungibile', 'error');
+          return;
+        }
+        renderStatus(`Stato VideoClip: OK • ${payload.fileCount || 0} file video disponibili`, 'success');
+      } catch (error) {
+        renderStatus(`Stato VideoClip: errore (${error?.message || error})`, 'error');
+      }
+    };
+
+    saveBtn.addEventListener('click', async () => {
+      const rootPath = String(pathInput.value || '').trim();
+      if (!rootPath) {
+        Toast.warning('Inserisci il percorso della cartella VideoClip');
+        return;
+      }
+      try {
+        const { response, payload } = await this.fetchJson('/api/videoclip/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rootPath })
+        });
+        if (!response.ok || !payload?.ok) throw new Error(payload?.error || `HTTP ${response.status}`);
+        pathInput.value = payload.rootPath;
+        this.log(`✓ Cartella VideoClip salvata: ${payload.rootPath}`, 'success');
+        Toast.success('Cartella VideoClip salvata');
+        await load();
+      } catch (error) {
+        this.log(`❌ Errore salvataggio cartella VideoClip: ${error?.message || error}`, 'error');
+        Toast.error('Impossibile salvare la cartella VideoClip');
+      }
+    });
+
+    checkBtn.addEventListener('click', () => {
+      renderStatus('Stato VideoClip: verifica in corso...', 'info');
+      void load();
+    });
+
+    void load();
   }
 
   getDjSoftwareStorageKey() {

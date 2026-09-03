@@ -84,3 +84,4 @@ __pycache__/
 
 # Per-machine external music archive selection
 Bordero/data/music-archive-local-config.json
+Bordero/data/video-clip-local-config.json

@@ -274,6 +274,24 @@
     </section>
 
     <section class="admin-section">
+      <h2>🎬 Gestione VideoClip</h2>
+      <p class="display-scroll-help">
+        I videoclip vengono cercati in <strong>C:\VSC_VIDEOCLIP</strong>. Puoi scegliere una cartella diversa: la scelta resta salvata su questo PC e viene applicata subito al player VideoClip.
+      </p>
+
+      <div class="music-archive-config">
+        <label for="videoclip-path" class="music-archive-label">Cartella VideoClip</label>
+        <input id="videoclip-path" class="input" type="text" value="C:\VSC_VIDEOCLIP" spellcheck="false" autocomplete="off" aria-describedby="videoclip-path-help" />
+        <div id="videoclip-path-help" class="videoclip-path-help">Inserisci il percorso completo della cartella che contiene i file video.</div>
+        <div class="music-archive-actions">
+          <button id="btn-save-videoclip-path" class="btn btn-primary" type="button">💾 Salva cartella VideoClip</button>
+          <button id="btn-check-videoclip-path" class="btn btn-secondary" type="button">🔎 Verifica cartella</button>
+        </div>
+        <div id="videoclip-path-status" class="dj-software-status" aria-live="polite">Stato VideoClip: caricamento...</div>
+      </div>
+    </section>
+
+    <section class="admin-section">
       <h2>📷 Telecamere di Sistema</h2>
       <p class="display-scroll-help">
         Elenco profili webcam da <strong>get-camera-name.csv</strong> con capability rilevate automaticamente da FFmpeg.

@@ -152,6 +152,12 @@
   gap: 10px;
 }
 
+.videoclip-path-help {
+  color: #dfe6ff;
+  font-size: 0.88em;
+  line-height: 1.4;
+}
+
 .software-coming-soon {
   display: inline-block;
   margin-left: 8px;
