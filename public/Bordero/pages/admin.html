@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Admin Panel</title>
+  
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="admin.css" />
+  
+  <!-- XLSX Library locale - evita errori di rete e warning inutili -->
+  <script src="../assets/lib/xlsx.min.js"></script>
+  
+  <!-- Fallback locale se CDN non disponibile -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile, provo fallback locale...');
+      const script = document.createElement('script');
+      script.src = '../assets/lib/xlsx.min.js';
+      script.onload = () => console.log('✓ XLSX.js caricato dal fallback locale');
+      script.onerror = () => console.error('❌ Impossibile caricare XLSX.js anche dal fallback locale');
+      document.head.appendChild(script);
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
+
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-file-manager.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="admin.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">⚙️ BORDERÒ - Admin Panel</h1>
+        <p class="app-subtitle">Debug, Testing & System Configuration</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Admin</span>
+    </nav>
+
+    <!-- SYSTEM STATUS -->
+    <section class="admin-section">
+      <h2>🔍 System Status</h2>
+      <div class="status-grid">
+        <div class="status-item">
+          <span class="label">Browser:</span>
+          <span class="value" id="status-browser">--</span>
+        </div>
+        <div class="status-item">
+          <span class="label">localStorage:</span>
+          <span class="value" id="status-storage">--</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Last Sync:</span>
+          <span class="value" id="status-sync">--</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Cache Size:</span>
+          <span class="value" id="status-cache">--</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>🎚️ Display Scroll Settings</h2>
+      <p class="display-scroll-help">
+        Regola il rolling su/giu del monitor Display (stile VBA). Le impostazioni sono salvate e applicate automaticamente alla pagina Display.
+      </p>
+
+      <div class="display-scroll-grid">
+        <div class="display-scroll-control">
+          <label for="display-scroll-speed">Velocita scorrimento (ms per step)</label>
+          <input type="range" id="display-scroll-speed" min="1" max="50" step="1" value="16" />
+          <div class="display-scroll-readout"><span id="display-scroll-speed-value">16 ms</span></div>
+        </div>
+
+        <div class="display-scroll-control">
+          <label for="display-scroll-pause">Pausa agli estremi (secondi)</label>
+          <input type="range" id="display-scroll-pause" min="0" max="20" step="0.5" value="1" />
+          <div class="display-scroll-readout"><span id="display-scroll-pause-value">1.0 sec</span></div>
+        </div>
+
+        <div class="display-scroll-control">
+          <label for="display-scroll-step-px">Passo di scorrimento (pixel)</label>
+          <input type="range" id="display-scroll-step-px" min="1" max="5" step="1" value="1" />
+          <div class="display-scroll-readout"><span id="display-scroll-step-px-value">1 px</span></div>
+        </div>
+      </div>
+
+      <div class="display-scroll-actions">
+        <button id="btn-save-display-scroll" class="btn btn-primary" type="button">💾 Salva Impostazioni Scroll</button>
+        <button id="btn-reset-display-scroll" class="btn btn-secondary" type="button">↺ Ripristina Default</button>
+      </div>
+
+      <div class="display-scroll-estimate" id="display-scroll-estimate">
+        <strong>Stima ciclo rolling:</strong>
+        <span id="display-scroll-estimate-value">--</span>
+      </div>
+    </section>
+
+    <!-- DATA SYNC -->
+    <section class="admin-section">
+      <h2>📊 Data Synchronization</h2>
+      
+      <!-- Excel File Selection -->
+      <div style="margin-bottom: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+        <h3>📁 Selezione File Excel</h3>
+        <p id="excel-file-status" style="margin: 10px 0; font-size: 14px; color: #666;">
+          Nessun file selezionato - Clicca il pulsante per scegliere il file Excel
+        </p>
+        <button id="btn-select-excel" class="btn btn-warning" style="width: 100%;">
+          📁 Seleziona File Excel...
+        </button>
+        <small style="display: block; margin-top: 10px; color: #999;">
+          Seleziona il file Excel da C:\VSC_Live_Server\Excel\
+        </small>
+      </div>
+
+      <div class="sync-panel sync-panel-data-sync">
+        <div class="sync-item">
+          <h3>Brani (Songs)</h3>
+          <p id="sync-brani-status">Checking...</p>
+          <button id="btn-sync-brani" class="btn btn-primary">🔄 Sync Brani</button>
+        </div>
+        <div class="sync-item">
+          <h3>Comuni Italia (Locations)</h3>
+          <p id="sync-comuni-status">Checking...</p>
+          <button id="btn-sync-comuni" class="btn btn-primary">🔄 Sync Comuni</button>
+        </div>
+        <div class="sync-item">
+          <h3>dBase (DJ)</h3>
+          <p id="sync-dbase-status">Checking...</p>
+          <button id="btn-sync-dbase" class="btn btn-primary">🔄 Sync dBase</button>
+        </div>
+        <div class="sync-item">
+          <h3>Location</h3>
+          <p id="sync-location-status">Checking...</p>
+          <button id="btn-sync-location" class="btn btn-primary">🔄 Sync Location</button>
+        </div>
+        <div class="sync-item">
+          <h3>File Audio Archivio</h3>
+          <p id="sync-music-archive-status">Checking...</p>
+          <button id="btn-sync-music-archive" class="btn btn-primary">🔎 Verifica Archivio</button>
+        </div>
+      </div>
+      <button id="btn-sync-all" class="btn btn-secondary" style="margin-top: 15px; width: 100%;">
+        🔄 Sincronizza Tutto da Excel
+      </button>
+      <button id="btn-sync-google" class="btn btn-warning" style="margin-top: 15px; width: 100%;">
+        🌐 Sync da Google Sheets
+      </button>
+
+      <div id="sync-feedback" class="sync-feedback">
+        <div class="sync-feedback-header">
+          <span>📡 Sync Live Log</span>
+          <button id="btn-clear-sync-log" class="btn btn-secondary" style="font-size: 0.85em; padding: 8px 10px;">Pulisci log</button>
+        </div>
+        <div id="sync-feedback-output" class="sync-feedback-output">
+          <div class="sync-log info">In attesa di sincronizzazione...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DJ MANAGEMENT -->
+    <section class="admin-section">
+      <h2>🎧 Gestione DJ</h2>
+      <p class="display-scroll-help">
+        Aggiungi, modifica e gestisci i DJ usati dal selettore della serata. I dati vengono salvati nella sorgente principale usata da Borderò.
+      </p>
+
+      <div class="sync-panel" style="margin-bottom: 16px;">
+        <div class="sync-item" style="flex: 1 1 100%;">
+          <h3>Aggiungi DJ</h3>
+          <input id="dj-name-input" class="input" type="text" placeholder="Nome DJ" style="width: 100%; margin-bottom: 10px;" />
+          <button id="btn-add-dj" class="btn btn-primary" type="button">➕ Aggiungi DJ</button>
+        </div>
+      </div>
+
+      <div class="sync-panel" style="margin-bottom: 16px;">
+        <div class="sync-item" style="flex: 1 1 100%;">
+          <h3>Elenco DJ</h3>
+          <div id="dj-list" class="data-viewer" style="max-height: 320px; overflow: auto;"></div>
+        </div>
+      </div>
+
+      <button id="btn-refresh-dj-list" class="btn btn-secondary" type="button">🔄 Aggiorna elenco</button>
+      <button id="btn-sync-dj-source" class="btn btn-warning" type="button" style="margin-left: 8px;">🧠 Sincronizza sorgente DJ</button>
+    </section>
+
+    <section class="admin-section">
+      <h2>🎛️ Software Console DJ</h2>
+      <p class="display-scroll-help">
+        Seleziona il software usato dal DJ durante l'evento. La scelta è esclusiva: attivandone uno gli altri vengono automaticamente disattivati.
+      </p>
+
+      <div class="dj-software-table-wrap">
+        <table class="dj-software-table" aria-label="Selezione software console DJ">
+          <thead>
+            <tr>
+              <th>Software</th>
+              <th>On/Off</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pioneer DJ Rekordbox <span class="software-coming-soon">Non ancora supportato</span></td>
+              <td>
+                <button id="btn-software-rekordbox" class="btn btn-secondary software-toggle-btn" type="button" data-software="rekordbox" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Serato DJ <span class="software-coming-soon">Non ancora supportato</span></td>
+              <td>
+                <button id="btn-software-serato" class="btn btn-secondary software-toggle-btn" type="button" data-software="serato" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Algoriddim djay Pro <span class="software-coming-soon">Non ancora supportato</span></td>
+              <td>
+                <button id="btn-software-djaypro" class="btn btn-secondary software-toggle-btn" type="button" data-software="djaypro" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Native Instruments Traktor Pro</td>
+              <td>
+                <button id="btn-software-traktor" class="btn btn-secondary software-toggle-btn" type="button" data-software="traktor" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+            <tr>
+              <td>VirtualDJ</td>
+              <td>
+                <button id="btn-software-virtualdj" class="btn btn-secondary software-toggle-btn" type="button" data-software="virtualdj" aria-pressed="false">OFF</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="dj-software-selection-status" class="dj-software-status">Software selezionato: Nessuno</div>
+      <div id="dj-software-feature-status" class="dj-software-status">Funzione collegata: disabilitata (in attesa specifica)</div>
+      <div class="dj-software-status-note">Nota: al momento sono selezionabili solo VirtualDJ e Traktor Pro. Gli altri software saranno abilitati in un secondo momento.</div>
+    </section>
+
+    <section class="admin-section">
+      <h2>📁 Archivio Brani</h2>
+      <p class="display-scroll-help">
+        Seleziona una cartella del progetto o da un disco locale che contiene i brani (incluse tutte le sottocartelle). Le scelte nel progetto sono relative e condivisibili; quelle locali restano salvate solo su questo PC.
+      </p>
+
+      <div class="music-archive-config">
+        <label for="music-archive-path" class="music-archive-label">Cartella archivio</label>
+        <div class="music-archive-actions">
+          <select id="music-archive-path" class="select" aria-label="Seleziona cartella archivio"></select>
+          <button id="btn-browse-music-archive" class="btn btn-secondary" type="button">📁 Sfoglia cartella</button>
+        </div>
+        <div class="music-archive-actions" style="margin-top: 8px;">
+          <button id="btn-save-music-archive" class="btn btn-primary" type="button">💾 Salva cartella archivio</button>
+          <button id="btn-check-music-archive" class="btn btn-secondary" type="button">🔎 Verifica archivio</button>
+        </div>
+        <div id="music-archive-recent-path" aria-live="polite" style="margin-top: 10px; font-size: 13px; color: #dfe6ff; line-height: 1.4;">Nessun percorso salvato. Seleziona una cartella e premi Salva.</div>
+        <div id="music-archive-status" class="dj-software-status">Stato archivio: non configurato</div>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>🎬 Gestione VideoClip</h2>
+      <p class="display-scroll-help">
+        I videoclip vengono cercati in <strong>C:\VSC_VIDEOCLIP</strong>. Puoi scegliere una cartella diversa: la scelta resta salvata su questo PC e viene applicata subito al player VideoClip.
+      </p>
+
+      <div class="music-archive-config">
+        <label for="videoclip-path" class="music-archive-label">Cartella VideoClip</label>
+        <input id="videoclip-path" class="input" type="text" value="C:\VSC_VIDEOCLIP" spellcheck="false" autocomplete="off" aria-describedby="videoclip-path-help" />
+        <div id="videoclip-path-help" class="videoclip-path-help">Inserisci il percorso completo della cartella che contiene i file video.</div>
+        <div class="music-archive-actions">
+          <button id="btn-save-videoclip-path" class="btn btn-primary" type="button">💾 Salva cartella VideoClip</button>
+          <button id="btn-check-videoclip-path" class="btn btn-secondary" type="button">🔎 Verifica cartella</button>
+        </div>
+        <div id="videoclip-path-status" class="dj-software-status" aria-live="polite">Stato VideoClip: caricamento...</div>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>📷 Telecamere di Sistema</h2>
+      <p class="display-scroll-help">
+        Elenco profili webcam da <strong>get-camera-name.csv</strong> con capability rilevate automaticamente da FFmpeg.
+      </p>
+      <div class="display-scroll-actions">
+        <button id="btn-refresh-camera-profiles" class="btn btn-primary" type="button">🔄 Aggiorna e Profila Telecamere</button>
+      </div>
+      <div id="camera-profiles-summary" class="data-viewer-summary">In attesa di caricamento...</div>
+      <div id="camera-profiles-output" class="data-viewer"></div>
+    </section>
+
+    <!-- DATA VIEWER -->
+    <section class="admin-section">
+      <h2>📋 Data Viewer</h2>
+      <div class="viewer-controls">
+        <select id="data-viewer-select" class="select">
+          <option value="">-- Select Data --</option>
+          <option value="brani">Brani (Songs)</option>
+          <option value="comuni">Comuni Italia</option>
+          <option value="dbase">dBase (DJ)</option>
+          <option value="location">Location</option>
+          <option value="cameras">Telecamere (Webcam)</option>
+          <option value="music-archive">File Audio Archivio</option>
+          <option value="serata">Current Serata</option>
+          <option value="history">Serata History</option>
+          <option value="localstorage">All localStorage Keys</option>
+        </select>
+      </div>
+      <div id="data-viewer-output" class="data-viewer"></div>
+    </section>
+
+    <!-- CACHE MANAGEMENT -->
+    <section class="admin-section">
+      <h2>💾 Cache Management</h2>
+      <div class="cache-controls">
+        <button id="btn-clear-brani-cache" class="btn btn-warning">Clear Brani Cache</button>
+        <button id="btn-clear-comuni-cache" class="btn btn-warning">Clear Comuni Cache</button>
+        <button id="btn-clear-dbase-cache" class="btn btn-warning">Clear dBase Cache</button>
+        <button id="btn-clear-location-cache" class="btn btn-warning">Clear Location Cache</button>
+        <button id="btn-clear-serata-cache" class="btn btn-danger">Clear Serata Data</button>
+        <button id="btn-clear-all-cache" class="btn btn-danger" style="width: 100%; margin-top: 10px;">
+          🗑️ Clear ALL Cache
+        </button>
+      </div>
+    </section>
+
+    <!-- EXPORT/IMPORT -->
+    <section class="admin-section">
+      <h2>💿 Export / Import</h2>
+      <div class="import-export">
+        <button id="btn-export-all" class="btn btn-primary">💾 Export All Data to JSON</button>
+        <button id="btn-export-csv-brani" class="btn btn-secondary">📄 Export Brani as CSV</button>
+        <button id="btn-import-file" class="btn btn-info">📂 Import JSON File</button>
+        <input type="file" id="import-file-input" accept=".json" style="display: none;" />
+      </div>
+    </section>
+
+    <!-- TEST CONSOLE -->
+    <section class="admin-section">
+      <h2>🖥️ Test Console</h2>
+      <div class="console-panel">
+        <div class="console-output" id="console-output"></div>
+        <div class="console-input">
+          <input type="text" id="console-input" placeholder="console.log(...)" class="input">
+          <button id="btn-console-execute" class="btn btn-primary">Execute</button>
+          <button id="btn-console-clear" class="btn btn-secondary">Clear</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICK NAVIGATION -->
+    <section class="admin-section">
+      <h2>🚀 Quick Navigation</h2>
+      <div class="page-shortcuts" aria-label="Navigazione pagine Bordero">
+        <a href="../index.html" class="btn btn-secondary">Home</a>
+        <a href="bordero.html" class="btn btn-primary">Bordero</a>
+        <a href="next-coreo.html" class="btn btn-secondary">Next Coreo</a>
+        <a href="location.html" class="btn btn-secondary">Location</a>
+        <a href="display.html" class="btn btn-secondary">Display</a>
+        <a href="lista-serata.html" class="btn btn-secondary">Lista Serata</a>
+        <a href="risultati.html" class="btn btn-secondary">Risultati</a>
+        <a href="videoclip.html" class="btn btn-secondary">Videoclip</a>
+      </div>
+
+      <div class="page-shortcuts" style="margin-top: 12px;">
+        <button id="btn-launch-electron" class="btn btn-primary" type="button">Avvia Dual Monitor Electron</button>
+        <button id="btn-swap-monitors" class="btn btn-secondary" type="button">Inverti Monitor: OFF</button>
+      </div>
+
+      <div class="page-shortcuts" style="margin-top: 12px; align-items: center; gap: 8px;">
+        <label for="select-primary-monitor" style="font-weight: 600;">Monitor principale Bordero:</label>
+        <select id="select-primary-monitor" class="input" style="max-width: 180px;">
+          <option value="1">1 (predefinito)</option>
+          <option value="2">2 (scambia monitor)</option>
+        </select>
+        <button id="btn-apply-primary-monitor" class="btn btn-info" type="button">Applica monitor</button>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>🗂️ Pagine Monitor</h2>
+      <p class="display-scroll-help">
+        Apri le pagine HTML di Borderò sul monitor principale o sul monitor secondario in base alla policy Electron.
+      </p>
+      <div class="monitor-pages-panel">
+        <div id="monitor-pages-summary" class="data-viewer-summary">Disponibile solo in runtime Electron.</div>
+        <div id="monitor-pages-output" class="data-viewer"></div>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div style="margin-top: 14px; border: 1px solid #d8d8d8; border-radius: 8px; padding: 10px; background: #fafafa;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px;">
+          <strong>Diagnostica Routing Monitor (Electron)</strong>
+          <button id="btn-monitor-policy-clear" class="btn btn-secondary" type="button">Pulisci</button>
+        </div>
+        <div id="monitor-policy-last-route" style="font-size: 13px; line-height: 1.4; color: #333; white-space: pre-wrap;">In attesa del primo routing...</div>
+      </div>
+    </section>
+
+    <!-- BACK BUTTON -->
+    <div class="footer-action">
+      <a href="../index.html" class="btn btn-secondary">← Back to Home</a>
+    </div>
+  </div>
+
+    <script src="/nav.js"></script></body>
+</html>

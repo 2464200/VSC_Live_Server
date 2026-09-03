@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO’ - VideoClip Manager</title>
+  
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="videoclip.css?v=20260802-1" />
+  
+  <!-- XLSX Library locale per lettura file Excel -->
+  <script src="../assets/lib/xlsx.min.js"></script>
+  
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="videoclip.js?v=20260802-1"></script>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERO' - VideoClip Manager</h1>
+        <p class="app-subtitle">Gestione Video per Coreografie</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">VideoClip</span>
+    </nav>
+
+    <!-- CURRENT VIDEO PLAYER -->
+    <section class="player-section">
+      <div class="video-player-column">
+        <div class="video-player">
+          <video id="main-video" width="100%" height="auto" controls playsinline preload="metadata">
+            <source id="video-source" src="" type="video/mp4" />
+            Il tuo browser non supporta i video HTML5
+          </video>
+          <div id="no-video" class="no-video-placeholder">
+            <p>Nessun video selezionato</p>
+            <small>Seleziona una coreografia dalla tabella per riprodurre il video</small>
+          </div>
+        </div>
+        <div class="video-controls">
+          <button id="btn-only-archive" class="btn btn-filter-toggle" type="button" aria-pressed="false">SOLO VIDEO IN ARCHIVIO</button>
+          <button id="btn-only-executed" class="btn btn-filter-toggle" type="button" aria-pressed="false">VIDEO GIA' RIPRODOTTI</button>
+          <button id="btn-playback-backend" class="btn btn-secondary" type="button" aria-pressed="false">PLAYER: AUTO</button>
+          <button id="btn-play" class="btn btn-primary">PLAY</button>
+          <button id="btn-pause" class="btn btn-secondary">PAUSA</button>
+          <button id="btn-stop" class="btn btn-secondary">FERMA</button>
+          <button id="btn-fullscreen" class="btn btn-secondary">FULLSCREEN</button>
+          <button id="btn-bordero-quick" class="btn btn-primary">TORNA A BORDERO'</button>
+        </div>
+      </div>
+
+      <div class="video-info">
+        <h2 id="video-title">--</h2>
+        <div class="video-meta">
+          <span id="video-autore">Autore:</span>
+          <span id="video-coreo">Coreografo:</span>
+          <span id="video-genere">Genere:</span>
+        </div>
+        <div id="secondary-playback-status" class="secondary-playback-status">Video pronto per il monitor secondario.</div>
+        <div id="html5-debug-indicator" class="html5-debug-indicator" role="status" aria-live="polite">
+          <div class="debug-row"><strong>HTML5:</strong> <span id="dbg-html5-state">idle</span></div>
+          <div class="debug-row"><strong>readyState:</strong> <span id="dbg-html5-ready">0</span></div>
+          <div class="debug-row"><strong>networkState:</strong> <span id="dbg-html5-network">0</span></div>
+          <div class="debug-row"><strong>tempo:</strong> <span id="dbg-html5-time">0 / 0</span></div>
+          <div class="debug-row"><strong>video:</strong> <span id="dbg-html5-size">0x0</span></div>
+          <div class="debug-row"><strong>errore:</strong> <span id="dbg-html5-error">0</span></div>
+          <div class="debug-row"><strong>src:</strong> <span id="dbg-html5-src">--</span></div>
+        </div>
+        <section class="persistent-log-panel" aria-labelledby="persistent-log-title">
+          <div class="persistent-log-header">
+            <h3 id="persistent-log-title">Log Persistente Player</h3>
+            <div class="persistent-log-actions">
+              <button id="btn-copy-player-log" class="btn btn-secondary" type="button">COPIA LOG</button>
+              <button id="btn-clear-player-log" class="btn btn-secondary" type="button">SVUOTA LOG</button>
+            </div>
+          </div>
+          <div id="persistent-log-meta" class="persistent-log-meta">In attesa di eventi...</div>
+          <div id="persistent-log-list" class="persistent-log-list" role="log" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- VIDEO LIBRARY -->
+    <section class="library-section">
+      <h3>Libreria Video (Coreografie Disponibili)</h3>
+      
+      <div class="search-filter-row">
+        <input 
+          type="text" 
+          id="video-search" 
+          class="search-input" 
+          placeholder="Cerca per titolo, autore, coreografo..."
+        />
+        <select id="genere-filter" class="filter-select">
+          <option value="">Tutti i Generi</option>
+        </select>
+      </div>
+
+      <div class="videos-list" id="videos-list">
+        <!-- Dinamico -->
+      </div>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <section class="quick-actions">
+      <button id="btn-back" class="btn btn-secondary">INDIETRO</button>
+      <button id="btn-bordero" class="btn btn-primary">TORNA A BORDERO'</button>
+    </section>
+  </div>
+
+    <script src="/nav.js"></script></body>
+</html>

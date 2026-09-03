@@ -24,6 +24,7 @@ const { forwardVdjRequest } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
+const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
 
 const app = express();
 let PORT = Number.isFinite(Number(process.env.UNIFIED_PORT)) ? Number(process.env.UNIFIED_PORT) : projectConfig.port;
@@ -3253,6 +3254,29 @@ app.get('/api/bordero/sync-google', handleBorderoSyncGoogle);
 
 app.get('/api/bordero/sync-google/status', (req, res) => {
     res.json({ ok: true, state: borderoGoogleSyncState });
+});
+
+// Firebase Realtime Cloud Sync endpoints
+app.post('/api/bordero/cloud-sync-state', async (req, res) => {
+    try {
+        const result = await firebaseCloudSync.pushState(req.body || {});
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err?.message || String(err) });
+    }
+});
+
+app.get('/api/bordero/cloud-sync-status', (req, res) => {
+    res.json(firebaseCloudSync.getStatus());
+});
+
+app.post('/api/bordero/cloud-sync-trigger', async (req, res) => {
+    try {
+        await firebaseCloudSync.syncFromLocalFiles();
+        res.json({ success: true, status: firebaseCloudSync.getStatus() });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err?.message || String(err) });
+    }
 });
 
 app.post('/api/bordero/open-latest-excel', async (req, res) => {

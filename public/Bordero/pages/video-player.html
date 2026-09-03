@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO’ - Electron Video Player</title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .nav-breadcrumb {
+      background-color: #222;
+      padding: 4px 12px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      color: #aaa;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0;
+      flex: 0 0 auto;
+    }
+
+    .nav-breadcrumb a {
+      color: #ff7f00;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .nav-breadcrumb a:hover {
+      color: #ff9933;
+      text-decoration: underline;
+    }
+
+    .breadcrumb-sep {
+      color: #666;
+      margin: 0 10px;
+    }
+
+    .breadcrumb-current {
+      color: #ccc;
+    }
+
+    .player-shell {
+      position: relative;
+      width: 100%;
+      height: auto;
+      min-height: 0;
+      flex: 1;
+      background: #000;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .status {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.45);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      max-width: calc(100vw - 32px);
+      pointer-events: none;
+    }
+
+    .live-disclaimer {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      width: fit-content;
+      max-width: calc(100vw - 24px);
+      padding: 10px 10px;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+      display: none;
+      z-index: 2;
+    }
+
+    body.webcam-live-mode .live-disclaimer {
+      display: block;
+    }
+
+    .live-corner-badge {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 3;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-width: 88px;
+      min-height: 40px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 170, 170, 0.42);
+      background: linear-gradient(180deg, rgba(255, 68, 68, 0.96) 0%, rgba(177, 0, 0, 0.98) 100%);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 0 20px rgba(255, 34, 34, 0.55), inset 0 1px 3px rgba(255, 255, 255, 0.3);
+      pointer-events: none;
+      animation: live-corner-pulse 1s infinite;
+    }
+
+    body.webcam-live-mode .live-corner-badge {
+      display: inline-flex;
+    }
+
+    @keyframes live-corner-pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.42; transform: scale(0.94); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+  </style>
+  <script defer src="video-player.js?v=20260802-1"></script>
+</head>
+<body>
+  <nav class="nav-breadcrumb" aria-label="Navigazione pagine Bordero">
+    <a href="../index.html">Home</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="bordero.html">Bordero</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Video Player</span>
+  </nav>
+
+  <div class="player-shell">
+    <video id="electron-video" playsinline preload="auto"></video>
+    <div id="live-disclaimer" class="live-disclaimer">Avviso informativa privacy: questa ripresa video è trasmessa solo in diretta e non viene nè registrata nè salvata.</div>
+    <div id="live-corner-badge" class="live-corner-badge" aria-hidden="true">LIVE</div>
+    <div id="player-status" class="status">In attesa del video...</div>
+  </div>
+
+    <script src="/nav.js"></script></body>
+</html>

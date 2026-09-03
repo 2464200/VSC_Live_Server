@@ -10,7 +10,7 @@ tools: ["run_in_terminal", "read_file", "file_search"]
 
 Execute the Firebase deployment checklist for the VSC_Live_Server project:
 
-1. **Sync CSVs**: Copy display.csv and NextCoreo.csv from root to public/ folder to ensure deployed site has latest data.
+1. **Sync Public & CSVs**: Run `.\sync-public-bordero.ps1` to copy Bordero pages/js/assets/data and CSVs (display.csv, NextCoreo.csv, servizio.csv) to public/ folder.
 
 2. **Local Testing**:
    - Start all servers (web on 5500, manager on 3000, pdf on 8765)

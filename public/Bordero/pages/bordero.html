@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO’ - Tabella Principale</title>
+  
+  <!-- Style dalle carte Eventi -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  
+  <!-- Style Borderò personalizzato -->
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="../assets/css/responsive.css" />
+  <link rel="stylesheet" href="bordero.css?v=20260811-3" />
+  
+  <!-- XLSX Library locale per lettura file Excel -->
+  <script src="../assets/lib/xlsx.min.js"></script>
+  
+  <!-- Verifica caricamento XLSX -->
+  <script>
+    if (typeof XLSX === 'undefined') {
+      console.warn('⚠️ CDN XLSX.js non disponibile, provo fallback locale');
+    } else {
+      console.log('✓ XLSX.js caricato dal CDN');
+    }
+  </script>
+  
+  <!-- Config globale -->
+  <script defer src="../js/config.js?v=20260711-2"></script>
+  <script defer src="../js/utils.js?v=20260711-2"></script>
+  <script defer src="../js/excel-file-manager.js?v=20260711-2"></script>
+  <script defer src="../js/excel-sync.js?v=20260711-2"></script>
+  <script defer src="../js/data-loader.js?v=20260711-2"></script>
+  <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
+  <script defer src="bordero.js?v=20260811-4"></script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERO’ - Tabella Principale</h1>
+        <p class="app-subtitle">Gestione Brani e Coreografie</p>
+      </div>
+    </header>
+
+    <!-- NAVIGAZIONE -->
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Bordero Principale</span>
+    </nav>
+
+    <!-- SERATA INFO (D2:D5) -->
+    <section class="serata-info">
+      <div class="info-row">
+        <div class="info-field">
+          <label>DJ</label>
+          <select id="dj-select" class="select-input">
+            <option value="">-- Seleziona DJ --</option>
+          </select>
+        </div>
+        <div class="info-field">
+          <label>Data Serata</label>
+          <input type="date" id="data-serata" class="input-date" />
+        </div>
+        <div class="info-field">
+          <label>Luogo</label>
+          <button type="button" id="luogo-picker-button" class="location-picker-btn" aria-haspopup="dialog" aria-expanded="false">
+            Bergamo
+          </button>
+          <div id="luogo-picker-modal" class="location-picker-modal" role="dialog" aria-modal="true" aria-labelledby="luogo-picker-title" hidden style="display: none;">
+            <div class="location-picker-content">
+              <div class="location-picker-header">
+                <h3 id="luogo-picker-title">Seleziona luogo</h3>
+                <button type="button" id="luogo-picker-close" class="location-picker-close" aria-label="Chiudi">×</button>
+              </div>
+              <div class="location-picker-body">
+                <label class="location-picker-label" for="luogo-regione-select">Regione</label>
+                <select id="luogo-regione-select" class="location-picker-select">
+                  <option value="">-- Seleziona Regione --</option>
+                </select>
+
+                <label class="location-picker-label" for="luogo-citta-select">Città</label>
+                <select id="luogo-citta-select" class="location-picker-select" disabled>
+                  <option value="">-- Seleziona Città --</option>
+                </select>
+
+                <label class="location-picker-label" for="luogo-paese-select">Paese</label>
+                <select id="luogo-paese-select" class="location-picker-select" disabled>
+                  <option value="">-- Seleziona Paese --</option>
+                </select>
+
+                <button type="button" id="luogo-picker-confirm" class="location-picker-confirm">CONFERMA</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="info-field">
+          <label>Evento</label>
+          <input type="text" id="evento-text" class="input-text" placeholder="Nome evento" />
+        </div>
+      </div>
+    </section>
+
+    <!-- TOOLBAR -->
+    <section class="toolbar">
+      <div class="toolbar-section">
+        <h3>COMANDI SORT</h3>
+        <button id="btn-sort-id" class="btn btn-sort" title="Ordina per ID progressivo">
+          ORDINA PER ID
+        </button>
+        <button id="btn-sort-coreografo" class="btn btn-sort" title="Ordina per coreografo">
+          ORDINA PER COREOGRAFO
+        </button>
+        <button id="btn-sort-autore" class="btn btn-sort" title="Ordina per autore">
+          ORDINA PER AUTORE
+        </button>
+        <button id="btn-sort-richieste" class="btn btn-sort" title="Ordina per richieste">
+          ORDINA PER RICHIESTE
+        </button>
+        <button id="btn-move-executed-bottom" class="btn btn-sort btn-success" title="Sposta tutti i brani eseguiti in fondo alla lista">
+          SPOSTA IN FONDO GLI ESEGUITI
+        </button>
+        <button id="btn-view-executed" class="btn btn-sort btn-success" title="Visualizza i brani già eseguiti">
+          BRANI ESEGUITI
+        </button>
+        <button id="btn-view-richieste" class="btn btn-sort btn-primary" title="Visualizza l'elenco dei brani richiesti">
+          ELENCO RICHIESTE
+        </button>
+      </div>
+
+      <div class="toolbar-section">
+        <h3>COMANDI FILTRI</h3>
+        <button id="btn-filter-coreografia" class="btn btn-filter btn-filter-blue" title="Filtra per livello">
+          LIVELLO
+        </button>
+        <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" title="Filtra per coreografo">
+          COREOGRAFO
+        </button>
+        <button id="btn-filter-altro" class="btn btn-filter btn-filter-yellow" title="Filtra per autore">
+          AUTORE
+        </button>
+        <button id="btn-filter-richieste" class="btn btn-filter btn-filter-blue" title="Filtra per richieste">
+          RICHIESTE
+        </button>
+        <button id="btn-reset-filters" class="btn btn-secondary" title="Resetta filtri e ricerca">
+          🔄 RESET RICERCA
+        </button>
+        <button id="btn-load-deck-1" class="btn btn-deck1" title="Carica il brano selezionato in NEXT sul Deck 1">
+          CARICA SU DECK 1
+        </button>
+        <button id="btn-load-deck-2" class="btn btn-deck2" title="Carica il brano selezionato in NEXT sul Deck 2">
+          CARICA SU DECK 2
+        </button>
+      </div>
+
+      <div class="toolbar-section">
+        <h3>RICERCA & AZIONI</h3>
+        <div class="search-group">
+          <label class="search-label">RICERCA GENERALE</label>
+          <input 
+            type="text" 
+            id="search-box" 
+            class="search-input" 
+            placeholder="🔍 Cerca ID, titolo, autore, coreografo..."
+          />
+          <div id="search-fields-info" class="search-fields-info" style="margin-top:6px; color:#666; font-size:0.9em;">Campi cercati: ID, Titolo, Autore, Richieste, Coreografo, Genere, Info Coreo 1, Info Coreo 2</div>
+        </div>
+        <div class="search-actions-row">
+          <div class="search-actions">
+            <button id="btn-search-general" class="btn btn-secondary search-mode-btn" title="Ricerca generale su titolo, autore, genere, livello e coreografia">
+            🔎 RICERCA GENERALE
+            </button>
+            <button id="btn-search-title" class="btn btn-secondary search-mode-btn" title="Ricerca solo per titolo">
+            🔎 RICERCA PER TITOLO
+            </button>
+            <button id="btn-search-id" class="btn btn-secondary search-mode-btn" title="Ricerca solo per ID">
+            🔎 RICERCA PER ID
+            </button>
+          </div>
+
+          <div class="search-webcam-signal-slot" aria-label="Spia webcam secondaria">
+            <div id="webcam-signal-05" class="p05-webcam-signal" data-state="idle" aria-live="polite" aria-label="Spia stato webcam secondaria">
+              <span class="p05-webcam-signal-label">STATO<br />WEBCAM</span>
+              <span id="webcam-gem-05" class="p05-webcam-gem" aria-hidden="true"></span>
+              <span id="webcam-signal-text-05" class="p05-webcam-signal-text">Riposo</span>
+            </div>
+            <button id="btn-webcam-live-toggle" type="button" class="p05-webcam-control p05-webcam-control-start" aria-live="polite" aria-label="Avvia la webcam secondaria">
+              START WEBCAM
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <h3>AZIONI</h3>
+        <button id="btn-userform" class="btn btn-primary" title="Aggiungi/modifica brano">
+          🖋️ USERFORM
+        </button>
+        <button id="btn-export" class="btn btn-secondary" title="Esporta tabella a CSV (formato SIAE)">
+          📥 EXPORT SIAE
+        </button>
+        <button id="btn-sync-richieste-google" class="btn btn-secondary" title="Sincronizza i dati RICHIESTE da Google Sheet (Accoda 8+12)">
+          🔄 SYNC RICHIESTE GOOGLE
+        </button>
+        <button id="btn-print" class="btn btn-secondary" title="Stampa tabella">
+          🖨️ STAMPA
+        </button>
+        <button id="btn-finish-serata" class="btn btn-danger" title="Termina e archivia la serata corrente">
+          🕒 FINALIZZA SERATA
+        </button>
+        <div class="remote-rolling-controls" aria-label="Controlli rolling monitor secondario">
+          <button id="btn-stop-rolling-remote" class="btn btn-secondary remote-rolling-btn" title="Ferma lo scrolling sul monitor secondario">
+            FERMA ROLLING
+          </button>
+          <button id="btn-resume-rolling-remote" class="btn btn-secondary remote-rolling-btn" title="Riprende lo scrolling sul monitor secondario">
+            RIPRENDI ROLLING
+          </button>
+          <button id="btn-enable-led-remote" class="btn btn-secondary remote-rolling-btn" title="Mostra LedDisplay sul monitor secondario">
+            ACCENDI LED
+          </button>
+          <button id="btn-disable-led-remote" class="btn btn-secondary remote-rolling-btn" title="Ripristina la pagina precedente sul monitor secondario">
+            SPEGNI LED
+          </button>
+          <button id="console-status-signal" type="button" class="btn btn-secondary remote-rolling-btn console-status-btn" data-state="idle" aria-live="polite" aria-label="Stato console">
+            <span class="console-status-text">STATO CONSOLE</span>
+            <span class="console-status-dot" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATISTICHE LIVE -->
+    <section class="live-stats">
+      <div class="stat-badge">
+        <span class="stat-label">Brani Totali:</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Brani Richiesti:</span>
+        <span class="stat-value stat-requested" id="stat-requested">0</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Eseguiti:</span>
+        <span class="stat-value stat-completed" id="stat-completed">0</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Disponibili:</span>
+        <span class="stat-value stat-pending" id="stat-pending">0</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Ultimo Aggiornamento:</span>
+        <span class="stat-value" id="stat-last-action">--:--</span>
+      </div>
+      <div class="stat-badge stat-action" role="group" aria-label="Azione rapida reset filtri">
+        <span class="stat-label">Azione rapida:</span>
+        <button id="btn-reset-filters-stats" class="btn btn-secondary" title="Resetta tutti i filtri e ordina per ID crescente">
+          RESET FILTRI + ID ↑
+        </button>
+      </div>
+      <div class="stat-badge stat-mode" role="status" aria-live="polite">
+        <span class="stat-label">Eseguiti in fondo:</span>
+        <span class="stat-value stat-value-mode mode-off" id="stat-executed-bottom-mode">OFF</span>
+      </div>
+    </section>
+
+    <!-- TABELLA PRINCIPALE -->
+    <section class="table-section">
+      <div class="table-wrapper">
+        <table id="brani-table" class="brani-table">
+          <thead>
+            <tr class="table-header-row">
+              <th class="col-flag" data-col="flag">Flag</th>
+              <th class="col-next-coreo" data-col="next_coreo">NEXT</th>
+              <th class="col-id" data-col="id">ID</th>
+              <th class="col-timestamp" data-col="timestamp">Timestamp</th>
+              <th class="col-titolo" data-col="titolo">Titolo</th>
+              <th class="col-autore" data-col="autore">Autore</th>
+              <th class="col-richieste" data-col="richieste">Richieste</th>
+              <th class="col-livello" data-col="info_livello">Info Livello</th>
+              <th class="col-coreo-1" data-col="info_coreo_1">Info Coreo 1</th>
+              <th class="col-coreo-2" data-col="info_coreo_2">Info Coreo 2</th>
+              <th class="col-coreografo" data-col="coreografo">Coreografo</th>
+              <th class="col-collaboratori" data-col="collaboratori">Collaboratori</th>
+              <th class="col-videoclip" data-col="videoclip" data-filter-only="true">VideoClip</th>
+            </tr>
+          </thead>
+          <tbody id="brani-tbody">
+            <!-- Rows renderizzate dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <p class="empty-icon">🔍</p>
+        <p class="empty-text">Nessun brano trovato con i filtri applicati</p>
+        <button id="btn-reset-filters-empty" class="btn btn-secondary">
+          🔄 Resetta Filtri
+        </button>
+      </div>
+    </section>
+
+    <!-- PAGINATION (opzionale) -->
+    <section class="pagination">
+      <button id="btn-first-page" class="btn btn-small" title="Vai alla prima pagina">⏮ Prima</button>
+      <button id="btn-prev-page" class="btn btn-small">← Precedente</button>
+      <span id="pagination-info" class="pagination-info">Pagina 1</span>
+      <button id="btn-next-page" class="btn btn-small">Prossima →</button>
+      <button id="btn-last-page" class="btn btn-small" title="Vai all'ultima pagina">Ultima ⏭</button>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p>BORDERO’ DJ Manager © 2026</p>
+      <p id="footer-status">Ready</p>
+    </footer>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Popup filtro valori colonna -->
+  <div id="filter-picker-modal" class="filter-picker-modal" role="dialog" aria-modal="true" aria-labelledby="filter-picker-title" hidden>
+    <div class="filter-picker-content">
+      <div class="filter-picker-header">
+        <h3 id="filter-picker-title">Seleziona filtro</h3>
+        <button type="button" id="filter-picker-close" class="filter-picker-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="filter-picker-body">
+        <input type="text" id="filter-picker-search" class="filter-picker-search" placeholder="Cerca opzione..." />
+        <div id="filter-picker-options" class="filter-picker-options"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup conferma deselezione brano -->
+  <div id="deselection-confirm-modal" class="deselection-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="deselection-confirm-title" aria-hidden="true" hidden>
+    <div class="deselection-confirm-content">
+      <div class="deselection-confirm-header">
+        <h3 id="deselection-confirm-title">Conferma deselezione</h3>
+        <button type="button" id="deselection-confirm-close" class="deselection-confirm-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="deselection-confirm-body">
+        <p id="deselection-confirm-message" class="deselection-confirm-message">Confermi di annullare la selezione?</p>
+        <div class="deselection-confirm-actions">
+          <button type="button" id="deselection-confirm-cancel" class="deselection-confirm-btn is-cancel">Annulla</button>
+          <button type="button" id="deselection-confirm-accept" class="deselection-confirm-btn is-accept">Conferma</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="music-match-modal" class="music-match-modal" role="dialog" aria-modal="true" aria-labelledby="music-match-title" aria-hidden="true" hidden>
+    <div class="music-match-content">
+      <div class="music-match-header">
+        <h3 id="music-match-title">Seleziona il file da eseguire</h3>
+        <button type="button" id="music-match-close" class="music-match-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="music-match-body">
+        <p id="music-match-message" class="music-match-message">Sono stati trovati più file simili. Scegli quello corretto.</p>
+        <div id="music-match-options" class="music-match-options"></div>
+        <div class="music-match-actions">
+          <button type="button" id="music-match-cancel" class="music-match-btn is-cancel">Annulla</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UserForm Modal (da creare separatamente) -->
+  <div id="userform-modal" class="modal" style="display: none;">
+    <!-- Modal content da implementare -->
+  </div>
+
+    <script src="/nav.js"></script></body>
+
+</html>

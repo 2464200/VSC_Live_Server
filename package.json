@@ -11,6 +11,8 @@
     "test:system": "node test-system.js",
     "test:bordero": "node test/bordero-finish.test.js",
     "build:brani": "node Eventi/sync-brani.js",
+    "sync:public": "node scripts/sync-public.js",
+    "deploy:firebase": "node scripts/sync-public.js && firebase deploy --only hosting",
     "eventi": "npm run build:brani && node unified-server.js",
     "eventi:legacy": "npm run build:brani && node Eventi/server-eventi.js",
     "start:portable": "node scripts/start-portable.js"

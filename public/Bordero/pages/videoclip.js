@@ -1,0 +1,2050 @@
+/**
+ * BORDERÒ - VideoClip Manager Logic
+ * Gestione video per coreografie
+ */
+
+class VideoClipManager {
+  constructor() {
+    this.brani = [];
+    this.persistentLogStorageKey = 'bordero_videoclip_player_log';
+    this.persistentLogMaxEntries = 120;
+    this.currentBrano = null;
+    this.filteredBrani = [];
+    this.availableFiles = []; // elenco file presenti nella cartella locale
+    this.videoCatalog = []; // metadati normalizzati dei file video
+    this.availableMap = new Map(); // id -> filename
+    this.isReloading = false;
+    this.secondaryVideoUrl = '';
+    this.currentVideoUrl = '';
+    this.currentPlaybackBranoId = null;
+    this.showOnlyAvailable = false;
+    this.showOnlyExecuted = false;
+    this.vlcPath = '';
+    this.vlcFallbackActive = false;
+    this.playbackBackendPreference = this.loadPlaybackBackendPreference();
+    this.activeSecondaryBackend = null;
+    this.electronCompletionUnsubscribe = null;
+    this.pendingBranoId = this.getRequestedBranoIdFromUrl();
+    this.lastVlcCompletionEventId = 0;
+    this.vlcCompletionWatcherTimer = null;
+    this.vlcWasAlive = false;
+    this.manualStopPending = false;
+    this.pendingMainVideoPlay = false;
+    this.thresholdCompletionBranoId = null;
+
+    this.init();
+  }
+
+  async init() {
+    logger.info('VideoClipManager initializing...');
+
+    try {
+      const redirectedToSecondary = await this.ensureElectronSecondaryPlacement();
+      if (redirectedToSecondary) {
+        return;
+      }
+
+      this.renderPersistentLog();
+      this.brani = await dataLoader.loadBrani();
+      this.syncExecutedState();
+      this.filteredBrani = [...this.brani];
+
+      await this.refreshAvailableFiles();
+
+      this.renderLibrary();
+      this.populateGenreFilter();
+      this.setupListeners();
+      this.setupMainVideoDebugIndicator();
+      this.setupPlaybackBackendToggle();
+      this.syncSecondaryCompletionTracking();
+      this.applyPendingBranoSelection();
+      this.appendPersistentLog('info', 'baseline-ready', this.getPlaybackBaseline());
+
+      logger.info('✓ VideoClipManager inizializzato');
+    } catch (error) {
+      this.appendPersistentLog('error', 'init-error', { message: error?.message || String(error) });
+      logger.error('Errore inizializzazione', error);
+    }
+  }
+
+  getPlaybackBaseline() {
+    return {
+      pageOrigin: window.location.origin,
+      html5VideoPath: '/videos/:file',
+      playbackBackendPreference: this.playbackBackendPreference,
+      resolvedPlaybackBackend: this.resolvePlaybackBackend(),
+      vlcControlEndpoint: `${window.location.origin}/api/videoclip/vlc/control`,
+      vlcStateEndpoint: `${window.location.origin}/api/videoclip/vlc/state`,
+      electronBridgeAvailable: this.isElectronVideoPlayerAvailable(),
+      vlcRcPort: 4212,
+      vlcLaunchDelayMs: 100,
+      html5Attributes: 'controls playsinline preload=metadata',
+      html5StartsBeforeVlc: true
+    };
+  }
+
+  isElectronVideoPlayerAvailable() {
+    return Boolean(window.electronAPI && window.electronAPI.videoPlayer && typeof window.electronAPI.videoPlayer.play === 'function');
+  }
+
+  isElectronRuntime() {
+    return Boolean(window.electronAPI && window.electronAPI.runtime && window.electronAPI.runtime.isElectron);
+  }
+
+  isElectronSecondaryInstance() {
+    return false;
+  }
+
+  async ensureElectronSecondaryPlacement() {
+    // In modalita Electron la pagina VideoClip resta sul monitor principale.
+    // Il monitor secondario e dedicato a display.html e al player video fullscreen.
+    return false;
+  }
+
+  loadPlaybackBackendPreference() {
+    try {
+      const value = localStorage.getItem('bordero_videoclip_playback_backend');
+      return ['auto', 'electron', 'vlc'].includes(value) ? value : 'auto';
+    } catch (error) {
+      logger.debug('Errore lettura preferenza playback backend', error);
+      return 'auto';
+    }
+  }
+
+  savePlaybackBackendPreference(value) {
+    try {
+      localStorage.setItem('bordero_videoclip_playback_backend', value);
+    } catch (error) {
+      logger.debug('Errore salvataggio preferenza playback backend', error);
+    }
+  }
+
+  resolvePlaybackBackend() {
+    if (this.playbackBackendPreference === 'electron') {
+      return this.isElectronVideoPlayerAvailable() ? 'electron' : 'vlc';
+    }
+
+    if (this.playbackBackendPreference === 'vlc') {
+      return 'vlc';
+    }
+
+    return this.isElectronVideoPlayerAvailable() ? 'electron' : 'vlc';
+  }
+
+  getSecondaryBackendLabel() {
+    return this.resolvePlaybackBackend() === 'electron' ? 'Electron' : 'VLC';
+  }
+
+  setupPlaybackBackendToggle() {
+    const button = document.getElementById('btn-playback-backend');
+    if (!button) return;
+
+    const renderButton = () => {
+      const preference = this.playbackBackendPreference;
+      const resolved = this.resolvePlaybackBackend();
+      const label = preference === 'auto'
+        ? `AUTO → ${resolved.toUpperCase()}`
+        : preference.toUpperCase();
+      button.textContent = `PLAYER: ${label}`;
+      button.classList.toggle('btn-primary', resolved === 'electron');
+      button.classList.toggle('btn-secondary', resolved !== 'electron');
+      button.setAttribute('aria-pressed', preference !== 'auto' ? 'true' : 'false');
+    };
+
+    button.addEventListener('click', () => {
+      const next = this.playbackBackendPreference === 'auto'
+        ? 'electron'
+        : this.playbackBackendPreference === 'electron'
+          ? 'vlc'
+          : 'auto';
+
+      this.playbackBackendPreference = next;
+      this.savePlaybackBackendPreference(next);
+      this.appendPersistentLog('info', 'playback-backend-changed', {
+        preference: next,
+        resolved: this.resolvePlaybackBackend()
+      });
+      renderButton();
+      this.syncSecondaryCompletionTracking();
+    });
+
+    renderButton();
+  }
+
+  syncSecondaryCompletionTracking() {
+    if (this.electronCompletionUnsubscribe) {
+      try {
+        this.electronCompletionUnsubscribe();
+      } catch (error) {
+        logger.debug('Errore disattivazione listener Electron completion', error);
+      }
+      this.electronCompletionUnsubscribe = null;
+    }
+
+    if (this.vlcCompletionWatcherTimer) {
+      clearInterval(this.vlcCompletionWatcherTimer);
+      this.vlcCompletionWatcherTimer = null;
+    }
+
+    if (this.playbackBackendPreference === 'electron' && !this.isElectronVideoPlayerAvailable()) {
+      this.appendPersistentLog('warn', 'electron-backend-unavailable', { backend: 'electron' });
+      return;
+    }
+
+    if (this.resolvePlaybackBackend() === 'electron' && this.isElectronVideoPlayerAvailable()) {
+      this.electronCompletionUnsubscribe = window.electronAPI.videoPlayer.onEnded((payload) => {
+        this.handleSecondaryPlaybackCompletion('electron', payload || {});
+      });
+      this.appendPersistentLog('info', 'electron-completion-listener-ready', { backend: 'electron' });
+      return;
+    }
+
+    this.startVlcCompletionWatcher();
+  }
+
+  getVideoApiCandidates(pathname) {
+    const normalizedPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
+    const host = window.location.hostname || 'localhost';
+    const protocol = window.location.protocol || 'http:';
+    const candidates = [
+      `http://localhost:5500${normalizedPath}`,
+      `http://127.0.0.1:5500${normalizedPath}`,
+      `${protocol}//${host}:5500${normalizedPath}`,
+      `${window.location.origin}${normalizedPath}`,
+      normalizedPath,
+    ];
+
+    return candidates.filter((value, index, array) => value && array.indexOf(value) === index);
+  }
+
+  async fetchVideoApi(pathname, options = {}) {
+    let lastResponse = null;
+    let lastError = null;
+
+    for (const url of this.getVideoApiCandidates(pathname)) {
+      try {
+        const response = await fetch(url, {
+          cache: 'no-store',
+          ...options,
+        });
+
+        if (response.ok) {
+          return { response, url, origin: new URL(url, window.location.origin).origin };
+        }
+
+        lastResponse = { response, url, origin: new URL(url, window.location.origin).origin };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastResponse) {
+      return lastResponse;
+    }
+
+    throw lastError || new Error(`Impossibile contattare ${pathname}`);
+  }
+
+  getPreferredVideoOrigin() {
+    if (this.videoApiOrigin) return this.videoApiOrigin;
+    const protocol = window.location.protocol || 'http:';
+    const host = window.location.hostname || 'localhost';
+    const port = window.location.port || '5500';
+    return `${protocol}//${host}${port ? `:${port}` : ''}`;
+  }
+
+  buildVideoFileUrl(fileName) {
+    return `${this.getPreferredVideoOrigin()}/videos/${encodeURIComponent(fileName)}`;
+  }
+
+  getPersistentLogEntries() {
+    try {
+      const raw = localStorage.getItem(this.persistentLogStorageKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      logger.debug('Errore lettura log persistente player', error);
+      return [];
+    }
+  }
+
+  savePersistentLogEntries(entries) {
+    try {
+      localStorage.setItem(this.persistentLogStorageKey, JSON.stringify(entries));
+    } catch (error) {
+      logger.debug('Errore salvataggio log persistente player', error);
+    }
+  }
+
+  appendPersistentLog(level, eventName, details = {}) {
+    const entry = {
+      at: new Date().toISOString(),
+      level: String(level || 'info'),
+      event: String(eventName || 'event'),
+      currentBranoId: this.currentBrano?.id ?? null,
+      playbackBranoId: this.currentPlaybackBranoId ?? null,
+      docHidden: typeof document !== 'undefined' ? document.hidden : false,
+      details
+    };
+
+    const entries = this.getPersistentLogEntries();
+    entries.unshift(entry);
+    this.savePersistentLogEntries(entries.slice(0, this.persistentLogMaxEntries));
+    this.renderPersistentLog();
+  }
+
+  clearPersistentLog() {
+    try {
+      localStorage.removeItem(this.persistentLogStorageKey);
+    } catch (error) {
+      logger.debug('Errore reset log persistente player', error);
+    }
+    this.renderPersistentLog();
+  }
+
+  async copyPersistentLogToClipboard() {
+    const entries = this.getPersistentLogEntries();
+    const text = entries.map((entry) => {
+      const details = this.formatPersistentLogDetails(entry.details);
+      return `[${entry.at}] ${entry.level.toUpperCase()} ${entry.event} brano=${entry.currentBranoId || '-'} playback=${entry.playbackBranoId || '-'} hidden=${entry.docHidden} ${details}`.trim();
+    }).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text || '');
+      Toast.success('Log player copiato negli appunti');
+    } catch (error) {
+      Toast.error('Copia log non riuscita');
+    }
+  }
+
+  formatPersistentLogDetails(details) {
+    if (!details || typeof details !== 'object') return '';
+    return Object.entries(details)
+      .map(([key, value]) => `${key}=${typeof value === 'string' ? value : JSON.stringify(value)}`)
+      .join(' ');
+  }
+
+  renderPersistentLog() {
+    const listEl = document.getElementById('persistent-log-list');
+    const metaEl = document.getElementById('persistent-log-meta');
+    if (!listEl || !metaEl) return;
+
+    const entries = this.getPersistentLogEntries();
+    metaEl.textContent = entries.length > 0
+      ? `Ultimi ${Math.min(entries.length, this.persistentLogMaxEntries)} eventi. Baseline: HTML5 /videos su 5500, backend secondario ${this.getSecondaryBackendLabel()}, API VLC su 5500, RC VLC su 4212, delay VLC 100ms.`
+      : 'In attesa di eventi...';
+
+    if (entries.length === 0) {
+      listEl.innerHTML = '<div class="persistent-log-empty">Nessun evento salvato.</div>';
+      return;
+    }
+
+    listEl.innerHTML = entries.map((entry) => {
+      const safeEvent = this.escapeHtml(entry.event || 'event');
+      const safeAt = this.escapeHtml(entry.at || '');
+      const safeLevel = this.escapeHtml(String(entry.level || 'info').toUpperCase());
+      const safeIds = this.escapeHtml(`brano=${entry.currentBranoId || '-'} playback=${entry.playbackBranoId || '-'} hidden=${entry.docHidden}`);
+      const safeDetails = this.escapeHtml(this.formatPersistentLogDetails(entry.details));
+      return `
+        <div class="persistent-log-item is-${this.escapeHtml(entry.level || 'info')}">
+          <span class="persistent-log-line"><strong>${safeLevel}</strong> ${safeEvent}</span>
+          <span class="persistent-log-line">${safeAt}</span>
+          <span class="persistent-log-line">${safeIds}</span>
+          ${safeDetails ? `<span class="persistent-log-line">${safeDetails}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  populateGenreFilter() {
+    const genreSet = new Set(this.brani.map(b => b.genere).filter(Boolean));
+    const genreSelect = document.getElementById('genere-filter');
+
+    Array.from(genreSet).sort().forEach(genere => {
+      const option = document.createElement('option');
+      option.value = genere;
+      option.textContent = genere;
+      genreSelect.appendChild(option);
+    });
+  }
+
+  isBranoExecuted(brano) {
+    return brano && (
+      brano.flag === 'X' ||
+      brano.flag === 'x' ||
+      brano.eseguito === true ||
+      brano.eseguito === 'X' ||
+      brano.eseguito === 'x' ||
+      brano.executed === true ||
+      brano.executed === 'X' ||
+      brano.executed === 'x'
+    );
+  }
+
+  async refreshAvailableFiles() {
+    const nextAvailableFiles = [];
+    const nextVideoCatalog = [];
+    const nextAvailableMap = new Map();
+
+    try {
+      let selectedOrigin = '';
+      for (const candidate of this.getVideoApiCandidates('/api/videoclip/list')) {
+        try {
+          const response = await fetch(candidate, { cache: 'no-store' });
+          if (!response.ok) continue;
+
+          const json = await response.json().catch(() => ({}));
+          const files = Array.isArray(json.files)
+            ? json.files.map(f => String(f || '').trim()).filter(Boolean)
+            : [];
+
+          if (files.length > 0) {
+            nextAvailableFiles.push(...files);
+            selectedOrigin = new URL(candidate, window.location.origin).origin;
+            logger.info('Videoclip list ottenuta da', candidate, nextAvailableFiles.length);
+            break;
+          }
+        } catch (candidateError) {
+          logger.debug('Video list fetch failed for', candidate, candidateError?.message || candidateError);
+        }
+      }
+
+      if (selectedOrigin) {
+        this.videoApiOrigin = selectedOrigin;
+      }
+    } catch (err) {
+      logger.debug('Video list fetch failed', err.message || err);
+    }
+
+    const nextAvailableBasenames = nextAvailableFiles.map(f => {
+      const idx = f.lastIndexOf('.');
+      return idx > 0 ? f.slice(0, idx) : f;
+    });
+
+    nextAvailableFiles.forEach((fullName, index) => {
+      const baseName = nextAvailableBasenames[index] || fullName;
+      const parsed = this.parseVideoFileReference(baseName);
+      const normalizedName = this.normalizeForMatch(parsed.name || baseName);
+      nextVideoCatalog.push({
+        fullName,
+        baseName,
+        prefix: parsed.prefix || '',
+        name: parsed.name || baseName,
+        normalizedName,
+        tokens: this.tokenizeForMatch(normalizedName)
+      });
+    });
+
+    const prevVideoCatalog = this.videoCatalog;
+    this.videoCatalog = nextVideoCatalog;
+    this.brani.forEach(brano => {
+      const matched = this.findMatchingVideoFile(brano);
+      if (matched) nextAvailableMap.set(String(brano.id), matched);
+    });
+    this.videoCatalog = prevVideoCatalog;
+
+    this.availableFiles = nextAvailableFiles;
+    this.availableBasenames = nextAvailableBasenames;
+    this.videoCatalog = nextVideoCatalog;
+    this.availableMap = nextAvailableMap;
+
+    return this.availableFiles;
+  }
+
+  syncExecutedState() {
+    const currentSerata = dataLoader.getCurrentSerata?.();
+    if (!currentSerata || !Array.isArray(currentSerata.brani)) {
+      return false;
+    }
+
+    const serataMap = new Map();
+    currentSerata.brani.forEach(item => {
+      if (item && item.id !== null && item.id !== undefined) {
+        serataMap.set(String(item.id), item);
+      }
+    });
+
+    let changed = false;
+    this.brani = this.brani.map(brano => {
+      const serataBrano = serataMap.get(String(brano.id));
+      const isExecutedInSerata = Boolean(
+        serataBrano && (
+          serataBrano.flag === 'X' ||
+          serataBrano.flag === 'x' ||
+          serataBrano.eseguito === true ||
+          serataBrano.eseguito === 'X' ||
+          serataBrano.eseguito === 'x' ||
+          serataBrano.executed === true ||
+          serataBrano.executed === 'X' ||
+          serataBrano.executed === 'x'
+        )
+      );
+
+      if (isExecutedInSerata && !this.isBranoExecuted(brano)) {
+        changed = true;
+        return { ...brano, flag: 'X', timestamp: serataBrano.timestamp || brano.timestamp };
+      }
+
+      return brano;
+    });
+
+    this.filteredBrani = [...this.brani];
+    return changed;
+  }
+
+  renderLibrary() {
+    const container = document.getElementById('videos-list');
+    if (!container) return;
+    container.innerHTML = '';
+    let renderedCount = 0;
+
+    this.updateFilterButtons();
+
+    this.filteredBrani.forEach(brano => {
+      const card = document.createElement('div');
+      card.className = 'video-card';
+      const matchedFile = this.availableMap.get(String(brano.id)) || null;
+      const isAvailable = Boolean(matchedFile);
+      const isExecuted = this.isBranoExecuted(brano);
+      const emphasizeArchiveAvailability = this.showOnlyAvailable && isAvailable;
+      const canSelectCard = isAvailable && (!isExecuted || this.showOnlyAvailable);
+      if (!this.matchesStateFilters(isAvailable, isExecuted)) {
+        return;
+      }
+      if (this.currentBrano?.id === brano.id) {
+        card.classList.add('active');
+      }
+      if (emphasizeArchiveAvailability) {
+        card.classList.add('available');
+      } else if (isExecuted) {
+        card.classList.add('executed');
+      } else if (isAvailable) {
+        card.classList.add('available');
+      } else {
+        card.classList.add('unavailable');
+      }
+      card.dataset.available = isAvailable ? 'true' : 'false';
+      card.setAttribute('aria-disabled', canSelectCard ? 'false' : 'true');
+
+      const tooltipText = emphasizeArchiveAvailability
+        ? `Video associato: ${matchedFile}`
+        : isExecuted
+        ? 'Brano già eseguito nella serata'
+        : (matchedFile ? `Video associato: ${matchedFile}` : 'Nessun video associato');
+
+      const badgeClass = emphasizeArchiveAvailability
+        ? 'available'
+        : (isExecuted ? 'executed' : (isAvailable ? 'available' : 'unavailable'));
+
+      const badgeText = emphasizeArchiveAvailability
+        ? '✓ VIDEO DISPONIBILE'
+        : (isExecuted ? '⚠ VIDEO GIA\' ESEGUITO' : (isAvailable ? '✓ VIDEO DISPONIBILE' : '✕ VIDEO NON DISPONIBILE'));
+      const buttonLabel = !isAvailable
+        ? 'NON DISPONIBILE'
+        : (isExecuted && !this.showOnlyAvailable ? 'GIÀ ESEGUITO' : (this.showOnlyAvailable ? 'RIPRODUCI' : 'SELEZIONA'));
+
+      card.innerHTML = `
+        <div class="video-card-thumb">🎬</div>
+        <div class="video-card-content">
+          <div class="video-card-title">${this.escapeHtml(brano.titolo)}</div>
+          <div class="video-card-meta">
+            <span>👤 ${this.escapeHtml(brano.autore || 'Sconosciuto')}</span>
+            <span>🎭 ${this.escapeHtml(brano.coreografo || 'Sconosciuto')}</span>
+            <span>🎵 ${this.escapeHtml(brano.genere || 'Sconosciuto')}</span>
+          </div>
+          <div class="video-card-badge ${badgeClass}" title="${this.escapeHtml(tooltipText)}">
+            ${badgeText}
+          </div>
+          <div class="video-card-file" title="${this.escapeHtml(matchedFile || 'Nessun file video')}">
+            ${matchedFile ? `📁 ${this.escapeHtml(matchedFile)}` : '📁 Nessun file video'}
+          </div>
+          <div class="video-card-action">
+            <button class="btn btn-primary btn-small" data-id="${brano.id}" ${canSelectCard ? '' : 'disabled'}>${buttonLabel}</button>
+          </div>
+        </div>
+      `;
+
+      if (canSelectCard) {
+        const btn = card.querySelector('button');
+        btn?.addEventListener('click', (event) => {
+          event.stopPropagation();
+          this.selectBranoWithOptions(brano, {
+            allowExecuted: this.showOnlyAvailable,
+            scrollBehavior: 'smooth'
+          });
+        });
+        card.addEventListener('click', () => this.selectBranoWithOptions(brano, {
+          allowExecuted: this.showOnlyAvailable,
+          scrollBehavior: 'smooth'
+        }));
+      } else {
+        const btn = card.querySelector('button');
+        if (btn) btn.disabled = true;
+        card.style.cursor = 'default';
+        card.style.opacity = '0.9';
+      }
+
+      container.appendChild(card);
+      renderedCount += 1;
+    });
+
+    if (renderedCount === 0) {
+      container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">Nessun video trovato</div>';
+    }
+  }
+
+  selectBrano(brano) {
+    return this.selectBranoWithOptions(brano, { allowExecuted: false, scrollBehavior: 'smooth' });
+  }
+
+  selectBranoWithOptions(brano, options = {}) {
+    const { allowExecuted = false, scrollBehavior = 'smooth' } = options;
+    if (this.isBranoExecuted(brano)) {
+      if (!allowExecuted) {
+        return false;
+      }
+    }
+
+    this.currentBrano = brano;
+    this.updatePlayerInfo();
+    this.renderLibrary();
+
+    // Porta subito il player in vista dopo la selezione di una card.
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : scrollBehavior });
+    return true;
+  }
+
+  getRequestedBranoIdFromUrl() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const value = String(params.get('branoId') || '').trim();
+      return value || null;
+    } catch (error) {
+      logger.debug('Impossibile leggere branoId dalla URL', error);
+      return null;
+    }
+  }
+
+  applyPendingBranoSelection() {
+    if (!this.pendingBranoId) return;
+
+    const target = this.brani.find((item) => String(item.id) === String(this.pendingBranoId));
+    if (!target) {
+      this.pendingBranoId = null;
+      return;
+    }
+
+    const selected = this.selectBranoWithOptions(target, { allowExecuted: true, scrollBehavior: 'auto' });
+    this.pendingBranoId = null;
+
+    if (selected) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('branoId');
+        window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+      } catch (error) {
+        logger.debug('Impossibile pulire branoId dalla URL', error);
+      }
+    }
+  }
+
+  waitMs(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async launchVlcFallback(url) {
+    const host = window.location.hostname || 'localhost';
+    const candidates = [
+      '/api/videoclip/play-secondary',
+      `${window.location.protocol}//${host}:5500/api/videoclip/play-secondary`,
+      `http://127.0.0.1:5500/api/videoclip/play-secondary`,
+      `http://localhost:5500/api/videoclip/play-secondary`
+    ];
+
+    const retryDelays = [0, 250, 700];
+
+    for (const endpoint of candidates) {
+      for (const delay of retryDelays) {
+        if (delay > 0) {
+          await this.waitMs(delay);
+        }
+
+        try {
+          const requestUrl = `${endpoint}?url=${encodeURIComponent(url)}`;
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 3000);
+          const response = await fetch(requestUrl, { cache: 'no-store', signal: controller.signal });
+          clearTimeout(timer);
+
+          const payload = await response.json().catch(() => ({}));
+          if (response.ok && payload?.success) {
+            this.vlcFallbackActive = true;
+            logger.debug('VLC fallback avviato da endpoint', { endpoint, delay });
+            return true;
+          }
+
+          logger.warn('Endpoint VLC fallback non riuscito', {
+            endpoint,
+            delay,
+            status: response.status,
+            payload
+          });
+        } catch (err) {
+          logger.warn('Errore endpoint VLC fallback', {
+            endpoint,
+            delay,
+            error: err?.message || err
+          });
+        }
+      }
+    }
+
+    this.vlcFallbackActive = false;
+    return false;
+  }
+
+
+  loadSecondaryVideo(url) {
+    // Il monitor secondario usa il backend selezionato: il file viene aperto su richiesta.
+    this.secondaryVideoUrl = url;
+    logger.debug('Secondary video URL set for selected secondary backend');
+  }
+
+  setMainVideoSource(url) {
+    const mainVideo = document.getElementById('main-video');
+    const source = document.getElementById('video-source');
+
+    if (!mainVideo || !source) return;
+
+    if (url) {
+      source.setAttribute('src', url);
+      mainVideo.setAttribute('src', url);
+    } else {
+      source.removeAttribute('src');
+      mainVideo.removeAttribute('src');
+    }
+
+    this.updateMainVideoDebugIndicator('source-updated');
+  }
+
+  updatePlayButtonIdleState(forcePlaying = false) {
+    const playButton = document.getElementById('btn-play');
+    const mainVideo = document.getElementById('main-video');
+    if (!playButton) return;
+
+    const isPlaying = Boolean(forcePlaying || (mainVideo && !mainVideo.paused && mainVideo.currentTime > 0 && !mainVideo.ended));
+    playButton.classList.toggle('is-idle', !isPlaying);
+  }
+
+  async waitForPlaybackStart(video) {
+    if (!video) return;
+
+    if (!video.paused && video.currentTime > 0) {
+      return;
+    }
+
+    await new Promise((resolve, reject) => {
+      let settled = false;
+      const cleanup = () => {
+        video.removeEventListener('playing', handleSuccess);
+        video.removeEventListener('timeupdate', handleSuccess);
+      };
+
+      const handleSuccess = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve();
+      };
+
+      video.addEventListener('playing', handleSuccess, { once: true });
+      video.addEventListener('timeupdate', handleSuccess, { once: true });
+
+      setTimeout(() => {
+        if (settled) return;
+        cleanup();
+        if (video.paused && video.currentTime <= 0) {
+          reject(new Error('HTML5 playback did not start'));
+          return;
+        }
+        settled = true;
+        resolve();
+      }, 1200);
+    });
+  }
+
+  async playMainVideo() {
+    const mainVideo = document.getElementById('main-video');
+    const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+    const playbackStatus = document.getElementById('secondary-playback-status');
+
+    if (!mainVideo || !url) return;
+
+    if (document.hidden) {
+      this.pendingMainVideoPlay = true;
+      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+      if (playbackStatus) {
+        playbackStatus.textContent = `Monitor principale HTML5 in attesa: la pagina VideoClip e\u0300 in background. Portala in primo piano per avviare il video; ${this.getSecondaryBackendLabel()} resta attivo sul monitor secondario.`;
+      }
+      this.appendPersistentLog('warn', 'html5-background-pending', { url, status: 'page-hidden-before-play' });
+      this.updateMainVideoDebugIndicator('background-paused');
+      return;
+    }
+
+    const sameBrano = this.currentPlaybackBranoId === this.currentBrano?.id;
+    if (sameBrano && !mainVideo.paused && mainVideo.currentTime > 0) {
+      return;
+    }
+
+    try {
+      mainVideo.pause();
+      mainVideo.currentTime = 0;
+      mainVideo.volume = 0;
+      mainVideo.muted = true;
+      this.setMainVideoSource(url);
+      mainVideo.load();
+      await this.waitForVideoReady(mainVideo);
+      await mainVideo.play();
+      await this.waitForPlaybackStart(mainVideo);
+      this.pendingMainVideoPlay = false;
+      mainVideo.muted = false;
+      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+      this.markBranoExecutedFromVideoEnd(this.currentBrano);
+      if (playbackStatus) {
+        playbackStatus.textContent = `Video pronto: monitor principale HTML5 attivo, monitor secondario via ${this.getSecondaryBackendLabel()}.`;
+      }
+      this.updatePlayButtonIdleState(true);
+      this.appendPersistentLog('info', 'html5-playing', {
+        url,
+        muted: mainVideo.muted,
+        readyState: mainVideo.readyState,
+        networkState: mainVideo.networkState,
+        currentTime: Number(mainVideo.currentTime || 0).toFixed(2)
+      });
+      this.updateMainVideoDebugIndicator('playing');
+    } catch (playErr) {
+      logger.warn('Main video play blocked by browser policy', playErr);
+      const isBackgroundPause = /background media was paused to save power/i.test(String(playErr?.message || ''));
+      if (isBackgroundPause) {
+        this.pendingMainVideoPlay = true;
+        if (playbackStatus) {
+          playbackStatus.textContent = `Monitor principale HTML5 sospeso dal browser: riporta la pagina VideoClip in primo piano per avviare il video. Monitor secondario ${this.getSecondaryBackendLabel()} attivo.`;
+        }
+        this.appendPersistentLog('warn', 'html5-background-paused', { message: playErr?.message || String(playErr) });
+        this.updateMainVideoDebugIndicator('background-paused');
+        return;
+      }
+      try {
+        mainVideo.volume = 0;
+        mainVideo.muted = true;
+        this.setMainVideoSource(url);
+        mainVideo.load();
+        await this.waitForVideoReady(mainVideo);
+        await mainVideo.play();
+        await this.waitForPlaybackStart(mainVideo);
+        this.pendingMainVideoPlay = false;
+        mainVideo.muted = false;
+        this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+        this.markBranoExecutedFromVideoEnd(this.currentBrano);
+        if (playbackStatus) {
+          playbackStatus.textContent = `Video pronto: monitor principale HTML5 attivo, monitor secondario via ${this.getSecondaryBackendLabel()}.`;
+        }
+        this.updatePlayButtonIdleState(true);
+        this.appendPersistentLog('info', 'html5-playing-muted-fallback', {
+          url,
+          muted: mainVideo.muted,
+          readyState: mainVideo.readyState,
+          networkState: mainVideo.networkState,
+          currentTime: Number(mainVideo.currentTime || 0).toFixed(2)
+        });
+        this.updateMainVideoDebugIndicator('playing-muted-fallback');
+      } catch (fallbackErr) {
+        logger.debug('Main video fallback play failed', fallbackErr);
+        const fallbackBackgroundPause = /background media was paused to save power/i.test(String(fallbackErr?.message || ''));
+        if (fallbackBackgroundPause) {
+          this.pendingMainVideoPlay = true;
+          if (playbackStatus) {
+            playbackStatus.textContent = `Monitor principale HTML5 sospeso dal browser: riporta la pagina VideoClip in primo piano per avviare il video. Monitor secondario ${this.getSecondaryBackendLabel()} attivo.`;
+          }
+          this.appendPersistentLog('warn', 'html5-background-paused', { message: fallbackErr?.message || String(fallbackErr) });
+          this.updateMainVideoDebugIndicator('background-paused');
+          return;
+        }
+        this.appendPersistentLog('error', 'html5-play-error', { message: fallbackErr?.message || String(fallbackErr) });
+        this.updateMainVideoDebugIndicator('play-error');
+      }
+    }
+  }
+
+  pauseMainVideo() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo) return;
+
+    if (!mainVideo.paused) {
+      mainVideo.pause();
+    }
+    this.updatePlayButtonIdleState(false);
+    this.updateMainVideoDebugIndicator('paused');
+  }
+
+  stopMainVideo() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo) return;
+
+    this.pendingMainVideoPlay = false;
+    mainVideo.pause();
+    mainVideo.currentTime = 0;
+    this.updatePlayButtonIdleState(false);
+    this.updateMainVideoDebugIndicator('stopped');
+  }
+
+  retryPendingMainVideoPlayback() {
+    if (!this.pendingMainVideoPlay || document.hidden) {
+      return;
+    }
+
+    this.playMainVideo().catch((error) => {
+      logger.debug('Retry main video playback failed', error?.message || error);
+    });
+  }
+
+  async playSecondaryVideo() {
+    const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+    const playbackStatus = document.getElementById('secondary-playback-status');
+    if (!url) {
+      logger.debug('No video URL for secondary playback');
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Nessun video selezionato per il monitor secondario.';
+      }
+      return;
+    }
+
+    const preferElectron = this.playbackBackendPreference === 'electron';
+    const electronAvailable = this.isElectronVideoPlayerAvailable();
+
+    if (preferElectron) {
+      await this.stopActiveSecondaryPlayback('electron');
+
+      if (!electronAvailable) {
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Player Electron non disponibile: VLC non avviato.';
+        }
+        this.appendPersistentLog('error', 'electron-backend-unavailable', { url });
+        return;
+      }
+
+      return this.playSecondaryVideoElectron(url, playbackStatus, { allowVlcFallback: false });
+    }
+
+    if (this.resolvePlaybackBackend() === 'electron' && electronAvailable) {
+      await this.stopActiveSecondaryPlayback('electron');
+      return this.playSecondaryVideoElectron(url, playbackStatus, { allowVlcFallback: true });
+    }
+
+    await this.stopActiveSecondaryPlayback('vlc');
+    return this.playSecondaryVideoVlc(url, playbackStatus);
+  }
+
+  async stopActiveSecondaryPlayback(targetBackend) {
+    const activeBackend = this.activeSecondaryBackend;
+    if (!activeBackend || activeBackend === targetBackend) {
+      return;
+    }
+
+    try {
+      if (activeBackend === 'electron' && this.isElectronVideoPlayerAvailable()) {
+        await window.electronAPI.videoPlayer.stop();
+      } else if (activeBackend === 'vlc') {
+        await this.stopSecondaryVideoVlcOnly();
+      } else {
+        await Promise.allSettled([
+          this.isElectronVideoPlayerAvailable() ? window.electronAPI.videoPlayer.stop() : Promise.resolve(),
+          this.stopSecondaryVideoVlcOnly()
+        ]);
+      }
+    } catch (error) {
+      logger.debug('Unable to stop active secondary backend before switch', error?.message || error);
+    } finally {
+      this.activeSecondaryBackend = null;
+    }
+  }
+
+  async playSecondaryVideoElectron(url, playbackStatus, options = {}) {
+    const allowVlcFallback = options.allowVlcFallback !== false;
+
+    try {
+      logger.debug('Launching Electron video player for secondary display');
+      const payload = await window.electronAPI.videoPlayer.play({ url, branoId: this.currentBrano?.id ?? null });
+      const success = Boolean(payload?.success);
+      if (success) {
+        this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+        this.activeSecondaryBackend = 'electron';
+        logger.info('✓ Electron player avviato sul monitor secondario');
+        this.appendPersistentLog('info', 'electron-playing', {
+          url,
+          mode: 'play',
+          backend: 'electron'
+        });
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: Electron in riproduzione.';
+        }
+      } else {
+        logger.warn('Impossibile avviare Electron player sul monitor secondario', payload);
+        this.appendPersistentLog('error', 'electron-start-error', { url, payload });
+        if (allowVlcFallback) {
+          if (playbackStatus) {
+            playbackStatus.textContent = 'Errore avvio Electron sul monitor secondario. Passo a VLC.';
+          }
+          if (this.electronCompletionUnsubscribe) {
+            try {
+              this.electronCompletionUnsubscribe();
+            } catch (error) {
+              logger.debug('Errore disattivazione listener Electron durante fallback', error);
+            }
+            this.electronCompletionUnsubscribe = null;
+          }
+          this.startVlcCompletionWatcher();
+          return this.playSecondaryVideoVlc(url, playbackStatus);
+        }
+
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Errore avvio Electron sul monitor secondario.';
+        }
+      }
+    } catch (err) {
+      logger.warn('Errore avviando Electron per monitor secondario', err);
+      this.appendPersistentLog('error', 'electron-request-error', { url, message: err?.message || String(err) });
+      if (allowVlcFallback) {
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Errore durante l\'avvio Electron sul monitor secondario. Passo a VLC.';
+        }
+        if (this.electronCompletionUnsubscribe) {
+          try {
+            this.electronCompletionUnsubscribe();
+          } catch (error) {
+            logger.debug('Errore disattivazione listener Electron durante fallback', error);
+          }
+          this.electronCompletionUnsubscribe = null;
+        }
+        this.startVlcCompletionWatcher();
+        return this.playSecondaryVideoVlc(url, playbackStatus);
+      }
+
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante l\'avvio Electron sul monitor secondario.';
+      }
+    }
+  }
+
+  async playSecondaryVideoVlc(url, playbackStatus) {
+    try {
+      logger.debug('Launching/controlling VLC for secondary display');
+      const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'play', url })
+      });
+      const payload = await response.json().catch(() => ({}));
+      const success = Boolean(response.ok && payload?.success);
+      if (success) {
+        this.videoApiOrigin = origin;
+        this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+        this.activeSecondaryBackend = 'vlc';
+        logger.info('✓ VLC avviato sul monitor secondario');
+        this.appendPersistentLog('info', 'vlc-playing', {
+          url,
+          mode: payload.mode || 'play',
+          apiOrigin: window.location.origin,
+          rcPort: 4212
+        });
+        if (playbackStatus) {
+          playbackStatus.textContent = payload.mode === 'resume'
+            ? 'Monitor secondario: VLC in riproduzione (resume).'
+            : 'Monitor secondario: VLC in riproduzione.';
+        }
+      } else {
+        const fallback = await this.launchVlcFallback(url);
+        if (!fallback) {
+          logger.warn('Impossibile avviare VLC sul monitor secondario', payload);
+          this.appendPersistentLog('error', 'vlc-start-error', { url, payload });
+          if (playbackStatus) {
+            playbackStatus.textContent = 'Errore avvio VLC sul monitor secondario. Verifica server porta 5500 e installazione VLC.';
+          }
+        } else {
+          this.appendPersistentLog('warn', 'vlc-playing-fallback', { url, apiOrigin: window.location.origin, rcPort: 4212 });
+          if (playbackStatus) {
+            playbackStatus.textContent = 'Monitor secondario: VLC in riproduzione (fallback).';
+          }
+        }
+      }
+    } catch (err) {
+      logger.warn('Errore avviando VLC per monitor secondario', err);
+      this.appendPersistentLog('error', 'vlc-request-error', { url, message: err?.message || String(err) });
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante l\'avvio VLC sul monitor secondario.';
+      }
+    }
+  }
+
+  async pauseSecondaryVideo() {
+    const playbackStatus = document.getElementById('secondary-playback-status');
+    if (this.activeSecondaryBackend === 'electron' && this.isElectronVideoPlayerAvailable()) {
+      try {
+        const payload = await window.electronAPI.videoPlayer.pause();
+        if (payload?.success !== false && playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: Electron in pausa/ripresa.';
+        }
+      } catch (err) {
+        logger.warn('Errore pausa Electron secondario', err);
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Errore durante la pausa Electron sul monitor secondario.';
+        }
+      }
+      return;
+    }
+
+    if (this.activeSecondaryBackend === 'vlc') {
+      return this.pauseSecondaryVideoVlc(playbackStatus);
+    }
+
+    if (this.resolvePlaybackBackend() === 'electron' && this.isElectronVideoPlayerAvailable()) {
+      return this.pauseSecondaryVideoElectron(playbackStatus);
+    }
+
+    return this.pauseSecondaryVideoVlc(playbackStatus);
+  }
+
+  async pauseSecondaryVideoElectron(playbackStatus) {
+    try {
+      const payload = await window.electronAPI.videoPlayer.pause();
+      if (payload?.success !== false && playbackStatus) {
+        playbackStatus.textContent = 'Monitor secondario: Electron in pausa/ripresa.';
+      }
+    } catch (err) {
+      logger.warn('Errore pausa Electron secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante la pausa Electron sul monitor secondario.';
+      }
+    }
+  }
+
+  async pauseSecondaryVideoVlc(playbackStatus) {
+    try {
+      const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'pause' })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.success) {
+        this.videoApiOrigin = origin;
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: VLC in pausa/ripresa.';
+        }
+      } else if (playbackStatus) {
+        playbackStatus.textContent = 'Monitor secondario: pausa VLC non riuscita.';
+      }
+    } catch (err) {
+      logger.warn('Errore pausa VLC secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante la pausa VLC sul monitor secondario.';
+      }
+    }
+  }
+
+  async stopSecondaryVideo() {
+    const playbackStatus = document.getElementById('secondary-playback-status');
+    if (this.activeSecondaryBackend === 'electron' && this.isElectronVideoPlayerAvailable()) {
+      await this.stopSecondaryVideoElectron(playbackStatus);
+      this.manualStopPending = false;
+      this.activeSecondaryBackend = null;
+      return;
+    }
+
+    if (this.activeSecondaryBackend === 'vlc') {
+      await this.stopSecondaryVideoVlc(playbackStatus);
+      this.manualStopPending = false;
+      this.activeSecondaryBackend = null;
+      return;
+    }
+
+    await Promise.allSettled([
+      this.isElectronVideoPlayerAvailable() ? this.stopSecondaryVideoElectron(playbackStatus) : Promise.resolve(),
+      this.stopSecondaryVideoVlc(playbackStatus)
+    ]);
+    this.manualStopPending = false;
+    this.activeSecondaryBackend = null;
+  }
+
+  async stopSecondaryVideoElectron(playbackStatus) {
+    try {
+      const payload = await window.electronAPI.videoPlayer.stop();
+      if (payload?.success !== false && playbackStatus) {
+        playbackStatus.textContent = 'Monitor secondario: Electron fermato.';
+      }
+    } catch (err) {
+      logger.warn('Errore stop Electron secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante lo stop Electron sul monitor secondario.';
+      }
+    }
+  }
+
+  async stopSecondaryVideoVlcOnly() {
+    try {
+      const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop' })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.success) {
+        this.videoApiOrigin = origin;
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: VLC fermato.';
+        }
+      } else if (playbackStatus) {
+        playbackStatus.textContent = 'Monitor secondario: stop VLC non riuscito.';
+      }
+    } catch (err) {
+      logger.warn('Errore stop VLC secondario', err);
+    }
+  }
+
+  async stopSecondaryVideoVlc(playbackStatus) {
+    try {
+      const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop' })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.success) {
+        this.videoApiOrigin = origin;
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Monitor secondario: VLC fermato.';
+        }
+      } else if (playbackStatus) {
+        playbackStatus.textContent = 'Monitor secondario: stop VLC non riuscito.';
+      }
+    } catch (err) {
+      logger.warn('Errore stop VLC secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Errore durante lo stop VLC sul monitor secondario.';
+      }
+    }
+  }
+
+  fullscreenSecondaryVideo() {
+    if (this.resolvePlaybackBackend() === 'electron' && this.isElectronVideoPlayerAvailable()) {
+      logger.debug('Fullscreen sul monitor secondario - Electron player già gestito come overlay');
+      return;
+    }
+
+    // Monitor secondario usa VLC: VLC gestisce il fullscreen automaticamente
+    logger.debug('Fullscreen sul monitor secondario - VLC è già a schermo intero');
+  }
+
+  getCurrentVideoUrl() {
+    if (this.currentVideoUrl) {
+      return this.currentVideoUrl;
+    }
+
+    if (!this.currentBrano) {
+      return '';
+    }
+
+    const matchedFile = this.availableMap.get(String(this.currentBrano.id));
+    if (!matchedFile) {
+      return '';
+    }
+
+    return this.buildVideoFileUrl(matchedFile);
+  }
+
+  async waitForVideoReady(video) {
+    if (!video) return;
+
+    if (video.readyState >= 2 || video.networkState === 2) {
+      return;
+    }
+
+    await new Promise((resolve) => {
+      const handleReady = () => {
+        video.removeEventListener('canplay', handleReady);
+        video.removeEventListener('loadedmetadata', handleReady);
+        resolve();
+      };
+      video.addEventListener('canplay', handleReady, { once: true });
+      video.addEventListener('loadedmetadata', handleReady, { once: true });
+      setTimeout(handleReady, 700);
+    });
+  }
+
+  updatePlayerInfo(options = {}) {
+    const { preserveMainPlayback = false } = options;
+    if (!this.currentBrano) {
+      const noVideo = document.getElementById('no-video');
+      const mainVideo = document.getElementById('main-video');
+      noVideo?.classList.remove('hidden');
+      mainVideo?.classList.add('hidden');
+      this.updatePlayButtonIdleState(false);
+      this.updateMainVideoDebugIndicator('no-selection');
+      return;
+    }
+
+    document.getElementById('no-video')?.classList.add('hidden');
+    document.getElementById('main-video')?.classList.remove('hidden');
+
+    document.getElementById('video-title').textContent = this.currentBrano.titolo || '--';
+    document.getElementById('video-autore').innerHTML = `<strong>Autore:</strong> ${this.escapeHtml(this.currentBrano.autore || '--')}`;
+    document.getElementById('video-coreo').innerHTML = `<strong>Coreografo:</strong> ${this.escapeHtml(this.currentBrano.coreografo || '--')}`;
+    document.getElementById('video-genere').innerHTML = `<strong>Genere:</strong> ${this.escapeHtml(this.currentBrano.genere || '--')}`;
+
+    const matchedFile = this.availableMap.get(String(this.currentBrano.id));
+    const noVideo = document.getElementById('no-video');
+    const mainVideo = document.getElementById('main-video');
+    const playbackStatus = document.getElementById('secondary-playback-status');
+
+    if (matchedFile) {
+      try {
+        const url = this.buildVideoFileUrl(matchedFile);
+        this.currentVideoUrl = url;
+        this.secondaryVideoUrl = url;
+        if (mainVideo && !preserveMainPlayback) {
+          this.setMainVideoSource(url);
+          mainVideo.pause();
+          mainVideo.currentTime = 0;
+          mainVideo.volume = 0;
+          mainVideo.load();
+          mainVideo.classList.remove('hidden');
+        }
+        noVideo?.classList.add('hidden');
+        if (playbackStatus) {
+          playbackStatus.textContent = 'Video pronto: monitor principale HTML5, monitor secondario via VLC.';
+        }
+        this.loadSecondaryVideo(url);
+        this.updatePlayButtonIdleState(false);
+        this.updateMainVideoDebugIndicator('ready');
+      } catch (err) {
+        logger.warn('Errore impostando sorgente video', err);
+        this.updateMainVideoDebugIndicator('ready-error');
+      }
+    } else {
+      this.setMainVideoSource('');
+      mainVideo?.load();
+      mainVideo?.pause();
+      noVideo?.classList.remove('hidden');
+      if (playbackStatus) {
+        playbackStatus.textContent = 'Nessun video disponibile per il monitor secondario.';
+      }
+      noVideo.innerHTML = '<p>Nessun video selezionato</p><small>Non è stato trovato un file video associato a questo brano.</small>';
+      this.updatePlayButtonIdleState(false);
+      this.updateMainVideoDebugIndicator('no-video-file');
+    }
+  }
+
+  setupMainVideoDebugIndicator() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo) return;
+
+    const events = ['loadstart', 'loadedmetadata', 'canplay', 'play', 'playing', 'pause', 'stalled', 'waiting', 'suspend', 'timeupdate', 'seeking', 'seeked', 'ended', 'error'];
+    events.forEach((evt) => {
+      mainVideo.addEventListener(evt, () => {
+        if (evt === 'playing' || evt === 'timeupdate') {
+          this.updatePlayButtonIdleState(true);
+        }
+
+        if (evt === 'pause' || evt === 'ended') {
+          this.updatePlayButtonIdleState(false);
+        }
+
+        this.updateMainVideoDebugIndicator(evt);
+
+        if (evt === 'ended') {
+          this.handleMainVideoEnded();
+          return;
+        }
+
+        if (evt === 'error') {
+          this.appendPersistentLog('error', 'html5-error-event', {
+            src: mainVideo.currentSrc || mainVideo.src || '',
+            errorCode: mainVideo.error?.code || 0,
+            readyState: mainVideo.readyState,
+            networkState: mainVideo.networkState,
+            currentTime: Number(mainVideo.currentTime || 0).toFixed(2)
+          });
+          logger.warn('HTML5 main video error', {
+            src: mainVideo.currentSrc || mainVideo.src || '',
+            errorCode: mainVideo.error?.code || 0,
+            readyState: mainVideo.readyState,
+            networkState: mainVideo.networkState,
+            currentTime: mainVideo.currentTime,
+            duration: mainVideo.duration,
+            playbackBranoId: this.currentPlaybackBranoId,
+            currentBranoId: this.currentBrano?.id ?? null
+          });
+        }
+      });
+    });
+
+    this.updateMainVideoDebugIndicator('initialized');
+  }
+
+  handleMainVideoEnded() {
+    if (this.manualStopPending) {
+      this.manualStopPending = false;
+      this.appendPersistentLog('info', 'html5-ended-manual-stop', {});
+      return;
+    }
+
+    const targetId = this.currentPlaybackBranoId || this.currentBrano?.id;
+    if (!targetId) {
+      logger.warn('HTML5 ended without playback brano id');
+      return;
+    }
+
+    const brano = this.brani.find((item) => String(item.id) === String(targetId));
+    if (!brano) {
+      logger.warn('HTML5 ended without matching brano', { targetId });
+      return;
+    }
+
+    if (this.isBranoExecuted(brano)) {
+      return;
+    }
+
+    logger.info('HTML5 video completed, marking brano as executed', {
+      branoId: brano.id,
+      titolo: brano.titolo || ''
+    });
+
+    this.appendPersistentLog('info', 'html5-ended', {
+      branoId: brano.id,
+      titolo: brano.titolo || ''
+    });
+
+    this.markBranoExecutedFromVideoEnd(brano);
+  }
+
+  updateMainVideoDebugIndicator(stateLabel = 'updated') {
+    const mainVideo = document.getElementById('main-video');
+    const stateEl = document.getElementById('dbg-html5-state');
+    const readyEl = document.getElementById('dbg-html5-ready');
+    const networkEl = document.getElementById('dbg-html5-network');
+    const timeEl = document.getElementById('dbg-html5-time');
+    const sizeEl = document.getElementById('dbg-html5-size');
+    const errorEl = document.getElementById('dbg-html5-error');
+    const srcEl = document.getElementById('dbg-html5-src');
+
+    if (!mainVideo || !stateEl || !readyEl || !networkEl || !timeEl || !sizeEl || !errorEl || !srcEl) return;
+
+    const rawMainSrc = mainVideo.getAttribute('src') || '';
+    const rawSourceSrc = document.getElementById('video-source')?.getAttribute('src') || '';
+    const src = mainVideo.currentSrc || rawMainSrc || rawSourceSrc || '';
+    const currentTime = Number.isFinite(mainVideo.currentTime) ? mainVideo.currentTime.toFixed(1) : '0.0';
+    const duration = Number.isFinite(mainVideo.duration) ? mainVideo.duration.toFixed(1) : '0.0';
+    const videoWidth = Number(mainVideo.videoWidth || 0);
+    const videoHeight = Number(mainVideo.videoHeight || 0);
+    const errorCode = Number(mainVideo.error?.code || 0);
+    const errorMap = {
+      0: 'nessuno',
+      1: 'aborted',
+      2: 'network',
+      3: 'decode',
+      4: 'src-not-supported'
+    };
+
+    stateEl.textContent = String(stateLabel || 'updated');
+    readyEl.textContent = String(mainVideo.readyState ?? 0);
+    networkEl.textContent = String(mainVideo.networkState ?? 0);
+    timeEl.textContent = `${currentTime} / ${duration}`;
+    sizeEl.textContent = `${videoWidth}x${videoHeight}`;
+    errorEl.textContent = `${errorCode} (${errorMap[errorCode] || 'unknown'})`;
+    srcEl.textContent = src ? src : '--';
+  }
+
+  parseVideoFileReference(fileName) {
+    const rawName = String(fileName || '').trim();
+    if (!rawName) return { prefix: '', name: '' };
+
+    const withoutExtension = rawName.replace(/\.[^.]+$/, '');
+    const match = withoutExtension.match(/^(\d{3})[\s_-]+(.+)$/);
+
+    if (match) {
+      return {
+        prefix: match[1],
+        name: match[2].trim()
+      };
+    }
+
+    return {
+      prefix: '',
+      name: withoutExtension
+    };
+  }
+
+  normalizeForMatch(value) {
+    let text = String(value || '').trim();
+    if (!text) return '';
+
+    try {
+      text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    } catch (e) {
+      text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    return text
+      .toLowerCase()
+      .replace(/&/g, ' e ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  tokenizeForMatch(normalizedText) {
+    return String(normalizedText || '')
+      .split(' ')
+      .map(token => token.trim())
+      .filter(token => token.length >= 2);
+  }
+
+  buildBranoMatchProfile(brano) {
+    const idDigits = String(brano?.id ?? '').replace(/\D+/g, '');
+    const idPrefix = idDigits ? idDigits.padStart(3, '0') : '';
+
+    const rawNames = [
+      brano?.coreografia,
+      brano?.titolo,
+      brano?.brano,
+      brano?.song,
+      brano?.canzone
+    ].map(value => String(value || '').trim()).filter(Boolean);
+
+    const normalizedNames = [...new Set(rawNames
+      .map(name => this.normalizeForMatch(name))
+      .filter(name => name.length >= 3))];
+
+    const tokenSet = new Set();
+    normalizedNames.forEach(name => {
+      this.tokenizeForMatch(name).forEach(token => tokenSet.add(token));
+    });
+
+    return {
+      idPrefix,
+      normalizedNames,
+      tokens: [...tokenSet]
+    };
+  }
+
+  scoreVideoCandidate(profile, candidate) {
+    let score = 0;
+
+    const hasPrefix = Boolean(profile.idPrefix);
+    if (hasPrefix && candidate.prefix === profile.idPrefix) {
+      score += 1000;
+    }
+
+    if (profile.normalizedNames.includes(candidate.normalizedName)) {
+      score += 450;
+    }
+
+    const includesName = profile.normalizedNames.some(name =>
+      candidate.normalizedName.includes(name) || name.includes(candidate.normalizedName)
+    );
+    if (includesName) {
+      score += 120;
+    }
+
+    if (profile.tokens.length > 0 && candidate.tokens.length > 0) {
+      const shared = candidate.tokens.filter(token => profile.tokens.includes(token)).length;
+      const ratio = shared / Math.max(profile.tokens.length, candidate.tokens.length);
+      score += Math.round(ratio * 100);
+    }
+
+    return score;
+  }
+
+  /**
+   * Cerca un file video corrispondente al brano nella lista this.availableFiles.
+   * I file video hanno formato: 3 cifre + spazio + nome coreografia.
+   */
+  findMatchingVideoFile(brano) {
+    if (!Array.isArray(this.videoCatalog) || this.videoCatalog.length === 0) return null;
+
+    const profile = this.buildBranoMatchProfile(brano);
+    const normalizedNameSet = new Set(profile.normalizedNames);
+
+    if (profile.idPrefix) {
+      const prefixMatches = this.videoCatalog.filter(item => item.prefix === profile.idPrefix);
+      if (prefixMatches.length === 1) {
+        return prefixMatches[0].fullName;
+      }
+
+      if (prefixMatches.length > 1) {
+        const exactNameMatch = prefixMatches.find(item => normalizedNameSet.has(item.normalizedName));
+        if (exactNameMatch) {
+          return exactNameMatch.fullName;
+        }
+
+        logger.warn('Match ambiguo: prefisso ID duplicato', {
+          branoId: brano?.id,
+          matches: prefixMatches.map(entry => entry.fullName)
+        });
+        return null;
+      }
+    }
+
+    const exactNameMatches = this.videoCatalog.filter(item => normalizedNameSet.has(item.normalizedName));
+    if (exactNameMatches.length === 1) {
+      return exactNameMatches[0].fullName;
+    }
+
+    if (exactNameMatches.length > 1) {
+      logger.warn('Match ambiguo: nome coreografia/brano coincide con più file', {
+        branoId: brano?.id,
+        matches: exactNameMatches.map(entry => entry.fullName)
+      });
+      return null;
+    }
+
+    return null;
+  }
+
+  setupListeners() {
+    window.addEventListener('storage', (event) => {
+      if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
+      this.appendPersistentLog('info', 'storage-serata-updated', { key: event.key });
+      this.handleSerataChange();
+    });
+
+    window.addEventListener('bordero:serata-updated', () => {
+      this.appendPersistentLog('info', 'custom-serata-updated', {});
+      this.handleSerataChange();
+    });
+
+    window.addEventListener('pageshow', () => {
+      this.appendPersistentLog('info', 'pageshow', { hidden: document.hidden, focus: document.hasFocus() });
+      this.handleSerataChange();
+      this.retryPendingMainVideoPlayback();
+    });
+
+    window.addEventListener('focus', () => {
+      this.appendPersistentLog('info', 'focus', { hidden: document.hidden, focus: document.hasFocus() });
+      this.handleSerataChange();
+      this.retryPendingMainVideoPlayback();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      this.appendPersistentLog('info', 'visibilitychange', { hidden: document.hidden, state: document.visibilityState });
+      if (!document.hidden) {
+        this.retryPendingMainVideoPlayback();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (this.vlcCompletionWatcherTimer) {
+        clearInterval(this.vlcCompletionWatcherTimer);
+        this.vlcCompletionWatcherTimer = null;
+      }
+    });
+
+    const searchInput = document.getElementById('video-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        this.filterVideos();
+      });
+    }
+
+    const genreSelect = document.getElementById('genere-filter');
+    if (genreSelect) {
+      genreSelect.addEventListener('change', () => {
+        this.filterVideos();
+      });
+    }
+
+    const archiveToggle = document.getElementById('btn-only-archive');
+    archiveToggle?.addEventListener('click', () => {
+      this.showOnlyAvailable = !this.showOnlyAvailable;
+      this.updateFilterButtons();
+      this.filterVideos();
+    });
+
+    const executedToggle = document.getElementById('btn-only-executed');
+    executedToggle?.addEventListener('click', () => {
+      this.showOnlyExecuted = !this.showOnlyExecuted;
+      this.updateFilterButtons();
+      this.filterVideos();
+    });
+
+    // Player controls
+    const playButton = document.getElementById('btn-play');
+    if (playButton) {
+      playButton.onclick = async (event) => {
+        if (!this.currentBrano) {
+          logger.warn('[PLAY] No currentBrano selected');
+          return;
+        }
+        const url = this.currentVideoUrl || this.getCurrentVideoUrl();
+        if (!url) {
+          logger.warn('[PLAY] No video URL');
+          return;
+        }
+
+        try {
+          event.preventDefault();
+          event.stopPropagation();
+          this.appendPersistentLog('info', 'play-click', {
+            branoId: this.currentBrano?.id ?? null,
+            titolo: this.currentBrano?.titolo || '',
+            url,
+            hidden: document.hidden,
+            focus: document.hasFocus()
+          });
+          logger.debug('[PLAY] Starting main playback via playMainVideo()');
+          const mainPlaybackPromise = this.playMainVideo();
+          mainPlaybackPromise.catch((playErr) => {
+            logger.warn('[PLAY] Main playback error', playErr?.message || playErr);
+          });
+          logger.debug('[PLAY] Main playback requested');
+
+          const secondaryDelayMs = 100;
+          this.waitMs(secondaryDelayMs)
+            .then(() => {
+              if (this.pendingMainVideoPlay) {
+                logger.debug('[PLAY] Secondary playback postponed because main HTML5 video is pending foreground playback');
+                return;
+              }
+              return this.playSecondaryVideo();
+            })
+            .catch(err => logger.warn('[PLAY] Secondary video error', err));
+        } catch (playErr) {
+          this.appendPersistentLog('error', 'play-click-error', { message: playErr?.message || String(playErr) });
+          logger.warn('[PLAY] Error:', playErr.message || playErr);
+        }
+      };
+    }
+
+    document.getElementById('btn-copy-player-log')?.addEventListener('click', () => {
+      this.copyPersistentLogToClipboard();
+    });
+
+    document.getElementById('btn-clear-player-log')?.addEventListener('click', () => {
+      this.clearPersistentLog();
+      this.appendPersistentLog('info', 'log-cleared', this.getPlaybackBaseline());
+    });
+
+    document.getElementById('btn-pause').addEventListener('click', () => {
+      this.pauseMainVideo();
+      this.pauseSecondaryVideo();
+    });
+
+    document.getElementById('btn-stop').addEventListener('click', () => {
+      this.manualStopPending = true;
+      this.stopMainVideo();
+      this.stopSecondaryVideo();
+    });
+
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+      this.fullscreenSecondaryVideo();
+    });
+
+    // Navigation
+    document.getElementById('btn-back').addEventListener('click', () => {
+      window.history.back();
+    });
+
+    document.getElementById('btn-bordero').addEventListener('click', () => {
+      window.location.href = 'bordero.html';
+    });
+
+    document.getElementById('btn-bordero-quick')?.addEventListener('click', () => {
+      window.location.href = 'bordero.html';
+    });
+  }
+
+  handleSerataChange() {
+    this.syncExecutedState();
+    this.refreshAvailableFiles()
+      .then(() => {
+        this.filterVideos();
+        this.updatePlayerInfo();
+      })
+      .catch(() => {
+        this.filterVideos();
+      });
+  }
+
+  startVlcCompletionWatcher() {
+    if (this.resolvePlaybackBackend() !== 'vlc') {
+      return;
+    }
+
+    if (this.vlcCompletionWatcherTimer) {
+      clearInterval(this.vlcCompletionWatcherTimer);
+    }
+
+    this.vlcCompletionWatcherTimer = setInterval(() => {
+      this.pollVlcCompletion().catch((error) => {
+        logger.debug('VLC completion poll failed', error?.message || error);
+      });
+    }, 1500);
+  }
+
+  async pollVlcCompletion() {
+    const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/state');
+    if (!response.ok) return;
+
+    const payload = await response.json().catch(() => null);
+    if (!payload || !payload.success) return;
+    this.videoApiOrigin = origin;
+
+    const alive = Boolean(payload.alive);
+    const completion = payload.completion || {};
+    const eventId = Number(completion.eventId || 0);
+    let handledByCompletionEvent = false;
+
+    if (eventId && eventId > this.lastVlcCompletionEventId) {
+      this.lastVlcCompletionEventId = eventId;
+      this.handleVlcCompletionEvent(completion);
+      handledByCompletionEvent = true;
+    }
+
+    // Fallback robusto: se VLC termina senza evento completion mappabile,
+    // usa il brano in riproduzione corrente (a meno che sia stato stop manuale).
+    if (this.vlcWasAlive && !alive && !handledByCompletionEvent) {
+      if (this.manualStopPending) {
+        this.manualStopPending = false;
+      } else {
+        this.handleVlcCompletionEvent(completion || {});
+      }
+    }
+
+    this.vlcWasAlive = alive;
+  }
+
+  handleVlcCompletionEvent(completion) {
+    this.handleSecondaryPlaybackCompletion('vlc', completion || {});
+  }
+
+  handleSecondaryPlaybackCompletion(source, completion) {
+    const fileName = String(completion?.fileName || '').trim();
+    const filePath = String(completion?.filePath || '').trim();
+    const normalizedFileName = this.normalizeCompletionFileName(fileName || filePath);
+
+    const brano = this.findBranoForCompletion(normalizedFileName);
+    if (!brano) {
+      this.appendPersistentLog('warn', `${source}-completion-unmatched`, { fileName, filePath });
+      logger.warn(`Completamento ${source.toUpperCase()} ricevuto ma nessun brano associato`, { fileName, filePath });
+      return;
+    }
+    if (this.isBranoExecuted(brano)) return;
+
+    this.appendPersistentLog('info', `${source}-completion`, {
+      branoId: brano.id,
+      titolo: brano.titolo || '',
+      fileName,
+      filePath
+    });
+
+    this.markBranoExecutedFromVideoEnd(brano);
+  }
+
+  normalizeCompletionFileName(value) {
+    const text = String(value || '').trim().replace(/\\/g, '/');
+    if (!text) return '';
+    const lastSegment = text.split('/').pop() || text;
+    return decodeURIComponent(lastSegment).trim().toLowerCase();
+  }
+
+  findBranoForCompletion(normalizedFileName) {
+    if (!normalizedFileName) {
+      const fallback = this.currentPlaybackBranoId || this.currentBrano?.id;
+      if (!fallback) return null;
+      return this.brani.find((item) => String(item.id) === String(fallback)) || null;
+    }
+
+    const byMatchedFile = this.brani.find((item) => {
+      const matched = this.availableMap.get(String(item.id));
+      const normalizedMatched = this.normalizeCompletionFileName(matched);
+      return normalizedMatched && normalizedMatched === normalizedFileName;
+    });
+    if (byMatchedFile) return byMatchedFile;
+
+    const prefixMatch = normalizedFileName.match(/^(\d{3})[\s_-]/);
+    if (prefixMatch) {
+      const expectedId = String(Number(prefixMatch[1]));
+      const byPrefix = this.brani.find((item) => String(Number(item.id)) === expectedId);
+      if (byPrefix) return byPrefix;
+    }
+
+    const fallback = this.currentPlaybackBranoId || this.currentBrano?.id;
+    if (!fallback) return null;
+    return this.brani.find((item) => String(item.id) === String(fallback)) || null;
+  }
+
+  markBranoExecutedFromVideoEnd(brano) {
+    const targetId = String(brano.id);
+    const nowTimestamp = DateUtils.formatDate(new Date());
+    const mainVideo = document.getElementById('main-video');
+    const preserveMainPlayback = Boolean(
+      mainVideo &&
+      !mainVideo.paused &&
+      !mainVideo.ended &&
+      String(this.currentPlaybackBranoId) === targetId
+    );
+
+    this.brani = this.brani.map((item) => {
+      if (String(item.id) !== targetId) return item;
+      return {
+        ...item,
+        flag: 'X',
+        eseguito: 'X',
+        executed: true,
+        timestamp: nowTimestamp
+      };
+    });
+
+    this.filteredBrani = this.filteredBrani.map((item) => {
+      if (String(item.id) !== targetId) return item;
+      return {
+        ...item,
+        flag: 'X',
+        eseguito: 'X',
+        executed: true,
+        timestamp: nowTimestamp
+      };
+    });
+
+    if (this.currentBrano && String(this.currentBrano.id) === targetId) {
+      this.currentBrano = {
+        ...this.currentBrano,
+        flag: 'X',
+        eseguito: 'X',
+        executed: true,
+        timestamp: nowTimestamp
+      };
+    }
+
+    const currentSerata = dataLoader.getCurrentSerata?.() || {};
+    const metadata = currentSerata.metadata || {};
+    dataLoader.saveCurrentSerata(metadata, this.brani);
+
+    try {
+      window.dispatchEvent(new Event('bordero:serata-updated'));
+    } catch (error) {
+      logger.debug('Impossibile dispatchare evento bordero:serata-updated', error);
+    }
+
+    this.filterVideos();
+    this.updatePlayerInfo({ preserveMainPlayback });
+    if (!preserveMainPlayback) {
+      this.currentPlaybackBranoId = null;
+    }
+    this.thresholdCompletionBranoId = targetId;
+    this.appendPersistentLog('info', 'mark-executed', {
+      branoId: brano.id,
+      titolo: brano.titolo || '',
+      timestamp: nowTimestamp
+    });
+    Toast.success(`Brano marcato eseguito: ${brano.titolo || brano.id}`);
+  }
+
+  updateFilterButtons() {
+    const archiveButton = document.getElementById('btn-only-archive');
+    if (archiveButton) {
+      archiveButton.classList.toggle('active', this.showOnlyAvailable);
+      archiveButton.setAttribute('aria-pressed', String(this.showOnlyAvailable));
+    }
+
+    const executedButton = document.getElementById('btn-only-executed');
+    if (executedButton) {
+      executedButton.classList.toggle('active', this.showOnlyExecuted);
+      executedButton.setAttribute('aria-pressed', String(this.showOnlyExecuted));
+    }
+  }
+
+  matchesStateFilters(isAvailable, isExecuted) {
+    const matchArchiveOnly = isAvailable;
+    const matchExecutedOnly = isExecuted;
+
+    if (this.showOnlyAvailable && this.showOnlyExecuted) {
+      return matchArchiveOnly || matchExecutedOnly;
+    }
+
+    if (this.showOnlyAvailable) {
+      return matchArchiveOnly;
+    }
+
+    if (this.showOnlyExecuted) {
+      return matchExecutedOnly;
+    }
+
+    return true;
+  }
+
+  filterVideos() {
+    const searchInput = document.getElementById('video-search');
+    const genreSelect = document.getElementById('genere-filter');
+    const searchTerm = (searchInput?.value || '').toLowerCase();
+    const genreFilter = genreSelect?.value || '';
+
+    this.filteredBrani = this.brani.filter(brano => {
+      const title = String(brano.titolo || '').toLowerCase();
+      const author = String(brano.autore || '').toLowerCase();
+      const choreographer = String(brano.coreografo || '').toLowerCase();
+      const matchSearch = !searchTerm ||
+        title.includes(searchTerm) ||
+        author.includes(searchTerm) ||
+        choreographer.includes(searchTerm);
+
+      const matchGenre = !genreFilter || brano.genere === genreFilter;
+      const matchedFile = this.availableMap.get(String(brano.id)) || null;
+      const isAvailable = Boolean(matchedFile);
+      const isExecuted = this.isBranoExecuted(brano);
+      const matchStateFilters = this.matchesStateFilters(isAvailable, isExecuted);
+
+      return matchSearch && matchGenre && matchStateFilters;
+    });
+
+    this.renderLibrary();
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.videoClipManager = new VideoClipManager();
+  const playButton = document.getElementById('btn-play');
+  if (playButton && !playButton.onclick) {
+    playButton.onclick = async (event) => {
+      if (!window.videoClipManager?.currentBrano) return;
+      const mainVideo = document.getElementById('main-video');
+      const url = window.videoClipManager.currentVideoUrl || window.videoClipManager.getCurrentVideoUrl();
+      if (!mainVideo || !url) return;
+      try {
+        event.preventDefault();
+        event.stopPropagation();
+        mainVideo.pause();
+        mainVideo.currentTime = 0;
+        mainVideo.volume = 0;
+        mainVideo.muted = false;
+        mainVideo.src = url;
+        mainVideo.load();
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        await mainVideo.play();
+        window.videoClipManager.currentPlaybackBranoId = window.videoClipManager.currentBrano?.id ?? null;
+      } catch (playErr) {
+        logger.warn('PLAY button play failed', playErr);
+      }
+      await window.videoClipManager.playSecondaryVideo();
+    };
+  }
+});
+
+logger.info('✓ Videoclip.js caricato');

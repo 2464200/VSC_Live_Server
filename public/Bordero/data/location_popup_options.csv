@@ -1,0 +1,1107 @@
+﻿group,parent,value
+yesNo,,SI
+yesNo,,NO
+yesNo,,SCONOSCIUTO
+yesNo,,DA CONFERMARE
+yesNo,,DA ACCERTARE
+yesNo,,DA ACCERTARE MEGLIO
+tipoPista,,Acciaio
+tipoPista,,Legno grezzo (assi inchiodate)
+tipoPista,,legno (pannello armatura giallo)
+tipoPista,,Legno Parquet
+tipoPista,,Legno Massiccio
+tipoPista,,Legno trattato
+tipoPista,,Tappeto o Pavimento in PVC/Vinilico
+tipoPista,,Resina Continua
+tipoPista,,Pedane ad Incastro
+tipoPista,,Piastrelle ad Incastro
+tipoPista,,Cemento Liscio
+tipoPista,,Cemento Ruvido
+tipoPista,,Asfalto grana fine
+tipoPista,,Asfalto grana grossa
+tipoPista,,Porfido
+tipoPista,,Pave
+tipoPista,,Erba
+tipoPista,,Erba sintetica
+tipoPista,,Terra
+tipoPista,,Terra battuta
+tipoPista,,Ghiaia
+tipoPista,,Ciotolato (sassoso)
+tipoPista,,Sabbia
+tipoPreseCorrente,,Bivalente 10A
+tipoPreseCorrente,,Bivalente 16A
+tipoPreseCorrente,,Bivalente 10/16A
+tipoPreseCorrente,,CEE (industriale) 220V 16A 2P+T
+tipoPreseCorrente,,CEE (industriale) 220V 16A 3P+T
+tipoPreseCorrente,,CEE (industriale) 220V 16A 3P+N+T
+tipoPreseCorrente,,CEE (industriale) 380V 16A 2P+T
+tipoPreseCorrente,,CEE (industriale) 380V 16A 3P+T
+tipoPreseCorrente,,CEE (industriale) 380V 16A 3P+N+T
+province,,Agrigento
+province,,Alessandria
+province,,Ancona
+province,,Arezzo
+province,,Ascoli Piceno
+province,,Asti
+province,,Avellino
+province,,Barletta-Andria-Trani
+province,,Belluno
+province,,Benevento
+province,,Bergamo
+province,,Biella
+province,,Bolzano/Bozen
+province,,Brescia
+province,,Brindisi
+province,,Caltanissetta
+province,,Campobasso
+province,,Caserta
+province,,Catanzaro
+province,,Chieti
+province,,Como
+province,,Cosenza
+province,,Cremona
+province,,Crotone
+province,,Cuneo
+province,,Enna
+province,,Fermo
+province,,Ferrara
+province,,Foggia
+province,,Forlì-Cesena
+province,,Frosinone
+province,,Gorizia
+province,,Grosseto
+province,,Imperia
+province,,Isernia
+province,,L'Aquila
+province,,La Spezia
+province,,Latina
+province,,Lecce
+province,,Lecco
+province,,Livorno
+province,,Lodi
+province,,Lucca
+province,,Macerata
+province,,Mantova
+province,,Massa-Carrara
+province,,Matera
+province,,Milano
+province,,Modena
+province,,Monza e della Brianza
+province,,Novara
+province,,Nuoro
+province,,Oristano
+province,,Padova
+province,,Parma
+province,,Pavia
+province,,Perugia
+province,,Pesaro e Urbino
+province,,Pescara
+province,,Piacenza
+province,,Pisa
+province,,Pistoia
+province,,Pordenone
+province,,Potenza
+province,,Prato
+province,,Ragusa
+province,,Ravenna
+province,,Reggio nell'Emilia
+province,,Rieti
+province,,Rimini
+province,,Rovigo
+province,,Salerno
+province,,Sassari
+province,,Savona
+province,,Siena
+province,,Siracusa
+province,,Sondrio
+province,,Sud Sardegna
+province,,Taranto
+province,,Teramo
+province,,Terni
+province,,Trapani
+province,,Trento
+province,,Treviso
+province,,Trieste
+province,,Udine
+province,,Valle d'Aosta/Vallée d'Aoste
+province,,Varese
+province,,Verbano-Cusio-Ossola
+province,,Vercelli
+province,,Verona
+province,,Vibo Valentia
+province,,Vicenza
+province,,Viterbo
+paese,Bergamo,Adrara San Martino
+paese,Bergamo,Adrara San Rocco
+paese,Bergamo,Albano Sant'Alessandro
+paese,Bergamo,Albino
+paese,Bergamo,Algua
+paese,Bergamo,Almenno San Bartolomeo
+paese,Bergamo,Almenno San Salvatore
+paese,Bergamo,Almè
+paese,Bergamo,Alzano Lombardo
+paese,Bergamo,Ambivere
+paese,Bergamo,Antegnate
+paese,Bergamo,Arcene
+paese,Bergamo,Ardesio
+paese,Bergamo,Arzago d'Adda
+paese,Bergamo,Averara
+paese,Bergamo,Aviatico
+paese,Bergamo,Azzano San Paolo
+paese,Bergamo,Azzone
+paese,Bergamo,Bagnatica
+paese,Bergamo,Barbata
+paese,Bergamo,Bariano
+paese,Bergamo,Barzana
+paese,Bergamo,Bedulita
+paese,Bergamo,Berbenno
+paese,Bergamo,Bergamo
+paese,Bergamo,Berzo San Fermo
+paese,Bergamo,Bianzano
+paese,Bergamo,Blello
+paese,Bergamo,Bolgare
+paese,Bergamo,Boltiere
+paese,Bergamo,Bonate Sopra
+paese,Bergamo,Bonate Sotto
+paese,Bergamo,Borgo di Terzo
+paese,Bergamo,Bossico
+paese,Bergamo,Bottanuco
+paese,Bergamo,Bracca
+paese,Bergamo,Branzi
+paese,Bergamo,Brembate
+paese,Bergamo,Brembate di Sopra
+paese,Bergamo,Brignano Gera d'Adda
+paese,Bergamo,Brumano
+paese,Bergamo,Brusaporto
+paese,Bergamo,Calcinate
+paese,Bergamo,Calcio
+paese,Bergamo,Calusco d'Adda
+paese,Bergamo,Calvenzano
+paese,Bergamo,Camerata Cornello
+paese,Bergamo,Canonica d'Adda
+paese,Bergamo,Capizzone
+paese,Bergamo,Capriate San Gervasio
+paese,Bergamo,Caprino Bergamasco
+paese,Bergamo,Caravaggio
+paese,Bergamo,Carobbio degli Angeli
+paese,Bergamo,Carona
+paese,Bergamo,Carvico
+paese,Bergamo,Casazza
+paese,Bergamo,Casirate d'Adda
+paese,Bergamo,Casnigo
+paese,Bergamo,Cassiglio
+paese,Bergamo,Castel Rozzone
+paese,Bergamo,Castelli Calepio
+paese,Bergamo,Castione della Presolana
+paese,Bergamo,Castro
+paese,Bergamo,Cavernago
+paese,Bergamo,Cazzano Sant'Andrea
+paese,Bergamo,Cenate Sopra
+paese,Bergamo,Cenate Sotto
+paese,Bergamo,Cene
+paese,Bergamo,Cerete
+paese,Bergamo,Chignolo d'Isola
+paese,Bergamo,Chiuduno
+paese,Bergamo,Cisano Bergamasco
+paese,Bergamo,Ciserano
+paese,Bergamo,Cividate al Piano
+paese,Bergamo,Clusone
+paese,Bergamo,Colere
+paese,Bergamo,Cologno al Serio
+paese,Bergamo,Colzate
+paese,Bergamo,Comun Nuovo
+paese,Bergamo,Corna Imagna
+paese,Bergamo,Cornalba
+paese,Bergamo,Cortenuova
+paese,Bergamo,Costa Serina
+paese,Bergamo,Costa Valle Imagna
+paese,Bergamo,Costa Volpino
+paese,Bergamo,Costa di Mezzate
+paese,Bergamo,Covo
+paese,Bergamo,Credaro
+paese,Bergamo,Curno
+paese,Bergamo,Cusio
+paese,Bergamo,Dalmine
+paese,Bergamo,Dossena
+paese,Bergamo,Endine Gaiano
+paese,Bergamo,Entratico
+paese,Bergamo,Fara Gera d'Adda
+paese,Bergamo,Fara Olivana con Sola
+paese,Bergamo,Filago
+paese,Bergamo,Fino del Monte
+paese,Bergamo,Fiorano al Serio
+paese,Bergamo,Fontanella
+paese,Bergamo,Fonteno
+paese,Bergamo,Foppolo
+paese,Bergamo,Foresto Sparso
+paese,Bergamo,Fornovo San Giovanni
+paese,Bergamo,Fuipiano Valle Imagna
+paese,Bergamo,Gandellino
+paese,Bergamo,Gandino
+paese,Bergamo,Gandosso
+paese,Bergamo,Gaverina Terme
+paese,Bergamo,Gazzaniga
+paese,Bergamo,Ghisalba
+paese,Bergamo,Gorlago
+paese,Bergamo,Gorle
+paese,Bergamo,Gorno
+paese,Bergamo,Grassobbio
+paese,Bergamo,Gromo
+paese,Bergamo,Grone
+paese,Bergamo,Grumello del Monte
+paese,Bergamo,Isola di Fondra
+paese,Bergamo,Isso
+paese,Bergamo,Lallio
+paese,Bergamo,Leffe
+paese,Bergamo,Lenna
+paese,Bergamo,Levate
+paese,Bergamo,Locatello
+paese,Bergamo,Lovere
+paese,Bergamo,Lurano
+paese,Bergamo,Luzzana
+paese,Bergamo,Madone
+paese,Bergamo,Mapello
+paese,Bergamo,Martinengo
+paese,Bergamo,Medolago
+paese,Bergamo,Mezzoldo
+paese,Bergamo,Misano di Gera d'Adda
+paese,Bergamo,Moio de' Calvi
+paese,Bergamo,Monasterolo del Castello
+paese,Bergamo,Montello
+paese,Bergamo,Morengo
+paese,Bergamo,Mornico al Serio
+paese,Bergamo,Mozzanica
+paese,Bergamo,Mozzo
+paese,Bergamo,Nembro
+paese,Bergamo,Olmo al Brembo
+paese,Bergamo,Oltre il Colle
+paese,Bergamo,Oltressenda Alta
+paese,Bergamo,Oneta
+paese,Bergamo,Onore
+paese,Bergamo,Orio al Serio
+paese,Bergamo,Ornica
+paese,Bergamo,Osio Sopra
+paese,Bergamo,Osio Sotto
+paese,Bergamo,Pagazzano
+paese,Bergamo,Paladina
+paese,Bergamo,Palazzago
+paese,Bergamo,Palosco
+paese,Bergamo,Parre
+paese,Bergamo,Parzanica
+paese,Bergamo,Pedrengo
+paese,Bergamo,Peia
+paese,Bergamo,Pianico
+paese,Bergamo,Piario
+paese,Bergamo,Piazza Brembana
+paese,Bergamo,Piazzatorre
+paese,Bergamo,Piazzolo
+paese,Bergamo,Pognano
+paese,Bergamo,Ponte Nossa
+paese,Bergamo,Ponte San Pietro
+paese,Bergamo,Ponteranica
+paese,Bergamo,Pontida
+paese,Bergamo,Pontirolo Nuovo
+paese,Bergamo,Pradalunga
+paese,Bergamo,Predore
+paese,Bergamo,Premolo
+paese,Bergamo,Presezzo
+paese,Bergamo,Pumenengo
+paese,Bergamo,Ranica
+paese,Bergamo,Ranzanico
+paese,Bergamo,Riva di Solto
+paese,Bergamo,Rogno
+paese,Bergamo,Romano di Lombardia
+paese,Bergamo,Roncobello
+paese,Bergamo,Roncola
+paese,Bergamo,Rota d'Imagna
+paese,Bergamo,Rovetta
+paese,Bergamo,San Giovanni Bianco
+paese,Bergamo,San Paolo d'Argon
+paese,Bergamo,San Pellegrino Terme
+paese,Bergamo,Sant'Omobono Terme
+paese,Bergamo,Santa Brigida
+paese,Bergamo,Sarnico
+paese,Bergamo,Scanzorosciate
+paese,Bergamo,Schilpario
+paese,Bergamo,Sedrina
+paese,Bergamo,Selvino
+paese,Bergamo,Seriate
+paese,Bergamo,Serina
+paese,Bergamo,Solto Collina
+paese,Bergamo,Solza
+paese,Bergamo,Songavazzo
+paese,Bergamo,Sorisole
+paese,Bergamo,Sotto il Monte Giovanni XXIII
+paese,Bergamo,Sovere
+paese,Bergamo,Spinone al Lago
+paese,Bergamo,Spirano
+paese,Bergamo,Stezzano
+paese,Bergamo,Strozza
+paese,Bergamo,Suisio
+paese,Bergamo,Taleggio
+paese,Bergamo,Tavernola Bergamasca
+paese,Bergamo,Telgate
+paese,Bergamo,Terno d'Isola
+paese,Bergamo,Torre Boldone
+paese,Bergamo,Torre Pallavicina
+paese,Bergamo,Torre de' Busi
+paese,Bergamo,Torre de' Roveri
+paese,Bergamo,Trescore Balneario
+paese,Bergamo,Treviglio
+paese,Bergamo,Treviolo
+paese,Bergamo,Ubiale Clanezzo
+paese,Bergamo,Urgnano
+paese,Bergamo,Val Brembilla
+paese,Bergamo,Valbondione
+paese,Bergamo,Valbrembo
+paese,Bergamo,Valgoglio
+paese,Bergamo,Valleve
+paese,Bergamo,Valnegra
+paese,Bergamo,Valtorta
+paese,Bergamo,Vedeseta
+paese,Bergamo,Verdellino
+paese,Bergamo,Verdello
+paese,Bergamo,Vertova
+paese,Bergamo,Viadanica
+paese,Bergamo,Vigano San Martino
+paese,Bergamo,Vigolo
+paese,Bergamo,Villa d'Adda
+paese,Bergamo,Villa d'Almè
+paese,Bergamo,Villa d'Ogna
+paese,Bergamo,Villa di Serio
+paese,Bergamo,Villongo
+paese,Bergamo,Vilminore di Scalve
+paese,Bergamo,Zandobbio
+paese,Bergamo,Zanica
+paese,Bergamo,Zogno
+paese,Brescia,Acquafredda
+paese,Brescia,Adro
+paese,Brescia,Agnosine
+paese,Brescia,Alfianello
+paese,Brescia,Anfo
+paese,Brescia,Angolo Terme
+paese,Brescia,Artogne
+paese,Brescia,Azzano Mella
+paese,Brescia,Bagnolo Mella
+paese,Brescia,Bagolino
+paese,Brescia,Barbariga
+paese,Brescia,Barghe
+paese,Brescia,Bassano Bresciano
+paese,Brescia,Bedizzole
+paese,Brescia,Berlingo
+paese,Brescia,Berzo Demo
+paese,Brescia,Berzo Inferiore
+paese,Brescia,Bienno
+paese,Brescia,Bione
+paese,Brescia,Borgo San Giacomo
+paese,Brescia,Borgosatollo
+paese,Brescia,Borno
+paese,Brescia,Botticino
+paese,Brescia,Bovegno
+paese,Brescia,Bovezzo
+paese,Brescia,Brandico
+paese,Brescia,Braone
+paese,Brescia,Breno
+paese,Brescia,Brescia
+paese,Brescia,Brione
+paese,Brescia,Caino
+paese,Brescia,Calcinato
+paese,Brescia,Calvagese della Riviera
+paese,Brescia,Calvisano
+paese,Brescia,Capo di Ponte
+paese,Brescia,Capovalle
+paese,Brescia,Capriano del Colle
+paese,Brescia,Capriolo
+paese,Brescia,Carpenedolo
+paese,Brescia,Castegnato
+paese,Brescia,Castel Mella
+paese,Brescia,Castelcovati
+paese,Brescia,Castenedolo
+paese,Brescia,Casto
+paese,Brescia,Castrezzato
+paese,Brescia,Cazzago San Martino
+paese,Brescia,Cedegolo
+paese,Brescia,Cellatica
+paese,Brescia,Cerveno
+paese,Brescia,Ceto
+paese,Brescia,Cevo
+paese,Brescia,Chiari
+paese,Brescia,Cigole
+paese,Brescia,Cimbergo
+paese,Brescia,Cividate Camuno
+paese,Brescia,Coccaglio
+paese,Brescia,Collebeato
+paese,Brescia,Collio
+paese,Brescia,Cologne
+paese,Brescia,Comezzano-Cizzago
+paese,Brescia,Concesio
+paese,Brescia,Corte Franca
+paese,Brescia,Corteno Golgi
+paese,Brescia,Corzano
+paese,Brescia,Darfo Boario Terme
+paese,Brescia,Dello
+paese,Brescia,Desenzano del Garda
+paese,Brescia,Edolo
+paese,Brescia,Erbusco
+paese,Brescia,Esine
+paese,Brescia,Fiesse
+paese,Brescia,Flero
+paese,Brescia,Gambara
+paese,Brescia,Gardone Riviera
+paese,Brescia,Gardone Val Trompia
+paese,Brescia,Gargnano
+paese,Brescia,Gavardo
+paese,Brescia,Ghedi
+paese,Brescia,Gianico
+paese,Brescia,Gottolengo
+paese,Brescia,Gussago
+paese,Brescia,Idro
+paese,Brescia,Incudine
+paese,Brescia,Irma
+paese,Brescia,Iseo
+paese,Brescia,Isorella
+paese,Brescia,Lavenone
+paese,Brescia,Leno
+paese,Brescia,Limone sul Garda
+paese,Brescia,Lodrino
+paese,Brescia,Lograto
+paese,Brescia,Lonato del Garda
+paese,Brescia,Longhena
+paese,Brescia,Losine
+paese,Brescia,Lozio
+paese,Brescia,Lumezzane
+paese,Brescia,Maclodio
+paese,Brescia,Magasa
+paese,Brescia,Mairano
+paese,Brescia,Malegno
+paese,Brescia,Malonno
+paese,Brescia,Manerba del Garda
+paese,Brescia,Manerbio
+paese,Brescia,Marcheno
+paese,Brescia,Marmentino
+paese,Brescia,Marone
+paese,Brescia,Mazzano
+paese,Brescia,Milzano
+paese,Brescia,Moniga del Garda
+paese,Brescia,Monno
+paese,Brescia,Monte Isola
+paese,Brescia,Monticelli Brusati
+paese,Brescia,Montichiari
+paese,Brescia,Montirone
+paese,Brescia,Mura
+paese,Brescia,Muscoline
+paese,Brescia,Nave
+paese,Brescia,Niardo
+paese,Brescia,Nuvolento
+paese,Brescia,Nuvolera
+paese,Brescia,Odolo
+paese,Brescia,Offlaga
+paese,Brescia,Ome
+paese,Brescia,Ono San Pietro
+paese,Brescia,Orzinuovi
+paese,Brescia,Orzivecchi
+paese,Brescia,Ospitaletto
+paese,Brescia,Ossimo
+paese,Brescia,Padenghe sul Garda
+paese,Brescia,Paderno Franciacorta
+paese,Brescia,Paisco Loveno
+paese,Brescia,Paitone
+paese,Brescia,Palazzolo sull'Oglio
+paese,Brescia,Paratico
+paese,Brescia,Paspardo
+paese,Brescia,Passirano
+paese,Brescia,Pavone del Mella
+paese,Brescia,Pertica Alta
+paese,Brescia,Pertica Bassa
+paese,Brescia,Pezzaze
+paese,Brescia,Pian Camuno
+paese,Brescia,Piancogno
+paese,Brescia,Pisogne
+paese,Brescia,Polaveno
+paese,Brescia,Polpenazze del Garda
+paese,Brescia,Pompiano
+paese,Brescia,Poncarale
+paese,Brescia,Ponte di Legno
+paese,Brescia,Pontevico
+paese,Brescia,Pontoglio
+paese,Brescia,Pozzolengo
+paese,Brescia,Pralboino
+paese,Brescia,Preseglie
+paese,Brescia,Prevalle
+paese,Brescia,Provaglio Val Sabbia
+paese,Brescia,Provaglio d'Iseo
+paese,Brescia,Puegnago sul Garda
+paese,Brescia,Quinzano d'Oglio
+paese,Brescia,Remedello
+paese,Brescia,Rezzato
+paese,Brescia,Roccafranca
+paese,Brescia,Rodengo Saiano
+paese,Brescia,Roncadelle
+paese,Brescia,Rovato
+paese,Brescia,Roè Volciano
+paese,Brescia,Rudiano
+paese,Brescia,Sabbio Chiese
+paese,Brescia,Sale Marasino
+paese,Brescia,Salò
+paese,Brescia,San Felice del Benaco
+paese,Brescia,San Gervasio Bresciano
+paese,Brescia,San Paolo
+paese,Brescia,San Zeno Naviglio
+paese,Brescia,Sarezzo
+paese,Brescia,Saviore dell'Adamello
+paese,Brescia,Sellero
+paese,Brescia,Seniga
+paese,Brescia,Serle
+paese,Brescia,Sirmione
+paese,Brescia,Soiano del Lago
+paese,Brescia,Sonico
+paese,Brescia,Sulzano
+paese,Brescia,Tavernole sul Mella
+paese,Brescia,Temù
+paese,Brescia,Tignale
+paese,Brescia,Torbole Casaglia
+paese,Brescia,Toscolano-Maderno
+paese,Brescia,Travagliato
+paese,Brescia,Tremosine sul Garda
+paese,Brescia,Trenzano
+paese,Brescia,Treviso Bresciano
+paese,Brescia,Urago d'Oglio
+paese,Brescia,Vallio Terme
+paese,Brescia,Valvestino
+paese,Brescia,Verolanuova
+paese,Brescia,Verolavecchia
+paese,Brescia,Vestone
+paese,Brescia,Vezza d'Oglio
+paese,Brescia,Villa Carcina
+paese,Brescia,Villachiara
+paese,Brescia,Villanuova sul Clisi
+paese,Brescia,Vione
+paese,Brescia,Visano
+paese,Brescia,Vobarno
+paese,Brescia,Zone
+paese,Cremona,Acquanegra Cremonese
+paese,Cremona,Agnadello
+paese,Cremona,Annicco
+paese,Cremona,Azzanello
+paese,Cremona,Bagnolo Cremasco
+paese,Cremona,Bonemerse
+paese,Cremona,Bordolano
+paese,Cremona,Ca' d'Andrea
+paese,Cremona,Calvatone
+paese,Cremona,Camisano
+paese,Cremona,Campagnola Cremasca
+paese,Cremona,Capergnanica
+paese,Cremona,Cappella Cantone
+paese,Cremona,Cappella de' Picenardi
+paese,Cremona,Capralba
+paese,Cremona,Casalbuttano ed Uniti
+paese,Cremona,Casale Cremasco-Vidolasco
+paese,Cremona,Casaletto Ceredano
+paese,Cremona,Casaletto Vaprio
+paese,Cremona,Casaletto di Sopra
+paese,Cremona,Casalmaggiore
+paese,Cremona,Casalmorano
+paese,Cremona,Castel Gabbiano
+paese,Cremona,Casteldidone
+paese,Cremona,Castelleone
+paese,Cremona,Castelverde
+paese,Cremona,Castelvisconti
+paese,Cremona,Cella Dati
+paese,Cremona,Chieve
+paese,Cremona,Cicognolo
+paese,Cremona,Cingia de' Botti
+paese,Cremona,Corte de' Cortesi con Cignone
+paese,Cremona,Corte de' Frati
+paese,Cremona,Credera Rubbiano
+paese,Cremona,Crema
+paese,Cremona,Cremona
+paese,Cremona,Cremosano
+paese,Cremona,Crotta d'Adda
+paese,Cremona,Cumignano sul Naviglio
+paese,Cremona,Derovere
+paese,Cremona,Dovera
+paese,Cremona,Drizzona
+paese,Cremona,Fiesco
+paese,Cremona,Formigara
+paese,Cremona,Gabbioneta-Binanuova
+paese,Cremona,Gadesco-Pieve Delmona
+paese,Cremona,Genivolta
+paese,Cremona,Gerre de' Caprioli
+paese,Cremona,Gombito
+paese,Cremona,Grontardo
+paese,Cremona,Grumello Cremonese ed Uniti
+paese,Cremona,Gussola
+paese,Cremona,Isola Dovarese
+paese,Cremona,Izano
+paese,Cremona,Madignano
+paese,Cremona,Malagnino
+paese,Cremona,Martignana di Po
+paese,Cremona,Monte Cremasco
+paese,Cremona,Montodine
+paese,Cremona,Moscazzano
+paese,Cremona,Motta Baluffi
+paese,Cremona,Offanengo
+paese,Cremona,Olmeneta
+paese,Cremona,Ostiano
+paese,Cremona,Paderno Ponchielli
+paese,Cremona,Palazzo Pignano
+paese,Cremona,Pandino
+paese,Cremona,Persico Dosimo
+paese,Cremona,Pescarolo ed Uniti
+paese,Cremona,Pessina Cremonese
+paese,Cremona,Piadena
+paese,Cremona,Pianengo
+paese,Cremona,Pieranica
+paese,Cremona,Pieve San Giacomo
+paese,Cremona,Pieve d'Olmi
+paese,Cremona,Pizzighettone
+paese,Cremona,Pozzaglio ed Uniti
+paese,Cremona,Quintano
+paese,Cremona,Ricengo
+paese,Cremona,Ripalta Arpina
+paese,Cremona,Ripalta Cremasca
+paese,Cremona,Ripalta Guerina
+paese,Cremona,Rivarolo del Re ed Uniti
+paese,Cremona,Rivolta d'Adda
+paese,Cremona,Robecco d'Oglio
+paese,Cremona,Romanengo
+paese,Cremona,Salvirola
+paese,Cremona,San Bassano
+paese,Cremona,San Daniele Po
+paese,Cremona,San Giovanni in Croce
+paese,Cremona,San Martino del Lago
+paese,Cremona,Scandolara Ravara
+paese,Cremona,Scandolara Ripa d'Oglio
+paese,Cremona,Sergnano
+paese,Cremona,Sesto ed Uniti
+paese,Cremona,Solarolo Rainerio
+paese,Cremona,Soncino
+paese,Cremona,Soresina
+paese,Cremona,Sospiro
+paese,Cremona,Spinadesco
+paese,Cremona,Spineda
+paese,Cremona,Spino d'Adda
+paese,Cremona,Stagno Lombardo
+paese,Cremona,Ticengo
+paese,Cremona,Torlino Vimercati
+paese,Cremona,Tornata
+paese,Cremona,Torre de' Picenardi
+paese,Cremona,Torricella del Pizzo
+paese,Cremona,Trescore Cremasco
+paese,Cremona,Trigolo
+paese,Cremona,Vaiano Cremasco
+paese,Cremona,Vailate
+paese,Cremona,Vescovato
+paese,Cremona,Volongo
+paese,Cremona,Voltido
+paese,Lecco,Abbadia Lariana
+paese,Lecco,Airuno
+paese,Lecco,Annone di Brianza
+paese,Lecco,Ballabio
+paese,Lecco,Barzago
+paese,Lecco,Barzanò
+paese,Lecco,Barzio
+paese,Lecco,Bellano
+paese,Lecco,Bosisio Parini
+paese,Lecco,Brivio
+paese,Lecco,Bulciago
+paese,Lecco,Calco
+paese,Lecco,Calolziocorte
+paese,Lecco,Carenno
+paese,Lecco,Casargo
+paese,Lecco,Casatenovo
+paese,Lecco,Cassago Brianza
+paese,Lecco,Cassina Valsassina
+paese,Lecco,Castello di Brianza
+paese,Lecco,Cernusco Lombardone
+paese,Lecco,Cesana Brianza
+paese,Lecco,Civate
+paese,Lecco,Colico
+paese,Lecco,Colle Brianza
+paese,Lecco,Cortenova
+paese,Lecco,Costa Masnaga
+paese,Lecco,Crandola Valsassina
+paese,Lecco,Cremella
+paese,Lecco,Cremeno
+paese,Lecco,Dervio
+paese,Lecco,Dolzago
+paese,Lecco,Dorio
+paese,Lecco,Ello
+paese,Lecco,Erve
+paese,Lecco,Esino Lario
+paese,Lecco,Galbiate
+paese,Lecco,Garbagnate Monastero
+paese,Lecco,Garlate
+paese,Lecco,Imbersago
+paese,Lecco,Introbio
+paese,Lecco,La Valletta Brianza
+paese,Lecco,Lecco
+paese,Lecco,Lierna
+paese,Lecco,Lomagna
+paese,Lecco,Malgrate
+paese,Lecco,Mandello del Lario
+paese,Lecco,Margno
+paese,Lecco,Merate
+paese,Lecco,Missaglia
+paese,Lecco,Moggio
+paese,Lecco,Molteno
+paese,Lecco,Monte Marenzo
+paese,Lecco,Montevecchia
+paese,Lecco,Monticello Brianza
+paese,Lecco,Morterone
+paese,Lecco,Nibionno
+paese,Lecco,Oggiono
+paese,Lecco,Olgiate Molgora
+paese,Lecco,Olginate
+paese,Lecco,Oliveto Lario
+paese,Lecco,Osnago
+paese,Lecco,Paderno d'Adda
+paese,Lecco,Pagnona
+paese,Lecco,Parlasco
+paese,Lecco,Pasturo
+paese,Lecco,Perledo
+paese,Lecco,Pescate
+paese,Lecco,Premana
+paese,Lecco,Primaluna
+paese,Lecco,Robbiate
+paese,Lecco,Rogeno
+paese,Lecco,Santa Maria Hoè
+paese,Lecco,Sirone
+paese,Lecco,Sirtori
+paese,Lecco,Sueglio
+paese,Lecco,Suello
+paese,Lecco,Taceno
+paese,Lecco,Valgreghentino
+paese,Lecco,Valmadrera
+paese,Lecco,Valvarrone
+paese,Lecco,Varenna
+paese,Lecco,Vendrogno
+paese,Lecco,Vercurago
+paese,Lecco,Verderio
+paese,Lecco,Viganò
+paese,Lodi,Abbadia Cerreto
+paese,Lodi,Bertonico
+paese,Lodi,Boffalora d'Adda
+paese,Lodi,Borghetto Lodigiano
+paese,Lodi,Borgo San Giovanni
+paese,Lodi,Brembio
+paese,Lodi,Casaletto Lodigiano
+paese,Lodi,Casalmaiocco
+paese,Lodi,Casalpusterlengo
+paese,Lodi,Caselle Landi
+paese,Lodi,Caselle Lurani
+paese,Lodi,Castelgerundo
+paese,Lodi,Castelnuovo Bocca d'Adda
+paese,Lodi,Castiglione d'Adda
+paese,Lodi,Castiraga Vidardo
+paese,Lodi,Cavenago d'Adda
+paese,Lodi,Cervignano d'Adda
+paese,Lodi,Codogno
+paese,Lodi,Comazzo
+paese,Lodi,Cornegliano Laudense
+paese,Lodi,Corno Giovine
+paese,Lodi,Cornovecchio
+paese,Lodi,Corte Palasio
+paese,Lodi,Crespiatica
+paese,Lodi,Fombio
+paese,Lodi,Galgagnano
+paese,Lodi,Graffignana
+paese,Lodi,Guardamiglio
+paese,Lodi,Livraga
+paese,Lodi,Lodi
+paese,Lodi,Lodi Vecchio
+paese,Lodi,Maccastorna
+paese,Lodi,Mairago
+paese,Lodi,Maleo
+paese,Lodi,Marudo
+paese,Lodi,Massalengo
+paese,Lodi,Meleti
+paese,Lodi,Merlino
+paese,Lodi,Montanaso Lombardo
+paese,Lodi,Mulazzano
+paese,Lodi,Orio Litta
+paese,Lodi,Ospedaletto Lodigiano
+paese,Lodi,Ossago Lodigiano
+paese,Lodi,Pieve Fissiraga
+paese,Lodi,Salerano sul Lambro
+paese,Lodi,San Fiorano
+paese,Lodi,San Martino in Strada
+paese,Lodi,San Rocco al Porto
+paese,Lodi,Sant'Angelo Lodigiano
+paese,Lodi,Santo Stefano Lodigiano
+paese,Lodi,Secugnago
+paese,Lodi,Senna Lodigiana
+paese,Lodi,Somaglia
+paese,Lodi,Sordio
+paese,Lodi,Tavazzano con Villavesco
+paese,Lodi,Terranova dei Passerini
+paese,Lodi,Turano Lodigiano
+paese,Lodi,Valera Fratta
+paese,Lodi,Villanova del Sillaro
+paese,Lodi,Zelo Buon Persico
+paese,Milano,Abbiategrasso
+paese,Milano,Albairate
+paese,Milano,Arconate
+paese,Milano,Arese
+paese,Milano,Arluno
+paese,Milano,Assago
+paese,Milano,Baranzate
+paese,Milano,Bareggio
+paese,Milano,Basiano
+paese,Milano,Basiglio
+paese,Milano,Bellinzago Lombardo
+paese,Milano,Bernate Ticino
+paese,Milano,Besate
+paese,Milano,Binasco
+paese,Milano,Boffalora sopra Ticino
+paese,Milano,Bollate
+paese,Milano,Bresso
+paese,Milano,Bubbiano
+paese,Milano,Buccinasco
+paese,Milano,Buscate
+paese,Milano,Bussero
+paese,Milano,Busto Garolfo
+paese,Milano,Calvignasco
+paese,Milano,Cambiago
+paese,Milano,Canegrate
+paese,Milano,Carpiano
+paese,Milano,Carugate
+paese,Milano,Casarile
+paese,Milano,Casorezzo
+paese,Milano,Cassano d'Adda
+paese,Milano,Cassina de' Pecchi
+paese,Milano,Cassinetta di Lugagnano
+paese,Milano,Castano Primo
+paese,Milano,Cernusco sul Naviglio
+paese,Milano,Cerro Maggiore
+paese,Milano,Cerro al Lambro
+paese,Milano,Cesano Boscone
+paese,Milano,Cesate
+paese,Milano,Cinisello Balsamo
+paese,Milano,Cisliano
+paese,Milano,Cologno Monzese
+paese,Milano,Colturano
+paese,Milano,Corbetta
+paese,Milano,Cormano
+paese,Milano,Cornaredo
+paese,Milano,Corsico
+paese,Milano,Cuggiono
+paese,Milano,Cusago
+paese,Milano,Cusano Milanino
+paese,Milano,Dairago
+paese,Milano,Dresano
+paese,Milano,Gaggiano
+paese,Milano,Garbagnate Milanese
+paese,Milano,Gessate
+paese,Milano,Gorgonzola
+paese,Milano,Grezzago
+paese,Milano,Gudo Visconti
+paese,Milano,Inveruno
+paese,Milano,Inzago
+paese,Milano,Lacchiarella
+paese,Milano,Lainate
+paese,Milano,Legnano
+paese,Milano,Liscate
+paese,Milano,Locate di Triulzi
+paese,Milano,Magenta
+paese,Milano,Magnago
+paese,Milano,Marcallo con Casone
+paese,Milano,Masate
+paese,Milano,Mediglia
+paese,Milano,Melegnano
+paese,Milano,Melzo
+paese,Milano,Mesero
+paese,Milano,Milano
+paese,Milano,Morimondo
+paese,Milano,Motta Visconti
+paese,Milano,Nerviano
+paese,Milano,Nosate
+paese,Milano,Novate Milanese
+paese,Milano,Noviglio
+paese,Milano,Opera
+paese,Milano,Ossona
+paese,Milano,Ozzero
+paese,Milano,Paderno Dugnano
+paese,Milano,Pantigliate
+paese,Milano,Parabiago
+paese,Milano,Paullo
+paese,Milano,Pero
+paese,Milano,Peschiera Borromeo
+paese,Milano,Pessano con Bornago
+paese,Milano,Pieve Emanuele
+paese,Milano,Pioltello
+paese,Milano,Pogliano Milanese
+paese,Milano,Pozzo d'Adda
+paese,Milano,Pozzuolo Martesana
+paese,Milano,Pregnana Milanese
+paese,Milano,Rescaldina
+paese,Milano,Rho
+paese,Milano,Robecchetto con Induno
+paese,Milano,Robecco sul Naviglio
+paese,Milano,Rodano
+paese,Milano,Rosate
+paese,Milano,Rozzano
+paese,Milano,San Colombano al Lambro
+paese,Milano,San Donato Milanese
+paese,Milano,San Giorgio su Legnano
+paese,Milano,San Giuliano Milanese
+paese,Milano,San Vittore Olona
+paese,Milano,San Zenone al Lambro
+paese,Milano,Santo Stefano Ticino
+paese,Milano,Sedriano
+paese,Milano,Segrate
+paese,Milano,Senago
+paese,Milano,Sesto San Giovanni
+paese,Milano,Settala
+paese,Milano,Settimo Milanese
+paese,Milano,Solaro
+paese,Milano,Trezzano Rosa
+paese,Milano,Trezzano sul Naviglio
+paese,Milano,Trezzo sull'Adda
+paese,Milano,Tribiano
+paese,Milano,Truccazzano
+paese,Milano,Turbigo
+paese,Milano,Vanzaghello
+paese,Milano,Vanzago
+paese,Milano,Vaprio d'Adda
+paese,Milano,Vermezzo
+paese,Milano,Vernate
+paese,Milano,Vignate
+paese,Milano,Villa Cortese
+paese,Milano,Vimodrone
+paese,Milano,Vittuone
+paese,Milano,Vizzolo Predabissi
+paese,Milano,Zelo Surrigone
+paese,Milano,Zibido San Giacomo
+paese,Monza e della Brianza,Agrate Brianza
+paese,Monza e della Brianza,Aicurzio
+paese,Monza e della Brianza,Albiate
+paese,Monza e della Brianza,Arcore
+paese,Monza e della Brianza,Barlassina
+paese,Monza e della Brianza,Bellusco
+paese,Monza e della Brianza,Bernareggio
+paese,Monza e della Brianza,Besana in Brianza
+paese,Monza e della Brianza,Biassono
+paese,Monza e della Brianza,Bovisio-Masciago
+paese,Monza e della Brianza,Briosco
+paese,Monza e della Brianza,Brugherio
+paese,Monza e della Brianza,Burago di Molgora
+paese,Monza e della Brianza,Busnago
+paese,Monza e della Brianza,Camparada
+paese,Monza e della Brianza,Caponago
+paese,Monza e della Brianza,Carate Brianza
+paese,Monza e della Brianza,Carnate
+paese,Monza e della Brianza,Cavenago di Brianza
+paese,Monza e della Brianza,Ceriano Laghetto
+paese,Monza e della Brianza,Cesano Maderno
+paese,Monza e della Brianza,Cogliate
+paese,Monza e della Brianza,Concorezzo
+paese,Monza e della Brianza,Cornate d'Adda
+paese,Monza e della Brianza,Correzzana
+paese,Monza e della Brianza,Desio
+paese,Monza e della Brianza,Giussano
+paese,Monza e della Brianza,Lazzate
+paese,Monza e della Brianza,Lentate sul Seveso
+paese,Monza e della Brianza,Lesmo
+paese,Monza e della Brianza,Limbiate
+paese,Monza e della Brianza,Lissone
+paese,Monza e della Brianza,Macherio
+paese,Monza e della Brianza,Meda
+paese,Monza e della Brianza,Mezzago
+paese,Monza e della Brianza,Misinto
+paese,Monza e della Brianza,Monza
+paese,Monza e della Brianza,Muggiò
+paese,Monza e della Brianza,Nova Milanese
+paese,Monza e della Brianza,Ornago
+paese,Monza e della Brianza,Renate
+paese,Monza e della Brianza,Roncello
+paese,Monza e della Brianza,Ronco Briantino
+paese,Monza e della Brianza,Seregno
+paese,Monza e della Brianza,Seveso
+paese,Monza e della Brianza,Sovico
+paese,Monza e della Brianza,Sulbiate
+paese,Monza e della Brianza,Triuggio
+paese,Monza e della Brianza,Usmate Velate
+paese,Monza e della Brianza,Varedo
+paese,Monza e della Brianza,Vedano al Lambro
+paese,Monza e della Brianza,Veduggio con Colzano
+paese,Monza e della Brianza,Verano Brianza
+paese,Monza e della Brianza,Villasanta
+paese,Monza e della Brianza,Vimercate
+paese,Sondrio,Albaredo per San Marco
+paese,Sondrio,Albosaggia
+paese,Sondrio,Andalo Valtellino
+paese,Sondrio,Aprica
+paese,Sondrio,Ardenno
+paese,Sondrio,Bema
+paese,Sondrio,Berbenno di Valtellina
+paese,Sondrio,Bianzone
+paese,Sondrio,Bormio
+paese,Sondrio,Buglio in Monte
+paese,Sondrio,Caiolo
+paese,Sondrio,Campodolcino
+paese,Sondrio,Caspoggio
+paese,Sondrio,Castello dell'Acqua
+paese,Sondrio,Castione Andevenno
+paese,Sondrio,Cedrasco
+paese,Sondrio,Cercino
+paese,Sondrio,Chiavenna
+paese,Sondrio,Chiesa in Valmalenco
+paese,Sondrio,Chiuro
+paese,Sondrio,Cino
+paese,Sondrio,Civo
+paese,Sondrio,Colorina
+paese,Sondrio,Cosio Valtellino
+paese,Sondrio,Dazio
+paese,Sondrio,Delebio
+paese,Sondrio,Dubino
+paese,Sondrio,Faedo Valtellino
+paese,Sondrio,Forcola
+paese,Sondrio,Fusine
+paese,Sondrio,Gerola Alta
+paese,Sondrio,Gordona
+paese,Sondrio,Grosio
+paese,Sondrio,Grosotto
+paese,Sondrio,Lanzada
+paese,Sondrio,Livigno
+paese,Sondrio,Lovero
+paese,Sondrio,Madesimo
+paese,Sondrio,Mantello
+paese,Sondrio,Mazzo di Valtellina
+paese,Sondrio,Mello
+paese,Sondrio,Mese
+paese,Sondrio,Montagna in Valtellina
+paese,Sondrio,Morbegno
+paese,Sondrio,Novate Mezzola
+paese,Sondrio,Pedesina
+paese,Sondrio,Piantedo
+paese,Sondrio,Piateda
+paese,Sondrio,Piuro
+paese,Sondrio,Poggiridenti
+paese,Sondrio,Ponte in Valtellina
+paese,Sondrio,Postalesio
+paese,Sondrio,Prata Camportaccio
+paese,Sondrio,Rasura
+paese,Sondrio,Rogolo
+paese,Sondrio,Samolaco
+paese,Sondrio,San Giacomo Filippo
+paese,Sondrio,Sernio
+paese,Sondrio,Sondalo
+paese,Sondrio,Sondrio
+paese,Sondrio,Spriana
+paese,Sondrio,Talamona
+paese,Sondrio,Tartano
+paese,Sondrio,Teglio
+paese,Sondrio,Tirano
+paese,Sondrio,Torre di Santa Maria
+paese,Sondrio,Tovo di Sant'Agata
+paese,Sondrio,Traona
+paese,Sondrio,Tresivio
+paese,Sondrio,Val Masino
+paese,Sondrio,Valdidentro
+paese,Sondrio,Valdisotto
+paese,Sondrio,Valfurva
+paese,Sondrio,Verceia
+paese,Sondrio,Vervio
+paese,Sondrio,Villa di Chiavenna
+paese,Sondrio,Villa di Tirano

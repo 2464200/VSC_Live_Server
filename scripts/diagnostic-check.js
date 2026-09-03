@@ -15,7 +15,10 @@ const required = [
   'unified-server.js',
   'server.js',
   'config/config.js',
-  'scripts/start-portable.js'
+  'scripts/start-portable.js',
+  'scripts/sync-public.js',
+  'Bordero/server/firebase-cloud-sync.js',
+  'Bordero/js/firebase-cloud-client.js'
 ];
 
 for (const file of required) {
