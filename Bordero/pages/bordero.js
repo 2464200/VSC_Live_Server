@@ -1981,18 +1981,38 @@ class BorderoTableManager {
       Storage.set('bordero_next_coreo_selection', payload);
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'update', payload });
       window.dispatchEvent(new Event('bordero:next-coreo-updated'));
-      window.firebaseCloudClient?.pushCurrentLocalStateToBackend();
+      this.publishNextCoreoToCloud(payload.title);
       Toast.success(`NEXT selezionato: ${title || brano.id}`);
     } else {
       Storage.remove('bordero_next_coreo_selection');
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
       window.dispatchEvent(new Event('bordero:next-coreo-updated'));
-      window.firebaseCloudClient?.pushCurrentLocalStateToBackend();
+      this.publishNextCoreoToCloud('--');
       Toast.info('Selezione NEXT rimossa');
     }
 
     this.reapplyCurrentOrdering();
     this.renderTable();
+  }
+
+  async publishNextCoreoToCloud(nextCoreo) {
+    try {
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nextCoreo: String(nextCoreo || '--').trim() || '--',
+          serata: this.serata || {},
+          brani: this.allBrani || []
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      logger.warn('Impossibile sincronizzare NEXT sul cloud', error?.message || error);
+    }
   }
 
   /**
