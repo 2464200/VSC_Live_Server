@@ -9,6 +9,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const { parse: parseCsv } = require('csv-parse/sync');
 const { cert, getApp, getApps, initializeApp } = require('firebase-admin/app');
 const { getDatabase } = require('firebase-admin/database');
 
@@ -211,18 +212,24 @@ class FirebaseCloudSync {
       if (fs.existsSync(braniFile)) {
         try {
           const raw = fs.readFileSync(braniFile, 'utf8').replace(/^\uFEFF/, '').trim();
-          const lines = raw.split(/\r?\n/).slice(3); // skip first 3 lines standard
-          braniList = lines
-            .map((line) => {
-              const parts = line.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+          const rows = parseCsv(raw, {
+            from_line: 4,
+            relax_column_count: true,
+            skip_empty_lines: true,
+            trim: true
+          });
+          braniList = rows
+            .map((parts) => {
               return {
                 flag: parts[0] || '',
-                id: parts[1] || '',
-                titolo: parts[2] || '',
-                brano: parts[3] || '',
-                autore: parts[4] || '',
-                richieste: parts[6] || parts[5] || '',
-                info_livello: parts[7] || ''
+                id: parts[2] || '',
+                titolo: parts[3] || '',
+                brano: parts[4] || '',
+                autore: parts[5] || '',
+                durata: parts[6] || '',
+                richieste: parts[7] || '',
+                info_livello: parts[8] || '',
+                coreografo: parts[12] || ''
               };
             })
             .filter(b => Boolean(b.titolo));

@@ -3363,6 +3363,31 @@ class BorderoTableManager {
     };
     
     dataLoader.saveCurrentSerata(serataData, this.allBrani);
+    this.publishCloudState();
+  }
+
+  async publishCloudState() {
+    if (typeof fetch !== 'function') return;
+
+    try {
+      const nextSelection = Storage.get('bordero_next_coreo_selection', null);
+      const nextCoreo = String(nextSelection?.title || nextSelection?.nextValue || '--').trim() || '--';
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nextCoreo,
+          serata: this.serata || {},
+          brani: this.allBrani || []
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      logger.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
+    }
   }
 
   /**

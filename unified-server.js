@@ -2812,7 +2812,7 @@ function syncBraniOnStartup() {
 }
 
 // ===== MIDDLEWARE =====
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
 function escapeBorderoCsvValue(value) {
     if (value === null || value === undefined) return '';
