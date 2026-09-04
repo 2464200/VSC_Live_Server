@@ -1981,11 +1981,13 @@ class BorderoTableManager {
       Storage.set('bordero_next_coreo_selection', payload);
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'update', payload });
       window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      window.firebaseCloudClient?.pushCurrentLocalStateToBackend();
       Toast.success(`NEXT selezionato: ${title || brano.id}`);
     } else {
       Storage.remove('bordero_next_coreo_selection');
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
       window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      window.firebaseCloudClient?.pushCurrentLocalStateToBackend();
       Toast.info('Selezione NEXT rimossa');
     }
 

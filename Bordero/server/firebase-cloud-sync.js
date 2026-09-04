@@ -9,12 +9,17 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const { cert, getApp, getApps, initializeApp } = require('firebase-admin/app');
+const { getDatabase } = require('firebase-admin/database');
 
 class FirebaseCloudSync {
   constructor(options = {}) {
     this.enabled = process.env.FIREBASE_CLOUD_SYNC_ENABLED !== 'false';
     this.databaseUrl = process.env.FIREBASE_DATABASE_URL || 'https://my-project-1525790600392-default-rtdb.europe-west1.firebasedatabase.app';
     this.databaseSecret = process.env.FIREBASE_DATABASE_SECRET || process.env.FIREBASE_AUTH_TOKEN || '';
+    this.serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || '';
+    this.adminDatabase = null;
+    this.authenticationMode = 'unconfigured';
     this.syncPath = '/bordero/display_state.json';
     this.lastSyncTime = null;
     this.lastSyncStatus = 'initialized';
@@ -35,9 +40,34 @@ class FirebaseCloudSync {
       source: 'local-server'
     };
 
+    this.initializeAdminDatabase();
     this.initWatchers();
     if (this.enabled) {
       setImmediate(() => this.syncFromLocalFiles());
+    }
+  }
+
+  initializeAdminDatabase() {
+    if (!this.serviceAccountPath || !fs.existsSync(this.serviceAccountPath)) {
+      this.authenticationMode = this.databaseSecret ? 'database-secret' : 'missing-service-account';
+      return;
+    }
+
+    try {
+      const serviceAccount = JSON.parse(fs.readFileSync(this.serviceAccountPath, 'utf8'));
+      const appName = 'bordero-cloud-sync';
+      const app = getApps().some((item) => item.name === appName)
+        ? getApp(appName)
+        : initializeApp({
+          credential: cert(serviceAccount),
+          databaseURL: this.databaseUrl
+        }, appName);
+      this.adminDatabase = getDatabase(app);
+      this.authenticationMode = 'service-account';
+    } catch (error) {
+      this.authenticationMode = 'invalid-service-account';
+      this.lastError = `Service account Firebase non valido: ${error?.message || error}`;
+      console.warn('Firebase Cloud Sync: service account non utilizzabile:', error?.message || error);
     }
   }
 
@@ -65,6 +95,21 @@ class FirebaseCloudSync {
     };
 
     this.lastKnownState = mergedPayload;
+
+    if (this.adminDatabase) {
+      try {
+        await this.adminDatabase.ref('bordero/display_state').set(mergedPayload);
+        this.lastSyncTime = new Date().toISOString();
+        this.lastSyncStatus = 'ok';
+        this.lastError = null;
+        return { success: true, timestamp: this.lastSyncTime };
+      } catch (error) {
+        const errMsg = `Firebase Admin: ${error?.message || error}`;
+        this.lastSyncStatus = 'error';
+        this.lastError = errMsg;
+        return { success: false, error: errMsg };
+      }
+    }
 
     return new Promise((resolve) => {
       try {
@@ -220,6 +265,7 @@ class FirebaseCloudSync {
     return {
       enabled: this.enabled,
       databaseUrl: this.databaseUrl,
+      authenticationMode: this.authenticationMode,
       syncPath: this.syncPath,
       lastSyncTime: this.lastSyncTime,
       lastSyncStatus: this.lastSyncStatus,
