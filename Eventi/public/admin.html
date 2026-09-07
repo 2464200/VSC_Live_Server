@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin EVENTI - Gestione Backend</title>
+  <script defer src="event-navigation.js"></script>
   <script defer src="inactivity-return.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -223,13 +224,13 @@
 <body>
 
 <div class="nav">
-  <a href="/eventi/eventi.html">Torna a Eventi</a>
-  <a href="/eventi/dj-manager.html">Gestisci DJ</a>
-  <a href="/eventi/qr.html" target="_blank">QR Eventi</a>
+  <a href="#" onclick="goEventiPage('eventi.html'); return false;">Torna a Eventi</a>
+  <a href="#" onclick="goEventiPage('dj-manager.html'); return false;">Gestisci DJ</a>
+  <a href="#" onclick="goEventiPage('qr.html'); return false;">QR Eventi</a>
 </div>
 
 <div class="container">
-  <button onclick="location.href='DOCUMENTATION.html'">Documentazione</button>
+  <button onclick="goEventiPage('DOCUMENTATION.html')">Documentazione</button>
   <h1>Admin EVENTI</h1>
 
   <div class="section">

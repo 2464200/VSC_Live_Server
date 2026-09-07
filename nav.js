@@ -1,6 +1,6 @@
 (function () {
     const mountId = 'global-nav-container';
-    const homeUrl = '/Bordero/index.html';
+    const defaultHomeUrl = '/Bordero/index.html';
 
     function getPageName() {
         const title = document.title.trim();
@@ -9,6 +9,18 @@
 
     function init() {
         if (document.querySelector('.nav-breadcrumb') || document.getElementById(mountId)) return;
+
+        let homeUrl = defaultHomeUrl;
+        if (window.location.protocol === 'file:') {
+            const path = window.location.pathname.toLowerCase();
+            if (path.includes('/eventi/')) {
+                homeUrl = '../../Bordero/index.html';
+            } else if (path.includes('/bordero/pages/')) {
+                homeUrl = '../index.html';
+            } else {
+                homeUrl = './Bordero/index.html';
+            }
+        }
 
         const container = document.createElement('div');
         container.id = mountId;

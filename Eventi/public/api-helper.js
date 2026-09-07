@@ -1,30 +1,3 @@
-(() => {
-  if (window.location.protocol === 'file:') return;
-
-  if (window.location.hostname === '127.0.0.1') {
-    const targetPort = window.location.port || '5500';
-    const target = `${window.location.protocol}//localhost:${targetPort}${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
-    console.warn('Host 127.0.0.1 rilevato: redirect automatico a localhost ->', target);
-    window.location.replace(target);
-    return;
-  }
-
-  const normalizedHost = (window.location.hostname || '').toLowerCase();
-  const canonicalHost = normalizedHost === '127.0.0.1' ? 'localhost' : (window.location.hostname || 'localhost');
-  const currentPath = window.location.pathname || '';
-  const protocol = window.location.protocol || 'http:';
-  const currentPort = window.location.port ? `:${window.location.port}` : '';
-  const currentOrigin = `${protocol}//${canonicalHost}${currentPort}`;
-  const legacyPrefix = '/Eventi/public/';
-
-  if (currentPath.startsWith(legacyPrefix)) {
-    const page = currentPath.substring(legacyPrefix.length);
-    const target = `${currentOrigin}/eventi/${page}${window.location.search || ''}${window.location.hash || ''}`;
-    console.log('Redirect verso percorso canonico Eventi:', target);
-    window.location.replace(target);
-  }
-})();
-
 const EVENTI_API_CANDIDATES = (() => {
   const protocol = window.location.protocol === 'file:' ? 'http:' : window.location.protocol || 'http:';
   const host = window.location.hostname || 'localhost';
@@ -38,11 +11,8 @@ const EVENTI_API_CANDIDATES = (() => {
     }
   }
 
-  const canonicalPort = '5500';
-  const isCurrentOriginCanonical = currentPort === canonicalPort;
-
-  // Prefer the current origin only when it already uses the canonical project port.
-  if (currentOrigin && isCurrentOriginCanonical) {
+  // Priorità 1: L'origin corrente da cui la pagina è servita
+  if (currentOrigin) {
     pushBase(`${currentOrigin}/eventi/api`);
   }
 

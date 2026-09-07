@@ -1,46 +1,46 @@
 (() => {
-  const EVENTI_BASE_PATH = '/eventi/';
-  const FALLBACK_HOST = 'localhost';
-  const INVALID_HOST_PATTERNS = ['vscode-resource', 'vscode-cdn.net'];
-
-  if (window.location.protocol !== 'file:' && window.location.hostname === '127.0.0.1') {
-    const targetPort = window.location.port || '5500';
-    const targetUrl = `${window.location.protocol}//${FALLBACK_HOST}:${targetPort}${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
-    console.warn('Host 127.0.0.1 rilevato: redirect automatico a localhost ->', targetUrl);
-    window.location.replace(targetUrl);
-    return;
-  }
-
-  function isUsableHost(hostname) {
-    if (!hostname) return false;
-    const normalized = hostname.toLowerCase();
-    return !INVALID_HOST_PATTERNS.some(pattern => normalized.includes(pattern));
-  }
-
-  function getCanonicalHost() {
-    const host = (window.location.hostname || '').toLowerCase();
-    if (host === '127.0.0.1') {
-      return FALLBACK_HOST;
-    }
-    return isUsableHost(window.location.hostname) ? window.location.hostname : FALLBACK_HOST;
-  }
-
-  function getEventiOrigin() {
-    const protocol = window.location.protocol || 'http:';
-    const port = window.location.port;
-    const canonicalHost = getCanonicalHost();
-
-    if (window.location.protocol === 'file:' || (port && port !== '5500')) {
-      return `http://${FALLBACK_HOST}:5500`;
-    }
-
-    const canonicalPort = port ? `:${port}` : '';
-    return `${protocol}//${canonicalHost}${canonicalPort}`;
-  }
-
+  /**
+   * Costruisce un URL valido per la navigazione del modulo Eventi
+   * mantenendo host, porta, protocollo e percorso correnti.
+   */
   function buildEventiPageUrl(page) {
-    const safePage = String(page || 'eventi.html').replace(/^\/+/, '');
-    return `${getEventiOrigin()}${EVENTI_BASE_PATH}${safePage}`;
+    const rawTarget = String(page || 'eventi.html').trim();
+    if (!rawTarget) return 'eventi.html';
+
+    const isFileProtocol = window.location.protocol === 'file:';
+
+    // Se la destinazione è un percorso assoluto (es. /Bordero/pages/bordero.html)
+    if (rawTarget.startsWith('/')) {
+      if (isFileProtocol) {
+        if (rawTarget.toLowerCase().startsWith('/bordero/')) {
+          return '../../' + rawTarget.replace(/^\/+/, '');
+        }
+        return rawTarget.replace(/^\/+/, '');
+      }
+      return `${window.location.origin}${rawTarget}`;
+    }
+
+    // Modalità file:// -> navigazione relativa diretta
+    if (isFileProtocol) {
+      return rawTarget;
+    }
+
+    // Modalità http / https
+    const origin = window.location.origin || `${window.location.protocol}//${window.location.host}`;
+    const pathname = window.location.pathname || '';
+
+    let basePath = '/eventi/';
+    if (pathname.includes('/Eventi/public/')) {
+      basePath = '/Eventi/public/';
+    } else if (pathname.includes('/public/')) {
+      const idx = pathname.indexOf('/public/');
+      basePath = pathname.substring(0, idx + 8);
+    } else if (pathname.startsWith('/eventi/')) {
+      basePath = '/eventi/';
+    }
+
+    const cleanPage = rawTarget.replace(/^\/+/, '');
+    return `${origin}${basePath}${cleanPage}`;
   }
 
   function goEventiPage(page) {
