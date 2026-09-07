@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO’ - Stampa Coreografie</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="coreografie-stampa.css" />
+  <script src="../assets/lib/xlsx.min.js"></script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="coreografie-stampa.js"></script>
+</head>
+<body>
+  <div class="screen-shell">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERO’ - Stampa Coreografie</h1>
+        <p class="app-subtitle">Elenco alfabetico per la stampa su fogli A4</p>
+      </div>
+    </header>
+    <nav class="nav-breadcrumb" aria-label="Navigazione">
+      <a href="../index.html">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="bordero.html">Bordero</a><span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Stampa Coreografie</span>
+    </nav>
+    <main class="settings-layout">
+      <section class="settings-panel" aria-labelledby="settings-title">
+        <div class="section-heading">
+          <h2 id="settings-title">Impostazioni stampa</h2>
+          <p>Compila i dati dell'evento e scegli come organizzare le colonne sul lato destro del foglio.</p>
+        </div>
+        <form id="print-settings-form">
+          <div class="settings-grid">
+            <label class="field-label" for="event-name">Nome dell'evento<input id="event-name" name="eventName" type="text" required /></label>
+            <fieldset class="dj-fieldset">
+              <legend>DJ dell'evento</legend>
+              <div id="event-djs" class="dj-list" aria-label="Seleziona uno o più DJ"></div>
+              <span class="field-help">Spunta uno o più nomi dall'elenco.</span>
+            </fieldset>
+            <label class="field-label" for="event-place">Luogo dell'evento<input id="event-place" name="place" type="text" /></label>
+            <label class="field-label" for="event-date">Data dell'evento<input id="event-date" name="date" type="date" required /></label>
+          </div>
+
+          <fieldset class="mode-fieldset">
+            <legend>Tipo di evento e colonne</legend>
+            <div class="mode-options">
+              <label><input type="radio" name="eventMode" value="1" checked /> Evento singolo<span>1 colonna o DJSET</span></label>
+              <label><input type="radio" name="eventMode" value="2" /> Evento doppio<span>Mattina e pomeriggio</span></label>
+              <label><input type="radio" name="eventMode" value="3" /> Evento triplo<span>Mattina, pomeriggio e sera</span></label>
+              <label><input type="radio" name="eventMode" value="4" /> Evento quadruplo<span>Triplo + DJ SET</span></label>
+            </div>
+            <div id="column-settings" class="column-settings" aria-live="polite"></div>
+          </fieldset>
+
+          <fieldset class="mode-fieldset">
+            <legend>Lettere da stampare</legend>
+            <label class="field-label" for="letter-filter">Elenco alfabetico
+              <select id="letter-filter" name="letterFilter">
+                <option value="ALL">Tutte le lettere e numeri/caratteri</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset class="mode-fieldset">
+            <legend>Regole di stampa</legend>
+            <div class="print-options">
+              <label><input id="include-cover" type="checkbox" checked /> Stampa la copertina insieme all'elenco</label>
+              <label><input id="duplex-print" type="checkbox" /> Stampa fronte/retro</label>
+              <span class="field-help print-help">Il fronte/retro va confermato nella finestra della stampante.</span>
+              <label><input id="number-pages" type="checkbox" /> Numera le pagine</label>
+            </div>
+          </fieldset>
+
+          <div class="settings-actions">
+            <button class="btn btn-primary" type="submit">GENERA ANTEPRIMA</button>
+            <button id="btn-back" class="btn btn-secondary" type="button">TORNA AL BORDERO</button>
+            <span id="print-status" role="status">Caricamento coreografie...</span>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <main id="print-document" class="print-document" aria-live="polite"></main>
+  <div id="preview-toolbar" class="preview-toolbar" hidden>
+    <button id="btn-print" class="btn btn-primary" type="button">STAMPA FOGLI A4</button>
+    <button id="btn-edit-settings" class="btn btn-secondary" type="button">ESCI ANTEPRIMA</button>
+  </div>
+  <script src="/nav.js"></script>
+</body>
+</html>
