@@ -109,6 +109,22 @@ function Wait-ForPort {
     return $false
 }
 
+function Wait-ForHttpEndpoint {
+    param(
+        [Parameter(Mandatory = $true)] [string] $Uri,
+        [int] $TimeoutSeconds = 15
+    )
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline) {
+        if (Test-HttpEndpoint -Uri $Uri -TimeoutSeconds 2) {
+            return $true
+        }
+        Start-Sleep -Milliseconds 500
+    }
+    return $false
+}
+
 function Save-Pids {
     param([int[]]$Pids)
     if ($Pids -and $Pids.Count -gt 0) {
@@ -327,6 +343,23 @@ function Start-UnifiedServer {
             exit 1
         }
 
+        Write-Host "  Verifico API Unified ed Eventi..."
+        $healthUri = "http://localhost:$($UnifiedPort)/api/health"
+        $eventiPingUri = "http://localhost:$($UnifiedPort)/eventi/api/ping"
+        if (-not (Wait-ForHttpEndpoint -Uri $healthUri -TimeoutSeconds 15) -or -not (Wait-ForHttpEndpoint -Uri $eventiPingUri -TimeoutSeconds 15)) {
+            Write-Host "ERRORE FATALE: la porta $UnifiedPort e occupata da un servizio diverso dal server unificato." -ForegroundColor Red
+            Write-Host "  Arresta Live Server o l'altro servizio sulla porta $UnifiedPort, quindi riavvia il task."
+            Write-Host "  Log stdout: $stdoutLog"
+            Write-Host "  Log stderr: $stderrLog"
+            try {
+                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            } catch {
+            }
+            exit 1
+        }
+
+        Write-Host "  OK API Unified ed Eventi attive"
+
         return $proc.Id
     } catch {
         Write-Host "ERRORE FATALE: Impossibile avviare Unified Server - $_" -ForegroundColor Red
@@ -375,8 +408,8 @@ Write-Host ""
 
 $startedPids = @()
 
-# Verifica se il server già in esecuzione espone tutte le route richieste.
-if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/led-display/" -TimeoutSeconds 2)) {
+# Verifica che la porta 5500 sia realmente servita dall'applicazione unificata, incluse le API Eventi.
+if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/led-display/" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/eventi/eventi.html" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/eventi/api/ping" -TimeoutSeconds 2)) {
     Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."

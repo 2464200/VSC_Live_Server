@@ -28,6 +28,7 @@ const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
 
 const app = express();
 let PORT = Number.isFinite(Number(process.env.UNIFIED_PORT)) ? Number(process.env.UNIFIED_PORT) : projectConfig.port;
+const SERVER_HOST = '0.0.0.0';
 const PDF_FOLDER = projectConfig.pdfFolder;
 const VIDEOCLIP_DIR = projectConfig.videoClipDir;
 const BORDERO_DATA_DIR = path.join(__dirname, 'Bordero', 'data');
@@ -5222,9 +5223,9 @@ function getLocalIP() {
     return 'localhost';
 }
 
-function startServer(port, maxRetries = 5) {
+function startServer(port) {
     return new Promise((resolve, reject) => {
-        const server = app.listen(port, () => {
+        const server = app.listen(port, SERVER_HOST, () => {
             const localIP = getLocalIP();
             console.log('\n' + '='.repeat(80));
             console.log('🚀 UNIFIED SERVER - Server consolidato avviato');
@@ -5252,17 +5253,7 @@ function startServer(port, maxRetries = 5) {
             resolve(server);
         });
 
-        server.on('error', async (err) => {
-            if (err.code === 'EADDRINUSE' && maxRetries > 0) {
-                const nextPort = port + 1;
-                console.warn(`⚠️ Porta ${port} occupata, provo porta ${nextPort}...`);
-                setTimeout(() => {
-                    startServer(nextPort, maxRetries - 1)
-                        .then(resolve)
-                        .catch(reject);
-                }, 250);
-                return;
-            }
+        server.on('error', (err) => {
             reject(err);
         });
     });
@@ -5271,7 +5262,7 @@ function startServer(port, maxRetries = 5) {
 startServer(PORT).catch((err) => {
     console.error('❌ Impossibile avviare il server:', err.message);
     if (err.code === 'EADDRINUSE') {
-        console.error(`   La porta ${PORT} è già in uso. Chiudi l'altra applicazione o imposta UNIFIED_PORT su una porta libera.`);
+        console.error(`   La porta ${PORT} è già in uso. Chiudi il servizio in conflitto: il progetto richiede esclusivamente questa porta.`);
     }
     process.exit(1);
 });
