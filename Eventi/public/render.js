@@ -5,14 +5,24 @@ const renderState = {
   visibleBrani: [],
   log: [],
   query: '',
-  refreshTimer: null
+  refreshTimer: null,
+  isUpdating: false
 };
 
+function getDJLocal() {
+  try {
+    return localStorage.getItem('EVENTI_SELECTED_DJ') || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function salvaStato(id, stato, addTimestamp = false, dj = null) {
+  const djToSave = dj || getDJLocal() || null;
   const payload = {
     id,
     stato,
-    dj: dj || null,
+    dj: djToSave,
     timestamp: addTimestamp && stato === 'eseguito' ? new Date().toISOString() : null
   };
 
@@ -60,19 +70,18 @@ function renderRows(container, brani, opts = {}) {
     row.dataset.branoId = item.id;
 
     let checkboxHtml = '';
-    if (opts.interactive) {
-      if (opts.filtro === 'prenotati') {
-        checkboxHtml = `
-          <label class="action-inline"><input type="checkbox" class="checkbox-eseguito" /> Eseguito</label>
-          <label class="action-inline"><input type="checkbox" class="checkbox-annulla" /> Annulla</label>
-        `;
-      } else if (opts.filtro === 'spuntati') {
-        checkboxHtml = `<label class="action-inline"><input type="checkbox" class="checkbox-annulla" /> Annulla</label>`;
-      }
+    if (item.stato === 'prenotato') {
+      checkboxHtml = `
+        <label class="action-inline"><input type="checkbox" class="checkbox-eseguito" /> Eseguito</label>
+        <label class="action-inline"><input type="checkbox" class="checkbox-annulla" /> Annulla</label>
+      `;
+    } else if (item.stato === 'eseguito') {
+      checkboxHtml = `<label class="action-inline"><input type="checkbox" class="checkbox-annulla" /> Annulla</label>`;
+    } else if (item.stato === 'disponibile') {
+      checkboxHtml = `<label class="action-inline"><input type="checkbox" class="checkbox-prenota" /> Prenota</label>`;
     }
 
     const djLabel = item.dj ? ` - DJ ${item.dj}` : '';
-    const branoLabel = item.brano ? `<span class="brano-meta">Brano: ${item.brano}</span>` : '';
 
     row.innerHTML = `
       <span class="stato-pill ${item.stato}">${item.stato}</span>
@@ -84,47 +93,58 @@ function renderRows(container, brani, opts = {}) {
       ${checkboxHtml}
     `;
 
-    if (opts.interactive) {
-      if (opts.filtro === 'prenotati') {
-        const cbEseguito = row.querySelector('.checkbox-eseguito');
-        cbEseguito.addEventListener('change', async () => {
-          cbEseguito.disabled = true;
-          try {
-            await salvaStato(item.id, 'eseguito', true, item.dj);
-            await refreshData();
-          } catch (error) {
-            cbEseguito.disabled = false;
-            cbEseguito.checked = false;
-            showListaMessage(container, `Errore aggiornamento stato: ${error.message}`, true);
-          }
-        });
+    const cbEseguito = row.querySelector('.checkbox-eseguito');
+    if (cbEseguito) {
+      cbEseguito.addEventListener('change', async () => {
+        cbEseguito.disabled = true;
+        renderState.isUpdating = true;
+        try {
+          await salvaStato(item.id, 'eseguito', true, item.dj);
+          await refreshData();
+        } catch (error) {
+          cbEseguito.disabled = false;
+          cbEseguito.checked = false;
+          showListaMessage(container, `Errore aggiornamento stato: ${error.message}`, true);
+        } finally {
+          renderState.isUpdating = false;
+        }
+      });
+    }
 
-        const cbAnnulla = row.querySelector('.checkbox-annulla');
-        cbAnnulla.addEventListener('change', async () => {
-          cbAnnulla.disabled = true;
-          try {
-            await salvaStato(item.id, 'disponibile', false, null); // Annulla prenotazione: riporta a disponibile senza DJ
-            await refreshData();
-          } catch (error) {
-            cbAnnulla.disabled = false;
-            cbAnnulla.checked = false;
-            showListaMessage(container, `Errore aggiornamento stato: ${error.message}`, true);
-          }
-        });
-      } else if (opts.filtro === 'spuntati') {
-        const cb = row.querySelector('.checkbox-annulla');
-        cb.addEventListener('change', async () => {
-          cb.disabled = true;
-          try {
-            await salvaStato(item.id, 'disponibile', false, null); // Annulla esecuzione: riporta a disponibile senza DJ
-            await refreshData();
-          } catch (error) {
-            cb.disabled = false;
-            cb.checked = false;
-            showListaMessage(container, `Errore aggiornamento stato: ${error.message}`, true);
-          }
-        });
-      }
+    const cbAnnulla = row.querySelector('.checkbox-annulla');
+    if (cbAnnulla) {
+      cbAnnulla.addEventListener('change', async () => {
+        cbAnnulla.disabled = true;
+        renderState.isUpdating = true;
+        try {
+          await salvaStato(item.id, 'disponibile', false, null);
+          await refreshData();
+        } catch (error) {
+          cbAnnulla.disabled = false;
+          cbAnnulla.checked = false;
+          showListaMessage(container, `Errore aggiornamento stato: ${error.message}`, true);
+        } finally {
+          renderState.isUpdating = false;
+        }
+      });
+    }
+
+    const cbPrenota = row.querySelector('.checkbox-prenota');
+    if (cbPrenota) {
+      cbPrenota.addEventListener('change', async () => {
+        cbPrenota.disabled = true;
+        renderState.isUpdating = true;
+        try {
+          await salvaStato(item.id, 'prenotato', false, getDJLocal());
+          await refreshData();
+        } catch (error) {
+          cbPrenota.disabled = false;
+          cbPrenota.checked = false;
+          showListaMessage(container, `Errore prenotazione: ${error.message}`, true);
+        } finally {
+          renderState.isUpdating = false;
+        }
+      });
     }
 
     container.appendChild(row);
@@ -136,8 +156,7 @@ function applySearchAndRender() {
   if (!container) return;
   renderState.visibleBrani = EventiState.searchBrani(renderState.allBrani, renderState.query);
   renderRows(container, renderState.visibleBrani, {
-    filtro: renderState.filtro,
-    interactive: renderState.filtro === 'prenotati' || renderState.filtro === 'spuntati'
+    filtro: renderState.filtro
   });
 }
 
@@ -172,7 +191,7 @@ function bindSearch() {
 function startPolling() {
   if (renderState.refreshTimer) clearInterval(renderState.refreshTimer);
   renderState.refreshTimer = setInterval(async () => {
-    if (!EventiState.shouldRefresh()) return;
+    if (renderState.isUpdating || !EventiState.shouldRefresh()) return;
     try {
       await refreshData();
     } catch (error) {

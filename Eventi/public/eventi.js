@@ -487,7 +487,11 @@ function renderRows(brani) {
       try {
         await salvaStato(brano.id, 'prenotato', false);
         await refreshPageData();
-        window.location.href = 'prenotati.html';
+        if (typeof window.goEventiPage === 'function') {
+          window.goEventiPage('prenotati.html');
+        } else {
+          window.location.href = 'prenotati.html';
+        }
       } catch (error) {
         checkbox.disabled = false;
         checkbox.checked = false;
