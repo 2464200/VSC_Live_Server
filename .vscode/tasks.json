@@ -208,7 +208,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "C:\\VSC_script_software\\Aggiorna-Sviluppo.ps1"
+        "${workspaceFolder}\\update-development-tools.ps1"
       ],
       "presentation": {
         "reveal": "always",
