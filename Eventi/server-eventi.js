@@ -91,7 +91,10 @@ function getLocalIP() {
   return 'localhost';
 }
 
-const PORT = process.env.EVENTI_PORT || 3010;
+const PORT = 5500;
+if (process.env.EVENTI_PORT && String(process.env.EVENTI_PORT) !== String(PORT)) {
+  console.warn(`EVENTI_PORT=${process.env.EVENTI_PORT} ignorata: il progetto usa esclusivamente la porta ${PORT}.`);
+}
 app.listen(PORT, 'localhost', () => {
   const localIP = getLocalIP();
   console.log('EVENTI server attivo su rete locale:');

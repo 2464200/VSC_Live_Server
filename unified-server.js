@@ -27,7 +27,11 @@ const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/se
 const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
 
 const app = express();
-let PORT = Number.isFinite(Number(process.env.UNIFIED_PORT)) ? Number(process.env.UNIFIED_PORT) : projectConfig.port;
+const CANONICAL_PROJECT_PORT = 5500;
+let PORT = CANONICAL_PROJECT_PORT;
+if (process.env.UNIFIED_PORT && String(process.env.UNIFIED_PORT) !== String(CANONICAL_PROJECT_PORT)) {
+    console.warn(`UNIFIED_PORT=${process.env.UNIFIED_PORT} ignorata: il progetto usa esclusivamente la porta ${CANONICAL_PROJECT_PORT}.`);
+}
 const SERVER_HOST = '0.0.0.0';
 const PDF_FOLDER = projectConfig.pdfFolder;
 const VIDEOCLIP_DIR = projectConfig.videoClipDir;

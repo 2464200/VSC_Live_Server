@@ -8,6 +8,9 @@
     if (!rawTarget) return 'eventi.html';
 
     const isFileProtocol = window.location.protocol === 'file:';
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const host = window.location.hostname || 'localhost';
+    const canonicalOrigin = `${protocol}//${host}:5500`;
 
     // Se la destinazione è un percorso assoluto (es. /Bordero/pages/bordero.html)
     if (rawTarget.startsWith('/')) {
@@ -17,16 +20,16 @@
         }
         return rawTarget.replace(/^\/+/, '');
       }
-      return `${window.location.origin}${rawTarget}`;
+      return `${canonicalOrigin}${rawTarget}`;
     }
 
     // Modalità file:// -> navigazione relativa diretta
     if (isFileProtocol) {
-      return rawTarget;
+      return `${canonicalOrigin}/eventi/${rawTarget.replace(/^\/+/, '')}`;
     }
 
-    // Modalità http / https
-    const origin = window.location.origin || `${window.location.protocol}//${window.location.host}`;
+    // Tutte le pagine del progetto devono passare dal server unificato su 5500.
+    const origin = canonicalOrigin;
     const pathname = window.location.pathname || '';
 
     let basePath = '/eventi/';

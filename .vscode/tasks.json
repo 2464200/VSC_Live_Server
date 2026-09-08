@@ -174,7 +174,7 @@
       "group": "test"
     },
     {
-      "label": "Git: Add Commit Push",
+      "label": "Git: ADD COMMIT PUSH",
       "type": "shell",
       "command": "powershell",
       "args": [
@@ -185,6 +185,30 @@
         "${workspaceFolder}\\git-quick-push.ps1",
         "-CommitMessage",
         "${input:gitCommitMessage}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Git: PULL",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$ErrorActionPreference = 'Stop'; $branch = (git branch --show-current).Trim(); if ([string]::IsNullOrWhiteSpace($branch)) { throw 'Impossibile determinare il branch corrente.' }; Write-Host \"Branch locale: $branch\"; git status --short --branch; git fetch origin; Write-Host \"Remote verificato: origin/$branch\"; $changes = @(git status --porcelain); if ($changes.Count -gt 0) { $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'; git stash push -u -m \"pre-pull $branch $stamp\"; Write-Host 'Modifiche locali salvate nello stash.' } else { Write-Host 'Nessuna modifica locale da salvare.' }; git pull --ff-only origin $branch; git status --short --branch; git log -1 --oneline --decorate"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

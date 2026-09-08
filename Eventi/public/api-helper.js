@@ -1,8 +1,7 @@
 const EVENTI_API_CANDIDATES = (() => {
   const protocol = window.location.protocol === 'file:' ? 'http:' : window.location.protocol || 'http:';
   const host = window.location.hostname || 'localhost';
-  const currentPort = window.location.port || '';
-  const currentOrigin = window.location.protocol === 'file:' ? null : `${protocol}//${host}${currentPort ? `:${currentPort}` : ''}`;
+  const canonicalOrigin = `${protocol}//${host}:5500`;
   const bases = [];
 
   function pushBase(base) {
@@ -11,16 +10,8 @@ const EVENTI_API_CANDIDATES = (() => {
     }
   }
 
-  // Priorità 1: L'origin corrente da cui la pagina è servita
-  if (currentOrigin) {
-    pushBase(`${currentOrigin}/eventi/api`);
-  }
-
-  if (window.location.protocol !== 'file:' && !currentPort) {
-    pushBase(`${protocol}//${host}/eventi/api`);
-  }
-
-  pushBase(`${protocol}//${host}:5500/eventi/api`);
+  // Priorità 1: server unificato canonico, sempre sulla porta 5500.
+  pushBase(`${canonicalOrigin}/eventi/api`);
   if (host !== 'localhost') {
     pushBase(`${protocol}//localhost:5500/eventi/api`);
   }
