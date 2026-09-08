@@ -753,6 +753,11 @@ class BorderoTableManager {
     document.getElementById('btn-export')?.addEventListener('click', () => this.exportSerataToSIAE());
     document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
+    document.getElementById('btn-print-coreografie')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      const target = event.currentTarget.dataset.printCoreografieUrl || 'coreografie-stampa.html';
+      window.location.assign(new URL(target, window.location.href).href);
+    });
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
     document.getElementById('btn-webcam-live-toggle')?.addEventListener('click', () => {
       const button = document.getElementById('btn-webcam-live-toggle');
