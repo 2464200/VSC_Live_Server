@@ -69,10 +69,14 @@ function testEndpoint(test) {
 
 async function runPortTests() {
     const active = await request({ name: 'Canonical port 5500', url: `${BASE_URL}/api/health` });
-    const legacy = await request({ name: 'Legacy port 5501 disabled', url: 'http://localhost:5501/api/status' });
+    const legacy = await request({ name: 'Legacy port 5501 has no unified API', url: 'http://localhost:5501/api/status' });
     return [
         { ...active, success: active.status === 200 },
-        { ...legacy, success: legacy.status === null, status: legacy.status === null ? 'closed' : legacy.status }
+        {
+            ...legacy,
+            success: legacy.status === null || legacy.status === 404,
+            status: legacy.status === null ? 'closed' : legacy.status
+        }
     ];
 }
 

@@ -633,7 +633,7 @@ let sseRetryCount = 0;
 let sseLastError = null;
 let sseReconnectTimer = null;
 
-function startEventiStream() {
+async function startEventiStream() {
   if (typeof EventSource === 'undefined') {
     console.warn('EventSource non supportato dal browser; usiamo polling');
     if (SSE_CLIENT_CONFIG.enablePollingFallback) {
@@ -651,7 +651,7 @@ function startEventiStream() {
     pageState.eventSource = null;
   }
 
-  const url = `/eventi/api/stream?ts=${Date.now()}`;
+  const url = await apiUrl(`/stream?ts=${Date.now()}`);
   console.log(`🔌 Connessione SSE a: ${url}`);
   
   const source = new EventSource(url);

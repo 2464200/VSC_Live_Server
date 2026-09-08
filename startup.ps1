@@ -14,6 +14,7 @@ Write-Host ""
 
 $RootPath = $PSScriptRoot
 $UnifiedPort = 5500
+$UnifiedPorts = @(5500, 5501, 5502)
 $PidDir = Join-Path $RootPath 'pids'
 $PidFile = Join-Path $PidDir 'startup-pids.json'
 $LogsDir = Join-Path $RootPath 'logs'
@@ -332,8 +333,9 @@ function Start-UnifiedServer {
 
         Write-Host "OK Unified Server avviato (PID: $($proc.Id))"
 
-        if (-not (Wait-ForPort -Port $UnifiedPort -TimeoutSeconds 15)) {
-            Write-Host "ERRORE FATALE: Unified Server non risponde sulla porta $UnifiedPort" -ForegroundColor Red
+        $activePort = Find-ActiveUnifiedPort -PortWaitSeconds 15
+        if (-not $activePort) {
+            Write-Host "ERRORE FATALE: Unified Server non risponde sulle porte $($UnifiedPorts -join ', ')" -ForegroundColor Red
             Write-Host "  Log stdout: $stdoutLog"
             Write-Host "  Log stderr: $stderrLog"
             try {
@@ -343,12 +345,13 @@ function Start-UnifiedServer {
             exit 1
         }
 
+        $script:UnifiedPort = $activePort
+
         Write-Host "  Verifico API Unified ed Eventi..."
-        $healthUri = "http://localhost:$($UnifiedPort)/api/health"
-        $eventiPingUri = "http://localhost:$($UnifiedPort)/eventi/api/ping"
-        if (-not (Wait-ForHttpEndpoint -Uri $healthUri -TimeoutSeconds 15) -or -not (Wait-ForHttpEndpoint -Uri $eventiPingUri -TimeoutSeconds 15)) {
-            Write-Host "ERRORE FATALE: la porta $UnifiedPort e occupata da un servizio diverso dal server unificato." -ForegroundColor Red
-            Write-Host "  Arresta Live Server o l'altro servizio sulla porta $UnifiedPort, quindi riavvia il task."
+        $healthUri = "http://127.0.0.1:$($activePort)/api/health"
+        $eventiPingUri = "http://127.0.0.1:$($activePort)/eventi/api/ping"
+        if (-not (Test-HttpEndpoint -Uri $healthUri -TimeoutSeconds 3) -or -not (Test-HttpEndpoint -Uri $eventiPingUri -TimeoutSeconds 3)) {
+            Write-Host "ERRORE FATALE: la porta $activePort non risponde alle API del server unificato." -ForegroundColor Red
             Write-Host "  Log stdout: $stdoutLog"
             Write-Host "  Log stderr: $stderrLog"
             try {
@@ -391,6 +394,35 @@ function Invoke-WebcamProfiling {
     }
 }
 
+function Find-ActiveUnifiedPort {
+    param(
+        [int]$PortWaitSeconds = 0
+    )
+
+    foreach ($port in $UnifiedPorts) {
+        $healthUri = "http://127.0.0.1:$port/api/health"
+        $eventiPingUri = "http://127.0.0.1:$port/eventi/api/ping"
+        $healthReady = if ($PortWaitSeconds -gt 0) {
+            Wait-ForHttpEndpoint -Uri $healthUri -TimeoutSeconds $PortWaitSeconds
+        } else {
+            Test-HttpEndpoint -Uri $healthUri -TimeoutSeconds 2
+        }
+        $eventiReady = if ($healthReady -and $PortWaitSeconds -gt 0) {
+            Wait-ForHttpEndpoint -Uri $eventiPingUri -TimeoutSeconds $PortWaitSeconds
+        } elseif ($healthReady) {
+            Test-HttpEndpoint -Uri $eventiPingUri -TimeoutSeconds 2
+        } else {
+            $false
+        }
+
+        if ($healthReady -and $eventiReady) {
+            return [int]$port
+        }
+    }
+
+    return $null
+}
+
 try {
     $nodeVersion = & node --version 2>$null
     if (-not $nodeVersion) {
@@ -408,8 +440,10 @@ Write-Host ""
 
 $startedPids = @()
 
-# Verifica che la porta 5500 sia realmente servita dall'applicazione unificata, incluse le API Eventi.
-if ((Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/") -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/api/health" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/led-display/" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/eventi/eventi.html" -TimeoutSeconds 2) -and (Test-HttpEndpoint -Uri "http://localhost:$($UnifiedPort)/eventi/api/ping" -TimeoutSeconds 2)) {
+# Verifica che una porta supportata sia realmente servita dall'applicazione unificata, incluse le API Eventi.
+$existingPort = Find-ActiveUnifiedPort
+if ($existingPort) {
+    $UnifiedPort = $existingPort
     Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
     Write-Host ""
     Write-Host "Generazione dati report..."

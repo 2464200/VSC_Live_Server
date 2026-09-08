@@ -12,7 +12,7 @@
     const hostname = rawHost === '127.0.0.1' ? 'localhost' : rawHost;
     const port = window.location.port;
 
-    const targetPort = port === '5500' ? port : '5500';
+    const targetPort = ['5500', '5501', '5502'].includes(port) ? port : '5500';
     const portPart = targetPort ? `:${targetPort}` : '';
     return `${protocol}//${hostname}${portPart}/eventi/eventi.html`;
   }

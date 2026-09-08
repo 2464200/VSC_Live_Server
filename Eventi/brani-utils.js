@@ -265,7 +265,18 @@ function saveBraniJson(brani, jsonPath = BRANI_JSON_PATH) {
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
-  fs.writeFileSync(jsonPath, JSON.stringify(brani, null, 2), 'utf-8');
+
+  const nextContent = JSON.stringify(brani, null, 2);
+  try {
+    if (fs.readFileSync(jsonPath, 'utf-8') === nextContent) {
+      return false;
+    }
+  } catch (_) {
+    // Il file non esiste ancora oppure non è leggibile: verrà creato sotto.
+  }
+
+  fs.writeFileSync(jsonPath, nextContent, 'utf-8');
+  return true;
 }
 
 function ensureExtraCsvFile() {

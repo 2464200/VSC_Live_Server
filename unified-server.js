@@ -28,10 +28,14 @@ const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
 
 const app = express();
 const CANONICAL_PROJECT_PORT = 5500;
-let PORT = CANONICAL_PROJECT_PORT;
-if (process.env.UNIFIED_PORT && String(process.env.UNIFIED_PORT) !== String(CANONICAL_PROJECT_PORT)) {
-    console.warn(`UNIFIED_PORT=${process.env.UNIFIED_PORT} ignorata: il progetto usa esclusivamente la porta ${CANONICAL_PROJECT_PORT}.`);
-}
+const PROJECT_FALLBACK_PORTS = [5501, 5502];
+const configuredPort = Number(process.env.UNIFIED_PORT);
+const SERVER_PORT_CANDIDATES = [
+    Number.isInteger(configuredPort) && configuredPort > 0 ? configuredPort : CANONICAL_PROJECT_PORT,
+    CANONICAL_PROJECT_PORT,
+    ...PROJECT_FALLBACK_PORTS
+].filter((port, index, ports) => ports.indexOf(port) === index);
+let PORT = SERVER_PORT_CANDIDATES[0];
 const SERVER_HOST = '0.0.0.0';
 const PDF_FOLDER = projectConfig.pdfFolder;
 const VIDEOCLIP_DIR = projectConfig.videoClipDir;
@@ -5263,11 +5267,31 @@ function startServer(port) {
     });
 }
 
-startServer(PORT).catch((err) => {
-    console.error('❌ Impossibile avviare il server:', err.message);
-    if (err.code === 'EADDRINUSE') {
-        console.error(`   La porta ${PORT} è già in uso. Chiudi il servizio in conflitto: il progetto richiede esclusivamente questa porta.`);
+async function startServerWithFallback() {
+    let lastError = null;
+
+    for (const candidatePort of SERVER_PORT_CANDIDATES) {
+        try {
+            await startServer(candidatePort);
+            if (candidatePort !== CANONICAL_PROJECT_PORT) {
+                console.warn(`⚠️ Porta primaria ${CANONICAL_PROJECT_PORT} non disponibile: server unificato avviato sulla porta fallback ${candidatePort}.`);
+            }
+            return;
+        } catch (error) {
+            lastError = error;
+            if (error.code !== 'EADDRINUSE') {
+                throw error;
+            }
+            console.warn(`⚠️ Porta ${candidatePort} occupata: provo la porta successiva.`);
+        }
     }
+
+    throw lastError || new Error('Nessuna porta del server unificato disponibile');
+}
+
+startServerWithFallback().catch((err) => {
+    console.error('❌ Impossibile avviare il server:', err.message);
+    console.error(`   Porte tentate: ${SERVER_PORT_CANDIDATES.join(', ')}`);
     process.exit(1);
 });
 

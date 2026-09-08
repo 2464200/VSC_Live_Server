@@ -143,7 +143,35 @@
             : `${protocol}//${host}:${CANONICAL_PROJECT_PORT}`;
     }
 
-    const DIAGNOSTICA_BASE_URL = getDiagnosticaBaseUrl();
+    let DIAGNOSTICA_BASE_URL = getDiagnosticaBaseUrl();
+
+    async function resolveDiagnosticaBaseUrl() {
+        const protocol = window.location.protocol === "file:" ? "http:" : (window.location.protocol || "http:");
+        const host = window.location.hostname || "127.0.0.1";
+        const currentOrigin = window.location.origin && window.location.origin !== "null"
+            ? window.location.origin
+            : `${protocol}//${host}:5500`;
+        const candidates = [currentOrigin, 5500, 5501, 5502]
+            .map(value => typeof value === "number" ? `${protocol}//${host}:${value}` : value)
+            .filter((value, index, values) => values.indexOf(value) === index);
+
+        for (const candidate of candidates) {
+            try {
+                const response = await fetch(`${candidate}/api/health`, { cache: "no-store" });
+                const data = await response.json();
+                if (response.ok && data && data.server === "unified-server") {
+                    DIAGNOSTICA_BASE_URL = candidate;
+                    return candidate;
+                }
+            } catch (error) {
+                // Prova la porta successiva.
+            }
+        }
+
+        return DIAGNOSTICA_BASE_URL;
+    }
+
+    resolveDiagnosticaBaseUrl();
 
     function resetTests() {
         resultsDiv.innerHTML = "";

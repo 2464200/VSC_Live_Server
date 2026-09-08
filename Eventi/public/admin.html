@@ -444,10 +444,15 @@ async function verifyPassword(actionType) {
 
 // Fallback eventiFetch se api-helper.js non è caricato
 window.eventiFetch = window.eventiFetch || async function(path, options = {}) {
-  const bases = [
-    'http://localhost:5500/eventi/api',
-    'http://localhost:5500/eventi/api'
-  ];
+  const protocol = window.location.protocol === 'file:' ? 'http:' : (window.location.protocol || 'http:');
+  const host = window.location.hostname || 'localhost';
+  const currentOrigin = window.location.origin && window.location.origin !== 'null'
+    ? window.location.origin
+    : `${protocol}//${host}:5500`;
+  const bases = [currentOrigin, 5500, 5501, 5502]
+    .map(value => typeof value === 'number' ? `${protocol}//${host}:${value}` : value)
+    .map(origin => `${origin}/eventi/api`)
+    .filter((value, index, values) => values.indexOf(value) === index);
   let lastError = null;
   for (const base of bases) {
     try {

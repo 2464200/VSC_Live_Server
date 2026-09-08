@@ -174,11 +174,28 @@
       try {
         const protocol = window.location.protocol || 'http:';
         const host = window.location.hostname || '127.0.0.1';
-        const apiOrigin = `${protocol}//${host}:5500`;
-
-        const response = await fetch(`${apiOrigin}/eventi/api/qr?ts=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) throw new Error('Impossibile recuperare il QR dal server');
-        const data = await response.json();
+        const currentOrigin = window.location.origin && window.location.origin !== 'null'
+          ? window.location.origin
+          : `${protocol}//${host}:5500`;
+        const apiOrigins = [currentOrigin, 5500, 5501, 5502]
+          .map(value => typeof value === 'number' ? `${protocol}//${host}:${value}` : value)
+          .filter((value, index, values) => values.indexOf(value) === index);
+        let data = null;
+        let lastError = null;
+        for (const apiOrigin of apiOrigins) {
+          try {
+            const response = await fetch(`${apiOrigin}/eventi/api/qr?ts=${Date.now()}`, { cache: 'no-store' });
+            if (!response.ok) {
+              lastError = new Error(`HTTP ${response.status}`);
+              continue;
+            }
+            data = await response.json();
+            break;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        if (!data) throw lastError || new Error('Impossibile recuperare il QR dal server');
         if (!data.ok || !data.url || !data.dataUrl) {
           throw new Error(data.error || 'Risposta API non valida');
         }

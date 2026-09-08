@@ -15,13 +15,19 @@ const EVENTI_API_CANDIDATES = (() => {
 
   // Prima prova il server che ha servito la pagina: supporta lo standalone EVENTI.
   pushBase(`${currentOrigin}/eventi/api`);
-  // Fallback al server unificato canonico sulla porta 5500.
-  pushBase(`${canonicalOrigin}/eventi/api`);
+  // Poi prova la porta primaria e le porte fallback del server unificato.
+  [5500, 5501, 5502].forEach(port => {
+    pushBase(`${protocol}//${host}:${port}/eventi/api`);
+  });
   if (host !== 'localhost') {
-    pushBase(`${protocol}//localhost:5500/eventi/api`);
+    [5500, 5501, 5502].forEach(port => {
+      pushBase(`${protocol}//localhost:${port}/eventi/api`);
+    });
   }
   if (host !== '127.0.0.1') {
-    pushBase(`${protocol}//127.0.0.1:5500/eventi/api`);
+    [5500, 5501, 5502].forEach(port => {
+      pushBase(`${protocol}//127.0.0.1:${port}/eventi/api`);
+    });
   }
 
   return bases;

@@ -64,6 +64,14 @@ http://<IP-del-server>:5501/eventi/eventi.html
 
 La pagina prova prima le API sulla propria origine (`5501`) e usa `5500` come fallback. Non avviare contemporaneamente lo standalone e il modulo EVENTI del server unificato se entrambi devono scrivere gli stessi dati durante un evento.
 
+### Fallback automatico del server unificato
+
+All'avvio, `unified-server.js` tenta in ordine `5500`, `5501` e `5502`. La prima è sempre la porta primaria; le altre vengono usate solo se la precedente è occupata. Il messaggio `Server: ...` della console e il QR Eventi indicano la porta realmente attiva. Se `5501` è occupata da Live Server, il fallback backend passa automaticamente a `5502`.
+
+### Live Server di VS Code su 5501
+
+Se `5501` è occupata da Live Server, non avviare anche `eventi:standalone`. È possibile aprire la pagina statica da Live Server, ad esempio `http://localhost:5501/Eventi/public/eventi.html`: le API vengono risolte sul server unificato `5500` e i dati non vengono riscritti durante il polling, evitando il refresh continuo delle pagine.
+
 ---
 
 ## Configurazione router / rete Wi-Fi locale
