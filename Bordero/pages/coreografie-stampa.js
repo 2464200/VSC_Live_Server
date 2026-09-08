@@ -1,3 +1,8 @@
+const EXCLUDED_COREOGRAFIE_TITLES = new Set([
+  'video promo monster 2023',
+  'audio video tester'
+]);
+
 class CoreografieStampaPage {
   constructor() {
     this.settingsStorageKey = 'bordero_coreografie_stampa_settings';
@@ -65,6 +70,7 @@ class CoreografieStampaPage {
     const modeInput = document.querySelector(`input[name="eventMode"][value="${this.escape(mode)}"]`);
     if (modeInput) modeInput.checked = true;
     document.getElementById('include-cover').checked = saved?.includeCover ?? true;
+    document.getElementById('include-coreografie-count').checked = saved?.includeCoreografieCount ?? true;
     document.getElementById('duplex-print').checked = saved?.duplex ?? false;
     document.getElementById('number-pages').checked = saved?.numberPages ?? false;
   }
@@ -107,6 +113,7 @@ class CoreografieStampaPage {
       columnLabels: Array.from({ length: count }, (_, index) => String(formData.get(`column-${index}`) || '').trim()),
       letterFilter: String(formData.get('letterFilter') || 'ALL'),
       includeCover: document.getElementById('include-cover').checked,
+      includeCoreografieCount: document.getElementById('include-coreografie-count').checked,
       duplex: document.getElementById('duplex-print').checked,
       numberPages: document.getElementById('number-pages').checked,
     };
@@ -147,6 +154,7 @@ class CoreografieStampaPage {
     const selectedGroups = Object.entries(groups)
       .filter(([initial]) => settings.letterFilter === 'ALL' || initial === settings.letterFilter);
     const groupCount = Object.values(groups).filter((entries) => entries.length).length;
+    const selectedCount = selectedGroups.reduce((total, [, entries]) => total + entries.length, 0);
     const eventName = this.escape(settings.eventName || 'Evento Monster Country Group');
     const eventDate = this.escape(this.formatDate(settings.date));
     this.nextPrintPageNumber = settings.includeCover ? 2 : 1;
@@ -159,6 +167,7 @@ class CoreografieStampaPage {
           <div class="cover-event-date">${eventDate}</div>
           <div class="cover-event-detail">DJ: ${this.escape(settings.djs || 'Nessun DJ selezionato')}</div>
           ${settings.place ? `<div class="cover-event-detail">${this.escape(settings.place)}</div>` : ''}
+          ${settings.includeCoreografieCount ? `<div class="cover-event-detail">Coreografie negli elenchi: ${selectedCount}</div>` : ''}
         </div>
         ${this.pageNumberMarkup(1)}
       </section>
@@ -173,7 +182,6 @@ class CoreografieStampaPage {
     `;
 
     const duplexMessage = this.settings.duplex ? ' · fronte/retro selezionato nel documento' : '';
-    const selectedCount = selectedGroups.reduce((total, [, entries]) => total + entries.length, 0);
     const selectedLabel = settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`;
     document.getElementById('print-status').textContent = `${selectedCount} coreografie in ${selectedLabel}${duplexMessage}`;
   }
@@ -190,6 +198,7 @@ class CoreografieStampaPage {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, ' ')
         .toLocaleLowerCase('it-IT');
+      if (EXCLUDED_COREOGRAFIE_TITLES.has(titleKey)) return;
       if (seenTitles.has(titleKey)) return;
       seenTitles.add(titleKey);
       const first = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase();
