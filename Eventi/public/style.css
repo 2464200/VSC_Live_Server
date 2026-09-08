@@ -254,6 +254,28 @@ button:hover {
   box-shadow: 0 6px 12px rgba(20, 33, 43, 0.05);
 }
 
+.nav .eventi-button,
+.extra-coreo-actions .eventi-button {
+  display: inline-block;
+  background: #10253b;
+  color: #fff;
+  padding: 11px 14px;
+  margin: 0 2px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: normal;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(20, 33, 43, 0.05);
+  text-decoration: none;
+}
+
+.nav .eventi-button:hover,
+.extra-coreo-actions .eventi-button:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
 .nav .attention-pulse-button {
   background: linear-gradient(180deg, #ff9d33 0%, #ff7f00 100%);
   color: #122131;
