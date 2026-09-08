@@ -14,6 +14,7 @@
     "sync:public": "node scripts/sync-public.js",
     "deploy:firebase": "node scripts/sync-public.js && firebase deploy --only hosting",
     "eventi": "npm run build:brani && node unified-server.js",
+    "eventi:standalone": "npm run build:brani && node Eventi/server-eventi.js",
     "eventi:legacy": "npm run build:brani && node Eventi/server-eventi.js",
     "start:portable": "node scripts/start-portable.js"
   },

@@ -48,6 +48,22 @@ Dovresti vedere in console qualcosa come:
 - `ðŸ“ Rete: http://<IP-del-server>:5500`
 - `ðŸ“Œ Eventi: http://<IP-del-server>:5500/eventi/eventi.html`
 
+### Modalita standalone opzionale su 5501
+
+Il percorso consigliato resta `5500`, perché il server unificato gestisce anche Bordero, PDF e le API condivise. Se Live Server o un altro servizio deve mantenere la porta `5501`, EVENTI può essere isolato su quella porta:
+
+```powershell
+npm run eventi:standalone
+```
+
+In questa modalità EVENTI ascolta su tutte le interfacce di rete e l'indirizzo per i DJ è:
+
+```text
+http://<IP-del-server>:5501/eventi/eventi.html
+```
+
+La pagina prova prima le API sulla propria origine (`5501`) e usa `5500` come fallback. Non avviare contemporaneamente lo standalone e il modulo EVENTI del server unificato se entrambi devono scrivere gli stessi dati durante un evento.
+
 ---
 
 ## Configurazione router / rete Wi-Fi locale

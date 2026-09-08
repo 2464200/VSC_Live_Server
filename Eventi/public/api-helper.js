@@ -1,6 +1,9 @@
 const EVENTI_API_CANDIDATES = (() => {
   const protocol = window.location.protocol === 'file:' ? 'http:' : window.location.protocol || 'http:';
   const host = window.location.hostname || 'localhost';
+  const currentOrigin = window.location.origin && window.location.origin !== 'null'
+    ? window.location.origin
+    : `${protocol}//${host}:5500`;
   const canonicalOrigin = `${protocol}//${host}:5500`;
   const bases = [];
 
@@ -10,7 +13,9 @@ const EVENTI_API_CANDIDATES = (() => {
     }
   }
 
-  // Priorità 1: server unificato canonico, sempre sulla porta 5500.
+  // Prima prova il server che ha servito la pagina: supporta lo standalone EVENTI.
+  pushBase(`${currentOrigin}/eventi/api`);
+  // Fallback al server unificato canonico sulla porta 5500.
   pushBase(`${canonicalOrigin}/eventi/api`);
   if (host !== 'localhost') {
     pushBase(`${protocol}//localhost:5500/eventi/api`);

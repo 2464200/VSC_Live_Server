@@ -28,9 +28,15 @@
       return `${canonicalOrigin}/eventi/${rawTarget.replace(/^\/+/, '')}`;
     }
 
-    // Tutte le pagine del progetto devono passare dal server unificato su 5500.
-    const origin = canonicalOrigin;
     const pathname = window.location.pathname || '';
+    // Mantieni EVENTI sul server che ha servito la pagina, inclusa la modalità standalone.
+    // I percorsi assoluti del progetto (gestiti sopra) continuano a usare 5500.
+    const currentOrigin = window.location.origin && window.location.origin !== 'null'
+      ? window.location.origin
+      : canonicalOrigin;
+    const origin = pathname.toLowerCase().startsWith('/eventi/')
+      ? currentOrigin
+      : canonicalOrigin;
 
     let basePath = '/eventi/';
     if (pathname.includes('/Eventi/public/')) {
