@@ -34,5 +34,11 @@
     "stato": "disponibile",
     "timestamp": "2026-09-08T11:59:01.264Z",
     "dj": null
+  },
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-09-08T22:36:00.477Z",
+    "dj": "DJ Lucas Berry"
   }
 ]
