@@ -56,6 +56,23 @@
     window.location.href = buildEventiPageUrl(page);
   }
 
+  function bindLegacyNavigationButtons() {
+    document.addEventListener('click', event => {
+      const element = event.target.closest('[onclick*="goEventiPage"]');
+      if (!element) return;
+
+      const handler = element.getAttribute('onclick') || '';
+      const match = handler.match(/goEventiPage\(\s*['"]([^'"]+)['"]\s*\)/);
+      if (!match) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      goEventiPage(match[1]);
+    }, true);
+  }
+
+  bindLegacyNavigationButtons();
+
   window.EventiNavigation = {
     buildEventiPageUrl,
     goEventiPage
