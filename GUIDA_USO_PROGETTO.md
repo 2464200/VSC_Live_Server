@@ -17,7 +17,7 @@ VS Code Live Server puo' essere usato solo facoltativamente per anteprime static
   - serve il modulo Eventi su `/eventi`
   - serve API Eventi su `/eventi/api`
   - è il runtime standard del progetto
-- `5501` → Live Server / anteprima editor
+- `5503` → Live Server / anteprima editor
   - usato solo per preview statiche in VS Code
   - non è il runtime del progetto
 - `5512` → controllo Electron
@@ -91,7 +91,7 @@ Flusso consigliato in caso di assenza connessione:
 
 - `http://localhost:5500/eventi/eventi.html` deve rispondere con `200`
 - `http://localhost:5500/eventi/api/ping` deve rispondere con `200`
-- se Live Server viene avviato, deve ascoltare su `5501`
+- se Live Server viene avviato, deve ascoltare su `5503`
 
 ## Workflow Git (main/develop)
 
@@ -155,7 +155,7 @@ Get-NetTCPConnection -LocalPort 5500 | Select-Object -ExpandProperty OwningProce
   - `http://localhost:5500/eventi/eventi.html`
   - `http://localhost:5500/eventi/visualizer.html`
 - Se le macro usano URL locali con `127.0.0.1` o `localhost`, va bene, purché la porta sia `5500`
-- Se le macro aprono pagine di anteprima statica, allora Live Server su `5501` può essere usato per test rapidi, ma non per il funzionamento finale delle API Eventi
+- Se le macro aprono pagine di anteprima statica, allora Live Server su `5503` può essere usato per test rapidi, ma non per il funzionamento finale delle API Eventi
 
 ## Note utili
 

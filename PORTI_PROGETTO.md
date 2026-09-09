@@ -14,7 +14,7 @@ Questo file raccoglie lo schema aggiornato delle porte usate dal progetto, così
   - http://localhost:5500/eventi/eventi.html
   - http://localhost:5500/api/health
 
-### 5501 — Live Server / anteprima editor
+### 5503 — Live Server / anteprima editor
 - Usato per preview statiche in VS Code
 - Non è il runtime principale del progetto
 - Impostato in `.vscode/settings.json`
@@ -46,7 +46,7 @@ Queste erano relative al vecchio setup multi-server e sono da considerarsi stori
 - `electron/main.js`
   - controllo Electron: 5512
 - `.vscode/settings.json`
-  - Live Server: 5501
+  - Live Server: 5503
 
 ## Nota importante
 

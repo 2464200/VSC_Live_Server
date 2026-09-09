@@ -37,7 +37,7 @@ Il flusso standard utilizza ora un singolo server unificato o, in caso di test l
 - `5500` → `unified-server.js` (runtime principale)
   - serve la root del progetto, Borderò, Eventi e le API shared
   - URL principali: `http://localhost:5500/index.html`, `http://localhost:5500/Bordero/pages/bordero.html`, `http://localhost:5500/eventi/eventi.html`
-- `5501` → Live Server / anteprima editor
+- `5503` → Live Server / anteprima editor
   - usato solo per preview statiche in VS Code
   - non è il runtime principale del progetto
 - `5512` → controllo Electron
