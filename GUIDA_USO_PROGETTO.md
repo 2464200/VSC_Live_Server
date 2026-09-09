@@ -10,10 +10,25 @@ VS Code Live Server puo' essere usato solo facoltativamente per anteprime static
 
 ## Server e porte
 
+### Schema delle porte attive
+
 - `5500` → `unified-server.js`
   - serve file statici dalla root del progetto
   - serve il modulo Eventi su `/eventi`
   - serve API Eventi su `/eventi/api`
+  - è il runtime standard del progetto
+- `5501` → Live Server / anteprima editor
+  - usato solo per preview statiche in VS Code
+  - non è il runtime del progetto
+- `5512` → controllo Electron
+  - usata da `electron/main.js` per i comandi di controllo del launcher Electron
+- `4212` → controllo remoto VLC
+  - usata da `unified-server.js` per i comandi di controllo VLC sul monitor secondario
+
+### Porte legacy / storiche
+
+- `3000`, `3010`, `8765` sono riferimenti storici del vecchio setup multi-server
+- il flusso attuale standard è sempre `unified-server.js` su `5500`
 
 ## Come avviare il progetto reale
 

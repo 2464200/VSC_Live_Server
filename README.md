@@ -32,6 +32,24 @@ Il progetto si basa su un unico punto di riferimento per la documentazione: ques
 
 Il flusso standard utilizza ora un singolo server unificato o, in caso di test locali, un server statico semplice.
 
+### Schema delle porte attive
+
+- `5500` → `unified-server.js` (runtime principale)
+  - serve la root del progetto, Borderò, Eventi e le API shared
+  - URL principali: `http://localhost:5500/index.html`, `http://localhost:5500/Bordero/pages/bordero.html`, `http://localhost:5500/eventi/eventi.html`
+- `5501` → Live Server / anteprima editor
+  - usato solo per preview statiche in VS Code
+  - non è il runtime principale del progetto
+- `5512` → controllo Electron
+  - porta interna usata da `electron/main.js` per il controllo del launcher Electron
+- `4212` → controllo remoto VLC
+  - porta usata dall'API VLC di `unified-server.js` per il monitor secondario
+
+### Porte legacy / storiche
+
+- `3000`, `3010`, `8765` sono riferimenti storici del vecchio setup multi-server
+- non fanno parte del flusso standard attuale, che usa `unified-server.js` su `5500`
+
 - Portale principale: `http://localhost:5500/index.html`
 - Borderò principale: `http://localhost:5500/Bordero/pages/bordero.html`
 - API Borderò: `http://localhost:5500/api/health`
