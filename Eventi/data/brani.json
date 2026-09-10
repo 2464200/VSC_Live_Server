@@ -4584,14 +4584,6 @@
     "durata": ""
   },
   {
-    "id": "EXTRA1",
-    "titolo": "Big",
-    "brano": "Big",
-    "autore": "Trace Adkins",
-    "compositore": "",
-    "durata": ""
-  },
-  {
     "id": "EXTRA2",
     "titolo": "Kind of Love",
     "brano": "What Kind of Love Are You On",
@@ -4608,15 +4600,15 @@
     "durata": ""
   },
   {
-    "id": "EXTRA1788814098387",
-    "titolo": "Stomp 2-3-4",
-    "brano": "Stomp 2-3-4",
+    "id": "EXTRA4",
+    "titolo": "Stomp 2 3 4",
+    "brano": "Stomp 2 3 4",
     "autore": "2341 Studios",
     "compositore": "",
     "durata": ""
   },
   {
-    "id": "EXTRA1788814321187",
+    "id": "EXTRA5",
     "titolo": "Wild West & Wicked",
     "brano": "Wild West & Wicked",
     "autore": "DJTEXX",
