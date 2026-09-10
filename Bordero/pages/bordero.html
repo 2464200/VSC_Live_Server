@@ -120,6 +120,9 @@
         <button id="btn-sort-richieste" class="btn btn-sort" title="Ordina per richieste">
           ORDINA PER RICHIESTE
         </button>
+        <button id="btn-move-executed-bottom" class="btn btn-sort btn-success" title="Sposta tutti i brani eseguiti in fondo alla lista">
+          SPOSTA IN FONDO GLI ESEGUITI
+        </button>
         <button id="btn-view-executed" class="btn btn-sort btn-success" title="Visualizza i brani già eseguiti">
           BRANI ESEGUITI
         </button>
@@ -202,12 +205,6 @@
         <button id="btn-sync-richieste-google" class="btn btn-secondary" title="Sincronizza i dati RICHIESTE da Google Sheet (Accoda 8+12)">
           🔄 SYNC RICHIESTE GOOGLE
         </button>
-        <button id="btn-publish-logo" class="btn btn-primary" title="Scegli e pubblica un logo sul monitor secondario">
-          PUBBLICA LOGO
-        </button>
-        <button id="btn-stop-logo" class="btn btn-secondary" title="Chiude il logo e ripristina il display sul monitor secondario">
-          STOPPA LOGO
-        </button>
         <button id="btn-print" class="btn btn-secondary" title="Stampa tabella">
           🖨️ STAMPA
         </button>
@@ -256,6 +253,10 @@
         <button id="btn-reset-filters-stats" class="btn btn-secondary" title="Resetta tutti i filtri e ordina per ID crescente">
           RESET FILTRI + ID ↑
         </button>
+      </div>
+      <div class="stat-badge stat-mode" role="status" aria-live="polite">
+        <span class="stat-label">Eseguiti in fondo:</span>
+        <span class="stat-value stat-value-mode mode-off" id="stat-executed-bottom-mode">OFF</span>
       </div>
     </section>
 
