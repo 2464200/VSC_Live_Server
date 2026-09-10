@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-09-10T06:32:48.800Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "009",
+    "stato": "prenotato",
+    "timestamp": "2026-09-10T06:32:49.997Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "009",
+    "stato": "disponibile",
+    "timestamp": "2026-09-10T06:34:11.832Z",
+    "dj": null
+  },
+  {
+    "id": "008",
+    "stato": "disponibile",
+    "timestamp": "2026-09-10T06:34:12.897Z",
+    "dj": null
+  }
+]
