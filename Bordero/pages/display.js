@@ -36,10 +36,15 @@ class DisplayMonitor {
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
+    this.lastNextCoreoAnnouncementTimestamp = null;
+    this.nextCoreoAnnouncementTimer = null;
+    this.nextCoreoDisplaySuppressed = false;
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
     this.screenDetailsListenerAttached = false;
+    this.logoCommandStorageKey = 'BORDERO_LOGO_COMMAND';
+    this.lastHandledLogoCommandTs = 0;
 
     this.init();
   }
@@ -60,10 +65,11 @@ class DisplayMonitor {
       this.refresh();
 
       this.setupControls();
+      this.setupLogoCommandSync();
       this.setupDateTimeClock();
       this.setupNextCoreoSync();
-      this.loadNextCoreo();
-      this.nextCoreoInterval = setInterval(() => this.loadNextCoreo(), 30000);
+      this.loadNextCoreo({ initialize: true });
+      this.nextCoreoInterval = setInterval(() => this.loadNextCoreo({ announce: true }), 1000);
 
       // Deve restare sul monitor secondario (best effort con fallback UX)
       await this.setupSecondaryMonitorGuard();
@@ -118,6 +124,45 @@ class DisplayMonitor {
     this.scrollSpeedPxPerStep = Number.isFinite(stepPx) ? Math.min(5, Math.max(1, stepPx)) : defaults.stepPx;
     this.scrollLastStepTime = 0;
     this.scrollPauseUntil = 0;
+  }
+
+  setupLogoCommandSync() {
+    this.applyLogoCommand();
+    window.addEventListener('storage', (event) => {
+      if (event.key === this.logoCommandStorageKey) {
+        this.applyLogoCommand();
+      }
+    });
+  }
+
+  applyLogoCommand() {
+    let command;
+    try {
+      command = JSON.parse(localStorage.getItem(this.logoCommandStorageKey) || 'null');
+    } catch (error) {
+      return;
+    }
+
+    if (!command || Number(command.ts) <= this.lastHandledLogoCommandTs) {
+      return;
+    }
+
+    this.lastHandledLogoCommandTs = Number(command.ts);
+    const overlay = document.getElementById('logo-overlay');
+    const image = document.getElementById('logo-overlay-image');
+    if (!overlay || !image) {
+      return;
+    }
+
+    if (command.action === 'publish' && command.logo?.dataUrl) {
+      image.src = command.logo.dataUrl;
+      overlay.hidden = false;
+      overlay.setAttribute('aria-hidden', 'false');
+    } else if (command.action === 'stop') {
+      image.removeAttribute('src');
+      overlay.hidden = true;
+      overlay.setAttribute('aria-hidden', 'true');
+    }
   }
 
   /**
@@ -686,25 +731,77 @@ class DisplayMonitor {
   setupNextCoreoSync() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
-      this.loadNextCoreo();
+      if (event.newValue === null) {
+        this.nextCoreoDisplaySuppressed = true;
+        this.clearNextCoreoDisplay();
+        return;
+      }
+      this.nextCoreoDisplaySuppressed = false;
+      this.loadNextCoreo({ announce: true });
     });
 
     window.addEventListener('bordero:next-coreo-updated', () => {
-      this.loadNextCoreo();
+      this.nextCoreoDisplaySuppressed = false;
+      this.loadNextCoreo({ announce: true });
     });
 
     this.nextCoreoBroadcastChannel?.addEventListener('message', (event) => {
       if (!event?.data) return;
       if (event.data.type === 'update' && event.data.payload) {
+        this.nextCoreoDisplaySuppressed = false;
         Storage.set(this.nextCoreoSelectionStorageKey, event.data.payload);
       } else if (event.data.type === 'clear') {
+        this.nextCoreoDisplaySuppressed = true;
         Storage.remove(this.nextCoreoSelectionStorageKey);
       }
-      this.loadNextCoreo();
+      if (event.data.type === 'clear') {
+        this.clearNextCoreoDisplay();
+      } else {
+        this.loadNextCoreo({ announce: true });
+      }
     });
   }
 
-  async loadNextCoreo() {
+  clearNextCoreoDisplay() {
+    const target = document.getElementById('next-coreo');
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (target) target.textContent = '--';
+    if (announcementTitle) announcementTitle.textContent = '';
+    if (overlay) {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    if (this.nextCoreoAnnouncementTimer) {
+      clearTimeout(this.nextCoreoAnnouncementTimer);
+      this.nextCoreoAnnouncementTimer = null;
+    }
+  }
+
+  showNextCoreoAnnouncement(title, timestamp) {
+    if (!title) return;
+    const announceId = String(timestamp || title).trim();
+    if (!announceId || announceId === String(this.lastNextCoreoAnnouncementTimestamp)) return;
+
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (!overlay || !announcementTitle) return;
+
+    this.lastNextCoreoAnnouncementTimestamp = announceId;
+    announcementTitle.textContent = title;
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('is-active');
+    void overlay.offsetWidth;
+    overlay.classList.add('is-active');
+
+    if (this.nextCoreoAnnouncementTimer) clearTimeout(this.nextCoreoAnnouncementTimer);
+    this.nextCoreoAnnouncementTimer = setTimeout(() => {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }, 15000);
+  }
+
+  async loadNextCoreo({ announce = false, initialize = false } = {}) {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
@@ -713,11 +810,21 @@ class DisplayMonitor {
       const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
       if (title) {
         target.textContent = title;
+        const announcementId = String(storedSelection.timestamp || title);
+        if (initialize || !announce) {
+          this.lastNextCoreoAnnouncementTimestamp = announcementId;
+        } else {
+          this.showNextCoreoAnnouncement(title, announcementId);
+        }
         return;
       }
     }
 
-    target.textContent = '--';
+    if (this.nextCoreoDisplaySuppressed) {
+      this.clearNextCoreoDisplay();
+    } else {
+      target.textContent = '--';
+    }
   }
 
   toggleFullscreen() {

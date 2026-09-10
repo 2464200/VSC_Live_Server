@@ -259,6 +259,18 @@ function applyWindowLayout() {
       console.warn('Unable to set fullscreen for window:', error?.message || error);
     }
 
+    if (win === secondaryWindow || win === videoPlayerWindow) {
+      try {
+        win.setKiosk(true);
+        win.setFullScreen(true);
+        win.setAlwaysOnTop(true, 'screen-saver');
+        win.setSkipTaskbar(true);
+        win.setMenuBarVisibility(false);
+      } catch (error) {
+        console.warn('Unable to enforce secondary display mode:', error?.message || error);
+      }
+    }
+
     try {
       win.webContents.setZoomFactor(layout.zoomFactor);
     } catch (error) {
@@ -383,14 +395,31 @@ function stopWatchMonitorPreferences() {
   }
 }
 
-function waitForServer(url, timeoutMs = 15000) {
+function waitForServer(url, timeoutMs = 15000, validateResponse = null) {
   return new Promise((resolve, reject) => {
     const startedAt = Date.now();
 
     const attempt = () => {
       const req = http.get(url, (res) => {
-        res.resume();
-        resolve();
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+          body += chunk;
+        });
+        res.on('end', () => {
+          try {
+            if (res.statusCode !== 200 || (validateResponse && !validateResponse(body))) {
+              throw new Error(`Unexpected response from ${url}`);
+            }
+            resolve();
+          } catch (error) {
+            if (Date.now() - startedAt > timeoutMs) {
+              reject(error);
+              return;
+            }
+            setTimeout(attempt, 1000);
+          }
+        });
       });
 
       req.on('error', () => {
@@ -407,14 +436,25 @@ function waitForServer(url, timeoutMs = 15000) {
   });
 }
 
+function isCompatibleUnifiedServer(responseBody) {
+  try {
+    const health = JSON.parse(responseBody);
+    return health?.status === 'ok'
+      && health?.server === 'unified-server'
+      && health?.capabilities?.servizioMedia === true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function ensureUnifiedServer() {
   if (ensureUnifiedServerPromise) {
     return ensureUnifiedServerPromise;
   }
 
-  ensureUnifiedServerPromise = waitForServer('http://127.0.0.1:5500')
+  ensureUnifiedServerPromise = waitForServer('http://127.0.0.1:5500/api/health', 15000, isCompatibleUnifiedServer)
     .then(() => {
-      console.log('Unified server already available');
+      console.log('Compatible unified server already available');
     })
     .catch(() => {
       const serverScript = path.join(__dirname, '..', 'unified-server.js');
@@ -441,7 +481,7 @@ function ensureUnifiedServer() {
         }
       });
 
-      return waitForServer('http://127.0.0.1:5500', 20000);
+      return waitForServer('http://127.0.0.1:5500/api/health', 20000, isCompatibleUnifiedServer);
     })
     .finally(() => {
       ensureUnifiedServerPromise = null;
@@ -1057,6 +1097,72 @@ ipcMain.handle('bordero-monitor-policy:last-event', async () => {
   };
 });
 
+ipcMain.handle('bordero-file-picker:pick-image-servizio', async (event) => {
+  const servizioDirectory = 'C:\\VSC_SERVIZIO';
+  const mimeTypes = {
+    '.avif': 'image/avif',
+    '.gif': 'image/gif',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp'
+  };
+
+  try {
+    const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
+      defaultPath: fs.existsSync(servizioDirectory) ? servizioDirectory : undefined,
+      properties: ['openFile'],
+      filters: [{ name: 'Immagini', extensions: ['avif', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'webp'] }]
+    });
+
+    if (result.canceled || !result.filePaths?.[0]) {
+      return { canceled: true };
+    }
+
+    const filePath = result.filePaths[0];
+    const extension = path.extname(filePath).toLowerCase();
+    const mimeType = mimeTypes[extension] || 'application/octet-stream';
+    const dataUrl = `data:${mimeType};base64,${fs.readFileSync(filePath).toString('base64')}`;
+
+    return {
+      canceled: false,
+      name: path.basename(filePath),
+      dataUrl
+    };
+  } catch (error) {
+    console.warn('Unable to pick image from VSC_SERVIZIO:', error?.message || error);
+    return { canceled: true, error: 'Impossibile aprire la cartella C:\\VSC_SERVIZIO.' };
+  }
+});
+
+ipcMain.handle('bordero-file-picker:pick-images-servizio', async (event) => {
+  const servizioDirectory = 'C:\\VSC_SERVIZIO';
+
+  try {
+    const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), {
+      defaultPath: fs.existsSync(servizioDirectory) ? servizioDirectory : undefined,
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Immagini', extensions: ['avif', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'webp'] }]
+    });
+
+    if (result.canceled) {
+      return { canceled: true, baseDir: servizioDirectory, filePaths: [] };
+    }
+
+    const baseDirectory = path.resolve(servizioDirectory);
+    const filePaths = (result.filePaths || []).filter((filePath) => {
+      const resolved = path.resolve(filePath);
+      return path.dirname(resolved).toLowerCase() === baseDirectory.toLowerCase();
+    });
+
+    return { canceled: false, baseDir: servizioDirectory, filePaths };
+  } catch (error) {
+    console.warn('Unable to pick images from VSC_SERVIZIO:', error?.message || error);
+    return { canceled: true, baseDir: servizioDirectory, filePaths: [] };
+  }
+});
+
 ipcMain.handle('bordero-file-picker:pick-directory', async () => {
   try {
     const { dialog } = require('electron');
@@ -1145,6 +1251,9 @@ async function ensureWindows() {
       show: false,
       fullscreen: true,
       kiosk: true,
+      frame: false,
+      skipTaskbar: true,
+      alwaysOnTop: true,
       autoHideMenuBar: true
     });
 

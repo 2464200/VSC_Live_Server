@@ -163,7 +163,7 @@ public class WindowManager {
         # Usa l'endpoint serve-pdf del server unificato per aprire il PDF
         # Il viewer Chrome apre il PDF via HTTP, così il file viene servito correttamente.
         $fileUrl = 'http://localhost:5500/api/serve-pdf?file=' + [System.Net.WebUtility]::UrlEncode($FilePath)
-        $cmdParams = @('--new-window', $fileUrl, '--disable-infobars', '--disable-session-crashed-bubble', '--disable-extensions', '--disable-background-networking')
+        $cmdParams = @('--new-window', '--kiosk', $fileUrl, '--disable-infobars', '--disable-session-crashed-bubble', '--disable-extensions', '--disable-background-networking')
         if ($null -ne $x -and $null -ne $y -and $null -ne $w -and $null -ne $h) {
             $cmdParams += "--window-position=$x,$y"
             $cmdParams += "--window-size=$w,$h"

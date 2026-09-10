@@ -148,6 +148,8 @@ class BorderoTableManager {
     this.filteredBrani.forEach((item) => {
       item.next_selected = String(item.id) === targetId;
     });
+
+    this.reorderSelectedNextToTop();
   }
 
   getStoredSerataMeta() {
@@ -659,10 +661,11 @@ class BorderoTableManager {
       this.applyVideoClipAvailabilityToBrani();
 
       this.filteredBrani = [...this.allBrani];
+      this.restoreNextCoreoSelection();
       this.currentPage = 1;
       await this.populateDJSelect();
       await this.setupLocationPicker();
-      this.renderTable();
+      this.applyFilters();
       logger.info('✓ Dati aggiornati dopo sincronizzazione', { source });
     } catch (error) {
       logger.error('Errore aggiornamento dati dopo sincronizzazione', error);
@@ -749,6 +752,8 @@ class BorderoTableManager {
     document.getElementById('btn-userform')?.addEventListener('click', () => this.showUserForm());
     document.getElementById('btn-export')?.addEventListener('click', () => this.exportSerataToSIAE());
     document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
+    document.getElementById('btn-publish-logo')?.addEventListener('click', () => this.publishLogo());
+    document.getElementById('btn-stop-logo')?.addEventListener('click', () => this.stopLogo());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
     document.getElementById('btn-webcam-live-toggle')?.addEventListener('click', () => {
@@ -993,6 +998,52 @@ class BorderoTableManager {
         this.webcamSignalPollTimer = null;
       }
     }, { once: true });
+  }
+
+  async publishLogo() {
+    try {
+      const logo = this.readStoredLogo();
+      if (!logo?.dataUrl) {
+        throw new Error('Nessun logo disponibile: selezionalo prima dalla pagina SERVIZIO.');
+      }
+      this.sendLogoCommand('publish', logo);
+      Toast.success('Comando inviato: PUBBLICA LOGO');
+    } catch (error) {
+      logger.error('Errore pubblicazione logo', error);
+      Toast.error(`Impossibile inviare il comando logo: ${error?.message || error}`);
+    }
+  }
+
+  async stopLogo() {
+    try {
+      this.sendLogoCommand('stop');
+      Toast.success('Comando inviato: STOPPA LOGO');
+    } catch (error) {
+      logger.error('Errore arresto logo', error);
+      Toast.error(`Impossibile inviare il comando logo: ${error?.message || error}`);
+    }
+  }
+
+  readStoredLogo() {
+    try {
+      return JSON.parse(localStorage.getItem('userform-servizio-logo:last') || 'null');
+    } catch (error) {
+      return null;
+    }
+  }
+
+  sendLogoCommand(action, logo = null) {
+    const normalized = String(action || '').trim().toLowerCase();
+    if (normalized !== 'publish' && normalized !== 'stop') {
+      return;
+    }
+
+    localStorage.setItem('BORDERO_LOGO_COMMAND', JSON.stringify({
+      action: normalized,
+      logo: normalized === 'publish' ? logo : null,
+      ts: Date.now(),
+      source: 'bordero-main'
+    }));
   }
 
   sendDisplayRollingCommand(action) {
@@ -1473,7 +1524,7 @@ class BorderoTableManager {
     const completed = grouped.bottom
       .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
 
-    this.allBrani = [...available, ...completed];
+    this.allBrani = this.applyNextSelectionPriority([...available, ...completed]);
     // If a sort is active, re-apply it so reorder doesn't wipe user sorting
     if (this.currentSort) {
       const ascending = this.currentSortDirection !== 'desc';
@@ -1672,6 +1723,14 @@ class BorderoTableManager {
       this.filteredBrani = ObjectUtils.searchMultiField(this.filteredBrani, this.currentSearch, searchFields);
     }
 
+    const activeNextId = this.getActiveNextSelectionId();
+    if (activeNextId && !this.filteredBrani.some((item) => String(item.id) === activeNextId)) {
+      const activeNextBrano = this.allBrani.find((item) => String(item.id) === activeNextId);
+      if (activeNextBrano) {
+        this.filteredBrani.unshift(activeNextBrano);
+      }
+    }
+
     this.filteredBrani = this.applyNextSelectionPriority(this.filteredBrani);
 
     // Re-applica sort
@@ -1726,6 +1785,9 @@ class BorderoTableManager {
     this.updateFilterButtons();
     this.updateSearchButtons();
     this.updateSearchPlaceholder();
+
+    // Mantiene NEXT in testa anche dopo RESET RICERCA e RESET FILTRI.
+    this.reapplyCurrentOrdering();
 
     // Rebuild list senza filtri
     this.applyFilters();
@@ -1877,7 +1939,7 @@ class BorderoTableManager {
   }
 
   getActiveNextSelectionId() {
-    const activeBrano = this.allBrani.find((item) => Boolean(item.next_selected));
+    const activeBrano = this.allBrani.find((item) => Boolean(item.next_selected) && !this.isExecutedBrano(item));
     return activeBrano ? String(activeBrano.id) : null;
   }
 

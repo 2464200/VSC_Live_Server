@@ -44,7 +44,7 @@ $chromePaths = @("C:\Program Files\Google\Chrome\Application\chrome.exe", "C:\Pr
 $chrome = $chromePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
 
     if ($chrome) {
-        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', $url -PassThru
+        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', '--kiosk', $url -PassThru
 } else {
     $proc = Start-ProcessSafe -FilePath $url -PassThru
 }
