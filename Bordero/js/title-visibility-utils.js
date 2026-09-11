@@ -58,7 +58,7 @@ function partitionBraniByExecutedTitle(brani, options = {}) {
   const isExecuted = typeof options.isExecuted === 'function' ? options.isExecuted : () => false;
 
   if (!Array.isArray(brani)) {
-    return { main: [], bottom: [] };
+    return { main: [], bottom: [], executed: [], omonimi: [] };
   }
 
   const groups = createTitleVisibilityGroups(brani);
@@ -69,20 +69,37 @@ function partitionBraniByExecutedTitle(brani, options = {}) {
   );
 
   const main = [];
-  const bottom = [];
+  const executed = [];
+  const omonimi = [];
 
   brani.forEach((brano) => {
     const title = normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano || '');
     if (isExecuted(brano)) {
-      bottom.push({ ...brano, displayState: 'executed', isOmonimoBlocked: false });
+      executed.push({ ...brano, displayState: 'executed', isOmonimoBlocked: false });
     } else if (title && titlesWithExecutedDuplicate.has(title)) {
-      bottom.push({ ...brano, displayState: 'blocked', isOmonimoBlocked: true });
+      omonimi.push({ ...brano, displayState: 'blocked', isOmonimoBlocked: true });
     } else {
       main.push({ ...brano, displayState: 'available', isOmonimoBlocked: false });
     }
   });
 
-  return { main, bottom };
+  const sortById = (list) =>
+    [...list].sort((a, b) => {
+      const numA = Number(String(a?.id ?? '').replace(/\D+/g, '')) || 0;
+      const numB = Number(String(b?.id ?? '').replace(/\D+/g, '')) || 0;
+      if (numA !== numB) return numA - numB;
+      return String(a?.id ?? '').localeCompare(String(b?.id ?? ''));
+    });
+
+  const executedSorted = sortById(executed);
+  const omonimiSorted = sortById(omonimi);
+
+  return {
+    main,
+    executed: executedSorted,
+    omonimi: omonimiSorted,
+    bottom: [...executedSorted, ...omonimiSorted],
+  };
 }
 
 function annotateBraniByTitleVisibility(brani, options = {}) {

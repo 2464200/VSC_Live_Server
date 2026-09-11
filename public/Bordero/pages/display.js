@@ -178,12 +178,13 @@ class DisplayMonitor {
       return;
     }
 
-    const orderedBrani = this.orderRequestedBrani(requestedBrani);
-    const annotatedBrani = annotateBraniByTitleVisibility(orderedBrani, {
-      isExecuted: (brano) => this.isBranoExecuted(brano),
-      isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
-    });
-    const displayBrani = this.orderDisplayByState(annotatedBrani);
+    const partition = typeof window.partitionBraniByExecutedTitle === 'function'
+      ? window.partitionBraniByExecutedTitle(requestedBrani, {
+          isExecuted: (item) => this.isBranoExecuted(item),
+        })
+      : { main: requestedBrani, bottom: [] };
+
+    const displayBrani = [...partition.main, ...partition.bottom];
 
     // Aggiorna header
     this.updateHeader(displayBrani);
@@ -392,7 +393,24 @@ class DisplayMonitor {
   filterRequestedBrani(brani) {
     if (!Array.isArray(brani)) return [];
 
-    return brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
+    const executedTitles = new Set();
+    brani.forEach((b) => {
+      if (this.isBranoExecuted(b)) {
+        const title = typeof normalizeTitle === 'function'
+          ? normalizeTitle(b?.titolo || b?.coreografia || b?.brano || '')
+          : String(b?.titolo || b?.coreografia || b?.brano || '').trim().toLowerCase();
+        if (title) executedTitles.add(title);
+      }
+    });
+
+    return brani.filter((brano) => {
+      if (this.isBranoExecuted(brano)) return true;
+      if (!this.isRichiesteZeroValue(brano?.richieste)) return true;
+      const title = typeof normalizeTitle === 'function'
+        ? normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano || '')
+        : String(brano?.titolo || brano?.coreografia || brano?.brano || '').trim().toLowerCase();
+      return Boolean(title && executedTitles.has(title));
+    });
   }
 
   orderRequestedBrani(brani) {

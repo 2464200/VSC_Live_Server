@@ -33,7 +33,7 @@ assert.deepStrictEqual(
 );
 assert.deepStrictEqual(
   partitionedAfterExecution.bottom.map((item) => item.id),
-  ['1', '2', '4'],
+  ['4', '1', '2'],
   'Il brano eseguito e tutti i suoi doppioni restano visibili insieme in fondo'
 );
 
