@@ -119,6 +119,7 @@ function annotateBraniByTitleVisibility(brani, options = {}) {
 if (typeof window !== 'undefined') {
   window.normalizeTitle = normalizeTitle;
   window.filterBraniByTitleVisibility = filterBraniByTitleVisibility;
+  window.partitionBraniByExecutedTitle = partitionBraniByExecutedTitle;
   window.annotateBraniByTitleVisibility = annotateBraniByTitleVisibility;
 }
 

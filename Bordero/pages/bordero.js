@@ -11,7 +11,7 @@ class BorderoTableManager {
     this.currentSort = null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = null;
-    this.keepExecutedAtBottom = false;
+    this.keepExecutedAtBottom = true;
     this.currentFilters = {};
     this.currentSearch = '';
     this.searchMode = 'general';
@@ -1146,9 +1146,15 @@ class BorderoTableManager {
 
     const natural = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
     if (this.keepExecutedAtBottom) {
-      const pending = natural.filter(item => !this.isExecutedBrano(item));
-      const executed = natural.filter(item => this.isExecutedBrano(item));
-      this.allBrani = [...pending, ...executed];
+      const partition = typeof window.partitionBraniByExecutedTitle === 'function'
+        ? window.partitionBraniByExecutedTitle(natural, { isExecuted: (item) => this.isExecutedBrano(item) })
+        : {
+            main: natural.filter(item => !this.isExecutedBrano(item)),
+            bottom: natural.filter(item => this.isExecutedBrano(item))
+          };
+      const executed = partition.bottom.filter(item => this.isExecutedBrano(item));
+      const omonimi = partition.bottom.filter(item => !this.isExecutedBrano(item));
+      this.allBrani = [...partition.main, ...executed, ...omonimi];
     } else {
       this.allBrani = natural;
     }
@@ -1510,15 +1516,26 @@ class BorderoTableManager {
         : ObjectUtils.sortByField(prioritized, field, ascending);
     }
 
-    const pending = remainingItems.filter(item => !this.isExecutedBrano(item));
-    const executed = remainingItems.filter(item => this.isExecutedBrano(item));
+    const partition = typeof window.partitionBraniByExecutedTitle === 'function'
+      ? window.partitionBraniByExecutedTitle(remainingItems, { isExecuted: (item) => this.isExecutedBrano(item) })
+      : {
+          main: remainingItems.filter(item => !this.isExecutedBrano(item)),
+          bottom: remainingItems.filter(item => this.isExecutedBrano(item))
+        };
 
-    const pendingSorted = ObjectUtils.sortByField(pending, field, ascending);
+    const pendingSorted = ObjectUtils.sortByField(partition.main, field, ascending);
+
+    const executed = partition.bottom.filter(item => this.isExecutedBrano(item));
+    const omonimi = partition.bottom.filter(item => !this.isExecutedBrano(item));
+
     const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
+    const omonimiSorted = ObjectUtils.sortByField(omonimi, field, ascending);
+
+    const result = [...pendingSorted, ...executedSorted, ...omonimiSorted];
 
     return selectedItem
-      ? [selectedItem, ...pendingSorted, ...executedSorted]
-      : [...pendingSorted, ...executedSorted];
+      ? [selectedItem, ...result]
+      : result;
   }
 
   /**
