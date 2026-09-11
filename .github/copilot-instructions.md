@@ -24,6 +24,7 @@ Purpose: concise, actionable guidance so an AI helper can be productive immediat
 - First CSV column is a flag column (index 0). Most renderers skip it and show columns from index 1 onward.
 - Desktop vs mobile scroll math differs: desktop uses time-stepped increments (ms per step), mobile uses px/s; keep both in sync when changing UX.
 - Fullscreen handling: both `script.js` and `public/mobile-script.js` implement `toggleFullscreen()` and restart scrolling on fullscreen changes â€” preserve this to avoid visual jumps.
+- Esecuzione brani ed eseguiti in fondo: Quando un brano viene eseguito, riceve il flag 'X' e viene spostato in fondo alla lista nel Display. Anche tutti gli altri brani aventi lo stesso nome nella colonna Titolo/Coreografia vengono spostati in fondo insieme ad esso, ma SENZA il flag di eseguito 'X'.
 
 **Developer workflows & commands (PowerShell)**
 - Run a quick local static server from repo root:
