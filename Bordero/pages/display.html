@@ -24,6 +24,9 @@
 </head>
 
 <body class="display-body">
+  <div id="logo-overlay" class="logo-overlay" aria-hidden="true" hidden>
+    <img id="logo-overlay-image" class="logo-overlay-image" alt="Logo pubblicato" />
+  </div>
   <div id="next-coreo-announcement" class="next-coreo-announcement" role="status" aria-live="assertive" aria-hidden="true">
     <div class="next-coreo-announcement-label">PROSSIMA COREO</div>
     <div id="next-coreo-announcement-title" class="next-coreo-announcement-title"></div>
@@ -34,7 +37,14 @@
       <div class="display-clock-top-left" id="display-clock-wrap">
         <span id="data-ora">📅 --/--/---- 🕒 --:--:--</span>
       </div>
-      <button id="btn-close-display" class="display-close-btn" type="button" title="Chiudi finestra">✕</button>
+      <div class="display-title-row">
+        <h1 class="display-title">DISPLAY COREOGRAFIE RICHIESTE</h1>
+        <button id="btn-close-display" class="display-close-btn" type="button" title="Chiudi finestra">✕</button>
+      </div>
+
+      <div class="display-info-row">
+        Le righe evidenziate in giallo indicano i brani gia eseguiti
+      </div>
 
       <div class="display-live-row">
         <div class="next-coreo-wrap">

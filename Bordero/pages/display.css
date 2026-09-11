@@ -36,6 +36,22 @@
   visibility: hidden;
 }
 
+.logo-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-overlay-image {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
 .next-coreo-announcement.is-active {
   visibility: visible;
   animation: nextCoreoAnnouncement 15s ease-in-out forwards;
