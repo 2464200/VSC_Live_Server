@@ -41,9 +41,13 @@
   inset: 0;
   z-index: 999;
   background: rgba(0, 0, 0, 0.92);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
+}
+
+.logo-overlay:not([hidden]) {
+  display: flex;
 }
 
 .logo-overlay-image {
