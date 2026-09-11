@@ -54,6 +54,33 @@ function filterBraniByTitleVisibility(brani, options = {}) {
   });
 }
 
+function partitionBraniByExecutedTitle(brani, options = {}) {
+  const isExecuted = typeof options.isExecuted === 'function' ? options.isExecuted : () => false;
+
+  if (!Array.isArray(brani)) {
+    return { main: [], bottom: [] };
+  }
+
+  const groups = createTitleVisibilityGroups(brani);
+  const titlesWithExecutedDuplicate = new Set(
+    Array.from(groups.entries())
+      .filter(([, matches]) => matches.length > 1 && matches.some((item) => isExecuted(item)))
+      .map(([title]) => title)
+  );
+
+  const bottom = brani.filter((brano) => {
+    if (isExecuted(brano)) return true;
+    const title = normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano || '');
+    return title && titlesWithExecutedDuplicate.has(title);
+  });
+
+  const bottomIds = new Set(bottom.map((brano) => String(brano?.id ?? '')));
+  return {
+    main: brani.filter((brano) => !bottomIds.has(String(brano?.id ?? ''))),
+    bottom,
+  };
+}
+
 function annotateBraniByTitleVisibility(brani, options = {}) {
   const isExecuted = typeof options.isExecuted === 'function' ? options.isExecuted : () => false;
   const isRequested = typeof options.isRequested === 'function' ? options.isRequested : () => true;
@@ -98,6 +125,7 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     filterBraniByTitleVisibility,
+    partitionBraniByExecutedTitle,
     annotateBraniByTitleVisibility,
     normalizeTitle,
   };

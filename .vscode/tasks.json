@@ -200,17 +200,15 @@
       "group": "build"
     },
     {
-      "label": "Git: Carica solo Push only daniele-local",
+      "label": "Git: Push protected daniele-local",
       "type": "shell",
       "command": "powershell",
       "args": [
         "-NoProfile",
         "-ExecutionPolicy",
         "Bypass",
-        "-File",
-        "${workspaceFolder}\\git-push-daniele-local.ps1",
-        "-CommitMessage",
-        "${input:gitCommitMessage}"
+        "-Command",
+        "$env:ALLOW_PROTECTED_CHANGES = '1'; git -C \"${workspaceFolder}\" switch daniele-local; git -C \"${workspaceFolder}\" add -A; git -C \"${workspaceFolder}\" commit -m \"${input:gitCommitMessage}\"; git -C \"${workspaceFolder}\" push origin daniele-local"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
