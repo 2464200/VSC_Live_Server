@@ -428,6 +428,11 @@ class DisplayMonitor {
         const rankB = stateRank[b.item?.displayState || 'available'] ?? 0;
 
         if (rankA !== rankB) return rankA - rankB;
+
+        const idA = Number(a.item?.id) || 0;
+        const idB = Number(b.item?.id) || 0;
+        if (idA !== idB && idA > 0 && idB > 0) return idA - idB;
+
         return a.index - b.index;
       })
       .map((entry) => entry.item);

@@ -1472,25 +1472,11 @@ class BorderoTableManager {
   }
 
   reorderBraniByOriginalIndex() {
-    const available = this.allBrani
-      .filter(b => String(b.flag || '').toUpperCase() !== 'X')
-      .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
-
-    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
-
-    this.allBrani = [...available, ...completed];
-    // If a sort is active, re-apply it so reorder doesn't wipe user sorting
-    if (this.currentSort) {
-      const ascending = this.currentSortDirection !== 'desc';
-      try {
-        this.allBrani = this.sortCollection(this.allBrani, this.currentSort, ascending);
-        // keep filtered list in sync when appropriate
-        if (Array.isArray(this.filteredBrani) && this.filteredBrani.length > 0) {
-          this.filteredBrani = this.sortCollection(this.filteredBrani, this.currentSort, ascending);
-        }
-      } catch (e) {
-        logger.debug('Unable to reapply sort after reorder', e);
-      }
+    const natural = [...this.allBrani].sort((a, b) => (Number(a.id) || Number(a.originalIndex) || 0) - (Number(b.id) || Number(b.originalIndex) || 0));
+    if (this.keepExecutedAtBottom) {
+      this.allBrani = this.sortCollection(natural, this.currentSort || 'id', this.currentSortDirection !== 'desc');
+    } else {
+      this.allBrani = natural;
     }
   }
 
@@ -1498,7 +1484,7 @@ class BorderoTableManager {
     return String(brano?.flag || '').toUpperCase() === 'X';
   }
 
-  sortCollection(collection, field, ascending) {
+  sortCollection(collection, field, ascending = true) {
     if (!Array.isArray(collection)) return [];
 
     const activeId = this.getActiveNextSelectionId();
@@ -1510,10 +1496,12 @@ class BorderoTableManager {
       ? prioritized.filter(item => String(item.id) !== String(activeId))
       : prioritized;
 
+    const sortField = field || 'id';
+
     if (!this.keepExecutedAtBottom) {
       return selectedItem
-        ? [selectedItem, ...ObjectUtils.sortByField(remainingItems, field, ascending)]
-        : ObjectUtils.sortByField(prioritized, field, ascending);
+        ? [selectedItem, ...ObjectUtils.sortByField(remainingItems, sortField, ascending)]
+        : ObjectUtils.sortByField(prioritized, sortField, ascending);
     }
 
     const partition = typeof window.partitionBraniByExecutedTitle === 'function'
@@ -1523,13 +1511,13 @@ class BorderoTableManager {
           bottom: remainingItems.filter(item => this.isExecutedBrano(item))
         };
 
-    const pendingSorted = ObjectUtils.sortByField(partition.main, field, ascending);
+    const pendingSorted = ObjectUtils.sortByField(partition.main, sortField, ascending);
 
     const executed = partition.bottom.filter(item => this.isExecutedBrano(item));
     const omonimi = partition.bottom.filter(item => !this.isExecutedBrano(item));
 
-    const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
-    const omonimiSorted = ObjectUtils.sortByField(omonimi, field, ascending);
+    const executedSorted = ObjectUtils.sortByField(executed, sortField, ascending);
+    const omonimiSorted = ObjectUtils.sortByField(omonimi, sortField, ascending);
 
     const result = [...pendingSorted, ...executedSorted, ...omonimiSorted];
 
@@ -1696,6 +1684,8 @@ class BorderoTableManager {
     if (this.currentSort) {
       const ascending = this.currentSortDirection !== 'desc';
       this.filteredBrani = this.sortCollection(this.filteredBrani, this.currentSort, ascending);
+    } else if (this.keepExecutedAtBottom) {
+      this.filteredBrani = this.sortCollection(this.filteredBrani, 'id', true);
     }
 
     // Reset pagina
@@ -1978,7 +1968,8 @@ class BorderoTableManager {
    */
   createBranoRow(brano) {
     const isCompleted = this.isExecutedBrano(brano);
-    const completedClass = isCompleted ? 'completed' : '';
+    const isBlocked = brano.displayState === 'blocked' || Boolean(brano.isOmonimoBlocked);
+    const completedClass = isCompleted ? 'completed' : isBlocked ? 'blocked' : '';
     const flagIcon = isCompleted ? '✅' : '';
     const timestamp = brano.timestamp || '';
     const richiesteHighlightClass = !isCompleted && !this.isRichiesteZeroValue(brano.richieste)

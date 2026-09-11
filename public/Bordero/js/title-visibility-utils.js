@@ -64,21 +64,25 @@ function partitionBraniByExecutedTitle(brani, options = {}) {
   const groups = createTitleVisibilityGroups(brani);
   const titlesWithExecutedDuplicate = new Set(
     Array.from(groups.entries())
-      .filter(([, matches]) => matches.length > 1 && matches.some((item) => isExecuted(item)))
+      .filter(([, matches]) => matches.some((item) => isExecuted(item)))
       .map(([title]) => title)
   );
 
-  const bottom = brani.filter((brano) => {
-    if (isExecuted(brano)) return true;
+  const main = [];
+  const bottom = [];
+
+  brani.forEach((brano) => {
     const title = normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano || '');
-    return title && titlesWithExecutedDuplicate.has(title);
+    if (isExecuted(brano)) {
+      bottom.push({ ...brano, displayState: 'executed', isOmonimoBlocked: false });
+    } else if (title && titlesWithExecutedDuplicate.has(title)) {
+      bottom.push({ ...brano, displayState: 'blocked', isOmonimoBlocked: true });
+    } else {
+      main.push({ ...brano, displayState: 'available', isOmonimoBlocked: false });
+    }
   });
 
-  const bottomIds = new Set(bottom.map((brano) => String(brano?.id ?? '')));
-  return {
-    main: brani.filter((brano) => !bottomIds.has(String(brano?.id ?? ''))),
-    bottom,
-  };
+  return { main, bottom };
 }
 
 function annotateBraniByTitleVisibility(brani, options = {}) {
