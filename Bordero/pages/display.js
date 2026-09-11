@@ -36,6 +36,9 @@ class DisplayMonitor {
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
+    this.lastNextCoreoAnnouncementTimestamp = null;
+    this.nextCoreoAnnouncementTimer = null;
+    this.nextCoreoDisplaySuppressed = false;
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
@@ -693,35 +696,109 @@ class DisplayMonitor {
   setupNextCoreoSync() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
-      this.loadNextCoreo();
+      if (event.newValue === null) {
+        this.nextCoreoDisplaySuppressed = true;
+        this.clearNextCoreoDisplay();
+      } else {
+        this.nextCoreoDisplaySuppressed = false;
+        this.loadNextCoreo({ announce: true });
+      }
     });
 
-    window.addEventListener('bordero:next-coreo-updated', () => {
-      this.loadNextCoreo();
+    window.addEventListener('bordero:next-coreo-updated', (event) => {
+      if (event.detail?.reason === 'completed' || event.detail?.reason === 'deselected') {
+        this.nextCoreoDisplaySuppressed = true;
+        this.clearNextCoreoDisplay();
+        return;
+      }
+      this.nextCoreoDisplaySuppressed = false;
+      this.loadNextCoreo({ announce: true });
     });
 
     this.nextCoreoBroadcastChannel?.addEventListener('message', (event) => {
       if (!event?.data) return;
       if (event.data.type === 'update' && event.data.payload) {
+        this.nextCoreoDisplaySuppressed = false;
         Storage.set(this.nextCoreoSelectionStorageKey, event.data.payload);
       } else if (event.data.type === 'clear') {
+        this.nextCoreoDisplaySuppressed = true;
         Storage.remove(this.nextCoreoSelectionStorageKey);
       }
-      this.loadNextCoreo();
+      if (event.data.type === 'clear') {
+        this.clearNextCoreoDisplay();
+      } else {
+        this.loadNextCoreo({ announce: true });
+      }
     });
   }
 
-  async loadNextCoreo() {
+  clearNextCoreoDisplay() {
+    const target = document.getElementById('next-coreo');
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (target) target.textContent = '--';
+    if (announcementTitle) announcementTitle.textContent = '';
+    if (overlay) {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    if (this.nextCoreoAnnouncementTimer) {
+      clearTimeout(this.nextCoreoAnnouncementTimer);
+      this.nextCoreoAnnouncementTimer = null;
+    }
+  }
+
+  showNextCoreoAnnouncement(title, timestamp) {
+    if (!title) return;
+    const announceId = String(timestamp || title).trim();
+    if (!announceId || announceId === String(this.lastNextCoreoAnnouncementTimestamp)) return;
+
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (!overlay || !announcementTitle) return;
+
+    this.lastNextCoreoAnnouncementTimestamp = announceId;
+    announcementTitle.textContent = title;
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('is-active');
+    void overlay.offsetWidth;
+    overlay.classList.add('is-active');
+
+    if (this.nextCoreoAnnouncementTimer) clearTimeout(this.nextCoreoAnnouncementTimer);
+    this.nextCoreoAnnouncementTimer = setTimeout(() => {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }, 15000);
+  }
+
+  async loadNextCoreo({ announce = false, initialize = false } = {}) {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
     const storedSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
+    let title = '';
+    let timestamp = null;
+
     if (storedSelection && typeof storedSelection === 'object') {
-      const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
-      if (title) {
-        target.textContent = title;
-        return;
+      title = String(storedSelection.title || storedSelection.nextValue || '').trim();
+      timestamp = storedSelection.timestamp || null;
+    }
+
+    if (!title && this.nextCoreoDisplaySuppressed) {
+      this.clearNextCoreoDisplay();
+      return;
+    }
+
+    if (title) {
+      target.textContent = title;
+      const effectiveId = String(timestamp || title);
+      if (initialize || !announce) {
+        this.lastNextCoreoAnnouncementTimestamp = effectiveId;
       }
+      if (announce) {
+        this.showNextCoreoAnnouncement(title, effectiveId);
+      }
+      return;
     }
 
     const candidates = [

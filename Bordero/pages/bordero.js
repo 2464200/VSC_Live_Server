@@ -11,7 +11,7 @@ class BorderoTableManager {
     this.currentSort = null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = null;
-    this.keepExecutedAtBottom = false;
+    this.keepExecutedAtBottom = true;
     this.currentFilters = {};
     this.currentSearch = '';
     this.searchMode = 'general';
@@ -25,7 +25,6 @@ class BorderoTableManager {
     this.filterButtonClickTimers = new Map();
     this.sortButtonClickTimers = new Map();
     this.headerSortClickTimers = new Map();
-    this.moveExecutedBottomClickTimer = null;
     this.searchButtonsResizeScheduled = false;
     this.webcamSignalPollTimer = null;
     this.webcamSignalWarningReason = '';
@@ -688,7 +687,6 @@ class BorderoTableManager {
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
     this.bindSortButton('btn-sort-richieste', 'richieste', 'RICHIESTE');
     this.setupColumnHeaderSorting();
-    this.bindMoveExecutedBottomButton('btn-move-executed-bottom', 'SPOSTA IN FONDO GLI ESEGUITI');
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
       window.location.href = 'brani-eseguiti.html';
     });
@@ -1104,33 +1102,6 @@ class BorderoTableManager {
       }
 
       this.resetSingleSort(field, label);
-    });
-  }
-
-  bindMoveExecutedBottomButton(buttonId, label) {
-    const button = document.getElementById(buttonId);
-    if (!button) return;
-
-    button.addEventListener('click', () => {
-      if (this.moveExecutedBottomClickTimer) {
-        clearTimeout(this.moveExecutedBottomClickTimer);
-      }
-
-      this.moveExecutedBottomClickTimer = setTimeout(() => {
-        this.moveExecutedBottomClickTimer = null;
-        this.moveExecutedToBottom();
-      }, 220);
-    });
-
-    button.addEventListener('dblclick', (event) => {
-      event.preventDefault();
-
-      if (this.moveExecutedBottomClickTimer) {
-        clearTimeout(this.moveExecutedBottomClickTimer);
-        this.moveExecutedBottomClickTimer = null;
-      }
-
-      this.resetMoveExecutedToBottom(label);
     });
   }
 
@@ -1552,54 +1523,6 @@ class BorderoTableManager {
     Toast.info(`Ordinato per ${field} (${ascending ? 'crescente' : 'decrescente'})`);
   }
 
-  moveExecutedToBottom() {
-    logger.info('Spostando i brani eseguiti in fondo alla lista...');
-
-    const executed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
-    const pending = this.allBrani.filter(b => String(b.flag || '').toUpperCase() !== 'X');
-
-    this.allBrani = [...pending, ...executed];
-    this.keepExecutedAtBottom = true;
-    this.updateExecutedBottomModeBadge();
-    this.currentSort = null;
-    this.currentSortDirection = 'asc';
-    this.lastHeaderSortField = null;
-    this.currentPage = 1;
-
-    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
-    this.autoSaveSerata();
-    this.updateSortButtons();
-    this.updateColumnHeaderSortState();
-    this.applyFilters();
-
-    logger.info('Brani eseguiti spostati in fondo');
-    Toast.info('Brani eseguiti spostati in fondo');
-  }
-
-  resetMoveExecutedToBottom(label = 'SPOSTA IN FONDO GLI ESEGUITI') {
-    if (!this.keepExecutedAtBottom) {
-      Toast.info(`Comando ${label} non attivo`);
-      return;
-    }
-
-    this.keepExecutedAtBottom = false;
-    this.currentSort = null;
-    this.currentSortDirection = 'asc';
-    this.lastHeaderSortField = null;
-    this.allBrani = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
-    this.currentPage = 1;
-
-    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
-    this.autoSaveSerata();
-    this.updateExecutedBottomModeBadge();
-    this.updateSortButtons();
-    this.updateColumnHeaderSortState();
-    this.applyFilters();
-
-    logger.info('Comando sposta eseguiti in fondo resettato');
-    Toast.info(`Comando ${label} resettato`);
-  }
-
   /**
    * Toggle filtro presenza dati su un campo o su più campi
    */
@@ -1948,7 +1871,9 @@ class BorderoTableManager {
     } else {
       Storage.remove('bordero_next_coreo_selection');
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
-      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
+        detail: { reason: 'deselected' }
+      }));
       Toast.info('Selezione NEXT rimossa');
     }
 
@@ -2527,7 +2452,9 @@ class BorderoTableManager {
       });
       Storage.remove('bordero_next_coreo_selection');
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
-      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
+        detail: { reason: 'completed' }
+      }));
     }
 
     this.allBrani.forEach((item) => {
