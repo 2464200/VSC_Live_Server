@@ -3103,7 +3103,6 @@ class BorderoTableManager {
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
     this.updateRichiesteAlertState();
-    this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
       detail: { total, requested: requested.length, completed, pending }
@@ -3131,16 +3130,6 @@ class BorderoTableManager {
     });
 
     return [...uniqueById.values()];
-  }
-
-  updateExecutedBottomModeBadge() {
-    const modeEl = document.getElementById('stat-executed-bottom-mode');
-    if (!modeEl) return;
-
-    const isOn = Boolean(this.keepExecutedAtBottom);
-    modeEl.textContent = isOn ? 'ON' : 'OFF';
-    modeEl.classList.toggle('mode-on', isOn);
-    modeEl.classList.toggle('mode-off', !isOn);
   }
 
   updateLastActionTime() {

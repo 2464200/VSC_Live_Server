@@ -200,6 +200,56 @@
       "group": "build"
     },
     {
+      "label": "Git: Carica solo Push only daniele-local",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\git-push-daniele-local.ps1",
+        "-CommitMessage",
+        "${input:gitCommitMessage}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Git: Status daniele-local",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "git -C \"${workspaceFolder}\" branch --show-current; Write-Host \"---\"; git -C \"${workspaceFolder}\" status --short --branch"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
       "label": "Git: Safe Pull Develop (Keep Local Fix)",
       "type": "shell",
       "command": "powershell",
