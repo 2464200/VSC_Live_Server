@@ -100,10 +100,13 @@ class BorderoTableManager {
           }
           return brano;
         });
-        this.reorderBraniByOriginalIndex();
       } else {
         this.allBrani = originalBrani;
       }
+
+      // La selezione NEXT vive nello storage e deve essere ripristinata a ogni refresh.
+      this.restoreNextCoreoSelection();
+      this.reorderBraniByOriginalIndex();
 
       await this.refreshVideoClipAvailability();
       this.applyVideoClipAvailabilityToBrani();

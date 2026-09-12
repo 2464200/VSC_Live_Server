@@ -393,23 +393,23 @@ class DisplayMonitor {
   filterRequestedBrani(brani) {
     if (!Array.isArray(brani)) return [];
 
-    const executedTitles = new Set();
+    const requestedTitles = new Set();
     brani.forEach((b) => {
-      if (this.isBranoExecuted(b)) {
-        const title = typeof normalizeTitle === 'function'
-          ? normalizeTitle(b?.titolo || b?.coreografia || b?.brano || '')
-          : String(b?.titolo || b?.coreografia || b?.brano || '').trim().toLowerCase();
-        if (title) executedTitles.add(title);
-      }
+      if (this.isRichiesteZeroValue(b?.richieste)) return;
+
+      const title = typeof normalizeTitle === 'function'
+        ? normalizeTitle(b?.titolo || b?.coreografia || b?.brano || '')
+        : String(b?.titolo || b?.coreografia || b?.brano || '').trim().toLowerCase();
+      if (title) requestedTitles.add(title);
     });
 
+    if (requestedTitles.size === 0) return [];
+
     return brani.filter((brano) => {
-      if (this.isBranoExecuted(brano)) return true;
-      if (!this.isRichiesteZeroValue(brano?.richieste)) return true;
       const title = typeof normalizeTitle === 'function'
         ? normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano || '')
         : String(brano?.titolo || brano?.coreografia || brano?.brano || '').trim().toLowerCase();
-      return Boolean(title && executedTitles.has(title));
+      return Boolean(title && requestedTitles.has(title));
     });
   }
 
