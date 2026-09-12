@@ -174,33 +174,7 @@
       "group": "test"
     },
     {
-      "label": "Git: Add Commit Push",
-      "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\git-quick-push.ps1",
-        "-CommitMessage",
-        "${input:gitCommitMessage}"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "focus": true,
-        "clear": false,
-        "showReuseMessage": false
-      },
-      "problemMatcher": [],
-      "group": "build"
-    },
-    {
-      "label": "Git: Push protected daniele-local",
+      "label": "Git: Commit and Push daniele-local (safe)",
       "type": "shell",
       "command": "powershell",
       "args": [
@@ -208,7 +182,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "$env:ALLOW_PROTECTED_CHANGES = '1'; git -C \"${workspaceFolder}\" switch daniele-local; git -C \"${workspaceFolder}\" add -A; git -C \"${workspaceFolder}\" commit -m \"${input:gitCommitMessage}\"; git -C \"${workspaceFolder}\" push origin daniele-local"
+        "$ErrorActionPreference = 'Stop'; $branch = (git branch --show-current).Trim(); if ($branch -ne 'daniele-local') { throw \"Operazione annullata: branch corrente '$branch'. Usare daniele-local.\" }; git add -A; $env:ALLOW_PROTECTED_CHANGES = '1'; git commit -m \"${input:gitCommitMessage}\"; git push origin daniele-local"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

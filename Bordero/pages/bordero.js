@@ -1963,7 +1963,14 @@ class BorderoTableManager {
     }
 
     this.reapplyCurrentOrdering();
+    if (!isAlreadySelected) {
+      this.currentPage = 1;
+    }
     this.renderTable();
+
+    if (!isAlreadySelected) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   /**
