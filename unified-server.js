@@ -20,7 +20,7 @@ const os = require('os');
 const { parse: parseCsv } = require('csv-parse/sync');
 const QRCodeLib = require('qrcode');
 const { projectConfig } = require('./config/config');
-const { forwardVdjRequest } = require('./vdj-proxy');
+const { forwardVdjRequest, ensureVirtualDjRunning } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
@@ -2967,15 +2967,39 @@ app.get('/api/vdj/proxy', async (req, res) => {
 
 app.get('/api/vdj/test', async (req, res) => {
     try {
-        const result = await forwardVdjRequest({
-            baseUrl: 'http://127.0.0.1:8080',
+        const baseUrl = String(req.query.baseUrl || 'http://127.0.0.1:8080').trim();
+        const baseUrlsParam = req.query.baseUrls || req.query.baseUrlList || '';
+        const baseUrls = String(baseUrlsParam || '')
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+        const result = await ensureVirtualDjRunning({ baseUrl, baseUrls, timeoutMs: 15000 });
+        const response = await forwardVdjRequest({
+            baseUrl,
+            baseUrls,
             endpoint: '/query',
             script: 'get_clock',
             timeoutMs: 4000
         });
-        res.status(result.statusCode >= 400 ? result.statusCode : 200).type('text/plain').send(result.body);
+        res.status(response.statusCode >= 400 ? response.statusCode : 200).type('text/plain').send(response.body + (result.started ? '\n\n[avviato automaticamente]' : ''));
     } catch (error) {
         res.status(502).type('text/plain').send(error.message || 'Test VirtualDJ fallito');
+    }
+});
+
+app.post('/api/vdj/ensure-running', async (req, res) => {
+    try {
+        const baseUrl = String(req.body?.baseUrl || req.query.baseUrl || 'http://127.0.0.1:8080').trim();
+        const baseUrlsParam = String(req.body?.baseUrls || req.query.baseUrls || req.body?.baseUrlList || req.query.baseUrlList || '');
+        const baseUrls = baseUrlsParam
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+
+        const result = await ensureVirtualDjRunning({ baseUrl, baseUrls, timeoutMs: 15000 });
+        return res.json({ ok: true, started: Boolean(result.started), executable: result.executable || null, baseUrl: result.baseUrl || baseUrl });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
 });
 

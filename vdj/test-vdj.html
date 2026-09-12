@@ -547,12 +547,44 @@
     // FUNZIONE GENERICA PER INVIARE UN COMANDO A VIRTUALDJ
     // ============================================================
 
+    async function ensureVirtualDjRunningIfNeeded() {
+        const base = leggiVdjUrl();
+        const candidateBases = getVirtualDjCandidateBases(base);
+
+        try {
+            const response = await fetch('/api/vdj/ensure-running', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    baseUrl: base,
+                    baseUrls: candidateBases.join(','),
+                    timeoutMs: 15000
+                })
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || !payload?.ok) {
+                throw new Error(payload?.error || `HTTP ${response.status}`);
+            }
+
+            if (payload.started) {
+                scriviLog('VirtualDJ non era attivo: avvio automatico effettuato.\n\nSto riprovando...');
+            }
+
+            return payload;
+        } catch (errore) {
+            scriviLog('Impossibile avviare VirtualDJ automaticamente:\n' + (errore?.message || errore));
+            throw errore;
+        }
+    }
+
     async function eseguiVDJ(script) {
 
         try {
 
             const base = leggiVdjUrl();
             const candidateBases = getVirtualDjCandidateBases(base);
+            await ensureVirtualDjRunningIfNeeded();
 
             scriviLog(
                 "Invio comando:\n" +
@@ -605,6 +637,7 @@
 
         try {
 
+            await ensureVirtualDjRunningIfNeeded();
             const base = leggiVdjUrl();
             const candidateBases = getVirtualDjCandidateBases(base);
             const { response, origin } = await fetchFromServerOrigins('/api/vdj/proxy', {
@@ -702,6 +735,7 @@
     async function verificaVirtualDjDiretto() {
         try {
             impostaStato('statusVdj', 'warn', 'VirtualDJ: verifica in corso...');
+            await ensureVirtualDjRunningIfNeeded();
             const base = leggiVdjUrl();
             const candidates = getVirtualDjCandidateBases(base);
             let lastError = null;

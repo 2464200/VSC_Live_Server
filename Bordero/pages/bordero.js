@@ -2787,9 +2787,38 @@ class BorderoTableManager {
     return (first * 60) + second;
   }
 
-  async queryVirtualDjScript(script, timeoutMs = 2500) {
-    const url = new URL('/api/vdj/proxy', window.location.origin);
+  async ensureVirtualDjRuntime() {
     const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+
+    try {
+      const response = await fetch('/api/vdj/ensure-running', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl: candidateBases[0],
+          baseUrls: candidateBases.join(','),
+          timeoutMs: 15000
+        }),
+        cache: 'no-store'
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || `VirtualDJ non disponibile (HTTP ${response.status})`);
+      }
+
+      return payload;
+    } catch (error) {
+      logger.warn('Impossibile avviare VirtualDJ automaticamente', error);
+      return { ok: false, started: false, error: error?.message || String(error) };
+    }
+  }
+
+  async queryVirtualDjScript(script, timeoutMs = 2500) {
+    const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+    await this.ensureVirtualDjRuntime();
+
+    const url = new URL('/api/vdj/proxy', window.location.origin);
     url.searchParams.set('baseUrl', candidateBases[0]);
     url.searchParams.set('baseUrls', candidateBases.join(','));
     url.searchParams.set('endpoint', '/execute');

@@ -1,7 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const http = require('http');
-const { forwardVdjRequest } = require('../vdj-proxy');
+const { forwardVdjRequest, findVirtualDjExecutable } = require('../vdj-proxy');
 
 test('forwards VirtualDJ requests through a local proxy', async () => {
   const server = http.createServer((req, res) => {
@@ -50,5 +53,26 @@ test('tries the next candidate base URL when the first one fails', async () => {
     assert.equal(response.body, 'FALLBACK_OK');
   } finally {
     await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  }
+});
+
+test('finds a configured VirtualDJ executable path when available', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'virtualdj-test-'));
+  const fakeExe = path.join(tempDir, 'virtualdj.exe');
+  fs.writeFileSync(fakeExe, 'placeholder');
+
+  const previous = process.env.VIRTUALDJ_EXE_PATH;
+  process.env.VIRTUALDJ_EXE_PATH = fakeExe;
+
+  try {
+    assert.equal(findVirtualDjExecutable(), fakeExe);
+  } finally {
+    if (previous === undefined) {
+      delete process.env.VIRTUALDJ_EXE_PATH;
+    } else {
+      process.env.VIRTUALDJ_EXE_PATH = previous;
+    }
+    fs.unlinkSync(fakeExe);
+    fs.rmdirSync(tempDir, { recursive: false });
   }
 });
