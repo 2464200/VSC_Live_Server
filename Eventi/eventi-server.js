@@ -13,7 +13,8 @@ const pathDjLimits = path.join(__dirname, 'data', 'dj-limits.json');
 const pathCsv   = path.join(__dirname, 'data', 'log.csv');
 const pathEventMeta = path.join(__dirname, 'data', 'event-meta.json');
 // Directory condivisa export SIAE (allineata a Bordero/unified-server).
-const SIAE_EXPORT_DIR = process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR || 'C:\\VSC_SIAE';
+// Percorso fisso: entrambi i pulsanti (EXPORT SIAE / FINALIZZA SERATA) devono sempre salvare qui, nessun override da env.
+const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
 
 function ensureSiaeExportDir() {
   if (!fs.existsSync(SIAE_EXPORT_DIR)) {

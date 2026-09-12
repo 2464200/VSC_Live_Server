@@ -29,7 +29,8 @@ const VIDEOCLIP_DIR = process.env.VSC_VIDEOCLIP_PATH || 'C:\\VSC_VIDEOCLIP';
 const VIDEOCLIP_EXTENSIONS = new Set(['.mp4', '.m4v', '.mov', '.avi', '.mkv', '.wmv', '.webm']);
 // Directory condivisa export SIAE (Bordero + Eventi).
 // Priorita: variabile ambiente -> default storico progetto.
-const SIAE_EXPORT_DIR = process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR || 'C:\\VSC_SIAE';
+// Percorso fisso: entrambi i pulsanti (EXPORT SIAE / FINALIZZA SERATA) devono sempre salvare qui, nessun override da env.
+const SIAE_EXPORT_DIR = 'C:\\VSC_SIAE';
 const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
 const USERFORM_RECORDINGS_DIR = process.env.USERFORM_RECORDINGS_DIR || 'C:\\VSC_WEBCAM';
 const LEGACY_RECORDINGS_DIR = 'C:\\vsc_webcam';
@@ -3791,7 +3792,8 @@ app.post('/api/bordero/export-siae', (req, res) => {
         const completed = brani
             .filter(item => String(item?.flag || '').trim().toUpperCase() === 'X')
             .map(item => {
-                const titolo = String(item?.titolo || '').replace(/"/g, '').trim();
+                // Titolo SIAE = nome brano reale (sync Google "Elenco Brani statico"), non il titolo coreografia mostrato in tabella.
+                const titolo = String(item?.brano || item?.titolo || '').replace(/"/g, '').trim();
                 const autore = String(item?.autore || '').replace(/"/g, '').trim();
                 return { titolo, autore };
             })

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, dialog, session } = require('electron');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
@@ -8,6 +8,18 @@ const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectron
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 const PAGE_POLICY_FILE = path.join(__dirname, 'page-policy.json');
+// Cartella fissa dove i pulsanti EXPORT SIAE / FINALIZZA SERATA devono sempre salvare il CSV.
+const SIAE_SAVE_DIR = 'C:\\VSC_SIAE';
+
+function ensureSiaeSaveDir() {
+  try {
+    if (!fs.existsSync(SIAE_SAVE_DIR)) {
+      fs.mkdirSync(SIAE_SAVE_DIR, { recursive: true });
+    }
+  } catch (error) {
+    console.warn('Unable to ensure SIAE save dir:', error?.message || error);
+  }
+}
 
 let primaryWindow;
 let secondaryWindow;
@@ -1178,6 +1190,15 @@ app.whenReady().then(() => {
   });
   startElectronControlServer();
   watchMonitorPreferences();
+
+  // I download del CSV SIAE (EXPORT SIAE / FINALIZZA SERATA) devono sempre finire in C:\VSC_SIAE, mai in Downloads.
+  session.defaultSession.on('will-download', (_event, item) => {
+    const fileName = item.getFilename() || '';
+    if (/_SIAE_VSC\.csv$/i.test(fileName)) {
+      ensureSiaeSaveDir();
+      item.setSavePath(path.join(SIAE_SAVE_DIR, fileName));
+    }
+  });
 
   screen.on('display-added', handleDisplayChange);
   screen.on('display-removed', handleDisplayChange);

@@ -26,10 +26,12 @@ La selezione NEXT è una scelta unica e distinta dal flag di esecuzione.
 Quando un brano viene eseguito:
 
 1. Il brano eseguito ottiene il flag X e viene posizionato in fondo alla lista.
-2. Tutti i brani che hanno lo stesso nome nella colonna Titolo/Coreografia vengono anch’essi posizionati in fondo insieme ad esso.
-3. Le righe omonime spostate in fondo non ricevono il flag X; mantengono lo stato originario ma vengono messe in fondo per non duplicare le chiamate in cima.
-4. L’ordine di fondo deve seguire l’ordine ID.
-5. Tra le righe omonime, solo la riga effettivamente eseguita deve essere riconosciuta come X.
+2. Tutti i brani che hanno lo stesso titolo nella colonna Titolo/Coreografia devono essere portati in fondo insieme a quello eseguito.
+3. La regola si applica anche ai brani con titolo identico già presenti in elenco: vengono riordinati in fondo alla stessa occasione, indipendentemente dal loro stato precedente.
+4. Le righe omonime spostate in fondo non ricevono il flag X; mantengono lo stato originario ma vengono messe in fondo per non duplicare le chiamate in cima.
+5. L’ordine di fondo deve seguire l’ordine ID.
+6. Tra le righe omonime, solo la riga effettivamente eseguita deve essere riconosciuta come X.
+7. Se il sistema viene riavviato o la pagina viene ricaricata, la regola deve essere riattivata automaticamente: titolo uguale a quello eseguito continua a restare in fondo e solo la riga X resta marcata come eseguita.
 
 ## 3) Regola generazione file SIAE
 
@@ -62,9 +64,11 @@ Questi stati non vanno confusi: NEXT è una priorità di scelta, X è uno stato 
 
 ### Esecuzione
 - [ ] Quando un brano viene spuntato come eseguito, scende in fondo all’elenco.
+- [ ] Tutte le righe con lo stesso titolo vanno in fondo insieme a quella eseguita.
 - [ ] L’ordine di fondo segue l’ordine ID.
 - [ ] Eventuali brani con lo stesso titolo scendono insieme in fondo.
 - [ ] Solo una riga diventa X; le altre simili restano in fondo senza X.
+- [ ] Se la pagina viene riavviata, la regola viene riattivata e mantiene il titolo eseguito in fondo con le sue simili.
 - [ ] La selezione NEXT viene rimossa quando il brano viene completato.
 
 ### Export SIAE
@@ -78,6 +82,7 @@ Questi stati non vanno confusi: NEXT è una priorità di scelta, X è uno stato 
 
 NEXT = scelta corrente, sopra tutte le altre righe.
 X = conoscenza di esecuzione, in fondo all’elenco con le simili.
+Titolo uguale a quello eseguito = sempre spostato in fondo insieme ad esso, anche dopo riavvio o ricarica.
 SIAE = output finale dei brani eseguiti della serata.
 
 Questa regola va mantenuta come riferimento operativo per tutte le modifiche future.
