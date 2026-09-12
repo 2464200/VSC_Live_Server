@@ -3294,7 +3294,12 @@ class BorderoTableManager {
         throw lastError || new Error('Errore durante la generazione del file SIAE');
       }
 
-      if (result.downloadUrl) {
+      // Il file è già scritto server-side in C:\VSC_SIAE. Il download va innescato solo
+      // dentro Electron, dove il main process forza il salvataggio in quella stessa cartella
+      // (vedi will-download in electron/main.js). In un browser normale andrebbe invece
+      // nella cartella Download di sistema, generando una copia fuorviante: lo evitiamo.
+      const isElectronApp = Boolean(window.electronAPI?.runtime?.isElectron);
+      if (result.downloadUrl && isElectronApp) {
         const link = document.createElement('a');
         link.href = new URL(result.downloadUrl, apiOrigin || window.location.origin).href;
         link.download = result.fileName || '';
