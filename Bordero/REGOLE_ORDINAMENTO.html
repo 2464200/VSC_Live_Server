@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Regole di ordinamento e priorità BORDERÒ</title>
+<style>
+@page { size: A4; margin: 18mm 17mm 17mm; }
+:root { --ink: #20252b; --muted: #5f6b76; --accent: #a66300; --line: #d9dee3; --soft: #f4f6f8; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.42; }
+h1 { margin: 0 0 5mm; color: #243746; font-size: 24pt; line-height: 1.1; }
+h2 { margin: 8mm 0 3mm; padding-bottom: 1.5mm; color: #243746; font-size: 15pt; border-bottom: 1px solid var(--line); page-break-after: avoid; }
+h3 { margin: 4mm 0 1.5mm; color: #405464; font-size: 11.5pt; page-break-after: avoid; }
+p { margin: 0 0 3mm; }
+ul, ol { margin: 1.5mm 0 3.5mm 6mm; padding-left: 5mm; }
+li { margin: 1.2mm 0; }
+.cover { padding: 10mm 10mm 7mm; margin-bottom: 5mm; background: #eef3f5; border-left: 5px solid var(--accent); }
+.subtitle { color: var(--muted); font-size: 11pt; }
+.rule { page-break-inside: avoid; }
+.checklist { list-style: none; margin-left: 0; padding-left: 0; columns: 2; column-gap: 12mm; }
+.checklist li { break-inside: avoid; padding-left: 6mm; position: relative; }
+.checklist li::before { content: "□"; position: absolute; left: 0; color: var(--accent); font-size: 12pt; }
+.summary { padding: 4mm 5mm; background: var(--soft); border: 1px solid var(--line); page-break-inside: avoid; }
+footer { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line); color: var(--muted); font-size: 8.5pt; }
+</style>
+</head>
+<body>
+<section class="cover">
+<h1>Regole di ordinamento e priorità BORDERÒ</h1>
+<div class="subtitle">Documento operativo di riferimento</div>
+</section>
+
+<h2>Obiettivo</h2>
+<p>Questa pagina raccoglie in un unico punto le regole operative che governano:</p>
+<ul><li>la selezione NEXT coreo</li><li>il flag X di esecuzione</li><li>lo spostamento dei brani in fondo</li><li>l’ordinamento tra righe con lo stesso titolo</li></ul>
+
+<section class="rule">
+<h2>1) Regola NEXT coreo</h2>
+<p>La selezione NEXT è una scelta unica e distinta dal flag di esecuzione.</p>
+<ul>
+<li>Un solo brano può essere selezionato come NEXT alla volta.</li>
+<li>Il brano in NEXT deve essere portato sempre in cima/all’inizio della lista.</li>
+<li>Dopo la selezione, la pagina deve tornare alla prima pagina.</li>
+<li>La scelta deve resistere a refresh, sort, filtri, paginazione e auto-refresh.</li>
+<li>La scelta deve essere persistente nello storage e sincronizzata con display/overlay.</li>
+<li>Un brano già eseguito (flag X) non può essere selezionato come NEXT.</li>
+<li>La selezione NEXT deve essere rimossa solo in modo esplicito: deselezione o completamento del brano.</li>
+<li>Nessun altro pulsante o refresh della tabella può cancellare la selezione NEXT.</li>
+</ul>
+</section>
+
+<section class="rule">
+<h2>2) Regola esecuzione (flag X)</h2>
+<p>Quando un brano viene eseguito:</p>
+<ol>
+<li>Il brano eseguito ottiene il flag X e viene posizionato in fondo alla lista.</li>
+<li>Tutti i brani che hanno lo stesso titolo nella colonna Titolo/Coreografia devono essere portati in fondo insieme a quello eseguito.</li>
+<li>La regola si applica anche ai brani con titolo identico già presenti in elenco: vengono riordinati in fondo alla stessa occasione, indipendentemente dal loro stato precedente.</li>
+<li>Le righe omonime spostate in fondo non ricevono il flag X; mantengono lo stato originario ma vengono messe in fondo per non duplicare le chiamate in cima.</li>
+<li>L’ordine di fondo deve seguire l’ordine ID.</li>
+<li>Tra le righe omonime, solo la riga effettivamente eseguita deve essere riconosciuta come X.</li>
+<li>Se il sistema viene riavviato o la pagina viene ricaricata, la regola deve essere riattivata automaticamente: titolo uguale a quello eseguito continua a restare in fondo e solo la riga X resta marcata come eseguita.</li>
+</ol>
+</section>
+
+<section class="rule">
+<h2>3) Regola generazione file SIAE</h2>
+<p>L’esportazione SIAE è un’operazione separata dalla scelta NEXT e deve partire solo dai brani realmente eseguiti.</p>
+<ul>
+<li>Il file SIAE viene generato solo a partire dai brani con flag X.</li>
+<li>Nessun brano in NEXT o non eseguito deve comparire nel file SIAE.</li>
+<li>L’export deve usare il set di colonne standard: Titolo, Autore, Compositore, Performer, Durata.</li>
+<li>Il file viene scritto nel percorso di riferimento <code>C:\VSC_SIAE</code>.</li>
+<li>In ambiente Electron il download deve essere forzato verso la stessa cartella di output server-side; non deve finire in cartelle di download del browser.</li>
+<li>La generazione avviene per serata: un solo file per l’insieme dei brani eseguiti della serata corrente.</li>
+<li>Se un brano è stato marcato come eseguito, il file SIAE deve riflettere quel completamento senza confondere lo stato di NEXT.</li>
+</ul>
+</section>
+
+<h2>4) Distinzione tra stati</h2>
+<ul><li><strong>NEXT</strong> = prossima coreografia scelta</li><li><strong>X</strong> = brano eseguito</li><li><strong>SIAE</strong> = export finale dei brani eseguiti della serata</li></ul>
+<p>Questi stati non vanno confusi: NEXT è una priorità di scelta, X è uno stato di completamento, SIAE è un file di output derivato dal set di brani eseguiti.</p>
+
+<h2>5) Checklist operativa</h2>
+<h3>Selezione NEXT</h3>
+<ul class="checklist"><li>Un solo brano può essere selezionato come NEXT.</li><li>Il brano NEXT resta sempre sopra tutte le altre righe.</li><li>La pagina torna a 1 dopo la selezione.</li><li>La scelta non viene persa a causa di refresh o altri controlli UI.</li><li>Il display/overlay mostra lo stesso titolo selezionato.</li></ul>
+<h3>Esecuzione</h3>
+<ul class="checklist"><li>Quando un brano viene spuntato come eseguito, scende in fondo all’elenco.</li><li>Tutte le righe con lo stesso titolo vanno in fondo insieme a quella eseguita.</li><li>L’ordine di fondo segue l’ordine ID.</li><li>Eventuali brani con lo stesso titolo scendono insieme in fondo.</li><li>Solo una riga diventa X; le altre simili restano in fondo senza X.</li><li>Se la pagina viene riavviata, la regola viene riattivata e mantiene il titolo eseguito in fondo con le sue simili.</li><li>La selezione NEXT viene rimossa quando il brano viene completato.</li></ul>
+<h3>Export SIAE</h3>
+<ul class="checklist"><li>Il file SIAE include solo brani con flag X.</li><li>Nessun brano in NEXT o non eseguito compare nel file SIAE.</li><li>Il file viene scritto in <code>C:\VSC_SIAE</code>.</li><li>Le colonne usate sono quelle standard di SIAE.</li><li>Il file è generato per la serata corrente e non per la lista completa.</li></ul>
+
+<h2>6) Regola di sintesi</h2>
+<div class="summary"><p><strong>NEXT</strong> = scelta corrente, sopra tutte le altre righe.</p><p><strong>X</strong> = conoscenza di esecuzione, in fondo all’elenco con le simili.</p><p><strong>Titolo uguale a quello eseguito</strong> = sempre spostato in fondo insieme ad esso, anche dopo riavvio o ricarica.</p><p><strong>SIAE</strong> = output finale dei brani eseguiti della serata.</p></div>
+<footer>Documento operativo da mantenere come riferimento per tutte le modifiche future al progetto BORDERÒ.</footer>
+</body>
+</html>
