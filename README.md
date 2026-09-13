@@ -217,8 +217,8 @@ Questa sezione riassume le modifiche funzionali principali applicate nelle ultim
 	- click successivi sulla stessa colonna: alternanza crescente/decrescente
 	- click su nuova colonna: reset del criterio precedente e nuovo crescente.
 - Inserito box rapido `RESET FILTRI + ID ↑` nella barra statistiche.
-- Aggiunto indicatore stato `Eseguiti in fondo: ON/OFF`.
-- Modalità `SPOSTA IN FONDO GLI ESEGUITI` mantenuta anche con riordino: gli eseguiti restano in fondo ma vengono ordinati internamente quando si applica un sort.
+- Lo spostamento degli eseguiti e dei titoli omonimi in fondo è sempre attivo e non dipende da un tasto ON/OFF.
+- Gli eseguiti restano in fondo anche con riordino, refresh e paginazione, ordinati internamente per ID.
 
 ### Comandi filtri e popup selezione valori (`Bordero/pages/bordero.html`, `Bordero/pages/bordero.js`, `Bordero/pages/bordero.css`)
 
