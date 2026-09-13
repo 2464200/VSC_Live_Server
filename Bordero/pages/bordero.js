@@ -1635,10 +1635,12 @@ class BorderoTableManager {
     // Start con tutti i brani
     this.filteredBrani = [...this.allBrani];
 
-    this.filteredBrani = filterBraniByTitleVisibility(this.filteredBrani, {
-      isExecuted: (brano) => this.isExecutedBrano(brano),
-      isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
-    });
+    if (typeof window.annotateBraniByTitleVisibility === 'function') {
+      this.filteredBrani = window.annotateBraniByTitleVisibility(this.filteredBrani, {
+        isExecuted: (brano) => this.isExecutedBrano(brano),
+        isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
+      });
+    }
 
     // Applica filtri
     Object.entries(this.currentFilters).forEach(([key, config]) => {

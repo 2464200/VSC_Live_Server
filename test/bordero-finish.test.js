@@ -214,4 +214,9 @@ if (flags.some(f => f.id === '6' && f.flag === 'X')) {
   throw new Error('Duplicate title incorrectly received executed flag');
 }
 
+const filteredOrder = manager.filteredBrani.map(b => b.id);
+if (JSON.stringify(filteredOrder) !== JSON.stringify(['1', '3', '5', '2', '4', '6'])) {
+  throw new Error(`Duplicate title was not retained at the bottom of filtered list: ${filteredOrder.join(',')}`);
+}
+
 console.log('TEST PASSED: Executed tracks move to the bottom as expected');

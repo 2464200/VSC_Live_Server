@@ -58,6 +58,7 @@ footer { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line); c
 <li>Il brano eseguito ottiene il flag X e viene posizionato in fondo alla lista.</li>
 <li>Tutti i brani che hanno lo stesso titolo nella colonna Titolo/Coreografia devono essere portati in fondo insieme a quello eseguito.</li>
 <li>La regola si applica anche ai brani con titolo identico già presenti in elenco: vengono riordinati in fondo alla stessa occasione, indipendentemente dal loro stato precedente.</li>
+<li>Le righe omonime non vengono cancellate né escluse definitivamente: restano nella lista e vengono solo spostate in fondo.</li>
 <li>Le righe omonime spostate in fondo non ricevono il flag X; mantengono lo stato originario ma vengono messe in fondo per non duplicare le chiamate in cima.</li>
 <li>L’ordine di fondo deve seguire l’ordine ID.</li>
 <li>Tra le righe omonime, solo la riga effettivamente eseguita deve essere riconosciuta come X.</li>
@@ -87,7 +88,9 @@ footer { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line); c
 <h3>Selezione NEXT</h3>
 <ul class="checklist"><li>Un solo brano può essere selezionato come NEXT.</li><li>Il brano NEXT resta sempre sopra tutte le altre righe.</li><li>La pagina torna a 1 dopo la selezione.</li><li>La scelta non viene persa a causa di refresh o altri controlli UI.</li><li>Nel filtro RICHIESTE il click sulla riga mostra subito il pallino giallo NEXT.</li><li>Il pallino giallo resta visibile finché NEXT non viene deselezionato o completato.</li><li>Il display/overlay mostra lo stesso titolo selezionato.</li></ul>
 <h3>Esecuzione</h3>
-<ul class="checklist"><li>Quando un brano viene spuntato come eseguito, scende in fondo all’elenco.</li><li>Tutte le righe con lo stesso titolo vanno in fondo insieme a quella eseguita.</li><li>L’ordine di fondo segue l’ordine ID.</li><li>Eventuali brani con lo stesso titolo scendono insieme in fondo.</li><li>Solo una riga diventa X; le altre simili restano in fondo senza X.</li><li>Se la pagina viene riavviata, la regola viene riattivata e mantiene il titolo eseguito in fondo con le sue simili.</li><li>La selezione NEXT viene rimossa quando il brano viene completato.</li></ul>
+<ul class="checklist"><li>Quando un brano viene spuntato come eseguito, scende in fondo all’elenco.</li><li>Tutte le righe con lo stesso titolo vanno in fondo insieme a quella eseguita.</li><li>Le righe omonime restano presenti nella lista: vengono spostate, non cancellate.</li><li>L’ordine di fondo segue l’ordine ID.</li><li>Eventuali brani con lo stesso titolo scendono insieme in fondo.</li><li>Solo una riga diventa X; le altre simili restano in fondo senza X.</li><li>Se la pagina viene riavviata, la regola viene riattivata e mantiene il titolo eseguito in fondo con le sue simili.</li><li>La selezione NEXT viene rimossa quando il brano viene completato.</li></ul>
+<h3>Reset serata e filtri</h3>
+<ul class="checklist"><li>Il reset della serata cancella i flag X e rende nuovamente disponibili anche le righe omonime.</li><li>Se dopo il reset alcune righe non si vedono, verificare i filtri attivi.</li><li>Usare RESET RICERCA per azzerare filtri e ricerca e visualizzare nuovamente l’elenco completo.</li></ul>
 <h3>Export SIAE</h3>
 <ul class="checklist"><li>Il file SIAE include solo brani con flag X.</li><li>Nessun brano in NEXT o non eseguito compare nel file SIAE.</li><li>Il file viene scritto in <code>C:\VSC_SIAE</code>.</li><li>Le colonne usate sono quelle standard di SIAE.</li><li>Il file è generato per la serata corrente e non per la lista completa.</li></ul>
 

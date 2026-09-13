@@ -53,6 +53,14 @@ Flusso aggiornato Bordero:
 - Directory di riferimento file Excel locali: `C:\VSC_Live_Server\Excel\`.
 - In caso di rete assente: fallback su cache localStorage e CSV locali in `Bordero/data/`.
 
+### Ordinamento degli eseguiti e titoli uguali
+
+- Quando un brano viene segnato come eseguito, tutte le righe con lo stesso titolo vengono spostate in fondo insieme a quello eseguito.
+- Le righe omonime non vengono cancellate: restano nell'elenco, senza flag `X`, e vengono ordinate in fondo per ID.
+- Solo la riga realmente eseguita riceve il flag `X`.
+- Il reset della serata azzera i flag e rende nuovamente disponibili tutte le righe.
+- Se dopo il reset una riga non è visibile, controllare i filtri attivi e premere `RESET RICERCA` per ripristinare la vista completa.
+
 ## Eventi e pagine collegate
 
 La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.

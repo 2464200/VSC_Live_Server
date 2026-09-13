@@ -30,10 +30,11 @@ Quando un brano viene eseguito:
 1. Il brano eseguito ottiene il flag X e viene posizionato in fondo alla lista.
 2. Tutti i brani che hanno lo stesso titolo nella colonna Titolo/Coreografia devono essere portati in fondo insieme a quello eseguito.
 3. La regola si applica anche ai brani con titolo identico già presenti in elenco: vengono riordinati in fondo alla stessa occasione, indipendentemente dal loro stato precedente.
-4. Le righe omonime spostate in fondo non ricevono il flag X; mantengono lo stato originario ma vengono messe in fondo per non duplicare le chiamate in cima.
-5. L’ordine di fondo deve seguire l’ordine ID.
-6. Tra le righe omonime, solo la riga effettivamente eseguita deve essere riconosciuta come X.
-7. Se il sistema viene riavviato o la pagina viene ricaricata, la regola deve essere riattivata automaticamente: titolo uguale a quello eseguito continua a restare in fondo e solo la riga X resta marcata come eseguita.
+4. Le righe omonime non vengono cancellate né escluse definitivamente: restano nella lista e vengono solo spostate in fondo.
+5. Le righe omonime spostate in fondo non ricevono il flag X; mantengono lo stato originario ma vengono messe in fondo per non duplicare le chiamate in cima.
+6. L’ordine di fondo deve seguire l’ordine ID.
+7. Tra le righe omonime, solo la riga effettivamente eseguita deve essere riconosciuta come X.
+8. Se il sistema viene riavviato o la pagina viene ricaricata, la regola deve essere riattivata automaticamente: titolo uguale a quello eseguito continua a restare in fondo e solo la riga X resta marcata come eseguita.
 
 ## 3) Regola generazione file SIAE
 
@@ -69,11 +70,17 @@ Questi stati non vanno confusi: NEXT è una priorità di scelta, X è uno stato 
 ### Esecuzione
 - [ ] Quando un brano viene spuntato come eseguito, scende in fondo all’elenco.
 - [ ] Tutte le righe con lo stesso titolo vanno in fondo insieme a quella eseguita.
+- [ ] Le righe omonime restano presenti nella lista: vengono spostate, non cancellate.
 - [ ] L’ordine di fondo segue l’ordine ID.
 - [ ] Eventuali brani con lo stesso titolo scendono insieme in fondo.
 - [ ] Solo una riga diventa X; le altre simili restano in fondo senza X.
 - [ ] Se la pagina viene riavviata, la regola viene riattivata e mantiene il titolo eseguito in fondo con le sue simili.
 - [ ] La selezione NEXT viene rimossa quando il brano viene completato.
+
+### Reset serata e filtri
+- [ ] Il reset della serata cancella i flag X e rende nuovamente disponibili anche le righe omonime.
+- [ ] Se dopo il reset alcune righe non si vedono, verificare i filtri attivi.
+- [ ] Usare `RESET RICERCA` per azzerare filtri e ricerca e visualizzare nuovamente l’elenco completo.
 
 ### Export SIAE
 - [ ] Il file SIAE include solo brani con flag X.

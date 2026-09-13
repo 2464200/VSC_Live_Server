@@ -220,6 +220,13 @@ Una volta aperto **bordero.html**:
 8. Vedi statistiche su risultati.html
 ```
 
+### Ordinamento, titoli uguali e reset
+
+- Quando un brano viene segnato come eseguito, le righe con lo stesso titolo non vengono cancellate: vengono spostate in fondo insieme all’eseguito.
+- Solo la riga realmente eseguita riceve la spunta `X`; le righe omonime restano disponibili senza `X`.
+- Dopo un reset della serata i flag vengono azzerati e tutte le righe tornano disponibili.
+- Se alcune righe non sono visibili dopo il reset, è probabile che sia ancora attivo un filtro: premi `RESET RICERCA` per visualizzare l’elenco completo.
+
 ---
 
 ## 💾 Dati e Persistenza
