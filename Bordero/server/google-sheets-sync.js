@@ -38,7 +38,11 @@ if (dotenv && fs.existsSync(envPath)) {
   console.warn('⚠️ File .env non trovato; si procede con variabili d’ambiente o fallback pubblico.');
 }
 
-const API_KEY = process.env.GOOGLE_API_KEY?.trim();
+const API_KEY = process.env.GOOGLE_API_KEY?.trim()
+  .replace(/^\*+/, '')
+  .replace(/^GOOGLE_API_KEY\s*=\s*/i, '')
+  .replace(/\*+$/, '')
+  .trim();
 const SERVICE_ACCOUNT_KEY_FILE = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE?.trim();
 const SERVICE_ACCOUNT_KEY_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON?.trim();
 const OUTPUT_DIR = path.join(__dirname, '..', 'data');
