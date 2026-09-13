@@ -72,21 +72,14 @@
  <div class="header">
   <table>
     <tr>
-      <th colspan="8" style="font-size:24px; text-align:center;">
-        DISPLAY COREOGRAFIE RICHIESTE
-      </th>
-    </tr>
-    <tr>
-      <th colspan="7" style="text-align:center; font-size:18px; color:#ff7f00;">
-        Le righe evidenziate in arancione indicano le coreografie già eseguite
-        <th style="text-align:right;">
+      <th colspan="8" style="text-align:right;">
         <button onclick="toggleFullscreen()" aria-label="Attiva o disattiva schermo intero">
         Schermo Intero
         </button>
-        </th>
+      </th>
     </tr>
     <tr>
-      <th colspan="2" style="text-align:right; font-size:16px;">
+      <th colspan="2" style="text-align:left; padding-left:12px; font-size:20px; color:#ffffff; font-weight:bold;">
         <span id="data-ora"></span>
       </th>
       <th colspan="1" style="text-align:center; font-size:26px;">
@@ -161,31 +154,23 @@
     // Carico il CSV principale
     caricaCSV();
 
-    // Carico NextCoreo.csv e gestisco lampeggio + fade-out
+    // Mostra solo la selezione manuale effettuata da Bordero.
     async function mostraNextCoreo() {
+      const span = document.getElementById("next-coreo");
+      if (!span) return;
+
       try {
-        const response = await fetch("NextCoreo.csv?t=" + Date.now(), { cache: "no-store" });
-        const text = await response.text();
-
-        const primaRiga = text.trim().split("\n")[0];
-        const valoreB1 = primaRiga.split(",")[1].replace(/(^\"|\"$)/g, "").trim();
-
-        const span = document.getElementById("next-coreo");
-        span.textContent = valoreB1;
-        span.classList.add("blink");
-
-        // Dopo 2 minuti attivo fade-out
-        setTimeout(() => {
-          span.classList.remove("blink");
-          span.classList.add("fade-out");
-        }, 120000);
-
+        const selection = JSON.parse(localStorage.getItem("bordero_next_coreo_selection") || "null");
+        span.textContent = selection && selection.title ? String(selection.title).trim() : "--";
       } catch (err) {
-        console.error("Errore nel caricamento di NextCoreo.csv:", err);
+        span.textContent = "--";
       }
     }
 
     mostraNextCoreo();
+    window.addEventListener("storage", (event) => {
+      if (event.key === "bordero_next_coreo_selection") mostraNextCoreo();
+    });
   });
 
   function toggleFullscreen() {

@@ -1594,6 +1594,8 @@ class VideoClipManager {
         });
         return null;
       }
+
+      return null;
     }
 
     const exactNameMatches = this.videoCatalog.filter(item => normalizedNameSet.has(item.normalizedName));
@@ -1690,6 +1692,10 @@ class VideoClipManager {
         if (!url) {
           logger.warn('[PLAY] No video URL');
           return;
+        }
+
+        if (!this.isBranoExecuted(this.currentBrano)) {
+          this.markBranoExecutedFromVideoEnd(this.currentBrano);
         }
 
         try {
@@ -1813,7 +1819,7 @@ class VideoClipManager {
 
     // Fallback robusto: se VLC termina senza evento completion mappabile,
     // usa il brano in riproduzione corrente (a meno che sia stato stop manuale).
-    if (this.vlcWasAlive && !alive && !handledByCompletionEvent) {
+    if ((this.vlcWasAlive || this.currentPlaybackBranoId) && !alive && !handledByCompletionEvent) {
       if (this.manualStopPending) {
         this.manualStopPending = false;
       } else {

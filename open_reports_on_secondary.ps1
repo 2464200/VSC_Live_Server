@@ -43,7 +43,7 @@ $chrome = $chromePaths | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 foreach ($url in $urls) {
     if ($chrome) {
-        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList "--new-window","--start-maximized",$url -PassThru
+        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList "--new-window","--kiosk",$url -PassThru
     } else {
         $proc = Start-ProcessSafe -FilePath $url -PassThru
     }

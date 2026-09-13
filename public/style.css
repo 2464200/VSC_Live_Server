@@ -1,32 +1,164 @@
-/* Shared stylesheet for public pages */
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #111;
-  color: #f5f5f5;
+    --ui-scale: 1;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #fff;
+    margin: 0;
+    overflow: hidden;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
+.header {
+    position: sticky;
+    top: 0;
+    background: #222;
+    padding: 12px 10px;
+    margin-bottom: 16px;
+    z-index: 10;
 }
 
+.titoli-tabella {   
+    background: #222;
+    margin-top: 16px;
+    margin-bottom: 6px;
+}
+
+.logo-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000; 
+}
+
+/* Logo ridotto per evitare sovrapposizioni su schermi a bassa risoluzione */
 .logo {
-  max-width: 220px;
-  display: block;
-  margin: 1rem auto;
+    height: 90px;     /* leggermente più piccolo rispetto al valore originale */
+    max-height: 90px; /* assicura che non cresca su schermi grandi */
+    width: auto;
+}
+
+/* In caso di risoluzioni particolarmente basse, riduci ulteriormente lo spazio occupato */
+@media (max-width: 1280px) {
+    .logo {
+        height: 80px;
+        max-height: 80px;
+    }
+}
+
+button {
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#fullscreenBtn {
+    background-color: #ff7f00;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+}
+
+/* Nascondi i controlli da UI */
+.controls {
+    display: none !important;
+}
+
+/* Nascondi il bottone Schermo Intero */
+button[aria-label="Attiva o disattiva schermo intero"],
+button[onclick*="toggleFullscreen"] {
+    display: none !important;
 }
 
 .warning {
-  background: #ffb703;
-  color: #111;
-  padding: 0.5rem 0.75rem;
-  margin: 0.5rem 0;
-  border-radius: 4px;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff7f00;
+    color: #111;
+    padding: 12px 22px;
+    font-weight: bold;
+    border-radius: 6px;
+    z-index: 999;
+}
+
+/* Reduced motion / low-power devices (SmartTV) */
+html.reduced-motion *, html.reduced-motion *::before, html.reduced-motion *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+}
+
+/* Slightly larger controls for TV */
+.controls input, .controls button {
+    font-size: 18px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+    color: #fff;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.scroll-container {
+    height: calc(100vh - 160px);
+    overflow-y: auto;
+    position: relative;
+    padding-bottom: 180px; /* spazio extra per ultima riga */
 }
 
 .orange-row {
-  background: #ff8c00;
-  color: #111;
+    background-color: #ff7f00;
+}
+
+.orange-row td:first-child {
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.orange-row td:nth-child(2) {
+    color: #fff;
+    font-weight: bold;
+    font-size: 22px;
+}
+
+.orange-row td:nth-child(3) {
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.orange-row td:nth-child(4) {
+    color: #fff;
+    font-weight: bold;
+}
+
+.controls {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    z-index: 20;
+    color: #fff;
+}
+
+.controls button {
+    margin-left: 15px;
+}
+
+nav ul li a.active {
+    font-weight: bold;
+    color: darkred;
+}
+
+.scroll-container table {
+    margin-bottom: 100px;
 }

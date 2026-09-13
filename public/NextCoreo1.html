@@ -169,7 +169,10 @@
                     const rows = parseCSV(text.replace(/^\uFEFF/, ''));
                     const first = rows.find(r => r && r.length) || [];
 
-                    document.getElementById('boxA').textContent = (first[1] || '—').toString().trim();
+                    const selection = JSON.parse(localStorage.getItem('bordero_next_coreo_selection') || 'null');
+                    document.getElementById('boxA').textContent = selection && selection.title
+                        ? String(selection.title).trim()
+                        : '—';
                     document.getElementById('boxB').textContent = (first[2] || '—').toString().trim();
                     document.getElementById('boxC').textContent = (first[3] || '—').toString().trim();
 
@@ -189,6 +192,14 @@
                     console.error('Errore nel caricamento del CSV:', err);
                 }
             }
+
+            window.addEventListener('storage', (event) => {
+                if (event.key !== 'bordero_next_coreo_selection') return;
+                const selection = JSON.parse(event.newValue || 'null');
+                document.getElementById('boxA').textContent = selection && selection.title
+                    ? String(selection.title).trim()
+                    : '—';
+            });
 
             function scheduleRefresh() {
                 if (refreshTimer) clearTimeout(refreshTimer);

@@ -62,7 +62,12 @@ foreach ($file in $files) {
     Write-Host "Apertura $relative -> $targetLabel"
 
     if ($chrome) {
-        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList '--new-window', "--window-position=$($bounds.X),$($bounds.Y)", "--window-size=$($bounds.Width),$($bounds.Height)", $url -PassThru
+        $chromeArgs = @('--new-window')
+        if (-not $isBorderoPage) { $chromeArgs += '--kiosk' }
+        $chromeArgs += "--window-position=$($bounds.X),$($bounds.Y)"
+        $chromeArgs += "--window-size=$($bounds.Width),$($bounds.Height)"
+        $chromeArgs += $url
+        $proc = Start-ProcessSafe -FilePath $chrome -ArgumentList $chromeArgs -PassThru
     } else {
         $proc = Start-ProcessSafe -FilePath $url -PassThru
     }

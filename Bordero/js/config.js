@@ -9,7 +9,7 @@ const dataBasePath = isPagePath ? '../data/' : './data/';
 const BORDERO_CONFIG = {
   // ========== APPLICAZIONE ==========
   APP_NAME: 'BORDERÒ DJ Manager',
-  APP_VERSION: '1.0.0',
+  APP_VERSION: '1.1.0',
   APP_AUTHOR: 'Copilot',
   
   // ========== DATI & STORAGE ==========
@@ -28,8 +28,9 @@ const BORDERO_CONFIG = {
   CACHE_KEY_PREFS: 'bordero_userPrefs',
   CACHE_KEY_CURRENT_SERATA: 'bordero_currentSerata',      // Serata in corso (brani + metadata)
   CACHE_KEY_SERATA_HISTORY: 'bordero_serataHistory',      // Array of completed serata
+  CACHE_KEY_NEXT_COREO_SESSION_RESET: 'bordero_next_coreo_session_reset',
   CACHE_KEY_SERATA_ARCHIVE_DIR: 'C:\\VSC_SIAE\\Storico Serate\\', // Directory archivio
-  SYNC_INTERVAL_MS: 60 * 1000, // 1 minuto
+  SYNC_INTERVAL_MS: 30 * 1000, // 30 secondi
   
   // ========== FIREBASE CLOUD REALTIME SYNC ==========
   FIREBASE_PROJECT_ID: 'my-project-1525790600392',
@@ -52,13 +53,13 @@ const BORDERO_CONFIG = {
     { id: 'id', label: 'ID', width: '60px', sortable: true },
     { id: 'titolo', label: 'Titolo', width: '200px', sortable: true },
     { id: 'autore', label: 'Autore', width: '150px', sortable: true },
+    { id: 'durata', label: 'Durata', width: '80px', sortable: true },
     { id: 'richieste', label: 'Richieste', width: '130px', sortable: true },
     { id: 'genere', label: 'Genere', width: '100px', sortable: true },
     { id: 'info_livello', label: 'Info Livello', width: '120px', sortable: true },
     { id: 'info_coreo_1', label: 'Info Coreo 1', width: '150px', sortable: true },
     { id: 'info_coreo_2', label: 'Info Coreo 2', width: '150px', sortable: true },
     { id: 'coreografo', label: 'Coreografo', width: '150px', sortable: true },
-    { id: 'collaboratori', label: 'Collaboratori', width: '200px', sortable: true },
   ],
 
   // ========== COLONNE SIAE EXPORT ==========
