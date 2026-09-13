@@ -1563,11 +1563,8 @@ class BorderoTableManager {
   moveExecutedToBottom() {
     logger.info('Spostando i brani eseguiti in fondo alla lista...');
 
-    const executed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
-    const pending = this.allBrani.filter(b => String(b.flag || '').toUpperCase() !== 'X');
-
-    this.allBrani = [...pending, ...executed];
     this.keepExecutedAtBottom = true;
+    this.allBrani = this.sortCollection(this.allBrani, 'id', true);
     this.updateExecutedBottomModeBadge();
     this.currentSort = null;
     this.currentSortDirection = 'asc';
@@ -1833,6 +1830,11 @@ class BorderoTableManager {
           return;
         }
 
+        if (!clickedFlagCell) {
+          this.toggleNextCoreoSelection(branoId);
+          return;
+        }
+
         if (clickedFlagCell) {
           if (!brano || !brano.next_selected) {
             Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
@@ -1962,11 +1964,10 @@ class BorderoTableManager {
       Toast.info('Selezione NEXT rimossa');
     }
 
-    this.reapplyCurrentOrdering();
     if (!isAlreadySelected) {
       this.currentPage = 1;
     }
-    this.renderTable();
+    this.applyFilters();
 
     if (!isAlreadySelected) {
       window.scrollTo({ top: 0, behavior: 'smooth' });

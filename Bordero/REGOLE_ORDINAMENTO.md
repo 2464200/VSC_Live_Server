@@ -17,6 +17,8 @@ La selezione NEXT è una scelta unica e distinta dal flag di esecuzione.
 - Dopo la selezione, la pagina deve tornare alla prima pagina.
 - La scelta deve resistere a refresh, sort, filtri, paginazione e auto-refresh.
 - La scelta deve essere persistente nello storage e sincronizzata con display/overlay.
+- Nel filtro RICHIESTE è possibile selezionare NEXT cliccando sulla riga; il pallino giallo compare subito anche con un filtro attivo.
+- Il pallino giallo resta visibile dopo filtri, ordinamenti, paginazione, refresh e auto-refresh, finché la selezione NEXT non viene rimossa esplicitamente.
 - Un brano già eseguito (flag X) non può essere selezionato come NEXT.
 - La selezione NEXT deve essere rimossa solo in modo esplicito: deselezione o completamento del brano.
 - Nessun altro pulsante o refresh della tabella può cancellare la selezione NEXT.
@@ -60,6 +62,8 @@ Questi stati non vanno confusi: NEXT è una priorità di scelta, X è uno stato 
 - [ ] Il brano NEXT resta sempre sopra tutte le altre righe.
 - [ ] La pagina torna a 1 dopo la selezione.
 - [ ] La scelta non viene persa a causa di refresh o altri controlli UI.
+- [ ] Nel filtro RICHIESTE il click sulla riga mostra subito il pallino giallo NEXT.
+- [ ] Il pallino giallo resta visibile finché NEXT non viene deselezionato o completato.
 - [ ] Il display/overlay mostra lo stesso titolo selezionato.
 
 ### Esecuzione
@@ -80,7 +84,7 @@ Questi stati non vanno confusi: NEXT è una priorità di scelta, X è uno stato 
 
 ## 6) Regola di sintesi
 
-NEXT = scelta corrente, sopra tutte le altre righe.
+NEXT = scelta corrente, sopra tutte le altre righe, evidenziata dal pallino giallo persistente.
 X = conoscenza di esecuzione, in fondo all’elenco con le simili.
 Titolo uguale a quello eseguito = sempre spostato in fondo insieme ad esso, anche dopo riavvio o ricarica.
 SIAE = output finale dei brani eseguiti della serata.

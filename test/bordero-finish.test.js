@@ -15,6 +15,13 @@ const context = {
   RegExp,
   Boolean,
   Promise,
+  Event: function Event(type) {
+    this.type = type;
+  },
+  CustomEvent: function CustomEvent(type, init = {}) {
+    this.type = type;
+    Object.assign(this, init);
+  },
 };
 
 context.window = context;
@@ -36,6 +43,7 @@ const elements = {
   'brani-tbody': createElement(),
   'empty-state': createElement(),
   'stat-total': createElement(),
+  'stat-requested': createElement(),
   'stat-completed': createElement(),
   'stat-pending': createElement(),
   'stat-last-action': createElement(),
@@ -63,6 +71,7 @@ context.navigator = { userAgent: 'node' };
 context.window.document = context.document;
 context.window.location = context.location;
 context.window.navigator = context.navigator;
+context.window.dispatchEvent = () => {};
 context.window.console = console;
 context.window.setTimeout = setTimeout;
 context.window.clearTimeout = clearTimeout;
@@ -154,18 +163,22 @@ context.dataLoader = {
   newSerata() { this._current = null; },
 };
 
-const scriptContent = fs.readFileSync('Bordero/pages/bordero.js', 'utf8');
 vm.createContext(context);
+const visibilityUtilsContent = fs.readFileSync('Bordero/js/title-visibility-utils.js', 'utf8');
+vm.runInContext(visibilityUtilsContent, context);
+
+const scriptContent = fs.readFileSync('Bordero/pages/bordero.js', 'utf8');
 vm.runInContext(scriptContent, context);
 
 const BaseManager = context.BorderoTableManager;
 BaseManager.prototype.init = function initStub() {
   this.allBrani = [
     { id: '1', titolo: 'A', flag: '', originalIndex: 0 },
-    { id: '2', titolo: 'B', flag: '', originalIndex: 1 },
+    { id: '2', titolo: 'B', flag: '', next_selected: true, originalIndex: 1 },
     { id: '3', titolo: 'C', flag: '', originalIndex: 2 },
-    { id: '4', titolo: 'D', flag: '', originalIndex: 3 },
+    { id: '4', titolo: 'D', flag: '', next_selected: true, originalIndex: 3 },
     { id: '5', titolo: 'E', flag: '', originalIndex: 4 },
+    { id: '6', titolo: 'B', flag: '', originalIndex: 5 },
   ];
   this.filteredBrani = [...this.allBrani];
   this.displayedBrani = [];
@@ -182,12 +195,13 @@ BaseManager.prototype.init = function initStub() {
 
 const manager = new BaseManager();
 manager.markAsCompleted('2');
+manager.allBrani.find(b => b.id === '4').next_selected = true;
 manager.markAsCompleted('4');
 manager.moveExecutedToBottom();
 
 const movedOrder = manager.allBrani.map(b => b.id);
 console.log('After moveExecutedToBottom:', movedOrder);
-if (JSON.stringify(movedOrder) !== JSON.stringify(['1','3','5','2','4'])) {
+if (JSON.stringify(movedOrder) !== JSON.stringify(['1','3','5','2','4','6'])) {
   throw new Error(`Unexpected order after moveExecutedToBottom: ${movedOrder.join(',')}`);
 }
 
@@ -195,6 +209,9 @@ const flags = manager.allBrani.map(b => ({ id: b.id, flag: b.flag }));
 console.log('Flags after moveExecutedToBottom:', flags);
 if (!flags.some(f => f.id === '2' && f.flag === 'X')) {
   throw new Error('Completed track was not preserved');
+}
+if (flags.some(f => f.id === '6' && f.flag === 'X')) {
+  throw new Error('Duplicate title incorrectly received executed flag');
 }
 
 console.log('TEST PASSED: Executed tracks move to the bottom as expected');
