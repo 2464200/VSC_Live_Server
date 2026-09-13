@@ -807,6 +807,15 @@ class VideoClipManager {
       await mainVideo.play();
       await this.waitForPlaybackStart(mainVideo);
       this.pendingMainVideoPlay = false;
+      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+
+      if (this.currentBrano && !this.isBranoExecuted(this.currentBrano)) {
+        this.markBranoExecutedFromVideoEnd(this.currentBrano, {
+          source: 'video-start',
+          toastMessage: `✓ "${this.currentBrano.titolo || this.currentBrano.id}" avviato: inizio riproduzione registrato`
+        });
+      }
+
       mainVideo.muted = false;
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
       if (playbackStatus) {
@@ -1886,9 +1895,10 @@ class VideoClipManager {
     return this.brani.find((item) => String(item.id) === String(fallback)) || null;
   }
 
-  markBranoExecutedFromVideoEnd(brano) {
+  markBranoExecutedFromVideoEnd(brano, options = {}) {
     const targetId = String(brano.id);
     const nowTimestamp = DateUtils.formatDate(new Date());
+    const source = String(options.source || 'video-end');
 
     this.brani = this.brani.map((item) => {
       if (String(item.id) !== targetId) return item;
@@ -1940,7 +1950,9 @@ class VideoClipManager {
       titolo: brano.titolo || '',
       timestamp: nowTimestamp
     });
-    Toast.success(`Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`);
+    Toast.success(options.toastMessage || (source === 'video-start'
+      ? `Brano marcato eseguito all'avvio video: ${brano.titolo || brano.id}`
+      : `Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`));
   }
 
   updateFilterButtons() {

@@ -9,7 +9,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,008,3 FLICKS,1 2 3,ann tayler,03:04,,AVANZATO 2,,,,David Villelas,Pol F. Ryan David Prestor,64 conteggi 4 muri 3 tag 1 restart
 ,,009,3 G,get it got it god,billy gilman,02:58,,ALTRE COREO,,,,Teo Lattanzio
 ,,010,3 M,miss me more,kelsea ballerini,03:13,,ALTRE COREO
-,,011,3 TEQUILA FLOOR,3 tequila floor,josiah siska,03:29,1,SUPER AVANZATO 1+2,,,,Maddison Glover
+,,011,3 TEQUILA FLOOR,3 tequila floor,josiah siska,03:29,,SUPER AVANZATO 1+2,,,,Maddison Glover
 ,,012,50 SHOTS,shoulda,kylie morgan,02:47,,ALTRE COREO
 ,,013,8 BALLS,outback booty call,8 ball aitken,02:43,,ALTRE COREO
 ,,014,99 BOTTLES,99 bottles,zane williams,04:07,,SUPER AVANZATO 1+2
@@ -118,10 +118,10 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,117,COUNTRY GIRL SHAKE,country girl (shake it for me),luke bryan,03:48,,ALTRE COREO
 ,,118,COUNTRY ROADS,country roads,hermes house band,03:14,,ALTRE COREO,,,,Kate Sala,,32 conteggi 4 muri 1 tag alla fine del 5° muro
 ,,119,COWBOY BIG UP,cowboy up,jill johnson,03:32,,BASE,STAGE,,,Big Andrew Gragnaniello,,32 conteggi 4 muri
-,,120,CASANOVA COWBOY,blue christmas,sheryl crow,03:26,,INTERMEDIO,NATALIZIA,,,Rob Fowler,,32 conteggi 4 muri
-,,121,CASANOVA COWBOY,cowboy casanova,carrie underwood,03:57,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
-,,122,CASANOVA COWBOY,must be a woman,gord bamford,03:35,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
-,,123,CASANOVA COWBOY,true blue,madonna,04:03,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,120,CASANOVA COWBOY,blue christmas,sheryl crow,03:26,1,INTERMEDIO,NATALIZIA,,,Rob Fowler,,32 conteggi 4 muri
+,,121,CASANOVA COWBOY,cowboy casanova,carrie underwood,03:57,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,122,CASANOVA COWBOY,must be a woman,gord bamford,03:35,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,123,CASANOVA COWBOY,true blue,madonna,04:03,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,124,COWBOY STRUT,my next broken heart,brooks & dunn,02:56,,ALTRE COREO
 ,,125,COWBOY UP,bury the shovel,clay walker,03:28,,ALTRE COREO
 ,,126,CRASH AND BURN,crush and burn,thomas rhett,03:13,,BASE,,,,Gail Smith,,32 conteggi 4 muri
@@ -537,14 +537,14 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,536,ELECTRIC SLIDE,no rompas mi corazon,caballo dorado,03:41,,BASE,,,,Ric Silvern,,14 conteggi 2 muri
 ,,537,MY MARIA,choosin' texas,ella langley,03:52,,INTERMEDIO,COPPIA,,,Jgor Pasin,,28 conteggi (couple dance)
 ,,538,SWISS GUY,swiss guy,florian fox,03:41,,SUPER AVANZATO 1+2,,,,Fabian Muller,,48 counts 4 muri 3 Tag [Tag 1 di 17 conteggi al 3^ e al 6^ muro dopo 15 conteggi] [Tag 2 di 4 conteggi all’8^ muro dopo 32 conteggi] [Tag 3 di 33 conteggi al 10^ muro dopo 15 conteggi]
-,,539,CASANOVA COWBOY,love runs out,onerepublic,03:45,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,539,CASANOVA COWBOY,love runs out,onerepublic,03:45,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,540,BIG BULL FIDDLE,big butch bass bull fiddle,corb lund,02:14,,SUPER AVANZATO 3,,,,Arne Stakkestad,,56 conteggi 2 muri
 ,,541,TEXAS HOLD'EM,texas hold'em,beyoncè,03:56,,ALTRE COREO,,,,Laura Jones,,32 conteggi 2 muri
 ,,542,OPHELIA,ophelia,taylor swift,03:47,,ALTRE COREO,,,,Mikyung Lee,,40 conteggi 2 muri
 ,,543,ELECTRIC STOMP,fast as you,dwight yoakam,04:49,,ALTRE COREO,,,,,,24 conteggi 4 muri
 ,,544,LAKE DARBONNE,lake darbonne,katie knight,02:29,,SUPER AVANZATO 3,,,,David Villelas,,32 conteggi 1 restart al 4° muro dopo 16 conteggi
 ,,545,MAN ON A MISSION,man on a mission,oh the lacerny,03:32,,SUPER AVANZATO 1+2,,,,Gary O'Reilly,Guillaume Richard Niels Puolsen,32 conteggi 2 muri [restart al 2° e 5° muro dopo 8 counts] (tag alla fine del 3° muro dopo 8 counts)
-,,546,CASANOVA COWBOY,man i feel like a woman,shania twain,03:53,,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
+,,546,CASANOVA COWBOY,man i feel like a woman,shania twain,03:53,1,INTERMEDIO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,547,C A R E,the last shanty,derina harvey band,03:47,,SUPER AVANZATO 1+2,,,,Fabian Muller,,32 conteggi 4 muri [3 restart al 2° e al 6° dopo 16 counts al 12° dopo 8 counts] finale si ripete ultima ottava due volte
 ,,548,I SHOWED YOU THE DOOR,the door,teddy swims,03:33,,SUPER AVANZATO 1+2,,,,Ria Vos,,64 conteggi 4 muri (restart al 2° muro dopo 32 counts)
 ,,549,CHEYENNE,drunken sailor,malinda feat. bobby waters,02:43,,BASE,,,,Unknown,,24 conteggi 4 muri

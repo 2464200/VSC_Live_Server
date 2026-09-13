@@ -60,6 +60,7 @@ if ($chrome) {
     $chromeArgs = @(
         '--new-window',
         '--kiosk',
+        '--start-fullscreen',
         "--window-position=$($bounds.X),$($bounds.Y)",
         "--window-size=$($bounds.Width),$($bounds.Height)",
         $url

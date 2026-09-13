@@ -63,7 +63,7 @@ foreach ($file in $files) {
 
     if ($chrome) {
         $chromeArgs = @('--new-window')
-        if (-not $isBorderoPage) { $chromeArgs += '--kiosk' }
+        if (-not $isBorderoPage) { $chromeArgs += '--kiosk'; $chromeArgs += '--start-fullscreen' }
         $chromeArgs += "--window-position=$($bounds.X),$($bounds.Y)"
         $chromeArgs += "--window-size=$($bounds.Width),$($bounds.Height)"
         $chromeArgs += $url

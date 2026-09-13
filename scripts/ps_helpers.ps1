@@ -12,9 +12,19 @@ function Start-ProcessSafe {
     # Check if FilePath is a URL - Start-Process can open URLs
     if ($FilePath -match '^[a-zA-Z]+:\/\/') {
         try {
-            if ($PassThru) { return Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WindowStyle $WindowStyle -PassThru }
-            Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WindowStyle $WindowStyle; return $null
-        } catch { Write-Warning "Start-Process failed for URL $FilePath: $($_.Exception.Message)"; return $null }
+            $urlSplat = @{
+                FilePath = $FilePath
+                WindowStyle = $WindowStyle
+            }
+            if ($PassThru) { $urlSplat['PassThru'] = $true }
+            if ($ArgumentList -and $ArgumentList.Count -gt 0) { $urlSplat['ArgumentList'] = $ArgumentList }
+
+            if ($PassThru) { return Start-Process @urlSplat }
+            Start-Process @urlSplat; return $null
+        } catch {
+            Write-Warning ("Start-Process failed for URL {0}: {1}" -f $FilePath, $error[0].Exception.Message)
+            return $null
+        }
     }
 
     # If FilePath is an absolute path, check it exists; otherwise try Get-Command
@@ -44,9 +54,7 @@ function Start-ProcessSafe {
     try {
         return Start-Process @splat
     } catch {
-        Write-Warning "Start-ProcessSafe: failed to start $FilePath: $($_.Exception.Message)"
+        Write-Warning ("Start-ProcessSafe: failed to start {0}: {1}" -f $FilePath, $error[0].Exception.Message)
         return $null
     }
 }
-
-Export-ModuleMember -Function Start-ProcessSafe

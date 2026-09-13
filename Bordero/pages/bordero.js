@@ -1455,7 +1455,14 @@ class BorderoTableManager {
   }
 
   isExecutedBrano(brano) {
-    return String(brano?.flag || '').toUpperCase() === 'X';
+    if (!brano || typeof brano !== 'object') return false;
+    return Boolean(
+      String(brano?.flag || '').toUpperCase() === 'X'
+      || String(brano?.eseguito || '').toUpperCase() === 'X'
+      || String(brano?.executed || '').toUpperCase() === 'X'
+      || brano?.eseguito === true
+      || brano?.executed === true
+    );
   }
 
   sortCollection(collection, field, ascending = true) {
@@ -2558,6 +2565,21 @@ class BorderoTableManager {
       }
 
       const playbackState = this.resolveDeckPlaybackState(deckState);
+      if (playbackState === 'playing' && trackedBrano && !this.isExecutedBrano(trackedBrano)) {
+        logger.info('VirtualDJ brano avviato: marca eseguito immediatamente', {
+          branoId: trackedBrano.id,
+          titolo: trackedBrano.titolo || '',
+          deckNumber
+        });
+
+        this.finalizeBranoAsCompleted(trackedBrano, {
+          source: 'virtualdj-start',
+          toastMessage: `✓ "${trackedBrano.titolo || trackedBrano.id}" avviato: inizio riproduzione registrato`
+        });
+        this.updateConsoleStatus('live', deckNumber, `✓ DECK ${deckNumber}`);
+        return;
+      }
+
       const buttonState = this.mapPlaybackStateToConsoleButtonState(playbackState);
       const rowChanged = this.applyTrackedBranoPlaybackState(trackedBrano.id, deckNumber, playbackState);
 

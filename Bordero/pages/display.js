@@ -64,6 +64,9 @@ class DisplayMonitor {
         this.allBrani = await this.loadDisplayCsvFallback();
       }
 
+      // Forza apertura a schermo intero all'avvio e in caso di blocco del browser
+      this.requestFullscreenOnLoad();
+
       // Auto-refresh ogni 30 secondi, allineato alla pagina MOBILE
       this.refreshInterval = setInterval(() => this.refresh(), 30000);
 
@@ -371,8 +374,16 @@ class DisplayMonitor {
     const ids = new Set();
     const fromSerata = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
 
+    const isExecutedValue = (brano) => Boolean(
+      String(brano?.flag || '').toUpperCase() === 'X'
+      || String(brano?.eseguito || '').toUpperCase() === 'X'
+      || String(brano?.executed || '').toUpperCase() === 'X'
+      || brano?.eseguito === true
+      || brano?.executed === true
+    );
+
     fromSerata.forEach((brano) => {
-      if (String(brano?.flag || '').toUpperCase() === 'X') {
+      if (isExecutedValue(brano)) {
         const key = this.normalizeBranoIdKey(brano.id);
         if (key) ids.add(key);
       }
@@ -380,7 +391,7 @@ class DisplayMonitor {
 
     if (ids.size === 0 && Array.isArray(sourceBrani)) {
       sourceBrani.forEach((brano) => {
-        if (String(brano?.flag || '').toUpperCase() === 'X') {
+        if (isExecutedValue(brano)) {
           const key = this.normalizeBranoIdKey(brano.id);
           if (key) ids.add(key);
         }
@@ -462,7 +473,13 @@ class DisplayMonitor {
     if (id && this.executedIds.has(id)) {
       return true;
     }
-    return String(brano.flag || '').toUpperCase() === 'X';
+    return Boolean(
+      String(brano.flag || '').toUpperCase() === 'X'
+      || String(brano.eseguito || '').toUpperCase() === 'X'
+      || String(brano.executed || '').toUpperCase() === 'X'
+      || brano.eseguito === true
+      || brano.executed === true
+    );
   }
 
   /**
@@ -654,6 +671,35 @@ class DisplayMonitor {
     `;
   }
 
+  requestFullscreenOnLoad() {
+    const target = document.documentElement || document.body;
+    if (!target || document.fullscreenElement) return;
+
+    const methods = [
+      'requestFullscreen',
+      'webkitRequestFullscreen',
+      'msRequestFullscreen',
+    ];
+
+    const method = methods.map(name => target[name]).find(fn => typeof fn === 'function');
+    if (!method) {
+      logger.warn('Fullscreen API non disponibile sul display');
+      return;
+    }
+
+    try {
+      const promise = method.call(target);
+      if (promise && typeof promise.catch === 'function') {
+        promise.catch(() => {
+          setTimeout(() => this.requestFullscreenOnLoad(), 1500);
+        });
+      }
+    } catch (error) {
+      logger.debug('Richiesta fullscreen display fallita', error?.message || error);
+      setTimeout(() => this.requestFullscreenOnLoad(), 1500);
+    }
+  }
+
   setupControls() {
     const stopBtn = document.getElementById('stopScroll');
     const resumeBtn = document.getElementById('resumeScroll');
@@ -682,6 +728,18 @@ class DisplayMonitor {
     document.addEventListener('fullscreenchange', () => {
       setTimeout(() => {
         this.restartAutoScroll();
+        if (!document.fullscreenElement) {
+          this.requestFullscreenOnLoad();
+        }
+      }, 100);
+    });
+
+    document.addEventListener('webkitfullscreenchange', () => {
+      setTimeout(() => {
+        this.restartAutoScroll();
+        if (!document.webkitFullscreenElement) {
+          this.requestFullscreenOnLoad();
+        }
       }, 100);
     });
 

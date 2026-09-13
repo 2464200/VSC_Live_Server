@@ -14,7 +14,7 @@ if (-not (Test-Path $chrome)) {
 }
 
 if (Test-Path $chrome) {
-    $args = @('--new-window', '--kiosk', "--window-position=$($bounds.X),$($bounds.Y)", "--window-size=$($bounds.Width),$($bounds.Height)", $url)
+    $args = @('--new-window', '--kiosk', '--start-fullscreen', "--window-position=$($bounds.X),$($bounds.Y)", "--window-size=$($bounds.Width),$($bounds.Height)", $url)
     $proc = Start-Process -FilePath $chrome -ArgumentList $args -PassThru
     Write-Host "OPENED_PID=$($proc.Id)"
     Write-Host "TARGET=$url"

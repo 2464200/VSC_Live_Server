@@ -1,3 +1,9 @@
+function isExecutedFlag(value) {
+  if (typeof value === 'boolean') return value;
+  const text = String(value ?? '').trim().toUpperCase();
+  return text === 'X' || text === 'TRUE';
+}
+
 function normalizeTitle(value) {
   const text = String(value ?? '').trim();
   if (!text) return '';
@@ -36,6 +42,12 @@ function filterBraniByTitleVisibility(brani, options = {}) {
 
   if (!Array.isArray(brani)) return [];
 
+  const resolveExecuted = (brano) =>
+    isExecuted(brano)
+    || isExecutedFlag(brano?.flag)
+    || isExecutedFlag(brano?.eseguito)
+    || isExecutedFlag(brano?.executed);
+
   const groups = createTitleVisibilityGroups(brani);
 
   return brani.filter((brano) => {
@@ -47,10 +59,10 @@ function filterBraniByTitleVisibility(brani, options = {}) {
 
     if (!isRequested(brano)) return true;
 
-    const executedMatches = matches.filter((item) => isExecuted(item));
+    const executedMatches = matches.filter((item) => resolveExecuted(item));
     if (executedMatches.length === 0) return true;
 
-    return isExecuted(brano);
+    return resolveExecuted(brano);
   });
 }
 
@@ -61,10 +73,16 @@ function partitionBraniByExecutedTitle(brani, options = {}) {
     return { main: [], bottom: [], executed: [], omonimi: [] };
   }
 
+  const resolveExecuted = (brano) =>
+    isExecuted(brano)
+    || isExecutedFlag(brano?.flag)
+    || isExecutedFlag(brano?.eseguito)
+    || isExecutedFlag(brano?.executed);
+
   const groups = createTitleVisibilityGroups(brani);
   const titlesWithExecutedDuplicate = new Set(
     Array.from(groups.entries())
-      .filter(([, matches]) => matches.some((item) => isExecuted(item)))
+      .filter(([, matches]) => matches.some((item) => resolveExecuted(item)))
       .map(([title]) => title)
   );
 
@@ -74,7 +92,7 @@ function partitionBraniByExecutedTitle(brani, options = {}) {
 
   brani.forEach((brano) => {
     const title = normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano || '');
-    if (isExecuted(brano)) {
+    if (resolveExecuted(brano)) {
       executed.push({ ...brano, displayState: 'executed', isOmonimoBlocked: false });
     } else if (title && titlesWithExecutedDuplicate.has(title)) {
       omonimi.push({ ...brano, displayState: 'blocked', isOmonimoBlocked: true });
@@ -108,6 +126,12 @@ function annotateBraniByTitleVisibility(brani, options = {}) {
 
   if (!Array.isArray(brani)) return [];
 
+  const resolveExecuted = (brano) =>
+    isExecuted(brano)
+    || isExecutedFlag(brano?.flag)
+    || isExecutedFlag(brano?.eseguito)
+    || isExecutedFlag(brano?.executed);
+
   const groups = createTitleVisibilityGroups(brani);
 
   return brani.map((brano) => {
@@ -118,21 +142,21 @@ function annotateBraniByTitleVisibility(brani, options = {}) {
 
     const matches = groups.get(title) || [];
     if (matches.length <= 1) {
-      return { ...brano, displayState: isExecuted(brano) ? 'executed' : 'available' };
+      return { ...brano, displayState: resolveExecuted(brano) ? 'executed' : 'available' };
     }
 
     if (!isRequested(brano)) {
       return { ...brano, displayState: 'available' };
     }
 
-    const executedMatches = matches.filter((item) => isExecuted(item));
+    const executedMatches = matches.filter((item) => resolveExecuted(item));
     if (executedMatches.length === 0) {
       return { ...brano, displayState: 'available' };
     }
 
     return {
       ...brano,
-      displayState: isExecuted(brano) ? 'executed' : 'blocked',
+      displayState: resolveExecuted(brano) ? 'executed' : 'blocked',
     };
   });
 }
