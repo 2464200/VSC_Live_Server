@@ -43,6 +43,9 @@ class BorderoTableManager {
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
+    this.serataBroadcastChannel = typeof BroadcastChannel !== 'undefined'
+      ? new BroadcastChannel('bordero-serata')
+      : null;
     this.coexistingFilterFields = new Set([
       'richieste',
       'info_livello',
@@ -121,8 +124,6 @@ class BorderoTableManager {
       // Setup UI
       this.setupEventListeners();
       this.setupSerataMeta();
-      this.setupDataRefreshListeners();
-      this.setupAutoRefresh();
       this.setupStorageSync();
       this.updateSearchPlaceholder();
       this.equalizeSearchActionButtons();
@@ -689,6 +690,7 @@ class BorderoTableManager {
     this.bindSortButton('btn-sort-coreografo', 'coreografo', 'COREOGRAFO');
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
     this.bindSortButton('btn-sort-richieste', 'richieste', 'RICHIESTE');
+    document.getElementById('btn-sort-executed')?.addEventListener('click', () => this.moveExecutedToBottom());
     this.setupColumnHeaderSorting();
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
       window.location.href = 'brani-eseguiti.html';
@@ -1381,6 +1383,12 @@ class BorderoTableManager {
   }
 
   setupStorageSync() {
+    this.serataBroadcastChannel?.addEventListener('message', (event) => {
+      const message = event?.data || {};
+      if (message.type !== 'brano-executed' || !message.brano) return;
+      this.mergeCurrentSerata([message.brano]);
+    });
+
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
 
@@ -1416,6 +1424,11 @@ class BorderoTableManager {
 
   mergeCurrentSerata(updatedBrani) {
     const updatedMap = new Map(updatedBrani.map(brano => [String(brano.id), brano]));
+    const executedIds = new Set(updatedBrani
+      .filter((brano) => this.isExecutedBrano(brano))
+      .map((brano) => String(brano.id)));
+    const activeNextSelectionId = this.getActiveNextSelectionId();
+    const orderBeforeSync = this.allBrani.map((brano) => String(brano.id)).join('|');
     let changed = false;
 
     this.allBrani = this.allBrani.map((brano) => {
@@ -1425,20 +1438,31 @@ class BorderoTableManager {
       const updatedFlag = String(updated.flag || '').toUpperCase() === 'X' ? 'X' : '';
       const updatedTimestamp = updated.timestamp || '';
 
-      if (updatedFlag !== String(brano.flag || '').toUpperCase() || updatedTimestamp !== (brano.timestamp || '')) {
+      const clearCompletedNext = updatedFlag === 'X' && brano.next_selected;
+      if (updatedFlag !== String(brano.flag || '').toUpperCase() || updatedTimestamp !== (brano.timestamp || '') || clearCompletedNext) {
         changed = true;
         return {
           ...brano,
           flag: updatedFlag,
+          next_selected: updatedFlag === 'X' ? false : brano.next_selected,
           timestamp: updatedTimestamp,
         };
       }
       return brano;
     });
 
-    if (!changed) return;
+    if (activeNextSelectionId && executedIds.has(activeNextSelectionId)) {
+      Storage.remove('bordero_next_coreo_selection');
+      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
+      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
+        detail: { reason: 'completed' }
+      }));
+    }
 
     this.reorderBraniByOriginalIndex();
+    const orderChanged = this.allBrani.map((brano) => String(brano.id)).join('|') !== orderBeforeSync;
+    if (!changed && !orderChanged) return;
+
     this.applyFilters();
     this.lastActionTime = new Date();
     this.updateLastActionTime();

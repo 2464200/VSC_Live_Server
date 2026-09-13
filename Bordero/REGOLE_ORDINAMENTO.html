@@ -96,6 +96,14 @@ footer { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--line); c
 
 <h2>6) Regola di sintesi</h2>
 <div class="summary"><p><strong>NEXT</strong> = scelta corrente, sopra tutte le altre righe, evidenziata dal pallino giallo persistente.</p><p><strong>X</strong> = conoscenza di esecuzione, in fondo all’elenco con le simili.</p><p><strong>Titolo uguale a quello eseguito</strong> = sempre spostato in fondo insieme ad esso, anche dopo riavvio o ricarica.</p><p><strong>SIAE</strong> = output finale dei brani eseguiti della serata.</p></div>
+
+<h2>7) Sessione operativa: refresh, richieste e VideoClip</h2>
+<ul>
+<li>La tabella principale carica i dati completi solo all'avvio della pagina o all'avvio di una nuova serata. Non esegue refresh periodici o refresh completi causati da focus, storage o sincronizzazioni generiche.</li>
+<li>Il sync Google dei moduli 8+12 puo restare attivo sul server senza alterare la tabella principale. Le richieste vengono aggiornate nella tabella solo con il comando manuale <code>SYNC RICHIESTE GOOGLE</code> oppure al successivo avvio della pagina.</li>
+<li>La sincronizzazione dello stato della serata resta attiva esclusivamente per i flag X: quando un brano viene segnato eseguito, la tabella mantiene le selezioni e applica il riordino previsto per eseguito e omonimi.</li>
+<li>In VideoClip, il brano selezionato riceve il flag X all'avvio con <code>PLAY</code>. Se era selezionato NEXT, tale selezione viene rimossa prima del riordino: non puo quindi riportare il brano in cima. Al rientro nella tabella principale, il brano eseguito e gli eventuali omonimi vengono portati in fondo; solo il brano avviato riceve il flag X.</li>
+</ul>
 <footer>Documento operativo da mantenere come riferimento per tutte le modifiche future al progetto BORDERÒ.</footer>
 </body>
 </html>

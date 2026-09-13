@@ -96,4 +96,11 @@ X = conoscenza di esecuzione, in fondo all’elenco con le simili.
 Titolo uguale a quello eseguito = sempre spostato in fondo insieme ad esso, anche dopo riavvio o ricarica.
 SIAE = output finale dei brani eseguiti della serata.
 
+## 7) Sessione operativa: refresh, richieste e VideoClip
+
+- La tabella principale carica i dati completi solo all'avvio della pagina o all'avvio di una nuova serata. Non esegue refresh periodici o refresh completi causati da focus, storage o sincronizzazioni generiche.
+- Il sync Google dei moduli 8+12 puo restare attivo sul server senza alterare la tabella principale. Le richieste vengono aggiornate nella tabella solo con il comando manuale `SYNC RICHIESTE GOOGLE` oppure al successivo avvio della pagina.
+- La sincronizzazione dello stato della serata resta attiva esclusivamente per i flag X: quando un brano viene segnato eseguito, la tabella mantiene le selezioni e applica il riordino previsto per eseguito e omonimi.
+- In VideoClip, il brano selezionato riceve il flag X all'avvio con `PLAY`. Se era selezionato NEXT, tale selezione viene rimossa prima del riordino: non puo quindi riportare il brano in cima. Al rientro nella tabella principale, il brano eseguito e gli eventuali omonimi vengono portati in fondo; solo il brano avviato riceve il flag X.
+
 Questa regola va mantenuta come riferimento operativo per tutte le modifiche future.

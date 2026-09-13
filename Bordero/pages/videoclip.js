@@ -23,6 +23,9 @@ class VideoClipManager {
     this.vlcFallbackActive = false;
     this.playbackBackendPreference = this.loadPlaybackBackendPreference();
     this.activeSecondaryBackend = null;
+    this.serataBroadcastChannel = typeof BroadcastChannel !== 'undefined'
+      ? new BroadcastChannel('bordero-serata')
+      : null;
     this.electronCompletionUnsubscribe = null;
     this.pendingBranoId = this.getRequestedBranoIdFromUrl();
     this.lastVlcCompletionEventId = 0;
@@ -1935,6 +1938,11 @@ class VideoClipManager {
     const currentSerata = dataLoader.getCurrentSerata?.() || {};
     const metadata = currentSerata.metadata || {};
     dataLoader.saveCurrentSerata(metadata, this.brani);
+    const executedBrano = this.brani.find((item) => String(item.id) === targetId);
+    this.serataBroadcastChannel?.postMessage({
+      type: 'brano-executed',
+      brano: executedBrano
+    });
 
     try {
       window.dispatchEvent(new Event('bordero:serata-updated'));
