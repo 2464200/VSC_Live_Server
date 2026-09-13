@@ -845,6 +845,14 @@ class DisplayMonitor {
   setupNextCoreoSync() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
+
+      const currentSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
+      if (event.newValue === null && currentSelection) {
+        this.nextCoreoDisplaySuppressed = false;
+        this.loadNextCoreo({ announce: true });
+        return;
+      }
+
       if (event.newValue === null) {
         this.nextCoreoDisplaySuppressed = true;
         this.clearNextCoreoDisplay();
@@ -932,6 +940,10 @@ class DisplayMonitor {
     if (storedSelection && typeof storedSelection === 'object') {
       title = String(storedSelection.title || storedSelection.nextValue || '').trim();
       timestamp = storedSelection.timestamp || null;
+    }
+
+    if (title) {
+      this.nextCoreoDisplaySuppressed = false;
     }
 
     if (!title && this.nextCoreoDisplaySuppressed) {
