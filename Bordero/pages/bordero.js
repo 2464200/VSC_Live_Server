@@ -11,7 +11,7 @@ class BorderoTableManager {
     this.currentSort = null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = null;
-    this.keepExecutedAtBottom = true;
+    this.keepExecutedAtBottom = false;
     this.currentFilters = {};
     this.currentSearch = '';
     this.searchMode = 'general';
@@ -25,6 +25,7 @@ class BorderoTableManager {
     this.filterButtonClickTimers = new Map();
     this.sortButtonClickTimers = new Map();
     this.headerSortClickTimers = new Map();
+    this.moveExecutedBottomClickTimer = null;
     this.searchButtonsResizeScheduled = false;
     this.webcamSignalPollTimer = null;
     this.webcamSignalWarningReason = '';
@@ -42,9 +43,6 @@ class BorderoTableManager {
     this.musicMatchSelectionState = null;
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
-      : null;
-    this.serataBroadcastChannel = typeof BroadcastChannel !== 'undefined'
-      ? new BroadcastChannel('bordero-serata')
       : null;
     this.coexistingFilterFields = new Set([
       'richieste',
@@ -102,13 +100,10 @@ class BorderoTableManager {
           }
           return brano;
         });
+        this.reorderBraniByOriginalIndex();
       } else {
         this.allBrani = originalBrani;
       }
-
-      // La selezione NEXT vive nello storage e deve essere ripristinata a ogni refresh.
-      this.restoreNextCoreoSelection();
-      this.reorderBraniByOriginalIndex();
 
       await this.refreshVideoClipAvailability();
       this.applyVideoClipAvailabilityToBrani();
@@ -124,6 +119,8 @@ class BorderoTableManager {
       // Setup UI
       this.setupEventListeners();
       this.setupSerataMeta();
+      this.setupDataRefreshListeners();
+      this.setupAutoRefresh();
       this.setupStorageSync();
       this.updateSearchPlaceholder();
       this.equalizeSearchActionButtons();
@@ -690,8 +687,8 @@ class BorderoTableManager {
     this.bindSortButton('btn-sort-coreografo', 'coreografo', 'COREOGRAFO');
     this.bindSortButton('btn-sort-autore', 'autore', 'AUTORE');
     this.bindSortButton('btn-sort-richieste', 'richieste', 'RICHIESTE');
-    document.getElementById('btn-sort-executed')?.addEventListener('click', () => this.moveExecutedToBottom());
     this.setupColumnHeaderSorting();
+    this.bindMoveExecutedBottomButton('btn-move-executed-bottom', 'SPOSTA IN FONDO GLI ESEGUITI');
     document.getElementById('btn-view-executed')?.addEventListener('click', () => {
       window.location.href = 'brani-eseguiti.html';
     });
@@ -1110,6 +1107,33 @@ class BorderoTableManager {
     });
   }
 
+  bindMoveExecutedBottomButton(buttonId, label) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+
+    button.addEventListener('click', () => {
+      if (this.moveExecutedBottomClickTimer) {
+        clearTimeout(this.moveExecutedBottomClickTimer);
+      }
+
+      this.moveExecutedBottomClickTimer = setTimeout(() => {
+        this.moveExecutedBottomClickTimer = null;
+        this.moveExecutedToBottom();
+      }, 220);
+    });
+
+    button.addEventListener('dblclick', (event) => {
+      event.preventDefault();
+
+      if (this.moveExecutedBottomClickTimer) {
+        clearTimeout(this.moveExecutedBottomClickTimer);
+        this.moveExecutedBottomClickTimer = null;
+      }
+
+      this.resetMoveExecutedToBottom(label);
+    });
+  }
+
   resetSingleSort(field, label = field) {
     if (this.currentSort !== field) {
       Toast.info(`Sort ${label} non attivo`);
@@ -1122,15 +1146,9 @@ class BorderoTableManager {
 
     const natural = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
     if (this.keepExecutedAtBottom) {
-      const partition = typeof window.partitionBraniByExecutedTitle === 'function'
-        ? window.partitionBraniByExecutedTitle(natural, { isExecuted: (item) => this.isExecutedBrano(item) })
-        : {
-            main: natural.filter(item => !this.isExecutedBrano(item)),
-            bottom: natural.filter(item => this.isExecutedBrano(item))
-          };
-      const executed = partition.bottom.filter(item => this.isExecutedBrano(item));
-      const omonimi = partition.bottom.filter(item => !this.isExecutedBrano(item));
-      this.allBrani = [...partition.main, ...executed, ...omonimi];
+      const pending = natural.filter(item => !this.isExecutedBrano(item));
+      const executed = natural.filter(item => this.isExecutedBrano(item));
+      this.allBrani = [...pending, ...executed];
     } else {
       this.allBrani = natural;
     }
@@ -1383,12 +1401,6 @@ class BorderoTableManager {
   }
 
   setupStorageSync() {
-    this.serataBroadcastChannel?.addEventListener('message', (event) => {
-      const message = event?.data || {};
-      if (message.type !== 'brano-executed' || !message.brano) return;
-      this.mergeCurrentSerata([message.brano]);
-    });
-
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
 
@@ -1424,11 +1436,6 @@ class BorderoTableManager {
 
   mergeCurrentSerata(updatedBrani) {
     const updatedMap = new Map(updatedBrani.map(brano => [String(brano.id), brano]));
-    const executedIds = new Set(updatedBrani
-      .filter((brano) => this.isExecutedBrano(brano))
-      .map((brano) => String(brano.id)));
-    const activeNextSelectionId = this.getActiveNextSelectionId();
-    const orderBeforeSync = this.allBrani.map((brano) => String(brano.id)).join('|');
     let changed = false;
 
     this.allBrani = this.allBrani.map((brano) => {
@@ -1438,31 +1445,20 @@ class BorderoTableManager {
       const updatedFlag = String(updated.flag || '').toUpperCase() === 'X' ? 'X' : '';
       const updatedTimestamp = updated.timestamp || '';
 
-      const clearCompletedNext = updatedFlag === 'X' && brano.next_selected;
-      if (updatedFlag !== String(brano.flag || '').toUpperCase() || updatedTimestamp !== (brano.timestamp || '') || clearCompletedNext) {
+      if (updatedFlag !== String(brano.flag || '').toUpperCase() || updatedTimestamp !== (brano.timestamp || '')) {
         changed = true;
         return {
           ...brano,
           flag: updatedFlag,
-          next_selected: updatedFlag === 'X' ? false : brano.next_selected,
           timestamp: updatedTimestamp,
         };
       }
       return brano;
     });
 
-    if (activeNextSelectionId && executedIds.has(activeNextSelectionId)) {
-      Storage.remove('bordero_next_coreo_selection');
-      this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
-      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
-        detail: { reason: 'completed' }
-      }));
-    }
+    if (!changed) return;
 
     this.reorderBraniByOriginalIndex();
-    const orderChanged = this.allBrani.map((brano) => String(brano.id)).join('|') !== orderBeforeSync;
-    if (!changed && !orderChanged) return;
-
     this.applyFilters();
     this.lastActionTime = new Date();
     this.updateLastActionTime();
@@ -1470,26 +1466,33 @@ class BorderoTableManager {
   }
 
   reorderBraniByOriginalIndex() {
-    const natural = [...this.allBrani].sort((a, b) => (Number(a.id) || Number(a.originalIndex) || 0) - (Number(b.id) || Number(b.originalIndex) || 0));
-    if (this.keepExecutedAtBottom) {
-      this.allBrani = this.sortCollection(natural, this.currentSort || 'id', this.currentSortDirection !== 'desc');
-    } else {
-      this.allBrani = natural;
+    const available = this.allBrani
+      .filter(b => String(b.flag || '').toUpperCase() !== 'X')
+      .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+
+    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
+
+    this.allBrani = [...available, ...completed];
+    // If a sort is active, re-apply it so reorder doesn't wipe user sorting
+    if (this.currentSort) {
+      const ascending = this.currentSortDirection !== 'desc';
+      try {
+        this.allBrani = this.sortCollection(this.allBrani, this.currentSort, ascending);
+        // keep filtered list in sync when appropriate
+        if (Array.isArray(this.filteredBrani) && this.filteredBrani.length > 0) {
+          this.filteredBrani = this.sortCollection(this.filteredBrani, this.currentSort, ascending);
+        }
+      } catch (e) {
+        logger.debug('Unable to reapply sort after reorder', e);
+      }
     }
   }
 
   isExecutedBrano(brano) {
-    if (!brano || typeof brano !== 'object') return false;
-    return Boolean(
-      String(brano?.flag || '').toUpperCase() === 'X'
-      || String(brano?.eseguito || '').toUpperCase() === 'X'
-      || String(brano?.executed || '').toUpperCase() === 'X'
-      || brano?.eseguito === true
-      || brano?.executed === true
-    );
+    return String(brano?.flag || '').toUpperCase() === 'X';
   }
 
-  sortCollection(collection, field, ascending = true) {
+  sortCollection(collection, field, ascending) {
     if (!Array.isArray(collection)) return [];
 
     const activeId = this.getActiveNextSelectionId();
@@ -1501,34 +1504,21 @@ class BorderoTableManager {
       ? prioritized.filter(item => String(item.id) !== String(activeId))
       : prioritized;
 
-    const sortField = field || 'id';
-
     if (!this.keepExecutedAtBottom) {
       return selectedItem
-        ? [selectedItem, ...ObjectUtils.sortByField(remainingItems, sortField, ascending)]
-        : ObjectUtils.sortByField(prioritized, sortField, ascending);
+        ? [selectedItem, ...ObjectUtils.sortByField(remainingItems, field, ascending)]
+        : ObjectUtils.sortByField(prioritized, field, ascending);
     }
 
-    const partition = typeof window.partitionBraniByExecutedTitle === 'function'
-      ? window.partitionBraniByExecutedTitle(remainingItems, { isExecuted: (item) => this.isExecutedBrano(item) })
-      : {
-          main: remainingItems.filter(item => !this.isExecutedBrano(item)),
-          bottom: remainingItems.filter(item => this.isExecutedBrano(item))
-        };
+    const pending = remainingItems.filter(item => !this.isExecutedBrano(item));
+    const executed = remainingItems.filter(item => this.isExecutedBrano(item));
 
-    const pendingSorted = ObjectUtils.sortByField(partition.main, sortField, ascending);
-
-    const executed = partition.bottom.filter(item => this.isExecutedBrano(item));
-    const omonimi = partition.bottom.filter(item => !this.isExecutedBrano(item));
-
-    const executedSorted = ObjectUtils.sortByField(executed, sortField, ascending);
-    const omonimiSorted = ObjectUtils.sortByField(omonimi, sortField, ascending);
-
-    const result = [...pendingSorted, ...executedSorted, ...omonimiSorted];
+    const pendingSorted = ObjectUtils.sortByField(pending, field, ascending);
+    const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
 
     return selectedItem
-      ? [selectedItem, ...result]
-      : result;
+      ? [selectedItem, ...pendingSorted, ...executedSorted]
+      : [...pendingSorted, ...executedSorted];
   }
 
   /**
@@ -1565,8 +1555,11 @@ class BorderoTableManager {
   moveExecutedToBottom() {
     logger.info('Spostando i brani eseguiti in fondo alla lista...');
 
+    const executed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
+    const pending = this.allBrani.filter(b => String(b.flag || '').toUpperCase() !== 'X');
+
+    this.allBrani = [...pending, ...executed];
     this.keepExecutedAtBottom = true;
-    this.allBrani = this.sortCollection(this.allBrani, 'id', true);
     this.updateExecutedBottomModeBadge();
     this.currentSort = null;
     this.currentSortDirection = 'asc';
@@ -1581,6 +1574,30 @@ class BorderoTableManager {
 
     logger.info('Brani eseguiti spostati in fondo');
     Toast.info('Brani eseguiti spostati in fondo');
+  }
+
+  resetMoveExecutedToBottom(label = 'SPOSTA IN FONDO GLI ESEGUITI') {
+    if (!this.keepExecutedAtBottom) {
+      Toast.info(`Comando ${label} non attivo`);
+      return;
+    }
+
+    this.keepExecutedAtBottom = false;
+    this.currentSort = null;
+    this.currentSortDirection = 'asc';
+    this.lastHeaderSortField = null;
+    this.allBrani = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+    this.currentPage = 1;
+
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+    this.autoSaveSerata();
+    this.updateExecutedBottomModeBadge();
+    this.updateSortButtons();
+    this.updateColumnHeaderSortState();
+    this.applyFilters();
+
+    logger.info('Comando sposta eseguiti in fondo resettato');
+    Toast.info(`Comando ${label} resettato`);
   }
 
   /**
@@ -1613,12 +1630,10 @@ class BorderoTableManager {
     // Start con tutti i brani
     this.filteredBrani = [...this.allBrani];
 
-    if (typeof window.annotateBraniByTitleVisibility === 'function') {
-      this.filteredBrani = window.annotateBraniByTitleVisibility(this.filteredBrani, {
-        isExecuted: (brano) => this.isExecutedBrano(brano),
-        isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
-      });
-    }
+    this.filteredBrani = filterBraniByTitleVisibility(this.filteredBrani, {
+      isExecuted: (brano) => this.isExecutedBrano(brano),
+      isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
+    });
 
     // Applica filtri
     Object.entries(this.currentFilters).forEach(([key, config]) => {
@@ -1664,8 +1679,6 @@ class BorderoTableManager {
     if (this.currentSort) {
       const ascending = this.currentSortDirection !== 'desc';
       this.filteredBrani = this.sortCollection(this.filteredBrani, this.currentSort, ascending);
-    } else if (this.keepExecutedAtBottom) {
-      this.filteredBrani = this.sortCollection(this.filteredBrani, 'id', true);
     }
 
     // Reset pagina
@@ -1810,11 +1823,6 @@ class BorderoTableManager {
           return;
         }
 
-        if (!clickedFlagCell) {
-          this.toggleNextCoreoSelection(branoId);
-          return;
-        }
-
         if (clickedFlagCell) {
           if (!brano || !brano.next_selected) {
             Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
@@ -1935,27 +1943,17 @@ class BorderoTableManager {
       };
       Storage.set('bordero_next_coreo_selection', payload);
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'update', payload });
-      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
-        detail: { reason: 'selected' }
-      }));
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
       Toast.success(`NEXT selezionato: ${title || brano.id}`);
     } else {
       Storage.remove('bordero_next_coreo_selection');
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
-      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
-        detail: { reason: 'deselected' }
-      }));
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
       Toast.info('Selezione NEXT rimossa');
     }
 
-    if (!isAlreadySelected) {
-      this.currentPage = 1;
-    }
-    this.applyFilters();
-
-    if (!isAlreadySelected) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    this.reapplyCurrentOrdering();
+    this.renderTable();
   }
 
   /**
@@ -1963,8 +1961,7 @@ class BorderoTableManager {
    */
   createBranoRow(brano) {
     const isCompleted = this.isExecutedBrano(brano);
-    const isBlocked = brano.displayState === 'blocked' || Boolean(brano.isOmonimoBlocked);
-    const completedClass = isCompleted ? 'completed' : isBlocked ? 'blocked' : '';
+    const completedClass = isCompleted ? 'completed' : '';
     const flagIcon = isCompleted ? '✅' : '';
     const timestamp = brano.timestamp || '';
     const richiesteHighlightClass = !isCompleted && !this.isRichiesteZeroValue(brano.richieste)
@@ -2530,9 +2527,7 @@ class BorderoTableManager {
       });
       Storage.remove('bordero_next_coreo_selection');
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
-      window.dispatchEvent(new CustomEvent('bordero:next-coreo-updated', {
-        detail: { reason: 'completed' }
-      }));
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
     }
 
     this.allBrani.forEach((item) => {
@@ -2595,21 +2590,6 @@ class BorderoTableManager {
       }
 
       const playbackState = this.resolveDeckPlaybackState(deckState);
-      if (playbackState === 'playing' && trackedBrano && !this.isExecutedBrano(trackedBrano)) {
-        logger.info('VirtualDJ brano avviato: marca eseguito immediatamente', {
-          branoId: trackedBrano.id,
-          titolo: trackedBrano.titolo || '',
-          deckNumber
-        });
-
-        this.finalizeBranoAsCompleted(trackedBrano, {
-          source: 'virtualdj-start',
-          toastMessage: `✓ "${trackedBrano.titolo || trackedBrano.id}" avviato: inizio riproduzione registrato`
-        });
-        this.updateConsoleStatus('live', deckNumber, `✓ DECK ${deckNumber}`);
-        return;
-      }
-
       const buttonState = this.mapPlaybackStateToConsoleButtonState(playbackState);
       const rowChanged = this.applyTrackedBranoPlaybackState(trackedBrano.id, deckNumber, playbackState);
 
@@ -3296,12 +3276,7 @@ class BorderoTableManager {
         throw lastError || new Error('Errore durante la generazione del file SIAE');
       }
 
-      // Il file è già scritto server-side in C:\VSC_SIAE. Il download va innescato solo
-      // dentro Electron, dove il main process forza il salvataggio in quella stessa cartella
-      // (vedi will-download in electron/main.js). In un browser normale andrebbe invece
-      // nella cartella Download di sistema, generando una copia fuorviante: lo evitiamo.
-      const isElectronApp = Boolean(window.electronAPI?.runtime?.isElectron);
-      if (result.downloadUrl && isElectronApp) {
+      if (result.downloadUrl) {
         const link = document.createElement('a');
         link.href = new URL(result.downloadUrl, apiOrigin || window.location.origin).href;
         link.download = result.fileName || '';

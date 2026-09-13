@@ -32,7 +32,7 @@
   <script defer src="../js/excel-sync.js?v=20260711-2"></script>
   <script defer src="../js/data-loader.js?v=20260711-2"></script>
   <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
-  <script defer src="bordero.js?v=20260913-8"></script>
+  <script defer src="bordero.js?v=20260811-4"></script>
 </head>
 
 <body>
@@ -120,8 +120,8 @@
         <button id="btn-sort-richieste" class="btn btn-sort" title="Ordina per richieste">
           ORDINA PER RICHIESTE
         </button>
-        <button id="btn-sort-executed" class="btn btn-sort" title="Sposta gli eseguiti e gli omonimi in fondo">
-          ORDINA ESEGUITI
+        <button id="btn-move-executed-bottom" class="btn btn-sort btn-success" title="Sposta tutti i brani eseguiti in fondo alla lista">
+          SPOSTA IN FONDO GLI ESEGUITI
         </button>
         <button id="btn-view-executed" class="btn btn-sort btn-success" title="Visualizza i brani già eseguiti">
           BRANI ESEGUITI
@@ -253,6 +253,10 @@
         <button id="btn-reset-filters-stats" class="btn btn-secondary" title="Resetta tutti i filtri e ordina per ID crescente">
           RESET FILTRI + ID ↑
         </button>
+      </div>
+      <div class="stat-badge stat-mode" role="status" aria-live="polite">
+        <span class="stat-label">Eseguiti in fondo:</span>
+        <span class="stat-value stat-value-mode mode-off" id="stat-executed-bottom-mode">OFF</span>
       </div>
     </section>
 
