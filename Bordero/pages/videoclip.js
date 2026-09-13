@@ -23,9 +23,6 @@ class VideoClipManager {
     this.vlcFallbackActive = false;
     this.playbackBackendPreference = this.loadPlaybackBackendPreference();
     this.activeSecondaryBackend = null;
-    this.serataBroadcastChannel = typeof BroadcastChannel !== 'undefined'
-      ? new BroadcastChannel('bordero-serata')
-      : null;
     this.electronCompletionUnsubscribe = null;
     this.pendingBranoId = this.getRequestedBranoIdFromUrl();
     this.lastVlcCompletionEventId = 0;
@@ -810,15 +807,6 @@ class VideoClipManager {
       await mainVideo.play();
       await this.waitForPlaybackStart(mainVideo);
       this.pendingMainVideoPlay = false;
-      this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
-
-      if (this.currentBrano && !this.isBranoExecuted(this.currentBrano)) {
-        this.markBranoExecutedFromVideoEnd(this.currentBrano, {
-          source: 'video-start',
-          toastMessage: `✓ "${this.currentBrano.titolo || this.currentBrano.id}" avviato: inizio riproduzione registrato`
-        });
-      }
-
       mainVideo.muted = false;
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
       if (playbackStatus) {
@@ -1898,10 +1886,9 @@ class VideoClipManager {
     return this.brani.find((item) => String(item.id) === String(fallback)) || null;
   }
 
-  markBranoExecutedFromVideoEnd(brano, options = {}) {
+  markBranoExecutedFromVideoEnd(brano) {
     const targetId = String(brano.id);
     const nowTimestamp = DateUtils.formatDate(new Date());
-    const source = String(options.source || 'video-end');
 
     this.brani = this.brani.map((item) => {
       if (String(item.id) !== targetId) return item;
@@ -1938,11 +1925,6 @@ class VideoClipManager {
     const currentSerata = dataLoader.getCurrentSerata?.() || {};
     const metadata = currentSerata.metadata || {};
     dataLoader.saveCurrentSerata(metadata, this.brani);
-    const executedBrano = this.brani.find((item) => String(item.id) === targetId);
-    this.serataBroadcastChannel?.postMessage({
-      type: 'brano-executed',
-      brano: executedBrano
-    });
 
     try {
       window.dispatchEvent(new Event('bordero:serata-updated'));
@@ -1958,9 +1940,7 @@ class VideoClipManager {
       titolo: brano.titolo || '',
       timestamp: nowTimestamp
     });
-    Toast.success(options.toastMessage || (source === 'video-start'
-      ? `Brano marcato eseguito all'avvio video: ${brano.titolo || brano.id}`
-      : `Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`));
+    Toast.success(`Brano marcato eseguito dopo fine video: ${brano.titolo || brano.id}`);
   }
 
   updateFilterButtons() {

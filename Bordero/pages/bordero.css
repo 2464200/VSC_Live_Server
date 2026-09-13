@@ -1161,14 +1161,12 @@
   background-color: rgba(255, 127, 0, 0.1);
 }
 
-.brani-table tbody tr.completed,
-.brani-table tbody tr.blocked {
+.brani-table tbody tr.completed {
   background-color: #4a4a4a;
   color: #999;
 }
 
-.brani-table tbody tr.completed td,
-.brani-table tbody tr.blocked td {
+.brani-table tbody tr.completed td {
   color: #888;
 }
 
