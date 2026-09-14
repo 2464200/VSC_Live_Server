@@ -10,7 +10,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\startup.ps1"
+        "${workspaceFolder}\\startup-retry.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -65,7 +65,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\startup.ps1"
+        "${workspaceFolder}\\startup-retry.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -107,7 +107,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "& '${workspaceFolder}\\shutdown.ps1'; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup.ps1'"
+        "& '${workspaceFolder}\\shutdown.ps1'; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1'"
       ],
       "presentation": {
         "reveal": "always",
@@ -125,7 +125,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "& '${workspaceFolder}\\shutdown.ps1' -AutoCommit; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup.ps1'"
+        "& '${workspaceFolder}\\shutdown.ps1' -AutoCommit; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1'"
       ],
       "presentation": {
         "reveal": "always",
