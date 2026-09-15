@@ -697,29 +697,8 @@ class BorderoTableManager {
     document.getElementById('btn-view-richieste')?.addEventListener('click', () => {
       window.location.href = 'elenco-richieste.html';
     });
-
-    const hiddenButton = document.getElementById('btn-view-hidden');
-    const navigateToHiddenPage = (event) => {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      const target = new URL('brani-nascosti.html', window.location.href).href;
-      window.location.assign(target);
-    };
-    if (hiddenButton) {
-      hiddenButton.onclick = null;
-      hiddenButton.addEventListener('click', navigateToHiddenPage, { once: false });
-      hiddenButton.onclick = navigateToHiddenPage;
-      hiddenButton.dataset.target = 'brani-nascosti.html';
-    }
-    document.addEventListener('click', (event) => {
-      const target = event.target.closest('#btn-view-hidden');
-      if (target) {
-        event.preventDefault();
-        event.stopPropagation();
-        navigateToHiddenPage(event);
-      }
+    document.getElementById('btn-view-hidden')?.addEventListener('click', () => {
+      window.location.href = 'brani-nascosti.html';
     });
 
     // Filter buttons

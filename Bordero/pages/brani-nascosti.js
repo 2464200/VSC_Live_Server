@@ -24,14 +24,18 @@ class BraniNascostiPage {
     this.refreshInProgress = true;
 
     try {
+      const cachedBrani = Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
       this.brani = await dataLoader.loadBrani({ silent: true });
       const currentSerata = dataLoader.getCurrentSerata();
+      const savedBrani = currentSerata?.brani?.length
+        ? currentSerata.brani
+        : (Array.isArray(cachedBrani) ? cachedBrani : []);
       if (currentSerata) {
         this.serata = currentSerata.metadata || {};
-        if (Array.isArray(currentSerata.brani) && currentSerata.brani.length) {
-          const saved = new Map(currentSerata.brani.map((item) => [String(item.id), item]));
-          this.brani = this.brani.map((item) => ({ ...item, ...(saved.get(String(item.id)) || {}) }));
-        }
+      }
+      if (savedBrani.length) {
+        const saved = new Map(savedBrani.map((item) => [String(item.id), item]));
+        this.brani = this.brani.map((item) => ({ ...item, ...(saved.get(String(item.id)) || {}) }));
       }
       const selection = Storage.get('bordero_next_coreo_selection', null);
       const selectedId = String(selection?.id || '').trim();
@@ -45,7 +49,10 @@ class BraniNascostiPage {
     }
   }
 
-  isExecuted(brano) { return String(brano?.flag || '').toUpperCase() === 'X'; }
+  isExecuted(brano) {
+    return [brano?.flag, brano?.eseguito, brano?.executed]
+      .some((value) => String(value || '').toUpperCase() === 'X' || value === true);
+  }
   titleOf(brano) { return brano.titolo || brano.coreografia || brano.brano || '--'; }
 
   render() {
