@@ -656,6 +656,7 @@ class AdminPanel {
       { path: '/bordero/pages/bordero-presentazione.html', label: 'Bordero Presentazione', description: 'Vista presentazione su entrambi i monitor' },
       { path: '/bordero/pages/bordero.html', label: 'Bordero', description: 'Pagina principale del Bordero' },
       { path: '/bordero/pages/brani-eseguiti.html', label: 'Brani Eseguiti', description: 'Cronologia brani su entrambi i monitor' },
+      { path: '/bordero/pages/brani-nascosti.html', label: 'Brani Nascosti', description: 'Brani con titolo duplicato dopo l’esecuzione di una copia' },
       { path: '/bordero/pages/display.html', label: 'Display', description: 'Monitor secondario live' },
       { path: '/bordero/pages/elenco-richieste.html', label: 'Elenco Richieste', description: 'Richieste evento principale' },
       { path: '/bordero/pages/lista-serata.html', label: 'Lista Serata', description: 'Riepilogo serata su entrambi i monitor' },

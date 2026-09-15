@@ -3,6 +3,7 @@ class BraniNascostiPage {
     this.brani = [];
     this.serata = {};
     this.hidden = [];
+    this.refreshInProgress = false;
     this.init();
   }
 
@@ -19,17 +20,29 @@ class BraniNascostiPage {
   }
 
   async refresh() {
-    this.brani = await dataLoader.loadBrani({ silent: true });
-    const currentSerata = dataLoader.getCurrentSerata();
-    if (currentSerata) {
-      this.serata = currentSerata.metadata || {};
-      if (Array.isArray(currentSerata.brani) && currentSerata.brani.length) {
-        const saved = new Map(currentSerata.brani.map((item) => [String(item.id), item]));
-        this.brani = this.brani.map((item) => ({ ...item, ...(saved.get(String(item.id)) || {}) }));
+    if (this.refreshInProgress) return;
+    this.refreshInProgress = true;
+
+    try {
+      this.brani = await dataLoader.loadBrani({ silent: true });
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (currentSerata) {
+        this.serata = currentSerata.metadata || {};
+        if (Array.isArray(currentSerata.brani) && currentSerata.brani.length) {
+          const saved = new Map(currentSerata.brani.map((item) => [String(item.id), item]));
+          this.brani = this.brani.map((item) => ({ ...item, ...(saved.get(String(item.id)) || {}) }));
+        }
       }
+      const selection = Storage.get('bordero_next_coreo_selection', null);
+      const selectedId = String(selection?.id || '').trim();
+      this.brani.forEach((item) => {
+        item.next_selected = selectedId !== '' && String(item.id) === selectedId;
+      });
+      this.hidden = getHiddenBraniByTitle(this.brani, { isExecuted: this.isExecuted.bind(this) });
+      this.render();
+    } finally {
+      this.refreshInProgress = false;
     }
-    this.hidden = getHiddenBraniByTitle(this.brani, { isExecuted: this.isExecuted.bind(this) });
-    this.render();
   }
 
   isExecuted(brano) { return String(brano?.flag || '').toUpperCase() === 'X'; }
@@ -98,6 +111,8 @@ class BraniNascostiPage {
     window.addEventListener('storage', (event) => { if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) sync(); });
     window.addEventListener('bordero:serata-updated', sync);
     window.addEventListener('focus', sync);
+    window.addEventListener('pageshow', sync);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
   }
 
   escape(value) { return String(value ?? '--').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char])); }
