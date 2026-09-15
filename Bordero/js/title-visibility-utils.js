@@ -31,7 +31,8 @@ function getHiddenBraniByTitle(brani, options = {}) {
     const matches = groups.get(title) || [];
     return matches.length > 1
       && matches.some((item) => isExecuted(item))
-      && !isExecuted(brano);
+      && !isExecuted(brano)
+      && !brano.next_selected;
   });
 }
 

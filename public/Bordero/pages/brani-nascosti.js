@@ -62,42 +62,23 @@ class BraniNascostiPage {
     const empty = document.getElementById('empty-hidden');
     empty.style.display = this.hidden.length ? 'none' : 'block';
     tbody.innerHTML = this.hidden.map((brano, index) => {
-      const selected = Boolean(brano.next_selected);
       const videoclip = brano.videoclip ? `<a class="video-link" href="videoclip.html?branoId=${encodeURIComponent(String(brano.id))}">🎬</a>` : '-';
-      return `<tr><td>${index + 1}</td><td>${this.escape(brano.id)}</td><td>${this.escape(this.titleOf(brano))}</td><td>${this.escape(brano.autore || '--')}</td><td>${this.escape(brano.coreografo || '--')}</td><td class="next-cell ${selected ? 'is-selected' : ''}" data-next="${this.escape(brano.id)}">${selected ? '✓' : 'NEXT'}</td><td class="flag-cell" data-flag="${this.escape(brano.id)}">${this.isExecuted(brano) ? 'X' : 'FLAG'}</td><td class="video-cell">${videoclip}</td></tr>`;
+      return `<tr><td>${index + 1}</td><td>${this.escape(brano.id)}</td><td>${this.escape(this.titleOf(brano))}</td><td>${this.escape(brano.autore || '--')}</td><td>${this.escape(brano.coreografo || '--')}</td><td class="status-cell"><label class="action-inline"><input type="checkbox" class="checkbox-restore" data-brano-id="${this.escape(brano.id)}" /> Ripristina disponibilità</label></td><td class="video-cell">${videoclip}</td></tr>`;
     }).join('');
-    tbody.querySelectorAll('[data-next]').forEach((cell) => cell.addEventListener('click', () => this.toggleNext(cell.dataset.next)));
-    tbody.querySelectorAll('[data-flag]').forEach((cell) => cell.addEventListener('click', () => this.toggleFlag(cell.dataset.flag)));
+    tbody.querySelectorAll('.checkbox-restore').forEach((checkbox) => checkbox.addEventListener('change', () => this.restoreAvailability(checkbox.dataset.branoId)));
   }
 
-  toggleNext(id) {
+  restoreAvailability(id) {
     const brano = this.brani.find((item) => String(item.id) === String(id));
-    if (!brano || this.isExecuted(brano)) return Toast.warning('NEXT non consentito su un brano eseguito.');
-    const selected = Boolean(brano.next_selected);
+    if (!brano || this.isExecuted(brano)) return;
     this.brani.forEach((item) => { item.next_selected = false; });
-    if (selected) {
-      Storage.remove('bordero_next_coreo_selection');
-    } else {
-      brano.next_selected = true;
-      Storage.set('bordero_next_coreo_selection', { id: String(brano.id), title: this.titleOf(brano), nextValue: this.titleOf(brano), timestamp: Date.now() });
-    }
+    brano.next_selected = true;
+    brano.flag = '';
+    brano.timestamp = '';
+    Storage.set('bordero_next_coreo_selection', { id: String(brano.id), title: this.titleOf(brano), nextValue: this.titleOf(brano), timestamp: Date.now() });
     this.persist();
-    this.render();
-  }
-
-  toggleFlag(id) {
-    const brano = this.brani.find((item) => String(item.id) === String(id));
-    if (!brano) return;
-    if (this.isExecuted(brano)) {
-      brano.flag = ''; brano.timestamp = '';
-    } else if (brano.next_selected) {
-      brano.flag = 'X'; brano.timestamp = DateUtils.formatDate(new Date()); brano.next_selected = false;
-      Storage.remove('bordero_next_coreo_selection');
-    } else {
-      return Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
-    }
-    this.persist();
-    this.render();
+    Toast.success(`Brano pronto per NEXT: ${this.titleOf(brano)}`);
+    window.location.href = 'bordero.html';
   }
 
   persist() {
