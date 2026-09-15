@@ -620,6 +620,7 @@ class AdminPanel {
       { path: '/bordero/pages/bordero-presentazione.html', primary: true, secondary: true },
       { path: '/bordero/pages/bordero.html', primary: true, secondary: false },
       { path: '/bordero/pages/brani-eseguiti.html', primary: true, secondary: true },
+      { path: '/bordero/pages/brani-nascosti.html', primary: true, secondary: false },
       { path: '/bordero/pages/display.html', primary: false, secondary: true },
       { path: '/bordero/pages/elenco-richieste.html', primary: true, secondary: false },
       { path: '/bordero/pages/lista-serata.html', primary: true, secondary: true },

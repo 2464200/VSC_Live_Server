@@ -697,6 +697,9 @@ class BorderoTableManager {
     document.getElementById('btn-view-richieste')?.addEventListener('click', () => {
       window.location.href = 'elenco-richieste.html';
     });
+    document.getElementById('btn-view-hidden')?.addEventListener('click', () => {
+      window.location.href = 'brani-nascosti.html';
+    });
 
     // Filter buttons
     this.bindFilterPopupButton('btn-filter-coreografia', 'info_livello', 'LIVELLO');
@@ -1672,9 +1675,8 @@ class BorderoTableManager {
     // Start con tutti i brani
     this.filteredBrani = [...this.allBrani];
 
-    this.filteredBrani = filterBraniByTitleVisibility(this.filteredBrani, {
+    this.filteredBrani = filterBraniByDuplicateTitleVisibility(this.filteredBrani, {
       isExecuted: (brano) => this.isExecutedBrano(brano),
-      isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
     });
 
     // Applica filtri
@@ -3264,16 +3266,23 @@ class BorderoTableManager {
     const requested = this.getUniqueRequestedBrani(this.allBrani);
     const completed = this.allBrani.filter(b => String(b.flag).toUpperCase() === 'X').length;
     const pending = total - completed;
+    const hidden = typeof getHiddenBraniByTitle === 'function'
+      ? getHiddenBraniByTitle(this.allBrani, { isExecuted: (brano) => this.isExecutedBrano(brano) }).length
+      : 0;
 
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-requested').textContent = requested.length;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
+    const hiddenEl = document.getElementById('stat-hidden');
+    if (hiddenEl) hiddenEl.textContent = hidden;
+    const hiddenBadge = document.getElementById('hidden-count-badge');
+    if (hiddenBadge) hiddenBadge.textContent = `(${hidden})`;
     this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
-      detail: { total, requested: requested.length, completed, pending }
+      detail: { total, requested: requested.length, completed, pending, hidden }
     }));
   }
 

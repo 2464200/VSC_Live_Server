@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERO' - Brani Nascosti</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="brani-nascosti.css" />
+  <script src="../assets/lib/xlsx.min.js"></script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="../js/title-visibility-utils.js"></script>
+  <script defer src="brani-nascosti.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERO' - Brani Nascosti</h1>
+        <p class="app-subtitle">Brani con titolo duplicato dopo l'esecuzione di una copia</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb">
+      <a href="../index.html">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="bordero.html">Bordero</a><span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Brani Nascosti</span>
+    </nav>
+
+    <section class="serata-info-box">
+      <div class="info-row">
+        <div class="info-field"><label>DJ</label><span id="info-dj">--</span></div>
+        <div class="info-field"><label>Data Serata</label><span id="info-data">--</span></div>
+        <div class="info-field"><label>Luogo</label><span id="info-luogo">--</span></div>
+        <div class="info-field"><label>Evento</label><span id="info-evento">--</span></div>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <div class="stat-card"><div class="stat-icon">🙈</div><div class="stat-content"><h3>Brani Nascosti</h3><p class="stat-value" id="stat-hidden">0</p></div></div>
+      <div class="stat-card"><div class="stat-icon">🎵</div><div class="stat-content"><h3>Titoli Coinvolti</h3><p class="stat-value" id="stat-titles">0</p></div></div>
+    </section>
+
+    <section class="list-section">
+      <div class="section-header"><h2>Brani disponibili</h2><span class="count" id="hidden-count">0 brani</span></div>
+      <table class="brani-list">
+        <thead><tr><th>#</th><th>ID</th><th>Titolo</th><th>Autore</th><th>Coreografo</th><th>NEXT</th><th>FLAG</th><th>VIDEOCLIP</th></tr></thead>
+        <tbody id="hidden-tbody"></tbody>
+      </table>
+      <div class="empty-state" id="empty-hidden">Nessun brano nascosto trovato.</div>
+    </section>
+
+    <section class="final-actions"><button id="btn-bordero" class="btn btn-primary">Torna al Bordero</button></section>
+  </div>
+  <script src="/nav.js"></script>
+</body>
+</html>
