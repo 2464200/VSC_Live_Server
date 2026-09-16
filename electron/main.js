@@ -56,9 +56,11 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/video-player.html', { primary: false, secondary: true }],
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
   ['/eventi/eventi.html', { primary: true, secondary: false }],
+  ['/eventi/public/eventi.html', { primary: true, secondary: false }],
   ['/eventi/admin.html', { primary: true, secondary: false }],
   ['/eventi/coreografie-aggiuntive.html', { primary: true, secondary: false }],
   ['/eventi/dj-manager.html', { primary: true, secondary: false }],
+  ['/eventi/documentation.html', { primary: true, secondary: false }],
   ['/eventi/non-spuntati.html', { primary: true, secondary: false }],
   ['/eventi/prenotati.html', { primary: true, secondary: false }],
   ['/eventi/qr.html', { primary: true, secondary: false }],
@@ -67,13 +69,21 @@ const PAGE_POLICY = new Map([
   ['/eventi/tutti.html', { primary: true, secondary: false }],
   ['/eventi/visualizer.html', { primary: true, secondary: false }],
   ['/diagnostica.html', { primary: true, secondary: false }],
+  ['/scriptpdf1.html', { primary: true, secondary: false }],
+  ['/prova/scriptpdf1.html', { primary: true, secondary: false }],
+  ['/prova/report.html', { primary: true, secondary: false }],
+  ['/prova/report_black.html', { primary: true, secondary: false }],
+  ['/prova/report_white.html', { primary: true, secondary: false }],
+  ['/prova/logo.html', { primary: true, secondary: false }],
+  ['/prova/image.html', { primary: true, secondary: false }],
+  ['/vdj/test-vdj.html', { primary: true, secondary: false }],
   ['/led-display/', { primary: false, secondary: true }],
   ['/led-display/off.html', { primary: false, secondary: true }],
   ['/leddisplay.html', { primary: true, secondary: false }],
   ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
-  ['/userform/pages/wecam.html', { primary: true, secondary: false }],
+  ['/userform/pages/webcam.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina04.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina06.html', { primary: true, secondary: false }],
@@ -525,7 +535,7 @@ function isManagedHtmlAppUrl(candidateUrl) {
 }
 
 const USERFORM_CANONICAL_PAGE_IDS = new Set(
-  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'wecam', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
+  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'webcam', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
 );
 
 function isCanonicalUserFormPage(candidateUrl) {
