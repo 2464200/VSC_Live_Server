@@ -124,6 +124,94 @@ function updateStats(statsOverride = null) {
 }
 
 /**
+ * Modal Chiudi Applicazione: window.confirm/prompt non sono affidabili in Electron
+ * (window.prompt in particolare non è implementato e ritorna sempre null), quindi
+ * il flusso di conferma/codice usa un overlay HTML personalizzato.
+ */
+function getCloseAppModalElements() {
+  return {
+    overlay: document.getElementById('close-app-modal'),
+    title: document.getElementById('close-app-modal-title'),
+    message: document.getElementById('close-app-modal-message'),
+    codeWrap: document.getElementById('close-app-modal-code-wrap'),
+    codeInput: document.getElementById('close-app-modal-code-input'),
+    errorEl: document.getElementById('close-app-modal-error'),
+    cancelBtn: document.getElementById('close-app-modal-cancel'),
+    confirmBtn: document.getElementById('close-app-modal-confirm'),
+  };
+}
+
+function askCloseAppConfirmation(djName) {
+  return new Promise((resolve) => {
+    const els = getCloseAppModalElements();
+    if (!els.overlay) {
+      resolve(false);
+      return;
+    }
+
+    els.title.textContent = 'Chiudi Applicazione';
+    els.message.textContent = `${djName}, sei sicuro di voler chiudere l'applicazione?`;
+    els.codeWrap.hidden = true;
+    els.errorEl.hidden = true;
+    els.confirmBtn.textContent = 'Sì, chiudi';
+    els.overlay.hidden = false;
+
+    const cleanup = () => {
+      els.overlay.hidden = true;
+      els.cancelBtn.removeEventListener('click', onCancel);
+      els.confirmBtn.removeEventListener('click', onConfirm);
+      document.removeEventListener('keydown', onKeydown);
+    };
+    const onCancel = () => { cleanup(); resolve(false); };
+    const onConfirm = () => { cleanup(); resolve(true); };
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') onCancel();
+      if (event.key === 'Enter') onConfirm();
+    };
+
+    els.cancelBtn.addEventListener('click', onCancel);
+    els.confirmBtn.addEventListener('click', onConfirm);
+    document.addEventListener('keydown', onKeydown);
+  });
+}
+
+function askCloseAppSecretCode() {
+  return new Promise((resolve) => {
+    const els = getCloseAppModalElements();
+    if (!els.overlay) {
+      resolve(null);
+      return;
+    }
+
+    els.title.textContent = 'Codice di Sicurezza';
+    els.message.textContent = 'Inserisci il codice segreto per confermare la chiusura dell\'applicazione:';
+    els.codeWrap.hidden = false;
+    els.errorEl.hidden = true;
+    els.codeInput.value = '';
+    els.confirmBtn.textContent = 'Conferma';
+    els.overlay.hidden = false;
+    setTimeout(() => els.codeInput.focus(), 50);
+
+    const cleanup = () => {
+      els.overlay.hidden = true;
+      els.cancelBtn.removeEventListener('click', onCancel);
+      els.confirmBtn.removeEventListener('click', onConfirm);
+      els.codeInput.removeEventListener('keydown', onKeydown);
+    };
+    const onCancel = () => { cleanup(); resolve(null); };
+    const onConfirm = () => { const value = els.codeInput.value; cleanup(); resolve(value); };
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') onCancel();
+      if (event.key === 'Enter') onConfirm();
+    };
+
+    els.cancelBtn.addEventListener('click', onCancel);
+    els.confirmBtn.addEventListener('click', onConfirm);
+    els.codeInput.addEventListener('keydown', onKeydown);
+  });
+}
+
+/**
  * Setup event listeners
  */
 function setupEventListeners() {
@@ -191,11 +279,12 @@ function setupEventListeners() {
   document.getElementById('btn-close-app')?.addEventListener('click', async () => {
     const djName = (dataLoader.getCurrentSerata()?.metadata?.dj || '').trim() || 'DJ';
 
-    if (!confirm(`${djName}, sei sicuro di voler chiudere l'applicazione?`)) {
+    const confirmed = await askCloseAppConfirmation(djName);
+    if (!confirmed) {
       return;
     }
 
-    const enteredCode = prompt('Inserisci il codice segreto per confermare la chiusura:');
+    const enteredCode = await askCloseAppSecretCode();
     if (enteredCode === null) {
       return;
     }
