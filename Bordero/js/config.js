@@ -11,6 +11,7 @@ const BORDERO_CONFIG = {
   APP_NAME: 'BORDERÒ DJ Manager',
   APP_VERSION: '1.0.0',
   APP_AUTHOR: 'Copilot',
+  APP_CLOSE_SECRET_CODE: '1972', // Codice richiesto per confermare la chiusura completa dell'applicazione
   
   // ========== DATI & STORAGE ==========
   CSV_BRANI: dataBasePath + 'brani.csv',

@@ -1152,6 +1152,87 @@ ipcMain.handle('bordero-file-picker:list-directory', async (_event, targetPath =
   }
 });
 
+let isShuttingDown = false;
+
+function runShutdownScript() {
+  return new Promise((resolve) => {
+    const scriptPath = path.join(__dirname, '..', 'shutdown.ps1');
+    if (!fs.existsSync(scriptPath)) {
+      resolve(false);
+      return;
+    }
+
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutHandle);
+      resolve(result);
+    };
+
+    const timeoutHandle = setTimeout(() => finish(false), 15000);
+
+    try {
+      const child = spawn('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath], {
+        cwd: path.join(__dirname, '..'),
+        windowsHide: true,
+        stdio: 'ignore'
+      });
+
+      child.on('exit', () => finish(true));
+      child.on('error', (error) => {
+        console.warn('Unable to run shutdown script:', error?.message || error);
+        finish(false);
+      });
+    } catch (error) {
+      console.warn('Unable to spawn shutdown script:', error?.message || error);
+      finish(false);
+    }
+  });
+}
+
+ipcMain.handle('bordero-app:shutdown', async () => {
+  if (isShuttingDown) {
+    return { ok: true, alreadyShuttingDown: true };
+  }
+  isShuttingDown = true;
+  app.isQuitting = true;
+
+  // Ferma i server (locali e avviati dal task di startup) e consolida i CSV prima di chiudere.
+  await runShutdownScript();
+
+  try {
+    if (serverProcess && !serverProcess.killed) {
+      serverProcess.kill();
+    }
+  } catch (error) {
+    console.warn('Unable to stop unified server process:', error?.message || error);
+  }
+
+  stopWatchMonitorPreferences();
+  if (electronControlServer) {
+    try {
+      electronControlServer.close();
+    } catch (error) {
+      console.warn('Unable to close electron control server:', error?.message || error);
+    }
+    electronControlServer = null;
+  }
+
+  [primaryWindow, secondaryWindow, videoPlayerWindow].forEach((win) => {
+    if (win && !win.isDestroyed()) {
+      win.destroy();
+    }
+  });
+
+  setImmediate(() => {
+    app.quit();
+    setTimeout(() => app.exit(0), 1000);
+  });
+
+  return { ok: true };
+});
+
 async function ensureWindows() {
   await ensureUnifiedServer();
   const monitorPreferences = await ensurePrimaryMonitorSelectionPreference();

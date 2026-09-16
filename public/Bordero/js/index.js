@@ -186,6 +186,49 @@ function setupEventListeners() {
     logger.warn('Connection lost');
     Toast.warning('⚠️ Sei offline - Usando cache locale');
   });
+
+  // Pulsante Chiudi Applicazione: finalizza la serata, ferma i server e chiude Electron
+  document.getElementById('btn-close-app')?.addEventListener('click', async () => {
+    const djName = (dataLoader.getCurrentSerata()?.metadata?.dj || '').trim() || 'DJ';
+
+    if (!confirm(`${djName}, sei sicuro di voler chiudere l'applicazione?`)) {
+      return;
+    }
+
+    const enteredCode = prompt('Inserisci il codice segreto per confermare la chiusura:');
+    if (enteredCode === null) {
+      return;
+    }
+    if (String(enteredCode).trim() !== String(BORDERO_CONFIG.APP_CLOSE_SECRET_CODE)) {
+      Toast.error('Codice non corretto. Chiusura annullata.');
+      return;
+    }
+
+    try {
+      const currentSerata = dataLoader.getCurrentSerata();
+      const serataBrani = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
+      const braniToSave = serataBrani.length > 0 ? serataBrani : Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
+
+      if (Array.isArray(braniToSave) && braniToSave.length > 0) {
+        dataLoader.archiveCurrentSerata(currentSerata?.metadata || {}, braniToSave);
+      }
+    } catch (error) {
+      logger.error('Errore durante il salvataggio finale della serata', error);
+    }
+
+    if (!window.electronAPI?.app?.shutdown) {
+      Toast.warning('Chiusura completa disponibile solo nell\'app Electron. Dati salvati.');
+      return;
+    }
+
+    Toast.info('Chiusura applicazione in corso: arresto server e salvataggio dati...');
+    try {
+      await window.electronAPI.app.shutdown();
+    } catch (error) {
+      logger.error('Errore durante la chiusura dell\'applicazione', error);
+      Toast.error('Errore durante la chiusura: ' + (error?.message || error));
+    }
+  });
 }
 
 /**
