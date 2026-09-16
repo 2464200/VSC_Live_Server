@@ -43,6 +43,7 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/admin.html', { primary: true, secondary: false }],
   ['/bordero/pages/bordero-presentazione.html', { primary: true, secondary: true }],
   ['/bordero/pages/bordero.html', { primary: true, secondary: false }],
+  ['/bordero/pages/brani-nascosti.html', { primary: true, secondary: false }],
   ['/bordero/index.html', { primary: true, secondary: false }],
   ['/bordero/pages/brani-eseguiti.html', { primary: true, secondary: true }],
   ['/bordero/pages/coreografie-stampa.html', { primary: true, secondary: false }],
