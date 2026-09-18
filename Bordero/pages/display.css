@@ -29,6 +29,13 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
+.display-clock-top-left {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+}
+
 .display-title-row {
   position: relative;
   text-align: center;
@@ -383,6 +390,25 @@
 .empty-icon {
   font-size: 4em;
   margin-bottom: 15px;
+}
+
+.empty-title {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 42px);
+}
+
+.empty-text,
+.empty-subtext {
+  color: #ddd;
+  font-size: 1.2em;
+  line-height: 1.4;
+  margin: 10px 0;
+}
+
+.empty-subtext {
+  color: #888;
+  font-size: 1em;
 }
 
 .empty-content p {
