@@ -114,7 +114,7 @@
   }
 
   if (publishLogoBtn) {
-    publishLogoBtn.addEventListener("click", () => openExternal("../../Prova/Logo.html"));
+    publishLogoBtn.addEventListener("click", () => openExternal("SERVIZIO-LOGO.html"));
   }
 
   if (publishFileBtn) {

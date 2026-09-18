@@ -74,6 +74,21 @@
       padding: 10px 8px;
     }
 
+    .publishing-logo {
+      display: none;
+      max-width: 90vw;
+      max-height: 78vh;
+      object-fit: contain;
+    }
+
+    .window.logo-mode .publishing-logo {
+      display: block;
+    }
+
+    .window.logo-mode .message {
+      display: none;
+    }
+
     .close-button {
       position: fixed;
       top: 18px;
@@ -105,13 +120,38 @@
   <div class="window">
     <div class="content">
       <p id="publishing-message" class="message">la serata inizierà a breve</p>
+      <img id="publishing-logo" class="publishing-logo" alt="Logo pubblicato" />
     </div>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const text = params.get('text') || 'la serata inizierà a breve';
+    const mode = params.get('mode') || 'text';
+    const logoId = params.get('id') || '';
     const node = document.getElementById('publishing-message');
+    const logo = document.getElementById('publishing-logo');
+    const windowRoot = document.querySelector('.window');
+
+    function loadPublishedLogo() {
+      if (mode !== 'logo' || !logo || !windowRoot) return false;
+
+      let payload = null;
+      try {
+        const raw = logoId
+          ? localStorage.getItem(`userform-servizio-logo:${logoId}`)
+          : localStorage.getItem('userform-servizio-logo:last');
+        payload = raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        console.warn('Impossibile leggere il logo pubblicato.', error);
+      }
+
+      if (!payload?.dataUrl) return false;
+      logo.src = payload.dataUrl;
+      logo.alt = payload.name || 'Logo pubblicato';
+      windowRoot.classList.add('logo-mode');
+      return true;
+    }
 
     function fitTextSize() {
       if (!node) return;
@@ -125,7 +165,7 @@
       node.style.lineHeight = '1.02';
     }
 
-    if (node) {
+    if (!loadPublishedLogo() && node) {
       node.textContent = text;
       fitTextSize();
       window.addEventListener('resize', fitTextSize);
