@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   windowManager: {
     openSecondaryPage: (payload) => ipcRenderer.invoke('bordero-window:open-secondary', payload),
+    stopServicePublication: () => ipcRenderer.invoke('bordero-window:stop-service-publication'),
     restoreSecondaryPage: () => ipcRenderer.invoke('bordero-window:restore-secondary')
   },
   monitorPolicy: {

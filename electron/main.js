@@ -1073,6 +1073,20 @@ ipcMain.handle('bordero-window:open-secondary', async (_event, payload) => {
   }
 });
 
+ipcMain.handle('bordero-window:stop-service-publication', async () => {
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return { success: false, reason: 'secondary-window-unavailable' };
+  }
+
+  const currentUrl = secondaryWindow.webContents.getURL();
+  if (!normalizePathname(currentUrl).endsWith('/userform/pages/servizio-pubblica.html')) {
+    return { success: false, reason: 'service-publication-not-active' };
+  }
+
+  const success = await loadInSecondaryWindow(`http://localhost:5500${DISPLAY_PAGE_PATH}`);
+  return { success };
+});
+
 ipcMain.handle('bordero-window:restore-secondary', async () => {
   try {
     return { success: await restoreSecondaryPageBeforeLedDisplay() };

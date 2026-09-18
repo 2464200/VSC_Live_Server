@@ -92,6 +92,28 @@
       input.value = "";
     }
     saveInputValue("");
+
+    const stopPayload = { type: "stop", timestamp: Date.now() };
+    try {
+      localStorage.setItem("userform-servizio-stop", JSON.stringify(stopPayload));
+    } catch (error) {
+      console.warn("Impossibile notificare lo stop nel localStorage:", error);
+    }
+
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        const channel = new BroadcastChannel("userform-servizio-control");
+        channel.postMessage(stopPayload);
+        channel.close();
+      }
+    } catch (error) {
+      console.warn("Impossibile notificare lo stop via BroadcastChannel:", error);
+    }
+
+    const stopPromise = window.electronAPI?.windowManager?.stopServicePublication?.();
+    stopPromise?.catch((error) => {
+      console.warn("Impossibile fermare la pubblicazione SERVIZIO via Electron:", error);
+    });
   }
 
   if (input) {

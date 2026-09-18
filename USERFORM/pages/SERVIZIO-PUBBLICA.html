@@ -171,6 +171,22 @@
       window.addEventListener('resize', fitTextSize);
     }
 
+    function handleStopPublication() {
+      closePage();
+    }
+
+    window.addEventListener('storage', (event) => {
+      if (event.key !== 'userform-servizio-stop') return;
+      handleStopPublication();
+    });
+
+    if (typeof BroadcastChannel !== 'undefined') {
+      const controlChannel = new BroadcastChannel('userform-servizio-control');
+      controlChannel.addEventListener('message', (event) => {
+        if (event.data?.type === 'stop') handleStopPublication();
+      });
+    }
+
     function closePage() {
       window.close();
       try {
