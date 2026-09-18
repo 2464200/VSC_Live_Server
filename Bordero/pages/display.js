@@ -68,6 +68,7 @@ class DisplayMonitor {
       this.setupControls();
       this.setupDateTimeClock();
       this.setupNextCoreoSync();
+      this.setupLogoSync();
       this.loadNextCoreo({ initialize: true });
       this.nextCoreoInterval = setInterval(() => {
         this.loadNextCoreo({ announce: true });
@@ -703,6 +704,40 @@ class DisplayMonitor {
         Storage.remove(this.nextCoreoSelectionStorageKey);
       }
       this.loadNextCoreo({ announce: true });
+    });
+  }
+
+  setupLogoSync() {
+    const render = (rawPayload) => {
+      const overlay = document.getElementById('logo-overlay');
+      const image = document.getElementById('logo-overlay-image');
+      if (!overlay || !image) return;
+
+      let payload = rawPayload;
+      if (typeof payload === 'string') {
+        try {
+          payload = JSON.parse(payload);
+        } catch (error) {
+          payload = null;
+        }
+      }
+
+      if (!payload?.dataUrl) {
+        overlay.hidden = true;
+        overlay.setAttribute('aria-hidden', 'true');
+        image.removeAttribute('src');
+        return;
+      }
+
+      image.src = payload.dataUrl;
+      image.alt = payload.name || 'Logo pubblicato';
+      overlay.hidden = false;
+      overlay.setAttribute('aria-hidden', 'false');
+    };
+
+    render(Storage.get('userform-servizio-logo:last', null));
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'userform-servizio-logo:last') render(event.newValue);
     });
   }
 
