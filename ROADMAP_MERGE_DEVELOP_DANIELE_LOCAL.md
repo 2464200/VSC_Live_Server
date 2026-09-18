@@ -153,3 +153,35 @@ tocca server, Electron e sincronizzazioni con il rischio piu' alto.
 La prossima azione e' la fase 0: congelare la baseline, produrre il manifesto dei
 file/commit candidati e sottoporlo alla revisione dell'utente prima del primo
 merge.
+
+## 9. Esito analisi fase 1: dati Bordero
+
+Per i file qui sotto e' stato usato il confronto diretto tra le punte:
+`git diff develop daniele-local`. Il confronto con `...` mostra invece il
+percorso dal merge-base e non e' sufficiente, da solo, per descrivere la
+differenza finale tra i due branch.
+
+| File/insieme | Differenza osservata | Decisione |
+|---|---|---|
+| `Bordero/data/brani.csv` | 97 righe cambiate: livelli, flag richieste e alcune descrizioni/classificazioni | Candidato funzionale, ma da portare con controllo per ID e copia pubblica coerente |
+| `Bordero/data/Accoda 8+12.csv` | Aggiornamento del contenuto operativo della serata | Candidato separato; verificare che non sia stato incluso per errore come stato temporaneo |
+| `Bordero/data/deejay.csv` | Cambia intestazioni/nominativi e rimuove `BUMBY` | Non automatico: richiede conferma dei nomi visualizzati e dei consumatori |
+| `Bordero/data/location.csv` | Una voce viene rimossa | Non automatico: possibile perdita di una sede/evento |
+| `Bordero/data/get-camera-name.csv` | Profili webcam e stato FFmpeg specifici di una macchina | Escluso dal merge dati; da gestire nella fase Electron/configurazione |
+| `Bordero/data/music-archive-config.json` | Percorso locale cambia da libreria utente a `C:\VSC_MP3` | Escluso dal merge dati; valutare solo tramite configurazione portabile |
+| `Bordero/data/music-archive-index.csv` | Nuovo indice con percorso locale e scansione diversa | Escluso dal merge dati; richiede verifica server e ambiente |
+| `NextCoreo.csv` e copie `public/` | Cambia la prossima coreografia visualizzata | Stato operativo, non codice: non portare nel branch senza una decisione sulla serata |
+| `public/Bordero/data/*` | Copie pubbliche aggiornate insieme a parti del nuovo flusso display | Da integrare solo insieme al codice che le consuma, nella fase Display/Mobile |
+| `public/serata_meta.json` | Aggiunge metadati DJ/data/luogo/evento | Da integrare solo con il nuovo display mobile e relativo fallback |
+
+### Stop della fase 1
+
+Non viene eseguito un merge dati parziale finche' non e' approvata la scelta
+semantica sulle righe di `brani.csv`, `Accoda 8+12.csv`, `deejay.csv` e
+`location.csv`. Portare file macchina-specifici o stato della serata in
+`develop` introdurrebbe regressioni non riproducibili.
+
+Il primo merge proposto sara' quindi un porting tracciato dei soli dati
+approvati, con confronto per ID, controllo delle copie `public/` e riesecuzione
+di `npm run test:system` e `npm run test:bordero`. Dopo quel merge il processo
+si fermera' nuovamente in attesa della revisione utente.
