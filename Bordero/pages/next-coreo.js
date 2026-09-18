@@ -96,13 +96,15 @@ class NextCoreoDisplay {
     const selection = Storage.get('bordero_next_coreo_selection', null);
     let nextBrano = null;
 
-    if (!selection || !selection.id) {
-      this.showEmptyState();
-      return;
+    if (selection?.id) {
+      nextBrano = braniWithFlags.find(b => String(b.id) === String(selection.id))
+        || this.allBrani.find(b => String(b.id) === String(selection.id));
     }
 
-    nextBrano = braniWithFlags.find(b => String(b.id) === String(selection.id))
-      || this.allBrani.find(b => String(b.id) === String(selection.id));
+    if (!nextBrano) {
+      nextBrano = braniWithFlags.find((brano) => !this.isBranoExecuted(brano))
+        || this.allBrani.find((brano) => !this.isBranoExecuted(brano));
+    }
 
     if (!nextBrano) {
       this.showEmptyState();
@@ -195,10 +197,12 @@ class NextCoreoDisplay {
     if (videoBox) {
       videoBox.style.display = hasVideo ? 'flex' : 'none';
     }
-    document.getElementById('brano-video-status').textContent = hasVideo ? '🎬' : '--';
+    const videoStatus = document.getElementById('brano-video-status');
+    if (videoStatus) videoStatus.textContent = hasVideo ? '🎬' : '--';
 
     // Collaboratori
-    document.getElementById('brano-collaboratori').textContent = brano.collaboratori || 'Nessuno';
+    const collaborators = document.getElementById('brano-collaboratori');
+    if (collaborators) collaborators.textContent = brano.collaboratori || 'Nessuno';
 
     logger.debug(`Brano visualizzato: ${brano.titolo}`);
   }

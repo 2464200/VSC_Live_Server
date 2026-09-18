@@ -196,10 +196,12 @@ class NextCoreoDisplay {
     if (videoBox) {
       videoBox.style.display = hasVideo ? 'flex' : 'none';
     }
-    document.getElementById('brano-video-status').textContent = hasVideo ? '🎬' : '--';
+    const videoStatus = document.getElementById('brano-video-status');
+    if (videoStatus) videoStatus.textContent = hasVideo ? '🎬' : '--';
 
     // Collaboratori
-    document.getElementById('brano-collaboratori').textContent = brano.collaboratori || 'Nessuno';
+    const collaborators = document.getElementById('brano-collaboratori');
+    if (collaborators) collaborators.textContent = brano.collaboratori || 'Nessuno';
 
     logger.debug(`Brano visualizzato: ${brano.titolo}`);
   }
