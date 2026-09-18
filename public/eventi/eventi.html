@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EVENTI - Selezione Coreografie</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Tastiera Virtuale */
+    .virtual-keyboard {
+      display: none;
+      background: #1a1a1a;
+      border: 2px solid #ff7f00;
+      border-radius: 5px;
+      padding: 10px;
+      margin-top: 15px;
+      box-shadow: 0 0 15px rgba(255, 127, 0, 0.3);
+    }
+
+    .virtual-keyboard.active {
+      display: block;
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .key {
+      background: #333;
+      border: 1px solid #555;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      min-width: 30px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .key:hover {
+      background: #ff7f00;
+      color: #000;
+      border-color: #ff7f00;
+    }
+
+    .key:active {
+      background: #dd6600;
+    }
+
+    .key.space {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .key.backspace {
+      background: #dc3545;
+    }
+
+    .key.backspace:hover {
+      background: #ff5555;
+    }
+
+    .key.enter {
+      background: #28a745;
+      min-width: 80px;
+    }
+
+    .key.enter:hover {
+      background: #52b844;
+    }
+
+    .key.shift {
+      background: #555;
+      min-width: 60px;
+    }
+
+    .key.shift.active {
+      background: #ff7f00;
+      color: #000;
+    }
+  </style>
+  <script defer src="event-navigation.js"></script>
+  <script defer src="config.js"></script>
+  <script defer src="inactivity-return.js"></script>
+  <script defer src="api-helper.js"></script>
+  <script defer src="toast.js"></script>
+  <script defer src="stati.js"></script>
+  <script defer src="search-utils.js"></script>
+  <script defer src="eventi.js"></script>
+</head>
+<body>
+  <h1>Elenco Coreografie da eseguire / eseguite dai DJ</h1>
+
+  <div class="header">
+    <label>
+      DJ:&nbsp;
+      <select id="dj-input" class="attention-pulse-control">
+        <option value="">-- Seleziona DJ --</option>
+      </select>
+    </label>
+    <button id="btn-impostazioni" style="margin-left: 15px; background:#ff7f00; color:#111; border:none; padding:8px 14px; border-radius:12px; font-weight:700; cursor:pointer;">Impostazioni</button>
+    <span id="dj-saved" class="badge" style="display:none;">Salvato</span>
+    <button id="btn-add-coreo" class="attention-pulse-button">Nuova coreografia</button>
+    <button id="btn-export">Esporta CSV per SIAE</button>
+    <button id="btn-reset-times">Reset date e orari</button>
+  </div>
+
+  <div id="extra-coreo-panel" class="extra-coreo-panel" hidden>
+    <div class="extra-coreo-card">
+      <div class="extra-coreo-head">
+        <strong>Inserisci nuova coreografia</strong>
+        <span class="status-note">Salvataggio in Coreografie_Aggiuntive.csv</span>
+      </div>
+      <div class="extra-coreo-grid">
+        <label>
+          <span>Coreografia *</span>
+          <input id="extra-titolo" type="text" placeholder="Titolo coreografia" />
+        </label>
+        <label>
+          <span>Brano</span>
+          <input id="extra-brano" type="text" placeholder="Titolo brano" />
+        </label>
+        <label>
+          <span>Compositore</span>
+          <input id="extra-compositore" type="text" placeholder="Compositore / musicista" />
+        </label>
+        <label>
+          <span>Autore</span>
+          <input id="extra-autore" type="text" placeholder="Autore / artista" />
+        </label>
+        <label>
+          <span>Durata (MM:SS)</span>
+          <input id="extra-durata" type="text" placeholder="Es. 03:45" pattern="[0-9]{2}:[0-9]{2}" />
+        </label>
+        <label>
+          <span>ID opzionale</span>
+          <input id="extra-id" type="text" placeholder="Lascia vuoto per ID automatico" />
+        </label>
+      </div>
+      <div id="extra-coreo-status" class="lista-empty" hidden></div>
+      <div class="extra-coreo-actions">
+        <button id="btn-save-coreo" style="background:#ffca28;color:#000;font-weight:700;">Salva nuova coreografia</button>
+        <a id="btn-open-aggiuntive" class="eventi-button" href="coreografie-aggiuntive.html" style="background:#ffca28;color:#000;font-weight:700;">Apri elenco coreografie aggiuntive</a>
+        <button id="btn-cancel-coreo" type="button" style="background:#ffca28;color:#000;font-weight:700;">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <a class="eventi-button" href="spuntati.html">Eseguite</a>
+    <a class="eventi-button" href="non-spuntati.html">Non eseguite</a>
+    <a class="eventi-button" href="tutti.html">Mostra tutte</a>
+    <a class="eventi-button" href="prenotati.html">Prenotate</a>
+    <a class="eventi-button" href="statistiche-dj.html">Statistiche DJ</a>
+    <a class="eventi-button" href="coreografie-aggiuntive.html">Coreografie Aggiuntive</a>
+    <a class="eventi-button" href="visualizer.html">Apri visualizer</a>
+    <a class="eventi-button" href="/Bordero/pages/bordero.html" style="background:#2563eb;color:#fff;border-color:#2563eb;">Borderò single DJ</a>
+    <a class="eventi-button" href="qr.html" style="background:#17a2b8;color:#fff;">QR Code</a>
+    <div class="event-name-row">
+      <label class="event-name-field" for="event-name-input">
+        <span>Nome evento</span>
+        <input id="event-name-input" type="text" maxlength="90" placeholder="Inserisci il nome dell'evento" />
+      </label>
+      <button id="btn-save-event-name" type="button">Salva nome evento</button>
+      <span id="event-name-saved" class="badge" style="display:none;">Salvato</span>
+    </div>
+  </div>
+
+  <div class="labels">
+    <span class="left">Brani disponibili per l'esecuzione</span>
+    <span class="right">Panoramica aggiornata in tempo reale</span>
+  </div>
+
+  <div class="tools-row">
+    <div class="search-wrapper">
+      <input id="search-input" type="text" placeholder="Cerca per titolo o ID..." />
+      <button id="search-clear-btn" type="button" class="search-clear-btn hidden" aria-label="Pulisci ricerca">×</button>
+    </div>
+    <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
+  </div>
+
+  <div class="virtual-keyboard" id="keyboard">
+    <!-- Tastiera virtuale qui -->
+  </div>
+
+  <div id="summary-cards" class="summary-cards"></div>
+
+  <hr />
+
+  <!-- Fallback statico: barra filtro alfabeto/numeri -->
+  <div id="alfabeto-filter" class="alfabeto-filter" style="display:flex;gap:6px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;">
+    <button class="alfabeto-btn" data-value="NUM" style="padding:7px 13px;margin:0 2px 0 0;border-radius:8px;border:1px solid #ff7f00;background:#fff;color:#ff7f00;font-weight:700;cursor:pointer;">0-9</button>
+    <button class="alfabeto-btn" data-value="A">A</button>
+    <button class="alfabeto-btn" data-value="B">B</button>
+    <button class="alfabeto-btn" data-value="C">C</button>
+    <button class="alfabeto-btn" data-value="D">D</button>
+    <button class="alfabeto-btn" data-value="E">E</button>
+    <button class="alfabeto-btn" data-value="F">F</button>
+    <button class="alfabeto-btn" data-value="G">G</button>
+    <button class="alfabeto-btn" data-value="H">H</button>
+    <button class="alfabeto-btn" data-value="I">I</button>
+    <button class="alfabeto-btn" data-value="J">J</button>
+    <button class="alfabeto-btn" data-value="K">K</button>
+    <button class="alfabeto-btn" data-value="L">L</button>
+    <button class="alfabeto-btn" data-value="M">M</button>
+    <button class="alfabeto-btn" data-value="N">N</button>
+    <button class="alfabeto-btn" data-value="O">O</button>
+    <button class="alfabeto-btn" data-value="P">P</button>
+    <button class="alfabeto-btn" data-value="Q">Q</button>
+    <button class="alfabeto-btn" data-value="R">R</button>
+    <button class="alfabeto-btn" data-value="S">S</button>
+    <button class="alfabeto-btn" data-value="T">T</button>
+    <button class="alfabeto-btn" data-value="U">U</button>
+    <button class="alfabeto-btn" data-value="V">V</button>
+    <button class="alfabeto-btn" data-value="W">W</button>
+    <button class="alfabeto-btn" data-value="X">X</button>
+    <button class="alfabeto-btn" data-value="Y">Y</button>
+    <button class="alfabeto-btn" data-value="Z">Z</button>
+    <button class="alfabeto-btn" data-value="ALL" style="padding:7px 13px;margin:0 2px 0 0;border-radius:8px;border:1px solid #ff7f00;background:#ff7f00;color:#fff;font-weight:700;cursor:pointer;">TUTTE</button>
+  </div>
+  <div id="lista-brani"></div>
+
+    <script src="/nav.js"></script></body>
+</html>

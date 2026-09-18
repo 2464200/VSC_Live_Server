@@ -123,6 +123,83 @@ function updateStats(statsOverride = null) {
   logger.debug('Stats updated from storage', { total, completed, pending });
 }
 
+function getCloseAppModalElements() {
+  return {
+    overlay: document.getElementById('close-app-modal'),
+    title: document.getElementById('close-app-modal-title'),
+    message: document.getElementById('close-app-modal-message'),
+    codeWrap: document.getElementById('close-app-modal-code-wrap'),
+    codeInput: document.getElementById('close-app-modal-code-input'),
+    errorEl: document.getElementById('close-app-modal-error'),
+    cancelBtn: document.getElementById('close-app-modal-cancel'),
+    confirmBtn: document.getElementById('close-app-modal-confirm'),
+  };
+}
+
+function askCloseAppConfirmation(djName) {
+  return new Promise((resolve) => {
+    const els = getCloseAppModalElements();
+    if (!els.overlay) return resolve(false);
+
+    els.title.textContent = 'Chiudi Applicazione';
+    els.message.textContent = `${djName}, sei sicuro di voler chiudere l'applicazione?`;
+    els.codeWrap.hidden = true;
+    els.errorEl.hidden = true;
+    els.confirmBtn.textContent = 'Si, chiudi';
+    els.overlay.hidden = false;
+
+    const cleanup = () => {
+      els.overlay.hidden = true;
+      els.cancelBtn.removeEventListener('click', onCancel);
+      els.confirmBtn.removeEventListener('click', onConfirm);
+      document.removeEventListener('keydown', onKeydown);
+    };
+    const onCancel = () => { cleanup(); resolve(false); };
+    const onConfirm = () => { cleanup(); resolve(true); };
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') onCancel();
+      if (event.key === 'Enter') onConfirm();
+    };
+
+    els.cancelBtn.addEventListener('click', onCancel);
+    els.confirmBtn.addEventListener('click', onConfirm);
+    document.addEventListener('keydown', onKeydown);
+  });
+}
+
+function askCloseAppSecretCode() {
+  return new Promise((resolve) => {
+    const els = getCloseAppModalElements();
+    if (!els.overlay) return resolve(null);
+
+    els.title.textContent = 'Codice di Sicurezza';
+    els.message.textContent = "Inserisci il codice segreto per confermare la chiusura dell'applicazione:";
+    els.codeWrap.hidden = false;
+    els.errorEl.hidden = true;
+    els.codeInput.value = '';
+    els.confirmBtn.textContent = 'Conferma';
+    els.overlay.hidden = false;
+    setTimeout(() => els.codeInput.focus(), 50);
+
+    const cleanup = () => {
+      els.overlay.hidden = true;
+      els.cancelBtn.removeEventListener('click', onCancel);
+      els.confirmBtn.removeEventListener('click', onConfirm);
+      els.codeInput.removeEventListener('keydown', onKeydown);
+    };
+    const onCancel = () => { cleanup(); resolve(null); };
+    const onConfirm = () => { const value = els.codeInput.value; cleanup(); resolve(value); };
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') onCancel();
+      if (event.key === 'Enter') onConfirm();
+    };
+
+    els.cancelBtn.addEventListener('click', onCancel);
+    els.confirmBtn.addEventListener('click', onConfirm);
+    els.codeInput.addEventListener('keydown', onKeydown);
+  });
+}
+
 /**
  * Setup event listeners
  */
@@ -147,6 +224,44 @@ function setupEventListeners() {
   // Pulsante Export
   document.getElementById('btn-export')?.addEventListener('click', () => {
     dataLoader.exportToCSV();
+  });
+
+  document.getElementById('btn-close-app')?.addEventListener('click', async () => {
+    const djName = (dataLoader.getCurrentSerata()?.metadata?.dj || '').trim() || 'DJ';
+    if (!await askCloseAppConfirmation(djName)) return;
+
+    const enteredCode = await askCloseAppSecretCode();
+    if (enteredCode === null) return;
+    if (String(enteredCode).trim() !== String(BORDERO_CONFIG.APP_CLOSE_SECRET_CODE)) {
+      Toast.error('Codice non corretto. Chiusura annullata.');
+      return;
+    }
+
+    try {
+      const currentSerata = dataLoader.getCurrentSerata();
+      const serataBrani = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
+      const braniToSave = serataBrani.length > 0
+        ? serataBrani
+        : Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []);
+      if (Array.isArray(braniToSave) && braniToSave.length > 0) {
+        dataLoader.archiveCurrentSerata(currentSerata?.metadata || {}, braniToSave);
+      }
+    } catch (error) {
+      logger.error('Errore durante il salvataggio finale della serata', error);
+    }
+
+    if (!window.electronAPI?.app?.shutdown) {
+      Toast.warning("Chiusura completa disponibile solo nell'app Electron. Dati salvati.");
+      return;
+    }
+
+    Toast.info('Chiusura applicazione in corso: arresto server e salvataggio dati...');
+    try {
+      await window.electronAPI.app.shutdown();
+    } catch (error) {
+      logger.error("Errore durante la chiusura dell'applicazione", error);
+      Toast.error('Errore durante la chiusura: ' + (error?.message || error));
+    }
   });
 
   // Pulsante Apri Excel Bordero (versione piu recente)

@@ -13,15 +13,19 @@
   },
   "/bordero/pages/bordero-presentazione.html": {
     "primary": true,
-    "secondary": false
+    "secondary": true
   },
   "/bordero/pages/bordero.html": {
     "primary": true,
     "secondary": false
   },
-  "/bordero/pages/brani-eseguiti.html": {
+  "/bordero/pages/brani-nascosti.html": {
     "primary": true,
     "secondary": false
+  },
+  "/bordero/pages/brani-eseguiti.html": {
+    "primary": true,
+    "secondary": true
   },
   "/bordero/pages/display.html": {
     "primary": false,
@@ -33,19 +37,19 @@
   },
   "/bordero/pages/lista-serata.html": {
     "primary": true,
-    "secondary": false
+    "secondary": true
   },
   "/bordero/pages/location.html": {
     "primary": true,
     "secondary": false
   },
   "/bordero/pages/next-coreo.html": {
-    "primary": false,
+    "primary": true,
     "secondary": true
   },
   "/bordero/pages/risultati.html": {
     "primary": true,
-    "secondary": false
+    "secondary": true
   },
   "/bordero/pages/video-player.html": {
     "primary": false,
@@ -55,7 +59,87 @@
     "primary": true,
     "secondary": false
   },
+  "/bordero/pages/coreografie-stampa.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/eventi/eventi.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/eventi.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/admin.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/coreografie-aggiuntive.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/dj-manager.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/documentation.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/non-spuntati.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/prenotati.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/qr.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/spuntati.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/statistiche-dj.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/tutti.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/visualizer.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/scriptpdf1.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/report.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/report_black.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/report_white.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/logo.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/image.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/vdj/test-vdj.html": {
     "primary": true,
     "secondary": false
   },
@@ -75,7 +159,7 @@
     "primary": false,
     "secondary": true
   },
-  "/userform/pages/wecam.html": {
+  "/userform/pages/webcam.html": {
     "primary": true,
     "secondary": false
   },

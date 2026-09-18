@@ -30,6 +30,30 @@ function createTitleVisibilityGroups(brani) {
   return groups;
 }
 
+function getHiddenBraniByTitle(brani, options = {}) {
+  const isExecuted = typeof options.isExecuted === 'function' ? options.isExecuted : () => false;
+  if (!Array.isArray(brani)) return [];
+
+  const groups = createTitleVisibilityGroups(brani);
+  return brani.filter((brano) => {
+    const title = normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano || '');
+    if (!title) return false;
+    const matches = groups.get(title) || [];
+    return matches.length > 1
+      && matches.some((item) => isExecuted(item))
+      && !isExecuted(brano)
+      && !brano.next_selected;
+  });
+}
+
+function filterBraniByDuplicateTitleVisibility(brani, options = {}) {
+  if (!Array.isArray(brani)) return [];
+  const hiddenIds = new Set(
+    getHiddenBraniByTitle(brani, options).map((brano) => String(brano.id))
+  );
+  return brani.filter((brano) => !hiddenIds.has(String(brano.id)));
+}
+
 function filterBraniByTitleVisibility(brani, options = {}) {
   const isExecuted = typeof options.isExecuted === 'function' ? options.isExecuted : () => false;
   const isRequested = typeof options.isRequested === 'function' ? options.isRequested : () => true;
@@ -139,6 +163,8 @@ function annotateBraniByTitleVisibility(brani, options = {}) {
 
 if (typeof window !== 'undefined') {
   window.normalizeTitle = normalizeTitle;
+  window.getHiddenBraniByTitle = getHiddenBraniByTitle;
+  window.filterBraniByDuplicateTitleVisibility = filterBraniByDuplicateTitleVisibility;
   window.filterBraniByTitleVisibility = filterBraniByTitleVisibility;
   window.partitionBraniByExecutedTitle = partitionBraniByExecutedTitle;
   window.annotateBraniByTitleVisibility = annotateBraniByTitleVisibility;
@@ -147,6 +173,8 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     filterBraniByTitleVisibility,
+    getHiddenBraniByTitle,
+    filterBraniByDuplicateTitleVisibility,
     partitionBraniByExecutedTitle,
     annotateBraniByTitleVisibility,
     normalizeTitle,

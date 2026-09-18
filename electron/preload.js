@@ -48,5 +48,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     listDirectory: (targetPath) => ipcRenderer.invoke('bordero-file-picker:list-directory', targetPath),
     pickImagesFromServizio: () => ipcRenderer.invoke('bordero-file-picker:pick-images-servizio'),
     pickImageFromServizio: () => ipcRenderer.invoke('bordero-file-picker:pick-image-servizio')
+  },
+  app: {
+    shutdown: () => ipcRenderer.invoke('bordero-app:shutdown')
   }
 });

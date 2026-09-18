@@ -320,7 +320,9 @@ class DisplayMonitor {
   filterRequestedBrani(brani) {
     if (!Array.isArray(brani)) return [];
 
-    const requestedBrani = brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste));
+    const requestedBrani = brani.filter((brano) =>
+      !this.isRichiesteZeroValue(brano?.richieste) || this.isBranoExecuted(brano)
+    );
     if (requestedBrani.length > 0) {
       return requestedBrani;
     }

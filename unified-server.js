@@ -2999,7 +2999,12 @@ app.post('/api/vdj/ensure-running', async (req, res) => {
         const result = await ensureVirtualDjRunning({ baseUrl, baseUrls, timeoutMs: 15000 });
         return res.json({ ok: true, started: Boolean(result.started), executable: result.executable || null, baseUrl: result.baseUrl || baseUrl });
     } catch (error) {
-        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+        return res.json({
+            ok: false,
+            available: false,
+            started: false,
+            error: error?.message || String(error)
+        });
     }
 });
 
@@ -3872,7 +3877,17 @@ app.get('/api/userform/pagina05/electron/player/state', async (_req, res) => {
         const result = await callElectronControl('/video-player/state');
         return res.json({ ok: true, ...result });
     } catch (error) {
-        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+        return res.json({
+            ok: true,
+            electronAvailable: false,
+            playerState: {
+                active: false,
+                mode: '',
+                url: '',
+                cameraName: '',
+                lastEvent: 'unavailable'
+            }
+        });
     }
 });
 

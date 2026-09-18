@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brani eseguite</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="event-navigation.js"></script>
+  <script defer src="inactivity-return.js"></script>
+  <script defer src="api-helper.js"></script>
+  <script defer src="stati.js"></script>
+  <script defer src="search-utils.js"></script>
+  <script defer src="render.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => renderLista('spuntati'));
+  </script>
+</head>
+<body>
+  <h1>Coreografie eseguite</h1>
+  <div class="nav">
+    <button class="attention-pulse-button" onclick="goEventiPage('eventi.html')">Torna alla pagina principale</button>
+    <button onclick="goEventiPage('non-spuntati.html')">Non eseguite</button>
+    <button onclick="goEventiPage('tutti.html')">Mostra tutte</button>
+    <button onclick="goEventiPage('prenotati.html')">Prenotate</button>
+    <button onclick="goEventiPage('statistiche-dj.html')">Statistiche DJ</button>
+    <button onclick="goEventiPage('visualizer.html')">Apri visualizer</button>
+  </div>
+  <div class="tools-row">
+    <div class="search-wrapper">
+      <input id="search-input" type="text" placeholder="Cerca per titolo, ID o DJ..." />
+      <button id="search-clear-btn" type="button" class="search-clear-btn hidden" aria-label="Pulisci ricerca">×</button>
+    </div>
+    <div id="last-update" class="status-note">Ultimo aggiornamento: --</div>
+  </div>
+  <div id="summary-cards" class="summary-cards"></div>
+  <div id="alfabeto-filter" class="alfabeto-filter"></div>
+  <hr />
+  <div id="lista-render"></div>
+
+    <script src="/nav.js"></script></body>
+</html>

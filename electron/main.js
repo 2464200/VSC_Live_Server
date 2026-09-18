@@ -43,9 +43,9 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/admin.html', { primary: true, secondary: false }],
   ['/bordero/pages/bordero-presentazione.html', { primary: true, secondary: true }],
   ['/bordero/pages/bordero.html', { primary: true, secondary: false }],
+  ['/bordero/pages/brani-nascosti.html', { primary: true, secondary: false }],
   ['/bordero/index.html', { primary: true, secondary: false }],
   ['/bordero/pages/brani-eseguiti.html', { primary: true, secondary: true }],
-  ['/bordero/pages/coreografie-stampa.html', { primary: true, secondary: false }],
   ['/bordero/pages/display.html', { primary: false, secondary: true }],
   ['/bordero/pages/elenco-richieste.html', { primary: true, secondary: false }],
   ['/bordero/pages/lista-serata.html', { primary: true, secondary: true }],
@@ -54,7 +54,27 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/risultati.html', { primary: true, secondary: true }],
   ['/bordero/pages/video-player.html', { primary: false, secondary: true }],
   ['/bordero/pages/videoclip.html', { primary: true, secondary: false }],
+  ['/bordero/pages/coreografie-stampa.html', { primary: true, secondary: false }],
   ['/eventi/eventi.html', { primary: true, secondary: false }],
+  ['/eventi/public/eventi.html', { primary: true, secondary: false }],
+  ['/eventi/admin.html', { primary: true, secondary: false }],
+  ['/eventi/coreografie-aggiuntive.html', { primary: true, secondary: false }],
+  ['/eventi/dj-manager.html', { primary: true, secondary: false }],
+  ['/eventi/documentation.html', { primary: true, secondary: false }],
+  ['/eventi/non-spuntati.html', { primary: true, secondary: false }],
+  ['/eventi/prenotati.html', { primary: true, secondary: false }],
+  ['/eventi/qr.html', { primary: true, secondary: false }],
+  ['/eventi/spuntati.html', { primary: true, secondary: false }],
+  ['/eventi/statistiche-dj.html', { primary: true, secondary: false }],
+  ['/eventi/tutti.html', { primary: true, secondary: false }],
+  ['/eventi/visualizer.html', { primary: true, secondary: false }],
+  ['/prova/scriptpdf1.html', { primary: true, secondary: false }],
+  ['/prova/report.html', { primary: true, secondary: false }],
+  ['/prova/report_black.html', { primary: true, secondary: false }],
+  ['/prova/report_white.html', { primary: true, secondary: false }],
+  ['/prova/logo.html', { primary: true, secondary: false }],
+  ['/prova/image.html', { primary: true, secondary: false }],
+  ['/vdj/test-vdj.html', { primary: true, secondary: false }],
   ['/diagnostica.html', { primary: true, secondary: false }],
   ['/led-display/', { primary: false, secondary: true }],
   ['/led-display/off.html', { primary: false, secondary: true }],
@@ -62,7 +82,7 @@ const PAGE_POLICY = new Map([
   ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
-  ['/userform/pages/wecam.html', { primary: true, secondary: false }],
+  ['/userform/pages/webcam.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina04.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina06.html', { primary: true, secondary: false }],
@@ -514,7 +534,7 @@ function isManagedHtmlAppUrl(candidateUrl) {
 }
 
 const USERFORM_CANONICAL_PAGE_IDS = new Set(
-  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'wecam', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
+  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'webcam', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
 );
 
 function isCanonicalUserFormPage(candidateUrl) {
@@ -1129,6 +1149,134 @@ ipcMain.handle('bordero-file-picker:list-directory', async (_event, targetPath =
     console.warn('Unable to list directory for picker:', error?.message || error);
     return { entries: [] };
   }
+});
+
+const SERVIZIO_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']);
+
+function getServizioMediaDirectory() {
+  return path.resolve(process.env.SERVIZIO_MEDIA_DIR || 'C:\\VSC_SERVIZIO');
+}
+
+function isServizioMediaFile(filePath, baseDir) {
+  const relative = path.relative(baseDir, path.resolve(filePath));
+  const extension = path.extname(filePath).toLowerCase();
+  return relative !== '..'
+    && !relative.startsWith(`..${path.sep}`)
+    && !path.isAbsolute(relative)
+    && SERVIZIO_IMAGE_EXTENSIONS.has(extension);
+}
+
+function getServizioImageDialogOptions(baseDir, multiple = false) {
+  return {
+    defaultPath: baseDir,
+    properties: multiple ? ['openFile', 'multiSelections'] : ['openFile'],
+    filters: [{ name: 'Immagini', extensions: [...SERVIZIO_IMAGE_EXTENSIONS].map((extension) => extension.slice(1)) }]
+  };
+}
+
+ipcMain.handle('bordero-file-picker:pick-images-servizio', async () => {
+  const baseDir = getServizioMediaDirectory();
+  try {
+    const result = await dialog.showOpenDialog(getServizioImageDialogOptions(baseDir, true));
+    if (result.canceled) return { canceled: true, filePaths: [], baseDir };
+
+    const filePaths = (result.filePaths || [])
+      .filter((filePath) => isServizioMediaFile(filePath, baseDir));
+    return { canceled: false, filePaths, baseDir };
+  } catch (error) {
+    console.warn('Unable to pick Servizio images:', error?.message || error);
+    return { canceled: true, filePaths: [], baseDir, error: error?.message || String(error) };
+  }
+});
+
+ipcMain.handle('bordero-file-picker:pick-image-servizio', async () => {
+  const baseDir = getServizioMediaDirectory();
+  try {
+    const result = await dialog.showOpenDialog(getServizioImageDialogOptions(baseDir));
+    if (result.canceled || !result.filePaths?.[0]) return { canceled: true };
+
+    const filePath = result.filePaths[0];
+    if (!isServizioMediaFile(filePath, baseDir)) return { canceled: true };
+
+    const data = fs.readFileSync(filePath).toString('base64');
+    const mimeTypes = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.webp': 'image/webp', '.bmp': 'image/bmp' };
+    const extension = path.extname(filePath).toLowerCase();
+    return {
+      canceled: false,
+      name: path.basename(filePath),
+      dataUrl: `data:${mimeTypes[extension]};base64,${data}`
+    };
+  } catch (error) {
+    console.warn('Unable to pick Servizio image:', error?.message || error);
+    return { canceled: true, error: error?.message || String(error) };
+  }
+});
+
+let isShuttingDown = false;
+
+function runShutdownScript() {
+  return new Promise((resolve) => {
+    const scriptPath = path.join(__dirname, '..', 'shutdown.ps1');
+    if (!fs.existsSync(scriptPath)) return resolve(false);
+
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutHandle);
+      resolve(result);
+    };
+    const timeoutHandle = setTimeout(() => finish(false), 15000);
+
+    try {
+      const child = spawn('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath], {
+        cwd: path.join(__dirname, '..'),
+        windowsHide: true,
+        stdio: 'ignore'
+      });
+      child.on('exit', () => finish(true));
+      child.on('error', (error) => {
+        console.warn('Unable to run shutdown script:', error?.message || error);
+        finish(false);
+      });
+    } catch (error) {
+      console.warn('Unable to spawn shutdown script:', error?.message || error);
+      finish(false);
+    }
+  });
+}
+
+ipcMain.handle('bordero-app:shutdown', async () => {
+  if (isShuttingDown) return { ok: true, alreadyShuttingDown: true };
+  isShuttingDown = true;
+  app.isQuitting = true;
+  await runShutdownScript();
+
+  try {
+    if (serverProcess && !serverProcess.killed) serverProcess.kill();
+  } catch (error) {
+    console.warn('Unable to stop unified server process:', error?.message || error);
+  }
+
+  stopWatchMonitorPreferences();
+  if (electronControlServer) {
+    try {
+      electronControlServer.close();
+    } catch (error) {
+      console.warn('Unable to close electron control server:', error?.message || error);
+    }
+    electronControlServer = null;
+  }
+
+  [primaryWindow, secondaryWindow, videoPlayerWindow].forEach((win) => {
+    if (win && !win.isDestroyed()) win.destroy();
+  });
+
+  setImmediate(() => {
+    app.quit();
+    setTimeout(() => app.exit(0), 1000);
+  });
+  return { ok: true };
 });
 
 async function ensureWindows() {

@@ -1,0 +1,147 @@
+const EVENTI_API_CANDIDATES = (() => {
+  const protocol = window.location.protocol === 'file:' ? 'http:' : window.location.protocol || 'http:';
+  const host = window.location.hostname || 'localhost';
+  const currentOrigin = window.location.origin && window.location.origin !== 'null'
+    ? window.location.origin
+    : `${protocol}//${host}:5500`;
+  const canonicalOrigin = `${protocol}//${host}:5500`;
+  const bases = [];
+
+  function pushBase(base) {
+    if (base && !bases.includes(base)) {
+      bases.push(base);
+    }
+  }
+
+  // Prima prova il server che ha servito la pagina: supporta lo standalone EVENTI.
+  pushBase(`${currentOrigin}/eventi/api`);
+  // Poi prova la porta primaria e le porte fallback del server unificato.
+  [5500, 5501, 5502].forEach(port => {
+    pushBase(`${protocol}//${host}:${port}/eventi/api`);
+  });
+  if (host !== 'localhost') {
+    [5500, 5501, 5502].forEach(port => {
+      pushBase(`${protocol}//localhost:${port}/eventi/api`);
+    });
+  }
+  if (host !== '127.0.0.1') {
+    [5500, 5501, 5502].forEach(port => {
+      pushBase(`${protocol}//127.0.0.1:${port}/eventi/api`);
+    });
+  }
+
+  return bases;
+})();
+
+let resolvedEventiApiBase = null;
+
+function buildApiUrl(base, path) {
+  return `${base}${path}`;
+}
+
+async function resolveEventiApiBase() {
+  if (resolvedEventiApiBase) {
+    return resolvedEventiApiBase;
+  }
+
+  for (const base of EVENTI_API_CANDIDATES) {
+    try {
+      const res = await fetch(buildApiUrl(base, `/ping?ts=${Date.now()}`), {
+        method: 'GET',
+        cache: 'no-store'
+      });
+      if (res.ok) {
+        resolvedEventiApiBase = base;
+        console.log('Eventi API base risolta:', base);
+        return resolvedEventiApiBase;
+      }
+    } catch (err) {
+      console.warn('Eventi API non raggiungibile su', base, err.message);
+    }
+  }
+
+  resolvedEventiApiBase = EVENTI_API_CANDIDATES[0];
+  return resolvedEventiApiBase;
+}
+
+async function apiUrl(path) {
+  const base = await resolveEventiApiBase();
+  return buildApiUrl(base, path);
+}
+
+async function tryEventiRequest(path, options = {}) {
+  const candidates = resolvedEventiApiBase
+    ? [resolvedEventiApiBase, ...EVENTI_API_CANDIDATES.filter(base => base !== resolvedEventiApiBase)]
+    : EVENTI_API_CANDIDATES.slice();
+
+  let lastError = null;
+
+  for (const base of candidates) {
+    const url = buildApiUrl(base, path);
+    try {
+      const response = await fetch(url, {
+        cache: 'no-store',
+        ...options
+      });
+
+      if (response.ok) {
+        resolvedEventiApiBase = base;
+        return { response, url };
+      }
+
+      lastError = new Error(`HTTP ${response.status} per ${url}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('Eventi API non raggiungibile');
+}
+
+async function fetchJSON(pathOrUrl) {
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+    const res = await fetch(pathOrUrl, { cache: 'no-store' });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`HTTP ${res.status} per ${pathOrUrl}${text ? ': ' + text : ''}`);
+    }
+    return res.json();
+  }
+
+  const { response, url } = await tryEventiRequest(pathOrUrl);
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`HTTP ${response.status} per ${url}${text ? ': ' + text : ''}`);
+  }
+  return response.json();
+}
+
+async function eventiFetch(path, options = {}) {
+  const { response } = await tryEventiRequest(path, options);
+  return response;
+}
+
+async function checkServerOnline() {
+  try {
+    const { response } = await tryEventiRequest('/ping');
+    return response.ok;
+  } catch (err) {
+    return false;
+  }
+}
+
+function showListaMessage(containerOrId, message, isError = false) {
+  let container = containerOrId;
+
+  if (typeof containerOrId === 'string') {
+    container = document.getElementById(containerOrId);
+  }
+
+  if (!container) {
+    console.warn('Container non trovato per showListaMessage:', containerOrId, message);
+    return;
+  }
+
+  container.innerHTML = `<div class="lista-empty ${isError ? 'error' : ''}">${message}</div>`;
+  console.log('Lista message:', message, 'isError:', isError);
+}

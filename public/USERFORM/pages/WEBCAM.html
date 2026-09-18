@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USERFORM - WEBCAM</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <style>
+    body.p05-body {
+      margin: 0;
+      background: #f2f2f2;
+      color: #111;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .p05-form {
+      position: relative;
+      width: min(1000px, 100% - 24px);
+      min-height: 740px;
+      margin: 12px auto;
+      padding: 18px 16px 56px;
+      border: 1px solid #c7c7c7;
+      background: #f8f8f8;
+      overflow: hidden;
+    }
+
+    .p05-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #4b4b4b;
+    }
+
+    .p05-top {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 190px 190px 1fr 92px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .p05-flat-btn {
+      border: 1px solid #666;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 1.15;
+      color: #0a0a0a;
+      cursor: pointer;
+      min-height: 56px;
+      background: #ececec;
+    }
+
+    .p05-flat-btn.green {
+      background: #15c214;
+    }
+
+    .p05-flat-btn.red {
+      background: #ee1f1f;
+    }
+
+    .p05-webcam-box {
+      display: grid;
+      gap: 6px;
+    }
+
+    .p05-webcam-box select {
+      width: 100%;
+      height: 52px;
+      border: 2px solid #9e9e9e;
+      background: #fff;
+      font-size: 14px;
+      padding: 4px 8px;
+    }
+
+    .p05-webcam-box label {
+      font-size: 12px;
+      color: #1e1e1e;
+    }
+
+    .p05-test-btn {
+      margin-top: 6px;
+      border: 1px solid #a4a07b;
+      background: #f8f4d3;
+      min-height: 34px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .p05-logo {
+      width: 86px;
+      height: 86px;
+      object-fit: cover;
+      border: 1px solid #8d8d8d;
+      background: #fff;
+      justify-self: end;
+    }
+
+    .p05-recording-counter {
+      grid-column: 1 / span 2;
+      border: 1px solid #9f9f9f;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f1f1 100%);
+      min-height: 66px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      align-items: center;
+    }
+
+    .p05-counter-field {
+      display: grid;
+      gap: 4px;
+    }
+
+    .p05-counter-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #454545;
+      letter-spacing: 0.04em;
+    }
+
+    .p05-counter-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: #111;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .p05-counter-value.is-live {
+      color: #b10000;
+      text-shadow: 0 0 10px rgba(214, 20, 20, 0.16);
+    }
+
+    .p05-main-box {
+      margin-top: 16px;
+      width: 364px;
+      height: 280px;
+      border: 1px solid #9f9f9f;
+      background: #fafafa;
+      position: relative;
+      padding: 38px 8px 8px;
+      overflow: hidden;
+    }
+
+    .p05-main-box .caption {
+      position: absolute;
+      top: 8px;
+      width: 100%;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      transform: scaleX(0.62);
+      transform-origin: center;
+      letter-spacing: 0.01em;
+    }
+
+    .p05-recordings-list {
+      height: calc(100% - 22px);
+      border: 1px solid #b1b1b1;
+      background: #fff;
+      overflow: auto;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .p05-recordings-list li {
+      padding: 6px 8px;
+      border-bottom: 1px solid #ececec;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .p05-recordings-list li:hover,
+    .p05-recordings-list li.is-active {
+      background: #d8e9ff;
+    }
+
+    .p05-recordings-hint {
+      margin: 3px 0 0;
+      font-size: 11px;
+      color: #4b4b4b;
+    }
+
+    .p05-webcam-image {
+      margin-top: 52px;
+      width: 260px;
+      height: 156px;
+      border: 1px solid #999;
+      display: block;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .p05-preview-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      width: fit-content;
+    }
+
+    .p05-webcam-signal {
+      margin-top: 52px;
+      min-width: 116px;
+      min-height: 156px;
+      border: 1px solid #b8b8b8;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 10px;
+      box-sizing: border-box;
+    }
+
+    .p05-webcam-signal-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      color: #2f2f2f;
+      letter-spacing: 0.03em;
+    }
+
+    .p05-webcam-gem {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 3px solid rgba(0, 0, 0, 0.3);
+      background: #cc2d2d;
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.1), 0 0 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .p05-webcam-signal-text {
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      color: #1f1f1f;
+      line-height: 1.25;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.14);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(235, 235, 235, 0.98) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .p05-webcam-signal[data-state="idle"] .p05-webcam-gem {
+      background: radial-gradient(circle at 35% 35%, #ff9c9c 0%, #d12d2d 55%, #8d0d0d 100%);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.44), 0 0 18px rgba(209, 45, 45, 0.35), 0 0 34px rgba(209, 45, 45, 0.18);
+    }
+
+    .p05-webcam-signal[data-state="idle"] .p05-webcam-signal-text {
+      color: #7f1717;
+      background: linear-gradient(180deg, rgba(255, 235, 235, 0.96) 0%, rgba(255, 214, 214, 0.98) 100%);
+      border-color: rgba(170, 38, 38, 0.24);
+    }
+
+    .p05-webcam-signal[data-state="live"] .p05-webcam-gem {
+      background: radial-gradient(circle at 35% 35%, #b8ff9c 0%, #2fcf39 52%, #0b7d17 100%);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.52), 0 0 22px rgba(47, 207, 57, 0.68), 0 0 40px rgba(47, 207, 57, 0.32);
+      animation: p05-gem-live-pulse 1s infinite;
+    }
+
+    .p05-webcam-signal[data-state="live"] .p05-webcam-signal-text {
+      color: #0d6a18;
+      background: linear-gradient(180deg, rgba(232, 255, 232, 0.96) 0%, rgba(205, 247, 209, 0.98) 100%);
+      border-color: rgba(22, 143, 34, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 0 12px rgba(47, 207, 57, 0.14);
+    }
+
+    .p05-webcam-signal[data-state="warning"] .p05-webcam-gem {
+      background: radial-gradient(circle at 35% 35%, #fff0a4 0%, #e7be25 55%, #9e7500 100%);
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.52), 0 0 20px rgba(231, 190, 37, 0.5), 0 0 36px rgba(231, 190, 37, 0.24);
+    }
+
+    .p05-webcam-signal[data-state="warning"] .p05-webcam-signal-text {
+      color: #7d5a00;
+      background: linear-gradient(180deg, rgba(255, 248, 217, 0.97) 0%, rgba(250, 235, 172, 0.98) 100%);
+      border-color: rgba(184, 140, 14, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 0 12px rgba(231, 190, 37, 0.12);
+    }
+
+    @keyframes p05-gem-live-pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.94); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .p05-webcam-image.is-live {
+      border-color: #d0322b;
+      box-shadow: 0 0 0 2px rgba(208, 50, 43, 0.2);
+    }
+
+    .p05-webcam-image img,
+    .p05-webcam-image video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .p05-webcam-image video {
+      background: #000;
+    }
+
+    .p05-live-badge {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      z-index: 2;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #fff;
+      background: #d0322b;
+      border-radius: 999px;
+      padding: 2px 7px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+      animation: p05-live-pulse 1s infinite;
+      display: none;
+    }
+
+    .p05-preview-suspended {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 2;
+      display: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.68);
+      color: #fff;
+      text-align: center;
+      font-size: 11px;
+      line-height: 1.25;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .p05-webcam-image.is-live .p05-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .p05-webcam-image.is-suspended .p05-preview-suspended {
+      display: block;
+    }
+
+    @keyframes p05-live-pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.55; }
+      100% { opacity: 1; }
+    }
+
+    .p05-hidden {
+      display: none !important;
+    }
+
+    .p05-live-row {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
+      width: 260px;
+    }
+
+    .p05-live-row .p05-flat-btn {
+      min-height: 68px;
+      width: 100%;
+      min-width: 0;
+      font-size: 15px;
+      line-height: 1.1;
+      letter-spacing: 0.01em;
+      white-space: normal;
+      overflow: visible;
+      word-break: break-word;
+      text-align: center;
+      padding: 6px 8px;
+    }
+
+    .p05-bottom-bar {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .p05-bottom-bar a,
+    .p05-bottom-bar button {
+      min-width: 84px;
+      height: 28px;
+      border: 1px solid #8a8a8a;
+      background: #efefef;
+      color: #111;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Override per i bottoni .btn dentro .p05-bottom-bar */
+    .p05-bottom-bar .btn {
+      min-width: 100px;
+      height: auto;
+      padding: 10px 20px;
+      border: none;
+      background: #ff7f00;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      box-shadow: none;
+    }
+
+    .p05-bottom-bar .btn-primary {
+      background-color: #ff7f00;
+      color: #fff;
+    }
+
+    .p05-bottom-bar .btn-primary:hover {
+      background-color: #ff9933;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .p05-bottom-bar .btn-secondary {
+      background-color: #2f2f2f;
+      color: #fff;
+      border: 1px solid #ff7f00;
+    }
+
+    .p05-bottom-bar .btn-secondary:hover {
+      background-color: #ff7f00;
+      color: #fff;
+    }
+
+    .p05-side-tools {
+      position: absolute;
+      right: 12px;
+      top: 250px;
+      width: 300px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .p05-side-tools select,
+    .p05-side-tools button {
+      min-height: 34px;
+      border: 1px solid #9a9a9a;
+      background: #fff;
+      padding: 6px 8px;
+      font-size: 13px;
+    }
+
+    .p05-side-tools button {
+      background: #f1f1f1;
+      cursor: pointer;
+    }
+
+    .p05-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .p05-chip {
+      border: 1px solid #8f8f8f;
+      background: #fff;
+      font-size: 12px;
+      padding: 3px 7px;
+      min-height: 24px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .p05-status {
+      border: 1px solid #9a9a9a;
+      background: #fff;
+      font-size: 12px;
+      padding: 8px;
+      min-height: 56px;
+    }
+
+    .p05-secondary-state {
+      border: 1px solid #9a9a9a;
+      background: #fff;
+      font-size: 12px;
+      padding: 8px;
+      min-height: 66px;
+      line-height: 1.35;
+    }
+
+    .p05-hidden-meta {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
+      .p05-form {
+        min-height: 0;
+        overflow: visible;
+      }
+
+      .p05-top {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .p05-recording-counter {
+        grid-column: 1 / -1;
+      }
+
+      .p05-side-tools,
+      .p05-bottom-bar {
+        position: static;
+      }
+
+      .p05-main-box,
+      .p05-side-tools,
+      .p05-logo {
+        width: 100%;
+      }
+
+      .p05-logo {
+        height: auto;
+        max-width: 130px;
+        justify-self: start;
+      }
+
+      .p05-main-box {
+        height: 210px;
+      }
+
+      .p05-webcam-image,
+      .p05-live-row {
+        width: 100%;
+      }
+
+      .p05-preview-row {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .p05-webcam-signal {
+        margin-top: 0;
+        width: 100%;
+        min-height: 0;
+        flex-direction: row;
+        justify-content: flex-start;
+      }
+
+      .p05-live-row .green,
+      .p05-live-row .red {
+        transform: none;
+        width: 100%;
+        text-align: center;
+        padding-left: 0;
+      }
+
+      .p05-bottom-bar {
+        margin-top: 12px;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina05-actions.js"></script>
+</head>
+<body class="p05-body fit-video-frame">
+  <main class="p05-form">
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">WEBCAM</span>
+    </nav>
+    <h1 id="form-name" class="p05-title">frmPagina05</h1>
+
+    <section class="p05-top" aria-label="Comandi principali">
+      <button id="btn-rec-start-05" class="p05-flat-btn green" type="button">AVVIA REGISTRAZIONE</button>
+      <button id="btn-rec-stop-05" class="p05-flat-btn red" type="button">STOP REGISTRAZIONE</button>
+
+      <div class="p05-recording-counter" aria-label="Tempo e dimensione ultima registrazione">
+        <div class="p05-counter-field">
+          <span class="p05-counter-label">TEMPO REGISTRAZIONE</span>
+          <span id="recording-elapsed-05" class="p05-counter-value">00:00</span>
+        </div>
+        <div class="p05-counter-field">
+          <span class="p05-counter-label">DIMENSIONE MP4</span>
+          <span id="recording-size-05" class="p05-counter-value">0.00 MB</span>
+        </div>
+      </div>
+
+      <div class="p05-webcam-box">
+        <select id="camera-name-05" aria-label="Selezione webcam"></select>
+        <label for="camera-name-05">Scegliere quale TELECAMERA utilizzare</label>
+        <button id="btn-autotest-tools" class="p05-test-btn" type="button">TEST SOFTWARE PER WEBCAM</button>
+      </div>
+
+      <img class="p05-logo" src="../../archivio/logo_daniel_west.jpg" alt="Logo Daniel West" />
+    </section>
+
+    <section class="p05-main-box" aria-label="Area riproduzione">
+      <div class="caption">RIPRODUCI REGISTRAZIONE</div>
+      <ul id="recordings-play-list-05" class="p05-recordings-list" aria-label="Elenco registrazioni"></ul>
+      <p class="p05-recordings-hint">Doppio click su un file per riprodurlo sul monitor secondario.</p>
+    </section>
+
+    <div class="p05-preview-row">
+      <div id="webcam-shell-05" class="p05-webcam-image" aria-label="Anteprima webcam locale">
+        <span id="webcam-live-badge-05" class="p05-live-badge">LIVE</span>
+        <img id="webcam-slide-05" src="../../archivio/webcam.jpeg" alt="Webcam" />
+        <video id="webcam-preview-05" class="p05-hidden" autoplay muted playsinline></video>
+        <div id="preview-suspended-05" class="p05-preview-suspended">Preview locale sospesa temporaneamente per lasciare la webcam al live Electron sul monitor secondario.</div>
+      </div>
+
+      <div id="webcam-signal-05" class="p05-webcam-signal" data-state="idle" aria-live="polite" aria-label="Spia stato webcam secondaria">
+        <span class="p05-webcam-signal-label">STATO<br />WEBCAM</span>
+        <span id="webcam-gem-05" class="p05-webcam-gem" aria-hidden="true"></span>
+        <span id="webcam-signal-text-05" class="p05-webcam-signal-text">Riposo</span>
+      </div>
+    </div>
+
+    <div class="p05-live-row" aria-label="Controllo ripresa diretta">
+      <button id="btn-vlc-start" class="p05-flat-btn green" type="button">START RIPRESA VIDEO IN DIRETTA</button>
+      <button id="btn-vlc-stop" class="p05-flat-btn red" type="button">STOP RIPRESA VIDEO IN DIRETTA</button>
+    </div>
+
+    <aside class="p05-side-tools" aria-label="Strumenti conversione e stato">
+      <select id="recording-list-05" aria-label="Elenco registrazioni">
+        <option value="">Nessun file MKV</option>
+      </select>
+      <button id="btn-convert-play-05" type="button">CONVERTI MP4 + PLAY VLC</button>
+
+      <div class="p05-chips" aria-label="Metriche webcam">
+        <span id="cam-codec-chip" class="p05-chip">Codec: -</span>
+        <span id="cam-size-chip" class="p05-chip">Size: -</span>
+        <span id="cam-fps-chip" class="p05-chip">FPS: -</span>
+        <span id="vlc-state-chip" class="p05-chip">VLC: OFF</span>
+        <span id="rec-state-chip-05" class="p05-chip">REC: OFF</span>
+      </div>
+
+      <div id="secondary-player-state-05" class="p05-secondary-state" aria-live="polite">
+        <strong>Monitor secondario:</strong><br />
+        Stato player Electron in attesa.
+      </div>
+
+      <div id="pagina05-status" class="p05-status" role="status" aria-live="polite"><strong>Stato:</strong> pronto.</div>
+    </aside>
+
+    <nav class="p05-bottom-bar" aria-label="Navigazione">
+      <a href="../index.html" class="btn btn-secondary">Indice</a>
+      <button id="btn-close-pagina05" class="btn btn-primary" type="button">CHIUDI</button>
+    </nav>
+
+    <div class="p05-hidden-meta" aria-hidden="true">
+      <strong id="form-name-copy">WEBCAM</strong>
+      <strong id="form-caption">-</strong>
+      <strong id="form-size">-</strong>
+      <a id="prev-form" href="#">Form precedente</a>
+      <a id="next-form" href="#">Form successivo</a>
+    </div>
+  </main>
+
+    <script src=/nav.js></script></body>
+</html>

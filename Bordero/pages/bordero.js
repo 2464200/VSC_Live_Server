@@ -31,6 +31,7 @@ class BorderoTableManager {
     this.webcamSignalWarningReason = '';
     this.virtualDjConsolePollTimer = null;
     this.virtualDjConsolePollInProgress = false;
+    this.virtualDjUnavailableUntil = 0;
     this.virtualDjCompletionTracker = null;
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
@@ -697,6 +698,9 @@ class BorderoTableManager {
     });
     document.getElementById('btn-view-richieste')?.addEventListener('click', () => {
       window.location.href = 'elenco-richieste.html';
+    });
+    document.getElementById('btn-view-hidden')?.addEventListener('click', () => {
+      window.location.href = 'brani-nascosti.html';
     });
 
     // Filter buttons
@@ -2817,6 +2821,10 @@ class BorderoTableManager {
   }
 
   async ensureVirtualDjRuntime() {
+    if (Date.now() < this.virtualDjUnavailableUntil) {
+      return { ok: false, started: false, error: 'VirtualDJ non disponibile' };
+    }
+
     const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
 
     try {
@@ -2839,13 +2847,15 @@ class BorderoTableManager {
       return payload;
     } catch (error) {
       logger.warn('Impossibile avviare VirtualDJ automaticamente', error);
+      this.virtualDjUnavailableUntil = Date.now() + 30000;
       return { ok: false, started: false, error: error?.message || String(error) };
     }
   }
 
   async queryVirtualDjScript(script, timeoutMs = 2500) {
     const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
-    await this.ensureVirtualDjRuntime();
+    const runtime = await this.ensureVirtualDjRuntime();
+    if (!runtime.ok) return '';
 
     const url = new URL('/api/vdj/proxy', window.location.origin);
     url.searchParams.set('baseUrl', candidateBases[0]);
@@ -3293,16 +3303,22 @@ class BorderoTableManager {
     const requested = this.getUniqueRequestedBrani(this.allBrani);
     const completed = this.allBrani.filter(b => String(b.flag).toUpperCase() === 'X').length;
     const pending = total - completed;
+    const hidden = typeof getHiddenBraniByTitle === 'function'
+      ? getHiddenBraniByTitle(this.allBrani, { isExecuted: (brano) => this.isExecutedBrano(brano) }).length
+      : 0;
 
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-requested').textContent = requested.length;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-hidden')?.replaceChildren(document.createTextNode(String(hidden)));
+    const hiddenBadge = document.getElementById('hidden-count-badge');
+    if (hiddenBadge) hiddenBadge.textContent = `(${hidden})`;
     this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
-      detail: { total, requested: requested.length, completed, pending }
+      detail: { total, requested: requested.length, completed, pending, hidden }
     }));
   }
 

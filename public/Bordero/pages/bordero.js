@@ -31,6 +31,7 @@ class BorderoTableManager {
     this.webcamSignalWarningReason = '';
     this.virtualDjConsolePollTimer = null;
     this.virtualDjConsolePollInProgress = false;
+    this.virtualDjUnavailableUntil = 0;
     this.virtualDjCompletionTracker = null;
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
@@ -2790,6 +2791,10 @@ class BorderoTableManager {
   }
 
   async ensureVirtualDjRuntime() {
+    if (Date.now() < this.virtualDjUnavailableUntil) {
+      return { ok: false, started: false, error: 'VirtualDJ non disponibile' };
+    }
+
     const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
 
     try {
@@ -2812,13 +2817,15 @@ class BorderoTableManager {
       return payload;
     } catch (error) {
       logger.warn('Impossibile avviare VirtualDJ automaticamente', error);
+      this.virtualDjUnavailableUntil = Date.now() + 30000;
       return { ok: false, started: false, error: error?.message || String(error) };
     }
   }
 
   async queryVirtualDjScript(script, timeoutMs = 2500) {
     const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
-    await this.ensureVirtualDjRuntime();
+    const runtime = await this.ensureVirtualDjRuntime();
+    if (!runtime.ok) return '';
 
     const url = new URL('/api/vdj/proxy', window.location.origin);
     url.searchParams.set('baseUrl', candidateBases[0]);

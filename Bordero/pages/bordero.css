@@ -454,6 +454,18 @@
   box-shadow: 0 0 0 2px rgba(255, 127, 0, 0.25), 0 6px 14px rgba(255, 127, 0, 0.35);
 }
 
+#btn-view-hidden {
+  background: linear-gradient(135deg, #5f6368, #aeb4ba);
+  color: #ffffff;
+  border-color: #c8cdd2;
+  box-shadow: 0 0 0 2px rgba(174, 180, 186, 0.2), 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+#btn-view-hidden:hover {
+  background: linear-gradient(135deg, #747a80, #c5cbd0);
+  border-color: #e1e5e8;
+}
+
 .btn-filter-blue.active { background: linear-gradient(135deg, #1e88e5, #64b5f6); color: #fff; }
 .btn-filter-green.active { background: linear-gradient(135deg, #2e7d32, #66bb6a); color: #fff; }
 .btn-filter-orange.active { background: linear-gradient(135deg, #ef6c00, #ffb74d); color: #fff; }
@@ -543,10 +555,24 @@
 }
 
 .remote-rolling-btn {
+  width: 150px;
+  min-height: 30px;
   padding: 6px 10px;
   font-size: 0.8em;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.remote-rolling-btn.remote-action-pending {
+  border-color: #22c55e;
+  animation: remote-action-pending-blink 0.9s step-end infinite;
+}
+
+@keyframes remote-action-pending-blink {
+  50% {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45);
+  }
 }
 
 .console-status-btn {
@@ -1411,6 +1437,12 @@
   .brani-table td,
   .brani-table th {
     padding: 8px 5px;
+  }
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    grid-template-columns: 1fr;
   }
 }
 
