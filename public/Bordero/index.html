@@ -50,6 +50,7 @@
         <li><a href="../USERFORM/index.html" class="nav-link">USERFORM</a></li>
         <li><a href="pages/lista-serata.html" class="nav-link">Lista Serata</a></li>
         <li><a href="pages/brani-eseguiti.html" class="nav-link">Brani Eseguiti</a></li>
+        <li><a href="pages/brani-nascosti.html" class="nav-link">Brani Nascosti</a></li>
         <li><a href="pages/location.html" class="nav-link">Location</a></li>
         <li><a href="pages/risultati.html" class="nav-link">Risultati</a></li>
         <li><a href="pages/bordero-presentazione.html" class="nav-link">Presentazione Borderò</a></li>
@@ -61,7 +62,7 @@
         <li><a href="/LedDisplay.html" class="nav-link">LedDisplay</a></li>
         <li><a href="/diagnostica.html" class="nav-link">Diagnostica</a></li>
         <li><a href="pages/coreografie-stampa.html" class="nav-link">Stampa Coreografie</a></li>
-        <li><a href="#" class="nav-link nav-link-placeholder" aria-hidden="true" tabindex="-1">&nbsp;</a></li>
+        <li><button type="button" id="btn-close-app" class="nav-link nav-link-danger" style="background:#dc3545;color:#fff;border-color:#dc3545;font-weight:700;cursor:pointer;" title="Finalizza la serata, arresta i server ed esce dall'applicazione">🛑 CHIUDI APPLICAZIONE</button></li>
         <li><a href="#" class="nav-link nav-link-placeholder" aria-hidden="true" tabindex="-1">&nbsp;</a></li>
       </ul>
     </nav>
@@ -195,6 +196,60 @@
 
   <!-- Toast Notifications -->
   <div id="toast-container" class="toast-container"></div>
+
+  <!-- Modal Chiusura Applicazione (non usa window.confirm/prompt: non affidabili in Electron) -->
+  <div id="close-app-modal" class="close-app-modal-overlay" hidden>
+    <div class="close-app-modal-box">
+      <h3 id="close-app-modal-title">Chiudi Applicazione</h3>
+      <p id="close-app-modal-message"></p>
+      <div id="close-app-modal-code-wrap" hidden>
+        <input type="password" id="close-app-modal-code-input" placeholder="Codice segreto" autocomplete="off" />
+        <p id="close-app-modal-error" class="close-app-modal-error" hidden>Codice non corretto. Riprova.</p>
+      </div>
+      <div class="close-app-modal-actions">
+        <button type="button" id="close-app-modal-cancel" class="btn btn-secondary">Annulla</button>
+        <button type="button" id="close-app-modal-confirm" class="btn btn-danger">Conferma</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .close-app-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .close-app-modal-overlay[hidden] { display: none; }
+    .close-app-modal-box {
+      background: #1e1e1e;
+      color: #fff;
+      border: 2px solid #dc3545;
+      border-radius: 10px;
+      padding: 24px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .close-app-modal-box h3 { margin: 0 0 12px; color: #dc3545; }
+    .close-app-modal-box p { margin: 0 0 16px; line-height: 1.4; }
+    #close-app-modal-code-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background: #2a2a2a;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .close-app-modal-error { color: #ff6b6b; font-size: 13px; margin: 0 0 8px; }
+    .close-app-modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+  </style>
 
     <script src="/nav.js"></script></body>
 

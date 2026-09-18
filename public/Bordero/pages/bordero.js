@@ -697,6 +697,9 @@ class BorderoTableManager {
     document.getElementById('btn-view-richieste')?.addEventListener('click', () => {
       window.location.href = 'elenco-richieste.html';
     });
+    document.getElementById('btn-view-hidden')?.addEventListener('click', () => {
+      window.location.href = 'brani-nascosti.html';
+    });
 
     // Filter buttons
     this.bindFilterPopupButton('btn-filter-coreografia', 'info_livello', 'LIVELLO');
@@ -1672,9 +1675,8 @@ class BorderoTableManager {
     // Start con tutti i brani
     this.filteredBrani = [...this.allBrani];
 
-    this.filteredBrani = filterBraniByTitleVisibility(this.filteredBrani, {
+    this.filteredBrani = filterBraniByDuplicateTitleVisibility(this.filteredBrani, {
       isExecuted: (brano) => this.isExecutedBrano(brano),
-      isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
     });
 
     // Applica filtri
@@ -2787,9 +2789,38 @@ class BorderoTableManager {
     return (first * 60) + second;
   }
 
-  async queryVirtualDjScript(script, timeoutMs = 2500) {
-    const url = new URL('/api/vdj/proxy', window.location.origin);
+  async ensureVirtualDjRuntime() {
     const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+
+    try {
+      const response = await fetch('/api/vdj/ensure-running', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl: candidateBases[0],
+          baseUrls: candidateBases.join(','),
+          timeoutMs: 15000
+        }),
+        cache: 'no-store'
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || `VirtualDJ non disponibile (HTTP ${response.status})`);
+      }
+
+      return payload;
+    } catch (error) {
+      logger.warn('Impossibile avviare VirtualDJ automaticamente', error);
+      return { ok: false, started: false, error: error?.message || String(error) };
+    }
+  }
+
+  async queryVirtualDjScript(script, timeoutMs = 2500) {
+    const candidateBases = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+    await this.ensureVirtualDjRuntime();
+
+    const url = new URL('/api/vdj/proxy', window.location.origin);
     url.searchParams.set('baseUrl', candidateBases[0]);
     url.searchParams.set('baseUrls', candidateBases.join(','));
     url.searchParams.set('endpoint', '/execute');
@@ -3235,16 +3266,23 @@ class BorderoTableManager {
     const requested = this.getUniqueRequestedBrani(this.allBrani);
     const completed = this.allBrani.filter(b => String(b.flag).toUpperCase() === 'X').length;
     const pending = total - completed;
+    const hidden = typeof getHiddenBraniByTitle === 'function'
+      ? getHiddenBraniByTitle(this.allBrani, { isExecuted: (brano) => this.isExecutedBrano(brano) }).length
+      : 0;
 
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-requested').textContent = requested.length;
     document.getElementById('stat-completed').textContent = `${completed} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)`;
     document.getElementById('stat-pending').textContent = pending;
+    const hiddenEl = document.getElementById('stat-hidden');
+    if (hiddenEl) hiddenEl.textContent = hidden;
+    const hiddenBadge = document.getElementById('hidden-count-badge');
+    if (hiddenBadge) hiddenBadge.textContent = `(${hidden})`;
     this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
-      detail: { total, requested: requested.length, completed, pending }
+      detail: { total, requested: requested.length, completed, pending, hidden }
     }));
   }
 

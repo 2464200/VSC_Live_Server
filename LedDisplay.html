@@ -20,6 +20,12 @@
                 <div class="panel-heading"><h2>Sequenza messaggi</h2><button id="load-next" class="icon-button" title="Leggi NextCoreo.csv">Aggiorna</button></div>
                 <p class="field-help">Un messaggio per riga. Il display li ripete in sequenza.</p>
                 <textarea id="messages" rows="8" spellcheck="false"></textarea>
+                <aside class="template-help" aria-label="Variabili disponibili">
+                    <strong>Variabili disponibili</strong>
+                    <span><code>{NEXT}</code> prossima coreografia</span>
+                    <span><code>{DJ}</code> DJ selezionato</span>
+                    <p>Scrivile nel messaggio tra parentesi graffe: saranno sostituite automaticamente sul display.</p>
+                </aside>
                 <label class="toggle-row"><input id="use-next" type="checkbox"><span>Inserisci automaticamente la prossima coreografia</span></label>
             </section>
             <section class="panel">

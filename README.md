@@ -32,24 +32,6 @@ Il progetto si basa su un unico punto di riferimento per la documentazione: ques
 
 Il flusso standard utilizza ora un singolo server unificato o, in caso di test locali, un server statico semplice.
 
-### Schema delle porte attive
-
-- `5500` → `unified-server.js` (runtime principale)
-  - serve la root del progetto, Borderò, Eventi e le API shared
-  - URL principali: `http://localhost:5500/index.html`, `http://localhost:5500/Bordero/pages/bordero.html`, `http://localhost:5500/eventi/eventi.html`
-- `5503` → Live Server / anteprima editor
-  - usato solo per preview statiche in VS Code
-  - non è il runtime principale del progetto
-- `5512` → controllo Electron
-  - porta interna usata da `electron/main.js` per il controllo del launcher Electron
-- `4212` → controllo remoto VLC
-  - porta usata dall'API VLC di `unified-server.js` per il monitor secondario
-
-### Porte legacy / storiche
-
-- `3000`, `3010`, `8765` sono riferimenti storici del vecchio setup multi-server
-- non fanno parte del flusso standard attuale, che usa `unified-server.js` su `5500`
-
 - Portale principale: `http://localhost:5500/index.html`
 - Borderò principale: `http://localhost:5500/Bordero/pages/bordero.html`
 - API Borderò: `http://localhost:5500/api/health`
@@ -70,6 +52,14 @@ Flusso aggiornato Bordero:
 - Sync offline/locale da file Excel selezionato manualmente dall'utente.
 - Directory di riferimento file Excel locali: `C:\VSC_Live_Server\Excel\`.
 - In caso di rete assente: fallback su cache localStorage e CSV locali in `Bordero/data/`.
+
+### Ordinamento degli eseguiti e titoli uguali
+
+- Quando un brano viene segnato come eseguito, tutte le righe con lo stesso titolo vengono spostate in fondo insieme a quello eseguito.
+- Le righe omonime non vengono cancellate: restano nell'elenco, senza flag `X`, e vengono ordinate in fondo per ID.
+- Solo la riga realmente eseguita riceve il flag `X`.
+- Il reset della serata azzera i flag e rende nuovamente disponibili tutte le righe.
+- Se dopo il reset una riga non è visibile, controllare i filtri attivi e premere `RESET RICERCA` per ripristinare la vista completa.
 
 ## Eventi e pagine collegate
 
@@ -227,8 +217,8 @@ Questa sezione riassume le modifiche funzionali principali applicate nelle ultim
 	- click successivi sulla stessa colonna: alternanza crescente/decrescente
 	- click su nuova colonna: reset del criterio precedente e nuovo crescente.
 - Inserito box rapido `RESET FILTRI + ID ↑` nella barra statistiche.
-- Aggiunto indicatore stato `Eseguiti in fondo: ON/OFF`.
-- Modalità `SPOSTA IN FONDO GLI ESEGUITI` mantenuta anche con riordino: gli eseguiti restano in fondo ma vengono ordinati internamente quando si applica un sort.
+- Lo spostamento degli eseguiti e dei titoli omonimi in fondo è sempre attivo e non dipende da un tasto ON/OFF.
+- Gli eseguiti restano in fondo anche con riordino, refresh e paginazione, ordinati internamente per ID.
 
 ### Comandi filtri e popup selezione valori (`Bordero/pages/bordero.html`, `Bordero/pages/bordero.js`, `Bordero/pages/bordero.css`)
 
