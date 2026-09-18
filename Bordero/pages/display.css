@@ -11,6 +11,44 @@
   overflow: hidden;
 }
 
+.next-coreo-announcement {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-content: center;
+  gap: 18px;
+  padding: 32px;
+  background: rgba(0, 0, 0, 0.92);
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.next-coreo-announcement.is-active {
+  animation: nextCoreoAnnouncement 15s ease-in-out forwards;
+}
+
+.next-coreo-announcement-label {
+  color: #ffb366;
+  font-size: clamp(24px, 4vw, 56px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.next-coreo-announcement-title {
+  max-width: 90vw;
+  font-size: clamp(34px, 7vw, 96px);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+@keyframes nextCoreoAnnouncement {
+  0%, 100% { opacity: 0; }
+  8%, 88% { opacity: 1; }
+}
+
 .display-container {
   display: flex;
   flex-direction: column;
