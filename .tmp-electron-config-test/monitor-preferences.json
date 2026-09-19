@@ -1,10 +1,10 @@
 {
-  "primaryMonitorChoice": 1,
+  "primaryMonitorChoice": 2,
   "swapPrimarySecondary": false,
   "selectionConfirmed": true,
   "autoConfigureDisplay": true,
   "dpiAutoScale": true,
   "secondaryMonitorAutoScale": true,
-  "updatedAt": "2026-09-19T01:45:48.265Z",
+  "updatedAt": "2026-09-19T01:44:32.776Z",
   "source": "electron-prompt"
 }

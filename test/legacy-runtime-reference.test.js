@@ -4,6 +4,7 @@ const path = require('path');
 const targets = [
   'USERFORM/js/pagina04-actions.js',
   'USERFORM/pages/PAGINA04.html',
+  'public/diagnostica.html',
   'public/ScriptPDF1.html',
   'pdf/viewers/ScriptPDF1.html',
   'verify_code_quality.ps1'

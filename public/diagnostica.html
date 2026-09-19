@@ -411,24 +411,24 @@
     async function testLegacyComponents(clearPrevious = true) {
         if (clearPrevious) resetTests();
         const urls = [
-            "http://127.0.0.1:3000/api/status",
-            "http://127.0.0.1:3010/eventi/api/ping",
-            "http://127.0.0.1:8765/api/status"
+            `${DIAGNOSTICA_BASE_URL}/api/status`,
+            `${DIAGNOSTICA_BASE_URL}/eventi/api/status`,
+            `${DIAGNOSTICA_BASE_URL}/diagnostica.html`
         ];
 
         for (const url of urls) {
             try {
                 const response = await fetch(url, { cache: "no-store" });
-                log("Componenti legacy opzionali", "info", [
+                log("Componenti standard verificati", "success", [
                     `URL: ${url}`,
                     `Status: ${response.status} ${response.statusText}`,
-                    `Componente legacy rilevato, non richiesto nel flusso standard`
+                    `Il flusso standard usa unified-server.js su 5500 e non richiede componenti legacy.`
                 ]);
             } catch (error) {
-                log("Componenti legacy opzionali", "info", [
+                log("Componenti standard verificati", "error", [
                     `URL: ${url}`,
-                    `Esito: non raggiungibile`,
-                    `Nessun problema: il progetto standard usa solo unified-server.js su 5500`
+                    `Esito: ${error.message}`,
+                    `Verifica runtime: il server unificato deve essere attivo su 5500.`
                 ]);
             }
         }
