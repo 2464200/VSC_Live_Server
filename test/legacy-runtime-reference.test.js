@@ -14,7 +14,9 @@ const bannedPatterns = [
   /localhost:8765/gi,
   /pdf-server\.js/gi,
   /localhost:3000/gi,
-  /legacy\s+8765/gi
+  /legacy\s+8765/gi,
+  /legacy\s+port/gi,
+  /btn-open-pdf-legacy/gi
 ];
 
 let failed = false;

@@ -19,7 +19,7 @@
     });
   });
 
-  document.getElementById("btn-open-pdf-legacy")?.addEventListener("click", () => {
+  document.getElementById("btn-open-pdf")?.addEventListener("click", () => {
     const full = `${baseUrl}/Prova/ScriptPDF1.html`;
     openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
