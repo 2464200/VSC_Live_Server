@@ -213,14 +213,9 @@ loadElectronPagePolicy();
 
 function sanitizeMonitorPreferences(parsed = {}) {
   const explicitChoice = Number(parsed?.primaryMonitorChoice);
-  let primaryMonitorChoice = null;
-  if (explicitChoice === 1 || explicitChoice === 2) {
-    primaryMonitorChoice = explicitChoice;
-  }
-
-  const swapPrimarySecondary = primaryMonitorChoice === null
-    ? Boolean(parsed && parsed.swapPrimarySecondary)
-    : primaryMonitorChoice === 2;
+  const hasValidExplicitChoice = explicitChoice === 1 || explicitChoice === 2;
+  const primaryMonitorChoice = hasValidExplicitChoice ? explicitChoice : 1;
+  const swapPrimarySecondary = hasValidExplicitChoice ? primaryMonitorChoice === 2 : false;
 
   return {
     swapPrimarySecondary,
