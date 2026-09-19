@@ -3,6 +3,7 @@ const path = require('path');
 
 const targets = [
   'USERFORM/js/pagina04-actions.js',
+  'USERFORM/pages/PAGINA04.html',
   'public/ScriptPDF1.html',
   'pdf/viewers/ScriptPDF1.html',
   'verify_code_quality.ps1'
@@ -12,7 +13,8 @@ const bannedPatterns = [
   /server-manager\.js/gi,
   /localhost:8765/gi,
   /pdf-server\.js/gi,
-  /localhost:3000/gi
+  /localhost:3000/gi,
+  /legacy\s+8765/gi
 ];
 
 let failed = false;
