@@ -148,10 +148,19 @@ withTempRuntime(
     const policyMap = vm.runInContext('readElectronPagePolicy()', sandbox);
     const invalidEntry = policyMap.get('/bad-route');
     const validEntry = policyMap.get('/good-route');
+    const displayEntry = policyMap.get('/bordero/pages/display.html');
+    const videoPlayerEntry = policyMap.get('/bordero/pages/video-player.html');
+    const primaryBorderoEntry = policyMap.get('/bordero/pages/bordero.html');
+    const adminEntry = policyMap.get('/bordero/pages/admin.html');
 
     assert(invalidEntry && invalidEntry.primary === true && invalidEntry.secondary === false, 'Invalid policy entry should be sanitized to a safe default.');
     assert(validEntry && validEntry.primary === true && validEntry.secondary === false, 'Valid policy entry should be preserved as-is.');
+    assert(displayEntry && displayEntry.primary === false && displayEntry.secondary === true, 'Display page must remain on the secondary monitor.');
+    assert(videoPlayerEntry && videoPlayerEntry.primary === false && videoPlayerEntry.secondary === true, 'Video-player page must remain on the secondary monitor.');
+    assert(primaryBorderoEntry && primaryBorderoEntry.primary === true && primaryBorderoEntry.secondary === false, 'Main Bordero page must remain on the primary monitor.');
+    assert(adminEntry && adminEntry.primary === true && adminEntry.secondary === false, 'Admin page must stay on the primary monitor.');
 
     console.log('PASS: Electron runtime defaults and sanitization are resilient and project-safe.');
+    console.log('PASS: display/video route policy remains locked to the correct monitor assignment.');
   }
 );
