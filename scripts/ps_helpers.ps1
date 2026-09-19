@@ -6,14 +6,19 @@ function Start-ProcessSafe {
         [Parameter()] [string] $WorkingDirectory,
         [Parameter()] [System.Diagnostics.ProcessWindowStyle] $WindowStyle = 'Hidden',
         [Parameter()] [Switch] $PassThru,
-        [Parameter()] [string] $Verb
+        [Parameter()] [string] $Verb,
+        [Parameter()] [Switch] $NoNewWindow
     )
 
     # Check if FilePath is a URL - Start-Process can open URLs
     if ($FilePath -match '^[a-zA-Z]+:\/\/') {
         try {
-            if ($PassThru) { return Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WindowStyle $WindowStyle -PassThru }
-            Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -WindowStyle $WindowStyle; return $null
+            $splat = @{ FilePath = $FilePath; WindowStyle = $WindowStyle }
+            if ($ArgumentList) { $splat['ArgumentList'] = $ArgumentList }
+            if ($PassThru) { $splat['PassThru'] = $true }
+            if ($NoNewWindow) { $splat['NoNewWindow'] = $true }
+            if ($PassThru) { return Start-Process @splat }
+            Start-Process @splat; return $null
         } catch { Write-Warning "Start-Process failed for URL $FilePath: $($_.Exception.Message)"; return $null }
     }
 
@@ -32,14 +37,13 @@ function Start-ProcessSafe {
         return $null
     }
 
-    $splat = @{
-        FilePath = $FilePath
-    }
+    $splat = @{ FilePath = $FilePath }
     if ($ArgumentList) { $splat['ArgumentList'] = $ArgumentList }
     if ($WorkingDirectory) { $splat['WorkingDirectory'] = $WorkingDirectory }
     if ($WindowStyle) { $splat['WindowStyle'] = $WindowStyle }
     if ($PassThru) { $splat['PassThru'] = $true }
     if ($Verb) { $splat['Verb'] = $Verb }
+    if ($NoNewWindow) { $splat['NoNewWindow'] = $true }
 
     try {
         return Start-Process @splat

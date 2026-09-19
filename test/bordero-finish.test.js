@@ -216,4 +216,32 @@ if (!flags.some(f => f.id === '2' && f.flag === 'X')) {
   throw new Error('Completed track was not preserved');
 }
 
+const nextSelectionManager = new BaseManager();
+nextSelectionManager.init();
+nextSelectionManager.toggleNextCoreoSelection('3');
+const selectedAfterFirstPick = nextSelectionManager.getActiveNextSelectionId();
+const payloadAfterFirstPick = context.Storage.get('bordero_next_coreo_selection', null);
+console.log('Selected after first pick:', selectedAfterFirstPick, payloadAfterFirstPick);
+if (selectedAfterFirstPick !== '3') {
+  throw new Error(`Expected active NEXT id to be 3 after selection, got ${selectedAfterFirstPick}`);
+}
+if (!payloadAfterFirstPick || String(payloadAfterFirstPick.id) !== '3') {
+  throw new Error('NEXT selection payload was not stored correctly');
+}
+if (String(nextSelectionManager.allBrani[0].id) !== '3') {
+  throw new Error('Expected selected NEXT track to be ordered first after selection');
+}
+
+nextSelectionManager.toggleNextCoreoSelection('3');
+const selectedAfterToggleOff = nextSelectionManager.getActiveNextSelectionId();
+const payloadAfterToggleOff = context.Storage.get('bordero_next_coreo_selection', null);
+console.log('Selected after deselect:', selectedAfterToggleOff, payloadAfterToggleOff);
+if (selectedAfterToggleOff !== null) {
+  throw new Error(`Expected active NEXT id to be null after deselection, got ${selectedAfterToggleOff}`);
+}
+if (payloadAfterToggleOff !== null) {
+  throw new Error('NEXT payload should be removed after deselection');
+}
+
 console.log('TEST PASSED: Executed tracks move to the bottom as expected');
+console.log('TEST PASSED: NEXT selection lifecycle is stable and persisted');

@@ -147,7 +147,7 @@ if (-not $CheckOnly) {
     Write-Host ('[OK] Avvio server su http://localhost:{0}' -f $port) -ForegroundColor Green
 
     Push-Location $root
-    $proc = Start-Process -FilePath 'node' -ArgumentList 'server.js' -WorkingDirectory $root -PassThru -WindowStyle Normal
+    $proc = Start-Process -FilePath 'node' -ArgumentList 'server.js' -WorkingDirectory $root -PassThru -WindowStyle Hidden -NoNewWindow
     Pop-Location
 
     if ($proc) {

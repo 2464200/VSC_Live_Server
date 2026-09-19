@@ -24,6 +24,8 @@ while ($attempt -lt $MaxAttempts) {
             '-NoProfile',
             '-ExecutionPolicy',
             'Bypass',
+            '-WindowStyle',
+            'Hidden',
             '-File',
             $StartupScript
         ) `

@@ -1,10 +1,7 @@
 {
-  "primaryMonitorChoice": 1,
-  "swapPrimarySecondary": false,
+  "primaryMonitorChoice": 2,
+  "swapPrimarySecondary": true,
   "selectionConfirmed": true,
-  "autoConfigureDisplay": true,
-  "dpiAutoScale": true,
-  "secondaryMonitorAutoScale": true,
-  "updatedAt": "2026-09-19T01:45:48.265Z",
-  "source": "electron-prompt"
+  "updatedAt": "2026-09-19T08:34:33.070Z",
+  "source": "api-swap-monitors"
 }

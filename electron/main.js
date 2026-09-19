@@ -1299,12 +1299,13 @@ async function ensureWindows() {
   currentAutoConfigureDisplay = Boolean(monitorPreferences.autoConfigureDisplay !== false);
   currentDpiAutoScale = Boolean(monitorPreferences.dpiAutoScale !== false);
 
+  const config = buildElectronAppConfig({ baseUrl: 'http://localhost:5500' });
+  const displays = screen.getAllDisplays();
+  const targets = resolveDisplayTargetsForWindows(displays, {
+    swapPrimarySecondary: currentSwapMonitors
+  });
+
   if (!primaryWindow || primaryWindow.isDestroyed()) {
-    const config = buildElectronAppConfig({ baseUrl: 'http://localhost:5500' });
-    const displays = screen.getAllDisplays();
-    const targets = resolveDisplayTargetsForWindows(displays, {
-      swapPrimarySecondary: currentSwapMonitors
-    });
     const primaryLayout = buildDisplayLayoutConfig(targets.mainDisplay, { width: 1400, height: 900, fullscreen: true });
 
     primaryWindow = createWindow(config.primaryUrl, {
@@ -1325,6 +1326,12 @@ async function ensureWindows() {
       primaryWindow = null;
     });
 
+    primaryWindow.webContents.on('did-finish-load', () => {
+      primaryWindow.show();
+    });
+  }
+
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
     const secondaryLayout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
 
     secondaryWindow = createWindow(config.secondaryUrl, {
@@ -1347,16 +1354,11 @@ async function ensureWindows() {
     secondaryWindow.webContents.on('did-finish-load', () => {
       secondaryWindow.show();
     });
-
-    primaryWindow.webContents.on('did-finish-load', () => {
-      primaryWindow.show();
-    });
-
-    enforcePrimaryNavigationPolicy();
-    enforceSecondaryNavigationPolicy();
-
-    applyWindowLayout();
   }
+
+  enforcePrimaryNavigationPolicy();
+  enforceSecondaryNavigationPolicy();
+  applyWindowLayout();
 }
 
 function handleDisplayChange() {
