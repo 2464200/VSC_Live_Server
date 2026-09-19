@@ -984,7 +984,7 @@
 
       vlcRunning = true;
       if (vlcChip) vlcChip.textContent = "LIVE: ON (ELECTRON)";
-      refreshWebcamSignal({ warningReason: "" });
+      refreshWebcamSignal({ warningReason: "", vlcRunning: true });
       await refreshSecondaryPlayerState();
       setStatus("Ripresa attiva: preview locale sospesa per evitare conflitti hardware, fullscreen live su monitor secondario (Electron).");
     } catch (error) {
@@ -1022,7 +1022,10 @@
 
       vlcRunning = false;
       if (vlcChip) vlcChip.textContent = "LIVE: OFF";
-      refreshWebcamSignal({ warningReason: stopElectronError ? String(stopElectronError.message || stopElectronError) : "" });
+      refreshWebcamSignal({
+        warningReason: stopElectronError ? String(stopElectronError.message || stopElectronError) : "",
+        vlcRunning: false
+      });
       await refreshSecondaryPlayerState();
       if (stopElectronError) {
         setStatus(`Ripresa live locale fermata, ma stop Electron ha restituito errore: ${stopElectronError.message || stopElectronError}`);

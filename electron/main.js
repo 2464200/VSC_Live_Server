@@ -1004,6 +1004,12 @@ function createVideoPlayerWindow() {
     if (videoPlayerWindow === win) {
       videoPlayerWindow = null;
     }
+
+    if (!app.isQuitting) {
+      ensureSecondaryDisplayPage().catch((error) => {
+        console.warn('Unable to restore display page after video player closed:', error?.message || error);
+      });
+    }
   });
 
   win.webContents.on('did-finish-load', () => {
