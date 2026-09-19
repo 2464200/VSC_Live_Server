@@ -84,7 +84,6 @@ const PAGE_POLICY = new Map([
   ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
-  ['/userform/pages/webcam.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina04.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina06.html', { primary: true, secondary: false }],
@@ -609,7 +608,7 @@ function isManagedHtmlAppUrl(candidateUrl) {
 }
 
 const USERFORM_CANONICAL_PAGE_IDS = new Set(
-  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'webcam', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
+  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
 );
 
 function isCanonicalUserFormPage(candidateUrl) {

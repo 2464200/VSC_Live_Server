@@ -171,10 +171,6 @@
     "primary": false,
     "secondary": true
   },
-  "/userform/pages/webcam.html": {
-    "primary": true,
-    "secondary": false
-  },
   "/userform/pages/pagina03.html": {
     "primary": true,
     "secondary": false
