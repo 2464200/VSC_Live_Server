@@ -735,6 +735,23 @@ function closeTemporarySecondaryWindow() {
     temporarySecondaryWindow.close();
   }
   temporarySecondaryWindow = null;
+
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return;
+  }
+
+  const currentUrl = secondaryWindow.webContents.getURL();
+  if (!isDisplayPageUrl(currentUrl)) {
+    const loaded = loadUrlInWindow(secondaryWindow, `http://localhost:5500${DISPLAY_PAGE_PATH}`);
+    if (!loaded) {
+      return;
+    }
+  }
+
+  secondaryWindow.setFullScreen(true);
+  secondaryWindow.show();
+  secondaryWindow.focus();
+  applyWindowLayout();
 }
 
 function isPersistentSecondaryPageUrl(candidateUrl) {

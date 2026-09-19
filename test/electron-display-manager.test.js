@@ -53,6 +53,8 @@ function loadElectronMainFor(tempDir) {
                 setWindowOpenHandler() { return { action: 'allow' }; },
               };
               this.closed = false;
+              this.visible = false;
+              this.focused = false;
               this.isDestroyed = () => this.closed;
               createdWindows.push(this);
             }
@@ -62,8 +64,8 @@ function loadElectronMainFor(tempDir) {
             setAlwaysOnTop() {}
             setFullScreen() {}
             setBounds() {}
-            show() {}
-            focus() {}
+            show() { this.visible = true; }
+            focus() { this.focused = true; }
             once(_event, callback) { if (_event === 'closed') this.onClosed = callback; }
             close() { this.closed = true; this.onClosed?.(); }
             destroy() { this.closed = true; }
@@ -248,7 +250,25 @@ test('secondary display remains loaded while a temporary secondary page is foreg
 
     vm.runInContext('closeTemporarySecondaryWindow();', sandbox);
     assert.equal(vm.runInContext('Boolean(!temporarySecondaryWindow)', sandbox), true, 'temporary secondary page should close and reveal the persistent Display window');
+    assert.equal(vm.runInContext('Boolean(secondaryWindow && secondaryWindow.focused)', sandbox), true, 'persistent Display window should be restored to the foreground');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
+});
+
+test('webcam is not treated as a managed secondary userform route', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'USERFORM', 'js', 'userform-page.js'), 'utf8');
+  const start = source.indexOf('function normalizeRouteTarget');
+  const end = source.indexOf('function openManagedPage');
+  const snippet = source.slice(start, end);
+  const context = {
+    window: { location: { href: 'http://localhost:5500/' } },
+    URL,
+    console,
+  };
+
+  vm.runInNewContext(`${snippet}\nthis.isCanonicalUserFormRoute = isCanonicalUserFormRoute;`, context);
+
+  assert.equal(context.isCanonicalUserFormRoute('http://localhost:5500/USERFORM/pages/WEBCAM.html'), false, 'webcam should not be routed to the secondary monitor');
+  assert.equal(context.isCanonicalUserFormRoute('http://localhost:5500/USERFORM/pages/pagina03.html'), true, 'valid managed UserForm pages should still be routed');
 });
