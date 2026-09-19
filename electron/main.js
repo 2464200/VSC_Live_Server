@@ -1132,6 +1132,25 @@ function startElectronControlServer() {
         return;
       }
 
+      if (req.method === 'POST' && requestUrl.pathname === '/open-page') {
+        const payload = await readJsonBody(req);
+        const pagePath = String(payload?.path || '').trim();
+        if (!pagePath) {
+          sendElectronControlJson(res, 400, { success: false, error: 'path obbligatorio' });
+          return;
+        }
+
+        const routeResult = await routeUrlByPolicy(toAbsoluteAppUrl(pagePath), 'http-open-page');
+        sendElectronControlJson(res, 200, {
+          success: Boolean(routeResult.primaryUpdated || routeResult.secondaryUpdated),
+          url: routeResult.url,
+          policy: routeResult.policy,
+          primaryUpdated: routeResult.primaryUpdated,
+          secondaryUpdated: routeResult.secondaryUpdated
+        });
+        return;
+      }
+
       if (req.method === 'GET' && requestUrl.pathname === '/video-player/state') {
         sendElectronControlJson(res, 200, { ok: true, pid: process.pid, hasVideoPlayerWindow: Boolean(videoPlayerWindow && !videoPlayerWindow.isDestroyed()), playerState: electronVideoPlayerState });
         return;

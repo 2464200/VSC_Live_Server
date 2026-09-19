@@ -3902,6 +3902,20 @@ app.post('/api/userform/pagina05/electron/page-policy', async (req, res) => {
     }
 });
 
+app.post('/api/userform/pagina05/electron/open-page', async (req, res) => {
+    try {
+        const pagePath = sanitizeCsvValue(req.body?.path);
+        if (!pagePath) {
+            return res.status(400).json({ success: false, error: 'path obbligatorio' });
+        }
+
+        const result = await callElectronControl('/open-page', { path: pagePath });
+        return res.json(result);
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error?.message || String(error) });
+    }
+});
+
 app.post('/api/userform/pagina05/vlc/live/start', async (req, res) => {
     try {
         const vlcPath = resolveVlcExecutable();

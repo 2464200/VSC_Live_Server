@@ -832,14 +832,23 @@ class AdminPanel {
     const summaryNode = document.getElementById('monitor-pages-summary');
     if (!summaryNode) return;
 
-    if (!window.electronAPI?.windowManager?.openSecondaryPage) {
-      summaryNode.textContent = 'Apertura pagina disponibile solo in runtime Electron.';
-      return;
-    }
-
     summaryNode.textContent = `Apertura ${pagePath}...`;
     try {
-      const result = await window.electronAPI.windowManager.openSecondaryPage({ path: pagePath });
+      let result;
+      if (window.electronAPI?.windowManager?.openSecondaryPage) {
+        result = await window.electronAPI.windowManager.openSecondaryPage({ path: pagePath });
+      } else {
+        const { response, payload } = await this.fetchJson('/api/userform/pagina05/electron/open-page', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: pagePath })
+        });
+        result = payload;
+        if (!response.ok) {
+          throw new Error(payload?.error || `HTTP ${response.status}`);
+        }
+      }
+
       if (!result || result.success !== true) {
         throw new Error(result?.error || 'Apertura non riuscita');
       }
@@ -897,7 +906,7 @@ class AdminPanel {
     });
 
     if (!window.electronAPI?.windowManager?.openSecondaryPage) {
-      summary.textContent = 'Modalità browser: la funzione di apertura pagine monitor è disponibile solo in runtime Electron.';
+      summary.textContent = 'Modalità browser: apertura pagine tramite bridge Electron locale.';
     } else {
       summary.textContent = 'Seleziona una pagina e premi Apri per caricarla nei monitor secondo la policy Electron.';
     }
