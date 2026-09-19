@@ -318,22 +318,30 @@
           : `Riproduzione file attiva${playerState.url ? ` (${String(playerState.url).split("/").pop()})` : ""}.`;
         setSecondaryPlayerState(detail);
         vlcRunning = playerState.mode === "webcam-live";
-        refreshWebcamSignal({ warningReason: "" });
+        if (vlcChip) {
+          vlcChip.textContent = vlcRunning ? "LIVE: ON (ELECTRON)" : "VLC: OFF";
+        }
+        refreshWebcamSignal({ warningReason: "", vlcRunning });
       } else if (playerState.lastEvent === "stop-requested") {
         setSecondaryPlayerState("Player Electron fermato correttamente.");
         vlcRunning = false;
-        refreshWebcamSignal({ warningReason: "" });
+        if (vlcChip) vlcChip.textContent = "LIVE: OFF";
+        refreshWebcamSignal({ warningReason: "", vlcRunning: false });
       } else if (playerState.lastEvent === "ended") {
         setSecondaryPlayerState("Riproduzione su monitor secondario completata.");
         vlcRunning = false;
-        refreshWebcamSignal({ warningReason: "" });
+        if (vlcChip) vlcChip.textContent = "LIVE: OFF";
+        refreshWebcamSignal({ warningReason: "", vlcRunning: false });
       } else {
         setSecondaryPlayerState("Stato player Electron in attesa.");
         vlcRunning = false;
-        refreshWebcamSignal({ warningReason: "" });
+        if (vlcChip) vlcChip.textContent = "LIVE: OFF";
+        refreshWebcamSignal({ warningReason: "", vlcRunning: false });
       }
     } catch (error) {
       setSecondaryPlayerState("Player Electron non raggiungibile.");
+      vlcRunning = false;
+      if (vlcChip) vlcChip.textContent = "VLC: OFF";
       refreshWebcamSignal({ warningReason: error?.message || "Player Electron non raggiungibile" });
     }
   };
