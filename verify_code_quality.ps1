@@ -9,7 +9,7 @@ Write-Host 'Controllo validità JavaScript...' -ForegroundColor Yellow
 Write-Host ''
 
 $jsFiles = @(
-  'pdf-server.js',
+  'unified-server.js',
   'script.js'
 )
 

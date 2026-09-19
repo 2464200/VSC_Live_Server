@@ -20,7 +20,7 @@
   });
 
   document.getElementById("btn-open-pdf-legacy")?.addEventListener("click", () => {
-    const full = "http://localhost:8765/Prova/ScriptPDF1.html";
+    const full = `${baseUrl}/Prova/ScriptPDF1.html`;
     openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   });
