@@ -101,6 +101,21 @@ function normalizePolicyPath(pagePath) {
   return normalized || String(pagePath || '').trim().toLowerCase();
 }
 
+function sanitizePagePolicyEntry(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const primary = Boolean(value.primary);
+  const secondary = Boolean(value.secondary);
+
+  if (!primary && !secondary) {
+    return { primary: true, secondary: false };
+  }
+
+  return { primary, secondary };
+}
+
 function readElectronPagePolicy() {
   try {
     if (!fs.existsSync(PAGE_POLICY_FILE)) {
@@ -119,10 +134,11 @@ function readElectronPagePolicy() {
       for (const [pathKey, value] of Object.entries(parsed)) {
         const normalized = normalizePolicyPath(pathKey);
         if (!normalized) continue;
-        persisted.set(normalized, {
-          primary: Boolean(value?.primary),
-          secondary: Boolean(value?.secondary)
-        });
+
+        const sanitized = sanitizePagePolicyEntry(value);
+        if (!sanitized) continue;
+
+        persisted.set(normalized, sanitized);
       }
     }
 
@@ -195,12 +211,33 @@ function getPagePolicyEntries() {
 
 loadElectronPagePolicy();
 
+function sanitizeMonitorPreferences(parsed = {}) {
+  const explicitChoice = Number(parsed?.primaryMonitorChoice);
+  let primaryMonitorChoice = null;
+  if (explicitChoice === 1 || explicitChoice === 2) {
+    primaryMonitorChoice = explicitChoice;
+  }
+
+  const swapPrimarySecondary = primaryMonitorChoice === null
+    ? Boolean(parsed && parsed.swapPrimarySecondary)
+    : primaryMonitorChoice === 2;
+
+  return {
+    swapPrimarySecondary,
+    primaryMonitorChoice,
+    selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed),
+    autoConfigureDisplay: parsed?.autoConfigureDisplay !== false,
+    dpiAutoScale: parsed?.dpiAutoScale !== false,
+    secondaryMonitorAutoScale: parsed?.secondaryMonitorAutoScale !== false
+  };
+}
+
 function readMonitorPreferences() {
   try {
     if (!fs.existsSync(MONITOR_PREFERENCES_FILE)) {
       return {
         swapPrimarySecondary: false,
-        primaryMonitorChoice: null,
+        primaryMonitorChoice: 1,
         selectionConfirmed: false,
         autoConfigureDisplay: true,
         dpiAutoScale: true,
@@ -211,7 +248,7 @@ function readMonitorPreferences() {
     if (!raw) {
       return {
         swapPrimarySecondary: false,
-        primaryMonitorChoice: null,
+        primaryMonitorChoice: 1,
         selectionConfirmed: false,
         autoConfigureDisplay: true,
         dpiAutoScale: true,
@@ -219,30 +256,12 @@ function readMonitorPreferences() {
       };
     }
     const parsed = JSON.parse(raw);
-
-    const explicitChoice = Number(parsed?.primaryMonitorChoice);
-    let primaryMonitorChoice = null;
-    if (explicitChoice === 1 || explicitChoice === 2) {
-      primaryMonitorChoice = explicitChoice;
-    }
-
-    const swapPrimarySecondary = primaryMonitorChoice === null
-      ? Boolean(parsed && parsed.swapPrimarySecondary)
-      : primaryMonitorChoice === 2;
-
-    return {
-      swapPrimarySecondary,
-      primaryMonitorChoice,
-      selectionConfirmed: Boolean(parsed && parsed.selectionConfirmed),
-      autoConfigureDisplay: parsed?.autoConfigureDisplay !== false,
-      dpiAutoScale: parsed?.dpiAutoScale !== false,
-      secondaryMonitorAutoScale: parsed?.secondaryMonitorAutoScale !== false
-    };
+    return sanitizeMonitorPreferences(parsed);
   } catch (error) {
     console.warn('Failed to read monitor preferences, using default:', error.message || error);
     return {
       swapPrimarySecondary: false,
-      primaryMonitorChoice: null,
+      primaryMonitorChoice: 1,
       selectionConfirmed: false,
       autoConfigureDisplay: true,
       dpiAutoScale: true,

@@ -1,7 +1,10 @@
 {
-  "primaryMonitorChoice": 2,
-  "swapPrimarySecondary": true,
-  "selectionConfirmed": true,
-  "updatedAt": "2026-09-19T00:34:14.436Z",
-  "source": "api-swap-monitors"
+  "primaryMonitorChoice": 1,
+  "swapPrimarySecondary": false,
+  "selectionConfirmed": false,
+  "autoConfigureDisplay": true,
+  "dpiAutoScale": true,
+  "secondaryMonitorAutoScale": true,
+  "updatedAt": "2026-09-19T00:00:00.000Z",
+  "source": "project-defaults"
 }

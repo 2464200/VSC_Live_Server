@@ -65,6 +65,10 @@ node_modules/
 # dotenv environment variables file
 .env
 
+# Electron local runtime overrides (keep project defaults tracked, local machine state out of Git)
+electron/monitor-preferences.json
+electron/page-policy.json
+
 # Firebase service-account credentials (local only)
 secrets/
 
