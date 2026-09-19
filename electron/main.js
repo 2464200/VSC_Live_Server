@@ -116,16 +116,50 @@ function sanitizePagePolicyEntry(value) {
   return { primary, secondary };
 }
 
+function discoverManagedPagePolicies() {
+  const discovered = new Map();
+  const roots = [
+    { directory: path.join(__dirname, '..'), prefix: '' },
+    { directory: path.join(__dirname, '..', 'public'), prefix: '' }
+  ];
+
+  const visit = (directory, prefix) => {
+    if (!fs.existsSync(directory) || !fs.statSync(directory).isDirectory()) return;
+
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'public') continue;
+
+      const absolutePath = path.join(directory, entry.name);
+      const relativePath = path.posix.join(prefix, entry.name).replace(/^\/+/, '');
+      if (entry.isDirectory()) {
+        visit(absolutePath, relativePath);
+        continue;
+      }
+
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.html')) continue;
+      const routePath = `/${relativePath.replace(/\\/g, '/').toLowerCase()}`;
+      discovered.set(routePath, { primary: true, secondary: false });
+    }
+  };
+
+  for (const root of roots) {
+    visit(root.directory, root.prefix);
+  }
+
+  return discovered;
+}
+
 function readElectronPagePolicy() {
   try {
-    if (!fs.existsSync(PAGE_POLICY_FILE)) {
-      return new Map(PAGE_POLICY);
+    const merged = new Map(discoverManagedPagePolicies());
+    for (const [pathKey, policy] of PAGE_POLICY.entries()) {
+      merged.set(pathKey, policy);
     }
 
+    if (!fs.existsSync(PAGE_POLICY_FILE)) return merged;
+
     const raw = fs.readFileSync(PAGE_POLICY_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
-    if (!raw) {
-      return new Map(PAGE_POLICY);
-    }
+    if (!raw) return merged;
 
     const parsed = JSON.parse(raw);
     const persisted = new Map();
@@ -142,7 +176,6 @@ function readElectronPagePolicy() {
       }
     }
 
-    const merged = new Map(PAGE_POLICY);
     for (const [pathKey, policy] of persisted.entries()) {
       merged.set(pathKey, policy);
     }
@@ -600,8 +633,7 @@ function getMonitorPolicyForUrl(candidateUrl) {
     return { primary: true, secondary: false };
   }
 
-  // Default prudente: pagine non canonicali o non gestite non vengono routeate come pagine USERFORM.
-  return { primary: false, secondary: false };
+  return { primary: true, secondary: false };
 }
 
 function broadcastMonitorPolicyRouteEvent(payload = {}) {

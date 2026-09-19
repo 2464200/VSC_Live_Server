@@ -781,8 +781,16 @@ class AdminPanel {
 
   renderMonitorPagesTable(pages, policyEntries = []) {
     const policyMap = new Map((Array.isArray(policyEntries) ? policyEntries : []).map((item) => [this.normalizeMonitorPagePath(item.path), { primary: Boolean(item.primary), secondary: Boolean(item.secondary) }]));
+    const knownPaths = new Set(pages.map((page) => this.normalizeMonitorPagePath(page.path)));
+    const allPages = [...pages];
+    for (const entry of policyEntries) {
+      const normalizedPath = this.normalizeMonitorPagePath(entry?.path);
+      if (!normalizedPath || knownPaths.has(normalizedPath)) continue;
+      allPages.push({ path: entry.path, label: entry.path, description: 'Pagina HTML gestita automaticamente da Electron' });
+      knownPaths.add(normalizedPath);
+    }
 
-    const rows = pages.map((page) => {
+    const rows = allPages.map((page) => {
       const normalizedPath = this.normalizeMonitorPagePath(page.path);
       const policy = policyMap.get(normalizedPath) || { primary: true, secondary: false };
       return `
