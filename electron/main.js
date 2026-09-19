@@ -501,8 +501,30 @@ function createWindow(url, options = {}) {
     }
   });
 
-  win.loadURL(url);
+  if (win && typeof win.loadURL === 'function') {
+    win.loadURL(url);
+  } else if (win && win.webContents && typeof win.webContents.loadURL === 'function') {
+    win.webContents.loadURL(url);
+  }
+
   return win;
+}
+
+async function loadUrlInWindow(targetWindow, url) {
+  if (!targetWindow || targetWindow.isDestroyed && targetWindow.isDestroyed()) {
+    return false;
+  }
+
+  const loader = targetWindow.webContents && typeof targetWindow.webContents.loadURL === 'function'
+    ? targetWindow.webContents
+    : targetWindow;
+
+  if (!loader || typeof loader.loadURL !== 'function') {
+    return false;
+  }
+
+  await loader.loadURL(url);
+  return true;
 }
 
 function toAbsoluteAppUrl(pagePath) {
@@ -621,7 +643,10 @@ async function loadInPrimaryWindow(url) {
 
   try {
     isProgrammaticPrimaryLoad = true;
-    await primaryWindow.loadURL(url || getPrimaryDefaultUrl());
+    const loaded = await loadUrlInWindow(primaryWindow, url || getPrimaryDefaultUrl());
+    if (!loaded) {
+      return false;
+    }
     primaryWindow.setFullScreen(true);
     primaryWindow.show();
     primaryWindow.focus();
@@ -651,7 +676,10 @@ async function loadInSecondaryWindow(url) {
       secondaryPageBeforeLedDisplay = currentUrl;
     }
     isProgrammaticSecondaryLoad = true;
-    await secondaryWindow.loadURL(targetUrl);
+    const loaded = await loadUrlInWindow(secondaryWindow, targetUrl);
+    if (!loaded) {
+      return false;
+    }
     secondaryWindow.setFullScreen(true);
     secondaryWindow.show();
     secondaryWindow.focus();
@@ -676,7 +704,10 @@ async function ensureSecondaryDisplayPage() {
 
   const currentUrl = secondaryWindow.webContents.getURL();
   if (!isDisplayPageUrl(currentUrl)) {
-    await secondaryWindow.loadURL(`http://localhost:5500${DISPLAY_PAGE_PATH}`);
+    const loaded = await loadUrlInWindow(secondaryWindow, `http://localhost:5500${DISPLAY_PAGE_PATH}`);
+    if (!loaded) {
+      return false;
+    }
   }
 
   secondaryWindow.setFullScreen(true);
@@ -1339,9 +1370,11 @@ app.whenReady().then(() => {
   startElectronControlServer();
   watchMonitorPreferences();
 
-  screen.on('display-added', handleDisplayChange);
-  screen.on('display-removed', handleDisplayChange);
-  screen.on('display-metrics-changed', handleDisplayChange);
+  if (screen && typeof screen.on === 'function') {
+    screen.on('display-added', handleDisplayChange);
+    screen.on('display-removed', handleDisplayChange);
+    screen.on('display-metrics-changed', handleDisplayChange);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

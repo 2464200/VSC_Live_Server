@@ -27,10 +27,32 @@ function loadElectronMainFor(tempDir) {
             once() {},
             whenReady() { return Promise.resolve(); },
             quit() {},
+            isQuitting: false,
           },
-          BrowserWindow: class {},
+          BrowserWindow: class {
+            constructor() {
+              this.webContents = {
+                on() {},
+                send() {},
+                getURL() { return ''; },
+                loadURL() { return Promise.resolve(); },
+                setZoomFactor() {},
+                setWindowOpenHandler() { return { action: 'allow' }; },
+              };
+            }
+            loadURL() { return Promise.resolve(); }
+            setMenuBarVisibility() {}
+            setVisibleOnAllWorkspaces() {}
+            setAlwaysOnTop() {}
+            setFullScreen() {}
+            setBounds() {}
+            show() {}
+            focus() {}
+            once() {}
+            isDestroyed() { return false; }
+          },
           ipcMain: { handle() {}, on() {}, once() {} },
-          screen: { getAllDisplays() { return []; } },
+          screen: { getAllDisplays() { return []; }, on() {} },
           dialog: { showMessageBox() { return { response: 0 }; } },
         };
       }
