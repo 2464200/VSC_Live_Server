@@ -2,7 +2,6 @@
   const input = document.getElementById("service-message-input");
   const publishTextBtn = document.getElementById("publish-text-btn");
   const stopTextBtn = document.getElementById("stop-text-btn");
-  const publishLogoBtn = document.getElementById("publish-logo-btn");
   const publishFileBtn = document.getElementById("publish-file-btn");
   const indexBtn = document.getElementById("index-btn");
   const closeBtn = document.getElementById("close-btn");
@@ -133,10 +132,6 @@
 
   if (stopTextBtn) {
     stopTextBtn.addEventListener("click", stopText);
-  }
-
-  if (publishLogoBtn) {
-    publishLogoBtn.addEventListener("click", () => openExternal("SERVIZIO-LOGO.html"));
   }
 
   if (publishFileBtn) {

@@ -68,7 +68,7 @@ class DisplayMonitor {
       this.setupControls();
       this.setupDateTimeClock();
       this.setupNextCoreoSync();
-      this.setupLogoSync();
+      this.clearPublishedLogoState();
       this.loadNextCoreo({ initialize: true });
       this.nextCoreoInterval = setInterval(() => {
         this.loadNextCoreo({ announce: true });
@@ -707,38 +707,18 @@ class DisplayMonitor {
     });
   }
 
-  setupLogoSync() {
-    const render = (rawPayload) => {
-      const overlay = document.getElementById('logo-overlay');
-      const image = document.getElementById('logo-overlay-image');
-      if (!overlay || !image) return;
+  clearPublishedLogoState() {
+    const overlay = document.getElementById('logo-overlay');
+    const image = document.getElementById('logo-overlay-image');
+    overlay?.setAttribute('hidden', '');
+    overlay?.setAttribute('aria-hidden', 'true');
+    image?.removeAttribute('src');
 
-      let payload = rawPayload;
-      if (typeof payload === 'string') {
-        try {
-          payload = JSON.parse(payload);
-        } catch (error) {
-          payload = null;
-        }
-      }
-
-      if (!payload?.dataUrl) {
-        overlay.hidden = true;
-        overlay.setAttribute('aria-hidden', 'true');
-        image.removeAttribute('src');
-        return;
-      }
-
-      image.src = payload.dataUrl;
-      image.alt = payload.name || 'Logo pubblicato';
-      overlay.hidden = false;
-      overlay.setAttribute('aria-hidden', 'false');
-    };
-
-    render(Storage.get('userform-servizio-logo:last', null));
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'userform-servizio-logo:last') render(event.newValue);
-    });
+    try {
+      localStorage.removeItem('userform-servizio-logo:last');
+    } catch (error) {
+      logger.warn('Impossibile rimuovere lo stato logo precedente', error?.message || error);
+    }
   }
 
   showNextCoreoAnnouncement(title, id) {

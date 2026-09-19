@@ -134,23 +134,7 @@
     const windowRoot = document.querySelector('.window');
 
     function loadPublishedLogo() {
-      if (mode !== 'logo' || !logo || !windowRoot) return false;
-
-      let payload = null;
-      try {
-        const raw = logoId
-          ? localStorage.getItem(`userform-servizio-logo:${logoId}`)
-          : localStorage.getItem('userform-servizio-logo:last');
-        payload = raw ? JSON.parse(raw) : null;
-      } catch (error) {
-        console.warn('Impossibile leggere il logo pubblicato.', error);
-      }
-
-      if (!payload?.dataUrl) return false;
-      logo.src = payload.dataUrl;
-      logo.alt = payload.name || 'Logo pubblicato';
-      windowRoot.classList.add('logo-mode');
-      return true;
+      return false;
     }
 
     function fitTextSize() {
