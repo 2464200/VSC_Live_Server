@@ -150,17 +150,21 @@ withTempRuntime(
     const validEntry = policyMap.get('/good-route');
     const displayEntry = policyMap.get('/bordero/pages/display.html');
     const videoPlayerEntry = policyMap.get('/bordero/pages/video-player.html');
+    const servicePublicationEntry = policyMap.get('/userform/pages/servizio-pubblica.html');
     const primaryBorderoEntry = policyMap.get('/bordero/pages/bordero.html');
     const adminEntry = policyMap.get('/bordero/pages/admin.html');
+    const mainSource = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.js'), 'utf8');
 
     assert(invalidEntry && invalidEntry.primary === true && invalidEntry.secondary === false, 'Invalid policy entry should be sanitized to a safe default.');
     assert(validEntry && validEntry.primary === true && validEntry.secondary === false, 'Valid policy entry should be preserved as-is.');
     assert(displayEntry && displayEntry.primary === false && displayEntry.secondary === true, 'Display page must remain on the secondary monitor.');
     assert(videoPlayerEntry && videoPlayerEntry.primary === false && videoPlayerEntry.secondary === true, 'Video-player page must remain on the secondary monitor.');
+    assert(servicePublicationEntry && servicePublicationEntry.primary === false && servicePublicationEntry.secondary === true, 'Servizio pubblica must remain on the secondary monitor.');
     assert(primaryBorderoEntry && primaryBorderoEntry.primary === true && primaryBorderoEntry.secondary === false, 'Main Bordero page must remain on the primary monitor.');
     assert(adminEntry && adminEntry.primary === true && adminEntry.secondary === false, 'Admin page must stay on the primary monitor.');
+    assert(mainSource.includes('bordero-window:stop-service-publication') && mainSource.includes('restoreSecondaryPageBeforeLedDisplay'), 'Service publication stop and restore hooks must be present in the Electron main process.');
 
     console.log('PASS: Electron runtime defaults and sanitization are resilient and project-safe.');
-    console.log('PASS: display/video route policy remains locked to the correct monitor assignment.');
+    console.log('PASS: display/video and service-publication route policy remains locked to the correct monitor assignment.');
   }
 );
