@@ -198,9 +198,6 @@ class NextCoreoDisplay {
     }
     document.getElementById('brano-video-status').textContent = hasVideo ? '🎬' : '--';
 
-    // Collaboratori
-    document.getElementById('brano-collaboratori').textContent = brano.collaboratori || 'Nessuno';
-
     logger.debug(`Brano visualizzato: ${brano.titolo}`);
   }
 
