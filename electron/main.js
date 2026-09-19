@@ -11,6 +11,7 @@ const PAGE_POLICY_FILE = path.join(__dirname, 'page-policy.json');
 
 let primaryWindow;
 let secondaryWindow;
+let temporarySecondaryWindow;
 let videoPlayerWindow;
 let serverProcess;
 let electronControlServer = null;
@@ -350,6 +351,10 @@ function applyWindowLayout() {
 
   if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
     applyLayout(videoPlayerWindow, secondaryLayout);
+  }
+
+  if (temporarySecondaryWindow && !temporarySecondaryWindow.isDestroyed()) {
+    applyLayout(temporarySecondaryWindow, secondaryLayout);
   }
 }
 
@@ -725,6 +730,52 @@ async function loadInSecondaryWindow(url) {
   }
 }
 
+function closeTemporarySecondaryWindow() {
+  if (temporarySecondaryWindow && !temporarySecondaryWindow.isDestroyed()) {
+    temporarySecondaryWindow.close();
+  }
+  temporarySecondaryWindow = null;
+}
+
+function isPersistentSecondaryPageUrl(candidateUrl) {
+  return isDisplayPageUrl(candidateUrl);
+}
+
+async function loadInTemporarySecondaryWindow(url) {
+  await ensureSecondaryDisplayPage();
+
+  if (!temporarySecondaryWindow || temporarySecondaryWindow.isDestroyed()) {
+    const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
+      swapPrimarySecondary: currentSwapMonitors
+    });
+    const layout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
+
+    temporarySecondaryWindow = createWindow(url, {
+      width: layout.width,
+      height: layout.height,
+      x: layout.x,
+      y: layout.y,
+      show: false,
+      fullscreen: true,
+      kiosk: true,
+      autoHideMenuBar: true,
+      alwaysOnTop: true
+    });
+    temporarySecondaryWindow.setMenuBarVisibility(false);
+    temporarySecondaryWindow.setFullScreen(true);
+    temporarySecondaryWindow.once('closed', () => {
+      temporarySecondaryWindow = null;
+    });
+  } else {
+    await loadUrlInWindow(temporarySecondaryWindow, url);
+  }
+
+  temporarySecondaryWindow.show();
+  temporarySecondaryWindow.focus();
+  applyWindowLayout();
+  return true;
+}
+
 async function ensureSecondaryDisplayPage() {
   if (!secondaryWindow || secondaryWindow.isDestroyed()) {
     await ensureWindows();
@@ -749,6 +800,12 @@ async function ensureSecondaryDisplayPage() {
 }
 
 async function restoreSecondaryPageBeforeLedDisplay() {
+  if (temporarySecondaryWindow && !temporarySecondaryWindow.isDestroyed()) {
+    closeTemporarySecondaryWindow();
+    secondaryPageBeforeLedDisplay = '';
+    return true;
+  }
+
   const restoreUrl = secondaryPageBeforeLedDisplay || `http://localhost:5500${DISPLAY_PAGE_PATH}`;
   secondaryPageBeforeLedDisplay = '';
   return loadInSecondaryWindow(restoreUrl);
@@ -769,11 +826,17 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   };
 
   if (policy.primary) {
+    closeTemporarySecondaryWindow();
     result.primaryUpdated = await loadInPrimaryWindow(absoluteTargetUrl);
   }
 
   if (policy.secondary) {
-    result.secondaryUpdated = await loadInSecondaryWindow(absoluteTargetUrl);
+    if (isPersistentSecondaryPageUrl(absoluteTargetUrl)) {
+      closeTemporarySecondaryWindow();
+      result.secondaryUpdated = await loadInSecondaryWindow(absoluteTargetUrl);
+    } else {
+      result.secondaryUpdated = await loadInTemporarySecondaryWindow(absoluteTargetUrl);
+    }
   } else {
     result.secondaryUpdated = await ensureSecondaryDisplayPage();
   }
@@ -817,7 +880,7 @@ function enforceSecondaryNavigationPolicy() {
     }
 
     const policy = getMonitorPolicyForUrl(url);
-    if (policy.secondary && !policy.primary) {
+    if (policy.secondary && !policy.primary && isPersistentSecondaryPageUrl(url)) {
       return;
     }
 
@@ -1151,17 +1214,17 @@ ipcMain.handle('bordero-window:open-secondary', async (_event, payload) => {
 });
 
 ipcMain.handle('bordero-window:stop-service-publication', async () => {
-  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+  if (!temporarySecondaryWindow || temporarySecondaryWindow.isDestroyed()) {
     return { success: false, reason: 'secondary-window-unavailable' };
   }
 
-  const currentUrl = secondaryWindow.webContents.getURL();
+  const currentUrl = temporarySecondaryWindow.webContents.getURL();
   if (!normalizePathname(currentUrl).endsWith('/userform/pages/servizio-pubblica.html')) {
     return { success: false, reason: 'service-publication-not-active' };
   }
 
-  const success = await loadInSecondaryWindow(`http://localhost:5500${DISPLAY_PAGE_PATH}`);
-  return { success };
+  closeTemporarySecondaryWindow();
+  return { success: true };
 });
 
 ipcMain.handle('bordero-window:restore-secondary', async () => {
@@ -1310,7 +1373,7 @@ ipcMain.handle('bordero-app:shutdown', async () => {
     electronControlServer = null;
   }
 
-  [primaryWindow, secondaryWindow, videoPlayerWindow].forEach((win) => {
+  [primaryWindow, secondaryWindow, temporarySecondaryWindow, videoPlayerWindow].forEach((win) => {
     if (win && !win.isDestroyed()) {
       win.destroy();
     }

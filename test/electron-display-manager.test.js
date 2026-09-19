@@ -43,11 +43,12 @@ function loadElectronMainFor(tempDir) {
           BrowserWindow: class {
             constructor(options = {}) {
               this.options = options;
+              let currentUrl = options.url || '';
               this.webContents = {
                 on() {},
                 send() {},
-                getURL() { return options.url || ''; },
-                loadURL() { return Promise.resolve(); },
+                getURL() { return currentUrl; },
+                loadURL(url) { currentUrl = url; return Promise.resolve(); },
                 setZoomFactor() {},
                 setWindowOpenHandler() { return { action: 'allow' }; },
               };
@@ -55,7 +56,7 @@ function loadElectronMainFor(tempDir) {
               this.isDestroyed = () => this.closed;
               createdWindows.push(this);
             }
-            loadURL() { return Promise.resolve(); }
+            loadURL(url) { return this.webContents.loadURL(url); }
             setMenuBarVisibility() {}
             setVisibleOnAllWorkspaces() {}
             setAlwaysOnTop() {}
@@ -64,6 +65,7 @@ function loadElectronMainFor(tempDir) {
             show() {}
             focus() {}
             once(_event, callback) { if (_event === 'closed') this.onClosed = callback; }
+            close() { this.closed = true; this.onClosed?.(); }
             destroy() { this.closed = true; }
           },
           ipcMain: { handle() {}, on() {}, once() {} },
@@ -217,6 +219,35 @@ test('ensureWindows recreates a missing secondary window when primary already ex
     assert.ok(hasPrimary, 'primaryWindow should remain available');
     assert.ok(hasSecondary, 'secondaryWindow should be recreated');
     assert.equal(createdWindows.length >= 2, true, 'ensureWindows should create both windows');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('secondary display remains loaded while a temporary secondary page is foregrounded', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-temporary-secondary');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    await vm.runInContext('ensureWindows();', sandbox);
+    const result = await vm.runInContext("loadInTemporarySecondaryWindow('http://localhost:5500/userform/pages/servizio-pubblica.html?text=debug');", sandbox);
+    const state = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow && temporarySecondaryWindow.webContents.getURL() })', sandbox);
+
+    assert.equal(result, true, `temporary secondary load failed: ${JSON.stringify(result)}`);
+    assert.match(state.secondary, /Bordero\/pages\/display\.html/i, `persistent secondary URL: ${state.secondary}`);
+    assert.match(state.temporary, /userform\/pages\/servizio-pubblica\.html/i, `temporary secondary URL: ${state.temporary}`);
+
+    vm.runInContext('closeTemporarySecondaryWindow();', sandbox);
+    assert.equal(vm.runInContext('Boolean(!temporarySecondaryWindow)', sandbox), true, 'temporary secondary page should close and reveal the persistent Display window');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
