@@ -4,17 +4,19 @@ Write-Host 'VERIFICA STRUTTURA PROGETTO' -ForegroundColor Cyan
 Write-Host '=====================================================' -ForegroundColor Cyan
 Write-Host ''
 
-Write-Host 'File critici:' -ForegroundColor Yellow
+Write-Host 'File critici (runtime corrente):' -ForegroundColor Yellow
 $files = @(
   'package.json',
-  'pdf-server.js',
+  'unified-server.js',
+  'electron\main.js',
+  'electron\preload.js',
   'script.js',
   'index.html',
-  'Prova\ScriptPDF1.html',
-  'Prova\test-scriptpdf1.html',
-  'test_scriptpdf1_monitor_fixed.ps1',
+  'Bordero\pages\bordero.html',
+  'Bordero\pages\admin.html',
   'public\display.csv',
-  'display.csv'
+  'display.csv',
+  'NextCoreo.csv'
 )
 
 $allOk = $true
@@ -33,8 +35,10 @@ Write-Host ''
 Write-Host 'Cartelle importanti:' -ForegroundColor Yellow
 $dirs = @(
   'node_modules',
-  'Prova',
+  'Bordero',
   'public',
+  'electron',
+  'Eventi',
   'logs'
 )
 
