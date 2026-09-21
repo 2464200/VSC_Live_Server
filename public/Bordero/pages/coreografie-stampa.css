@@ -48,8 +48,7 @@
 }
 
 .field-label select,
-.level-filter-box,
-.level-filter-option {
+.level-filter-box {
   font-family: inherit;
   font-size: 1em;
   font-weight: 600;
@@ -85,6 +84,7 @@
   min-width: 0;
   color: #f0f0f0;
   cursor: pointer;
+  font-size: 0.9em;
 }
 
 .level-filter-option input {

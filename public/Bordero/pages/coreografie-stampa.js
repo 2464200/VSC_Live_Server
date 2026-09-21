@@ -128,17 +128,12 @@ class CoreografieStampaPage {
     allInput.addEventListener('change', () => {
       if (allInput.checked) {
         levelInputs.forEach((input) => { input.checked = true; });
-      } else if (!levelInputs.some((input) => input.checked)) {
-        allInput.checked = true;
-        levelInputs.forEach((input) => { input.checked = true; });
+      } else {
+        levelInputs.forEach((input) => { input.checked = false; });
       }
     });
     levelInputs.forEach((input) => input.addEventListener('change', () => {
-      if (input.checked) allInput.checked = false;
-      else if (!levelInputs.some((levelInput) => levelInput.checked)) {
-        allInput.checked = true;
-        levelInputs.forEach((levelInput) => { levelInput.checked = true; });
-      }
+      allInput.checked = false;
     }));
   }
 
@@ -378,7 +373,11 @@ class CoreografieStampaPage {
       this.showPreview();
     });
     document.getElementById('btn-print').addEventListener('click', () => window.print());
+    document.getElementById('btn-print-top').addEventListener('click', () => window.print());
     document.getElementById('btn-edit-settings').addEventListener('click', () => {
+      this.showSettings();
+    });
+    document.getElementById('btn-edit-settings-top').addEventListener('click', () => {
       this.showSettings();
     });
     document.getElementById('btn-close-preview').addEventListener('click', () => {
