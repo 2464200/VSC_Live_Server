@@ -796,9 +796,22 @@ class LocationPage {
     printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+
+    const printWhenReady = () => {
+      printWindow.focus();
+      printWindow.onafterprint = () => printWindow.close();
+      printWindow.print();
+      // Some browsers do not fire afterprint for script-created windows.
+      setTimeout(() => {
+        if (!printWindow.closed) printWindow.close();
+      }, 1000);
+    };
+
+    if (printWindow.document.readyState === 'complete') {
+      printWindow.requestAnimationFrame(() => printWindow.requestAnimationFrame(printWhenReady));
+    } else {
+      printWindow.addEventListener('load', printWhenReady, { once: true });
+    }
   }
 
   escapeHtml(value) {

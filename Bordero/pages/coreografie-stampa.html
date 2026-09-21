@@ -63,6 +63,10 @@
                 <option value="ALL">Tutte le lettere e numeri/caratteri</option>
               </select>
             </label>
+            <div class="level-filter-field">
+              <span class="field-label">Livelli da stampare</span>
+              <div id="level-filter-box" class="level-filter-box" aria-label="Seleziona i livelli da stampare"></div>
+            </div>
           </fieldset>
 
           <fieldset class="mode-fieldset">
@@ -73,6 +77,7 @@
               <label><input id="duplex-print" type="checkbox" /> Stampa fronte/retro</label>
               <span class="field-help print-help">Il fronte/retro va confermato nella finestra della stampante.</span>
               <label><input id="number-pages" type="checkbox" /> Numera le pagine</label>
+              <label><input id="include-level" type="checkbox" /> Stampa livello coreografie</label>
             </div>
           </fieldset>
 
@@ -86,10 +91,14 @@
     </main>
   </div>
 
+  <div id="preview-toolbar-top" class="preview-toolbar preview-toolbar-top" hidden>
+    <button id="btn-close-preview-top" class="preview-close" type="button" aria-label="Chiudi anteprima" title="Chiudi anteprima">&times;</button>
+  </div>
   <main id="print-document" class="print-document" aria-live="polite"></main>
   <div id="preview-toolbar" class="preview-toolbar" hidden>
     <button id="btn-print" class="btn btn-primary" type="button">STAMPA FOGLI A4</button>
     <button id="btn-edit-settings" class="btn btn-secondary" type="button">ESCI ANTEPRIMA</button>
+    <button id="btn-close-preview" class="preview-close" type="button" aria-label="Chiudi anteprima" title="Chiudi anteprima">&times;</button>
   </div>
   <script src="/nav.js"></script>
 </body>

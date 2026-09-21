@@ -37,6 +37,7 @@ class CoreografieStampaPage {
       }
       this.populateSettings();
       this.renderLetterOptions();
+      this.renderLevelOptions();
       this.renderColumnSettings();
       this.setupListeners();
     } catch (error) {
@@ -73,6 +74,7 @@ class CoreografieStampaPage {
     document.getElementById('include-coreografie-count').checked = saved?.includeCoreografieCount ?? true;
     document.getElementById('duplex-print').checked = saved?.duplex ?? false;
     document.getElementById('number-pages').checked = saved?.numberPages ?? false;
+    document.getElementById('include-level').checked = saved?.includeLevel ?? false;
   }
 
   renderColumnSettings() {
@@ -98,6 +100,56 @@ class CoreografieStampaPage {
     }
   }
 
+  renderLevelOptions() {
+    const levelFilterBox = document.getElementById('level-filter-box');
+    const levels = [...new Set(this.brani
+      .map((brano) => String(brano?.info_livello || '').trim())
+      .filter(Boolean))]
+      .sort((first, second) => first.localeCompare(second, 'it', { sensitivity: 'base' }));
+    const selectedLevels = this.getPersistedLevelFilters();
+    const allLevelsSelected = selectedLevels.length === 0;
+    const options = levels
+      .map((level, index) => `<label class="level-filter-option" for="level-filter-${index}">
+        <input id="level-filter-${index}" type="checkbox" name="levelFilters" value="${this.escape(level)}" ${allLevelsSelected || selectedLevels.some((selected) => selected.toLocaleLowerCase('it-IT') === level.toLocaleLowerCase('it-IT')) ? 'checked' : ''} />
+        <span>${this.escape(level)}</span>
+      </label>`)
+      .join('');
+
+    levelFilterBox.innerHTML = `
+      <label class="level-filter-option level-filter-all" for="level-filter-all">
+        <input id="level-filter-all" type="checkbox" value="ALL" ${allLevelsSelected ? 'checked' : ''} />
+        <span>Tutti i livelli</span>
+      </label>
+      <div class="level-filter-options">${options}</div>
+    `;
+
+    const allInput = document.getElementById('level-filter-all');
+    const levelInputs = [...levelFilterBox.querySelectorAll('input[name="levelFilters"]')];
+    allInput.addEventListener('change', () => {
+      if (allInput.checked) {
+        levelInputs.forEach((input) => { input.checked = true; });
+      } else if (!levelInputs.some((input) => input.checked)) {
+        allInput.checked = true;
+        levelInputs.forEach((input) => { input.checked = true; });
+      }
+    });
+    levelInputs.forEach((input) => input.addEventListener('change', () => {
+      if (input.checked) allInput.checked = false;
+      else if (!levelInputs.some((levelInput) => levelInput.checked)) {
+        allInput.checked = true;
+        levelInputs.forEach((levelInput) => { levelInput.checked = true; });
+      }
+    }));
+  }
+
+  getPersistedLevelFilters() {
+    if (Array.isArray(this.persistedSettings?.levelFilters)) {
+      return this.persistedSettings.levelFilters;
+    }
+    const legacyLevel = String(this.persistedSettings?.levelFilter || '').trim();
+    return legacyLevel && legacyLevel !== 'ALL' ? [legacyLevel] : [];
+  }
+
   readSettings() {
     const form = document.getElementById('print-settings-form');
     const formData = new FormData(form);
@@ -112,10 +164,16 @@ class CoreografieStampaPage {
       date: String(formData.get('date') || ''),
       columnLabels: Array.from({ length: count }, (_, index) => String(formData.get(`column-${index}`) || '').trim()),
       letterFilter: String(formData.get('letterFilter') || 'ALL'),
+      levelFilters: document.getElementById('level-filter-all').checked
+        ? []
+        : [...document.querySelectorAll('input[name="levelFilters"]:checked')]
+          .map((input) => input.value.trim())
+          .filter(Boolean),
       includeCover: document.getElementById('include-cover').checked,
       includeCoreografieCount: document.getElementById('include-coreografie-count').checked,
       duplex: document.getElementById('duplex-print').checked,
       numberPages: document.getElementById('number-pages').checked,
+      includeLevel: document.getElementById('include-level').checked,
     };
     return this.settings;
   }
@@ -150,7 +208,7 @@ class CoreografieStampaPage {
   render() {
     const documentNode = document.getElementById('print-document');
     const settings = this.settings;
-    const groups = this.groupByInitial(this.brani);
+    const groups = this.groupByInitial(this.filterBraniByLevel(this.brani, settings.levelFilters));
     const selectedGroups = Object.entries(groups)
       .filter(([initial]) => settings.letterFilter === 'ALL' || initial === settings.letterFilter);
     const groupCount = Object.values(groups).filter((entries) => entries.length).length;
@@ -164,10 +222,16 @@ class CoreografieStampaPage {
         <div class="cover-event">
           <div class="cover-event-label">Elenco Alfabetico Coreografie dell'Evento</div>
           <h1 class="cover-event-name">${eventName}</h1>
-          <div class="cover-event-date">${eventDate}</div>
+          <div class="cover-event-date"><span>${eventDate}</span><span class="cover-event-time">dalle ore&nbsp;&nbsp; ___ : ___ &nbsp;&nbsp;alle ore&nbsp;&nbsp; ___ : ___</span></div>
           <div class="cover-event-detail">DJ: ${this.escape(settings.djs || 'Nessun DJ selezionato')}</div>
           ${settings.place ? `<div class="cover-event-detail">${this.escape(settings.place)}</div>` : ''}
           ${settings.includeCoreografieCount ? `<div class="cover-event-detail">Coreografie negli elenchi: ${selectedCount}</div>` : ''}
+            <div class="cover-siae" aria-label="Dati invio SIAE da compilare">
+              <div class="cover-siae-title">Invio SIAE</div>
+              <div class="cover-siae-row"><span class="cover-checkbox" aria-hidden="true"></span><span>Documento gia' spedito alla SIAE</span></div>
+              <div class="cover-siae-row"><span>Data di invio:</span><span class="cover-fill-line" aria-hidden="true"></span></div>
+              <div class="cover-siae-signature"><span>Firma autografa del DJ</span><span class="cover-signature-box" aria-hidden="true"></span></div>
+            </div>
         </div>
         ${this.pageNumberMarkup(1)}
       </section>
@@ -176,14 +240,22 @@ class CoreografieStampaPage {
     documentNode.style.setProperty('--event-column-count', String(this.settings.columnLabels.length));
     documentNode.classList.toggle('numbered-pages', this.settings.numberPages);
     documentNode.classList.toggle('duplex-print', this.settings.duplex);
+    documentNode.classList.toggle('level-enabled', this.settings.includeLevel);
     documentNode.innerHTML = `
       ${cover}
       ${selectedGroups.filter(([, entries]) => entries.length).map(([initial, entries]) => this.renderGroup(initial, entries)).join('')}
     `;
+    this.fitLevelText();
 
     const duplexMessage = this.settings.duplex ? ' · fronte/retro selezionato nel documento' : '';
     const selectedLabel = settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`;
     document.getElementById('print-status').textContent = `${selectedCount} coreografie in ${selectedLabel}${duplexMessage}`;
+  }
+
+  filterBraniByLevel(brani, levelFilters) {
+    if (!Array.isArray(levelFilters) || levelFilters.length === 0) return brani;
+    const selectedLevels = new Set(levelFilters.map((level) => String(level).trim().toLocaleLowerCase('it-IT')));
+    return brani.filter((brano) => selectedLevels.has(String(brano?.info_livello || '').trim().toLocaleLowerCase('it-IT')));
   }
 
   groupByInitial(brani) {
@@ -228,7 +300,7 @@ class CoreografieStampaPage {
         <section class="letter-section${pageNumber > 1 ? ' continuation-page' : ''}">
           <div class="letter-heading"><h2>${this.escape(initial)} ${pageLabel}</h2><span>${pageEntries.length} di ${entries.length} coreografie</span></div>
           <div class="coreography-column-headings">
-            <span></span><span>Coreografia</span><div class="event-columns">${columnHeadings}</div>
+            <span></span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}<div class="event-columns">${columnHeadings}</div>
           </div>
           <div class="coreography-list">
             ${pageEntries.map((brano) => this.renderEntry(brano)).join('')}
@@ -253,6 +325,7 @@ class CoreografieStampaPage {
         <div class="coreography-main">
           <h3 class="coreography-title">${this.escape(this.titleOf(brano))}</h3>
         </div>
+        ${this.settings.includeLevel ? `<div class="coreography-level">${this.escape(brano.info_livello || '')}</div>` : ''}
         <div class="event-columns">${columns}</div>
       </article>
     `;
@@ -264,6 +337,7 @@ class CoreografieStampaPage {
       <article class="coreography-entry empty-entry" aria-hidden="true">
         <div class="coreography-id"></div>
         <div class="coreography-main"></div>
+        ${this.settings.includeLevel ? '<div class="coreography-level"></div>' : ''}
         <div class="event-columns">${columns}</div>
       </article>
     `;
@@ -307,6 +381,12 @@ class CoreografieStampaPage {
     document.getElementById('btn-edit-settings').addEventListener('click', () => {
       this.showSettings();
     });
+    document.getElementById('btn-close-preview').addEventListener('click', () => {
+      this.showSettings();
+    });
+    document.getElementById('btn-close-preview-top').addEventListener('click', () => {
+      this.showSettings();
+    });
     window.addEventListener('afterprint', () => this.showPreview());
     document.getElementById('btn-back').addEventListener('click', () => { window.location.href = 'bordero.html'; });
   }
@@ -322,13 +402,28 @@ class CoreografieStampaPage {
 
   showPreview() {
     document.querySelector('.settings-layout').hidden = true;
+    document.getElementById('preview-toolbar-top').hidden = false;
     document.getElementById('preview-toolbar').hidden = false;
   }
 
   showSettings() {
     document.querySelector('.settings-layout').hidden = false;
+    document.getElementById('preview-toolbar-top').hidden = true;
     document.getElementById('preview-toolbar').hidden = true;
     document.querySelector('.settings-layout').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  fitLevelText() {
+    if (!this.settings.includeLevel) return;
+
+    document.querySelectorAll('.coreography-level').forEach((cell) => {
+      let fontSize = 7;
+      cell.style.fontSize = `${fontSize}pt`;
+      while (cell.scrollWidth > cell.clientWidth && fontSize > 3) {
+        fontSize -= 0.25;
+        cell.style.fontSize = `${fontSize}pt`;
+      }
+    });
   }
 }
 
