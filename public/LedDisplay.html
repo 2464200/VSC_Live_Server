@@ -30,12 +30,32 @@
                 <label class="range-row">Pausa tra messaggi <input id="hold" type="range" min="0" max="8" value="2"><output id="hold-output">2 s</output></label>
                 <label class="toggle-row"><input id="blink" type="checkbox"><span>Lampeggio all'avvio del messaggio</span></label>
             </section>
+            <div class="preset-trigger">
+                <button id="open-presets" class="screen-button" type="button">Scritte predefinite</button>
+            </div>
             <section class="panel preview-panel">
                 <div class="panel-heading"><h2>Anteprima</h2><span id="status" class="status-dot">Salvato</span></div>
                 <iframe title="Anteprima LedDisplay" src="led-display/"></iframe>
             </section>
         </section>
     </main>
+    <div id="preset-modal" class="modal-overlay" hidden>
+        <div class="modal-box">
+            <div class="modal-heading">
+                <h2>Archivio scritte predefinite</h2>
+                <button id="close-presets" class="icon-button" type="button" title="Chiudi">Chiudi</button>
+            </div>
+            <div class="preset-grid">
+                <textarea class="preset-slot" data-slot="0" rows="6" spellcheck="false" placeholder="Scritta predefinita 1"></textarea>
+                <textarea class="preset-slot" data-slot="1" rows="6" spellcheck="false" placeholder="Scritta predefinita 2"></textarea>
+                <textarea class="preset-slot" data-slot="2" rows="6" spellcheck="false" placeholder="Scritta predefinita 3"></textarea>
+                <textarea class="preset-slot" data-slot="3" rows="6" spellcheck="false" placeholder="Scritta predefinita 4"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="confirm-preset" class="screen-button" type="button" disabled>Conferma</button>
+            </div>
+        </div>
+    </div>
     <script src="led-display/control.js"></script>
 
     <script src="/nav.js"></script></body>
