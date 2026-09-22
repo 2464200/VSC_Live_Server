@@ -65,6 +65,7 @@ const MUSIC_ARCHIVE_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music
 const MUSIC_ARCHIVE_LOCAL_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-local-config.json');
 const VIDEOCLIP_LOCAL_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'video-clip-local-config.json');
 const MUSIC_ARCHIVE_INDEX_CSV_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-index.csv');
+const LED_DISPLAY_PRESETS_FILE = path.join(__dirname, 'Bordero', 'data', 'led-display-presets.json');
 const MUSIC_ARCHIVE_BASE_DIR = __dirname;
 const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([
     '.mp3', '.wav', '.flac', '.m4a', '.m4p', '.mp4', '.m4v', '.mov', '.avi', '.mkv', '.wmv',
@@ -95,6 +96,25 @@ function writeVideoClipConfig(rootPath) {
     fs.mkdirSync(path.dirname(VIDEOCLIP_LOCAL_CONFIG_FILE), { recursive: true });
     fs.writeFileSync(VIDEOCLIP_LOCAL_CONFIG_FILE, JSON.stringify(payload, null, 2), 'utf8');
     return payload;
+}
+
+function readLedDisplayPresets() {
+    try {
+        if (!fs.existsSync(LED_DISPLAY_PRESETS_FILE)) return [];
+        const raw = fs.readFileSync(LED_DISPLAY_PRESETS_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.slice(0, 6).map((value) => String(value || '')) : [];
+    } catch (error) {
+        console.warn('Lettura archivio scritte LED fallita:', error?.message || error);
+        return [];
+    }
+}
+
+function writeLedDisplayPresets(presets) {
+    const normalized = Array.isArray(presets) ? presets.slice(0, 6).map((value) => String(value || '')) : [];
+    fs.mkdirSync(path.dirname(LED_DISPLAY_PRESETS_FILE), { recursive: true });
+    fs.writeFileSync(LED_DISPLAY_PRESETS_FILE, JSON.stringify(normalized, null, 2), 'utf8');
+    return normalized;
 }
 
 function getVideoClipDir() {
@@ -3044,6 +3064,23 @@ app.post('/api/music-archive/config', (req, res) => {
         }
         refreshMusicArchiveIndex(true);
         return res.json({ ok: true, rootPath: saved.rootPath, scope: localRootPath ? 'local' : 'project', updatedAt: saved.updatedAt });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.get('/api/led-display/presets', (req, res) => {
+    try {
+        return res.json({ ok: true, presets: readLedDisplayPresets() });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/led-display/presets', (req, res) => {
+    try {
+        const presets = writeLedDisplayPresets(req.body?.presets);
+        return res.json({ ok: true, presets });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
