@@ -235,7 +235,7 @@ class CoreografieStampaPage {
           ${settings.includeCoreografieCount ? `<div class="cover-event-detail">Coreografie negli elenchi: ${selectedCount}</div>` : ''}
             <div class="cover-siae" aria-label="Dati invio SIAE da compilare">
               <div class="cover-siae-title">Invio SIAE</div>
-              <div class="cover-siae-row"><span class="cover-checkbox" aria-hidden="true"></span><span>Documento gia' spedito alla SIAE</span></div>
+              <div class="cover-siae-row"><span class="cover-checkbox" aria-hidden="true"></span><span>Documento trasmesso a SIAE (caricato file telematico sul portale)</span></div>
               <div class="cover-siae-row"><span>Data di invio:</span><span class="cover-fill-line" aria-hidden="true"></span></div>
               <div class="cover-siae-signature"><span>Firma autografa del DJ</span><span class="cover-signature-box" aria-hidden="true"></span></div>
             </div>
