@@ -27,7 +27,9 @@ class CoreografieStampaPage {
       const currentSerata = dataLoader.getCurrentSerata();
       if (currentSerata) {
         this.serata = currentSerata.metadata || {};
-        this.brani = currentSerata.brani || this.brani;
+        if (Array.isArray(currentSerata.brani) && currentSerata.brani.length > 0) {
+          this.brani = dataLoader.normalizeBraniList(currentSerata.brani);
+        }
       }
       if (!this.serata.evento || !this.serata.luogo) {
         const locations = await dataLoader.loadLocations();
@@ -327,8 +329,8 @@ class CoreografieStampaPage {
           <h3 class="coreography-title">${this.escape(this.titleOf(brano))}</h3>
         </div>
         ${this.settings.includeLevel ? `<div class="coreography-level">${this.escape(brano.info_livello || '')}</div>` : ''}
-        ${this.settings.includeInfoCoreo1 ? `<div class="coreography-info-coreo">${this.escape(brano.info_coreo_1 || '')}</div>` : ''}
-        ${this.settings.includeInfoCoreo2 ? `<div class="coreography-info-coreo">${this.escape(brano.info_coreo_2 || '')}</div>` : ''}
+        ${this.settings.includeInfoCoreo1 ? `<div class="coreography-info-coreo">${this.escape(this.infoCoreoValue(brano, 1))}</div>` : ''}
+        ${this.settings.includeInfoCoreo2 ? `<div class="coreography-info-coreo">${this.escape(this.infoCoreoValue(brano, 2))}</div>` : ''}
         <div class="event-columns">${columns}</div>
       </article>
     `;
@@ -355,6 +357,13 @@ class CoreografieStampaPage {
 
   titleOf(brano) {
     return brano.titolo || brano.coreografia || brano.brano || 'Senza titolo';
+  }
+
+  infoCoreoValue(brano, index) {
+    const values = index === 1
+      ? [brano.info_coreo_1, brano.infoCoreo1, brano['info coreo 1'], brano['Info Coreo 1'], brano.info_coreo, brano['info coreo']]
+      : [brano.info_coreo_2, brano.infoCoreo2, brano['info coreo 2'], brano['Info Coreo 2']];
+    return values.find((value) => value !== null && value !== undefined && String(value).trim()) || '';
   }
 
   formatDate(value) {

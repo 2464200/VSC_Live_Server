@@ -56,6 +56,78 @@ const Storage = {
   },
 };
 
+const FormPersistence = {
+  storagePrefix: 'bordero_form_state:',
+
+  getStorageKey() {
+    const page = window.location.pathname.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '') || 'page';
+    return `${this.storagePrefix}${page}`;
+  },
+
+  getControls() {
+    return [...document.querySelectorAll('input, select, textarea')]
+      .filter((control) => !['file', 'password', 'button', 'submit', 'reset'].includes(control.type))
+      .filter((control) => control.id || control.name);
+  },
+
+  getControlKey(control, index) {
+    return control.id || control.name || `control-${index}`;
+  },
+
+  readState() {
+    const state = {};
+    this.getControls().forEach((control, index) => {
+      const key = this.getControlKey(control, index);
+      if (control.type === 'checkbox' || control.type === 'radio') {
+        if (!state[key]) state[key] = {};
+        state[key][control.value || 'default'] = control.checked;
+      } else {
+        state[key] = control.value;
+      }
+    });
+    return state;
+  },
+
+  save() {
+    Storage.set(this.getStorageKey(), this.readState());
+  },
+
+  restore() {
+    const state = Storage.get(this.getStorageKey(), null);
+    if (!state || typeof state !== 'object') return;
+    this.getControls().forEach((control, index) => {
+      const key = this.getControlKey(control, index);
+      if (!(key in state)) return;
+      if (control.type === 'checkbox' || control.type === 'radio') {
+        const values = state[key];
+        const valueKey = control.value || 'default';
+        if (values && valueKey in values) control.checked = Boolean(values[valueKey]);
+      } else if (document.activeElement !== control) {
+        control.value = state[key];
+      }
+    });
+  },
+
+  bind() {
+    const restore = () => this.restore();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', restore, { once: true });
+    } else {
+      restore();
+    }
+    document.addEventListener('input', (event) => {
+      if (event.target.matches('input, select, textarea')) this.save();
+    });
+    document.addEventListener('change', (event) => {
+      if (event.target.matches('input, select, textarea')) this.save();
+    });
+  },
+};
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  FormPersistence.bind();
+}
+
 /**
  * CSV Parser
  */
