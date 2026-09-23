@@ -309,7 +309,7 @@ class CoreografieStampaPage {
         <section class="letter-section${pageNumber > 1 ? ' continuation-page' : ''}">
           <div class="letter-heading"><h2>${this.escape(initial)} ${pageLabel}</h2><span>${pageEntries.length} di ${entries.length} coreografie</span></div>
           <div class="coreography-column-headings">
-            <span></span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
+            <span>ID</span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
           </div>
           <div class="coreography-list">
             ${pageEntries.map((brano) => this.renderEntry(brano)).join('')}

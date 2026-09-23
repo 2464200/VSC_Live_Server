@@ -471,6 +471,7 @@
   grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm 30mm minmax(45mm, 1.35fr);
 }
 
+.coreography-column-headings > span:nth-child(1),
 .coreography-column-headings > span:nth-child(2) {
   padding: 1mm 3mm;
   border-left: 1px solid #bfc5ca;
