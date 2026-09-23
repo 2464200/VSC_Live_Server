@@ -24,6 +24,8 @@ class DisplayMonitor {
     this.scrollSettingsStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_SETTINGS_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_SETTINGS';
     this.clockInterval = null;
     this.nextCoreoInterval = null;
+    this.lastNextCoreoAnnouncementId = null;
+    this.nextCoreoAnnouncementTimer = null;
     this.scrollAnimationFrame = null;
     this.scrollWatchdogInterval = null;
     this.scrollLastObservedTop = 0;
@@ -66,9 +68,10 @@ class DisplayMonitor {
       this.setupControls();
       this.setupDateTimeClock();
       this.setupNextCoreoSync();
-      this.loadNextCoreo();
+      this.clearPublishedLogoState();
+      this.loadNextCoreo({ initialize: true });
       this.nextCoreoInterval = setInterval(() => {
-        this.loadNextCoreo();
+        this.loadNextCoreo({ announce: true });
         this.reloadDisplayCsvIfNoSerata();
       }, 3000);
 
@@ -686,11 +689,11 @@ class DisplayMonitor {
   setupNextCoreoSync() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
-      this.loadNextCoreo();
+      this.loadNextCoreo({ announce: true });
     });
 
     window.addEventListener('bordero:next-coreo-updated', () => {
-      this.loadNextCoreo();
+      this.loadNextCoreo({ announce: true });
     });
 
     this.nextCoreoBroadcastChannel?.addEventListener('message', (event) => {
@@ -700,11 +703,45 @@ class DisplayMonitor {
       } else if (event.data.type === 'clear') {
         Storage.remove(this.nextCoreoSelectionStorageKey);
       }
-      this.loadNextCoreo();
+      this.loadNextCoreo({ announce: true });
     });
   }
 
-  async loadNextCoreo() {
+  clearPublishedLogoState() {
+    const overlay = document.getElementById('logo-overlay');
+    const image = document.getElementById('logo-overlay-image');
+    overlay?.setAttribute('hidden', '');
+    overlay?.setAttribute('aria-hidden', 'true');
+    image?.removeAttribute('src');
+
+    try {
+      localStorage.removeItem('userform-servizio-logo:last');
+    } catch (error) {
+      logger.warn('Impossibile rimuovere lo stato logo precedente', error?.message || error);
+    }
+  }
+
+  showNextCoreoAnnouncement(title, id) {
+    const announcementId = String(id || title || '').trim();
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (!announcementId || !overlay || !announcementTitle || announcementId === this.lastNextCoreoAnnouncementId) return;
+
+    this.lastNextCoreoAnnouncementId = announcementId;
+    announcementTitle.textContent = title;
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('is-active');
+    void overlay.offsetWidth;
+    overlay.classList.add('is-active');
+
+    if (this.nextCoreoAnnouncementTimer) clearTimeout(this.nextCoreoAnnouncementTimer);
+    this.nextCoreoAnnouncementTimer = setTimeout(() => {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }, 15000);
+  }
+
+  async loadNextCoreo({ announce = false, initialize = false } = {}) {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
@@ -713,6 +750,9 @@ class DisplayMonitor {
       const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
       if (title) {
         target.textContent = title;
+        const selectionId = storedSelection.timestamp || title;
+        if (initialize) this.lastNextCoreoAnnouncementId = String(selectionId);
+        if (announce) this.showNextCoreoAnnouncement(title, selectionId);
         return;
       }
     }
@@ -736,6 +776,8 @@ class DisplayMonitor {
         const cols = firstRow.split(',').map((cell) => String(cell || '').replace(/(^"|"$)/g, '').trim());
         const nextValue = cols[1] || cols[0] || '--';
         target.textContent = nextValue || '--';
+        if (initialize) this.lastNextCoreoAnnouncementId = String(nextValue || '');
+        if (announce) this.showNextCoreoAnnouncement(nextValue, nextValue);
         return;
       } catch (error) {
         logger.debug('loadNextCoreo failed for candidate', { baseUrl, message: error?.message || error });

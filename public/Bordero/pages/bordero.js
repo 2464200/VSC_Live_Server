@@ -248,14 +248,18 @@ class BorderoTableManager {
   }
 
   resetSerataMetaFields() {
+    const persistentMeta = {
+      dj: this.serata.dj || '',
+      luogo: this.serata.luogo || this.getLocationDisplayValue(),
+      evento: this.serata.evento || '',
+      regione: this.serata.regione || '',
+      citta: this.serata.citta || '',
+      paese: this.serata.paese || '',
+    };
+
     this.serata = {
-      dj: '',
+      ...persistentMeta,
       data: new Date().toISOString().split('T')[0],
-      luogo: 'Bergamo',
-      evento: '',
-      regione: 'Lombardia',
-      citta: 'Bergamo',
-      paese: '',
     };
 
     const dataInput = document.getElementById('data-serata');
@@ -265,38 +269,20 @@ class BorderoTableManager {
 
     const eventoInput = document.getElementById('evento-text');
     if (eventoInput) {
-      eventoInput.value = '';
+      eventoInput.value = this.serata.evento;
     }
 
     const djSelect = document.getElementById('dj-select');
     if (djSelect) {
-      djSelect.value = '';
+      djSelect.value = this.serata.dj;
     }
 
     const locationButton = document.getElementById('luogo-picker-button');
     if (locationButton) {
-      locationButton.textContent = 'Bergamo';
+      locationButton.textContent = this.serata.luogo;
     }
 
-    const regionSelect = document.getElementById('luogo-regione-select');
-    if (regionSelect) {
-      regionSelect.value = '';
-      regionSelect.disabled = false;
-    }
-
-    const citySelect = document.getElementById('luogo-citta-select');
-    if (citySelect) {
-      citySelect.innerHTML = '<option value="">-- Seleziona Città --</option>';
-      citySelect.disabled = true;
-    }
-
-    const countrySelect = document.getElementById('luogo-paese-select');
-    if (countrySelect) {
-      countrySelect.innerHTML = '<option value="">-- Seleziona Paese --</option>';
-      countrySelect.disabled = true;
-    }
-
-    this.clearPersistedSerataMeta();
+    this.persistSerataMeta();
   }
 
   /**
@@ -3453,27 +3439,21 @@ class BorderoTableManager {
 
       // RESET: riporta tutti i brani eseguiti al loro stato disponibile
       try {
-        this.allBrani = this.allBrani.map(b => {
-          if (String(b.flag || '').toUpperCase() === 'X' || b.eseguito === true || b.eseguito === 'X' || b.eseguito === 'x' || b.executed === true || b.executed === 'X' || b.executed === 'x') {
-            return {
-              ...b,
-              flag: '',
-              eseguito: false,
-              executed: false,
-              timestamp: '',
-            };
-          }
-          return b;
-        });
+        this.allBrani = this.allBrani.map(b => ({
+          ...b,
+          flag: '',
+          eseguito: false,
+          executed: false,
+          timestamp: '',
+        }));
 
         // Ripristina ordine originale (brani disponibili prima, eseguiti dopo)
         if (typeof this.reorderBraniByOriginalIndex === 'function') {
           this.reorderBraniByOriginalIndex();
         }
 
-        // Persisti nuovo stato: svuota la serata corrente (metadata verrà resettata sotto)
-        const emptyMeta = { dj: '', data: '', luogo: '', evento: '' };
-        dataLoader.saveCurrentSerata(emptyMeta, this.allBrani);
+        // Persisti i brani puliti; i metadati persistenti vengono salvati nel reset seguente.
+        dataLoader.saveCurrentSerata(this.serata, this.allBrani);
         Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
 
         Toast.info('Stato brani ripristinato per nuova serata');
