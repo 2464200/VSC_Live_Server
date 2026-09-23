@@ -52,6 +52,7 @@ const SIAE_EXPORT_DIR = projectConfig.siaeExportDir;
 const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
 const USERFORM_RECORDINGS_DIR = projectConfig.userformRecordingsDir;
 const LEGACY_RECORDINGS_DIR = projectConfig.legacyRecordingsDir;
+const LED_DISPLAY_PRESETS_FILE = path.join(__dirname, 'LedDisplay', 'data', 'led-presets.json');
 const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : projectConfig.electronControlPort;
 const USERFORM_FFMPEG_CANDIDATES = [
     process.env.FFMPEG_PATH,
@@ -3279,6 +3280,33 @@ app.post('/led-display/post/dispdata', express.raw({ type: 'application/octet-st
 
 app.get('/led-display/set/:setting', (req, res) => {
     res.json({ message: `${req.params.setting} updated` });
+});
+
+app.get('/api/led-display/presets', (req, res) => {
+    try {
+        if (!fs.existsSync(LED_DISPLAY_PRESETS_FILE)) return res.json({ presets: [] });
+        const stored = JSON.parse(fs.readFileSync(LED_DISPLAY_PRESETS_FILE, 'utf8'));
+        return res.json({ presets: Array.isArray(stored) ? stored.slice(0, 6) : [] });
+    } catch (error) {
+        console.warn('Lettura scritte predefinite fallita:', error?.message || error);
+        return res.status(500).json({ message: 'Impossibile leggere le scritte predefinite' });
+    }
+});
+
+app.post('/api/led-display/presets', (req, res) => {
+    const presets = Array.isArray(req.body?.presets)
+        ? req.body.presets.slice(0, 6).map((value) => String(value || ''))
+        : null;
+    if (!presets) return res.status(400).json({ message: 'Formato scritte predefinite non valido' });
+
+    try {
+        fs.mkdirSync(path.dirname(LED_DISPLAY_PRESETS_FILE), { recursive: true });
+        fs.writeFileSync(LED_DISPLAY_PRESETS_FILE, JSON.stringify(presets, null, 2), 'utf8');
+        return res.json({ presets });
+    } catch (error) {
+        console.error('Salvataggio scritte predefinite fallito:', error?.message || error);
+        return res.status(500).json({ message: 'Impossibile salvare le scritte predefinite' });
+    }
 });
 
 app.use('/led-display', express.static(path.join(__dirname, 'LedDisplay', 'server', 'static')));
