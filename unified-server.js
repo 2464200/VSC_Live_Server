@@ -52,7 +52,6 @@ const SIAE_EXPORT_DIR = projectConfig.siaeExportDir;
 const USERFORM_CAMERA_CSV = path.join(__dirname, 'Bordero', 'data', 'get-camera-name.csv');
 const USERFORM_RECORDINGS_DIR = projectConfig.userformRecordingsDir;
 const LEGACY_RECORDINGS_DIR = projectConfig.legacyRecordingsDir;
-const LED_DISPLAY_PRESETS_FILE = path.join(__dirname, 'LedDisplay', 'data', 'led-presets.json');
 const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : projectConfig.electronControlPort;
 const USERFORM_FFMPEG_CANDIDATES = [
     process.env.FFMPEG_PATH,

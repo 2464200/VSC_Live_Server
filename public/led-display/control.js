@@ -12,15 +12,32 @@
   const presetSlots = Array.from(document.querySelectorAll('.preset-slot'));
   const confirmPresetButton = document.getElementById('confirm-preset');
   let selectedPreset = null;
-<<<<<<< Updated upstream
   const readLocalPresets = () => { try { const stored = JSON.parse(localStorage.getItem(presetKey) || '[]'); return Array.isArray(stored) ? stored : []; } catch { return []; } };
   const applyPresets = stored => presetSlots.forEach((slot, index) => { slot.value = stored[index] || ''; });
-  const loadPresets = async () => { try { const response = await fetch('/api/led-display/presets?t=' + Date.now(), { cache: 'no-store' }); if (!response.ok) throw new Error('Archivio non disponibile'); const stored = (await response.json()).presets || []; if (!stored.some(Boolean)) { const local = readLocalPresets(); if (local.some(Boolean)) { await fetch('/api/led-display/presets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presets: local }) }); applyPresets(local); return; } } applyPresets(stored); localStorage.setItem(presetKey, JSON.stringify(stored)); } catch { applyPresets(readLocalPresets()); } };
-  const savePresets = async () => { const presets = presetSlots.map(slot => slot.value); localStorage.setItem(presetKey, JSON.stringify(presets)); try { await fetch('/api/led-display/presets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presets }) }); } catch {} };
-=======
-  const loadPresets = async () => { let stored = []; try { stored = JSON.parse(localStorage.getItem(presetKey) || '[]'); } catch { stored = []; } try { const response = await fetch('/api/led-display/presets', { cache: 'no-store' }); if (response.ok) stored = (await response.json()).presets || []; } catch {} presetSlots.forEach((slot, index) => { slot.value = stored[index] || ''; }); localStorage.setItem(presetKey, JSON.stringify(stored)); };
-  const savePresets = () => { const presets = presetSlots.map(slot => slot.value); localStorage.setItem(presetKey, JSON.stringify(presets)); fetch('/api/led-display/presets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presets }) }).catch(() => {}); };
->>>>>>> Stashed changes
+  const loadPresets = async () => {
+    const local = readLocalPresets();
+    try {
+      const response = await fetch('/api/led-display/presets?t=' + Date.now(), { cache: 'no-store' });
+      if (!response.ok) throw new Error('Archivio non disponibile');
+      const payload = await response.json();
+      const stored = Array.isArray(payload.presets) ? payload.presets : [];
+      const presets = stored.some(Boolean) ? stored : local;
+      if (!stored.some(Boolean) && local.some(Boolean)) {
+        await fetch('/api/led-display/presets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presets: local }) });
+      }
+      applyPresets(presets);
+      localStorage.setItem(presetKey, JSON.stringify(presets));
+    } catch {
+      applyPresets(local);
+    }
+  };
+  const savePresets = async () => {
+    const presets = presetSlots.map(slot => slot.value);
+    localStorage.setItem(presetKey, JSON.stringify(presets));
+    try {
+      await fetch('/api/led-display/presets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ presets }) });
+    } catch {}
+  };
   const selectPreset = slot => { presetSlots.forEach(s => s.classList.remove('selected')); slot.classList.add('selected'); selectedPreset = slot; confirmPresetButton.disabled = false; };
   presetSlots.forEach(slot => { slot.addEventListener('focus', () => selectPreset(slot)); slot.addEventListener('input', savePresets); });
   document.getElementById('open-presets').addEventListener('click', async () => { await loadPresets(); presetModal.hidden = false; });
