@@ -75,6 +75,8 @@ class CoreografieStampaPage {
     document.getElementById('duplex-print').checked = saved?.duplex ?? false;
     document.getElementById('number-pages').checked = saved?.numberPages ?? false;
     document.getElementById('include-level').checked = saved?.includeLevel ?? false;
+    document.getElementById('include-info-coreo-1').checked = saved?.includeInfoCoreo1 ?? false;
+    document.getElementById('include-info-coreo-2').checked = saved?.includeInfoCoreo2 ?? false;
   }
 
   renderColumnSettings() {
@@ -169,6 +171,8 @@ class CoreografieStampaPage {
       duplex: document.getElementById('duplex-print').checked,
       numberPages: document.getElementById('number-pages').checked,
       includeLevel: document.getElementById('include-level').checked,
+      includeInfoCoreo1: document.getElementById('include-info-coreo-1').checked,
+      includeInfoCoreo2: document.getElementById('include-info-coreo-2').checked,
     };
     return this.settings;
   }
@@ -236,6 +240,8 @@ class CoreografieStampaPage {
     documentNode.classList.toggle('numbered-pages', this.settings.numberPages);
     documentNode.classList.toggle('duplex-print', this.settings.duplex);
     documentNode.classList.toggle('level-enabled', this.settings.includeLevel);
+    documentNode.classList.toggle('info-coreo-1-enabled', this.settings.includeInfoCoreo1);
+    documentNode.classList.toggle('info-coreo-2-enabled', this.settings.includeInfoCoreo2);
     documentNode.innerHTML = `
       ${cover}
       ${selectedGroups.filter(([, entries]) => entries.length).map(([initial, entries]) => this.renderGroup(initial, entries)).join('')}
@@ -295,7 +301,7 @@ class CoreografieStampaPage {
         <section class="letter-section${pageNumber > 1 ? ' continuation-page' : ''}">
           <div class="letter-heading"><h2>${this.escape(initial)} ${pageLabel}</h2><span>${pageEntries.length} di ${entries.length} coreografie</span></div>
           <div class="coreography-column-headings">
-            <span></span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}<div class="event-columns">${columnHeadings}</div>
+            <span></span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
           </div>
           <div class="coreography-list">
             ${pageEntries.map((brano) => this.renderEntry(brano)).join('')}
@@ -321,6 +327,8 @@ class CoreografieStampaPage {
           <h3 class="coreography-title">${this.escape(this.titleOf(brano))}</h3>
         </div>
         ${this.settings.includeLevel ? `<div class="coreography-level">${this.escape(brano.info_livello || '')}</div>` : ''}
+        ${this.settings.includeInfoCoreo1 ? `<div class="coreography-info-coreo">${this.escape(brano.info_coreo_1 || '')}</div>` : ''}
+        ${this.settings.includeInfoCoreo2 ? `<div class="coreography-info-coreo">${this.escape(brano.info_coreo_2 || '')}</div>` : ''}
         <div class="event-columns">${columns}</div>
       </article>
     `;
@@ -333,6 +341,8 @@ class CoreografieStampaPage {
         <div class="coreography-id"></div>
         <div class="coreography-main"></div>
         ${this.settings.includeLevel ? '<div class="coreography-level"></div>' : ''}
+        ${this.settings.includeInfoCoreo1 ? '<div class="coreography-info-coreo"></div>' : ''}
+        ${this.settings.includeInfoCoreo2 ? '<div class="coreography-info-coreo"></div>' : ''}
         <div class="event-columns">${columns}</div>
       </article>
     `;

@@ -447,6 +447,30 @@
   grid-template-columns: 13mm minmax(0, 1fr) 22mm minmax(45mm, 1.35fr);
 }
 
+.print-document.info-coreo-1-enabled .coreography-column-headings,
+.print-document.info-coreo-1-enabled .coreography-entry,
+.print-document.info-coreo-2-enabled .coreography-column-headings,
+.print-document.info-coreo-2-enabled .coreography-entry {
+  grid-template-columns: 13mm minmax(0, 1fr) 30mm minmax(45mm, 1.35fr);
+}
+
+.print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings,
+.print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
+  grid-template-columns: 13mm minmax(0, 1fr) 30mm 30mm minmax(45mm, 1.35fr);
+}
+
+.print-document.level-enabled.info-coreo-1-enabled .coreography-column-headings,
+.print-document.level-enabled.info-coreo-1-enabled .coreography-entry,
+.print-document.level-enabled.info-coreo-2-enabled .coreography-column-headings,
+.print-document.level-enabled.info-coreo-2-enabled .coreography-entry {
+  grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm minmax(45mm, 1.35fr);
+}
+
+.print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings,
+.print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
+  grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm 30mm minmax(45mm, 1.35fr);
+}
+
 .coreography-column-headings > span:nth-child(2) {
   padding: 1mm 3mm;
   border-left: 1px solid #bfc5ca;
@@ -472,12 +496,14 @@
 }
 
 .coreography-column-headings .event-columns {
+  width: 100%;
   min-height: auto;
   border-left: 1px solid #bfc5ca;
 }
 
 .event-column-heading {
-  min-width: 15mm;
+  min-width: 0;
+  width: 100%;
   padding: 1mm 1.5mm;
   border-right: 1px solid #bfc5ca;
   text-align: center;
@@ -524,6 +550,33 @@
   height: 6.5mm;
 }
 
+.coreography-info-coreo {
+  display: flex;
+  align-items: center;
+  width: 30mm;
+  min-width: 30mm;
+  max-width: 30mm;
+  box-sizing: border-box;
+  padding: 1mm 2mm;
+  border-left: 1px solid #bfc5ca;
+  color: #38434d;
+  font-size: 7pt;
+  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.coreography-column-headings > span:nth-child(n+3) {
+  box-sizing: border-box;
+  padding: 1mm 2mm;
+  border-left: 1px solid #bfc5ca;
+  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
 .empty-entry {
   color: transparent;
 }
@@ -531,13 +584,15 @@
 .event-columns {
   display: grid;
   grid-template-columns: repeat(var(--event-column-count, 1), minmax(0, 1fr));
+  width: 100%;
   min-height: 0;
   height: 100%;
   border-left: 1px solid #c7ccd1;
 }
 
 .event-column {
-  min-width: 15mm;
+  min-width: 0;
+  width: 100%;
   border-right: 1px solid #c7ccd1;
 }
 
@@ -690,6 +745,24 @@
     grid-template-columns: 13mm minmax(0, 1fr) 22mm;
   }
 
+  .print-document.info-coreo-1-enabled .coreography-entry,
+  .print-document.info-coreo-2-enabled .coreography-entry {
+    grid-template-columns: 13mm minmax(0, 1fr) 30mm;
+  }
+
+  .print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
+    grid-template-columns: 13mm minmax(0, 1fr) 30mm 30mm;
+  }
+
+  .print-document.level-enabled.info-coreo-1-enabled .coreography-entry,
+  .print-document.level-enabled.info-coreo-2-enabled .coreography-entry {
+    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm;
+  }
+
+  .print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
+    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm 30mm;
+  }
+
   .letter-section {
     break-inside: avoid;
     page-break-inside: avoid;
@@ -701,6 +774,24 @@
 
   .print-document.level-enabled .coreography-column-headings {
     grid-template-columns: 13mm minmax(0, 1fr) 22mm;
+  }
+
+  .print-document.info-coreo-1-enabled .coreography-column-headings,
+  .print-document.info-coreo-2-enabled .coreography-column-headings {
+    grid-template-columns: 13mm minmax(0, 1fr) 30mm;
+  }
+
+  .print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings {
+    grid-template-columns: 13mm minmax(0, 1fr) 30mm 30mm;
+  }
+
+  .print-document.level-enabled.info-coreo-1-enabled .coreography-column-headings,
+  .print-document.level-enabled.info-coreo-2-enabled .coreography-column-headings {
+    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm;
+  }
+
+  .print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings {
+    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm 30mm;
   }
 
   .coreography-column-headings .event-columns {
