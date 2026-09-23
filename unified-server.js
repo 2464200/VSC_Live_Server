@@ -14,6 +14,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { spawn, execFile } = require('child_process');
 const net = require('net');
 const os = require('os');
@@ -996,6 +997,131 @@ function execFileAsync(command, args, options = {}) {
             resolve({ stdout, stderr });
         });
     });
+}
+
+const deployController = {
+    intervalEnabled: false,
+    sessionAutoEnabled: false,
+    timer: null,
+    running: false,
+    lastRunAt: null,
+    lastResult: 'Mai eseguito',
+    lastOutput: '',
+    dailyDate: '',
+    dailyDeployCount: 0,
+    maxDailyDeploys: 24,
+};
+
+function refreshDailyDeployCount() {
+    const today = new Date().toLocaleDateString('en-CA');
+    if (deployController.dailyDate !== today) {
+        deployController.dailyDate = today;
+        deployController.dailyDeployCount = 0;
+    }
+}
+
+async function getPublicFingerprint() {
+    const hash = crypto.createHash('sha256');
+    const walk = async (directory, relativeDirectory = '') => {
+        const entries = (await fs.promises.readdir(directory, { withFileTypes: true }))
+            .sort((first, second) => first.name.localeCompare(second.name));
+        for (const entry of entries) {
+            const absolutePath = path.join(directory, entry.name);
+            const relativePath = path.join(relativeDirectory, entry.name);
+            if (entry.isDirectory()) {
+                await walk(absolutePath, relativePath);
+            } else if (entry.isFile()) {
+                hash.update(relativePath.replace(/\\/g, '/'));
+                hash.update(await fs.promises.readFile(absolutePath));
+            }
+        }
+    };
+    await walk(path.join(__dirname, 'public'));
+    return hash.digest('hex');
+}
+
+function waitForDeployRetry(delayMs) {
+    return new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
+async function runFirebaseDeploy() {
+    refreshDailyDeployCount();
+    if (deployController.running) {
+        deployController.lastResult = 'Deploy gia in corso: esecuzione saltata';
+        return { skipped: true };
+    }
+    if (deployController.dailyDeployCount >= deployController.maxDailyDeploys) {
+        deployController.lastResult = `Limite giornaliero raggiunto (${deployController.maxDailyDeploys})`;
+        return { skipped: true, reason: 'daily-limit' };
+    }
+
+    deployController.running = true;
+    deployController.lastRunAt = new Date().toISOString();
+    try {
+        const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+        const firebaseCommand = process.platform === 'win32' ? 'firebase.cmd' : 'firebase';
+        const beforeFingerprint = await getPublicFingerprint();
+        await execFileAsync(npmCommand, ['run', 'sync:public'], {
+            cwd: __dirname,
+            maxBuffer: 20 * 1024 * 1024,
+        });
+        const afterFingerprint = await getPublicFingerprint();
+        if (beforeFingerprint === afterFingerprint) {
+            deployController.lastResult = 'Nessuna modifica: deploy saltato';
+            return { skipped: true, reason: 'no-changes' };
+        }
+
+        let lastError = null;
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+            try {
+                const result = await execFileAsync(firebaseCommand, ['deploy', '--only', 'hosting'], {
+                    cwd: __dirname,
+                    maxBuffer: 20 * 1024 * 1024,
+                });
+                deployController.dailyDeployCount += 1;
+                deployController.lastOutput = String(result.stdout || '').slice(-4000);
+                deployController.lastResult = `Deploy completato (tentativo ${attempt})`;
+                return { skipped: false, ok: true, attempt };
+            } catch (error) {
+                lastError = error;
+                if (attempt < 3) await waitForDeployRetry(5000 * (2 ** (attempt - 1)));
+            }
+        }
+        throw lastError;
+    } catch (error) {
+        deployController.lastOutput = String(error.stderr || error.stdout || error.message || error).slice(-4000);
+        deployController.lastResult = 'Deploy fallito dopo 3 tentativi';
+        return { skipped: false, ok: false };
+    } finally {
+        deployController.running = false;
+    }
+}
+
+function getDeployStatus() {
+    refreshDailyDeployCount();
+    return {
+        intervalEnabled: deployController.intervalEnabled,
+        sessionAutoEnabled: deployController.sessionAutoEnabled,
+        running: deployController.running,
+        lastRunAt: deployController.lastRunAt,
+        lastResult: deployController.lastResult,
+        lastOutput: deployController.lastOutput,
+        intervalMs: 60 * 1000,
+        dailyDeployCount: deployController.dailyDeployCount,
+        maxDailyDeploys: deployController.maxDailyDeploys,
+    };
+}
+
+function syncDeployTimer() {
+    const enabled = deployController.intervalEnabled || deployController.sessionAutoEnabled;
+    if (!enabled) {
+        if (deployController.timer) clearInterval(deployController.timer);
+        deployController.timer = null;
+        return;
+    }
+    if (deployController.timer) return;
+    deployController.timer = setInterval(() => { void runFirebaseDeploy(); }, 60 * 1000);
+    void runFirebaseDeploy();
 }
 
 function getVlcExecutableCandidates() {
@@ -2947,6 +3073,27 @@ for (const currentType of ['brani', 'comuni', 'location', 'location-options']) {
         return handleBorderoCsvSync(req, res, normalizedType);
     });
 }
+
+app.get('/api/admin/deploy/status', (_req, res) => {
+    return res.json({ ok: true, status: getDeployStatus() });
+});
+
+app.post('/api/admin/deploy/interval', (req, res) => {
+    deployController.intervalEnabled = Boolean(req.body?.enabled);
+    syncDeployTimer();
+    return res.json({ ok: true, status: getDeployStatus() });
+});
+
+app.post('/api/admin/deploy/session-auto', (req, res) => {
+    deployController.sessionAutoEnabled = Boolean(req.body?.enabled);
+    syncDeployTimer();
+    return res.json({ ok: true, status: getDeployStatus() });
+});
+
+app.post('/api/admin/deploy/run', async (_req, res) => {
+    const result = await runFirebaseDeploy();
+    return res.json({ ok: result.ok !== false, result, status: getDeployStatus() });
+});
 
 app.get('/api/status', (req, res) => {
     res.json({

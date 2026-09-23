@@ -110,6 +110,26 @@
       </div>
     </section>
 
+    <section class="admin-section deploy-control-section">
+      <h2>🚀 Deploy automatico</h2>
+      <p class="display-scroll-help">
+        Il deploy verifica e pubblica il progetto ogni minuto. L'attivazione manuale resta valida finche viene arrestata; la modalita automatica resta attiva per tutta la durata di questo server.
+      </p>
+      <div class="deploy-control-grid">
+        <div class="deploy-control-card">
+          <strong>Intervallo deploy</strong>
+          <span>Attiva o arresta il deploy ogni minuto.</span>
+          <button id="btn-deploy-interval" class="btn btn-secondary deploy-toggle" type="button" aria-pressed="false">ATTIVA DEPLOY</button>
+        </div>
+        <div class="deploy-control-card">
+          <strong>Deploy automatico server</strong>
+          <span>Resta attivo senza ulteriori click finche il server e in funzione.</span>
+          <button id="btn-deploy-session-auto" class="btn btn-secondary deploy-toggle" type="button" aria-pressed="false">OFF</button>
+        </div>
+      </div>
+      <div id="deploy-status" class="deploy-status" role="status">Deploy automatico disattivato.</div>
+    </section>
+
     <!-- DATA SYNC -->
     <section class="admin-section">
       <h2>📊 Data Synchronization</h2>

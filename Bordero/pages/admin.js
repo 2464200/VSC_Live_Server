@@ -14,6 +14,7 @@ class AdminPanel {
   async init() {
     this.setupSystemStatus();
     this.setupDisplayScrollSettings();
+    this.setupDeployControls();
     this.setupExcelFileSelection();
     this.setupDataSync();
     this.setupDataViewer();
@@ -961,6 +962,72 @@ class AdminPanel {
     const response = await fetch(url, options);
     const payload = await response.json().catch(() => ({}));
     return { response, payload };
+  }
+
+  setupDeployControls() {
+    const intervalButton = document.getElementById('btn-deploy-interval');
+    const sessionButton = document.getElementById('btn-deploy-session-auto');
+    const statusNode = document.getElementById('deploy-status');
+    if (!intervalButton || !sessionButton || !statusNode) return;
+
+    const formatStatus = (status = {}) => {
+      const modes = [];
+      if (status.intervalEnabled) modes.push('intervallo 1 minuto');
+      if (status.sessionAutoEnabled) modes.push('automatico server');
+      const modeText = modes.length ? modes.join(' + ') : 'disattivato';
+      const lastRun = status.lastRunAt ? new Date(status.lastRunAt).toLocaleString('it-IT') : 'mai';
+      return `Stato: ${modeText}${status.running ? ' | deploy in corso' : ''}\nUltimo esito: ${status.lastResult || 'nessuno'}\nUltimo avvio: ${lastRun}\nDeploy riusciti oggi: ${status.dailyDeployCount || 0}/${status.maxDailyDeploys || 24}`;
+    };
+
+    const render = (status = {}) => {
+      intervalButton.classList.toggle('is-active', Boolean(status.intervalEnabled));
+      intervalButton.setAttribute('aria-pressed', String(Boolean(status.intervalEnabled)));
+      intervalButton.textContent = status.intervalEnabled ? 'ARRESTA DEPLOY' : 'ATTIVA DEPLOY';
+      sessionButton.classList.toggle('is-active', Boolean(status.sessionAutoEnabled));
+      sessionButton.setAttribute('aria-pressed', String(Boolean(status.sessionAutoEnabled)));
+      sessionButton.textContent = status.sessionAutoEnabled ? 'ON' : 'OFF';
+      statusNode.textContent = formatStatus(status);
+    };
+
+    const refresh = async () => {
+      try {
+        const { response, payload } = await this.fetchJson('/api/admin/deploy/status', { cache: 'no-store' });
+        if (!response.ok || !payload?.ok) throw new Error(payload?.error || `HTTP ${response.status}`);
+        render(payload.status);
+      } catch (error) {
+        statusNode.textContent = `Deploy non disponibile: ${error.message || error}`;
+      }
+    };
+
+    const toggle = async (path, enabled) => {
+      intervalButton.disabled = true;
+      sessionButton.disabled = true;
+      try {
+        const { response, payload } = await this.fetchJson(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled }),
+        });
+        if (!response.ok || !payload?.ok) throw new Error(payload?.error || `HTTP ${response.status}`);
+        render(payload.status);
+      } catch (error) {
+        statusNode.textContent = `Errore controllo deploy: ${error.message || error}`;
+      } finally {
+        intervalButton.disabled = false;
+        sessionButton.disabled = false;
+      }
+    };
+
+    intervalButton.addEventListener('click', async () => {
+      const enabled = intervalButton.getAttribute('aria-pressed') !== 'true';
+      await toggle('/api/admin/deploy/interval', enabled);
+    });
+    sessionButton.addEventListener('click', async () => {
+      const enabled = sessionButton.getAttribute('aria-pressed') !== 'true';
+      await toggle('/api/admin/deploy/session-auto', enabled);
+    });
+    void refresh();
+    window.setInterval(refresh, 5000);
   }
 
   readDisplayScrollSettings() {
