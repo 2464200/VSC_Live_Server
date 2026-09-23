@@ -82,7 +82,7 @@ class CoreografieStampaPage {
   }
 
   renderColumnSettings() {
-    const count = Number(document.querySelector('input[name="eventMode"]:checked')?.value || 1);
+    const count = this.getEventColumnCount();
     const labels = ['Evento singolo', 'Mattina', 'Pomeriggio', 'Sera', 'DJ SET'];
     document.getElementById('column-settings').innerHTML = Array.from({ length: count }, (_, index) => `
       <label class="field-label column-label" for="column-${index}">Colonna ${index + 1}
@@ -152,12 +152,13 @@ class CoreografieStampaPage {
   readSettings() {
     const form = document.getElementById('print-settings-form');
     const formData = new FormData(form);
-    const count = Number(formData.get('eventMode') || 1);
+    const count = this.getEventColumnCount(formData.get('eventMode'));
     const selectedDjs = [...document.querySelectorAll('#event-djs input[name="djs"]:checked')]
       .map((input) => input.value.trim())
       .filter(Boolean);
     this.settings = {
       eventName: String(formData.get('eventName') || '').trim(),
+      eventMode: count,
       djs: selectedDjs.join(', '),
       place: String(formData.get('place') || '').trim(),
       date: String(formData.get('date') || ''),
@@ -177,6 +178,11 @@ class CoreografieStampaPage {
       includeInfoCoreo2: document.getElementById('include-info-coreo-2').checked,
     };
     return this.settings;
+  }
+
+  getEventColumnCount(value) {
+    const count = Number(value || document.querySelector('input[name="eventMode"]:checked')?.value || 1);
+    return Math.min(4, Math.max(1, Number.isInteger(count) ? count : 1));
   }
 
   loadPersistedSettings() {
@@ -238,7 +244,7 @@ class CoreografieStampaPage {
       </section>
     ` : '';
 
-    documentNode.style.setProperty('--event-column-count', String(this.settings.columnLabels.length));
+    documentNode.style.setProperty('--event-column-count', String(this.getEventColumnCount(this.settings.eventMode || this.settings.columnLabels.length)));
     documentNode.classList.toggle('numbered-pages', this.settings.numberPages);
     documentNode.classList.toggle('duplex-print', this.settings.duplex);
     documentNode.classList.toggle('level-enabled', this.settings.includeLevel);
@@ -286,7 +292,7 @@ class CoreografieStampaPage {
   }
 
   renderGroup(initial, entries) {
-    const columnHeadings = this.settings.columnLabels
+    const columnHeadings = this.settings.columnLabels.slice(0, this.getEventColumnCount(this.settings.eventMode))
       .map((label) => `<div class="event-column-heading">${this.escape(label || 'Evento')}</div>`)
       .join('');
     const pages = [];
@@ -321,7 +327,7 @@ class CoreografieStampaPage {
   }
 
   renderEntry(brano) {
-    const columns = this.settings.columnLabels.map(label => `<div class="event-column" aria-label="${this.escape(label)}"></div>`).join('');
+    const columns = this.settings.columnLabels.slice(0, this.getEventColumnCount(this.settings.eventMode)).map(label => `<div class="event-column" aria-label="${this.escape(label)}"></div>`).join('');
     return `
       <article class="coreography-entry">
         <div class="coreography-id">${this.escape(brano.id || '')}</div>
@@ -337,7 +343,7 @@ class CoreografieStampaPage {
   }
 
   renderEmptyEntry() {
-    const columns = this.settings.columnLabels.map(() => '<div class="event-column"></div>').join('');
+    const columns = this.settings.columnLabels.slice(0, this.getEventColumnCount(this.settings.eventMode)).map(() => '<div class="event-column"></div>').join('');
     return `
       <article class="coreography-entry empty-entry" aria-hidden="true">
         <div class="coreography-id"></div>

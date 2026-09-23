@@ -584,6 +584,8 @@
 .event-columns {
   display: grid;
   grid-template-columns: repeat(var(--event-column-count, 1), minmax(0, 1fr));
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
   width: 100%;
   min-height: 0;
   height: 100%;
@@ -593,6 +595,7 @@
 .event-column {
   min-width: 0;
   width: 100%;
+  box-sizing: border-box;
   border-right: 1px solid #c7ccd1;
 }
 
