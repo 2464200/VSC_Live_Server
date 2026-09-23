@@ -284,6 +284,8 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .cover-logo {
@@ -296,6 +298,8 @@
 
 .cover-event {
   width: 100%;
+  box-sizing: border-box;
+  flex: 0 1 auto;
   border: 2px solid #ff7f00;
   padding: 12mm 10mm;
 }
@@ -313,6 +317,10 @@
   font-size: 24pt;
   line-height: 1.15;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .cover-event-date {
@@ -334,6 +342,8 @@
 
 .cover-siae {
   width: min(100%, 145mm);
+  box-sizing: border-box;
+  flex: 0 1 auto;
   margin: 12mm auto 0;
   padding: 5mm 7mm;
   border: 1px solid #555;
@@ -701,7 +711,68 @@
   .cover {
     height: 297mm;
     min-height: 297mm;
+    max-height: 297mm;
+    padding: 10mm 13mm;
     break-after: page;
+    page-break-after: always;
+  }
+
+  .cover-logo {
+    width: 82mm;
+    max-height: 76mm;
+    margin-bottom: 10mm;
+  }
+
+  .cover-event {
+    padding: 7mm 8mm;
+  }
+
+  .cover-event-label {
+    font-size: 9pt;
+    letter-spacing: 1px;
+  }
+
+  .cover-event-name {
+    margin: 3mm 0 2mm;
+    font-size: 20pt;
+  }
+
+  .cover-event-date {
+    font-size: 11pt;
+  }
+
+  .cover-event-time {
+    margin-left: 5mm;
+    font-size: 9pt;
+  }
+
+  .cover-event-detail {
+    margin-top: 2mm;
+    font-size: 9.5pt;
+  }
+
+  .cover-siae {
+    width: min(100%, 135mm);
+    margin-top: 7mm;
+    padding: 3.5mm 5mm;
+    font-size: 9pt;
+  }
+
+  .cover-siae-title {
+    margin-bottom: 2mm;
+  }
+
+  .cover-siae-row {
+    min-height: 7mm;
+  }
+
+  .cover-siae-signature {
+    gap: 1mm;
+    margin-top: 2mm;
+  }
+
+  .cover-signature-box {
+    height: 12mm;
   }
 
   .letter-section + .letter-section {
