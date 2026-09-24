@@ -79,6 +79,7 @@ const PAGE_POLICY = new Map([
   ['/prova/image.html', { primary: true, secondary: false }],
   ['/vdj/test-vdj.html', { primary: true, secondary: false }],
   ['/led-display/', { primary: false, secondary: true }],
+  ['/leddisplay/server/static/index.html', { primary: false, secondary: true }],
   ['/led-display/off.html', { primary: false, secondary: true }],
   ['/leddisplay.html', { primary: true, secondary: false }],
   ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
@@ -661,7 +662,7 @@ function isDisplayPageUrl(candidateUrl) {
 
 function isLedDisplayPageUrl(candidateUrl) {
   const pathname = normalizePathname(candidateUrl);
-  return pathname === '/led-display' || pathname === '/led-display/';
+  return pathname === '/led-display' || pathname === '/led-display/' || pathname === '/leddisplay/server/static/index.html';
 }
 
 function getPrimaryDefaultUrl() {
@@ -1270,7 +1271,19 @@ ipcMain.handle('bordero-window:stop-service-publication', async () => {
 
 ipcMain.handle('bordero-window:restore-secondary', async () => {
   try {
-    return { success: await restoreSecondaryPageBeforeLedDisplay() };
+    const success = await restoreSecondaryPageBeforeLedDisplay();
+    const url = secondaryWindow && !secondaryWindow.isDestroyed()
+      ? secondaryWindow.webContents.getURL()
+      : '';
+    broadcastMonitorPolicyRouteEvent({
+      source: 'ipc-restore-secondary',
+      url,
+      path: normalizePathname(url),
+      policy: getMonitorPolicyForUrl(url),
+      primaryUpdated: false,
+      secondaryUpdated: success
+    });
+    return { success };
   } catch (error) {
     return { success: false, error: error?.message || String(error) };
   }

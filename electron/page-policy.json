@@ -1,4 +1,8 @@
 {
+  "/bordero/index.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/bordero/pages/admin.html": {
     "primary": true,
     "secondary": false
@@ -11,17 +15,13 @@
     "primary": true,
     "secondary": false
   },
-  "/bordero/pages/brani-nascosti.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/bordero/index.html": {
-    "primary": true,
-    "secondary": false
-  },
   "/bordero/pages/brani-eseguiti.html": {
     "primary": true,
     "secondary": true
+  },
+  "/bordero/pages/brani-nascosti.html": {
+    "primary": true,
+    "secondary": false
   },
   "/bordero/pages/coreografie-stampa.html": {
     "primary": true,
@@ -59,14 +59,6 @@
     "primary": true,
     "secondary": false
   },
-  "/eventi/eventi.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/eventi/public/eventi.html": {
-    "primary": true,
-    "secondary": false
-  },
   "/eventi/admin.html": {
     "primary": true,
     "secondary": false
@@ -80,6 +72,14 @@
     "secondary": false
   },
   "/eventi/documentation.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/eventi.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/index.html": {
     "primary": true,
     "secondary": false
   },
@@ -111,15 +111,39 @@
     "primary": true,
     "secondary": false
   },
-  "/diagnostica.html": {
+  "/index.html": {
     "primary": true,
     "secondary": false
   },
-  "/scriptpdf1.html": {
+  "/leddisplay/server/static/index.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/leddisplay/server/static/off.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/leddisplay.html": {
     "primary": true,
     "secondary": false
   },
-  "/prova/scriptpdf1.html": {
+  "/pdf/viewers/pdf-viewer.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/pdf/viewers/scriptpdf1.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/playlist-country/index.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/image.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/prova/logo.html": {
     "primary": true,
     "secondary": false
   },
@@ -135,41 +159,21 @@
     "primary": true,
     "secondary": false
   },
-  "/prova/logo.html": {
+  "/prova/scriptpdf1.html": {
     "primary": true,
     "secondary": false
   },
-  "/prova/image.html": {
+  "/prova/test-scriptpdf1.html": {
     "primary": true,
     "secondary": false
   },
-  "/vdj/test-vdj.html": {
+  "/prova/webcam.html": {
     "primary": true,
     "secondary": false
   },
-  "/led-display/": {
-    "primary": false,
-    "secondary": true
-  },
-  "/led-display/off.html": {
-    "primary": false,
-    "secondary": true
-  },
-  "/leddisplay.html": {
+  "/userform/index.html": {
     "primary": true,
     "secondary": false
-  },
-  "/userform/pages/qrcode.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/userform/pages/servizio.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/userform/pages/servizio-pubblica.html": {
-    "primary": false,
-    "secondary": true
   },
   "/userform/pages/pagina03.html": {
     "primary": true,
@@ -202,5 +206,117 @@
   "/userform/pages/pagina11.html": {
     "primary": true,
     "secondary": false
+  },
+  "/userform/pages/qrcode.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/servizio-logo.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/servizio-pubblica.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/userform/pages/servizio.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/webcam.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/vdj/test-vdj.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/404.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/dashboard.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/diagnostica.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/display.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/index0.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/index1.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/index2.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/led-display/index.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/led-display/off.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/mobile.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/mobile1.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/mobile2.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/nav.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/nextcoreo1.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/nextcoreo2.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/scriptpdf1.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/servizio.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/temp.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/test-bordero-frontend.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/test-csv-loading.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/eventi.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/led-display/": {
+    "primary": false,
+    "secondary": true
   }
 }
