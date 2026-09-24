@@ -368,6 +368,10 @@ class VideoClipManager {
   }
 
   isBranoExecuted(brano) {
+    if (typeof isExecutedTrack === 'function') {
+      return isExecutedTrack(brano);
+    }
+
     return brano && (
       brano.flag === 'X' ||
       brano.flag === 'x' ||
@@ -378,6 +382,24 @@ class VideoClipManager {
       brano.executed === 'X' ||
       brano.executed === 'x'
     );
+  }
+
+  reorderExecutedToBottom(collection) {
+    if (!Array.isArray(collection)) return [];
+
+    if (typeof partitionExecutedAndSimilar === 'function') {
+      return partitionExecutedAndSimilar(collection).all;
+    }
+
+    const executedTitles = new Set(collection
+      .filter((brano) => this.isBranoExecuted(brano))
+      .map((brano) => this.normalizeForMatch(brano?.titolo || brano?.coreografia || brano?.brano || ''))
+      .filter(Boolean));
+    const isExecutedOrSimilar = (brano) => this.isBranoExecuted(brano)
+      || executedTitles.has(this.normalizeForMatch(brano?.titolo || brano?.coreografia || brano?.brano || ''));
+    const pending = collection.filter((brano) => !isExecutedOrSimilar(brano));
+    const executed = collection.filter((brano) => isExecutedOrSimilar(brano));
+    return [...pending, ...executed];
   }
 
   async refreshAvailableFiles() {
@@ -487,6 +509,7 @@ class VideoClipManager {
       return brano;
     });
 
+    this.brani = this.reorderExecutedToBottom(this.brani);
     this.filteredBrani = [...this.brani];
     return changed;
   }
@@ -1911,6 +1934,9 @@ class VideoClipManager {
         timestamp: nowTimestamp
       };
     });
+
+    this.brani = this.reorderExecutedToBottom(this.brani);
+    this.filteredBrani = this.reorderExecutedToBottom(this.filteredBrani);
 
     if (this.currentBrano && String(this.currentBrano.id) === targetId) {
       this.currentBrano = {

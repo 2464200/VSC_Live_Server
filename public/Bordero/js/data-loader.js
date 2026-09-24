@@ -910,6 +910,8 @@ class DataLoader {
    * Archivia la serata corrente (completa) nella cronologia
    */
   archiveCurrentSerata(serataMetadata, braniWithFlags) {
+    Storage.remove('bordero_next_coreo_selection');
+    window.dispatchEvent(new Event('bordero:next-coreo-updated'));
     const serata = this.saveCurrentSerata(serataMetadata, braniWithFlags);
     
     // Aggiungi alla cronologia

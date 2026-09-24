@@ -11,7 +11,8 @@ class BorderoTableManager {
     this.currentSort = null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = null;
-    this.keepExecutedAtBottom = false;
+    this.executedBottomModeStorageKey = BORDERO_CONFIG?.CACHE_KEY_EXECUTED_BOTTOM_MODE || 'bordero_executed_bottom_mode';
+    this.keepExecutedAtBottom = this.readExecutedBottomMode();
     this.currentFilters = {};
     this.currentSearch = '';
     this.searchMode = 'general';
@@ -72,6 +73,23 @@ class BorderoTableManager {
     return this.coexistingFilterFields.has(String(field || '').trim());
   }
 
+  readExecutedBottomMode() {
+    try {
+      return localStorage.getItem(this.executedBottomModeStorageKey) === 'true';
+    } catch (error) {
+      logger.debug('Impossibile leggere la modalità eseguiti in fondo', error);
+      return false;
+    }
+  }
+
+  persistExecutedBottomMode() {
+    try {
+      localStorage.setItem(this.executedBottomModeStorageKey, String(this.keepExecutedAtBottom));
+    } catch (error) {
+      logger.debug('Impossibile salvare la modalità eseguiti in fondo', error);
+    }
+  }
+
   async init() {
     logger.info('BorderoTableManager initializing...');
 
@@ -110,6 +128,7 @@ class BorderoTableManager {
 
       this.filteredBrani = [...this.allBrani];
       this.restoreNextCoreoSelection();
+      this.reorderSelectedNextToTop();
 
       // Nessun sort di default: preserva l'ordine naturale con eseguiti in fondo.
       this.currentSort = null;
@@ -125,7 +144,13 @@ class BorderoTableManager {
       this.updateSearchPlaceholder();
       this.equalizeSearchActionButtons();
       this.setupWebcamSignalBox();
-      this.renderTable();
+      const savedPage = this.restoreTableViewSettings();
+      this.updateFilterButtons();
+      this.updateSearchButtons();
+      this.updateSortButtons();
+      this.updateColumnHeaderSortState();
+      this.applyFilters();
+      this.goToPage(savedPage);
 
       logger.info(`✓ Inizializzato con ${this.allBrani.length} brani`);
       Toast.success(`Caricati ${this.allBrani.length} brani`);
@@ -147,6 +172,36 @@ class BorderoTableManager {
     });
     this.filteredBrani.forEach((item) => {
       item.next_selected = String(item.id) === targetId;
+    });
+  }
+
+  restoreTableViewSettings() {
+    if (typeof BorderoSettingsStore === 'undefined') return 1;
+
+    const saved = BorderoSettingsStore.get('tableView', {});
+    this.currentFilters = saved.filters && typeof saved.filters === 'object' ? saved.filters : {};
+    this.currentSearch = String(saved.search || '');
+    this.searchMode = ['general', 'title', 'id'].includes(saved.searchMode) ? saved.searchMode : 'general';
+    this.currentSort = saved.sort ? String(saved.sort) : null;
+    this.currentSortDirection = saved.sortDirection === 'desc' ? 'desc' : 'asc';
+    this.lastHeaderSortField = this.currentSort;
+
+    const searchBox = document.getElementById('search-box');
+    if (searchBox) searchBox.value = this.currentSearch;
+
+    return Math.max(1, Number(saved.page) || 1);
+  }
+
+  persistTableViewSettings() {
+    if (typeof BorderoSettingsStore === 'undefined') return;
+
+    BorderoSettingsStore.set('tableView', {
+      filters: this.currentFilters,
+      search: this.currentSearch,
+      searchMode: this.searchMode,
+      sort: this.currentSort,
+      sortDirection: this.currentSortDirection,
+      page: this.currentPage,
     });
   }
 
@@ -659,6 +714,8 @@ class BorderoTableManager {
       this.applyVideoClipAvailabilityToBrani();
 
       this.filteredBrani = [...this.allBrani];
+      this.restoreNextCoreoSelection();
+      this.reorderSelectedNextToTop();
       this.currentPage = 1;
       await this.populateDJSelect();
       await this.setupLocationPicker();
@@ -668,6 +725,51 @@ class BorderoTableManager {
       logger.error('Errore aggiornamento dati dopo sincronizzazione', error);
     } finally {
       this.autoRefreshInProgress = false;
+    }
+  }
+
+  async refreshTableManually() {
+    if (this.autoRefreshInProgress) return;
+
+    const button = document.getElementById('btn-refresh-table');
+    const initialText = button?.textContent || 'AGGIORNA TABELLA GENERALE';
+    const savedState = {
+      filters: { ...this.currentFilters },
+      search: this.currentSearch,
+      searchMode: this.searchMode,
+      sort: this.currentSort,
+      sortDirection: this.currentSortDirection,
+      next: Storage.get('bordero_next_coreo_selection', null),
+    };
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'AGGIORNAMENTO...';
+    }
+
+    try {
+      await this.refreshFromCurrentData({ silent: true, source: 'manual-table-refresh' });
+      this.currentFilters = savedState.filters;
+      this.currentSearch = savedState.search;
+      this.searchMode = savedState.searchMode;
+      this.currentSort = savedState.sort;
+      this.currentSortDirection = savedState.sortDirection;
+      if (savedState.next) {
+        Storage.set('bordero_next_coreo_selection', savedState.next);
+      }
+      this.restoreNextCoreoSelection();
+      this.updateFilterButtons();
+      this.updateSearchButtons();
+      this.updateSearchPlaceholder();
+      this.updateSortButtons();
+      this.updateColumnHeaderSortState();
+      this.applyFilters();
+      Toast.success('Tabella aggiornata manualmente');
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = initialText;
+      }
     }
   }
 
@@ -750,6 +852,7 @@ class BorderoTableManager {
     document.getElementById('btn-userform')?.addEventListener('click', () => this.showUserForm());
     document.getElementById('btn-export')?.addEventListener('click', () => this.exportSerataToSIAE());
     document.getElementById('btn-sync-richieste-google')?.addEventListener('click', () => this.syncRichiesteFromGoogle());
+    document.getElementById('btn-refresh-table')?.addEventListener('click', () => this.refreshTableManually());
     document.getElementById('btn-print')?.addEventListener('click', () => window.print());
     document.getElementById('btn-finish-serata')?.addEventListener('click', () => this.finishSerata());
     document.getElementById('btn-webcam-live-toggle')?.addEventListener('click', () => {
@@ -1146,9 +1249,9 @@ class BorderoTableManager {
 
     const natural = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
     if (this.keepExecutedAtBottom) {
-      const pending = natural.filter(item => !this.isExecutedBrano(item));
-      const executed = natural.filter(item => this.isExecutedBrano(item));
-      this.allBrani = [...pending, ...executed];
+      this.allBrani = typeof partitionExecutedAndSimilar === 'function'
+        ? partitionExecutedAndSimilar(natural).all
+        : natural;
     } else {
       this.allBrani = natural;
     }
@@ -1466,13 +1569,10 @@ class BorderoTableManager {
   }
 
   reorderBraniByOriginalIndex() {
-    const available = this.allBrani
-      .filter(b => String(b.flag || '').toUpperCase() !== 'X')
-      .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
-
-    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
-
-    this.allBrani = [...available, ...completed];
+    const natural = [...this.allBrani].sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
+    this.allBrani = typeof partitionExecutedAndSimilar === 'function'
+      ? partitionExecutedAndSimilar(natural).all
+      : natural;
     // If a sort is active, re-apply it so reorder doesn't wipe user sorting
     if (this.currentSort) {
       const ascending = this.currentSortDirection !== 'desc';
@@ -1488,8 +1588,35 @@ class BorderoTableManager {
     }
   }
 
+  normalizeBranoTitle(value) {
+    if (typeof normalizeExecutedTitle === 'function') {
+      return normalizeExecutedTitle(value);
+    }
+
+    return String(value ?? '')
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+  }
+
   isExecutedBrano(brano) {
+    if (typeof isExecutedTrack === 'function') {
+      return isExecutedTrack(brano);
+    }
+
     return String(brano?.flag || '').toUpperCase() === 'X';
+  }
+
+  isExecutedOrSimilarBrano(brano, collection = this.allBrani) {
+    if (this.isExecutedBrano(brano)) return true;
+
+    const title = this.normalizeBranoTitle(brano?.titolo || brano?.coreografia || brano?.brano || '');
+    if (!title || !Array.isArray(collection)) return false;
+
+    return collection.some((item) => this.isExecutedBrano(item)
+      && this.normalizeBranoTitle(item?.titolo || item?.coreografia || item?.brano || '') === title);
   }
 
   sortCollection(collection, field, ascending) {
@@ -1510,15 +1637,17 @@ class BorderoTableManager {
         : ObjectUtils.sortByField(prioritized, field, ascending);
     }
 
-    const pending = remainingItems.filter(item => !this.isExecutedBrano(item));
+    const pending = remainingItems.filter(item => !this.isExecutedOrSimilarBrano(item, collection));
     const executed = remainingItems.filter(item => this.isExecutedBrano(item));
+    const similar = remainingItems.filter(item => !this.isExecutedBrano(item) && this.isExecutedOrSimilarBrano(item, collection));
 
     const pendingSorted = ObjectUtils.sortByField(pending, field, ascending);
     const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
+    const similarSorted = ObjectUtils.sortByField(similar, field, ascending);
 
     return selectedItem
-      ? [selectedItem, ...pendingSorted, ...executedSorted]
-      : [...pendingSorted, ...executedSorted];
+      ? [selectedItem, ...pendingSorted, ...executedSorted, ...similarSorted]
+      : [...pendingSorted, ...executedSorted, ...similarSorted];
   }
 
   /**
@@ -1555,11 +1684,16 @@ class BorderoTableManager {
   moveExecutedToBottom() {
     logger.info('Spostando i brani eseguiti in fondo alla lista...');
 
-    const executed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
-    const pending = this.allBrani.filter(b => String(b.flag || '').toUpperCase() !== 'X');
-
-    this.allBrani = [...pending, ...executed];
+    if (typeof partitionExecutedAndSimilar === 'function') {
+      this.allBrani = partitionExecutedAndSimilar(this.allBrani).all;
+    } else {
+      const pending = this.allBrani.filter(b => !this.isExecutedOrSimilarBrano(b, this.allBrani));
+      const executed = this.allBrani.filter(b => this.isExecutedBrano(b));
+      const similar = this.allBrani.filter(b => !this.isExecutedBrano(b) && this.isExecutedOrSimilarBrano(b, this.allBrani));
+      this.allBrani = [...pending, ...executed, ...similar];
+    }
     this.keepExecutedAtBottom = true;
+    this.persistExecutedBottomMode();
     this.updateExecutedBottomModeBadge();
     this.currentSort = null;
     this.currentSortDirection = 'asc';
@@ -1583,6 +1717,7 @@ class BorderoTableManager {
     }
 
     this.keepExecutedAtBottom = false;
+    this.persistExecutedBottomMode();
     this.currentSort = null;
     this.currentSortDirection = 'asc';
     this.lastHeaderSortField = null;
@@ -1689,6 +1824,7 @@ class BorderoTableManager {
 
     // Update stats
     this.updateStats();
+    this.persistTableViewSettings();
   }
 
   /**
@@ -1935,6 +2071,8 @@ class BorderoTableManager {
       brano.next_selected = true;
       const title = brano.titolo || brano.coreografia || brano.brano || '';
       this.reorderSelectedNextToTop();
+      // Il brano scelto come NEXT deve restare visibile in cima anche se la selezione avviene dall'ultima pagina.
+      this.currentPage = 1;
       const payload = {
         id: String(brano.id),
         title: title || value || '',
@@ -3124,16 +3262,32 @@ class BorderoTableManager {
     document.getElementById('btn-last-page').disabled = this.currentPage === totalPagesSafe || totalPages <= 1;
   }
 
+  scrollPageToTop() {
+    const scrollBehavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    const scrollingElement = document.scrollingElement || document.documentElement || document.body;
+    const tableWrapper = document.querySelector('.table-wrapper');
+
+    window.scrollTo({ top: 0, behavior: scrollBehavior });
+    scrollingElement?.scrollTo?.({ top: 0, behavior: scrollBehavior });
+    tableWrapper?.scrollTo?.({ top: 0, behavior: scrollBehavior });
+    if (document.body) document.body.scrollTop = 0;
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+  }
+
   goToPage(pageNumber) {
     const totalPages = Math.ceil(this.filteredBrani.length / this.itemsPerPage);
     if (totalPages <= 0) return;
 
     const targetPage = Math.min(Math.max(1, pageNumber), totalPages);
-    if (targetPage === this.currentPage) return;
+    if (targetPage === this.currentPage) {
+      this.scrollPageToTop();
+      return;
+    }
 
     this.currentPage = targetPage;
     this.renderTable();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.scrollPageToTop();
+    this.persistTableViewSettings();
   }
 
   firstPage() {
@@ -3144,7 +3298,8 @@ class BorderoTableManager {
     if (this.currentPage > 1) {
       this.currentPage--;
       this.renderTable();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.scrollPageToTop();
+      this.persistTableViewSettings();
     }
   }
 
@@ -3153,7 +3308,8 @@ class BorderoTableManager {
     if (this.currentPage < totalPages) {
       this.currentPage++;
       this.renderTable();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.scrollPageToTop();
+      this.persistTableViewSettings();
     }
   }
 

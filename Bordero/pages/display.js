@@ -36,6 +36,9 @@ class DisplayMonitor {
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
+    this.lastNextCoreoAnnouncementTimestamp = null;
+    this.nextCoreoAnnouncementTimer = null;
+    this.nextCoreoDisplaySuppressed = false;
     this.executedIds = new Set();
     this.secondaryScreenGuardActive = false;
     this.screenDetails = null;
@@ -62,8 +65,8 @@ class DisplayMonitor {
       this.setupControls();
       this.setupDateTimeClock();
       this.setupNextCoreoSync();
-      this.loadNextCoreo();
-      this.nextCoreoInterval = setInterval(() => this.loadNextCoreo(), 30000);
+      await this.loadNextCoreo({ initialize: true });
+      this.nextCoreoInterval = setInterval(() => this.loadNextCoreo({ announce: true }), 1000);
 
       // Deve restare sul monitor secondario (best effort con fallback UX)
       await this.setupSecondaryMonitorGuard();
@@ -342,6 +345,10 @@ class DisplayMonitor {
   orderRequestedBrani(brani) {
     if (!Array.isArray(brani)) return [];
 
+    if (typeof partitionExecutedAndSimilar === 'function') {
+      return partitionExecutedAndSimilar(brani).all;
+    }
+
     const pending = [];
     const executed = [];
 
@@ -379,6 +386,7 @@ class DisplayMonitor {
 
   isBranoExecuted(brano) {
     if (!brano || typeof brano !== 'object') return false;
+    if (typeof isExecutedTrack === 'function' && isExecutedTrack(brano)) return true;
     const id = this.normalizeBranoIdKey(brano.id);
     if (id && this.executedIds.has(id)) {
       return true;
@@ -681,73 +689,123 @@ class DisplayMonitor {
       if (!el) return;
       const now = new Date();
       const date = now.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const time = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-      el.textContent = `Data: ${date} - Ore: ${time}`;
+      const time = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      el.textContent = `📅 ${date}  🕒 ${time}`;
     };
 
     update();
     if (this.clockInterval) clearInterval(this.clockInterval);
-    this.clockInterval = setInterval(update, 60000);
+    this.clockInterval = setInterval(update, 1000);
   }
 
   setupNextCoreoSync() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== this.nextCoreoSelectionStorageKey) return;
-      this.loadNextCoreo();
+      if (event.newValue === null) {
+        this.nextCoreoDisplaySuppressed = true;
+        this.clearNextCoreoDisplay();
+      } else {
+        this.nextCoreoDisplaySuppressed = false;
+        this.loadNextCoreo({ announce: true });
+      }
     });
 
-    window.addEventListener('bordero:next-coreo-updated', () => {
-      this.loadNextCoreo();
+    window.addEventListener('bordero:next-coreo-updated', (event) => {
+      if (event.detail?.reason === 'completed' || event.detail?.reason === 'deselected') {
+        this.nextCoreoDisplaySuppressed = true;
+        this.clearNextCoreoDisplay();
+        return;
+      }
+      this.nextCoreoDisplaySuppressed = false;
+      this.loadNextCoreo({ announce: true });
     });
 
     this.nextCoreoBroadcastChannel?.addEventListener('message', (event) => {
       if (!event?.data) return;
       if (event.data.type === 'update' && event.data.payload) {
+        this.nextCoreoDisplaySuppressed = false;
         Storage.set(this.nextCoreoSelectionStorageKey, event.data.payload);
       } else if (event.data.type === 'clear') {
+        this.nextCoreoDisplaySuppressed = true;
         Storage.remove(this.nextCoreoSelectionStorageKey);
       }
-      this.loadNextCoreo();
+      if (event.data.type === 'clear') {
+        this.clearNextCoreoDisplay();
+      } else {
+        this.loadNextCoreo({ announce: true });
+      }
     });
   }
 
-  async loadNextCoreo() {
+  clearNextCoreoDisplay() {
+    const target = document.getElementById('next-coreo');
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (target) target.textContent = '--';
+    if (announcementTitle) announcementTitle.textContent = '';
+    if (overlay) {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    if (this.nextCoreoAnnouncementTimer) {
+      clearTimeout(this.nextCoreoAnnouncementTimer);
+      this.nextCoreoAnnouncementTimer = null;
+    }
+  }
+
+  showNextCoreoAnnouncement(title, timestamp) {
+    if (!title) return;
+    const announceId = String(timestamp || title).trim();
+    if (!announceId || announceId === String(this.lastNextCoreoAnnouncementTimestamp)) return;
+
+    const overlay = document.getElementById('next-coreo-announcement');
+    const announcementTitle = document.getElementById('next-coreo-announcement-title');
+    if (!overlay || !announcementTitle) return;
+
+    this.lastNextCoreoAnnouncementTimestamp = announceId;
+    announcementTitle.textContent = title;
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('is-active');
+    void overlay.offsetWidth;
+    overlay.classList.add('is-active');
+
+    if (this.nextCoreoAnnouncementTimer) clearTimeout(this.nextCoreoAnnouncementTimer);
+    this.nextCoreoAnnouncementTimer = setTimeout(() => {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }, 15000);
+  }
+
+  async loadNextCoreo({ announce = false, initialize = false } = {}) {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
+    let title = '';
+    let timestamp = null;
+
     const storedSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
     if (storedSelection && typeof storedSelection === 'object') {
-      const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
-      if (title) {
-        target.textContent = title;
-        return;
-      }
+      title = String(storedSelection.title || storedSelection.nextValue || '').trim();
+      timestamp = storedSelection.timestamp || null;
     }
 
-    const candidates = [
-      '/NextCoreo.csv',
-      `${window.location.origin}/NextCoreo.csv`,
-      `${window.location.origin}/public/NextCoreo.csv`
-    ];
-
-    for (const baseUrl of candidates) {
-      try {
-        const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) continue;
-        const text = (await response.text()).replace(/^\uFEFF/, '').trim();
-        if (!text) continue;
-
-        const firstRow = text.split(/\r?\n/)[0] || '';
-        const cols = firstRow.split(',').map((cell) => String(cell || '').replace(/(^"|"$)/g, '').trim());
-        const nextValue = cols[1] || cols[0] || '--';
-        target.textContent = nextValue || '--';
-        return;
-      } catch (error) {
-        logger.debug('loadNextCoreo failed for candidate', { baseUrl, message: error?.message || error });
-      }
+    if (!title && this.nextCoreoDisplaySuppressed) {
+      this.clearNextCoreoDisplay();
+      return;
     }
 
-    target.textContent = '--';
+    if (title) {
+      target.textContent = title;
+      const effectiveId = String(timestamp || title);
+      if (initialize || !announce) {
+        this.lastNextCoreoAnnouncementTimestamp = effectiveId;
+      }
+      if (announce) {
+        this.showNextCoreoAnnouncement(title, effectiveId);
+      }
+    } else {
+      target.textContent = '--';
+    }
   }
 
   toggleFullscreen() {

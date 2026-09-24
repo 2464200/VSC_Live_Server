@@ -8,15 +8,21 @@ function normalizeTitle(value) {
   const text = String(value ?? '').trim();
   if (!text) return '';
 
+  if (typeof normalizeExecutedTitle === 'function') {
+    return normalizeExecutedTitle(text);
+  }
+
   try {
     return text
       .normalize('NFD')
       .replace(/\p{Diacritic}/gu, '')
       .toLowerCase()
+      .replace(/&/g, ' e ')
+      .replace(/[^a-z0-9]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
   } catch (error) {
-    return text.toLowerCase().replace(/\s+/g, ' ').trim();
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
   }
 }
 
