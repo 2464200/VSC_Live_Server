@@ -1014,7 +1014,7 @@ class BorderoTableManager {
   setupLedDisplayMonitorSync() {
     const applyRoute = (route) => {
       if (!route?.secondaryUpdated) return;
-      const isLedDisplay = String(route.path || '').toLowerCase() === '/led-display/';
+      const isLedDisplay = String(route.path || '').toLowerCase() === '/leddisplay/server/static/index.html';
       localStorage.setItem(this.ledDisplayActiveStorageKey, String(isLedDisplay));
       this.updateRemoteDisplayIndicators();
     };
@@ -1031,7 +1031,7 @@ class BorderoTableManager {
 
     try {
       const result = action === 'enable'
-        ? await window.electronAPI.windowManager.openSecondaryPage({ path: '/led-display/' })
+        ? await window.electronAPI.windowManager.openSecondaryPage({ path: '/LedDisplay/server/static/index.html' })
         : await window.electronAPI.windowManager.restoreSecondaryPage();
 
       if (!result?.success) {

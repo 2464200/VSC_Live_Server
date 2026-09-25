@@ -38,6 +38,15 @@
       font-size: 34px;
     }
 
+    .hero-kicker {
+      color: #ffd29b;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
+
     .hero-card p {
       font-size: 18px;
       color: #f2f2f2;
@@ -73,6 +82,44 @@
       color: #f3f3f3;
     }
 
+    .workflow {
+      border-top: 1px solid rgba(255,255,255,0.12);
+      margin-top: 28px;
+      padding-top: 24px;
+    }
+
+    .workflow h2 {
+      color: #ffb55c;
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    .workflow-list {
+      counter-reset: workflow;
+      display: grid;
+      gap: 12px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .workflow-list li {
+      align-items: center;
+      background: rgba(255,255,255,0.04);
+      border-left: 3px solid #ff7f00;
+      display: flex;
+      gap: 12px;
+      padding: 12px 14px;
+    }
+
+    .workflow-list li::before {
+      color: #ffb55c;
+      content: counter(workflow, decimal-leading-zero);
+      counter-increment: workflow;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
     .cta-row {
       display: flex;
       flex-wrap: wrap;
@@ -91,6 +138,85 @@
       margin-bottom: 20px;
       font-weight: 600;
     }
+
+    @media (min-width: 900px) and (max-height: 900px) {
+      body {
+        padding: 12px 16px;
+      }
+
+      .presentation-shell {
+        padding: 16px 20px;
+      }
+
+      .back-link {
+        margin-bottom: 6px;
+      }
+
+      .hero-card {
+        margin-bottom: 12px;
+        padding: 14px 18px;
+      }
+
+      .hero-kicker {
+        margin-bottom: 3px;
+      }
+
+      .hero-card h1 {
+        font-size: 28px;
+        margin-bottom: 4px;
+      }
+
+      .hero-card p {
+        font-size: 16px;
+      }
+
+      .feature-grid {
+        gap: 10px;
+        margin: 12px 0;
+      }
+
+      .feature-card {
+        padding: 12px;
+      }
+
+      .feature-card h3 {
+        margin-bottom: 5px;
+      }
+
+      .feature-card li {
+        margin-bottom: 3px;
+      }
+
+      .workflow {
+        margin-top: 14px;
+        padding-top: 12px;
+      }
+
+      .workflow h2 {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+
+      .workflow-list {
+        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .workflow-list li {
+        font-size: 14px;
+        gap: 8px;
+        padding: 8px 10px;
+      }
+
+      .cta-row {
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .btn {
+        padding: 9px 14px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -106,43 +232,53 @@
     </nav>
 
     <section class="hero-card">
+      <p class="hero-kicker">Regia digitale per la pista</p>
       <h1>BORDERÒ</h1>
-      <p>Il sistema di gestione che trasforma ogni serata in un’esperienza professionale, elegante e davvero efficace per DJ.</p>
+      <p>La cabina di regia che collega playlist, pista e schermi: controlla la serata in tempo reale e rendi ogni decisione immediatamente visibile.</p>
     </section>
 
     <section class="feature-grid">
       <article class="feature-card">
-        <h3>Perché Borderò fa la differenza</h3>
+        <h3>Regia live, senza attriti</h3>
         <ul>
-          <li>Controllo immediato di brani e coreografie</li>
-          <li>Gestione serata più ordinata e professionale</li>
-          <li>Statistica live per monitorare l’evoluzione</li>
+          <li>Ricerca istantanea, filtri e ordinamento dell'archivio brani</li>
+          <li>Marcatura live dei brani eseguiti con salvataggio automatico</li>
+          <li>Sincronizzazione tra finestre per una regia sempre allineata</li>
         </ul>
       </article>
 
       <article class="feature-card">
-        <h3>Funzionalità principali</h3>
+        <h3>Schermi che lavorano con te</h3>
         <ul>
-          <li>Segnalazione dei brani eseguiti</li>
-          <li>Display esterno e NextCoreo integrati</li>
-          <li>Lista serata, report e riepiloghi</li>
+          <li>Display secondario fullscreen con auto-scroll configurabile</li>
+          <li>Next Coreo a caratteri grandi, aggiornato automaticamente</li>
+          <li>Libreria video coreografie con filtri e playback dedicato</li>
         </ul>
       </article>
 
       <article class="feature-card">
-        <h3>Qualità che distinguono Borderò</h3>
+        <h3>Il dopo serata diventa dato</h3>
         <ul>
-          <li>Velocità e immediatezza</li>
-          <li>Affidabilità in pista</li>
-          <li>Flessibilità per ogni tipo di serata</li>
+          <li>Statistiche su esecuzioni, livelli e coreografi</li>
+          <li>Riepilogo chiaro di brani eseguiti e non eseguiti</li>
+          <li>Sincronizzazione Excel, cache locale e continuita offline</li>
         </ul>
       </article>
     </section>
 
-    <p>BORDERÒ è pensato per chi vuole portare la gestione della propria serata a un livello superiore: più ordinata, più professionale e più coinvolgente per chi ascolta e per chi lavora sul palco.</p>
+    <section class="workflow" aria-labelledby="workflow-title">
+      <h2 id="workflow-title">Una serata, un flusso unico</h2>
+      <ol class="workflow-list">
+        <li>Prepara il tuo archivio da Excel o usa i dati gia disponibili in locale.</li>
+        <li>Gestisci la scaletta dalla tabella principale e registra ogni brano eseguito.</li>
+        <li>Proietta lista e prossimo brano su display dedicati, anche a schermo intero.</li>
+        <li>Chiudi con report e statistiche pronti per leggere davvero la serata.</li>
+      </ol>
+    </section>
 
     <div class="cta-row">
       <a href="bordero.html" class="btn btn-primary">Apri Borderò Principale</a>
+      <a href="display.html" class="btn btn-secondary">Apri il Display</a>
       <a href="risultati.html" class="btn btn-secondary">Vedi i Risultati</a>
     </div>
   </div>
