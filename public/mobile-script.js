@@ -341,16 +341,26 @@ function stripBOM(text) {
 }
 
 /**
- * Estrae il PRIMO VALORE della PRIMA RIGA (cella B1),
- * cioè tutto fino alla prima virgola. Se non c’è virgola, restituisce l’intera riga.
+ * Estrae il valore della PRIMA RIGA (cella A1), con fallback alla vecchia B1.
  * Rimuove eventuali virgolette esterne e spazi superflui.
  */
 function parseFirstValueB1(csvText) {
   const clean = stripBOM(csvText);
   const firstLine = clean.split(/\r?\n/).find(line => line.trim().length > 0) || '';
-  let firstValue = firstLine.split(',')[1] ?? '';
-  firstValue = firstValue.replace(/^"(.*)"$/, '$1').trim();
-  return firstValue;
+  const cells = firstLine.split(',');
+  const normalizeCell = value => String(value ?? '').replace(/^"(.*)"$/, '$1').trim();
+  return normalizeCell(cells[0]) || normalizeCell(cells[1]);
+}
+
+async function readNextCoreoValue() {
+  const response = await fetchWithTimeoutAndRetry(
+    getDataUrl(`NextCoreo.csv?t=${Date.now()}`),
+    { cache: 'no-store' },
+    8000,
+    1
+  );
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return parseFirstValueB1(await response.text());
 }
 
 /**
@@ -367,13 +377,7 @@ async function loadNextCoreo() {
   target.textContent = 'Prossima Coreo: Caricamento...';
 
   try {
-    const url = getDataUrl(`NextCoreo.csv?t=${Date.now()}`);
-    const response = await fetchWithTimeoutAndRetry(url, { cache: 'no-store' }, 8000, 1);
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const text = await response.text();
-    const b1FirstValue = parseFirstValueB1(text);
+    const b1FirstValue = await readNextCoreoValue();
 
     if (b1FirstValue && b1FirstValue.length > 0) {
       const upperValue = b1FirstValue.toUpperCase();
@@ -396,10 +400,7 @@ async function loadNextCoreo() {
 async function aggiornaScrittaRossa() {
   (async () => {
     try {
-      const res = await fetchWithTimeoutAndRetry(getDataUrl(`NextCoreo.csv?t=${Date.now()}`), { cache: 'no-store' }, 8000, 1);
-      const text = await res.text();
-      const rows = text.split(/\r?\n/);
-      const primaCoreo = (rows[0] || '').split(',')[1] || '';
+      const primaCoreo = await readNextCoreoValue();
       const coreoElem = document.getElementById('nextCoreoValue');
       if (coreoElem) {
         const value = (primaCoreo || '').toString().trim();
