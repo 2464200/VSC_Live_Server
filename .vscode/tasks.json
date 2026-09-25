@@ -208,7 +208,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "$ErrorActionPreference = 'Stop'; $branch = (git branch --show-current).Trim(); if ([string]::IsNullOrWhiteSpace($branch)) { throw 'Impossibile determinare il branch corrente.' }; Write-Host \"Branch locale: $branch\"; git status --short --branch; git fetch origin; Write-Host \"Remote verificato: origin/$branch\"; $changes = @(git status --porcelain); if ($changes.Count -gt 0) { $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'; git stash push -u -m \"pre-pull $branch $stamp\"; Write-Host 'Modifiche locali salvate nello stash.' } else { Write-Host 'Nessuna modifica locale da salvare.' }; git pull --ff-only origin $branch; git status --short --branch; git log -1 --oneline --decorate"
+        "$ErrorActionPreference = 'Stop'; $branch = (git branch --show-current).Trim(); if ([string]::IsNullOrWhiteSpace($branch)) { throw 'Impossibile determinare il branch corrente.' }; Write-Host \"Branch locale: $branch\"; git status --short --branch; git fetch --prune origin; Write-Host \"Remote verificato: origin/$branch\"; $changes = @(git status --porcelain); if ($changes.Count -gt 0) { $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'; git stash push -u -m \"pre-pull $branch $stamp\"; Write-Host 'Modifiche locali salvate nello stash.' } else { Write-Host 'Nessuna modifica locale da salvare.' }; git pull --ff-only origin $branch; git status --short --branch; git log -1 --oneline --decorate"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
