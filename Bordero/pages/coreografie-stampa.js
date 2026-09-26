@@ -1,8 +1,3 @@
-const EXCLUDED_COREOGRAFIE_TITLES = new Set([
-  'video promo monster 2023',
-  'audio video tester'
-]);
-
 class CoreografieStampaPage {
   constructor() {
     this.settingsStorageKey = 'bordero_coreografie_stampa_settings';
@@ -279,7 +274,7 @@ class CoreografieStampaPage {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, ' ')
         .toLocaleLowerCase('it-IT');
-      if (EXCLUDED_COREOGRAFIE_TITLES.has(titleKey)) return;
+      if (window.isVideoOnlyBrano?.(titleKey)) return;
       if (seenTitles.has(titleKey)) return;
       seenTitles.add(titleKey);
       const first = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase();

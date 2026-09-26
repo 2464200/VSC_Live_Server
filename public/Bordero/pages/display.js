@@ -272,6 +272,7 @@ class DisplayMonitor {
     serataBrani.forEach((item) => {
       const id = this.normalizeBranoIdKey(item?.id);
       if (!id) return;
+      if (window.isVideoOnlyBrano?.(item)) return;
       if (String(item?.flag || '').toUpperCase() !== 'X') {
         return;
       }
@@ -302,6 +303,7 @@ class DisplayMonitor {
     const fromSerata = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
 
     fromSerata.forEach((brano) => {
+      if (window.isVideoOnlyBrano?.(brano)) return;
       if (String(brano?.flag || '').toUpperCase() === 'X') {
         const key = this.normalizeBranoIdKey(brano.id);
         if (key) ids.add(key);
@@ -310,6 +312,7 @@ class DisplayMonitor {
 
     if (ids.size === 0 && Array.isArray(sourceBrani)) {
       sourceBrani.forEach((brano) => {
+        if (window.isVideoOnlyBrano?.(brano)) return;
         if (String(brano?.flag || '').toUpperCase() === 'X') {
           const key = this.normalizeBranoIdKey(brano.id);
           if (key) ids.add(key);
@@ -375,6 +378,7 @@ class DisplayMonitor {
 
   isBranoExecuted(brano) {
     if (!brano || typeof brano !== 'object') return false;
+    if (window.isVideoOnlyBrano?.(brano)) return false;
     const id = this.normalizeBranoIdKey(brano.id);
     if (id && this.executedIds.has(id)) {
       return true;
@@ -819,9 +823,12 @@ class DisplayMonitor {
     if (storedSelection.source !== 'next-checkbox' || !String(storedSelection.id ?? '').trim()) return '';
 
     const fromPayload = this.getFirstNonEmptyNextCoreoText(storedSelection.title, storedSelection.nextValue);
+    if (window.isVideoOnlyBrano?.(fromPayload)) return '';
     if (fromPayload) return fromPayload;
 
-    const fromId = this.resolveNextCoreoTitleFromBrano(this.findBranoByNextCoreoId(storedSelection.id));
+    const selectedBrano = this.findBranoByNextCoreoId(storedSelection.id);
+    if (window.isVideoOnlyBrano?.(selectedBrano)) return '';
+    const fromId = this.resolveNextCoreoTitleFromBrano(selectedBrano);
     if (fromId) return fromId;
 
     return '';
@@ -876,9 +883,9 @@ class DisplayMonitor {
             if (!line) continue;
             const cols = line.split(',').map((c) => c.replace(/^"+|"+$/g, '').trim());
             if (cols.length < 3) continue;
-            const flag = String(cols[0] || '').toUpperCase().startsWith('X') ? 'X' : '';
             const id = cols[1] || '';
             const titolo = cols[2] || '';
+            const flag = !window.isVideoOnlyBrano?.(titolo) && String(cols[0] || '').toUpperCase().startsWith('X') ? 'X' : '';
             const brano = cols[3] || '';
             const autore = cols[4] || '';
             const coreografo = cols[5] || '';

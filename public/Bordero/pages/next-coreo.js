@@ -99,10 +99,13 @@ class NextCoreoDisplay {
     if (selection && selection.id) {
       nextBrano = braniWithFlags.find(b => String(b.id) === String(selection.id))
         || this.allBrani.find(b => String(b.id) === String(selection.id));
+      if (window.isVideoOnlyBrano?.(nextBrano)) nextBrano = null;
     }
 
     if (!nextBrano) {
-      nextBrano = braniWithFlags.find(b => String(b.flag || '').toUpperCase() !== 'X');
+      nextBrano = braniWithFlags.find((brano) =>
+        String(brano.flag || '').toUpperCase() !== 'X' && !window.isVideoOnlyBrano?.(brano)
+      );
     }
 
     if (!nextBrano) {
@@ -134,6 +137,7 @@ class NextCoreoDisplay {
   }
 
   isBranoExecuted(brano) {
+    if (window.isVideoOnlyBrano?.(brano)) return false;
     return Boolean(brano && (
       brano.flag === 'X' ||
       brano.flag === 'x' ||

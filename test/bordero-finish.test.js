@@ -172,10 +172,21 @@ context.dataLoader = {
 };
 
 const titleVisibilityUtils = fs.readFileSync('Bordero/js/title-visibility-utils.js', 'utf8');
+const videoOnlyBraniUtils = fs.readFileSync('Bordero/js/video-only-brani.js', 'utf8');
 const scriptContent = fs.readFileSync('Bordero/pages/bordero.js', 'utf8');
 vm.createContext(context);
 vm.runInContext(titleVisibilityUtils, context);
+vm.runInContext(videoOnlyBraniUtils, context);
 vm.runInContext(scriptContent, context);
+if (!context.window.isVideoOnlyBrano(' VIDEO  PROMO MONSTER 2023 ')) {
+  throw new Error('Video Promo Monster 2023 was not classified as video-only');
+}
+if (!context.window.isVideoOnlyBrano({ titolo: 'Audio Video Tester' })) {
+  throw new Error('Audio Video Tester was not classified as video-only');
+}
+if (context.window.isVideoOnlyBrano('ordinary choreography')) {
+  throw new Error('A normal choreography was classified as video-only');
+}
 
 const BaseManager = context.BorderoTableManager;
 BaseManager.prototype.init = function initStub() {
@@ -274,6 +285,55 @@ if (numericTitleManager.getActiveNextSelectionId() !== '001') {
   throw new Error('NEXT selection was not restored for equivalent IDs 001 and 1');
 }
 
+const videoOnlyManager = new BaseManager();
+videoOnlyManager.init();
+const videoOnlyBrano = {
+  id: '599',
+  titolo: ' AUDIO   VIDEO TESTER ',
+  flag: 'X',
+  eseguito: true,
+  executed: true,
+  timestamp: 'old-execution',
+  videoclip: true,
+};
+videoOnlyManager.allBrani = [videoOnlyBrano];
+videoOnlyManager.filteredBrani = [...videoOnlyManager.allBrani];
+context.Storage.set('bordero_next_coreo_selection', {
+  id: '599',
+  title: 'AUDIO VIDEO TESTER',
+  source: 'next-checkbox',
+});
+videoOnlyManager.restoreNextCoreoSelection();
+if (context.Storage.get('bordero_next_coreo_selection', null) !== null) {
+  throw new Error('Stale NEXT selection was not cleared for a video-only choreography');
+}
+if (videoOnlyManager.getActiveNextSelectionId() !== null) {
+  throw new Error('Video-only choreography was restored as NEXT');
+}
+
+videoOnlyManager.normalizeVideoOnlyBraniState();
+if (videoOnlyBrano.flag || videoOnlyBrano.eseguito || videoOnlyBrano.executed || videoOnlyBrano.timestamp) {
+  throw new Error('Legacy executed state was not cleared for a video-only choreography');
+}
+videoOnlyManager.toggleNextCoreoSelection('599');
+if (videoOnlyManager.getActiveNextSelectionId() !== null) {
+  throw new Error('Video-only choreography was selectable as NEXT');
+}
+await videoOnlyManager.markAsCompleted('599');
+if (videoOnlyManager.finalizeBranoAsCompleted(videoOnlyBrano) !== false) {
+  throw new Error('Video-only choreography was accepted by completion finalization');
+}
+if (videoOnlyBrano.flag) {
+  throw new Error('Manual completion changed video-only choreography state');
+}
+if (videoOnlyManager.isExecutedBrano(videoOnlyBrano)) {
+  throw new Error('Video-only choreography was counted as executed');
+}
+const videoOnlyRow = videoOnlyManager.createBranoRow(videoOnlyBrano);
+if (!videoOnlyRow.includes('class="videoclip-open"') || videoOnlyRow.includes('videoclip-open is-disabled')) {
+  throw new Error('VideoClip action is not available for a video-only choreography');
+}
+
 const displayScript = fs.readFileSync('Bordero/pages/display.js', 'utf8');
 context.window.addEventListener = () => {};
 vm.runInContext(displayScript, context);
@@ -307,6 +367,26 @@ const displayMonitor = vm.runInContext('Object.create(DisplayMonitor.prototype)'
 displayMonitor.nextCoreoSelectionStorageKey = 'bordero_next_coreo_selection';
 displayMonitor.lastNextCoreoAnnouncementId = null;
 displayMonitor.nextCoreoAnnouncementTimer = null;
+const displayExecutedIds = displayMonitor.buildExecutedIdSet({
+  brani: [
+    { id: '599', titolo: 'AUDIO VIDEO TESTER', flag: 'X' },
+    { id: '601', titolo: 'Ordinary Track', flag: 'X' },
+  ],
+}, []);
+if (displayExecutedIds.has('599') || !displayExecutedIds.has('601')) {
+  throw new Error('Display incorrectly counted a video-only track as executed');
+}
+displayMonitor.executedIds = displayExecutedIds;
+if (displayMonitor.isBranoExecuted({ id: '599', titolo: 'AUDIO VIDEO TESTER', flag: 'X' })) {
+  throw new Error('Display rendered a video-only choreography as executed');
+}
+if (displayMonitor.resolveStoredNextCoreoTitle({
+  id: '599',
+  title: 'AUDIO VIDEO TESTER',
+  source: 'next-checkbox',
+}) !== '') {
+  throw new Error('A video-only choreography was accepted by the NEXT announcement overlay');
+}
 let fallbackFetchCount = 0;
 context.fetch = async () => {
   fallbackFetchCount += 1;
@@ -351,6 +431,55 @@ if (overlayClasses.has('is-active') || overlayAttributes['aria-hidden'] !== 'tru
 if (displayMonitor.nextCoreoAnnouncementTimer !== null || activeTimers.size !== 0) {
   throw new Error('Overlay dismissal did not cancel its pending timeout');
 }
+
+const nextCoreoScript = fs.readFileSync('Bordero/pages/next-coreo.js', 'utf8');
+vm.runInContext(nextCoreoScript, context);
+const nextCoreoDisplay = vm.runInContext('Object.create(NextCoreoDisplay.prototype)', context);
+const videoOnlyNextBrano = { id: '598', titolo: 'VIDEO PROMO MONSTER 2023', flag: '' };
+context.dataLoader._current = { metadata: { dj: 'Test' }, brani: [videoOnlyNextBrano] };
+nextCoreoDisplay.allBrani = [videoOnlyNextBrano];
+nextCoreoDisplay.getSerataMetadata = () => ({ dj: 'Test', data: '', luogo: '', evento: '' });
+nextCoreoDisplay.updateHeader = () => {};
+nextCoreoDisplay.updateStats = () => {};
+let nextPageDisplayedBrano = null;
+nextCoreoDisplay.displayBrano = (brano) => { nextPageDisplayedBrano = brano; };
+nextCoreoDisplay.showEmptyState = () => {};
+nextCoreoDisplay.hasVideoForBrano = async () => false;
+context.Storage.clear();
+await nextCoreoDisplay.refresh();
+if (nextPageDisplayedBrano !== null) {
+  throw new Error('NextCoreo automatically displayed a video-only choreography');
+}
+context.Storage.set('bordero_next_coreo_selection', {
+  id: '598',
+  title: 'VIDEO PROMO MONSTER 2023',
+  source: 'next-checkbox',
+});
+await nextCoreoDisplay.refresh();
+if (nextPageDisplayedBrano !== null) {
+  throw new Error('NextCoreo displayed a stale video-only NEXT selection');
+}
+
+const hiddenTracksScript = fs.readFileSync('Bordero/pages/brani-nascosti.js', 'utf8');
+vm.runInContext(hiddenTracksScript, context);
+const hiddenTracksPage = vm.runInContext('Object.create(BraniNascostiPage.prototype)', context);
+const restoredTrack = { id: '600', titolo: 'Ordinary Track', flag: 'X', timestamp: 'old' };
+const hiddenVideoOnlyTrack = { id: '599', titolo: 'VIDEO PROMO MONSTER 2023', flag: '' };
+const existingNextTrack = { id: '601', titolo: 'Already Selected Track', next_selected: true };
+hiddenTracksPage.brani = [restoredTrack, hiddenVideoOnlyTrack, existingNextTrack];
+hiddenTracksPage.serata = {};
+hiddenTracksPage.render = () => {};
+context.Storage.clear();
+context.Storage.set('bordero_next_coreo_selection', { id: '601', title: 'Already Selected Track', source: 'next-checkbox' });
+hiddenTracksPage.restoreAvailability('600');
+if (context.Storage.get('bordero_next_coreo_selection', null)?.id !== '601' || restoredTrack.next_selected) {
+  throw new Error('Restoring a hidden track implicitly selected NEXT');
+}
+hiddenTracksPage.restoreAvailability('599');
+if (context.Storage.get('bordero_next_coreo_selection', null)?.id !== '601' || hiddenVideoOnlyTrack.next_selected) {
+  throw new Error('A video-only hidden track was selected for NEXT');
+}
+
 context.setTimeout = originalSetTimeout;
 context.clearTimeout = originalClearTimeout;
 
@@ -358,6 +487,9 @@ console.log('TEST PASSED: Executed tracks move to the bottom as expected');
 console.log('TEST PASSED: NEXT selection lifecycle is stable and persisted');
 console.log('TEST PASSED: Leading-zero ID and numeric title are preserved');
 console.log('TEST PASSED: Announcement requires explicit NEXT and dismisses on deselection');
+console.log('TEST PASSED: Video-only tracks cannot be selected or marked executed');
+console.log('TEST PASSED: NextCoreo ignores video-only tracks, including stale selections');
+console.log('TEST PASSED: Display ignores legacy executed flags for video-only tracks');
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;

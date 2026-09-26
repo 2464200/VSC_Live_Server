@@ -38,9 +38,13 @@ class BraniNascostiPage {
         this.brani = this.brani.map((item) => ({ ...item, ...(saved.get(String(item.id)) || {}) }));
       }
       const selection = Storage.get('bordero_next_coreo_selection', null);
-      const selectedId = String(selection?.id || '').trim();
+      const selectedBrano = this.brani.find((item) => String(item.id) === String(selection?.id || ''));
+      const invalidVideoOnlySelection = window.isVideoOnlyBrano?.(selectedBrano)
+        || window.isVideoOnlyBrano?.(selection?.title || selection?.nextValue);
+      if (invalidVideoOnlySelection) Storage.remove('bordero_next_coreo_selection');
+      const selectedId = invalidVideoOnlySelection ? '' : String(selection?.id || '').trim();
       this.brani.forEach((item) => {
-        item.next_selected = selectedId !== '' && String(item.id) === selectedId;
+        item.next_selected = selectedId !== '' && String(item.id) === selectedId && !window.isVideoOnlyBrano?.(item);
       });
       this.hidden = getHiddenBraniByTitle(this.brani, { isExecuted: this.isExecuted.bind(this) });
       this.render();
@@ -50,6 +54,7 @@ class BraniNascostiPage {
   }
 
   isExecuted(brano) {
+    if (window.isVideoOnlyBrano?.(brano)) return false;
     return [brano?.flag, brano?.eseguito, brano?.executed]
       .some((value) => String(value || '').toUpperCase() === 'X' || value === true);
   }
@@ -77,14 +82,17 @@ class BraniNascostiPage {
 
   restoreAvailability(id) {
     const brano = this.brani.find((item) => String(item.id) === String(id));
+    if (window.isVideoOnlyBrano?.(brano)) {
+      Toast.warning('Questa voce si esegue solo dall’icona VideoClip e non puo essere selezionata in NEXT.');
+      this.render();
+      return;
+    }
     if (!brano || this.isExecuted(brano)) return;
-    this.brani.forEach((item) => { item.next_selected = false; });
-    brano.next_selected = true;
+    brano.next_selected = false;
     brano.flag = '';
     brano.timestamp = '';
-    Storage.set('bordero_next_coreo_selection', { id: String(brano.id), title: this.titleOf(brano), nextValue: this.titleOf(brano), timestamp: Date.now() });
     this.persist();
-    Toast.success(`Brano pronto per NEXT: ${this.titleOf(brano)}`);
+    Toast.success(`Brano disponibile: selezionalo in NEXT da Bordero (${this.titleOf(brano)})`);
     window.location.href = 'bordero.html';
   }
 

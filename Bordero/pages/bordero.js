@@ -101,10 +101,12 @@ class BorderoTableManager {
           }
           return brano;
         });
-        this.reorderBraniByOriginalIndex();
       } else {
         this.allBrani = originalBrani;
       }
+
+      this.normalizeVideoOnlyBraniState(currentSerata);
+      this.reorderBraniByOriginalIndex();
 
       await this.refreshVideoClipAvailability();
       this.applyVideoClipAvailabilityToBrani();
@@ -145,12 +147,58 @@ class BorderoTableManager {
     const targetId = String(stored.id || '').trim();
     if (!targetId) return;
 
+    const selectedBrano = this.allBrani.find((item) => this.nextCoreoIdsMatch(item.id, targetId));
+    if (this.isVideoOnlyBrano(selectedBrano) || window.isVideoOnlyBrano?.(stored.title || stored.nextValue)) {
+      Storage.remove('bordero_next_coreo_selection');
+      this.allBrani.forEach((item) => { item.next_selected = false; });
+      this.filteredBrani.forEach((item) => { item.next_selected = false; });
+      return;
+    }
+
     this.allBrani.forEach((item) => {
       item.next_selected = this.nextCoreoIdsMatch(item.id, targetId);
     });
     this.filteredBrani.forEach((item) => {
       item.next_selected = this.nextCoreoIdsMatch(item.id, targetId);
     });
+  }
+
+  isVideoOnlyBrano(brano) {
+    return Boolean(brano && window.isVideoOnlyBrano?.(brano));
+  }
+
+  normalizeVideoOnlyBraniState(currentSerata = null) {
+    let changed = false;
+
+    this.allBrani.forEach((brano) => {
+      if (!this.isVideoOnlyBrano(brano)) return;
+
+      if (
+        String(brano.flag || '').toUpperCase() === 'X' ||
+        brano.eseguito === true ||
+        String(brano.eseguito || '').toUpperCase() === 'X' ||
+        brano.executed === true ||
+        String(brano.executed || '').toUpperCase() === 'X' ||
+        brano.timestamp ||
+        brano.next_selected
+      ) {
+        changed = true;
+      }
+
+      brano.flag = '';
+      brano.eseguito = false;
+      brano.executed = false;
+      brano.timestamp = '';
+      brano.next_selected = false;
+    });
+
+    if (!changed) return;
+
+    Storage.set('BORDERO_BRANI_DATA', this.allBrani);
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
+    if (currentSerata && Array.isArray(currentSerata.brani)) {
+      dataLoader.saveCurrentSerata(currentSerata.metadata || {}, this.allBrani);
+    }
   }
 
   normalizeNextCoreoId(value) {
@@ -1513,8 +1561,9 @@ class BorderoTableManager {
       const updated = updatedMap.get(String(brano.id));
       if (!updated) return brano;
 
-      const updatedFlag = String(updated.flag || '').toUpperCase() === 'X' ? 'X' : '';
-      const updatedTimestamp = updated.timestamp || '';
+      const isVideoOnly = this.isVideoOnlyBrano(brano);
+      const updatedFlag = !isVideoOnly && String(updated.flag || '').toUpperCase() === 'X' ? 'X' : '';
+      const updatedTimestamp = isVideoOnly ? '' : (updated.timestamp || '');
 
       if (updatedFlag !== String(brano.flag || '').toUpperCase() || updatedTimestamp !== (brano.timestamp || '')) {
         changed = true;
@@ -1538,10 +1587,10 @@ class BorderoTableManager {
 
   reorderBraniByOriginalIndex() {
     const available = this.allBrani
-      .filter(b => String(b.flag || '').toUpperCase() !== 'X')
+      .filter(b => !this.isExecutedBrano(b))
       .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
 
-    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
+    const completed = this.allBrani.filter(b => this.isExecutedBrano(b));
 
     this.allBrani = [...available, ...completed];
     // If a sort is active, re-apply it so reorder doesn't wipe user sorting
@@ -1560,6 +1609,7 @@ class BorderoTableManager {
   }
 
   isExecutedBrano(brano) {
+    if (this.isVideoOnlyBrano(brano)) return false;
     return String(brano?.flag || '').toUpperCase() === 'X';
   }
 
@@ -1626,8 +1676,8 @@ class BorderoTableManager {
   moveExecutedToBottom() {
     logger.info('Spostando i brani eseguiti in fondo alla lista...');
 
-    const executed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
-    const pending = this.allBrani.filter(b => String(b.flag || '').toUpperCase() !== 'X');
+    const executed = this.allBrani.filter(b => this.isExecutedBrano(b));
+    const pending = this.allBrani.filter(b => !this.isExecutedBrano(b));
 
     this.allBrani = [...pending, ...executed];
     this.keepExecutedAtBottom = true;
@@ -1873,6 +1923,10 @@ class BorderoTableManager {
 
         if (clickedNextCell) {
           e.stopPropagation();
+          if (this.isVideoOnlyBrano(brano)) {
+            Toast.warning('Questa voce si esegue solo dall’icona VideoClip e non puo essere selezionata in NEXT.');
+            return;
+          }
             if (brano && String(brano.flag || '').toUpperCase() === 'X') {
               Toast.warning('Questo brano non puo essere selezionato in NEXT perche e gia stato eseguito.');
               return;
@@ -1894,6 +1948,10 @@ class BorderoTableManager {
         }
 
         if (clickedFlagCell) {
+          if (this.isVideoOnlyBrano(brano)) {
+            Toast.warning('Questa voce si esegue solo dall’icona VideoClip e non puo essere marcata come eseguita.');
+            return;
+          }
           if (!brano || !brano.next_selected) {
             Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
             return;
@@ -1988,6 +2046,11 @@ class BorderoTableManager {
   toggleNextCoreoSelection(branoId) {
     const brano = this.allBrani.find((item) => String(item.id) === String(branoId));
     if (!brano) return;
+
+    if (this.isVideoOnlyBrano(brano)) {
+      Toast.warning('Questa voce si esegue solo dall’icona VideoClip e non puo essere selezionata in NEXT.');
+      return;
+    }
 
     if (String(brano.flag || '').toUpperCase() === 'X') {
       Toast.warning('NEXT non consentito: il brano e gia stato eseguito.');
@@ -2611,6 +2674,7 @@ class BorderoTableManager {
 
   finalizeBranoAsCompleted(brano, options = {}) {
     if (!brano) return false;
+    if (this.isVideoOnlyBrano(brano)) return false;
     if (String(brano.flag || '').toUpperCase() === 'X') return false;
 
     const wasNextSelected = Boolean(brano.next_selected);
@@ -2989,6 +3053,11 @@ class BorderoTableManager {
     const brano = this.allBrani.find(b => String(b.id) === String(branoId));
     if (!brano) return;
 
+    if (this.isVideoOnlyBrano(brano)) {
+      Toast.warning('Questa voce si esegue solo dall’icona VideoClip e non puo essere marcata come eseguita.');
+      return;
+    }
+
     if (!brano.next_selected) {
       Toast.warning('FLAG non consentito: seleziona prima questo brano in NEXT.');
       return;
@@ -3291,7 +3360,7 @@ class BorderoTableManager {
   updateStats() {
     const total = this.allBrani.length;
     const requested = this.getUniqueRequestedBrani(this.allBrani);
-    const completed = this.allBrani.filter(b => String(b.flag).toUpperCase() === 'X').length;
+    const completed = this.allBrani.filter((brano) => this.isExecutedBrano(brano)).length;
     const pending = total - completed;
     const hidden = typeof getHiddenBraniByTitle === 'function'
       ? getHiddenBraniByTitle(this.allBrani, { isExecuted: (brano) => this.isExecutedBrano(brano) }).length
@@ -3358,7 +3427,7 @@ class BorderoTableManager {
    * Replica la macro VBA: salva UTF-8 in C:\VSC_SIAE e scarica il file generato.
    */
   async exportSerataToSIAE() {
-    const completed = this.allBrani.filter(b => String(b.flag || '').toUpperCase() === 'X');
+    const completed = this.allBrani.filter((brano) => this.isExecutedBrano(brano));
 
     if (completed.length === 0) {
       Toast.warning('Nessun brano eseguito da esportare');
