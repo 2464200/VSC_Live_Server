@@ -2009,6 +2009,7 @@ class BorderoTableManager {
         title: label,
         nextValue: label,
         timestamp: Date.now(),
+        source: 'next-checkbox',
       };
       Storage.set('bordero_next_coreo_selection', payload);
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'update', payload });

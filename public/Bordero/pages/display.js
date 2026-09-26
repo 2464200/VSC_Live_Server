@@ -738,7 +738,21 @@ class DisplayMonitor {
     this.nextCoreoAnnouncementTimer = setTimeout(() => {
       overlay.classList.remove('is-active');
       overlay.setAttribute('aria-hidden', 'true');
+      this.nextCoreoAnnouncementTimer = null;
     }, 15000);
+  }
+
+  hideNextCoreoAnnouncement() {
+    const overlay = document.getElementById('next-coreo-announcement');
+    if (this.nextCoreoAnnouncementTimer) {
+      clearTimeout(this.nextCoreoAnnouncementTimer);
+      this.nextCoreoAnnouncementTimer = null;
+    }
+    if (overlay) {
+      overlay.classList.remove('is-active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    this.lastNextCoreoAnnouncementId = null;
   }
 
   getFirstNonEmptyNextCoreoText(...candidates) {
@@ -802,6 +816,7 @@ class DisplayMonitor {
 
   resolveStoredNextCoreoTitle(storedSelection) {
     if (!storedSelection || typeof storedSelection !== 'object') return '';
+    if (storedSelection.source !== 'next-checkbox' || !String(storedSelection.id ?? '').trim()) return '';
 
     const fromPayload = this.getFirstNonEmptyNextCoreoText(storedSelection.title, storedSelection.nextValue);
     if (fromPayload) return fromPayload;
@@ -818,44 +833,16 @@ class DisplayMonitor {
 
     const storedSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
     const resolvedTitle = this.resolveStoredNextCoreoTitle(storedSelection);
-    if (resolvedTitle) {
-      target.textContent = resolvedTitle;
-      const selectionId = storedSelection?.timestamp || storedSelection?.id || resolvedTitle;
-      if (initialize) this.lastNextCoreoAnnouncementId = String(selectionId);
-      if (announce) this.showNextCoreoAnnouncement(resolvedTitle, selectionId);
+    if (!resolvedTitle) {
+      this.hideNextCoreoAnnouncement();
+      target.textContent = '--';
       return;
     }
 
-    const candidates = [
-      '/NextCoreo.csv',
-      '../../NextCoreo.csv',
-      '../NextCoreo.csv',
-      `${window.location.origin}/NextCoreo.csv`,
-      `${window.location.origin}/public/NextCoreo.csv`
-    ];
-
-    for (const baseUrl of candidates) {
-      try {
-        const response = await fetch(`${baseUrl}?t=${Date.now()}`, { cache: 'no-store' });
-        if (!response.ok) continue;
-        const text = (await response.text()).replace(/^\uFEFF/, '').trim();
-        if (!text) continue;
-
-        const firstRow = text.split(/\r?\n/)[0] || '';
-        const cols = firstRow.split(',').map((cell) => String(cell || '').replace(/(^"|"$)/g, '').trim());
-        const nextValue = this.getFirstNonEmptyNextCoreoText(cols[1], cols[0]);
-        if (!nextValue) continue;
-
-        target.textContent = nextValue;
-        if (initialize) this.lastNextCoreoAnnouncementId = String(nextValue);
-        if (announce) this.showNextCoreoAnnouncement(nextValue, nextValue);
-        return;
-      } catch (error) {
-        logger.debug('loadNextCoreo failed for candidate', { baseUrl, message: error?.message || error });
-      }
-    }
-
-    target.textContent = '--';
+    target.textContent = resolvedTitle;
+    const selectionId = storedSelection.timestamp || storedSelection.id;
+    if (initialize) this.lastNextCoreoAnnouncementId = String(selectionId);
+    if (announce) this.showNextCoreoAnnouncement(resolvedTitle, selectionId);
   }
 
   async loadDisplayCsvData() {

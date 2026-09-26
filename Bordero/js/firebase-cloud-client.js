@@ -151,9 +151,6 @@
 
       // 1. Aggiorna Prossima Coreo
       if (nextCoreo) {
-        if (typeof Storage !== 'undefined' && Storage.set) {
-          Storage.set('bordero_next_coreo_selection', { title: nextCoreo });
-        }
         const nextCoreoEl = document.getElementById('next-coreo');
         if (nextCoreoEl) {
           nextCoreoEl.textContent = nextCoreo;

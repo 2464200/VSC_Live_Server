@@ -10,6 +10,7 @@
     "diagnostic": "node scripts/diagnostic-check.js",
     "test:system": "node test-system.js",
     "test:bordero": "node test/bordero-finish.test.js",
+    "test:navigation": "node test/navigation-window-routing.test.js",
     "build:brani": "node Eventi/sync-brani.js",
     "sync:public": "node scripts/sync-public.js",
     "deploy:firebase": "node scripts/sync-public.js && firebase deploy --only hosting",

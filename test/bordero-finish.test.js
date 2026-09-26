@@ -1,6 +1,7 @@
 const fs = require('fs');
 const vm = require('vm');
 
+(async () => {
 const context = {
   console,
   setTimeout,
@@ -44,6 +45,7 @@ const createElement = () => ({
 });
 
 const elements = {
+  'next-coreo': createElement(),
   'brani-tbody': createElement(),
   'empty-state': createElement(),
   'stat-total': createElement(),
@@ -243,5 +245,120 @@ if (payloadAfterToggleOff !== null) {
   throw new Error('NEXT payload should be removed after deselection');
 }
 
+const numericTitleManager = new BaseManager();
+numericTitleManager.init();
+numericTitleManager.allBrani = [
+  { id: '001', titolo: '101', flag: '', originalIndex: 0 },
+];
+numericTitleManager.filteredBrani = [...numericTitleManager.allBrani];
+context.Storage.clear();
+numericTitleManager.toggleNextCoreoSelection('001');
+
+const numericTitlePayload = context.Storage.get('bordero_next_coreo_selection', null);
+if (!numericTitlePayload || numericTitlePayload.id !== '001') {
+  throw new Error('NEXT payload did not preserve the leading-zero choreography id');
+}
+if (numericTitlePayload.title !== '101' || numericTitlePayload.nextValue !== '101') {
+  throw new Error(`Numeric choreography title was not preserved: ${JSON.stringify(numericTitlePayload)}`);
+}
+
+context.Storage.set('bordero_next_coreo_selection', {
+  id: '1',
+  title: '',
+  nextValue: '',
+});
+numericTitleManager.allBrani[0].next_selected = false;
+numericTitleManager.filteredBrani[0].next_selected = false;
+numericTitleManager.restoreNextCoreoSelection();
+if (numericTitleManager.getActiveNextSelectionId() !== '001') {
+  throw new Error('NEXT selection was not restored for equivalent IDs 001 and 1');
+}
+
+const displayScript = fs.readFileSync('Bordero/pages/display.js', 'utf8');
+context.window.addEventListener = () => {};
+vm.runInContext(displayScript, context);
+
+const overlayClasses = new Set();
+const overlayAttributes = {};
+const announcementOverlay = {
+  classList: {
+    add(name) { overlayClasses.add(name); },
+    remove(name) { overlayClasses.delete(name); },
+  },
+  setAttribute(name, value) { overlayAttributes[name] = value; },
+  get offsetWidth() { return 1; },
+};
+const announcementTitle = { textContent: '' };
+elements['next-coreo-announcement'] = announcementOverlay;
+elements['next-coreo-announcement-title'] = announcementTitle;
+
+const originalSetTimeout = context.setTimeout;
+const originalClearTimeout = context.clearTimeout;
+let nextTimerId = 1;
+const activeTimers = new Set();
+context.setTimeout = () => {
+  const timerId = nextTimerId++;
+  activeTimers.add(timerId);
+  return timerId;
+};
+context.clearTimeout = (timerId) => activeTimers.delete(timerId);
+
+const displayMonitor = vm.runInContext('Object.create(DisplayMonitor.prototype)', context);
+displayMonitor.nextCoreoSelectionStorageKey = 'bordero_next_coreo_selection';
+displayMonitor.lastNextCoreoAnnouncementId = null;
+displayMonitor.nextCoreoAnnouncementTimer = null;
+let fallbackFetchCount = 0;
+context.fetch = async () => {
+  fallbackFetchCount += 1;
+  return { ok: true, text: async () => ',CSV FALLBACK' };
+};
+
+context.Storage.clear();
+await displayMonitor.loadNextCoreo({ announce: true });
+if (overlayClasses.has('is-active') || overlayAttributes['aria-hidden'] !== 'true') {
+  throw new Error('Overlay appeared without an explicit NEXT checkbox selection');
+}
+if (context.document.getElementById('next-coreo').textContent !== '--' || fallbackFetchCount !== 0) {
+  throw new Error('Display used a CSV fallback without an explicit NEXT selection');
+}
+
+context.Storage.set('bordero_next_coreo_selection', { title: '101' });
+await displayMonitor.loadNextCoreo({ announce: true });
+if (overlayClasses.has('is-active')) {
+  throw new Error('Overlay appeared for a cloud-style title without a NEXT checkbox source');
+}
+
+context.Storage.set('bordero_next_coreo_selection', {
+  id: '001',
+  title: '101',
+  nextValue: '101',
+  timestamp: 1001,
+  source: 'next-checkbox',
+});
+await displayMonitor.loadNextCoreo({ announce: true });
+if (!overlayClasses.has('is-active') || overlayAttributes['aria-hidden'] !== 'false') {
+  throw new Error('Overlay did not activate for an explicit NEXT checkbox selection');
+}
+if (announcementTitle.textContent !== '101') {
+  throw new Error(`Overlay showed the wrong numeric title: ${announcementTitle.textContent}`);
+}
+
+context.Storage.remove('bordero_next_coreo_selection');
+await displayMonitor.loadNextCoreo({ announce: true });
+if (overlayClasses.has('is-active') || overlayAttributes['aria-hidden'] !== 'true') {
+  throw new Error('Overlay was not dismissed immediately after NEXT was deselected');
+}
+if (displayMonitor.nextCoreoAnnouncementTimer !== null || activeTimers.size !== 0) {
+  throw new Error('Overlay dismissal did not cancel its pending timeout');
+}
+context.setTimeout = originalSetTimeout;
+context.clearTimeout = originalClearTimeout;
+
 console.log('TEST PASSED: Executed tracks move to the bottom as expected');
 console.log('TEST PASSED: NEXT selection lifecycle is stable and persisted');
+console.log('TEST PASSED: Leading-zero ID and numeric title are preserved');
+console.log('TEST PASSED: Announcement requires explicit NEXT and dismisses on deselection');
+})().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
