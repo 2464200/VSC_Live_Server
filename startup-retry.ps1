@@ -1,6 +1,7 @@
 param(
     [int]$MaxAttempts = 3,
-    [int]$RetryDelaySeconds = 3
+    [int]$RetryDelaySeconds = 3,
+    [switch]$NoWait
 )
 
 $RootPath = $PSScriptRoot
@@ -19,16 +20,19 @@ while ($attempt -lt $MaxAttempts) {
     Write-Host ""
     Write-Host "=== Tentativo $attempt di $MaxAttempts ==="
 
+    $startupArguments = @(
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-WindowStyle',
+        'Hidden',
+        '-File',
+        $StartupScript
+    )
+    if ($NoWait) { $startupArguments += '-NoWait' }
+
     $process = Start-Process -FilePath 'powershell.exe' `
-        -ArgumentList @(
-            '-NoProfile',
-            '-ExecutionPolicy',
-            'Bypass',
-            '-WindowStyle',
-            'Hidden',
-            '-File',
-            $StartupScript
-        ) `
+        -ArgumentList $startupArguments `
         -WorkingDirectory $RootPath `
         -PassThru `
         -Wait

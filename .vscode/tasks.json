@@ -80,6 +80,30 @@
       "group": "build"
     },
     {
+      "label": "avviodaniele",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$ErrorActionPreference = 'Stop'; if (-not (Test-Path '${workspaceFolder}\\node_modules\\firebase-admin\\app')) { Write-Host 'Dipendenze mancanti: eseguo npm install...'; npm install }; & '${workspaceFolder}\\startup-retry.ps1' -NoWait"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
       "label": "Stop All Servers Manually",
       "hide": true,
       "type": "shell",
