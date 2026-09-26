@@ -245,6 +245,49 @@ if (String(nextSelectionManager.allBrani[0].id) !== '3') {
   throw new Error('Expected selected NEXT track to be ordered first after selection');
 }
 
+nextSelectionManager.allBrani = nextSelectionManager.allBrani.map((brano) => ({ ...brano, next_selected: false }));
+nextSelectionManager.filteredBrani = [...nextSelectionManager.allBrani];
+nextSelectionManager.restoreNextCoreoSelection();
+if (nextSelectionManager.getActiveNextSelectionId() !== '3') {
+  throw new Error('NEXT marker was not restored after refreshing the brano list');
+}
+
+const flaggedSelectedBrano = nextSelectionManager.allBrani.find((brano) => brano.id === '3');
+flaggedSelectedBrano.flag = 'X';
+nextSelectionManager.restoreNextCoreoSelection();
+if (nextSelectionManager.getActiveNextSelectionId() !== null) {
+  throw new Error('NEXT marker remained after the selected brano was flagged');
+}
+if (context.Storage.get('bordero_next_coreo_selection', null) !== null) {
+  throw new Error('NEXT storage was not cleared after the selected brano was flagged');
+}
+
+context.Storage.clear();
+nextSelectionManager.allBrani = [
+  { id: '3', titolo: 'C', flag: '', originalIndex: 0 },
+];
+nextSelectionManager.filteredBrani = [...nextSelectionManager.allBrani];
+nextSelectionManager.toggleNextCoreoSelection('3');
+if (!nextSelectionManager.allBrani[0].next_selected) {
+  throw new Error('NEXT selection did not set its marker');
+}
+
+nextSelectionManager.mergeCurrentSerata([
+  { id: '3', titolo: 'C', flag: 'X', timestamp: 'finished' },
+]);
+if (nextSelectionManager.getActiveNextSelectionId() !== null) {
+  throw new Error('NEXT marker remained after a synchronized FLAG update');
+}
+if (context.Storage.get('bordero_next_coreo_selection', null) !== null) {
+  throw new Error('NEXT storage remained after a synchronized FLAG update');
+}
+
+context.Storage.clear();
+nextSelectionManager.allBrani = [
+  { id: '3', titolo: 'C', flag: '', originalIndex: 0 },
+];
+nextSelectionManager.filteredBrani = [...nextSelectionManager.allBrani];
+nextSelectionManager.toggleNextCoreoSelection('3');
 nextSelectionManager.toggleNextCoreoSelection('3');
 const selectedAfterToggleOff = nextSelectionManager.getActiveNextSelectionId();
 const payloadAfterToggleOff = context.Storage.get('bordero_next_coreo_selection', null);

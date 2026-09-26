@@ -17,7 +17,7 @@
   },
   "/bordero/pages/brani-eseguiti.html": {
     "primary": true,
-    "secondary": true
+    "secondary": false
   },
   "/bordero/pages/brani-nascosti.html": {
     "primary": true,

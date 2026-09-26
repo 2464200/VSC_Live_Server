@@ -148,7 +148,11 @@ class BorderoTableManager {
     if (!targetId) return;
 
     const selectedBrano = this.allBrani.find((item) => this.nextCoreoIdsMatch(item.id, targetId));
-    if (this.isVideoOnlyBrano(selectedBrano) || window.isVideoOnlyBrano?.(stored.title || stored.nextValue)) {
+    if (
+      this.isVideoOnlyBrano(selectedBrano) ||
+      window.isVideoOnlyBrano?.(stored.title || stored.nextValue) ||
+      this.isExecutedBrano(selectedBrano)
+    ) {
       Storage.remove('bordero_next_coreo_selection');
       this.allBrani.forEach((item) => { item.next_selected = false; });
       this.filteredBrani.forEach((item) => { item.next_selected = false; });
@@ -736,6 +740,7 @@ class BorderoTableManager {
       this.applyVideoClipAvailabilityToBrani();
 
       this.filteredBrani = [...this.allBrani];
+      this.restoreNextCoreoSelection();
       this.currentPage = 1;
       await this.populateDJSelect();
       await this.setupLocationPicker();
@@ -1576,6 +1581,7 @@ class BorderoTableManager {
       return brano;
     });
 
+    this.restoreNextCoreoSelection();
     if (!changed) return;
 
     this.reorderBraniByOriginalIndex();
