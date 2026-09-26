@@ -741,20 +741,89 @@ class DisplayMonitor {
     }, 15000);
   }
 
+  getFirstNonEmptyNextCoreoText(...candidates) {
+    for (const candidate of candidates) {
+      if (candidate === null || candidate === undefined) continue;
+      const text = String(candidate).trim();
+      if (text && text !== '--') return text;
+    }
+    return '';
+  }
+
+  normalizeNextCoreoId(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+    if (/^\d+$/.test(raw)) {
+      return String(Number(raw));
+    }
+    return raw.toLowerCase();
+  }
+
+  nextCoreoIdsMatch(left, right) {
+    const leftRaw = String(left ?? '').trim();
+    const rightRaw = String(right ?? '').trim();
+    if (!leftRaw || !rightRaw) return false;
+    if (leftRaw === rightRaw) return true;
+
+    return this.normalizeNextCoreoId(leftRaw) === this.normalizeNextCoreoId(rightRaw);
+  }
+
+  resolveNextCoreoTitleFromBrano(brano) {
+    if (!brano || typeof brano !== 'object') return '';
+
+    return this.getFirstNonEmptyNextCoreoText(
+      brano.titolo,
+      brano.coreografia,
+      brano.brano,
+      brano.next_coreo,
+      brano.nextCoreo,
+      brano['next coreo']
+    );
+  }
+
+  findBranoByNextCoreoId(targetId) {
+    const normalizedTargetId = String(targetId ?? '').trim();
+    if (!normalizedTargetId) return null;
+
+    const collections = [
+      this.allBrani,
+      this.displayCsvBrani,
+      dataLoader?.getCurrentSerata?.()?.brani
+    ];
+
+    for (const collection of collections) {
+      if (!Array.isArray(collection)) continue;
+      const match = collection.find((item) => this.nextCoreoIdsMatch(item?.id, normalizedTargetId));
+      if (match) return match;
+    }
+
+    return null;
+  }
+
+  resolveStoredNextCoreoTitle(storedSelection) {
+    if (!storedSelection || typeof storedSelection !== 'object') return '';
+
+    const fromPayload = this.getFirstNonEmptyNextCoreoText(storedSelection.title, storedSelection.nextValue);
+    if (fromPayload) return fromPayload;
+
+    const fromId = this.resolveNextCoreoTitleFromBrano(this.findBranoByNextCoreoId(storedSelection.id));
+    if (fromId) return fromId;
+
+    return '';
+  }
+
   async loadNextCoreo({ announce = false, initialize = false } = {}) {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
     const storedSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
-    if (storedSelection && typeof storedSelection === 'object') {
-      const title = String(storedSelection.title || storedSelection.nextValue || '').trim();
-      if (title) {
-        target.textContent = title;
-        const selectionId = storedSelection.timestamp || title;
-        if (initialize) this.lastNextCoreoAnnouncementId = String(selectionId);
-        if (announce) this.showNextCoreoAnnouncement(title, selectionId);
-        return;
-      }
+    const resolvedTitle = this.resolveStoredNextCoreoTitle(storedSelection);
+    if (resolvedTitle) {
+      target.textContent = resolvedTitle;
+      const selectionId = storedSelection?.timestamp || storedSelection?.id || resolvedTitle;
+      if (initialize) this.lastNextCoreoAnnouncementId = String(selectionId);
+      if (announce) this.showNextCoreoAnnouncement(resolvedTitle, selectionId);
+      return;
     }
 
     const candidates = [
@@ -774,9 +843,11 @@ class DisplayMonitor {
 
         const firstRow = text.split(/\r?\n/)[0] || '';
         const cols = firstRow.split(',').map((cell) => String(cell || '').replace(/(^"|"$)/g, '').trim());
-        const nextValue = cols[1] || cols[0] || '--';
-        target.textContent = nextValue || '--';
-        if (initialize) this.lastNextCoreoAnnouncementId = String(nextValue || '');
+        const nextValue = this.getFirstNonEmptyNextCoreoText(cols[1], cols[0]);
+        if (!nextValue) continue;
+
+        target.textContent = nextValue;
+        if (initialize) this.lastNextCoreoAnnouncementId = String(nextValue);
         if (announce) this.showNextCoreoAnnouncement(nextValue, nextValue);
         return;
       } catch (error) {

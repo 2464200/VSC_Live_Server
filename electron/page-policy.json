@@ -209,7 +209,7 @@
   },
   "/userform/pages/qrcode.html": {
     "primary": true,
-    "secondary": false
+    "secondary": true
   },
   "/userform/pages/servizio-logo.html": {
     "primary": true,

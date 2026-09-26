@@ -146,11 +146,51 @@ class BorderoTableManager {
     if (!targetId) return;
 
     this.allBrani.forEach((item) => {
-      item.next_selected = String(item.id) === targetId;
+      item.next_selected = this.nextCoreoIdsMatch(item.id, targetId);
     });
     this.filteredBrani.forEach((item) => {
-      item.next_selected = String(item.id) === targetId;
+      item.next_selected = this.nextCoreoIdsMatch(item.id, targetId);
     });
+  }
+
+  normalizeNextCoreoId(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+    if (/^\d+$/.test(raw)) {
+      return String(Number(raw));
+    }
+    return raw.toLowerCase();
+  }
+
+  nextCoreoIdsMatch(left, right) {
+    const leftRaw = String(left ?? '').trim();
+    const rightRaw = String(right ?? '').trim();
+    if (!leftRaw || !rightRaw) return false;
+    if (leftRaw === rightRaw) return true;
+
+    return this.normalizeNextCoreoId(leftRaw) === this.normalizeNextCoreoId(rightRaw);
+  }
+
+  getFirstNonEmptyNextCoreoValue(...candidates) {
+    for (const candidate of candidates) {
+      if (candidate === null || candidate === undefined) continue;
+      const text = String(candidate).trim();
+      if (text) return text;
+    }
+    return '';
+  }
+
+  getNextCoreoLabelForBrano(brano) {
+    if (!brano || typeof brano !== 'object') return '';
+
+    return this.getFirstNonEmptyNextCoreoValue(
+      brano.titolo,
+      brano.coreografia,
+      brano.next_coreo,
+      brano.nextCoreo,
+      brano['next coreo'],
+      brano.brano
+    );
   }
 
   getStoredSerataMeta() {
@@ -1955,7 +1995,7 @@ class BorderoTableManager {
     }
 
     const isAlreadySelected = Boolean(brano.next_selected);
-    const value = brano.next_coreo || brano.nextCoreo || brano['next coreo'] || brano.titolo || brano.coreografia || brano.brano || '';
+    const label = this.getNextCoreoLabelForBrano(brano);
 
     this.allBrani.forEach((item) => {
       item.next_selected = false;
@@ -1963,19 +2003,18 @@ class BorderoTableManager {
 
     if (!isAlreadySelected) {
       brano.next_selected = true;
-      const title = brano.titolo || brano.coreografia || brano.brano || '';
       this.reorderSelectedNextToTop();
       const payload = {
         id: String(brano.id),
-        title: title || value || '',
-        nextValue: value,
+        title: label,
+        nextValue: label,
         timestamp: Date.now(),
       };
       Storage.set('bordero_next_coreo_selection', payload);
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'update', payload });
       window.dispatchEvent(new Event('bordero:next-coreo-updated'));
-      this.publishNextCoreoToCloud(payload.title);
-      Toast.success(`NEXT selezionato: ${title || brano.id}`);
+      this.publishNextCoreoToCloud(label);
+      Toast.success(`NEXT selezionato: ${label || brano.id}`);
     } else {
       Storage.remove('bordero_next_coreo_selection');
       this.nextCoreoBroadcastChannel?.postMessage({ type: 'clear' });
@@ -1990,11 +2029,12 @@ class BorderoTableManager {
 
   async publishNextCoreoToCloud(nextCoreo) {
     try {
+      const normalizedNextCoreo = this.getFirstNonEmptyNextCoreoValue(nextCoreo, '--') || '--';
       const response = await fetch('/api/bordero/cloud-sync-state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nextCoreo: String(nextCoreo || '--').trim() || '--',
+          nextCoreo: normalizedNextCoreo,
           serata: this.serata || {},
           brani: this.allBrani || []
         })
@@ -3400,7 +3440,7 @@ class BorderoTableManager {
 
     try {
       const nextSelection = Storage.get('bordero_next_coreo_selection', null);
-      const nextCoreo = String(nextSelection?.title || nextSelection?.nextValue || '--').trim() || '--';
+      const nextCoreo = this.getFirstNonEmptyNextCoreoValue(nextSelection?.title, nextSelection?.nextValue, '--') || '--';
       const response = await fetch('/api/bordero/cloud-sync-state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
