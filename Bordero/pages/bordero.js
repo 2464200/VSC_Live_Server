@@ -779,6 +779,9 @@ class BorderoTableManager {
     document.getElementById('btn-view-hidden')?.addEventListener('click', () => {
       window.location.href = 'brani-nascosti.html';
     });
+    document.getElementById('btn-view-preselected')?.addEventListener('click', () => {
+      window.location.href = 'dj-preselezione.html';
+    });
 
     // Filter buttons
     this.bindFilterPopupButton('btn-filter-coreografia', 'info_livello', 'LIVELLO');
@@ -1526,6 +1529,10 @@ class BorderoTableManager {
 
   setupStorageSync() {
     window.addEventListener('storage', (event) => {
+      if (event.key === 'bordero.dj-preselezione.v1') {
+        this.updatePreselectedCount();
+        return;
+      }
       if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
 
       const currentSerata = dataLoader.getCurrentSerata();
@@ -1549,13 +1556,16 @@ class BorderoTableManager {
       this.mergeCurrentSerata(currentSerata.brani);
     };
 
-    window.addEventListener('focus', refreshFromSerata);
-    window.addEventListener('pageshow', refreshFromSerata);
+    const refreshPreselection = () => this.updatePreselectedCount();
+    window.addEventListener('focus', () => { refreshFromSerata(); refreshPreselection(); });
+    window.addEventListener('pageshow', () => { refreshFromSerata(); refreshPreselection(); });
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         refreshFromSerata();
+        refreshPreselection();
       }
     });
+    this.updatePreselectedCount();
   }
 
   mergeCurrentSerata(updatedBrani) {
@@ -3380,12 +3390,26 @@ class BorderoTableManager {
     if (hiddenEl) hiddenEl.textContent = hidden;
     const hiddenBadge = document.getElementById('hidden-count-badge');
     if (hiddenBadge) hiddenBadge.textContent = `(${hidden})`;
+    this.updatePreselectedCount();
     this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
 
     window.dispatchEvent(new CustomEvent('bordero:stats-updated', {
       detail: { total, requested: requested.length, completed, pending, hidden }
     }));
+  }
+
+  updatePreselectedCount() {
+    const badge = document.getElementById('preselected-count-badge');
+    if (!badge) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem('bordero.dj-preselezione.v1') || 'null');
+      const active = saved?.playlists?.find((playlist) => playlist.id === saved.selectedPlaylistId);
+      badge.textContent = `(${Array.isArray(active?.tracks) ? active.tracks.length : 0})`;
+    } catch (error) {
+      logger.warn('Impossibile aggiornare il conteggio dei brani preselezionati', error);
+      badge.textContent = '(0)';
+    }
   }
 
   updateRichiesteAlertState() {

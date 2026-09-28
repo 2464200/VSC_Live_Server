@@ -236,6 +236,28 @@
   letter-spacing: 1px;
 }
 
+.preselected-playlist-shortcut {
+  align-items: stretch;
+  background: rgba(255, 127, 0, 0.08);
+  border: 1px solid rgba(255, 127, 0, 0.45);
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 3px;
+  padding: 5px;
+}
+
+.preselected-playlist-shortcut > span {
+  color: #ffb347;
+  font-size: 0.68em;
+  font-weight: 700;
+}
+
+.preselected-playlist-shortcut .btn {
+  width: 100%;
+}
+
 .search-group {
   display: flex;
   flex-direction: column;

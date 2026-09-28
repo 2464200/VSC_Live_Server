@@ -15,6 +15,10 @@
     "primary": true,
     "secondary": false
   },
+  "/bordero/pages/dj-preselezione.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/bordero/pages/brani-eseguiti.html": {
     "primary": true,
     "secondary": false
