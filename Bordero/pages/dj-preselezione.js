@@ -3,6 +3,7 @@
 
   const STORAGE_KEY = 'bordero.dj-preselezione.v1';
   const ITEMS_PER_PAGE = 50;
+  const AUTO_REFRESH_INTERVAL_MS = 15000;
   const VDJ_BASE_URLS = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
   const nextCoreoChannel = typeof BroadcastChannel !== 'undefined'
     ? new BroadcastChannel('bordero-next-coreo')
@@ -15,7 +16,6 @@
     newPlaylistForm: document.getElementById('new-playlist-form'),
     newPlaylistName: document.getElementById('new-playlist-name'),
     cancelNewPlaylistButton: document.getElementById('btn-cancel-new-playlist'),
-    exportButton: document.getElementById('btn-export-m3u'),
     refreshButton: document.getElementById('btn-refresh-archive'),
     archiveStatus: document.getElementById('archive-status'),
     actionStatus: document.getElementById('action-status'),
@@ -43,6 +43,7 @@
   let currentFilters = {};
   let activeFilterField = null;
   let savedState = loadSavedState();
+  let archiveRefreshInProgress = false;
 
   function createId() {
     return globalThis.crypto?.randomUUID?.() || `list-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -247,6 +248,13 @@
 
   function isTrackExecuted(track) {
     return !window.isVideoOnlyBrano?.(track) && String(track?.flag || '').toUpperCase() === 'X';
+  }
+
+  function hasSameTrackData(left, right) {
+    const leftKeys = Object.keys(left || {});
+    const rightKeys = Object.keys(right || {});
+    return leftKeys.length === rightKeys.length
+      && rightKeys.every((key) => Object.prototype.hasOwnProperty.call(left, key) && Object.is(left[key], right[key]));
   }
 
   function moveExecutedTracksToBottom(playlist) {
@@ -506,46 +514,6 @@
     renderSelection();
     setActionStatus(`Creata la lista “${cleanName}”.`, 'success');
     return true;
-  }
-
-  async function exportPlaylist() {
-    const playlist = currentPlaylist();
-    if (!playlist?.tracks.length) {
-      setActionStatus('Aggiungi almeno un brano prima di esportare.', 'error');
-      return;
-    }
-    elements.exportButton.disabled = true;
-    setActionStatus('Associazione dei brani ai file audio in corso...');
-    try {
-      const lines = ['#EXTM3U'];
-      const unmatched = [];
-      for (const track of playlist.tracks) {
-        try {
-          const match = await resolveAudioFile(track);
-          const title = displayNameOf(track).replace(/[\r\n,]/g, ' ').trim();
-          lines.push(`#EXTINF:-1,${title}`);
-          lines.push(match.fullPath);
-        } catch (_) {
-          unmatched.push(displayNameOf(track));
-        }
-      }
-      if (lines.length === 1) throw new Error('Nessun brano della lista è associabile a un file audio.');
-      const safeName = playlist.name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim() || 'Preselezione';
-      const blob = new Blob([`\uFEFF${lines.join('\r\n')}\r\n`], { type: 'audio/x-mpegurl;charset=utf-8' });
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = `${safeName}.m3u8`;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(objectUrl);
-      setActionStatus(`Esportati ${lines.length - 1} brani${unmatched.length ? `; non associati: ${unmatched.length}` : ''}.`, unmatched.length ? 'error' : 'success');
-    } catch (error) {
-      setActionStatus(error?.message || String(error), 'error');
-    } finally {
-      elements.exportButton.disabled = false;
-    }
   }
 
   async function resolveAudioFile(track) {
@@ -822,10 +790,12 @@
     }
   }
 
-  async function refreshArchive() {
-    setArchiveStatus('Lettura del database Borderò...');
+  async function refreshArchive({ silent = false, initialize = !silent } = {}) {
+    if (archiveRefreshInProgress) return;
+    archiveRefreshInProgress = true;
+    if (!silent) setArchiveStatus('Lettura del database Borderò...');
     try {
-      await dataLoader.initialize(false);
+      if (initialize) await dataLoader.initialize(false);
       const loadedTracks = await dataLoader.loadBrani({ silent: true });
       const currentSerata = dataLoader.getCurrentSerata();
       const executedMap = new Map((currentSerata?.brani || []).map((item) => [String(item.id), item]));
@@ -850,8 +820,9 @@
             const id = String(selected.branoId || selected.id || '');
             const brano = byId.get(id);
             if (!brano) return null;
-            if (selected.brano !== brano) changed = true;
-            return { id, branoId: id, deck: Number(selected.deck) === 2 ? 2 : 1, brano: { ...brano } };
+            const unchanged = hasSameTrackData(selected.brano, brano);
+            if (!unchanged) changed = true;
+            return { id, branoId: id, deck: Number(selected.deck) === 2 ? 2 : 1, brano: unchanged ? selected.brano : { ...brano } };
           })
           .filter(Boolean);
         if (updatedTracks.length !== playlist.tracks.length) changed = true;
@@ -859,13 +830,15 @@
         if (moveExecutedTracksToBottom(playlist)) changed = true;
       });
       if (changed) saveState();
-      currentPage = 1;
-      setArchiveStatus(`${archiveTracks.length} brani nel database · ${BORDERO_CONFIG.CSV_BRANI}`, 'success');
-      renderSelection();
+      if (!silent) currentPage = 1;
+      if (!silent) setArchiveStatus(`${archiveTracks.length} brani nel database · ${BORDERO_CONFIG.CSV_BRANI}`, 'success');
+      if (changed || !silent) renderSelection();
+      else renderArchive();
     } catch (error) {
-      archiveTracks = [];
-      renderArchive();
-      setArchiveStatus(`Errore caricamento database Borderò: ${error?.message || error}`, 'error');
+      if (!archiveTracks.length) renderArchive();
+      setArchiveStatus(`Aggiornamento database Borderò non riuscito: ${error?.message || error}`, 'error');
+    } finally {
+      archiveRefreshInProgress = false;
     }
   }
 
@@ -1037,11 +1010,17 @@
     renderArchive();
     elements.archiveList.scrollTop = 0;
   });
-  elements.exportButton.addEventListener('click', exportPlaylist);
   elements.refreshButton.addEventListener('click', refreshArchive);
   renderPlaylistPicker();
   renderSelection();
   refreshArchive();
+  window.setInterval(() => {
+    if (document.visibilityState === 'visible') refreshArchive({ silent: true });
+  }, AUTO_REFRESH_INTERVAL_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshArchive({ silent: true });
+  });
+  window.addEventListener('focus', () => refreshArchive({ silent: true }));
   window.addEventListener('storage', (event) => {
     if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) syncSelectionExecutionState();
     if (event.key === 'bordero_next_coreo_selection') renderSelection();
