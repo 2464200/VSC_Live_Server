@@ -729,6 +729,13 @@
         source: 'dj-preselezione'
       };
       Storage.set('bordero_next_coreo_selection', payload);
+      const playlist = currentPlaylist();
+      const selectedTrackIndex = playlist?.tracks.findIndex((item) => String(item.branoId || item.id) === trackId) ?? -1;
+      if (selectedTrackIndex > 0) {
+        const [selectedTrack] = playlist.tracks.splice(selectedTrackIndex, 1);
+        playlist.tracks.unshift(selectedTrack);
+        saveState();
+      }
       nextCoreoChannel?.postMessage({ type: 'update', payload });
       nextCoreo = label || '--';
       setActionStatus(`${displayNameOf(track)} selezionato come prossimo brano.`, 'success');
