@@ -756,12 +756,58 @@
       if (changed) saveState();
       currentPage = 1;
       setArchiveStatus(`${archiveTracks.length} brani nel database · ${BORDERO_CONFIG.CSV_BRANI}`, 'success');
-      renderArchive();
+      renderSelection();
     } catch (error) {
       archiveTracks = [];
       renderArchive();
       setArchiveStatus(`Errore caricamento database Borderò: ${error?.message || error}`, 'error');
     }
+  }
+
+  function syncSelectionExecutionState() {
+    const currentSerata = dataLoader.getCurrentSerata();
+    if (!Array.isArray(currentSerata?.brani)) return;
+
+    const savedById = new Map(currentSerata.brani.map((track) => [String(track.id), track]));
+    let archiveChanged = false;
+    archiveTracks = archiveTracks.map((track) => {
+      const saved = savedById.get(String(track.id));
+      if (!saved || !Object.prototype.hasOwnProperty.call(saved, 'flag')) return track;
+
+      const isExecuted = String(saved.flag || '').toUpperCase() === 'X' && !window.isVideoOnlyBrano?.(track);
+      const updated = {
+        ...track,
+        flag: isExecuted ? 'X' : '',
+        eseguito: isExecuted ? 'X' : '',
+        executed: isExecuted,
+        timestamp: isExecuted ? saved.timestamp || '' : ''
+      };
+      if (
+        String(track.flag || '').toUpperCase() !== updated.flag ||
+        String(track.timestamp || '') !== updated.timestamp ||
+        Boolean(track.executed) !== updated.executed
+      ) archiveChanged = true;
+      return updated;
+    });
+
+    const tracksById = new Map(archiveTracks.map((track) => [String(track.id), track]));
+    let selectionChanged = false;
+    savedState.playlists.forEach((playlist) => {
+      playlist.tracks = playlist.tracks.map((selected) => {
+        const updated = tracksById.get(String(selected.branoId || selected.id));
+        if (!updated) return selected;
+        const previous = selected.brano || {};
+        if (
+          String(previous.flag || '').toUpperCase() !== String(updated.flag || '').toUpperCase() ||
+          String(previous.timestamp || '') !== String(updated.timestamp || '') ||
+          Boolean(previous.executed) !== Boolean(updated.executed)
+        ) selectionChanged = true;
+        return { ...selected, brano: { ...previous, ...updated } };
+      });
+    });
+
+    if (selectionChanged) saveState();
+    if (archiveChanged || selectionChanged) renderSelection();
   }
 
   elements.playlistSelect.addEventListener('change', () => {
@@ -888,6 +934,7 @@
   renderSelection();
   refreshArchive();
   window.addEventListener('storage', (event) => {
-    if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) refreshArchive();
+    if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) syncSelectionExecutionState();
   });
+  window.addEventListener('bordero:serata-updated', syncSelectionExecutionState);
 })();
