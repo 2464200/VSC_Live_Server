@@ -445,6 +445,10 @@ $existingPort = Find-ActiveUnifiedPort
 if ($existingPort) {
     $UnifiedPort = $existingPort
     Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
+    if ($NoWait) {
+        Write-Host "Avvio rapido completato: salto le operazioni opzionali post-avvio."
+        exit 0
+    }
     Write-Host ""
     Write-Host "Generazione dati report..."
     try {
@@ -483,6 +487,11 @@ if ($processId) { $startedPids += $processId }
 $syncProcessId = $null
 if ($syncProcessId) { $startedPids += $syncProcessId }
 Save-Pids -Pids $startedPids
+
+if ($NoWait) {
+    Write-Host "Avvio rapido completato: server unificato pronto sulla porta $UnifiedPort."
+    exit 0
+}
 
 Invoke-WebcamProfiling -Port $UnifiedPort
 

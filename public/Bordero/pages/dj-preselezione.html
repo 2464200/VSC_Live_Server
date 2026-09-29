@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171717" />
+  <title>BORDERÒ - Preselezione DJ</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="bordero.css" />
+  <link rel="stylesheet" href="dj-preselezione.css" />
+  <script src="../assets/lib/xlsx.min.js"></script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-file-manager.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="../js/title-visibility-utils.js"></script>
+  <script defer src="../js/video-only-brani.js"></script>
+  <script defer src="dj-preselezione.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <p class="preselect-kicker">BORDERÒ / LIBRERIA DJ</p>
+        <h1 class="app-title">Preselezione DJ</h1>
+        <p class="app-subtitle">La tua selezione, pronta per la serata</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb" aria-label="Percorso">
+      <a href="../index.html">BORDERÒ</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Preselezione DJ</span>
+    </nav>
+
+    <main class="preselect-app">
+      <section class="preselect-toolbar" aria-label="Comandi playlist">
+        <div class="playlist-picker">
+          <label for="playlist-select">Lista attiva</label>
+          <select id="playlist-select" aria-label="Seleziona lista"></select>
+          <button id="btn-new-playlist" class="preselect-button preselect-button-quiet" type="button" title="Crea una lista">+</button>
+          <button id="btn-delete-playlist" class="preselect-button preselect-button-quiet" type="button" title="Elimina la lista attiva">Elimina</button>
+        </div>
+
+        <form id="new-playlist-form" class="new-playlist-form" hidden>
+          <label class="sr-only" for="new-playlist-name">Nome della nuova lista</label>
+          <input id="new-playlist-name" type="text" maxlength="60" placeholder="Nome lista" autocomplete="off" />
+          <button class="preselect-button preselect-button-primary" type="submit">Crea</button>
+          <button id="btn-cancel-new-playlist" class="preselect-button preselect-button-quiet" type="button">Annulla</button>
+        </form>
+
+        <div class="toolbar-actions">
+          <button id="btn-refresh-archive" class="preselect-button preselect-button-quiet" type="button" title="Aggiorna l'archivio">Aggiorna</button>
+        </div>
+      </section>
+
+      <p id="archive-status" class="archive-status" role="status" aria-live="polite">Caricamento database Borderò...</p>
+      <p id="action-status" class="action-status" role="status" aria-live="polite"></p>
+
+      <div class="preselect-columns">
+        <section class="preselect-panel archive-panel" aria-labelledby="archive-heading">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-eyebrow">DATABASE BORDERÒ</p>
+              <h2 id="archive-heading">Elenco completo brani</h2>
+            </div>
+            <div class="panel-counts" aria-label="Totale e brani disponibili">
+              <span id="archive-count" class="panel-count">0 totali</span>
+              <span id="archive-available-count" class="panel-count panel-count-available">0 disponibili</span>
+            </div>
+          </div>
+
+          <div class="catalog-controls">
+            <div class="catalog-control-group">
+              <h3>COMANDI SORT</h3>
+              <div class="catalog-button-row">
+                <button id="btn-sort-id" class="btn btn-sort" type="button">ORDINA PER ID</button>
+                <button id="btn-sort-coreografo" class="btn btn-sort" type="button">ORDINA PER COREOGRAFO</button>
+                <button id="btn-sort-autore" class="btn btn-sort" type="button">ORDINA PER AUTORE</button>
+                <button id="btn-sort-richieste" class="btn btn-sort" type="button">ORDINA PER RICHIESTE</button>
+                <button id="btn-sort-selected" class="btn btn-sort" type="button">ORDINA PER SELEZIONATI</button>
+              </div>
+            </div>
+            <div class="catalog-control-group">
+              <h3>COMANDI FILTRI</h3>
+              <div class="catalog-button-row">
+                <button id="btn-filter-coreografia" class="btn btn-filter btn-filter-blue" type="button">LIVELLO</button>
+                <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" type="button">COREOGRAFO</button>
+                <button id="btn-filter-altro" class="btn btn-filter btn-filter-yellow" type="button">AUTORE</button>
+                <button id="btn-filter-richieste" class="btn btn-filter btn-filter-blue" type="button">RICHIESTE</button>
+                <button id="btn-reset-filters" class="btn btn-secondary" type="button">🔄 RESET RICERCA</button>
+              </div>
+            </div>
+            <div class="catalog-control-group catalog-search-group">
+              <label for="archive-search">RICERCA GENERALE</label>
+              <input id="archive-search" class="archive-search" type="search" placeholder="Cerca ID, titolo, autore, coreografo..." autocomplete="off" />
+              <div class="catalog-button-row search-modes" role="group" aria-label="Modalità ricerca">
+                <button class="btn btn-secondary is-active" type="button" data-search-mode="general">RICERCA GENERALE</button>
+                <button class="btn btn-secondary" type="button" data-search-mode="title">RICERCA PER TITOLO</button>
+                <button class="btn btn-secondary" type="button" data-search-mode="id">RICERCA PER ID</button>
+              </div>
+            </div>
+          </div>
+          <p id="archive-empty" class="empty-state" hidden></p>
+          <div id="archive-list" class="track-list" aria-live="polite"></div>
+          <div class="catalog-footer">
+            <span id="archive-visible-count">0 visualizzati</span>
+            <div class="catalog-pagination">
+              <button id="catalog-prev" class="btn btn-small" type="button" title="Pagina precedente">←</button>
+              <span id="catalog-page-info">Pagina 1</span>
+              <button id="catalog-next" class="btn btn-small" type="button" title="Pagina successiva">→</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="preselect-panel selection-panel" aria-labelledby="selection-heading">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-eyebrow">ORDINE DI PRIORITÀ</p>
+              <h2 id="selection-heading">Preselezionati per la serata</h2>
+            </div>
+            <span id="selection-count" class="panel-count">0 brani</span>
+          </div>
+          <p id="selection-empty" class="empty-state">La lista è vuota</p>
+          <ol id="selection-list" class="selection-list"></ol>
+          <p class="list-footnote">Seleziona un brano dal database per aggiungerlo; usa ↑/↓ per riordinare e × per rimuoverlo. DECK 1/2 carica sul deck scelto senza sovrascrivere un deck in riproduzione. NEXT lo imposta come prossimo in Borderò; ESEGUITO lo registra come già eseguito. Per renderlo di nuovo disponibile, usa RIPRISTINA nel database.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="filter-picker-modal" class="filter-picker-modal" role="dialog" aria-modal="true" aria-labelledby="filter-picker-title" hidden>
+    <div class="filter-picker-content">
+      <div class="filter-picker-header">
+        <h3 id="filter-picker-title">Seleziona filtro</h3>
+        <button type="button" id="filter-picker-close" class="filter-picker-close" aria-label="Chiudi">×</button>
+      </div>
+      <div class="filter-picker-body">
+        <input type="text" id="filter-picker-search" class="filter-picker-search" placeholder="Cerca opzione..." />
+        <div id="filter-picker-options" class="filter-picker-options"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

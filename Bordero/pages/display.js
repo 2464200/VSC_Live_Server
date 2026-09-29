@@ -820,7 +820,7 @@ class DisplayMonitor {
 
   resolveStoredNextCoreoTitle(storedSelection) {
     if (!storedSelection || typeof storedSelection !== 'object') return '';
-    if (storedSelection.source !== 'next-checkbox' || !String(storedSelection.id ?? '').trim()) return '';
+    if (!['next-checkbox', 'dj-preselezione'].includes(storedSelection.source) || !String(storedSelection.id ?? '').trim()) return '';
 
     const fromPayload = this.getFirstNonEmptyNextCoreoText(storedSelection.title, storedSelection.nextValue);
     if (window.isVideoOnlyBrano?.(fromPayload)) return '';

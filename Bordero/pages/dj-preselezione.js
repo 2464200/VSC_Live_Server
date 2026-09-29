@@ -1,0 +1,1031 @@
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'bordero.dj-preselezione.v1';
+  const ITEMS_PER_PAGE = 50;
+  const AUTO_REFRESH_INTERVAL_MS = 15000;
+  const VDJ_BASE_URLS = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+  const nextCoreoChannel = typeof BroadcastChannel !== 'undefined'
+    ? new BroadcastChannel('bordero-next-coreo')
+    : null;
+
+  const elements = {
+    playlistSelect: document.getElementById('playlist-select'),
+    newPlaylistButton: document.getElementById('btn-new-playlist'),
+    deletePlaylistButton: document.getElementById('btn-delete-playlist'),
+    newPlaylistForm: document.getElementById('new-playlist-form'),
+    newPlaylistName: document.getElementById('new-playlist-name'),
+    cancelNewPlaylistButton: document.getElementById('btn-cancel-new-playlist'),
+    refreshButton: document.getElementById('btn-refresh-archive'),
+    archiveStatus: document.getElementById('archive-status'),
+    actionStatus: document.getElementById('action-status'),
+    archiveCount: document.getElementById('archive-count'),
+    archiveAvailableCount: document.getElementById('archive-available-count'),
+    archiveSearch: document.getElementById('archive-search'),
+    archiveList: document.getElementById('archive-list'),
+    archiveEmpty: document.getElementById('archive-empty'),
+    archiveVisibleCount: document.getElementById('archive-visible-count'),
+    catalogPageInfo: document.getElementById('catalog-page-info'),
+    catalogPrev: document.getElementById('catalog-prev'),
+    catalogNext: document.getElementById('catalog-next'),
+    selectionCount: document.getElementById('selection-count'),
+    selectionEmpty: document.getElementById('selection-empty'),
+    selectionList: document.getElementById('selection-list')
+  };
+
+  let archiveTracks = [];
+  let filteredTracks = [];
+  let currentPage = 1;
+  let currentSort = null;
+  let currentSortDirection = 'asc';
+  let currentSearch = '';
+  let searchMode = 'general';
+  let currentFilters = {};
+  let activeFilterField = null;
+  let savedState = loadSavedState();
+  let archiveRefreshInProgress = false;
+
+  function createId() {
+    return globalThis.crypto?.randomUUID?.() || `list-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function defaultState() {
+    const id = createId();
+    return {
+      selectedPlaylistId: id,
+      playlists: [{ id, name: 'Preselezione serata', tracks: [] }]
+    };
+  }
+
+  function loadSavedState() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (parsed && Array.isArray(parsed.playlists) && parsed.playlists.length) {
+        const playlists = parsed.playlists
+          .filter((playlist) => playlist && typeof playlist.id === 'string' && typeof playlist.name === 'string')
+          .map((playlist) => ({
+            id: playlist.id,
+            name: playlist.name,
+            tracks: Array.isArray(playlist.tracks)
+              ? playlist.tracks.filter((track) => track && (track.branoId || track.id))
+              : []
+          }));
+        if (playlists.length) {
+          const selected = playlists.some((playlist) => playlist.id === parsed.selectedPlaylistId)
+            ? parsed.selectedPlaylistId
+            : playlists[0].id;
+          return { selectedPlaylistId: selected, playlists };
+        }
+      }
+    } catch (error) {
+      console.warn('Impossibile leggere la preselezione salvata', error);
+    }
+    return defaultState();
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+      window.dispatchEvent(new CustomEvent('bordero:preselection-updated', {
+        detail: { count: currentPlaylist()?.tracks.length || 0 }
+      }));
+      return true;
+    } catch (error) {
+      console.error('Impossibile salvare la preselezione', error);
+      setActionStatus('Spazio locale esaurito: la modifica non è stata salvata.', 'error');
+      return false;
+    }
+  }
+
+  function currentPlaylist() {
+    return savedState.playlists.find((playlist) => playlist.id === savedState.selectedPlaylistId) || savedState.playlists[0];
+  }
+
+  function displayNameOf(track) {
+    const brano = track.brano && typeof track.brano === 'object' ? track.brano : track;
+    return String(brano.titolo || brano.coreografia || brano.brano || brano.id || 'Brano senza titolo');
+  }
+
+  function setArchiveStatus(message, state = 'info', allowAdminLink = false) {
+    elements.archiveStatus.replaceChildren(document.createTextNode(message));
+    elements.archiveStatus.dataset.state = state;
+    if (allowAdminLink) {
+      const link = document.createElement('a');
+      link.href = 'admin.html';
+      link.textContent = 'Apri configurazione archivio';
+      elements.archiveStatus.append(' ', link);
+    }
+  }
+
+  function setActionStatus(message, state = 'info') {
+    elements.actionStatus.textContent = message;
+    elements.actionStatus.dataset.state = state;
+  }
+
+  function setButtonBusy(button, busy, busyLabel) {
+    if (!button.dataset.label) button.dataset.label = button.textContent;
+    button.disabled = busy;
+    button.textContent = busy ? busyLabel : button.dataset.label;
+  }
+
+  function renderPlaylistPicker() {
+    elements.playlistSelect.replaceChildren();
+    for (const playlist of savedState.playlists) {
+      const option = document.createElement('option');
+      option.value = playlist.id;
+      option.textContent = playlist.name;
+      option.selected = playlist.id === savedState.selectedPlaylistId;
+      elements.playlistSelect.append(option);
+    }
+    elements.deletePlaylistButton.disabled = savedState.playlists.length < 2;
+  }
+
+  function createTextElement(tagName, className, text) {
+    const element = document.createElement(tagName);
+    element.className = className;
+    element.textContent = text;
+    return element;
+  }
+
+  function renderArchive() {
+    const query = elements.archiveSearch.value.trim().toLowerCase();
+    currentSearch = query;
+    filteredTracks = archiveTracks.filter((track) => matchesTrack(track, query));
+    for (const [field, filter] of Object.entries(currentFilters)) {
+      if (filter.mode === 'richiesteZero') {
+        filteredTracks = filteredTracks.filter((track) => isZero(track.richieste));
+      } else if (filter.mode === 'richiesteNonZero') {
+        filteredTracks = filteredTracks.filter((track) => !isZero(track.richieste));
+      } else {
+        filteredTracks = filteredTracks.filter((track) => normalize(track[field]) === normalize(filter.value));
+      }
+    }
+    const activeTracks = currentPlaylist()?.tracks || [];
+    const selectedIds = new Set(activeTracks.map((track) => String(track.branoId || track.id)));
+    if (currentSort) {
+      if (currentSort === 'selected') {
+        filteredTracks.sort((left, right) => Number(selectedIds.has(String(right.id))) - Number(selectedIds.has(String(left.id))));
+      } else {
+        const direction = currentSortDirection === 'asc' ? 1 : -1;
+        filteredTracks.sort((left, right) => compareTracks(left, right, currentSort) * direction);
+      }
+    }
+
+    const pageCount = Math.max(1, Math.ceil(filteredTracks.length / ITEMS_PER_PAGE));
+    currentPage = Math.min(currentPage, pageCount);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const visible = filteredTracks.slice(start, start + ITEMS_PER_PAGE);
+    elements.archiveList.replaceChildren();
+    for (const track of visible) {
+      const row = document.createElement('div');
+      const selected = selectedIds.has(String(track.id));
+      const isExecuted = isTrackExecuted(track);
+      const isVideoOnly = window.isVideoOnlyBrano?.(track) || false;
+      row.className = `track-row${selected ? ' is-selected' : ''}${isExecuted ? ' is-executed' : ''}`;
+      row.title = isExecuted ? 'Brano già eseguito' : 'Seleziona per aggiungere alla preselezione';
+      row.append(createTextElement('span', 'track-id', track.id || '—'));
+      const titleCopy = document.createElement('div');
+      titleCopy.className = 'track-copy';
+      titleCopy.append(createTextElement('span', 'track-title', displayNameOf(track)));
+      titleCopy.append(createTextElement('span', 'track-path', [track.brano, track.autore].filter(Boolean).join(' · ')));
+      row.append(titleCopy);
+      row.append(createTextElement('span', 'track-meta', track.coreografo || '—'));
+      row.append(createTextElement('span', 'track-meta', track.info_livello || track.info_coreo_1 || '—'));
+      row.append(createTextElement('span', 'track-requests', track.richieste || '—'));
+
+      const statusActions = document.createElement('div');
+      statusActions.className = 'track-status-actions';
+      const statusButton = document.createElement('button');
+      statusButton.type = 'button';
+      statusButton.className = `preselect-button preselect-button-quiet track-status-button${isExecuted ? ' is-executed' : ''}`;
+      statusButton.textContent = isExecuted ? '⚑' : selected ? '✓' : '+';
+      statusButton.disabled = isExecuted || selected || isVideoOnly;
+      statusButton.title = isExecuted ? 'Brano già eseguito' : isVideoOnly ? 'Brano solo-video' : selected ? 'Già nella preselezione' : 'Aggiungi alla preselezione';
+      statusButton.setAttribute('aria-label', `${statusButton.title}: ${displayNameOf(track)}`);
+      if (!isExecuted && !selected && !isVideoOnly) {
+        statusButton.addEventListener('click', () => addTrack(track));
+      }
+      statusActions.append(statusButton);
+
+      if (isExecuted) {
+        const restoreButton = document.createElement('button');
+        restoreButton.type = 'button';
+        restoreButton.className = 'preselect-button preselect-button-quiet restore-track-button';
+        restoreButton.textContent = 'Ripristina';
+        restoreButton.title = 'Riporta il brano tra quelli disponibili';
+        restoreButton.setAttribute('aria-label', `Ripristina ${displayNameOf(track)}`);
+        restoreButton.addEventListener('click', () => restoreTrack(track));
+        statusActions.append(restoreButton);
+      }
+      row.append(statusActions);
+      row.addEventListener('click', (event) => {
+        if (!event.target.closest('button') && !selected && !isExecuted && !isVideoOnly) addTrack(track);
+      });
+      elements.archiveList.append(row);
+    }
+
+    const availableCount = archiveTracks.filter((track) => !isTrackExecuted(track)).length;
+    elements.archiveCount.textContent = `${archiveTracks.length} ${archiveTracks.length === 1 ? 'totale' : 'totali'}`;
+    elements.archiveAvailableCount.textContent = `${availableCount} ${availableCount === 1 ? 'disponibile' : 'disponibili'}`;
+    elements.archiveEmpty.hidden = visible.length > 0;
+    if (!archiveTracks.length) {
+      elements.archiveEmpty.textContent = 'Nessun brano disponibile nel database Borderò';
+    } else if (!filteredTracks.length) {
+      elements.archiveEmpty.textContent = 'Nessun risultato';
+    }
+    const firstVisible = filteredTracks.length ? start + 1 : 0;
+    elements.archiveVisibleCount.textContent = `${filteredTracks.length} risultati · ${firstVisible}-${Math.min(start + visible.length, filteredTracks.length)} visualizzati`;
+    elements.catalogPageInfo.textContent = `Pagina ${currentPage} / ${pageCount}`;
+    elements.catalogPrev.disabled = currentPage <= 1;
+    elements.catalogNext.disabled = currentPage >= pageCount;
+    updateFilterButtonStates();
+    updateSortButtonStates();
+  }
+
+  function normalize(value) {
+    return String(value ?? '').trim().toLocaleLowerCase('it');
+  }
+
+  function isTrackExecuted(track) {
+    return !window.isVideoOnlyBrano?.(track) && String(track?.flag || '').toUpperCase() === 'X';
+  }
+
+  function hasSameTrackData(left, right) {
+    const leftKeys = Object.keys(left || {});
+    const rightKeys = Object.keys(right || {});
+    return leftKeys.length === rightKeys.length
+      && rightKeys.every((key) => Object.prototype.hasOwnProperty.call(left, key) && Object.is(left[key], right[key]));
+  }
+
+  function moveExecutedTracksToBottom(playlist) {
+    if (!Array.isArray(playlist?.tracks)) return false;
+    const available = [];
+    const executed = [];
+    playlist.tracks.forEach((track) => {
+      (isTrackExecuted(track.brano || track) ? executed : available).push(track);
+    });
+    const reordered = [...available, ...executed];
+    const changed = reordered.some((track, index) => track !== playlist.tracks[index]);
+    if (changed) playlist.tracks = reordered;
+    return changed;
+  }
+
+  function matchesTrack(track, query) {
+    if (!query) return true;
+    const fields = searchMode === 'title'
+      ? ['titolo']
+      : searchMode === 'id'
+        ? ['id']
+        : ['id', 'titolo', 'brano', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
+    return fields.some((field) => normalize(track[field]).includes(query));
+  }
+
+  function isZero(value) {
+    const text = String(value ?? '').trim().replace(',', '.');
+    return !text || text === '-' || (Number.isFinite(Number(text)) && Number(text) === 0);
+  }
+
+  function compareTracks(left, right, field) {
+    const leftText = String(left[field] ?? '').trim();
+    const rightText = String(right[field] ?? '').trim();
+    if (field === 'id' || field === 'richieste') {
+      const leftNumber = Number(leftText.replace(',', '.'));
+      const rightNumber = Number(rightText.replace(',', '.'));
+      if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber)) return leftNumber - rightNumber;
+    }
+    return leftText.localeCompare(rightText, 'it', { numeric: true, sensitivity: 'base' });
+  }
+
+  function updateSortButtonStates() {
+    const fields = { 'btn-sort-id': 'id', 'btn-sort-coreografo': 'coreografo', 'btn-sort-autore': 'autore', 'btn-sort-richieste': 'richieste', 'btn-sort-selected': 'selected' };
+    for (const [id, field] of Object.entries(fields)) {
+      const button = document.getElementById(id);
+      button?.classList.toggle('active', currentSort === field);
+      if (button && currentSort === field) button.dataset.direction = currentSortDirection;
+      else if (button) delete button.dataset.direction;
+    }
+  }
+
+  function updateFilterButtonStates() {
+    const fields = { 'btn-filter-coreografia': 'info_livello', 'btn-filter-livello': 'coreografo', 'btn-filter-altro': 'autore', 'btn-filter-richieste': 'richieste' };
+    for (const [id, field] of Object.entries(fields)) {
+      document.getElementById(id)?.classList.toggle('active', Boolean(currentFilters[field]));
+    }
+  }
+
+  function openFilterPicker(field, label) {
+    activeFilterField = field;
+    document.getElementById('filter-picker-title').textContent = `Filtra per ${label}`;
+    document.getElementById('filter-picker-search').value = '';
+    renderFilterOptions();
+    document.getElementById('filter-picker-modal').hidden = false;
+    document.getElementById('filter-picker-search').focus();
+  }
+
+  function renderFilterOptions() {
+    const options = document.getElementById('filter-picker-options');
+    const query = normalize(document.getElementById('filter-picker-search').value);
+    const field = activeFilterField;
+    const values = [...new Set(archiveTracks.map((track) => String(track[field] || '').trim()).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+    const entries = field === 'richieste'
+      ? [{ label: 'Richieste = 0', filter: { mode: 'richiesteZero' } }, { label: 'Richieste > 0', filter: { mode: 'richiesteNonZero' } }, ...values.map((value) => ({ label: value, filter: { mode: 'exactValue', value } }))]
+      : values.map((value) => ({ label: value, filter: { mode: 'exactValue', value } }));
+    options.replaceChildren();
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'filter-picker-option is-clear';
+    clear.textContent = 'Tutti i valori';
+    clear.addEventListener('click', () => applyFilter(null));
+    options.append(clear);
+    entries.filter((entry) => normalize(entry.label).includes(query)).forEach((entry) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'filter-picker-option';
+      button.textContent = entry.label;
+      button.addEventListener('click', () => applyFilter(entry.filter));
+      options.append(button);
+    });
+  }
+
+  function applyFilter(filter) {
+    if (filter) currentFilters[activeFilterField] = filter;
+    else delete currentFilters[activeFilterField];
+    document.getElementById('filter-picker-modal').hidden = true;
+    currentPage = 1;
+    renderArchive();
+  }
+
+  function createRowButton(label, title, handler, disabled = false, primary = false) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `preselect-button ${primary ? 'preselect-button-primary' : 'preselect-button-quiet'}`;
+    button.textContent = label;
+    button.title = title;
+    button.disabled = disabled;
+    button.addEventListener('click', handler);
+    return button;
+  }
+
+  function createIconButton(label, title, handler, disabled = false) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'row-icon-button';
+    button.textContent = label;
+    button.title = title;
+    button.setAttribute('aria-label', title);
+    button.disabled = disabled;
+    button.addEventListener('click', handler);
+    return button;
+  }
+
+  function createTrackDeckButtons(track, index) {
+    const buttons = document.createDocumentFragment();
+    [1, 2].forEach((deck) => {
+      const button = createRowButton(
+        `DECK ${deck}`,
+        `Carica ${displayNameOf(track)} su Deck ${deck}`,
+        () => loadTrackOnDeck(index, deck),
+        false,
+        false
+      );
+      button.classList.add('deck-load-button', `deck-load-button-${deck}`);
+      button.setAttribute('aria-pressed', String(Number(track.deck) === deck));
+      buttons.append(button);
+    });
+    return buttons;
+  }
+
+  async function loadTrackOnDeck(index, deck) {
+    const track = currentPlaylist()?.tracks[index];
+    if (!track) return;
+    track.deck = deck === 2 ? 2 : 1;
+    if (!saveState()) return;
+    renderSelection();
+    await loadTrack(track, deck);
+  }
+
+  function renderSelection() {
+    const playlist = currentPlaylist();
+    const tracks = playlist?.tracks || [];
+    elements.selectionList.replaceChildren();
+    elements.selectionCount.textContent = `${tracks.length} ${tracks.length === 1 ? 'brano' : 'brani'}`;
+    elements.selectionEmpty.hidden = tracks.length > 0;
+    elements.selectionList.hidden = tracks.length === 0;
+
+    tracks.forEach((track, index) => {
+      const row = document.createElement('li');
+      row.className = 'selection-row';
+      const copy = document.createElement('div');
+      copy.className = 'track-copy';
+      copy.append(createTextElement('span', 'track-title', displayNameOf(track)));
+      const brano = track.brano || {};
+      const isExecuted = isTrackExecuted(brano);
+      if (isExecuted) row.classList.add('is-executed');
+      copy.append(createTextElement('span', 'track-path', [brano.id ? `ID ${brano.id}` : '', brano.brano, brano.autore].filter(Boolean).join(' · ')));
+      row.append(copy);
+
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+      const canMoveUp = index > 0 && isTrackExecuted(tracks[index - 1].brano || tracks[index - 1]) === isExecuted;
+      const canMoveDown = index < tracks.length - 1 && isTrackExecuted(tracks[index + 1].brano || tracks[index + 1]) === isExecuted;
+      actions.append(createIconButton('↑', 'Sposta in alto', () => moveTrack(index, -1), !canMoveUp));
+      actions.append(createIconButton('↓', 'Sposta in basso', () => moveTrack(index, 1), !canMoveDown));
+      actions.append(createTrackDeckButtons(track, index));
+      actions.append(createIconButton('×', 'Rimuovi dalla lista', () => removeTrack(index)));
+      const isVideoOnly = window.isVideoOnlyBrano?.(brano) || false;
+      const nextSelection = Storage.get('bordero_next_coreo_selection', null);
+      const isNextSelected = String(nextSelection?.id || '') === String(track.branoId || track.id);
+      const nextButton = createRowButton(
+        'NEXT',
+        isNextSelected ? 'Brano già selezionato come prossimo' : 'Seleziona come prossimo brano da eseguire',
+        () => setTrackAsNext(track),
+        isExecuted || isVideoOnly,
+        false
+      );
+      nextButton.classList.add('next-track-button');
+      if (isNextSelected) nextButton.classList.add('is-active');
+      actions.append(nextButton);
+      const executedButton = createRowButton(
+        'ESEGUITO',
+        isExecuted ? 'Brano già eseguito' : 'Segna il brano come eseguito nel Borderò',
+        () => markTrackExecuted(track),
+        isExecuted || isVideoOnly,
+        true
+      );
+      executedButton.classList.add('mark-executed-button');
+      actions.append(executedButton);
+      row.append(actions);
+      elements.selectionList.append(row);
+    });
+
+    renderArchive();
+  }
+
+  function addTrack(track) {
+    const playlist = currentPlaylist();
+    if (!playlist || !track.id) return;
+    const exists = playlist.tracks.some((item) => String(item.branoId || item.id) === String(track.id));
+    if (exists) return;
+
+    playlist.tracks.push({
+      id: String(track.id),
+      branoId: String(track.id),
+      deck: 1,
+      brano: { ...track }
+    });
+    if (saveState()) {
+      renderSelection();
+      setActionStatus(`Aggiunto: ${displayNameOf(track)}`, 'success');
+    }
+  }
+
+  function moveTrack(index, direction) {
+    const tracks = currentPlaylist()?.tracks;
+    const targetIndex = index + direction;
+    if (!tracks || targetIndex < 0 || targetIndex >= tracks.length) return;
+    if (isTrackExecuted(tracks[index].brano || tracks[index]) !== isTrackExecuted(tracks[targetIndex].brano || tracks[targetIndex])) return;
+    [tracks[index], tracks[targetIndex]] = [tracks[targetIndex], tracks[index]];
+    if (saveState()) renderSelection();
+  }
+
+  function removeTrack(index) {
+    const tracks = currentPlaylist()?.tracks;
+    if (!tracks || !tracks[index]) return;
+    const [removed] = tracks.splice(index, 1);
+    if (saveState()) {
+      renderSelection();
+      setActionStatus(`Rimosso: ${displayNameOf(removed)}`);
+    }
+  }
+
+  function createPlaylist(name) {
+    const cleanName = name.trim();
+    if (!cleanName) return false;
+    if (savedState.playlists.some((playlist) => playlist.name.toLowerCase() === cleanName.toLowerCase())) {
+      setActionStatus('Esiste già una lista con questo nome.', 'error');
+      return false;
+    }
+    const playlist = { id: createId(), name: cleanName, tracks: [] };
+    savedState.playlists.push(playlist);
+    savedState.selectedPlaylistId = playlist.id;
+    if (!saveState()) return false;
+    renderPlaylistPicker();
+    renderSelection();
+    setActionStatus(`Creata la lista “${cleanName}”.`, 'success');
+    return true;
+  }
+
+  async function resolveAudioFile(track) {
+    const brano = track.brano || track;
+    const response = await fetch('/api/music-archive/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brano: {
+        id: brano.id || track.branoId,
+        titolo: brano.titolo,
+        coreografia: brano.titolo,
+        brano: brano.brano,
+        autore: brano.autore
+      } })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || 'Errore di ricerca nell’archivio audio.');
+    if (result.status === 'exact' && result.match?.fullPath) return result.match;
+    if (result.status === 'ambiguous') throw new Error(`Trovati più file per “${displayNameOf(track)}”. Verifica il brano dalla pagina Borderò prima di caricarlo.`);
+    throw new Error(`File audio non trovato per “${displayNameOf(track)}”.`);
+  }
+
+  async function requestVirtualDj(script, timeoutMs = 4000) {
+    const url = new URL('/api/vdj/proxy', window.location.origin);
+    url.searchParams.set('baseUrl', VDJ_BASE_URLS[0]);
+    url.searchParams.set('baseUrls', VDJ_BASE_URLS.join(','));
+    url.searchParams.set('endpoint', '/execute');
+    url.searchParams.set('script', script);
+    url.searchParams.set('timeoutMs', String(timeoutMs));
+    const response = await fetch(url, { cache: 'no-store' });
+    const text = await response.text();
+    if (!response.ok) throw new Error(text || `VirtualDJ ha risposto con HTTP ${response.status}`);
+    return text.trim();
+  }
+
+  async function ensureVirtualDjRuntime() {
+    const response = await fetch('/api/vdj/ensure-running', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ baseUrl: VDJ_BASE_URLS[0], baseUrls: VDJ_BASE_URLS.join(','), timeoutMs: 15000 }),
+      cache: 'no-store'
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok) throw new Error(payload.error || `VirtualDJ non disponibile (HTTP ${response.status})`);
+  }
+
+  function isPlaying(value) {
+    return ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
+  }
+
+  async function loadTrack(track, requestedDeck = Number(track.deck) === 2 ? 2 : 1) {
+    const loadButtons = [...elements.selectionList.querySelectorAll('.row-actions .deck-load-button')];
+    loadButtons.forEach((button) => { button.disabled = true; });
+    setActionStatus('Connessione a VirtualDJ...', 'info');
+    try {
+      await ensureVirtualDjRuntime();
+      const deck = requestedDeck === 2 ? 2 : 1;
+      const deckIsPlaying = isPlaying(await requestVirtualDj(`deck ${deck} get_play`));
+      if (deckIsPlaying) {
+        throw new Error(`Il Deck ${deck} sta suonando. Scegli l'altro deck per caricare il brano.`);
+      }
+
+      const audioFile = await resolveAudioFile(track);
+      const safePath = audioFile.fullPath.replace(/"/g, '\\"');
+      await requestVirtualDj(`deck ${deck} load "${safePath}"`);
+      setActionStatus(`Caricato su Deck ${deck}: ${displayNameOf(track)}`, 'success');
+    } catch (error) {
+      setActionStatus(`VirtualDJ: ${error?.message || error}`, 'error');
+    } finally {
+      loadButtons.forEach((button) => { button.disabled = false; });
+    }
+  }
+
+  async function markTrackExecuted(track) {
+    const brano = track.brano || track;
+    if (window.isVideoOnlyBrano?.(brano)) {
+      setActionStatus('I brani solo-video non possono essere segnati come eseguiti.', 'error');
+      return;
+    }
+    if (String(brano.flag || '').toUpperCase() === 'X') return;
+
+    const currentSerata = dataLoader.getCurrentSerata();
+    const currentTracks = Array.isArray(currentSerata?.brani) && currentSerata.brani.length
+      ? currentSerata.brani.map((item) => ({ ...item }))
+      : archiveTracks.map((item) => ({ ...item }));
+    const target = currentTracks.find((item) => String(item.id) === String(track.branoId || track.id));
+    if (!target) {
+      setActionStatus('Brano non trovato nella serata corrente.', 'error');
+      return;
+    }
+
+    const timestamp = DateUtils.formatDate(new Date());
+    target.flag = 'X';
+    target.eseguito = 'X';
+    target.executed = true;
+    target.timestamp = timestamp;
+    currentTracks.forEach((item) => {
+      item.consoleStatus = '';
+      item.consoleDeck = null;
+    });
+
+    const nextSelection = Storage.get('bordero_next_coreo_selection', null);
+    if (target.next_selected || String(nextSelection?.id || '') === String(target.id)) {
+      currentTracks.forEach((item) => { item.next_selected = false; });
+      Storage.remove('bordero_next_coreo_selection');
+      nextCoreoChannel?.postMessage({ type: 'clear' });
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+    }
+
+    const orderedTracks = [
+      ...currentTracks
+        .filter((item) => String(item.flag || '').toUpperCase() !== 'X')
+        .sort((left, right) => (Number(left.originalIndex) || 0) - (Number(right.originalIndex) || 0)),
+      ...currentTracks.filter((item) => String(item.flag || '').toUpperCase() === 'X')
+    ];
+    const metadata = currentSerata?.metadata || {};
+    dataLoader.saveCurrentSerata(metadata, orderedTracks);
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, orderedTracks);
+    const flagged = Storage.get(BORDERO_CONFIG.CACHE_KEY_FLAGGED, []);
+    if (!flagged.some((id) => String(id) === String(target.id))) {
+      flagged.push(target.id);
+      Storage.set(BORDERO_CONFIG.CACHE_KEY_FLAGGED, flagged);
+    }
+
+    archiveTracks = archiveTracks.map((item) => String(item.id) === String(target.id)
+      ? { ...item, flag: 'X', eseguito: 'X', executed: true, timestamp }
+      : item);
+    savedState.playlists.forEach((playlist) => {
+      playlist.tracks.forEach((item) => {
+        if (String(item.branoId || item.id) === String(target.id)) {
+          item.brano = { ...item.brano, flag: 'X', eseguito: 'X', executed: true, timestamp };
+        }
+      });
+      moveExecutedTracksToBottom(playlist);
+    });
+    saveState();
+    renderSelection();
+    setActionStatus(`${displayNameOf(track)} segnato come eseguito.`, 'success');
+
+    try {
+      const selection = Storage.get('bordero_next_coreo_selection', null);
+      const nextCoreo = String(selection?.title || selection?.nextValue || '--').trim() || '--';
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nextCoreo, serata: metadata, brani: orderedTracks })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
+    }
+  }
+
+  async function setTrackAsNext(track) {
+    const brano = track.brano || track;
+    const trackId = String(track.branoId || track.id);
+    if (window.isVideoOnlyBrano?.(brano)) {
+      setActionStatus('I brani solo-video non possono essere selezionati come NEXT.', 'error');
+      return;
+    }
+    if (String(brano.flag || '').toUpperCase() === 'X') {
+      setActionStatus('Un brano già eseguito non può essere selezionato come NEXT.', 'error');
+      return;
+    }
+
+    const currentSelection = Storage.get('bordero_next_coreo_selection', null);
+    const isAlreadySelected = String(currentSelection?.id || '') === trackId;
+
+    let nextCoreo = '--';
+    if (isAlreadySelected) {
+      Storage.remove('bordero_next_coreo_selection');
+      nextCoreoChannel?.postMessage({ type: 'clear' });
+      setActionStatus('Selezione NEXT rimossa.');
+    } else {
+      const label = String(brano.titolo || brano.coreografia || brano.next_coreo || brano.nextCoreo || brano['next coreo'] || brano.brano || '').trim();
+      const payload = {
+        id: trackId,
+        title: label,
+        nextValue: label,
+        timestamp: Date.now(),
+        source: 'dj-preselezione'
+      };
+      Storage.set('bordero_next_coreo_selection', payload);
+      const playlist = currentPlaylist();
+      const selectedTrackIndex = playlist?.tracks.findIndex((item) => String(item.branoId || item.id) === trackId) ?? -1;
+      if (selectedTrackIndex > 0) {
+        const [selectedTrack] = playlist.tracks.splice(selectedTrackIndex, 1);
+        playlist.tracks.unshift(selectedTrack);
+        saveState();
+      }
+      nextCoreoChannel?.postMessage({ type: 'update', payload });
+      nextCoreo = label || '--';
+      setActionStatus(`${displayNameOf(track)} selezionato come prossimo brano.`, 'success');
+    }
+
+    window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+    renderSelection();
+
+    try {
+      const currentSerata = dataLoader.getCurrentSerata();
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nextCoreo,
+          serata: currentSerata?.metadata || {},
+          brani: currentSerata?.brani || archiveTracks
+        })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('Impossibile sincronizzare la selezione NEXT sul cloud', error?.message || error);
+    }
+  }
+
+  async function restoreTrack(track) {
+    const trackId = String(track.id);
+    const currentSerata = dataLoader.getCurrentSerata();
+    const currentTracks = Array.isArray(currentSerata?.brani) && currentSerata.brani.length
+      ? currentSerata.brani.map((item) => ({ ...item }))
+      : archiveTracks.map((item) => ({ ...item }));
+    const target = currentTracks.find((item) => String(item.id) === trackId);
+    if (!target || String(target.flag || '').toUpperCase() !== 'X') {
+      await refreshArchive();
+      setActionStatus('Il brano risulta già disponibile.', 'info');
+      return;
+    }
+
+    target.flag = '';
+    target.eseguito = '';
+    target.executed = false;
+    target.timestamp = '';
+    target.consoleStatus = '';
+    target.consoleDeck = null;
+    const orderedTracks = [
+      ...currentTracks
+        .filter((item) => String(item.flag || '').toUpperCase() !== 'X')
+        .sort((left, right) => (Number(left.originalIndex) || 0) - (Number(right.originalIndex) || 0)),
+      ...currentTracks.filter((item) => String(item.flag || '').toUpperCase() === 'X')
+    ];
+    const metadata = currentSerata?.metadata || {};
+    dataLoader.saveCurrentSerata(metadata, orderedTracks);
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, orderedTracks);
+    Storage.set(
+      BORDERO_CONFIG.CACHE_KEY_FLAGGED,
+      Storage.get(BORDERO_CONFIG.CACHE_KEY_FLAGGED, []).filter((id) => String(id) !== trackId)
+    );
+
+    archiveTracks = archiveTracks.map((item) => String(item.id) === trackId
+      ? { ...item, flag: '', eseguito: '', executed: false, timestamp: '' }
+      : item);
+    savedState.playlists.forEach((playlist) => {
+      playlist.tracks.forEach((item) => {
+        if (String(item.branoId || item.id) === trackId) {
+          item.brano = { ...item.brano, flag: '', eseguito: '', executed: false, timestamp: '' };
+        }
+      });
+    });
+    saveState();
+    renderSelection();
+    setActionStatus(`${displayNameOf(track)} riportato tra i brani disponibili.`, 'success');
+
+    try {
+      const selection = Storage.get('bordero_next_coreo_selection', null);
+      const nextCoreo = String(selection?.title || selection?.nextValue || '--').trim() || '--';
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nextCoreo, serata: metadata, brani: orderedTracks })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
+    }
+  }
+
+  async function refreshArchive({ silent = false, initialize = !silent } = {}) {
+    if (archiveRefreshInProgress) return;
+    archiveRefreshInProgress = true;
+    if (!silent) setArchiveStatus('Lettura del database Borderò...');
+    try {
+      if (initialize) await dataLoader.initialize(false);
+      const loadedTracks = await dataLoader.loadBrani({ silent: true });
+      const currentSerata = dataLoader.getCurrentSerata();
+      const executedMap = new Map((currentSerata?.brani || []).map((item) => [String(item.id), item]));
+      archiveTracks = loadedTracks.map((track) => {
+        const saved = executedMap.get(String(track.id));
+        if (!saved || !Object.prototype.hasOwnProperty.call(saved, 'flag')) return track;
+        const isExecuted = String(saved.flag || '').toUpperCase() === 'X' && !window.isVideoOnlyBrano?.(track);
+        return {
+          ...track,
+          flag: isExecuted ? 'X' : '',
+          eseguito: isExecuted ? 'X' : '',
+          executed: isExecuted,
+          timestamp: isExecuted ? saved.timestamp || '' : ''
+        };
+      });
+
+      const byId = new Map(archiveTracks.map((track) => [String(track.id), track]));
+      let changed = false;
+      savedState.playlists.forEach((playlist) => {
+        const updatedTracks = playlist.tracks
+          .map((selected) => {
+            const id = String(selected.branoId || selected.id || '');
+            const brano = byId.get(id);
+            if (!brano) return null;
+            const unchanged = hasSameTrackData(selected.brano, brano);
+            if (!unchanged) changed = true;
+            return { id, branoId: id, deck: Number(selected.deck) === 2 ? 2 : 1, brano: unchanged ? selected.brano : { ...brano } };
+          })
+          .filter(Boolean);
+        if (updatedTracks.length !== playlist.tracks.length) changed = true;
+        playlist.tracks = updatedTracks;
+        if (moveExecutedTracksToBottom(playlist)) changed = true;
+      });
+      if (changed) saveState();
+      if (!silent) currentPage = 1;
+      if (!silent) setArchiveStatus(`${archiveTracks.length} brani nel database · ${BORDERO_CONFIG.CSV_BRANI}`, 'success');
+      if (changed || !silent) renderSelection();
+      else renderArchive();
+    } catch (error) {
+      if (!archiveTracks.length) renderArchive();
+      setArchiveStatus(`Aggiornamento database Borderò non riuscito: ${error?.message || error}`, 'error');
+    } finally {
+      archiveRefreshInProgress = false;
+    }
+  }
+
+  function syncSelectionExecutionState() {
+    const currentSerata = dataLoader.getCurrentSerata();
+    if (!Array.isArray(currentSerata?.brani)) return;
+
+    const savedById = new Map(currentSerata.brani.map((track) => [String(track.id), track]));
+    let archiveChanged = false;
+    archiveTracks = archiveTracks.map((track) => {
+      const saved = savedById.get(String(track.id));
+      if (!saved || !Object.prototype.hasOwnProperty.call(saved, 'flag')) return track;
+
+      const isExecuted = String(saved.flag || '').toUpperCase() === 'X' && !window.isVideoOnlyBrano?.(track);
+      const updated = {
+        ...track,
+        flag: isExecuted ? 'X' : '',
+        eseguito: isExecuted ? 'X' : '',
+        executed: isExecuted,
+        timestamp: isExecuted ? saved.timestamp || '' : ''
+      };
+      if (
+        String(track.flag || '').toUpperCase() !== updated.flag ||
+        String(track.timestamp || '') !== updated.timestamp ||
+        Boolean(track.executed) !== updated.executed
+      ) archiveChanged = true;
+      return updated;
+    });
+
+    const tracksById = new Map(archiveTracks.map((track) => [String(track.id), track]));
+    let selectionChanged = false;
+    savedState.playlists.forEach((playlist) => {
+      playlist.tracks = playlist.tracks.map((selected) => {
+        const updated = tracksById.get(String(selected.branoId || selected.id));
+        if (!updated) return selected;
+        const previous = selected.brano || {};
+        if (
+          String(previous.flag || '').toUpperCase() !== String(updated.flag || '').toUpperCase() ||
+          String(previous.timestamp || '') !== String(updated.timestamp || '') ||
+          Boolean(previous.executed) !== Boolean(updated.executed)
+        ) selectionChanged = true;
+        return { ...selected, brano: { ...previous, ...updated } };
+      });
+      if (moveExecutedTracksToBottom(playlist)) selectionChanged = true;
+    });
+
+    if (selectionChanged) saveState();
+    if (archiveChanged || selectionChanged) renderSelection();
+  }
+
+  elements.playlistSelect.addEventListener('change', () => {
+    savedState.selectedPlaylistId = elements.playlistSelect.value;
+    if (saveState()) {
+      renderPlaylistPicker();
+      renderSelection();
+      setActionStatus(`Lista attiva: ${currentPlaylist().name}`);
+    }
+  });
+
+  elements.newPlaylistButton.addEventListener('click', () => {
+    elements.newPlaylistForm.hidden = !elements.newPlaylistForm.hidden;
+    if (!elements.newPlaylistForm.hidden) elements.newPlaylistName.focus();
+  });
+
+  elements.cancelNewPlaylistButton.addEventListener('click', () => {
+    elements.newPlaylistForm.hidden = true;
+    elements.newPlaylistName.value = '';
+  });
+
+  elements.newPlaylistForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (createPlaylist(elements.newPlaylistName.value)) {
+      elements.newPlaylistName.value = '';
+      elements.newPlaylistForm.hidden = true;
+    }
+  });
+
+  elements.deletePlaylistButton.addEventListener('click', () => {
+    if (savedState.playlists.length < 2) return;
+    const playlist = currentPlaylist();
+    if (!window.confirm(`Eliminare la lista “${playlist.name}” e i suoi ${playlist.tracks.length} brani selezionati?`)) return;
+    savedState.playlists = savedState.playlists.filter((item) => item.id !== playlist.id);
+    savedState.selectedPlaylistId = savedState.playlists[0].id;
+    if (saveState()) {
+      renderPlaylistPicker();
+      renderSelection();
+      setActionStatus('Lista eliminata.');
+    }
+  });
+
+  const sortButtons = {
+    'btn-sort-id': 'id',
+    'btn-sort-coreografo': 'coreografo',
+    'btn-sort-autore': 'autore',
+    'btn-sort-richieste': 'richieste',
+    'btn-sort-selected': 'selected'
+  };
+  Object.entries(sortButtons).forEach(([buttonId, field]) => {
+    document.getElementById(buttonId).addEventListener('click', () => {
+      currentSortDirection = field === 'selected'
+        ? 'asc'
+        : currentSort === field && currentSortDirection === 'asc' ? 'desc' : 'asc';
+      currentSort = field;
+      currentPage = 1;
+      renderArchive();
+    });
+  });
+
+  const filterButtons = {
+    'btn-filter-coreografia': ['info_livello', 'LIVELLO'],
+    'btn-filter-livello': ['coreografo', 'COREOGRAFO'],
+    'btn-filter-altro': ['autore', 'AUTORE'],
+    'btn-filter-richieste': ['richieste', 'RICHIESTE']
+  };
+  Object.entries(filterButtons).forEach(([buttonId, [field, label]]) => {
+    document.getElementById(buttonId).addEventListener('click', () => {
+      if (currentFilters[field]) {
+        delete currentFilters[field];
+        currentPage = 1;
+        renderArchive();
+        return;
+      }
+      openFilterPicker(field, label);
+    });
+  });
+
+  elements.archiveSearch.addEventListener('input', () => {
+    currentPage = 1;
+    renderArchive();
+  });
+  document.querySelectorAll('[data-search-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      searchMode = button.dataset.searchMode;
+      document.querySelectorAll('[data-search-mode]').forEach((item) => item.classList.toggle('is-active', item === button));
+      currentPage = 1;
+      renderArchive();
+    });
+  });
+  document.getElementById('btn-reset-filters').addEventListener('click', () => {
+    currentFilters = {};
+    currentSearch = '';
+    searchMode = 'general';
+    currentSort = null;
+    currentSortDirection = 'asc';
+    currentPage = 1;
+    elements.archiveSearch.value = '';
+    document.querySelectorAll('[data-search-mode]').forEach((button) => button.classList.toggle('is-active', button.dataset.searchMode === 'general'));
+    document.getElementById('filter-picker-modal').hidden = true;
+    renderArchive();
+    setActionStatus('Filtri, ricerca e ordinamento azzerati.');
+  });
+  document.getElementById('filter-picker-close').addEventListener('click', () => {
+    document.getElementById('filter-picker-modal').hidden = true;
+  });
+  document.getElementById('filter-picker-search').addEventListener('input', renderFilterOptions);
+  document.getElementById('filter-picker-modal').addEventListener('click', (event) => {
+    if (event.target.id === 'filter-picker-modal') event.currentTarget.hidden = true;
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') document.getElementById('filter-picker-modal').hidden = true;
+  });
+  elements.catalogPrev.addEventListener('click', () => {
+    currentPage = Math.max(1, currentPage - 1);
+    renderArchive();
+    elements.archiveList.scrollTop = 0;
+  });
+  elements.catalogNext.addEventListener('click', () => {
+    currentPage = Math.min(Math.ceil(filteredTracks.length / ITEMS_PER_PAGE), currentPage + 1);
+    renderArchive();
+    elements.archiveList.scrollTop = 0;
+  });
+  elements.refreshButton.addEventListener('click', refreshArchive);
+  renderPlaylistPicker();
+  renderSelection();
+  refreshArchive();
+  window.setInterval(() => {
+    if (document.visibilityState === 'visible') refreshArchive({ silent: true });
+  }, AUTO_REFRESH_INTERVAL_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshArchive({ silent: true });
+  });
+  window.addEventListener('focus', () => refreshArchive({ silent: true }));
+  window.addEventListener('storage', (event) => {
+    if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) syncSelectionExecutionState();
+    if (event.key === 'bordero_next_coreo_selection') renderSelection();
+  });
+  window.addEventListener('bordero:serata-updated', syncSelectionExecutionState);
+  window.addEventListener('bordero:next-coreo-updated', renderSelection);
+  nextCoreoChannel?.addEventListener('message', renderSelection);
+})();
