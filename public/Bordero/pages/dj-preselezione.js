@@ -4,6 +4,9 @@
   const STORAGE_KEY = 'bordero.dj-preselezione.v1';
   const ITEMS_PER_PAGE = 50;
   const VDJ_BASE_URLS = ['http://localhost:8080', 'http://127.0.0.1:8080', 'https://localhost:8080', 'https://127.0.0.1:8080'];
+  const nextCoreoChannel = typeof BroadcastChannel !== 'undefined'
+    ? new BroadcastChannel('bordero-next-coreo')
+    : null;
 
   const elements = {
     playlistSelect: document.getElementById('playlist-select'),
@@ -405,6 +408,18 @@
       actions.append(createIconButton('×', 'Rimuovi dalla lista', () => removeTrack(index)));
       const isExecuted = String(brano.flag || '').toUpperCase() === 'X';
       const isVideoOnly = window.isVideoOnlyBrano?.(brano) || false;
+      const nextSelection = Storage.get('bordero_next_coreo_selection', null);
+      const isNextSelected = String(nextSelection?.id || '') === String(track.branoId || track.id);
+      const nextButton = createRowButton(
+        'NEXT',
+        isNextSelected ? 'Brano già selezionato come prossimo' : 'Seleziona come prossimo brano da eseguire',
+        () => setTrackAsNext(track),
+        isExecuted || isVideoOnly,
+        false
+      );
+      nextButton.classList.add('next-track-button');
+      if (isNextSelected) nextButton.classList.add('is-active');
+      actions.append(nextButton);
       const executedButton = createRowButton(
         'ESEGUITO',
         isExecuted ? 'Brano già eseguito' : 'Segna il brano come eseguito nel Borderò',
@@ -617,6 +632,7 @@
     if (target.next_selected || String(nextSelection?.id || '') === String(target.id)) {
       currentTracks.forEach((item) => { item.next_selected = false; });
       Storage.remove('bordero_next_coreo_selection');
+      nextCoreoChannel?.postMessage({ type: 'clear' });
       window.dispatchEvent(new Event('bordero:next-coreo-updated'));
     }
 
@@ -660,6 +676,62 @@
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } catch (error) {
       console.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
+    }
+  }
+
+  async function setTrackAsNext(track) {
+    const brano = track.brano || track;
+    const trackId = String(track.branoId || track.id);
+    if (window.isVideoOnlyBrano?.(brano)) {
+      setActionStatus('I brani solo-video non possono essere selezionati come NEXT.', 'error');
+      return;
+    }
+    if (String(brano.flag || '').toUpperCase() === 'X') {
+      setActionStatus('Un brano già eseguito non può essere selezionato come NEXT.', 'error');
+      return;
+    }
+
+    const currentSelection = Storage.get('bordero_next_coreo_selection', null);
+    const isAlreadySelected = String(currentSelection?.id || '') === trackId;
+    if (isAlreadySelected && !window.confirm(`Rimuovere la selezione NEXT da ${displayNameOf(track)}?`)) return;
+
+    let nextCoreo = '--';
+    if (isAlreadySelected) {
+      Storage.remove('bordero_next_coreo_selection');
+      nextCoreoChannel?.postMessage({ type: 'clear' });
+      setActionStatus('Selezione NEXT rimossa.');
+    } else {
+      const label = String(brano.titolo || brano.coreografia || brano.next_coreo || brano.nextCoreo || brano['next coreo'] || brano.brano || '').trim();
+      const payload = {
+        id: trackId,
+        title: label,
+        nextValue: label,
+        timestamp: Date.now(),
+        source: 'dj-preselezione'
+      };
+      Storage.set('bordero_next_coreo_selection', payload);
+      nextCoreoChannel?.postMessage({ type: 'update', payload });
+      nextCoreo = label || '--';
+      setActionStatus(`${displayNameOf(track)} selezionato come prossimo brano.`, 'success');
+    }
+
+    window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+    renderSelection();
+
+    try {
+      const currentSerata = dataLoader.getCurrentSerata();
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nextCoreo,
+          serata: currentSerata?.metadata || {},
+          brani: currentSerata?.brani || archiveTracks
+        })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('Impossibile sincronizzare la selezione NEXT sul cloud', error?.message || error);
     }
   }
 
@@ -935,6 +1007,9 @@
   refreshArchive();
   window.addEventListener('storage', (event) => {
     if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) syncSelectionExecutionState();
+    if (event.key === 'bordero_next_coreo_selection') renderSelection();
   });
   window.addEventListener('bordero:serata-updated', syncSelectionExecutionState);
+  window.addEventListener('bordero:next-coreo-updated', renderSelection);
+  nextCoreoChannel?.addEventListener('message', renderSelection);
 })();

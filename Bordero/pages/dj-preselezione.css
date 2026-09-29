@@ -392,8 +392,35 @@
 }
 
 .catalog-search-group {
-  border-top: 1px solid #353535;
-  padding-top: 8px;
+  background: linear-gradient(135deg, rgba(255, 179, 71, 0.14), rgba(255, 127, 0, 0.08));
+  border: 2px solid rgba(255, 179, 71, 0.65);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 0 1px rgba(255, 179, 71, 0.2);
+  gap: 7px;
+  padding: 8px 10px;
+}
+
+.catalog-search-group .archive-search {
+  background-color: #2a2a2a;
+  border: 2px solid #ffb347;
+  box-shadow: 0 0 0 2px rgba(255, 179, 71, 0.16);
+  color: #fff;
+  font-size: 0.98em;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.catalog-search-group .archive-search::placeholder {
+  color: #aaa;
+  font-weight: 500;
+}
+
+.catalog-search-group .archive-search:focus {
+  background-color: #333;
+  border-color: #ff7f00;
+  box-shadow: 0 0 0 3px rgba(255, 127, 0, 0.28), 0 0 12px rgba(255, 127, 0, 0.28);
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .catalog-footer {
@@ -448,17 +475,19 @@
   align-items: center;
   display: flex;
   flex: 0 0 auto;
-  gap: 5px;
+  gap: 4px;
 }
 
 .row-actions .preselect-button {
-  min-height: 32px;
-  padding: 5px 8px;
+  min-height: 29px;
+  padding: 4px 5px;
 }
 
 .row-actions .deck-load-button {
-  min-height: 32px;
-  padding: 5px 7px;
+  font-size: 0.72rem;
+  min-height: 29px;
+  padding: 4px 5px;
+  white-space: nowrap;
 }
 
 .row-actions .deck-load-button-1 {
@@ -485,11 +514,28 @@
 
 .row-actions .mark-executed-button {
   background: #247a45;
+  font-size: 0.72rem;
   color: #fff;
+  white-space: nowrap;
 }
 
 .row-actions .mark-executed-button:hover:not(:disabled) {
   background: #1c6539;
+}
+
+.row-actions .next-track-button {
+  background: #ffd54f;
+  color: #1f1f1f;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.row-actions .next-track-button:hover:not(:disabled) {
+  background: #ffca28;
+}
+
+.row-actions .next-track-button.is-active {
+  box-shadow: inset 0 0 0 2px rgba(31, 31, 31, 0.55), 0 0 0 1px rgba(255, 213, 79, 0.5);
 }
 
 .selection-row.is-executed .track-title {
@@ -607,7 +653,8 @@
   }
 
   .row-actions .deck-load-button,
-  .row-actions .mark-executed-button {
+  .row-actions .mark-executed-button,
+  .row-actions .next-track-button {
     font-size: 0.68rem;
     padding-left: 6px;
     padding-right: 6px;

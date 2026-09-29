@@ -1529,6 +1529,10 @@ class BorderoTableManager {
 
   setupStorageSync() {
     window.addEventListener('storage', (event) => {
+      if (event.key === 'bordero_next_coreo_selection') {
+        this.syncNextCoreoSelection();
+        return;
+      }
       if (event.key === 'bordero.dj-preselezione.v1') {
         this.updatePreselectedCount();
         return;
@@ -1541,6 +1545,8 @@ class BorderoTableManager {
       logger.info('Storage event: aggiornamento serata corrente rilevato');
       this.mergeCurrentSerata(currentSerata.brani);
     });
+
+    this.nextCoreoBroadcastChannel?.addEventListener('message', () => this.syncNextCoreoSelection());
 
     // Anche listener per evento custom (aggiorna nello stesso tab)
     window.addEventListener('bordero:serata-updated', () => {
@@ -1566,6 +1572,19 @@ class BorderoTableManager {
       }
     });
     this.updatePreselectedCount();
+  }
+
+  syncNextCoreoSelection() {
+    const selection = Storage.get('bordero_next_coreo_selection', null);
+    if (selection && typeof selection === 'object') {
+      this.restoreNextCoreoSelection();
+    } else {
+      this.allBrani.forEach((item) => { item.next_selected = false; });
+      this.filteredBrani.forEach((item) => { item.next_selected = false; });
+    }
+
+    this.reapplyCurrentOrdering();
+    this.applyFilters();
   }
 
   mergeCurrentSerata(updatedBrani) {
