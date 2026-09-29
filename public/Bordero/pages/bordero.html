@@ -127,10 +127,10 @@
           SPOSTA IN FONDO GLI ESEGUITI
         </button>
         <button id="btn-view-executed" class="btn btn-sort btn-success" title="Visualizza i brani già eseguiti">
-          BRANI ESEGUITI
+          BRANI ESEGUITI <span id="executed-count-badge">(0)</span>
         </button>
         <button id="btn-view-richieste" class="btn btn-sort btn-primary" title="Visualizza l'elenco dei brani richiesti">
-          ELENCO RICHIESTE
+          ELENCO RICHIESTE <span id="requested-count-badge">(0)</span>
         </button>
         <button id="btn-view-hidden" type="button" class="btn btn-sort btn-primary" title="Visualizza i brani nascosti per titolo duplicato" data-target="brani-nascosti.html">
           BRANI NASCOSTI <span id="hidden-count-badge">(0)</span>
@@ -268,6 +268,10 @@
       <div class="stat-badge stat-hidden-badge">
         <span class="stat-label">Brani nascosti:</span>
         <span class="stat-value" id="stat-hidden">0</span>
+      </div>
+      <div class="stat-badge">
+        <span class="stat-label">Preselezionati:</span>
+        <span class="stat-value" id="stat-preselected">0</span>
       </div>
       <div class="stat-badge">
         <span class="stat-label">Ultimo Aggiornamento:</span>

@@ -3409,6 +3409,10 @@ class BorderoTableManager {
     if (hiddenEl) hiddenEl.textContent = hidden;
     const hiddenBadge = document.getElementById('hidden-count-badge');
     if (hiddenBadge) hiddenBadge.textContent = `(${hidden})`;
+    const executedBadge = document.getElementById('executed-count-badge');
+    if (executedBadge) executedBadge.textContent = `(${completed})`;
+    const requestedBadge = document.getElementById('requested-count-badge');
+    if (requestedBadge) requestedBadge.textContent = `(${requested.length})`;
     this.updatePreselectedCount();
     this.updateRichiesteAlertState();
     this.updateExecutedBottomModeBadge();
@@ -3420,15 +3424,18 @@ class BorderoTableManager {
 
   updatePreselectedCount() {
     const badge = document.getElementById('preselected-count-badge');
-    if (!badge) return;
+    const stat = document.getElementById('stat-preselected');
+    if (!badge && !stat) return;
+    let count = 0;
     try {
       const saved = JSON.parse(localStorage.getItem('bordero.dj-preselezione.v1') || 'null');
       const active = saved?.playlists?.find((playlist) => playlist.id === saved.selectedPlaylistId);
-      badge.textContent = `(${Array.isArray(active?.tracks) ? active.tracks.length : 0})`;
+      count = Array.isArray(active?.tracks) ? active.tracks.length : 0;
     } catch (error) {
       logger.warn('Impossibile aggiornare il conteggio dei brani preselezionati', error);
-      badge.textContent = '(0)';
     }
+    if (badge) badge.textContent = `(${count})`;
+    if (stat) stat.textContent = count;
   }
 
   updateRichiesteAlertState() {

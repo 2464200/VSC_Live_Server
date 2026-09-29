@@ -159,18 +159,21 @@
         filteredTracks = filteredTracks.filter((track) => normalize(track[field]) === normalize(filter.value));
       }
     }
+    const activeTracks = currentPlaylist()?.tracks || [];
+    const selectedIds = new Set(activeTracks.map((track) => String(track.branoId || track.id)));
     if (currentSort) {
-      const direction = currentSortDirection === 'asc' ? 1 : -1;
-      filteredTracks.sort((left, right) => compareTracks(left, right, currentSort) * direction);
+      if (currentSort === 'selected') {
+        filteredTracks.sort((left, right) => Number(selectedIds.has(String(right.id))) - Number(selectedIds.has(String(left.id))));
+      } else {
+        const direction = currentSortDirection === 'asc' ? 1 : -1;
+        filteredTracks.sort((left, right) => compareTracks(left, right, currentSort) * direction);
+      }
     }
 
     const pageCount = Math.max(1, Math.ceil(filteredTracks.length / ITEMS_PER_PAGE));
     currentPage = Math.min(currentPage, pageCount);
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const visible = filteredTracks.slice(start, start + ITEMS_PER_PAGE);
-    const activeTracks = currentPlaylist()?.tracks || [];
-    const selectedIds = new Set(activeTracks.map((track) => String(track.branoId || track.id)));
-
     elements.archiveList.replaceChildren();
     for (const track of visible) {
       const row = document.createElement('div');
@@ -286,7 +289,7 @@
   }
 
   function updateSortButtonStates() {
-    const fields = { 'btn-sort-id': 'id', 'btn-sort-coreografo': 'coreografo', 'btn-sort-autore': 'autore', 'btn-sort-richieste': 'richieste' };
+    const fields = { 'btn-sort-id': 'id', 'btn-sort-coreografo': 'coreografo', 'btn-sort-autore': 'autore', 'btn-sort-richieste': 'richieste', 'btn-sort-selected': 'selected' };
     for (const [id, field] of Object.entries(fields)) {
       const button = document.getElementById(id);
       button?.classList.toggle('active', currentSort === field);
@@ -950,11 +953,14 @@
     'btn-sort-id': 'id',
     'btn-sort-coreografo': 'coreografo',
     'btn-sort-autore': 'autore',
-    'btn-sort-richieste': 'richieste'
+    'btn-sort-richieste': 'richieste',
+    'btn-sort-selected': 'selected'
   };
   Object.entries(sortButtons).forEach(([buttonId, field]) => {
     document.getElementById(buttonId).addEventListener('click', () => {
-      currentSortDirection = currentSort === field && currentSortDirection === 'asc' ? 'desc' : 'asc';
+      currentSortDirection = field === 'selected'
+        ? 'asc'
+        : currentSort === field && currentSortDirection === 'asc' ? 'desc' : 'asc';
       currentSort = field;
       currentPage = 1;
       renderArchive();
