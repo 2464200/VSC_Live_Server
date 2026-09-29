@@ -535,7 +535,25 @@
 }
 
 .row-actions .next-track-button.is-active {
-  box-shadow: inset 0 0 0 2px rgba(31, 31, 31, 0.55), 0 0 0 1px rgba(255, 213, 79, 0.5);
+  animation: next-button-blink 900ms ease-in-out infinite;
+}
+
+@keyframes next-button-blink {
+  0%, 100% {
+    box-shadow: inset 0 0 0 2px rgba(31, 31, 31, 0.55), 0 0 0 1px rgba(255, 213, 79, 0.5);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: inset 0 0 0 2px rgba(31, 31, 31, 0.55), 0 0 0 4px rgba(255, 213, 79, 0.72);
+    opacity: 0.62;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row-actions .next-track-button.is-active {
+    animation: none;
+    box-shadow: inset 0 0 0 2px rgba(31, 31, 31, 0.55), 0 0 0 2px rgba(255, 213, 79, 0.72);
+  }
 }
 
 .selection-row.is-executed .track-title {

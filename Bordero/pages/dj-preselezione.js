@@ -693,7 +693,6 @@
 
     const currentSelection = Storage.get('bordero_next_coreo_selection', null);
     const isAlreadySelected = String(currentSelection?.id || '') === trackId;
-    if (isAlreadySelected && !window.confirm(`Rimuovere la selezione NEXT da ${displayNameOf(track)}?`)) return;
 
     let nextCoreo = '--';
     if (isAlreadySelected) {
