@@ -291,6 +291,30 @@
       },
       "problemMatcher": [],
       "group": "build"
+    },
+    {
+      "label": "Firebase: Deploy Hosting (branch allineato)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\deploy-if-synced.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
     }
   ],
   "inputs": [
