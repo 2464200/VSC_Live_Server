@@ -166,19 +166,6 @@
   background: #b91c1c;
 }
 
-.row-deck-picker {
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
-  margin-left: auto;
-  padding: 2px;
-}
-
-.row-deck-picker .deck-choice {
-  font-size: 0.72rem;
-  min-height: 29px;
-  padding: 4px 6px;
-}
-
 .archive-status,
 .action-status {
   color: #d0d0d0;
@@ -253,6 +240,21 @@
   padding: 5px 8px;
 }
 
+.panel-counts {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.panel-count-available {
+  background: rgba(99, 199, 133, 0.12);
+  border-color: rgba(99, 199, 133, 0.38);
+  color: #83d49e;
+}
+
 .archive-search {
   display: block;
   margin: 0;
@@ -281,7 +283,7 @@
 .track-row {
   cursor: pointer;
   display: grid;
-  grid-template-columns: 54px minmax(150px, 1.25fr) minmax(110px, 1fr) minmax(90px, 0.8fr) 74px;
+  grid-template-columns: 50px minmax(120px, 1.25fr) minmax(85px, 1fr) minmax(70px, 0.8fr) minmax(106px, auto);
   gap: 9px;
   min-height: 58px;
 }
@@ -309,9 +311,46 @@
   box-shadow: inset 3px 0 var(--preselect-orange);
 }
 
-.track-row .add-track-button {
+.track-row.is-executed {
+  background: rgba(99, 199, 133, 0.1);
+  box-shadow: inset 3px 0 var(--preselect-green);
+  cursor: default;
+}
+
+.track-row.is-executed .track-title {
+  color: #83d49e;
+}
+
+.track-status-actions {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.track-row .track-status-button {
   min-height: 30px;
-  padding: 4px 7px;
+  padding: 4px 6px;
+  width: 32px;
+}
+
+.track-row .track-status-button.is-executed {
+  background: #247a45;
+  border-color: #398b58;
+  color: #fff;
+}
+
+.track-row .track-status-button.is-executed:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.track-row .restore-track-button {
+  font-size: 0.72rem;
+  min-height: 30px;
+  padding: 4px 6px;
+  white-space: nowrap;
 }
 
 .catalog-controls {
@@ -417,8 +456,44 @@
   padding: 5px 8px;
 }
 
-.row-actions .load-track-button {
-  min-width: 66px;
+.row-actions .deck-load-button {
+  min-height: 32px;
+  padding: 5px 7px;
+}
+
+.row-actions .deck-load-button-1 {
+  background: #2563eb;
+  color: #fff;
+}
+
+.row-actions .deck-load-button-1:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.row-actions .deck-load-button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.82);
+}
+
+.row-actions .deck-load-button-2 {
+  background: #dc2626;
+  color: #fff;
+}
+
+.row-actions .deck-load-button-2:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.row-actions .mark-executed-button {
+  background: #247a45;
+  color: #fff;
+}
+
+.row-actions .mark-executed-button:hover:not(:disabled) {
+  background: #1c6539;
+}
+
+.selection-row.is-executed .track-title {
+  color: #83d49e;
 }
 
 .row-icon-button {
@@ -519,7 +594,7 @@
   }
 
   .track-row {
-    grid-template-columns: 42px minmax(0, 1fr) 54px 62px;
+    grid-template-columns: 42px minmax(0, 1fr) 42px minmax(104px, auto);
   }
 
   .track-row .track-meta {
@@ -531,10 +606,11 @@
     justify-content: flex-end;
   }
 
-  .row-deck-picker .deck-choice {
-    font-size: 0.7rem;
-    padding-left: 5px;
-    padding-right: 5px;
+  .row-actions .deck-load-button,
+  .row-actions .mark-executed-button {
+    font-size: 0.68rem;
+    padding-left: 6px;
+    padding-right: 6px;
   }
 
   .track-path {

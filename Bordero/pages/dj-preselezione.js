@@ -17,6 +17,7 @@
     archiveStatus: document.getElementById('archive-status'),
     actionStatus: document.getElementById('action-status'),
     archiveCount: document.getElementById('archive-count'),
+    archiveAvailableCount: document.getElementById('archive-available-count'),
     archiveSearch: document.getElementById('archive-search'),
     archiveList: document.getElementById('archive-list'),
     archiveEmpty: document.getElementById('archive-empty'),
@@ -171,8 +172,10 @@
     for (const track of visible) {
       const row = document.createElement('div');
       const selected = selectedIds.has(String(track.id));
-      row.className = `track-row${selected ? ' is-selected' : ''}`;
-      row.title = 'Seleziona per aggiungere alla preselezione';
+      const isExecuted = isTrackExecuted(track);
+      const isVideoOnly = window.isVideoOnlyBrano?.(track) || false;
+      row.className = `track-row${selected ? ' is-selected' : ''}${isExecuted ? ' is-executed' : ''}`;
+      row.title = isExecuted ? 'Brano già eseguito' : 'Seleziona per aggiungere alla preselezione';
       row.append(createTextElement('span', 'track-id', track.id || '—'));
       const titleCopy = document.createElement('div');
       titleCopy.className = 'track-copy';
@@ -183,21 +186,40 @@
       row.append(createTextElement('span', 'track-meta', track.info_livello || track.info_coreo_1 || '—'));
       row.append(createTextElement('span', 'track-requests', track.richieste || '—'));
 
-      const addButton = document.createElement('button');
-      addButton.type = 'button';
-      addButton.className = 'preselect-button preselect-button-quiet add-track-button';
-      addButton.textContent = selected ? '✓' : '+';
-      addButton.disabled = selected;
-      addButton.setAttribute('aria-label', `${addButton.textContent}: ${displayNameOf(track)}`);
-      addButton.addEventListener('click', () => addTrack(track));
-      row.append(addButton);
+      const statusActions = document.createElement('div');
+      statusActions.className = 'track-status-actions';
+      const statusButton = document.createElement('button');
+      statusButton.type = 'button';
+      statusButton.className = `preselect-button preselect-button-quiet track-status-button${isExecuted ? ' is-executed' : ''}`;
+      statusButton.textContent = isExecuted ? '⚑' : selected ? '✓' : '+';
+      statusButton.disabled = isExecuted || selected || isVideoOnly;
+      statusButton.title = isExecuted ? 'Brano già eseguito' : isVideoOnly ? 'Brano solo-video' : selected ? 'Già nella preselezione' : 'Aggiungi alla preselezione';
+      statusButton.setAttribute('aria-label', `${statusButton.title}: ${displayNameOf(track)}`);
+      if (!isExecuted && !selected && !isVideoOnly) {
+        statusButton.addEventListener('click', () => addTrack(track));
+      }
+      statusActions.append(statusButton);
+
+      if (isExecuted) {
+        const restoreButton = document.createElement('button');
+        restoreButton.type = 'button';
+        restoreButton.className = 'preselect-button preselect-button-quiet restore-track-button';
+        restoreButton.textContent = 'Ripristina';
+        restoreButton.title = 'Riporta il brano tra quelli disponibili';
+        restoreButton.setAttribute('aria-label', `Ripristina ${displayNameOf(track)}`);
+        restoreButton.addEventListener('click', () => restoreTrack(track));
+        statusActions.append(restoreButton);
+      }
+      row.append(statusActions);
       row.addEventListener('click', (event) => {
-        if (!event.target.closest('button') && !selected) addTrack(track);
+        if (!event.target.closest('button') && !selected && !isExecuted && !isVideoOnly) addTrack(track);
       });
       elements.archiveList.append(row);
     }
 
-    elements.archiveCount.textContent = `${archiveTracks.length} ${archiveTracks.length === 1 ? 'brano' : 'brani'}`;
+    const availableCount = archiveTracks.filter((track) => !isTrackExecuted(track)).length;
+    elements.archiveCount.textContent = `${archiveTracks.length} ${archiveTracks.length === 1 ? 'totale' : 'totali'}`;
+    elements.archiveAvailableCount.textContent = `${availableCount} ${availableCount === 1 ? 'disponibile' : 'disponibili'}`;
     elements.archiveEmpty.hidden = visible.length > 0;
     if (!archiveTracks.length) {
       elements.archiveEmpty.textContent = 'Nessun brano disponibile nel database Borderò';
@@ -215,6 +237,10 @@
 
   function normalize(value) {
     return String(value ?? '').trim().toLocaleLowerCase('it');
+  }
+
+  function isTrackExecuted(track) {
+    return !window.isVideoOnlyBrano?.(track) && String(track?.flag || '').toUpperCase() === 'X';
   }
 
   function matchesTrack(track, query) {
@@ -306,7 +332,7 @@
   function createRowButton(label, title, handler, disabled = false, primary = false) {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `preselect-button ${primary ? 'preselect-button-primary' : 'preselect-button-quiet'}${label === 'Carica' ? ' load-track-button' : ''}`;
+    button.className = `preselect-button ${primary ? 'preselect-button-primary' : 'preselect-button-quiet'}`;
     button.textContent = label;
     button.title = title;
     button.disabled = disabled;
@@ -326,35 +352,30 @@
     return button;
   }
 
-  function createTrackDeckPicker(track, index) {
-    const selectedDeck = Number(track.deck) === 2 ? 2 : 1;
-    const picker = document.createElement('div');
-    picker.className = 'deck-picker row-deck-picker';
-    picker.setAttribute('role', 'group');
-    picker.setAttribute('aria-label', `Deck per ${displayNameOf(track)}`);
-
+  function createTrackDeckButtons(track, index) {
+    const buttons = document.createDocumentFragment();
     [1, 2].forEach((deck) => {
-      const button = document.createElement('button');
-      const active = selectedDeck === deck;
-      button.type = 'button';
-      button.className = `deck-choice deck-choice-${deck}${active ? ' is-active' : ''}`;
-      button.textContent = `Deck ${deck}`;
-      button.setAttribute('aria-pressed', String(active));
-      button.addEventListener('click', () => setTrackDeck(index, deck));
-      picker.append(button);
+      const button = createRowButton(
+        `DECK ${deck}`,
+        `Carica ${displayNameOf(track)} su Deck ${deck}`,
+        () => loadTrackOnDeck(index, deck),
+        false,
+        false
+      );
+      button.classList.add('deck-load-button', `deck-load-button-${deck}`);
+      button.setAttribute('aria-pressed', String(Number(track.deck) === deck));
+      buttons.append(button);
     });
-
-    return picker;
+    return buttons;
   }
 
-  function setTrackDeck(index, deck) {
+  async function loadTrackOnDeck(index, deck) {
     const track = currentPlaylist()?.tracks[index];
     if (!track) return;
     track.deck = deck === 2 ? 2 : 1;
-    if (saveState()) {
-      renderSelection();
-      setActionStatus(`Deck ${track.deck} assegnato a ${displayNameOf(track)}.`);
-    }
+    if (!saveState()) return;
+    renderSelection();
+    await loadTrack(track, deck);
   }
 
   function renderSelection() {
@@ -372,6 +393,7 @@
       copy.className = 'track-copy';
       copy.append(createTextElement('span', 'track-title', displayNameOf(track)));
       const brano = track.brano || {};
+      if (String(brano.flag || '').toUpperCase() === 'X') row.classList.add('is-executed');
       copy.append(createTextElement('span', 'track-path', [brano.id ? `ID ${brano.id}` : '', brano.brano, brano.autore].filter(Boolean).join(' · ')));
       row.append(copy);
 
@@ -379,9 +401,19 @@
       actions.className = 'row-actions';
       actions.append(createIconButton('↑', 'Sposta in alto', () => moveTrack(index, -1), index === 0));
       actions.append(createIconButton('↓', 'Sposta in basso', () => moveTrack(index, 1), index === tracks.length - 1));
-      actions.append(createRowButton('Carica', `Carica su Deck ${Number(track.deck) === 2 ? 2 : 1}`, () => loadTrack(track), false, true));
+      actions.append(createTrackDeckButtons(track, index));
       actions.append(createIconButton('×', 'Rimuovi dalla lista', () => removeTrack(index)));
-      actions.append(createTrackDeckPicker(track, index));
+      const isExecuted = String(brano.flag || '').toUpperCase() === 'X';
+      const isVideoOnly = window.isVideoOnlyBrano?.(brano) || false;
+      const executedButton = createRowButton(
+        'ESEGUITO',
+        isExecuted ? 'Brano già eseguito' : 'Segna il brano come eseguito nel Borderò',
+        () => markTrackExecuted(track),
+        isExecuted || isVideoOnly,
+        true
+      );
+      executedButton.classList.add('mark-executed-button');
+      actions.append(executedButton);
       row.append(actions);
       elements.selectionList.append(row);
     });
@@ -530,25 +562,16 @@
     return ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
   }
 
-  async function loadTrack(track) {
-    const loadButtons = [...elements.selectionList.querySelectorAll('.row-actions .preselect-button-primary')];
+  async function loadTrack(track, requestedDeck = Number(track.deck) === 2 ? 2 : 1) {
+    const loadButtons = [...elements.selectionList.querySelectorAll('.row-actions .deck-load-button')];
     loadButtons.forEach((button) => { button.disabled = true; });
     setActionStatus('Connessione a VirtualDJ...', 'info');
     try {
       await ensureVirtualDjRuntime();
-      let deck = Number(track.deck) === 2 ? 2 : 1;
+      const deck = requestedDeck === 2 ? 2 : 1;
       const deckIsPlaying = isPlaying(await requestVirtualDj(`deck ${deck} get_play`));
       if (deckIsPlaying) {
-        const fallbackDeck = deck === 1 ? 2 : 1;
-        const fallbackIsPlaying = isPlaying(await requestVirtualDj(`deck ${fallbackDeck} get_play`));
-        if (fallbackIsPlaying) {
-          throw new Error(`Entrambi i deck sono in riproduzione. Nessun brano è stato caricato.`);
-        }
-        if (!window.confirm(`Il Deck ${deck} sta suonando. Vuoi caricare il brano sul Deck ${fallbackDeck}?`)) {
-          setActionStatus('Caricamento annullato.');
-          return;
-        }
-        deck = fallbackDeck;
+        throw new Error(`Il Deck ${deck} sta suonando. Scegli l'altro deck per caricare il brano.`);
       }
 
       const audioFile = await resolveAudioFile(track);
@@ -559,6 +582,145 @@
       setActionStatus(`VirtualDJ: ${error?.message || error}`, 'error');
     } finally {
       loadButtons.forEach((button) => { button.disabled = false; });
+    }
+  }
+
+  async function markTrackExecuted(track) {
+    const brano = track.brano || track;
+    if (window.isVideoOnlyBrano?.(brano)) {
+      setActionStatus('I brani solo-video non possono essere segnati come eseguiti.', 'error');
+      return;
+    }
+    if (String(brano.flag || '').toUpperCase() === 'X') return;
+
+    const currentSerata = dataLoader.getCurrentSerata();
+    const currentTracks = Array.isArray(currentSerata?.brani) && currentSerata.brani.length
+      ? currentSerata.brani.map((item) => ({ ...item }))
+      : archiveTracks.map((item) => ({ ...item }));
+    const target = currentTracks.find((item) => String(item.id) === String(track.branoId || track.id));
+    if (!target) {
+      setActionStatus('Brano non trovato nella serata corrente.', 'error');
+      return;
+    }
+
+    const timestamp = DateUtils.formatDate(new Date());
+    target.flag = 'X';
+    target.eseguito = 'X';
+    target.executed = true;
+    target.timestamp = timestamp;
+    currentTracks.forEach((item) => {
+      item.consoleStatus = '';
+      item.consoleDeck = null;
+    });
+
+    const nextSelection = Storage.get('bordero_next_coreo_selection', null);
+    if (target.next_selected || String(nextSelection?.id || '') === String(target.id)) {
+      currentTracks.forEach((item) => { item.next_selected = false; });
+      Storage.remove('bordero_next_coreo_selection');
+      window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+    }
+
+    const orderedTracks = [
+      ...currentTracks
+        .filter((item) => String(item.flag || '').toUpperCase() !== 'X')
+        .sort((left, right) => (Number(left.originalIndex) || 0) - (Number(right.originalIndex) || 0)),
+      ...currentTracks.filter((item) => String(item.flag || '').toUpperCase() === 'X')
+    ];
+    const metadata = currentSerata?.metadata || {};
+    dataLoader.saveCurrentSerata(metadata, orderedTracks);
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, orderedTracks);
+    const flagged = Storage.get(BORDERO_CONFIG.CACHE_KEY_FLAGGED, []);
+    if (!flagged.some((id) => String(id) === String(target.id))) {
+      flagged.push(target.id);
+      Storage.set(BORDERO_CONFIG.CACHE_KEY_FLAGGED, flagged);
+    }
+
+    archiveTracks = archiveTracks.map((item) => String(item.id) === String(target.id)
+      ? { ...item, flag: 'X', eseguito: 'X', executed: true, timestamp }
+      : item);
+    savedState.playlists.forEach((playlist) => {
+      playlist.tracks.forEach((item) => {
+        if (String(item.branoId || item.id) === String(target.id)) {
+          item.brano = { ...item.brano, flag: 'X', eseguito: 'X', executed: true, timestamp };
+        }
+      });
+    });
+    saveState();
+    renderSelection();
+    setActionStatus(`${displayNameOf(track)} segnato come eseguito.`, 'success');
+
+    try {
+      const selection = Storage.get('bordero_next_coreo_selection', null);
+      const nextCoreo = String(selection?.title || selection?.nextValue || '--').trim() || '--';
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nextCoreo, serata: metadata, brani: orderedTracks })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
+    }
+  }
+
+  async function restoreTrack(track) {
+    const trackId = String(track.id);
+    const currentSerata = dataLoader.getCurrentSerata();
+    const currentTracks = Array.isArray(currentSerata?.brani) && currentSerata.brani.length
+      ? currentSerata.brani.map((item) => ({ ...item }))
+      : archiveTracks.map((item) => ({ ...item }));
+    const target = currentTracks.find((item) => String(item.id) === trackId);
+    if (!target || String(target.flag || '').toUpperCase() !== 'X') {
+      await refreshArchive();
+      setActionStatus('Il brano risulta già disponibile.', 'info');
+      return;
+    }
+
+    target.flag = '';
+    target.eseguito = '';
+    target.executed = false;
+    target.timestamp = '';
+    target.consoleStatus = '';
+    target.consoleDeck = null;
+    const orderedTracks = [
+      ...currentTracks
+        .filter((item) => String(item.flag || '').toUpperCase() !== 'X')
+        .sort((left, right) => (Number(left.originalIndex) || 0) - (Number(right.originalIndex) || 0)),
+      ...currentTracks.filter((item) => String(item.flag || '').toUpperCase() === 'X')
+    ];
+    const metadata = currentSerata?.metadata || {};
+    dataLoader.saveCurrentSerata(metadata, orderedTracks);
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, orderedTracks);
+    Storage.set(
+      BORDERO_CONFIG.CACHE_KEY_FLAGGED,
+      Storage.get(BORDERO_CONFIG.CACHE_KEY_FLAGGED, []).filter((id) => String(id) !== trackId)
+    );
+
+    archiveTracks = archiveTracks.map((item) => String(item.id) === trackId
+      ? { ...item, flag: '', eseguito: '', executed: false, timestamp: '' }
+      : item);
+    savedState.playlists.forEach((playlist) => {
+      playlist.tracks.forEach((item) => {
+        if (String(item.branoId || item.id) === trackId) {
+          item.brano = { ...item.brano, flag: '', eseguito: '', executed: false, timestamp: '' };
+        }
+      });
+    });
+    saveState();
+    renderSelection();
+    setActionStatus(`${displayNameOf(track)} riportato tra i brani disponibili.`, 'success');
+
+    try {
+      const selection = Storage.get('bordero_next_coreo_selection', null);
+      const nextCoreo = String(selection?.title || selection?.nextValue || '--').trim() || '--';
+      const response = await fetch('/api/bordero/cloud-sync-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nextCoreo, serata: metadata, brani: orderedTracks })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+      console.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
     }
   }
 
@@ -725,4 +887,7 @@
   renderPlaylistPicker();
   renderSelection();
   refreshArchive();
+  window.addEventListener('storage', (event) => {
+    if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) refreshArchive();
+  });
 })();
