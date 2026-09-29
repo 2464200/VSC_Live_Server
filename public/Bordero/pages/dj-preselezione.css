@@ -347,10 +347,22 @@
 }
 
 .track-row .restore-track-button {
+  background: #713f43;
+  border-color: #9b5c61;
+  color: #fff;
   font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1.15;
   min-height: 30px;
   padding: 4px 6px;
+  text-align: center;
   white-space: nowrap;
+}
+
+.track-row .restore-track-button:hover:not(:disabled) {
+  background: #874b50;
+  border-color: #b26a70;
+  color: #fff;
 }
 
 .catalog-controls {
@@ -683,6 +695,11 @@
 
   .track-row .track-meta {
     display: none;
+  }
+
+  .track-row .restore-track-button {
+    font-size: 0.62rem;
+    padding: 4px 3px;
   }
 
   .row-actions {
