@@ -246,6 +246,19 @@
     return !window.isVideoOnlyBrano?.(track) && String(track?.flag || '').toUpperCase() === 'X';
   }
 
+  function moveExecutedTracksToBottom(playlist) {
+    if (!Array.isArray(playlist?.tracks)) return false;
+    const available = [];
+    const executed = [];
+    playlist.tracks.forEach((track) => {
+      (isTrackExecuted(track.brano || track) ? executed : available).push(track);
+    });
+    const reordered = [...available, ...executed];
+    const changed = reordered.some((track, index) => track !== playlist.tracks[index]);
+    if (changed) playlist.tracks = reordered;
+    return changed;
+  }
+
   function matchesTrack(track, query) {
     if (!query) return true;
     const fields = searchMode === 'title'
@@ -396,17 +409,19 @@
       copy.className = 'track-copy';
       copy.append(createTextElement('span', 'track-title', displayNameOf(track)));
       const brano = track.brano || {};
-      if (String(brano.flag || '').toUpperCase() === 'X') row.classList.add('is-executed');
+      const isExecuted = isTrackExecuted(brano);
+      if (isExecuted) row.classList.add('is-executed');
       copy.append(createTextElement('span', 'track-path', [brano.id ? `ID ${brano.id}` : '', brano.brano, brano.autore].filter(Boolean).join(' · ')));
       row.append(copy);
 
       const actions = document.createElement('div');
       actions.className = 'row-actions';
-      actions.append(createIconButton('↑', 'Sposta in alto', () => moveTrack(index, -1), index === 0));
-      actions.append(createIconButton('↓', 'Sposta in basso', () => moveTrack(index, 1), index === tracks.length - 1));
+      const canMoveUp = index > 0 && isTrackExecuted(tracks[index - 1].brano || tracks[index - 1]) === isExecuted;
+      const canMoveDown = index < tracks.length - 1 && isTrackExecuted(tracks[index + 1].brano || tracks[index + 1]) === isExecuted;
+      actions.append(createIconButton('↑', 'Sposta in alto', () => moveTrack(index, -1), !canMoveUp));
+      actions.append(createIconButton('↓', 'Sposta in basso', () => moveTrack(index, 1), !canMoveDown));
       actions.append(createTrackDeckButtons(track, index));
       actions.append(createIconButton('×', 'Rimuovi dalla lista', () => removeTrack(index)));
-      const isExecuted = String(brano.flag || '').toUpperCase() === 'X';
       const isVideoOnly = window.isVideoOnlyBrano?.(brano) || false;
       const nextSelection = Storage.get('bordero_next_coreo_selection', null);
       const isNextSelected = String(nextSelection?.id || '') === String(track.branoId || track.id);
@@ -458,6 +473,7 @@
     const tracks = currentPlaylist()?.tracks;
     const targetIndex = index + direction;
     if (!tracks || targetIndex < 0 || targetIndex >= tracks.length) return;
+    if (isTrackExecuted(tracks[index].brano || tracks[index]) !== isTrackExecuted(tracks[targetIndex].brano || tracks[targetIndex])) return;
     [tracks[index], tracks[targetIndex]] = [tracks[targetIndex], tracks[index]];
     if (saveState()) renderSelection();
   }
@@ -660,6 +676,7 @@
           item.brano = { ...item.brano, flag: 'X', eseguito: 'X', executed: true, timestamp };
         }
       });
+      moveExecutedTracksToBottom(playlist);
     });
     saveState();
     renderSelection();
@@ -804,9 +821,15 @@
       const executedMap = new Map((currentSerata?.brani || []).map((item) => [String(item.id), item]));
       archiveTracks = loadedTracks.map((track) => {
         const saved = executedMap.get(String(track.id));
-        return saved && String(saved.flag || '').toUpperCase() === 'X'
-          ? { ...track, flag: 'X', timestamp: saved.timestamp || track.timestamp }
-          : track;
+        if (!saved || !Object.prototype.hasOwnProperty.call(saved, 'flag')) return track;
+        const isExecuted = String(saved.flag || '').toUpperCase() === 'X' && !window.isVideoOnlyBrano?.(track);
+        return {
+          ...track,
+          flag: isExecuted ? 'X' : '',
+          eseguito: isExecuted ? 'X' : '',
+          executed: isExecuted,
+          timestamp: isExecuted ? saved.timestamp || '' : ''
+        };
       });
 
       const byId = new Map(archiveTracks.map((track) => [String(track.id), track]));
@@ -823,6 +846,7 @@
           .filter(Boolean);
         if (updatedTracks.length !== playlist.tracks.length) changed = true;
         playlist.tracks = updatedTracks;
+        if (moveExecutedTracksToBottom(playlist)) changed = true;
       });
       if (changed) saveState();
       currentPage = 1;
@@ -875,6 +899,7 @@
         ) selectionChanged = true;
         return { ...selected, brano: { ...previous, ...updated } };
       });
+      if (moveExecutedTracksToBottom(playlist)) selectionChanged = true;
     });
 
     if (selectionChanged) saveState();
