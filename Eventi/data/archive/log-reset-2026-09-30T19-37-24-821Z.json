@@ -1,0 +1,1262 @@
+[
+  {
+    "id": "008",
+    "stato": "prenotato",
+    "timestamp": "2026-09-10T06:32:48.800Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "009",
+    "stato": "prenotato",
+    "timestamp": "2026-09-10T06:32:49.997Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "009",
+    "stato": "disponibile",
+    "timestamp": "2026-09-10T06:34:11.832Z",
+    "dj": null
+  },
+  {
+    "id": "008",
+    "stato": "disponibile",
+    "timestamp": "2026-09-10T06:34:12.897Z",
+    "dj": null
+  },
+  {
+    "id": "015",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:16:55.625Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "018",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:00.158Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "025",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:07.281Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "030",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:14.941Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "034",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:21.648Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "502",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:27.502Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "037",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:41.860Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "040",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:49.625Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "047",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:17:57.364Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "552",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:03.170Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "060",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:09.877Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "061",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:15.332Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "063",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:19.823Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "066",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:25.113Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "068",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:30.752Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "071",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:38.472Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "074",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:46.484Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "539",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:18:59.883Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "076",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:19:06.807Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "078",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:19:20.755Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "568",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:19:29.549Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "086",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:19:35.312Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "089",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:19:55.250Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "112",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:01.479Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "116",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:10.630Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "119",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:21.419Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "127",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:27.620Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "133",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:39.676Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "138",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:44.139Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "498",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:49.335Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "144",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:20:55.597Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "166",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:21:07.871Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "172",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:21:13.777Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "174",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:21:18.852Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "178",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:21:24.555Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "183",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:21:29.313Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "188",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:21:34.882Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "190",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:21:40.424Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "191",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:22:25.271Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "192",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:22:30.171Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "513",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:22:39.212Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "205",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:22:45.627Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "551",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:22:51.628Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "503",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:22:58.615Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "548",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:23:05.120Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "225",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:23:10.560Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "235",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:23:17.254Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "230",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:23:25.057Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "243",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:23:48.199Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "245",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:23:55.120Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "261",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:03.599Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "501",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:08.459Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "266",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:14.713Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "270",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:19.934Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "555",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:26.031Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "558",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:35.128Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "285",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:45.099Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "510",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:24:50.545Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "294",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:02.424Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "531",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:08.482Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "301",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:15.941Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "304",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:20.925Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "524",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:27.030Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "556",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:31.934Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "311",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:36.676Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "312",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:40.911Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "322",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:45.520Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "329",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:50.437Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "333",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:25:55.026Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "338",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:05.903Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "526",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:10.725Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "347",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:15.318Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "354",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:19.553Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "365",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:25.059Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "378",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:32.645Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "500",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:37.607Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "379",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:49.028Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "385",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:26:54.985Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "394",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:27:20.177Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "395",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:27:25.873Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "550",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:27:39.463Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "407",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:27:45.690Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "408",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:27:51.391Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "475",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:27:56.619Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "412",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:02.339Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "414",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:07.225Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "415",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:12.946Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "419",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:25.809Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "427",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:33.536Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "432",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:38.556Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "433",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:53.291Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "436",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:28:59.274Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "440",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:29:15.744Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "446",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:29:22.004Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "448",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:29:29.827Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "453",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:29:43.502Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "455",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:29:55.537Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "457",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:30:22.784Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "514",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:30:28.951Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "466",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:30:36.605Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "469",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:30:41.261Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "001",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:30:48.117Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "100",
+    "stato": "prenotato",
+    "timestamp": "2026-09-30T19:31:43.922Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "100",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:50.989Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "001",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:51.475Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "469",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:51.651Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "466",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:51.863Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "514",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:52.051Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "457",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:52.222Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "455",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:52.560Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "453",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:52.728Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "448",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:52.888Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "446",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:53.062Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "440",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:53.226Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "436",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:53.553Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "433",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:53.712Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "432",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:53.870Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "427",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:54.036Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "419",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:54.206Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "415",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:54.556Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "414",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:55.238Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "412",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:55.588Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "475",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:55.778Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "408",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:55.951Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "407",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:56.113Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "550",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:56.681Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "395",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:56.881Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "394",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:57.106Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "385",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:57.323Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "379",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:57.522Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "500",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:57.708Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "378",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:57.885Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "365",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:58.064Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "354",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:58.258Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "347",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:58.437Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "526",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:58.626Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "338",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:58.807Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "333",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:58.991Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "329",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:59.162Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "322",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:59.526Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "312",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:59.718Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "311",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:33:59.900Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "556",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:00.074Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "524",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:00.244Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "304",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:00.420Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "301",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:00.594Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "531",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:00.770Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "294",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:00.959Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "510",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:01.138Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "285",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:01.314Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "558",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:01.500Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "555",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:01.668Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "270",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:01.852Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "266",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:02.012Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "501",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:02.196Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "261",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:02.562Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "245",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:02.761Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "243",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:02.945Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "230",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:03.130Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "235",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:03.315Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "225",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:03.490Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "548",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:03.679Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "503",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:03.864Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "551",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:04.052Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "205",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:04.229Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "513",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:04.613Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "192",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:04.808Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "191",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:05.000Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "190",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:05.232Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "188",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:05.474Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "183",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:05.722Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "178",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:06.076Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "174",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:06.276Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "172",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:06.490Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "166",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:06.686Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "144",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:06.880Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "498",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:07.070Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "138",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:07.274Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "133",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:07.470Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "127",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:07.666Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "119",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:07.851Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "116",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:08.054Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "112",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:08.251Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "089",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:08.452Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "086",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:08.691Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "568",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:08.906Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "078",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:09.167Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "076",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:11.653Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "539",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:14.723Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "074",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:14.946Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "071",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:15.182Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "068",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:15.603Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "066",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:15.814Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "063",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:16.014Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "061",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:16.203Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "060",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:18.212Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "552",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:18.636Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "047",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:18.860Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "040",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:19.127Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "037",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:19.589Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "502",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:19.810Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "034",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:22.016Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "030",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:22.302Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "025",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:22.522Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "018",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:22.874Z",
+    "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "015",
+    "stato": "eseguito",
+    "timestamp": "2026-09-30T19:34:23.552Z",
+    "dj": "DJ Lucas Berry"
+  }
+]
