@@ -999,6 +999,14 @@ function execFileAsync(command, args, options = {}) {
     });
 }
 
+function execCommandAsync(command, args, options = {}) {
+    if (process.platform !== 'win32') {
+        return execFileAsync(command, args, options);
+    }
+    const commandLine = [command, ...args].join(' ');
+    return execFileAsync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', commandLine], options);
+}
+
 const deployController = {
     intervalEnabled: false,
     sessionAutoEnabled: false,
@@ -1058,10 +1066,9 @@ async function runFirebaseDeploy() {
     deployController.running = true;
     deployController.lastRunAt = new Date().toISOString();
     try {
-        const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
         const firebaseCommand = process.platform === 'win32' ? 'firebase.cmd' : 'firebase';
         const beforeFingerprint = await getPublicFingerprint();
-        await execFileAsync(npmCommand, ['run', 'sync:public'], {
+        await execFileAsync(process.execPath, [path.join(__dirname, 'scripts', 'sync-public.js')], {
             cwd: __dirname,
             maxBuffer: 20 * 1024 * 1024,
         });
@@ -1074,7 +1081,7 @@ async function runFirebaseDeploy() {
         let lastError = null;
         for (let attempt = 1; attempt <= 3; attempt += 1) {
             try {
-                const result = await execFileAsync(firebaseCommand, ['deploy', '--only', 'hosting'], {
+                const result = await execCommandAsync(firebaseCommand, ['deploy', '--only', 'hosting'], {
                     cwd: __dirname,
                     maxBuffer: 20 * 1024 * 1024,
                 });
@@ -1090,7 +1097,7 @@ async function runFirebaseDeploy() {
         throw lastError;
     } catch (error) {
         deployController.lastOutput = String(error.stderr || error.stdout || error.message || error).slice(-4000);
-        deployController.lastResult = 'Deploy fallito dopo 3 tentativi';
+        deployController.lastResult = `Deploy fallito: ${error.code || error.message || 'errore sconosciuto'}`;
         return { skipped: false, ok: false };
     } finally {
         deployController.running = false;
