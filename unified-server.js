@@ -1018,7 +1018,18 @@ const deployController = {
     dailyDate: '',
     dailyDeployCount: 0,
     maxDailyDeploys: 24,
+    lastDeployedFingerprint: null,
 };
+
+const deployFingerprintFile = path.join(__dirname, '.firebase', 'hosting-deploy-fingerprint.json');
+try {
+    const savedFingerprint = JSON.parse(fs.readFileSync(deployFingerprintFile, 'utf8'));
+    if (typeof savedFingerprint.fingerprint === 'string') {
+        deployController.lastDeployedFingerprint = savedFingerprint.fingerprint;
+    }
+} catch {
+    // First run after enabling tracking performs one deploy to establish a baseline.
+}
 
 function refreshDailyDeployCount() {
     const today = new Date().toLocaleDateString('en-CA');
@@ -1067,13 +1078,12 @@ async function runFirebaseDeploy() {
     deployController.lastRunAt = new Date().toISOString();
     try {
         const firebaseCommand = process.platform === 'win32' ? 'firebase.cmd' : 'firebase';
-        const beforeFingerprint = await getPublicFingerprint();
         await execFileAsync(process.execPath, [path.join(__dirname, 'scripts', 'sync-public.js')], {
             cwd: __dirname,
             maxBuffer: 20 * 1024 * 1024,
         });
         const afterFingerprint = await getPublicFingerprint();
-        if (beforeFingerprint === afterFingerprint) {
+        if (deployController.lastDeployedFingerprint === afterFingerprint) {
             deployController.lastResult = 'Nessuna modifica: deploy saltato';
             return { skipped: true, reason: 'no-changes' };
         }
@@ -1086,6 +1096,16 @@ async function runFirebaseDeploy() {
                     maxBuffer: 20 * 1024 * 1024,
                 });
                 deployController.dailyDeployCount += 1;
+                deployController.lastDeployedFingerprint = afterFingerprint;
+                try {
+                    await fs.promises.mkdir(path.dirname(deployFingerprintFile), { recursive: true });
+                    await fs.promises.writeFile(deployFingerprintFile, JSON.stringify({
+                        fingerprint: afterFingerprint,
+                        deployedAt: new Date().toISOString(),
+                    }, null, 2));
+                } catch (fingerprintError) {
+                    console.warn('[Firebase Deploy] Impossibile salvare il fingerprint del deploy:', fingerprintError.message);
+                }
                 deployController.lastOutput = String(result.stdout || '').slice(-4000);
                 deployController.lastResult = `Deploy completato (tentativo ${attempt})`;
                 return { skipped: false, ok: true, attempt };

@@ -8,6 +8,9 @@
 (function () {
   'use strict';
 
+  const MAX_CLOUD_STATE_AGE_MS = 48 * 60 * 60 * 1000;
+  const MAX_FUTURE_CLOCK_SKEW_MS = 5 * 60 * 1000;
+
   class FirebaseCloudClient {
     constructor() {
       this.dbUrl = (typeof BORDERO_CONFIG !== 'undefined' && BORDERO_CONFIG?.FIREBASE_REALTIME_DB_URL)
@@ -143,11 +146,20 @@
       if (!payload || typeof payload !== 'object') return;
 
       const { nextCoreo, serata, brani, updatedAt } = payload;
+      const timestamp = Date.parse(updatedAt || '');
+      const stateKey = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : 'missing-timestamp';
 
-      if (updatedAt && updatedAt === this.lastStateTimestamp) {
+      if (stateKey === this.lastStateTimestamp) {
         return; // Nessuna variazione
       }
-      this.lastStateTimestamp = updatedAt || new Date().toISOString();
+      this.lastStateTimestamp = stateKey;
+
+      const ageMs = Date.now() - timestamp;
+      if (!Number.isFinite(timestamp) || ageMs > MAX_CLOUD_STATE_AGE_MS || ageMs < -MAX_FUTURE_CLOCK_SKEW_MS) {
+        this.clearExpiredStoredSerata(timestamp);
+        this.updateStatusBadge(false, 'Cloud non aggiornato · uso dati pubblicati');
+        return;
+      }
 
       // 1. Aggiorna Prossima Coreo
       if (nextCoreo) {
@@ -159,13 +171,6 @@
 
       // 2. Aggiorna Serata & Brani
       if (typeof Storage !== 'undefined' && Storage.set) {
-        if (Array.isArray(brani) && brani.length > 0) {
-          Storage.set('BORDERO_BRANI_DATA', brani);
-          if (typeof BORDERO_CONFIG !== 'undefined') {
-            Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, brani);
-          }
-        }
-
         if (serata) {
           const currentSerata = {
             id: Date.now(),
@@ -189,6 +194,23 @@
           window.nextCoreoDisplay.refresh();
         }
         window.dispatchEvent(new CustomEvent('bordero:cloud-updated', { detail: payload }));
+      }
+    }
+
+    clearExpiredStoredSerata(cloudTimestamp) {
+      if (typeof Storage === 'undefined' || typeof BORDERO_CONFIG === 'undefined') return;
+      const key = BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA;
+      const currentSerata = Storage.get(key, null);
+      const savedAt = Date.parse(currentSerata?.savedAt || '');
+      if (!Number.isFinite(savedAt)) return;
+
+      const ageMs = Date.now() - savedAt;
+      const noNewerThanCloud = !Number.isFinite(cloudTimestamp) || savedAt <= cloudTimestamp;
+      if (ageMs > MAX_CLOUD_STATE_AGE_MS && noNewerThanCloud) {
+        Storage.remove(key);
+        if (typeof window !== 'undefined' && window.displayMonitor?.refresh) {
+          window.displayMonitor.refresh();
+        }
       }
     }
 

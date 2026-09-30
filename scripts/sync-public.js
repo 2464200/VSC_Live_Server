@@ -24,15 +24,24 @@ function getDeferredPaths() {
   };
 
   try {
-    const upstream = execFileSync('git', ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], {
-      cwd: repoRoot,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
     for (const item of readPaths(['diff', '--name-only', 'HEAD', '--'])) deferred.add(item);
     for (const item of readPaths(['ls-files', '--others', '--exclude-standard'])) deferred.add(item);
-    if (upstream) {
-      for (const item of readPaths(['diff', '--name-only', 'HEAD', upstream, '--'])) deferred.add(item);
+
+    let compareRef = process.env.DEPLOY_COMPARE_REF || '';
+    if (!compareRef) {
+      try {
+        compareRef = execFileSync('git', ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], {
+          cwd: repoRoot,
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+        }).trim();
+      } catch {
+        // GitHub checks out a commit in detached HEAD mode; the workflow supplies its ref.
+        if (process.env.GITHUB_ACTIONS !== 'true') deferred.add('*');
+      }
+    }
+    if (compareRef) {
+      for (const item of readPaths(['diff', '--name-only', 'HEAD', compareRef, '--'])) deferred.add(item);
     }
   } catch {
     // If Git state cannot be inspected, keep the existing public copies intact.
