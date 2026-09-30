@@ -15,6 +15,17 @@ Write-Host "           Arresto Automatico Server"
 Write-Host "========================================================"
 Write-Host ""
 
+# Disattiva e annulla il deploy prima di terminare il server unificato.
+try {
+    $deployStop = Invoke-RestMethod -Uri 'http://127.0.0.1:5500/api/admin/deploy/project-shutdown' `
+        -Method Post -ContentType 'application/json' -Body '{}' -TimeoutSec 5
+    if ($deployStop.ok) {
+        Write-Host "Deploy Firebase arrestato per la chiusura del progetto"
+    }
+} catch {
+    Write-Host "Server deploy non raggiungibile; continuo con l'arresto dei processi"
+}
+
 $startedPids = @()
 if (Test-Path $PidFile) {
     try {

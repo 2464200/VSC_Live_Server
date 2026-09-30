@@ -1000,26 +1000,84 @@ function execFileAsync(command, args, options = {}) {
 }
 
 function execCommandAsync(command, args, options = {}) {
-    if (process.platform !== 'win32') {
-        return execFileAsync(command, args, options);
-    }
-    const commandLine = [command, ...args].join(' ');
-    return execFileAsync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', commandLine], options);
+    const executable = process.platform === 'win32' ? (process.env.ComSpec || 'cmd.exe') : command;
+    const commandArgs = process.platform === 'win32' ? ['/d', '/s', '/c', [command, ...args].join(' ')] : args;
+    return new Promise((resolve, reject) => {
+        const child = execFile(executable, commandArgs, { windowsHide: true, ...options }, (error, stdout, stderr) => {
+            if (deployController.activeChild === child) deployController.activeChild = null;
+            if (error) {
+                error.stdout = stdout;
+                error.stderr = stderr;
+                reject(error);
+                return;
+            }
+            resolve({ stdout, stderr });
+        });
+        deployController.activeChild = child;
+    });
+}
+
+const deployControlFile = path.join(__dirname, '.firebase', 'deploy-control.json');
+let savedDeployControl = {};
+try {
+    savedDeployControl = JSON.parse(fs.readFileSync(deployControlFile, 'utf8').replace(/^\uFEFF/, ''));
+} catch {
+    savedDeployControl = {};
 }
 
 const deployController = {
-    intervalEnabled: false,
-    sessionAutoEnabled: false,
+    intervalEnabled: Boolean(savedDeployControl.intervalEnabled),
+    sessionAutoEnabled: Boolean(savedDeployControl.sessionAutoEnabled),
     timer: null,
     running: false,
+    stopping: false,
+    activeChild: null,
     lastRunAt: null,
     lastResult: 'Mai eseguito',
     lastOutput: '',
     dailyDate: '',
     dailyDeployCount: 0,
-    maxDailyDeploys: 24,
     lastDeployedFingerprint: null,
 };
+
+function persistDeployControl() {
+    fs.mkdirSync(path.dirname(deployControlFile), { recursive: true });
+    fs.writeFileSync(deployControlFile, JSON.stringify({
+        intervalEnabled: deployController.intervalEnabled,
+        sessionAutoEnabled: deployController.sessionAutoEnabled,
+        updatedAt: new Date().toISOString(),
+    }, null, 2));
+}
+
+async function stopDeployForProjectShutdown() {
+    deployController.intervalEnabled = false;
+    deployController.sessionAutoEnabled = false;
+    deployController.stopping = true;
+    syncDeployTimer();
+    try {
+        persistDeployControl();
+    } catch (error) {
+        console.warn('[Firebase Deploy] Impossibile salvare lo stop:', error.message);
+    }
+
+    const child = deployController.activeChild;
+    if (child && child.pid) {
+        if (process.platform === 'win32') {
+            try {
+                await execFileAsync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { timeout: 5000 });
+            } catch {
+                try { child.kill(); } catch {}
+            }
+        } else {
+            try { child.kill('SIGTERM'); } catch {}
+        }
+    }
+
+    if (deployController.running) {
+        deployController.lastResult = 'Deploy annullato: chiusura progetto';
+    }
+    return { ok: true, stopped: true, deployWasRunning: deployController.running };
+}
 
 const deployFingerprintFile = path.join(__dirname, '.firebase', 'hosting-deploy-fingerprint.json');
 try {
@@ -1065,15 +1123,13 @@ function waitForDeployRetry(delayMs) {
 
 async function runFirebaseDeploy() {
     refreshDailyDeployCount();
+    if (deployController.stopping) {
+        return { skipped: true, reason: 'project-shutdown' };
+    }
     if (deployController.running) {
         deployController.lastResult = 'Deploy gia in corso: esecuzione saltata';
         return { skipped: true };
     }
-    if (deployController.dailyDeployCount >= deployController.maxDailyDeploys) {
-        deployController.lastResult = `Limite giornaliero raggiunto (${deployController.maxDailyDeploys})`;
-        return { skipped: true, reason: 'daily-limit' };
-    }
-
     deployController.running = true;
     deployController.lastRunAt = new Date().toISOString();
     try {
@@ -1082,6 +1138,10 @@ async function runFirebaseDeploy() {
             cwd: __dirname,
             maxBuffer: 20 * 1024 * 1024,
         });
+        if (deployController.stopping) {
+            deployController.lastResult = 'Deploy annullato: chiusura progetto';
+            return { skipped: true, reason: 'project-shutdown' };
+        }
         const afterFingerprint = await getPublicFingerprint();
         if (deployController.lastDeployedFingerprint === afterFingerprint) {
             deployController.lastResult = 'Nessuna modifica: deploy saltato';
@@ -1111,11 +1171,19 @@ async function runFirebaseDeploy() {
                 return { skipped: false, ok: true, attempt };
             } catch (error) {
                 lastError = error;
+                if (deployController.stopping) {
+                    deployController.lastResult = 'Deploy annullato: chiusura progetto';
+                    return { skipped: true, reason: 'project-shutdown' };
+                }
                 if (attempt < 3) await waitForDeployRetry(5000 * (2 ** (attempt - 1)));
             }
         }
         throw lastError;
     } catch (error) {
+        if (deployController.stopping) {
+            deployController.lastResult = 'Deploy annullato: chiusura progetto';
+            return { skipped: true, reason: 'project-shutdown' };
+        }
         deployController.lastOutput = String(error.stderr || error.stdout || error.message || error).slice(-4000);
         deployController.lastResult = `Deploy fallito: ${error.code || error.message || 'errore sconosciuto'}`;
         return { skipped: false, ok: false };
@@ -1135,7 +1203,6 @@ function getDeployStatus() {
         lastOutput: deployController.lastOutput,
         intervalMs: 60 * 1000,
         dailyDeployCount: deployController.dailyDeployCount,
-        maxDailyDeploys: deployController.maxDailyDeploys,
     };
 }
 
@@ -1149,6 +1216,10 @@ function syncDeployTimer() {
     if (deployController.timer) return;
     deployController.timer = setInterval(() => { void runFirebaseDeploy(); }, 60 * 1000);
     void runFirebaseDeploy();
+}
+
+if (deployController.intervalEnabled || deployController.sessionAutoEnabled) {
+    syncDeployTimer();
 }
 
 function getVlcExecutableCandidates() {
@@ -3107,14 +3178,27 @@ app.get('/api/admin/deploy/status', (_req, res) => {
 
 app.post('/api/admin/deploy/interval', (req, res) => {
     deployController.intervalEnabled = Boolean(req.body?.enabled);
+    deployController.stopping = false;
+    try { persistDeployControl(); } catch (error) {
+        return res.status(500).json({ ok: false, error: `Impossibile salvare lo stato deploy: ${error.message}` });
+    }
     syncDeployTimer();
     return res.json({ ok: true, status: getDeployStatus() });
 });
 
 app.post('/api/admin/deploy/session-auto', (req, res) => {
     deployController.sessionAutoEnabled = Boolean(req.body?.enabled);
+    deployController.stopping = false;
+    try { persistDeployControl(); } catch (error) {
+        return res.status(500).json({ ok: false, error: `Impossibile salvare lo stato deploy: ${error.message}` });
+    }
     syncDeployTimer();
     return res.json({ ok: true, status: getDeployStatus() });
+});
+
+app.post('/api/admin/deploy/project-shutdown', async (_req, res) => {
+    const result = await stopDeployForProjectShutdown();
+    return res.json({ ok: true, result, status: getDeployStatus() });
 });
 
 app.post('/api/admin/deploy/run', async (_req, res) => {

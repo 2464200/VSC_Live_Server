@@ -976,7 +976,7 @@ class AdminPanel {
       if (status.sessionAutoEnabled) modes.push('automatico server');
       const modeText = modes.length ? modes.join(' + ') : 'disattivato';
       const lastRun = status.lastRunAt ? new Date(status.lastRunAt).toLocaleString('it-IT') : 'mai';
-      return `Stato: ${modeText}${status.running ? ' | deploy in corso' : ''}\nUltimo esito: ${status.lastResult || 'nessuno'}\nUltimo avvio: ${lastRun}\nDeploy riusciti oggi: ${status.dailyDeployCount || 0}/${status.maxDailyDeploys || 24}`;
+      return `Stato: ${modeText}${status.running ? ' | deploy in corso' : ''}\nUltimo esito: ${status.lastResult || 'nessuno'}\nUltimo avvio: ${lastRun}\nDeploy riusciti oggi: ${status.dailyDeployCount || 0}`;
     };
 
     const render = (status = {}) => {
