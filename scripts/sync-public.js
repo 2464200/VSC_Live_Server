@@ -13,6 +13,10 @@ const borderoSrc = path.join(repoRoot, 'Bordero');
 const publicBordero = path.join(repoRoot, 'public', 'Bordero');
 
 function getDeferredPaths() {
+  // Deploy esplicitamente autorizzato dall'utente: pubblica anche le modifiche
+  // locali non ancora committate o non allineate al branch remoto.
+  if (process.env.DEPLOY_INCLUDE_LOCAL_CHANGES === 'true') return new Set();
+
   const deferred = new Set();
   const readPaths = (args) => {
     const output = execFileSync('git', args, {

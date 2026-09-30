@@ -20,6 +20,8 @@
       this.eventSource = null;
       this.pollingTimer = null;
       this.lastStateTimestamp = null;
+      this.hasFreshCloudState = false;
+      this.latestNextCoreo = '--';
       this.isConnected = false;
       this.localPushDebounceTimer = null;
 
@@ -156,10 +158,14 @@
 
       const ageMs = Date.now() - timestamp;
       if (!Number.isFinite(timestamp) || ageMs > MAX_CLOUD_STATE_AGE_MS || ageMs < -MAX_FUTURE_CLOCK_SKEW_MS) {
+        this.hasFreshCloudState = false;
         this.clearExpiredStoredSerata();
         this.updateStatusBadge(false, 'Cloud non aggiornato · uso dati pubblicati');
         return;
       }
+
+      this.hasFreshCloudState = true;
+      this.latestNextCoreo = String(nextCoreo || '--').trim() || '--';
 
       // 1. Aggiorna Prossima Coreo
       if (nextCoreo) {

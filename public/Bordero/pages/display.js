@@ -833,6 +833,20 @@ class DisplayMonitor {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
+    const cloudClient = window.firebaseCloudClient;
+    if (cloudClient?.isCloudHost && cloudClient.hasFreshCloudState) {
+      const cloudTitle = cloudClient.latestNextCoreo || '--';
+      target.textContent = cloudTitle;
+      if (cloudTitle === '--') {
+        this.hideNextCoreoAnnouncement();
+        return;
+      }
+      const cloudSelectionId = `cloud:${cloudClient.lastStateTimestamp || cloudTitle}`;
+      if (initialize) this.lastNextCoreoAnnouncementId = cloudSelectionId;
+      if (announce) this.showNextCoreoAnnouncement(cloudTitle, cloudSelectionId);
+      return;
+    }
+
     const storedSelection = Storage.get(this.nextCoreoSelectionStorageKey, null);
     const resolvedTitle = this.resolveStoredNextCoreoTitle(storedSelection);
     if (!resolvedTitle) {
