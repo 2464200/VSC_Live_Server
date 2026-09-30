@@ -101,6 +101,19 @@ function syncPublic() {
   }
   console.log('🔄 Sincronizzazione file Bordero in public/ per Firebase Hosting...');
 
+  // Keep the deployed entry points in sync as well as the Bordero subfolders.
+  // These were previously omitted, leaving older HTML pages live after deploy.
+  for (const [source, destination] of [
+    [path.join(repoRoot, 'index.html'), path.join(repoRoot, 'public', 'index.html')],
+    [path.join(borderoSrc, 'index.html'), path.join(publicBordero, 'index.html')],
+  ]) {
+    const repoRelativePath = path.relative(repoRoot, source).replace(/\\/g, '/');
+    if (fs.existsSync(source) && !deferredPaths.has('*') && !deferredPaths.has(repoRelativePath)) {
+      fs.copyFileSync(source, destination);
+      console.log(`  ✓ Copiato ${repoRelativePath} -> ${path.relative(repoRoot, destination).replace(/\\/g, '/')}`);
+    }
+  }
+
   // 1. Sotto-cartelle Bordero
   const subfolders = ['pages', 'js', 'assets', 'data'];
   for (const folder of subfolders) {
