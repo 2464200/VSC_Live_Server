@@ -31,6 +31,8 @@ class DisplayMonitor {
     this.scrollLastObservedTop = 0;
     this.scrollLastObservedAt = 0;
     this.lastRenderedSignature = '';
+    this.lastDisplayCsvLoadAt = 0;
+    this.lastDisplayCsvLoadResult = null;
     this.footerRollingHint = 'Parametri rolling: configura da ADMIN';
     this.scrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
     this.lastHandledScrollCommandTs = 0;
@@ -328,14 +330,7 @@ class DisplayMonitor {
 
     // Un brano eseguito deve restare visibile anche se richieste=0 (es. selezione diretta DJ).
     const requestedBrani = brani.filter((brano) => !this.isRichiesteZeroValue(brano?.richieste) || this.isBranoExecuted(brano));
-    if (requestedBrani.length > 0) {
-      return requestedBrani;
-    }
-
-    return brani.filter((brano) => {
-      const text = [brano?.titolo, brano?.coreografia, brano?.brano, brano?.id].filter(Boolean).join(' ');
-      return text.trim().length > 0;
-    });
+    return requestedBrani;
   }
 
   orderRequestedBrani(brani) {
@@ -853,6 +848,12 @@ class DisplayMonitor {
   }
 
   async loadDisplayCsvData() {
+    const now = Date.now();
+    if (now - this.lastDisplayCsvLoadAt < 30000) {
+      return this.lastDisplayCsvLoadResult;
+    }
+    this.lastDisplayCsvLoadAt = now;
+
     const candidates = [
       '/display.csv',
       '/public/display.csv',
@@ -873,6 +874,18 @@ class DisplayMonitor {
         if (lines.length >= 3) {
           const metaLine = lines[1] || '';
           const dataMatch = metaLine.match(/Data:\s*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})/i);
+          if (dataMatch) {
+            const [day, month, rawYear] = dataMatch[1].split(/[\/\-]/).map(Number);
+            const year = rawYear < 100 ? 2000 + rawYear : rawYear;
+            const csvDate = new Date(year, month - 1, day, 12, 0, 0);
+            const ageMs = now - csvDate.getTime();
+            if (!Number.isFinite(csvDate.getTime()) || ageMs > 48 * 60 * 60 * 1000 || ageMs < -24 * 60 * 60 * 1000) {
+              logger.warn('CSV Display ignorato: data non aggiornata', { date: dataMatch[1] });
+              this.lastDisplayCsvLoadResult = null;
+              return null;
+            }
+          }
+
           if (dataMatch && (!this.serata.data || this.serata.data === '--')) {
             this.serata.data = dataMatch[1];
           }
@@ -904,7 +917,8 @@ class DisplayMonitor {
           }
 
           if (items.length > 0) {
-            return items;
+            this.lastDisplayCsvLoadResult = items;
+            return this.lastDisplayCsvLoadResult;
           }
         }
       } catch (err) {

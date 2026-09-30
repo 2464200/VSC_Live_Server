@@ -156,7 +156,7 @@
 
       const ageMs = Date.now() - timestamp;
       if (!Number.isFinite(timestamp) || ageMs > MAX_CLOUD_STATE_AGE_MS || ageMs < -MAX_FUTURE_CLOCK_SKEW_MS) {
-        this.clearExpiredStoredSerata(timestamp);
+        this.clearExpiredStoredSerata();
         this.updateStatusBadge(false, 'Cloud non aggiornato · uso dati pubblicati');
         return;
       }
@@ -197,16 +197,13 @@
       }
     }
 
-    clearExpiredStoredSerata(cloudTimestamp) {
+    clearExpiredStoredSerata() {
       if (typeof Storage === 'undefined' || typeof BORDERO_CONFIG === 'undefined') return;
       const key = BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA;
       const currentSerata = Storage.get(key, null);
       const savedAt = Date.parse(currentSerata?.savedAt || '');
-      if (!Number.isFinite(savedAt)) return;
-
       const ageMs = Date.now() - savedAt;
-      const noNewerThanCloud = !Number.isFinite(cloudTimestamp) || savedAt <= cloudTimestamp;
-      if (ageMs > MAX_CLOUD_STATE_AGE_MS && noNewerThanCloud) {
+      if (!Number.isFinite(savedAt) || ageMs > MAX_CLOUD_STATE_AGE_MS || ageMs < -MAX_FUTURE_CLOCK_SKEW_MS) {
         Storage.remove(key);
         if (typeof window !== 'undefined' && window.displayMonitor?.refresh) {
           window.displayMonitor.refresh();
