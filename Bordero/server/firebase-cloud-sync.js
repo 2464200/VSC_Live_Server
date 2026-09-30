@@ -44,8 +44,38 @@ class FirebaseCloudSync {
     this.initializeAdminDatabase();
     this.initWatchers();
     if (this.enabled) {
-      setImmediate(() => this.syncFromLocalFiles());
+      setImmediate(() => this.initializeFromCloudAndSync());
     }
+  }
+
+  /**
+   * Ripristina lo stato già pubblicato prima di aggiornare i dati derivati dai CSV.
+   * Più istanze del server possono avviarsi su porte diverse: senza questo passaggio
+   * ciascuna partirebbe con metadata vuoti/obsoleti e potrebbe sovrascrivere la serata
+   * attualmente visibile sul display.
+   */
+  async initializeFromCloudAndSync() {
+    if (this.adminDatabase) {
+      try {
+        const snapshot = await this.adminDatabase.ref('bordero/display_state').get();
+        const cloudState = snapshot.exists() ? snapshot.val() : null;
+        if (cloudState && typeof cloudState === 'object') {
+          this.lastKnownState = {
+            ...this.lastKnownState,
+            ...cloudState,
+            serata: {
+              ...this.lastKnownState.serata,
+              ...(cloudState.serata && typeof cloudState.serata === 'object' ? cloudState.serata : {})
+            },
+            brani: Array.isArray(cloudState.brani) ? cloudState.brani : this.lastKnownState.brani
+          };
+        }
+      } catch (error) {
+        console.warn('Firebase Cloud Sync: impossibile ripristinare lo stato cloud iniziale:', error?.message || error);
+      }
+    }
+
+    await this.syncFromLocalFiles();
   }
 
   initializeAdminDatabase() {
