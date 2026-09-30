@@ -38,6 +38,7 @@ class FirebaseCloudSync {
         completed: '0/0'
       },
       brani: [],
+      catalogBrani: [],
       source: 'local-server'
     };
 
@@ -67,7 +68,8 @@ class FirebaseCloudSync {
               ...this.lastKnownState.serata,
               ...(cloudState.serata && typeof cloudState.serata === 'object' ? cloudState.serata : {})
             },
-            brani: Array.isArray(cloudState.brani) ? cloudState.brani : this.lastKnownState.brani
+            brani: Array.isArray(cloudState.brani) ? cloudState.brani : this.lastKnownState.brani,
+            catalogBrani: Array.isArray(cloudState.catalogBrani) ? cloudState.catalogBrani : this.lastKnownState.catalogBrani
           };
         }
       } catch (error) {
@@ -238,7 +240,7 @@ class FirebaseCloudSync {
         } catch (_) {}
       }
 
-      let braniList = this.lastKnownState.brani || [];
+      let braniList = this.lastKnownState.catalogBrani || [];
       if (fs.existsSync(braniFile)) {
         try {
           const raw = fs.readFileSync(braniFile, 'utf8').replace(/^\uFEFF/, '').trim();
@@ -268,7 +270,7 @@ class FirebaseCloudSync {
 
       await this.pushState({
         nextCoreo: nextCoreoVal,
-        brani: braniList.length > 0 ? braniList : this.lastKnownState.brani
+        catalogBrani: braniList.length > 0 ? braniList : this.lastKnownState.catalogBrani
       });
     } catch (err) {
       console.warn('⚠️ [FirebaseCloudSync] syncFromLocalFiles errore:', err?.message || err);

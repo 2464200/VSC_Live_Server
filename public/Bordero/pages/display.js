@@ -837,13 +837,9 @@ class DisplayMonitor {
     if (cloudClient?.isCloudHost && cloudClient.hasFreshCloudState) {
       const cloudTitle = cloudClient.latestNextCoreo || '--';
       target.textContent = cloudTitle;
-      if (cloudTitle === '--') {
-        this.hideNextCoreoAnnouncement();
-        return;
-      }
-      const cloudSelectionId = `cloud:${cloudClient.lastStateTimestamp || cloudTitle}`;
-      if (initialize) this.lastNextCoreoAnnouncementId = cloudSelectionId;
-      if (announce) this.showNextCoreoAnnouncement(cloudTitle, cloudSelectionId);
+      // Sul display web il dato resta nel box; gli annunci in sovraimpressione
+      // sono riservati al display locale e non vanno ripetuti ad ogni sync cloud.
+      this.hideNextCoreoAnnouncement();
       return;
     }
 

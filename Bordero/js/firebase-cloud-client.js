@@ -147,7 +147,7 @@
     handleCloudState(payload) {
       if (!payload || typeof payload !== 'object') return;
 
-      const { nextCoreo, serata, brani, updatedAt } = payload;
+      const { nextCoreo, serata, brani, catalogBrani, updatedAt } = payload;
       const timestamp = Date.parse(updatedAt || '');
       const stateKey = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : 'missing-timestamp';
 
@@ -177,6 +177,11 @@
 
       // 2. Aggiorna Serata & Brani
       if (typeof Storage !== 'undefined' && Storage.set) {
+        if (Array.isArray(catalogBrani)) {
+          Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, catalogBrani);
+          Storage.set('BORDERO_BRANI_DATA', catalogBrani);
+          dataLoader.brani = catalogBrani;
+        }
         if (serata) {
           const currentSerata = {
             id: Date.now(),
@@ -230,6 +235,7 @@
 
       window.addEventListener('bordero:serata-updated', handleLocalChange);
       window.addEventListener('bordero:next-coreo-updated', handleLocalChange);
+      window.addEventListener('bordero:data-updated', handleLocalChange);
       window.addEventListener('storage', (event) => {
         if (event.key && (event.key.includes('currentSerata') || event.key.includes('next_coreo') || event.key.includes('brani'))) {
           handleLocalChange();
@@ -258,7 +264,11 @@
         const payload = {
           nextCoreo: nextCoreoVal,
           serata: currentSerata?.metadata || {},
-          brani: currentSerata?.brani || (typeof dataLoader !== 'undefined' ? dataLoader.brani : [])
+          brani: currentSerata?.brani || (typeof dataLoader !== 'undefined' ? dataLoader.brani : []),
+          catalogBrani: Storage.get('BORDERO_BRANI_DATA', null)
+            || (typeof dataLoader !== 'undefined' && Array.isArray(dataLoader.brani)
+              ? dataLoader.brani
+              : Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []))
         };
 
         await fetch('/api/bordero/cloud-sync-state', {
