@@ -2554,9 +2554,11 @@ class BorderoTableManager {
     if (!element) return;
 
     element.dataset.state = state;
+    element.setAttribute('aria-label', label);
+    element.title = label;
     const textNode = element.querySelector('.console-status-text');
     if (textNode) {
-      textNode.textContent = deckNumber ? `✓ DECK ${deckNumber}` : label;
+      textNode.textContent = deckNumber ? `${state === 'live' ? '▶' : state === 'warning' ? '♪' : '✓'} DECK ${deckNumber}` : label;
     } else {
       element.textContent = deckNumber ? `✓ DECK ${deckNumber}` : label;
     }
@@ -2606,10 +2608,12 @@ class BorderoTableManager {
 
       this.setDeckLoadButtonState(1, mapState(deck1));
       this.setDeckLoadButtonState(2, mapState(deck2));
+      return [deck1, deck2];
     } catch (error) {
       logger.warn('Errore aggiornamento stato tasti deck', error);
       this.setDeckLoadButtonState(1, 'unknown');
       this.setDeckLoadButtonState(2, 'unknown');
+      return [1, 2].map((deck) => ({ deck, unavailable: true }));
     }
   }
 
@@ -2760,44 +2764,66 @@ class BorderoTableManager {
     return true;
   }
 
-  async refreshVirtualDjConsoleState() {
+  async refreshVirtualDjConsoleState(deckStates = null) {
     if (!this.isVirtualDjBridgeEnabled()) {
       this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
       return;
     }
 
     const trackedBrano = this.getTrackedConsoleBrano();
-    if (!trackedBrano) {
-      this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
-      return;
-    }
-
-    const deckNumber = Number(trackedBrano.consoleDeck) === 2 ? 2 : 1;
-
+    const trackedDeckNumber = trackedBrano ? (Number(trackedBrano.consoleDeck) === 2 ? 2 : 1) : null;
     try {
-      const deckState = await this.queryVirtualDjDeckState(deckNumber);
-      const finalizedByCompletion = await this.maybeFinalizeTrackedVirtualDjBrano(trackedBrano, deckState);
-      if (finalizedByCompletion) {
-        this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
-        return;
+      const currentDeckStates = Array.isArray(deckStates) && deckStates.length === 2
+        ? deckStates
+        : await Promise.all([1, 2].map((deck) => this.queryVirtualDjDeckState(deck)));
+      const trackedDeckState = trackedDeckNumber ? currentDeckStates[trackedDeckNumber - 1] : null;
+
+      if (trackedBrano) {
+        const finalizedByCompletion = await this.maybeFinalizeTrackedVirtualDjBrano(trackedBrano, trackedDeckState);
+        if (finalizedByCompletion) {
+          this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
+          return;
+        }
       }
 
-      const playbackState = this.resolveDeckPlaybackState(deckState);
-      const buttonState = this.mapPlaybackStateToConsoleButtonState(playbackState);
-      const rowChanged = this.applyTrackedBranoPlaybackState(trackedBrano.id, deckNumber, playbackState);
+      const rowChanged = trackedBrano && !trackedDeckState?.unavailable
+        ? this.applyTrackedBranoPlaybackState(
+          trackedBrano.id,
+          trackedDeckNumber,
+          this.resolveDeckPlaybackState(trackedDeckState)
+        )
+        : false;
 
-      this.updateConsoleStatus(buttonState, deckNumber, `✓ DECK ${deckNumber}`);
+      // Il pulsante descrive la console nel suo complesso, anche quando il brano
+      // non è stato caricato da questa pagina o non è associato a una riga.
+      const activeDecks = currentDeckStates
+        .filter((deckState) => !deckState.unavailable && (deckState.isPlaying || deckState.hasTrack || deckState.isPaused))
+        .sort((a, b) => Number(b.isPlaying) - Number(a.isPlaying));
+      const statusDeck = activeDecks[0] || (trackedDeckState && !trackedDeckState.unavailable ? trackedDeckState : null);
 
-      if (rowChanged) {
-        this.renderTable();
+      if (!statusDeck && currentDeckStates.every((deckState) => deckState.unavailable)) {
+        this.updateConsoleStatus('error', null, 'CONSOLE NON RAGGIUNGIBILE');
+      } else if (!statusDeck && currentDeckStates.some((deckState) => deckState.unavailable)) {
+        this.updateConsoleStatus('error', null, 'STATO CONSOLE PARZIALE');
+      } else if (!statusDeck) {
+        this.updateConsoleStatus('idle', null, 'CONSOLE PRONTA');
+      } else {
+        const playbackState = this.resolveDeckPlaybackState(statusDeck);
+        this.updateConsoleStatus(
+          this.mapPlaybackStateToConsoleButtonState(playbackState),
+          statusDeck.deck,
+          `DECK ${statusDeck.deck}`
+        );
       }
+
+      if (rowChanged) this.renderTable();
     } catch (error) {
       logger.warn('Errore aggiornamento stato console VirtualDJ', error);
-      const rowChanged = this.applyTrackedBranoPlaybackState(trackedBrano.id, deckNumber, 'error');
-      this.updateConsoleStatus('error', deckNumber, 'ERRORE');
-      if (rowChanged) {
-        this.renderTable();
-      }
+      const rowChanged = trackedBrano
+        ? this.applyTrackedBranoPlaybackState(trackedBrano.id, trackedDeckNumber, 'error')
+        : false;
+      this.updateConsoleStatus('error', null, 'ERRORE STATO CONSOLE');
+      if (rowChanged) this.renderTable();
     }
   }
 
@@ -2814,8 +2840,8 @@ class BorderoTableManager {
 
       this.virtualDjConsolePollInProgress = true;
       try {
-        await this.refreshDeckLoadButtonsState();
-        await this.refreshVirtualDjConsoleState();
+        const deckStates = await this.refreshDeckLoadButtonsState();
+        await this.refreshVirtualDjConsoleState(deckStates);
       } finally {
         this.virtualDjConsolePollInProgress = false;
       }
@@ -2844,9 +2870,9 @@ class BorderoTableManager {
       `deck ${targetDeck} get_time_remain`
     ];
 
-    let hasTrack = false;
-    let isPlaying = false;
-    let isPaused = false;
+    let hasTrack = null;
+    let isPlaying = null;
+    let isPaused = null;
     let failedRequests = 0;
     let timeRemainSeconds = null;
 
@@ -2880,9 +2906,10 @@ class BorderoTableManager {
       isPlaying,
       isPaused,
       timeRemainSeconds,
-      unavailable: failedRequests === scripts.length,
-      isEmpty: !hasTrack,
-      isActive: isPlaying || isPaused || hasTrack
+      unavailable: hasTrack === null || isPlaying === null || isPaused === null,
+      isEmpty: hasTrack === false,
+      isActive: isPlaying === true || isPaused === true || hasTrack === true,
+      failedRequests
     };
   }
 

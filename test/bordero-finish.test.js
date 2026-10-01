@@ -217,6 +217,43 @@ manager.allBrani.find((brano) => brano.id === '4').next_selected = true;
 manager.markAsCompleted('4');
 manager.moveExecutedToBottom();
 
+const consoleStatusManager = Object.create(BaseManager.prototype);
+consoleStatusManager.isVirtualDjBridgeEnabled = () => true;
+consoleStatusManager.getTrackedConsoleBrano = () => null;
+consoleStatusManager.renderTable = () => {};
+let consoleStatus = null;
+consoleStatusManager.updateConsoleStatus = (state, deck, label) => {
+  consoleStatus = { state, deck, label };
+};
+consoleStatusManager.queryVirtualDjDeckState = async (deck) => deck === 2
+  ? { deck, hasTrack: true, isPlaying: true, isPaused: false, unavailable: false }
+  : { deck, hasTrack: false, isPlaying: false, isPaused: false, unavailable: false };
+await consoleStatusManager.refreshVirtualDjConsoleState();
+if (consoleStatus?.state !== 'live' || consoleStatus.deck !== 2) {
+  throw new Error(`Console status did not detect playback on an untracked deck: ${JSON.stringify(consoleStatus)}`);
+}
+
+consoleStatusManager.queryVirtualDjDeckState = async (deck) => ({ deck, unavailable: true });
+await consoleStatusManager.refreshVirtualDjConsoleState();
+if (consoleStatus?.state !== 'error' || consoleStatus.label !== 'CONSOLE NON RAGGIUNGIBILE') {
+  throw new Error(`Console status did not report an unreachable VirtualDJ bridge: ${JSON.stringify(consoleStatus)}`);
+}
+
+const partialResponseManager = Object.create(BaseManager.prototype);
+const virtualDjResponses = {
+  'deck 1 get_loaded': 'true',
+  'deck 1 get_play': 'false',
+  'deck 1 get_time_remain': '30',
+};
+partialResponseManager.queryVirtualDjScript = async (script) => {
+  if (!(script in virtualDjResponses)) throw new Error('VirtualDJ request failed');
+  return virtualDjResponses[script];
+};
+const partialDeckState = await partialResponseManager.queryVirtualDjDeckState(1);
+if (!partialDeckState.unavailable || partialDeckState.hasTrack !== true) {
+  throw new Error(`A partial VirtualDJ response was mistaken for a valid deck state: ${JSON.stringify(partialDeckState)}`);
+}
+
 const movedOrder = manager.allBrani.map(b => b.id);
 console.log('After moveExecutedToBottom:', movedOrder);
 if (JSON.stringify(movedOrder) !== JSON.stringify(['1','3','5','2','4'])) {
@@ -533,6 +570,7 @@ console.log('TEST PASSED: Announcement requires explicit NEXT and dismisses on d
 console.log('TEST PASSED: Video-only tracks cannot be selected or marked executed');
 console.log('TEST PASSED: NextCoreo ignores video-only tracks, including stale selections');
 console.log('TEST PASSED: Display ignores legacy executed flags for video-only tracks');
+console.log('TEST PASSED: Console status detects untracked playback and reports unavailable or partial state');
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;
