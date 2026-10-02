@@ -4413,14 +4413,6 @@ app.get('/public/index2.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index2.html'));
 });
 
-app.get('/temp.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'temp.html'));
-});
-
-app.get('/public/temp.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'temp.html'));
-});
-
 app.get('/display.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'display.html'));
 });
@@ -4437,28 +4429,12 @@ app.get('/public/dashboard.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-app.get('/test-csv-loading.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'test-csv-loading.html'));
-});
-
-app.get('/public/test-csv-loading.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'test-csv-loading.html'));
-});
-
 app.get('/nav.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'nav.html'));
 });
 
 app.get('/public/nav.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'nav.html'));
-});
-
-app.get('/test-bordero-frontend.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'test-bordero-frontend.html'));
-});
-
-app.get('/public/test-bordero-frontend.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'test-bordero-frontend.html'));
 });
 
 app.get('/Playlist-country', (req, res) => {

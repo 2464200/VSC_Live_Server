@@ -236,7 +236,7 @@ class FirebaseCloudSync {
           const content = fs.readFileSync(nextCoreoFile, 'utf8').replace(/^\uFEFF/, '').trim();
           const firstLine = content.split(/\r?\n/)[0] || '';
           const cols = firstLine.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-          nextCoreoVal = cols[1] || cols[0] || nextCoreoVal;
+          nextCoreoVal = cols[1] || cols[0] || '--';
         } catch (_) {}
       }
 
