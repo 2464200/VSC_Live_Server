@@ -26,6 +26,7 @@ const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXT
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
+const { DEPLOY_CONTROL_VERSION, resolveDeployControl } = require('./scripts/deploy-policy');
 
 const app = express();
 const CANONICAL_PROJECT_PORT = 5500;
@@ -1000,10 +1001,8 @@ function execFileAsync(command, args, options = {}) {
 }
 
 function execCommandAsync(command, args, options = {}) {
-    const executable = process.platform === 'win32' ? (process.env.ComSpec || 'cmd.exe') : command;
-    const commandArgs = process.platform === 'win32' ? ['/d', '/s', '/c', [command, ...args].join(' ')] : args;
     return new Promise((resolve, reject) => {
-        const child = execFile(executable, commandArgs, { windowsHide: true, ...options }, (error, stdout, stderr) => {
+        const child = execFile(command, args, { windowsHide: true, ...options }, (error, stdout, stderr) => {
             if (deployController.activeChild === child) deployController.activeChild = null;
             if (error) {
                 error.stdout = stdout;
@@ -1026,8 +1025,7 @@ try {
 }
 
 const deployController = {
-    intervalEnabled: Boolean(savedDeployControl.intervalEnabled),
-    sessionAutoEnabled: Boolean(savedDeployControl.sessionAutoEnabled),
+    ...resolveDeployControl(savedDeployControl),
     timer: null,
     running: false,
     stopping: false,
@@ -1043,10 +1041,19 @@ const deployController = {
 function persistDeployControl() {
     fs.mkdirSync(path.dirname(deployControlFile), { recursive: true });
     fs.writeFileSync(deployControlFile, JSON.stringify({
+        version: DEPLOY_CONTROL_VERSION,
         intervalEnabled: deployController.intervalEnabled,
         sessionAutoEnabled: deployController.sessionAutoEnabled,
         updatedAt: new Date().toISOString(),
     }, null, 2));
+}
+
+if (Number(savedDeployControl.version) < DEPLOY_CONTROL_VERSION) {
+    try {
+        persistDeployControl();
+    } catch (error) {
+        console.warn('[Firebase Deploy] Impossibile migrare la configurazione locale:', error.message);
+    }
 }
 
 async function stopDeployForProjectShutdown() {
@@ -1054,11 +1061,6 @@ async function stopDeployForProjectShutdown() {
     deployController.sessionAutoEnabled = false;
     deployController.stopping = true;
     syncDeployTimer();
-    try {
-        persistDeployControl();
-    } catch (error) {
-        console.warn('[Firebase Deploy] Impossibile salvare lo stop:', error.message);
-    }
 
     const child = deployController.activeChild;
     if (child && child.pid) {
@@ -1133,7 +1135,7 @@ async function runFirebaseDeploy() {
     deployController.running = true;
     deployController.lastRunAt = new Date().toISOString();
     try {
-        const firebaseCommand = process.platform === 'win32' ? 'firebase.cmd' : 'firebase';
+        const firebaseCliPath = path.join(__dirname, 'node_modules', 'firebase-tools', 'lib', 'bin', 'firebase.js');
         await execFileAsync(process.execPath, [path.join(__dirname, 'scripts', 'sync-public.js')], {
             cwd: __dirname,
             maxBuffer: 20 * 1024 * 1024,
@@ -1151,7 +1153,7 @@ async function runFirebaseDeploy() {
         let lastError = null;
         for (let attempt = 1; attempt <= 3; attempt += 1) {
             try {
-                const result = await execCommandAsync(firebaseCommand, ['deploy', '--only', 'hosting'], {
+                const result = await execCommandAsync(process.execPath, [firebaseCliPath, 'deploy', '--only', 'hosting'], {
                     cwd: __dirname,
                     maxBuffer: 20 * 1024 * 1024,
                 });

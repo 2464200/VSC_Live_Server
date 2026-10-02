@@ -81,11 +81,17 @@ if (-not (Test-Path $envFile)) {
     }
 }
 
-if (-not (Test-Path (Join-Path $root 'node_modules'))) {
-    Write-Host '[INFO] Dipendenze mancanti. Installazione in corso...' -ForegroundColor Yellow
+if (-not (Test-Path (Join-Path $root 'node_modules')) -or -not (Test-Path (Join-Path $root 'node_modules/firebase-tools/lib/bin/firebase.js'))) {
+    Write-Host '[INFO] Dipendenze mancanti o Firebase CLI non installato. Installazione in corso...' -ForegroundColor Yellow
     Push-Location $root
-    npm install --no-fund --no-audit
-    Pop-Location
+    try {
+        npm install --no-fund --no-audit
+        if ($LASTEXITCODE -ne 0) {
+            throw "npm install fallito (codice $LASTEXITCODE)"
+        }
+    } finally {
+        Pop-Location
+    }
 }
 
 $envConfig = Parse-EnvFile (Join-Path $root '.env')

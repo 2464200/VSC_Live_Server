@@ -19,6 +19,9 @@
     "eventi:legacy": "npm run build:brani && node Eventi/server-eventi.js",
     "start:portable": "node scripts/start-portable.js"
   },
+  "engines": {
+    "node": "^20 || ^22 || >=24"
+  },
   "keywords": [
     "pdf",
     "chrome",
@@ -33,6 +36,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.22.2",
     "firebase-admin": "^14.3.0",
+    "firebase-tools": "^15.32.1",
     "jsdom": "^29.1.1",
     "qrcode": "^1.5.1"
   },

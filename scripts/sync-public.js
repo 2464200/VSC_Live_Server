@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const { filterDeferredPaths, LOCAL_ONLY_CSV_PATHS } = require('./deploy-policy');
 
 const repoRoot = path.resolve(__dirname, '..');
 const borderoSrc = path.join(repoRoot, 'Bordero');
@@ -52,7 +53,7 @@ function getDeferredPaths() {
     deferred.add('*');
   }
 
-  return deferred;
+  return filterDeferredPaths(deferred);
 }
 
 function copyDirRecursive(srcDir, dstDir, repoRelativeDir, deferredPaths) {
@@ -142,6 +143,9 @@ function syncPublic() {
   // These per-machine settings must never be published by Firebase Hosting.
   for (const file of ['music-archive-local-config.json', 'video-clip-local-config.json']) {
     fs.rmSync(path.join(publicBordero, 'data', file), { force: true });
+  }
+  for (const file of LOCAL_ONLY_CSV_PATHS) {
+    fs.rmSync(path.join(repoRoot, 'public', file), { force: true });
   }
 
   console.log('✅ Sincronizzazione public/ completata con successo!');

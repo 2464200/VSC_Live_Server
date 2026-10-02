@@ -35,10 +35,10 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,034,BACK DOWN,break it back down,pat green,03:51,,INTERMEDIO,,,,Gianni Hook Valassi,,32 conteggi 4 muri (1 restart al 10° muro dopo 16 contegggi)
 ,,035,BAD,bad bad leroy brown,jim croce,02:50,,ALTRE COREO,,,,Gianni Hook Valassi
 ,,036,BEAUTIFUL DRUG,beautiful drug,zac brown band,03:13,,ALTRE COREO,,,,Pino Piromalli,Nadia Gandin,32 conteggi 2 muri
-,,037,BEER FOR MY HORSES,beer for my horses,toby keith & willie nelson,03:32,,BASE,,,,Christine Bass,,40 conteggi 4 muri
+,,037,BEER FOR MY HORSES,beer for my horses,toby keith & willie nelson,03:32,1,BASE,,,,Christine Bass,,40 conteggi 4 muri
 ,,038,BEETHOVEN'S BOOGIE,boogie and beethoven,the gatlin brothers band,03:06,,ALTRE COREO
 ,,039,BEST ADVENTURE,best adventure,leaving thomas,02:55,,ALTRE COREO,,,,Johnny Rossato
-,,040,BETTER COUNTRY,better country,paul brandt,03:28,1,INTERMEDIO,,,,Pino Piromalli,Isabella Ghinolfi,32 conteggi 2 muri
+,,040,BETTER COUNTRY,better country,paul brandt,03:28,2,INTERMEDIO,,,,Pino Piromalli,Isabella Ghinolfi,32 conteggi 2 muri
 ,,041,BILL'S BASIC,i don't need the booze,alan jackson,03:16,,BASE,STAGE,,,Bill Ray,,16 conteggi 4 muri
 ,,042,BILL'S BASIC,lord have marcy on a country boy,josh turner,03:09,,BASE,STAGE,,,Bill Ray,,16 conteggi 4 muri
 ,,043,BILL'S BASIC,somebody take me home,kenny chesney,03:31,,BASE,STAGE,,,Bill Ray,,16 conteggi 4 muri
@@ -188,8 +188,8 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,187,GET UP !,up,olly murs,03:45,,SUPER AVANZATO 1+2
 ,,188,GHOST TOWN,ghost town,sam outlaw,04:04,1,BASE,,,,Arnaud Marraffa,,32 conteggi 4 muri 1 restart all' 11° muro
 ,,189,GIDDY UP!,giddy up!,shania twain,02:43,,ALTRE COREO,,,,Fabio Terzoni,Big Andrea
-,,190,GIVES ME SHIVERS,shivers,ed sheeran,03:28,1,ALTRE COREO,,,,Brandon Zahorsky,,32 conteggi 4 muri
-,,191,GLASS OF WINE,cry to me,kilotile,03:30,2,BASE,,,,Malene Jakobsen,,32 conteggi 4 muri
+,,190,GIVES ME SHIVERS,shivers,ed sheeran,03:28,2,ALTRE COREO,,,,Brandon Zahorsky,,32 conteggi 4 muri
+,,191,GLASS OF WINE,cry to me,kilotile,03:30,4,BASE,,,,Malene Jakobsen,,32 conteggi 4 muri
 ,,192,GO CAT GO,please mama please,go cat go,03:30,,ALTRE COREO
 ,,193,GO HOME,you're drunk go home,kelsea ballerini,02:56,,ALTRE COREO,,,,Gianni Hook Valassi
 ,,194,GOD IS GOOD,god is good,paul overstreet,03:46,,SUPER AVANZATO 1+2

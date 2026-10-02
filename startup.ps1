@@ -304,6 +304,25 @@ function Start-UnifiedServer {
         exit 1
     }
 
+    $firebaseCli = Join-Path $RootPath 'node_modules\firebase-tools\lib\bin\firebase.js'
+    if (-not (Test-Path $firebaseCli)) {
+        Write-Host "Firebase CLI locale assente. Installo le dipendenze del progetto..." -ForegroundColor Yellow
+        Push-Location $RootPath
+        try {
+            & npm install --no-fund --no-audit
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "ERRORE FATALE: installazione dipendenze fallita (codice $LASTEXITCODE)" -ForegroundColor Red
+                exit 1
+            }
+        } finally {
+            Pop-Location
+        }
+    }
+    if (-not (Test-Path $firebaseCli)) {
+        Write-Host "ERRORE FATALE: Firebase CLI locale non trovato dopo npm install" -ForegroundColor Red
+        exit 1
+    }
+
     if (-not (Test-Path $LogsDir)) {
         New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
     }

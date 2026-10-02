@@ -80,6 +80,12 @@ USERFORM_RECORDINGS_DIR=./exports/recordings
 - **Rete**: Auto-detect IP locale nel log
 - **Lingue**: Ita, Eng (fallback Ita)
 
+### Deploy Firebase Automatico
+- `npm install` installa anche Firebase CLI locale al progetto, senza dipendere da un'installazione globale.
+- Su ogni PC esegui una volta `npx firebase login` con un account autorizzato al progetto Firebase configurato in `.firebaserc`.
+- Nelle installazioni nuove, il server abilita il deploy Hosting automatico all'avvio e controlla gli aggiornamenti ogni minuto. Lo stato scelto dall'Admin viene salvato localmente e resta modificabile; la chiusura del progetto arresta il timer solo per quel processo e non disattiva gli avvii successivi.
+- I CSV condivisi in `Bordero/data/` vengono pubblicati anche quando aggiornati dal sync locale; `music-archive-index.csv` e `get-camera-name.csv` restano specifici del PC e non vengono pubblicati.
+
 ---
 
 ## Verificare il Funzionamento
