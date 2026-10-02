@@ -26,6 +26,7 @@ class DisplayMonitor {
     this.nextCoreoInterval = null;
     this.lastNextCoreoAnnouncementId = null;
     this.nextCoreoAnnouncementTimer = null;
+    this.lastCloudNextCoreo = null;
     this.scrollAnimationFrame = null;
     this.scrollWatchdogInterval = null;
     this.scrollLastObservedTop = 0;
@@ -837,9 +838,19 @@ class DisplayMonitor {
     if (cloudClient?.isCloudHost && cloudClient.hasFreshCloudState) {
       const cloudTitle = cloudClient.latestNextCoreo || '--';
       target.textContent = cloudTitle;
-      // Sul display web il dato resta nel box; gli annunci in sovraimpressione
-      // sono riservati al display locale e non vanno ripetuti ad ogni sync cloud.
-      this.hideNextCoreoAnnouncement();
+      // Il primo valore cloud inizializza il display; gli annunci partono solo
+      // quando cambia davvero il brano, senza ripetersi ai successivi refresh.
+      if (initialize || this.lastCloudNextCoreo === null) {
+        this.lastCloudNextCoreo = cloudTitle;
+        this.hideNextCoreoAnnouncement();
+      } else if (cloudTitle !== this.lastCloudNextCoreo) {
+        this.lastCloudNextCoreo = cloudTitle;
+        if (cloudTitle === '--') {
+          this.hideNextCoreoAnnouncement();
+        } else {
+          this.showNextCoreoAnnouncement(cloudTitle, `cloud:${cloudTitle}`);
+        }
+      }
       return;
     }
 

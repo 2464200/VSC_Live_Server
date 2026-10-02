@@ -447,6 +447,7 @@ const displayMonitor = vm.runInContext('Object.create(DisplayMonitor.prototype)'
 displayMonitor.nextCoreoSelectionStorageKey = 'bordero_next_coreo_selection';
 displayMonitor.lastNextCoreoAnnouncementId = null;
 displayMonitor.nextCoreoAnnouncementTimer = null;
+displayMonitor.lastCloudNextCoreo = null;
 const displayExecutedIds = displayMonitor.buildExecutedIdSet({
   brani: [
     { id: '599', titolo: 'AUDIO VIDEO TESTER', flag: 'X' },
@@ -481,6 +482,31 @@ if (overlayClasses.has('is-active') || overlayAttributes['aria-hidden'] !== 'tru
 if (context.document.getElementById('next-coreo').textContent !== '--' || fallbackFetchCount !== 0) {
   throw new Error('Display used a CSV fallback without an explicit NEXT selection');
 }
+
+context.firebaseCloudClient = {
+  isCloudHost: true,
+  hasFreshCloudState: true,
+  latestNextCoreo: 'Track A',
+};
+await displayMonitor.loadNextCoreo({ initialize: true });
+await displayMonitor.loadNextCoreo({ announce: true });
+if (overlayClasses.has('is-active')) {
+  throw new Error('Cloud display announced the initial or unchanged NEXT title');
+}
+
+context.firebaseCloudClient.latestNextCoreo = 'Track B';
+await displayMonitor.loadNextCoreo({ announce: true });
+if (!overlayClasses.has('is-active') || announcementTitle.textContent !== 'Track B') {
+  throw new Error('Cloud display did not announce a changed NEXT title');
+}
+
+displayMonitor.hideNextCoreoAnnouncement();
+await displayMonitor.loadNextCoreo({ announce: true });
+if (overlayClasses.has('is-active')) {
+  throw new Error('Cloud display repeated an announcement for an unchanged NEXT title');
+}
+
+context.firebaseCloudClient = null;
 
 context.Storage.set('bordero_next_coreo_selection', { title: '101' });
 await displayMonitor.loadNextCoreo({ announce: true });
