@@ -4,7 +4,11 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectronAppConfig } = require('./display-manager');
-const { isFirebaseGoogleAuthPopupUrl, buildFirebaseGoogleAuthPopupOptions } = require('./google-auth-popup');
+const {
+  isFirebaseGoogleAuthPopupUrl,
+  buildFirebaseGoogleAuthPopupOptions,
+  focusFirebaseGoogleAuthPopup
+} = require('./google-auth-popup');
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
@@ -879,17 +883,8 @@ function attachFirebaseAuthPopupFocus(ownerWindow) {
       return;
     }
 
-    const focusPopup = () => {
-      if (childWindow.isDestroyed()) {
-        return;
-      }
-      childWindow.setAlwaysOnTop(true);
-      childWindow.show();
-      childWindow.focus();
-    };
-
-    childWindow.once('ready-to-show', focusPopup);
-    focusPopup();
+    childWindow.once('ready-to-show', () => focusFirebaseGoogleAuthPopup(childWindow));
+    focusFirebaseGoogleAuthPopup(childWindow);
     childWindow.once('closed', () => {
       if (primaryWindow && !primaryWindow.isDestroyed()) {
         primaryWindow.show();

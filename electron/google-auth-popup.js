@@ -36,7 +36,19 @@ function buildFirebaseGoogleAuthPopupOptions(url, parentWindow) {
   return options;
 }
 
+function focusFirebaseGoogleAuthPopup(popupWindow) {
+  if (popupWindow.isDestroyed()) {
+    return false;
+  }
+
+  popupWindow.setAlwaysOnTop(true, 'screen-saver');
+  popupWindow.show();
+  popupWindow.focus();
+  return true;
+}
+
 module.exports = {
   isFirebaseGoogleAuthPopupUrl,
-  buildFirebaseGoogleAuthPopupOptions
+  buildFirebaseGoogleAuthPopupOptions,
+  focusFirebaseGoogleAuthPopup
 };

@@ -2,7 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   isFirebaseGoogleAuthPopupUrl,
-  buildFirebaseGoogleAuthPopupOptions
+  buildFirebaseGoogleAuthPopupOptions,
+  focusFirebaseGoogleAuthPopup
 } = require('../electron/google-auth-popup');
 
 test('recognizes Firebase Google popup sign-in handler URLs only', () => {
@@ -49,4 +50,38 @@ test('does not attach a popup to a destroyed parent or alter unrelated popups', 
   assert.equal(options.parent, undefined);
   assert.equal(options.modal, undefined);
   assert.equal(buildFirebaseGoogleAuthPopupOptions('https://example.com/', destroyedParent), null);
+});
+
+test('keeps the OAuth popup above fullscreen Electron windows and focuses it', () => {
+  const calls = [];
+  const popupWindow = {
+    isDestroyed: () => false,
+    setAlwaysOnTop: (...args) => calls.push(['alwaysOnTop', ...args]),
+    show: () => calls.push(['show']),
+    focus: () => calls.push(['focus'])
+  };
+
+  assert.equal(focusFirebaseGoogleAuthPopup(popupWindow), true);
+  assert.deepEqual(calls, [
+    ['alwaysOnTop', true, 'screen-saver'],
+    ['show'],
+    ['focus']
+  ]);
+});
+
+test('does not try to show a destroyed OAuth popup', () => {
+  const popupWindow = {
+    isDestroyed: () => true,
+    setAlwaysOnTop() {
+      assert.fail('Destroyed popup should not be modified');
+    },
+    show() {
+      assert.fail('Destroyed popup should not be shown');
+    },
+    focus() {
+      assert.fail('Destroyed popup should not receive focus');
+    }
+  };
+
+  assert.equal(focusFirebaseGoogleAuthPopup(popupWindow), false);
 });
