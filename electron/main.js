@@ -305,7 +305,13 @@ function readMonitorPreferences() {
   }
 }
 
+let activeAuthPopups = 0;
+
 function applyWindowLayout() {
+  if (activeAuthPopups > 0) {
+    return;
+  }
+
   const displays = screen.getAllDisplays();
   const targets = resolveDisplayTargetsForWindows(displays, {
     swapPrimarySecondary: currentSwapMonitors
@@ -443,14 +449,21 @@ async function ensurePrimaryMonitorSelectionPreference() {
 function syncMonitorPreferencesFromDisk() {
   const preferences = readMonitorPreferences();
   const shouldSwap = Boolean(preferences.swapPrimarySecondary);
+  const nextAutoConfigure = Boolean(preferences.autoConfigureDisplay !== false);
+  const nextDpiAutoScale = Boolean(preferences.dpiAutoScale !== false);
+  const changed = shouldSwap !== currentSwapMonitors
+    || nextAutoConfigure !== currentAutoConfigureDisplay
+    || nextDpiAutoScale !== currentDpiAutoScale;
   if (shouldSwap !== currentSwapMonitors) {
     currentSwapMonitors = shouldSwap;
     console.log(`Monitor swap preference changed: ${currentSwapMonitors ? 'ON' : 'OFF'}`);
   }
 
-  currentAutoConfigureDisplay = Boolean(preferences.autoConfigureDisplay !== false);
-  currentDpiAutoScale = Boolean(preferences.dpiAutoScale !== false);
-  applyWindowLayout();
+  currentAutoConfigureDisplay = nextAutoConfigure;
+  currentDpiAutoScale = nextDpiAutoScale;
+  if (changed) {
+    applyWindowLayout();
+  }
 }
 
 function watchMonitorPreferences() {
@@ -885,7 +898,21 @@ function attachFirebaseAuthPopupFocus(ownerWindow) {
 
     childWindow.once('ready-to-show', () => focusFirebaseGoogleAuthPopup(childWindow));
     focusFirebaseGoogleAuthPopup(childWindow);
+    activeAuthPopups += 1;
+    const chromeUserAgent = childWindow.webContents.getUserAgent()
+      .replace(/\s*Electron\/\S+/i, '')
+      .replace(/\s*bordero\S*\/\S+/i, '');
+    childWindow.webContents.setUserAgent(chromeUserAgent);
+    childWindow.webContents.on('did-fail-load', (_e, code, desc, failedUrl) => {
+      console.warn('[auth-popup] did-fail-load', code, desc, failedUrl);
+    });
+    childWindow.webContents.on('did-navigate', (_e, navUrl) => {
+      console.log('[auth-popup] navigate', navUrl);
+      focusFirebaseGoogleAuthPopup(childWindow);
+    });
     childWindow.once('closed', () => {
+      console.log('[auth-popup] closed');
+      activeAuthPopups = Math.max(0, activeAuthPopups - 1);
       if (primaryWindow && !primaryWindow.isDestroyed()) {
         primaryWindow.show();
         primaryWindow.focus();

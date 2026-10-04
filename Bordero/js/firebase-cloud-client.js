@@ -87,12 +87,23 @@
           throw new Error('La configurazione web Firebase non corrisponde al progetto Borderò.');
         }
         firebaseConfig.databaseURL = firebaseConfig.databaseURL || this.dbUrl;
+        if (window.electronAPI?.runtime?.isElectron) {
+          // Il redirect OAuth passa dal proxy /__/auth di unified-server (stessa origine).
+          firebaseConfig.authDomain = window.location.host;
+        }
 
         const app = window.firebase.apps.length
           ? window.firebase.app()
           : window.firebase.initializeApp(firebaseConfig);
         this.publisherAuth = app.auth();
         this.publisherDatabase = app.database();
+
+        if (typeof this.publisherAuth.getRedirectResult === 'function') {
+          this.publisherAuth.getRedirectResult().catch((error) => {
+            console.error('[FirebaseCloudClient] Esito redirect Google non riuscito:', error);
+            this.updateStatusBadge(false, '⚠️ Accesso Google non riuscito');
+          });
+        }
 
         this.authReady = new Promise((resolve) => {
           let resolved = false;
@@ -140,7 +151,14 @@
           return;
         }
 
-        await this.publisherAuth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider());
+        const provider = new window.firebase.auth.GoogleAuthProvider();
+        if (window.electronAPI?.runtime?.isElectron) {
+          // In Electron il popup OAuth viene chiuso dal sistema: si usa il redirect nella finestra principale.
+          await this.publisherAuth.signInWithRedirect(provider);
+          return;
+        }
+
+        await this.publisherAuth.signInWithPopup(provider);
       } catch (error) {
         console.error('[FirebaseCloudClient] Accesso Google non riuscito:', error);
         this.updateStatusBadge(false, '⚠️ Accesso Google non riuscito');

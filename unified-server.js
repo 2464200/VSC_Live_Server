@@ -3067,6 +3067,28 @@ function syncBraniOnStartup() {
 }
 
 // ===== MIDDLEWARE =====
+// Proxy same-origin per Firebase Auth: evita lo storage partizionato nel redirect OAuth di Electron.
+const FIREBASE_AUTH_PROXY_HOST = 'my-project-1525790600392.firebaseapp.com';
+app.use('/__/auth', (req, res) => {
+    const upstream = require('https').request({
+        hostname: FIREBASE_AUTH_PROXY_HOST,
+        path: `/__/auth${req.url}`,
+        method: req.method,
+        headers: { ...req.headers, host: FIREBASE_AUTH_PROXY_HOST }
+    }, (upstreamRes) => {
+        res.writeHead(upstreamRes.statusCode || 502, upstreamRes.headers);
+        upstreamRes.pipe(res);
+    });
+    upstream.on('error', (error) => {
+        if (!res.headersSent) {
+            res.status(502).send(`Firebase auth proxy error: ${error.message}`);
+        } else {
+            res.end();
+        }
+    });
+    req.pipe(upstream);
+});
+
 app.use(express.json({ limit: '2mb' }));
 
 function escapeBorderoCsvValue(value) {

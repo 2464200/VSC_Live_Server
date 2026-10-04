@@ -13,8 +13,9 @@ test('recognizes Firebase Google popup sign-in handler URLs only', () => {
   );
   assert.equal(
     isFirebaseGoogleAuthPopupUrl('https://accounts.google.com/signin?authType=signInViaPopup'),
-    false
+    true
   );
+  assert.equal(isFirebaseGoogleAuthPopupUrl('about:blank'), true);
   assert.equal(
     isFirebaseGoogleAuthPopupUrl('http://localhost/__/auth/handler?authType=signInViaPopup'),
     false
@@ -25,15 +26,15 @@ test('recognizes Firebase Google popup sign-in handler URLs only', () => {
   );
 });
 
-test('builds a visible modal popup parented to the Bordero Electron window', () => {
+test('builds a visible standalone popup', () => {
   const parentWindow = { isDestroyed: () => false };
   const options = buildFirebaseGoogleAuthPopupOptions(
     'https://my-project.firebaseapp.com/__/auth/handler?authType=signInViaPopup',
     parentWindow
   );
 
-  assert.equal(options.parent, parentWindow);
-  assert.equal(options.modal, true);
+  assert.equal(options.parent, undefined);
+  assert.equal(options.modal, undefined);
   assert.equal(options.show, true);
   assert.equal(options.alwaysOnTop, true);
   assert.equal(options.width, 520);
@@ -58,6 +59,7 @@ test('keeps the OAuth popup above fullscreen Electron windows and focuses it', (
     isDestroyed: () => false,
     setAlwaysOnTop: (...args) => calls.push(['alwaysOnTop', ...args]),
     show: () => calls.push(['show']),
+    moveTop: () => calls.push(['moveTop']),
     focus: () => calls.push(['focus'])
   };
 
@@ -65,6 +67,7 @@ test('keeps the OAuth popup above fullscreen Electron windows and focuses it', (
   assert.deepEqual(calls, [
     ['alwaysOnTop', true, 'screen-saver'],
     ['show'],
+    ['moveTop'],
     ['focus']
   ]);
 });

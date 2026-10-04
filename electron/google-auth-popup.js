@@ -2,9 +2,17 @@
 
 function isFirebaseGoogleAuthPopupUrl(value) {
   try {
+    if (value === 'about:blank') {
+      return true;
+    }
     const url = new URL(value);
-    return url.protocol === 'https:'
-      && /\/__\/auth\/handler\/?$/.test(url.pathname)
+    if (url.protocol !== 'https:') {
+      return false;
+    }
+    if (/^(?:accounts\.google\.com|accounts\.youtube\.com)$/.test(url.hostname)) {
+      return true;
+    }
+    return /\/__\/auth\/handler\/?$/.test(url.pathname)
       && /^(?:signIn|link|reauthenticate)ViaPopup$/.test(url.searchParams.get('authType') || '');
   } catch {
     return false;
@@ -28,11 +36,7 @@ function buildFirebaseGoogleAuthPopupOptions(url, parentWindow) {
     title: 'Accedi con Google - Borderò'
   };
 
-  if (parentWindow && !parentWindow.isDestroyed()) {
-    options.parent = parentWindow;
-    options.modal = true;
-  }
-
+  // Un popup figlio di una finestra fullscreen viene nascosto da Windows: resta indipendente.
   return options;
 }
 
@@ -43,6 +47,7 @@ function focusFirebaseGoogleAuthPopup(popupWindow) {
 
   popupWindow.setAlwaysOnTop(true, 'screen-saver');
   popupWindow.show();
+  popupWindow.moveTop();
   popupWindow.focus();
   return true;
 }
