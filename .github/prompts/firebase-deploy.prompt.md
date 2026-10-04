@@ -1,30 +1,10 @@
-﻿**⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
-
 ---
-description: "Automate Firebase deployment with pre-deploy checks and CSV sync"
+description: "Diagnose and prepare Firebase deployment using the AGENTE CODEX project instructions"
 name: "Firebase Deploy"
-argument-hint: "Confirm deployment readiness"
-agent: "agent"
-tools: ["run_in_terminal", "read_file", "file_search"]
+argument-hint: "Describe the deployment issue or request a readiness check"
+agent: "AGENTE CODEX"
 ---
 
-Execute the Firebase deployment checklist for the VSC_Live_Server project:
+Use the AGENTE CODEX instructions in `.github/agents/AGENTE-CODEX.agent.md` to inspect and diagnose Firebase deployment for this repository.
 
-1. **Sync Public & CSVs**: Run `.\sync-public-bordero.ps1` to copy Bordero pages/js/assets/data and CSVs (display.csv, NextCoreo.csv, servizio.csv) to public/ folder.
-
-2. **Local Testing**:
-   - Start all servers (web on 5500, manager on 3000, pdf on 8765)
-   - Verify index.html loads correctly at localhost:5500
-   - Verify public/mobile.html loads and renders cards
-   - Verify Prova/ScriptPDF1.html auto-starts PDF server
-   - Check that CSV data is fresh (no stale cache) and BOM-stripped properly
-
-3. **Deploy**: Run `firebase deploy --only hosting`
-
-4. **Post-Deploy Verification**:
-   - Open deployed Firebase URL
-   - Confirm CSV data loads fresh (not cached)
-   - Verify all pages work as expected
-
-Use terminal commands for server startup, file copying, and deployment. Report any failures and suggest fixes.
-
+Start with read-only inventory and evidence gathering. Do not deploy, change cloud IAM, stage, commit, push, or alter remote resources unless the user explicitly authorizes that action. Before proposed configuration changes, summarize the cause/evidence, solution, and files/resources to be changed, then wait for approval.

@@ -19,6 +19,41 @@ Aggiorna i riferimenti locali ai branch remoti:
 git fetch --all --prune
 ```
 
+## 1.1 Più PC e nuovi collaboratori
+
+Il repository GitHub è la fonte comune per il PC di casa, il PC di lavoro, il PC di Daniele e qualsiasi altro computer autorizzato. Ogni PC deve avere un clone autonomo del repository sul branch `develop`; non copiare la cartella `.git` né riutilizzare credenziali personali di un altro collaboratore.
+
+Per configurare un PC nuovo:
+
+```powershell
+git clone --branch develop --single-branch https://github.com/2464200/VSC_Live_Server.git
+Set-Location VSC_Live_Server
+git status --short --branch
+```
+
+Configurare l'identità Git localmente per la persona che usa quel PC (non nel repository condiviso):
+
+```powershell
+git config user.name "Nome collaboratore"
+git config user.email "email configurata su GitHub"
+```
+
+Ogni collaboratore deve autenticare GitHub con il proprio accesso autorizzato, ad esempio tramite Git Credential Manager o la propria chiave SSH privata. Non condividere token o chiavi private e non inserirli nei file del progetto.
+
+All'inizio di ogni sessione, da qualunque PC, verificare prima le modifiche locali e poi aggiornare il branch:
+
+```powershell
+git status --short --branch
+git switch develop
+git pull --ff-only origin develop
+```
+
+Se il working tree è sporco o Git segnala divergenza/conflitti, fermarsi e preservare le modifiche prima di proseguire; non usare reset o pulizie distruttive per forzare l'allineamento. Prima di ogni push da un PC alternativo, ripetere `git fetch origin` e `git pull --ff-only origin develop`, poi verificare nuovamente `git status`.
+
+Configurazioni locali non condivisibili (per esempio `.env`, credenziali di servizi e percorsi a file locali) vanno predisposte separatamente su ogni computer tramite canali sicuri e restano escluse dal repository. Installare le dipendenze dal `package.json`/lockfile del progetto, senza copiare `node_modules` tra PC.
+
+Il deploy Firebase di produzione è indipendente da quale PC invia il push: deve essere eseguito da GitHub Actions sul branch remoto `develop`. I PC dei collaboratori non devono autenticarsi a Firebase per attivare il deploy.
+
 ## 2. Cosa fanno add, commit, push, pull, fetch, merge
 
 - `git add`: prepara file nello staging per il prossimo commit.

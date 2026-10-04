@@ -34,12 +34,16 @@ npx http-server -c-1
 ```
 - Deploy to Firebase (ensure `public/` contains the final CSVs/assets):
 ```powershell
-firebase login
-firebase deploy --only hosting
+# One-time local authentication, only if using the Firebase CLI locally
+npm exec -- firebase login
+
+# Sync the public files and deploy Hosting with the project-local Firebase CLI
+npm run deploy:firebase
 ```
+- The preferred production deployment is GitHub Actions after an authorized push to `develop`; do not run a local deployment unless explicitly requested.
 - Local Firebase testing:
 ```powershell
-firebase emulators:start
+npm exec -- firebase emulators:start
 ```
 
 **Editing data or CSV format â€” checklist**
@@ -63,5 +67,3 @@ firebase emulators:start
 - Animation math differences (desktop vs mobile) â€” update both implementations.
 
 If anything here is unclear or you want more line-level references to examples in `script.js` / `public/mobile-script.js`, tell me which area to expand.
-
-
