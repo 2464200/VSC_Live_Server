@@ -111,6 +111,7 @@ Le pagine Borderò locali pubblicano lo stato live direttamente sul Realtime Dat
 - Il Display su Firebase Hosting è in sola lettura e riceve gli aggiornamenti live senza autenticazione.
 - Nuovi PC non richiedono credenziali installate: basta avviare l'app, aprire `http://localhost:5500/Bordero/pages/bordero.html` e accedere con un account autorizzato.
 - Le autorizzazioni sono definite in `database.rules.json`; la configurazione del provider Google e dei domini è in `firebase.json`.
+- Il workflow GitHub pubblica Hosting. Se cambiano provider Auth o regole RTDB, distribuiscili con `firebase deploy --only auth,database --project my-project-1525790600392`.
 
 ### 11. **Admin Panel avanzato** (admin.html)
 - Selezione file Excel da UI
