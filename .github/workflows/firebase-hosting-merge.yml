@@ -17,9 +17,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Sync Bordero and CSVs to public folder
-        run: node scripts/sync-public.js
+      - name: Validate Firebase Hosting configuration and checkout
+        run: node scripts/validate-firebase-hosting.js
         env:
+          FIREBASE_PROJECT_ID: my-project-1525790600392
+          EXPECTED_DEPLOY_BRANCH: develop
           DEPLOY_COMPARE_REF: origin/develop
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -27,3 +29,5 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MY_PROJECT_1525790600392 }}
           channelId: live
           projectId: my-project-1525790600392
+        env:
+          DEPLOY_COMPARE_REF: origin/develop

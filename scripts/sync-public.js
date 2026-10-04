@@ -48,8 +48,14 @@ function getDeferredPaths() {
     if (compareRef) {
       for (const item of readPaths(['diff', '--name-only', 'HEAD', compareRef, '--'])) deferred.add(item);
     }
-  } catch {
-    // If Git state cannot be inspected, keep the existing public copies intact.
+  } catch (error) {
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      throw new Error(
+        `Impossibile determinare i file da sincronizzare per Firebase Hosting: ${error.message}`,
+        { cause: error },
+      );
+    }
+    // Locally, if Git state cannot be inspected, keep the existing public copies intact.
     deferred.add('*');
   }
 
