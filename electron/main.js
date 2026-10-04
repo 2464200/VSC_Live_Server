@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectronAppConfig } = require('./display-manager');
+const { isFirebaseGoogleAuthPopupUrl, buildFirebaseGoogleAuthPopupOptions } = require('./google-auth-popup');
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
@@ -872,12 +873,43 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   return result;
 }
 
+function attachFirebaseAuthPopupFocus(ownerWindow) {
+  ownerWindow.webContents.on('did-create-window', (childWindow, details) => {
+    if (!isFirebaseGoogleAuthPopupUrl(details?.url)) {
+      return;
+    }
+
+    const focusPopup = () => {
+      if (childWindow.isDestroyed()) {
+        return;
+      }
+      childWindow.setAlwaysOnTop(true);
+      childWindow.show();
+      childWindow.focus();
+    };
+
+    childWindow.once('ready-to-show', focusPopup);
+    focusPopup();
+    childWindow.once('closed', () => {
+      if (primaryWindow && !primaryWindow.isDestroyed()) {
+        primaryWindow.show();
+        primaryWindow.focus();
+      }
+    });
+  });
+}
+
 function enforceSecondaryNavigationPolicy() {
   if (!secondaryWindow || secondaryWindow.isDestroyed()) {
     return;
   }
 
   secondaryWindow.webContents.setWindowOpenHandler(({ url }) => {
+    const authPopupOptions = buildFirebaseGoogleAuthPopupOptions(url, primaryWindow);
+    if (authPopupOptions) {
+      return { action: 'allow', overrideBrowserWindowOptions: authPopupOptions };
+    }
+
     if (!isManagedHtmlAppUrl(url)) {
       return { action: 'allow' };
     }
@@ -887,6 +919,8 @@ function enforceSecondaryNavigationPolicy() {
     });
     return { action: 'deny' };
   });
+
+  attachFirebaseAuthPopupFocus(secondaryWindow);
 
   secondaryWindow.webContents.on('will-navigate', (event, url) => {
     if (isProgrammaticSecondaryLoad) {
@@ -915,6 +949,11 @@ function enforcePrimaryNavigationPolicy() {
   }
 
   primaryWindow.webContents.setWindowOpenHandler(({ url }) => {
+    const authPopupOptions = buildFirebaseGoogleAuthPopupOptions(url, primaryWindow);
+    if (authPopupOptions) {
+      return { action: 'allow', overrideBrowserWindowOptions: authPopupOptions };
+    }
+
     if (!isManagedHtmlAppUrl(url)) {
       return { action: 'allow' };
     }
@@ -924,6 +963,8 @@ function enforcePrimaryNavigationPolicy() {
     });
     return { action: 'deny' };
   });
+
+  attachFirebaseAuthPopupFocus(primaryWindow);
 
   primaryWindow.webContents.on('will-navigate', (event, url) => {
     if (isProgrammaticPrimaryLoad) {

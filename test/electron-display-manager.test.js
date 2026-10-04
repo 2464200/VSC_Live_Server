@@ -105,6 +105,10 @@ function loadElectronMainFor(tempDir) {
         };
       }
 
+      if (name === './google-auth-popup') {
+        return require('../electron/google-auth-popup');
+      }
+
       return require(name);
     },
     Buffer,
