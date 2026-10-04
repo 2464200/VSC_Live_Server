@@ -20,6 +20,19 @@ Questa è la guida principale per il progetto **VSC Live Server**, che include l
 
 Il progetto si basa su un unico punto di riferimento per la documentazione: questo file `README.md` nella radice del repository. Qui trovi le indicazioni per l'intera soluzione e i link per navigare nelle singole sezioni.
 
+## Runtime attuale (ottobre 2026)
+
+Il flusso operativo standard è consolidato su `unified-server.js` sulla porta `5500`.
+
+Supportati e attivi:
+- `node unified-server.js` — avvio diretto per sviluppo e test locale
+- `START-UNATTENDED.bat` — launcher Windows per avvio automatico senza interazione
+- `npm run start:portable` — avvio portabile/automatizzato da script dedicato
+
+Sono da considerarsi legacy e non di default:
+- i setup multi-server (`server-manager.js`, `simple-server.js`, `pdf-server.js`, ecc.)
+- le vecchie porte `3000`, `3010`, `8765`
+
 ## Architettura progetto
 
 - Root repository locale: `C:\VSC_Live_Server`

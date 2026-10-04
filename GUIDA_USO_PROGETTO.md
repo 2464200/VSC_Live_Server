@@ -4,9 +4,14 @@
 
 
 ## Panoramica
-Questo progetto usa il server unificato `unified-server.js` sulla porta standard `5500`. Tutte le pagine principali del progetto e i mock API Eventi sono servite da questo server.
+Questo progetto usa il server unificato `unified-server.js` sulla porta standard `5500`. Tutte le pagine principali del progetto e le API condivise sono servite da questo server.
 
-VS Code Live Server puo' essere usato solo facoltativamente per anteprime statiche; non fa parte del runtime del progetto e non deve essere avviato insieme al server unificato.
+Per setup portabili o avvio automatico, i metodi supportati sono:
+- `START-UNATTENDED.bat`
+- `npm run start:portable`
+- `node unified-server.js`
+
+VS Code Live Server può essere usato solo facoltativamente per anteprime statiche; non fa parte del runtime del progetto e non deve essere avviato insieme al server unificato.
 
 ## Server e porte
 

@@ -4,7 +4,7 @@
 
 # Server Manager - Guida (LEGACY)
 
-**IMPORTANTE:** Questo documento descrive l'architettura legacy del progetto. Dal 13 Aprile 2026, il progetto usa un unico **unified-server.js** su porta 5500 che integra tutte le funzionalità precedentemente distribuite su server multipli.
+**IMPORTANTE:** Questo documento descrive l'architettura legacy del progetto e va trattato come riferimento storico. Dal 13 Aprile 2026, il progetto usa un unico **unified-server.js** su porta 5500 che integra tutte le funzionalità precedentemente distribuite su server multipli; non è il flusso operativo attivo né il percorso consigliato.
 
 ## Stato Attuale
 

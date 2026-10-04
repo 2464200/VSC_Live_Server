@@ -5,6 +5,8 @@ Per la documentazione centralizzata, vedi: `Eventi/DOCUMENTATION.md`.
 
 **⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
+> 🗃️ ARCHIVIO STORICO — documento mantenuto solo per verifiche passate e reference tecnica. Non rappresenta lo stato attivo del progetto; usa i file di `Eventi/` e `Eventi/DOCUMENTATION.md` per il lavoro corrente.
+
 # Verifica Nuove FunzionalitÃ  - Coreografie Aggiuntive
 
 **Data**: 9 Aprile 2026  

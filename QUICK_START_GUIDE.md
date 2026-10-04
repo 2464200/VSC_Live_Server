@@ -4,8 +4,15 @@
 
 ## Stato corrente del runtime
 
-Dal 13 Apr 2026 il percorso standard del progetto e' `unified-server.js` su `http://localhost:5500`.
-Le procedure su porta `8000` restano utili solo come anteprima statica locale di Bordero.
+Dal 13 Apr 2026 il percorso standard del progetto è `unified-server.js` su `http://localhost:5500`.
+Per i PC nuovi ed i setup portabili, il flusso supportato è anche `START-UNATTENDED.bat` oppure `npm run start:portable`.
+
+Flusso attivo supportato:
+- `START-UNATTENDED.bat`
+- `npm run start:portable`
+- `node unified-server.js`
+
+Le procedure su porta `8000` restano utili solo per anteprime statiche locali, non come runtime ufficiale del progetto.
 
 ## Prima di iniziare: aggiornamento Git
 

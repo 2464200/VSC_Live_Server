@@ -2,6 +2,8 @@
 
 **⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
+> 🗃️ Documento storico / legacy: questo file conserva la documentazione del vecchio setup multi-server per riferimento storico solo. Per il lavoro corrente usare `node unified-server.js` o i launcher portabili (`START-UNATTENDED.bat`, `npm run start:portable`). Le istruzioni legacy sotto non sono più il flusso supportato.
+
 # ðŸŽ‰ SISTEMA COMPLETAMENTE RISOLTO E FUNZIONANTE
 
 ## âœ… Status: FULLY OPERATIONAL
