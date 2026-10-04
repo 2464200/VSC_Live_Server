@@ -1,0 +1,53 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const PUBLISHER_EMAIL = 'lucafaby@gmail.com';
+const SERVICE_ACCOUNT_PATH = process.env.FIREBASE_SERVICE_ACCOUNT_PATH
+  || path.join(__dirname, '..', '..', 'firebase', 'service-account.json');
+
+let adminApp = null;
+
+function getAdminApp() {
+  if (adminApp) {
+    return adminApp;
+  }
+  if (!fs.existsSync(SERVICE_ACCOUNT_PATH)) {
+    const error = new Error(`Chiave account di servizio mancante: ${SERVICE_ACCOUNT_PATH}`);
+    error.code = 'SERVICE_ACCOUNT_MISSING';
+    throw error;
+  }
+  const admin = require('firebase-admin');
+  const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8'));
+  adminApp = admin.initializeApp({ credential: admin.credential.cert(serviceAccount) }, 'publisher-token');
+  return adminApp;
+}
+
+async function createPublisherCustomToken() {
+  const auth = getAdminApp().auth();
+  const user = await auth.getUserByEmail(PUBLISHER_EMAIL);
+  return auth.createCustomToken(user.uid);
+}
+
+function isLoopbackRequest(req) {
+  const address = req.socket?.remoteAddress || '';
+  return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
+}
+
+function registerPublisherTokenRoute(app) {
+  app.get('/api/firebase-publisher-token', async (req, res) => {
+    if (!isLoopbackRequest(req)) {
+      return res.status(403).json({ ok: false, error: 'Solo accesso locale.' });
+    }
+    try {
+      res.set('Cache-Control', 'no-store');
+      res.json({ ok: true, token: await createPublisherCustomToken() });
+    } catch (error) {
+      const status = error.code === 'SERVICE_ACCOUNT_MISSING' ? 404 : 500;
+      res.status(status).json({ ok: false, error: error.message });
+    }
+  });
+}
+
+module.exports = { registerPublisherTokenRoute, createPublisherCustomToken, isLoopbackRequest };

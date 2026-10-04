@@ -123,6 +123,7 @@
               this.updateStatusBadge(false, '🔒 Account non autorizzato');
             } else {
               this.updateStatusBadge(false, '🔒 Accedi per sincronizzare');
+              this.tryAutoPublisherSignIn();
             }
           }, (error) => {
             markReady();
@@ -134,6 +135,23 @@
         this.authReady = Promise.resolve();
         console.error('[FirebaseCloudClient] Inizializzazione Auth fallita:', error);
         this.updateStatusBadge(false, '⚠️ Auth non disponibile');
+      }
+    }
+
+    async tryAutoPublisherSignIn() {
+      if (this.autoSignInAttempted || !window.electronAPI?.runtime?.isElectron) {
+        return;
+      }
+      this.autoSignInAttempted = true;
+      try {
+        const response = await fetch('/api/firebase-publisher-token', { cache: 'no-store' });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok || !body.token) {
+          throw new Error(body.error || `HTTP ${response.status}`);
+        }
+        await this.publisherAuth.signInWithCustomToken(body.token);
+      } catch (error) {
+        console.warn('[FirebaseCloudClient] Accesso automatico non disponibile:', error?.message || error);
       }
     }
 

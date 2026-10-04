@@ -3090,6 +3090,7 @@ app.use('/__/auth', (req, res) => {
 });
 
 app.use(express.json({ limit: '2mb' }));
+require('./Bordero/server/firebase-publisher-token').registerPublisherTokenRoute(app);
 
 function escapeBorderoCsvValue(value) {
     if (value === null || value === undefined) return '';
