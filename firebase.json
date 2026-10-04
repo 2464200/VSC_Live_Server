@@ -2,6 +2,19 @@
   "database": {
     "rules": "database.rules.json"
   },
+  "auth": {
+    "authorizedDomains": [
+      "localhost",
+      "my-project-1525790600392.firebaseapp.com",
+      "my-project-1525790600392.web.app"
+    ],
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Bordero",
+        "supportEmail": "lucafaby@gmail.com"
+      }
+    }
+  },
   "hosting": {
     "public": "public",
     "predeploy": [

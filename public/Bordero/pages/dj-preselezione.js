@@ -656,12 +656,10 @@
     try {
       const selection = Storage.get('bordero_next_coreo_selection', null);
       const nextCoreo = String(selection?.title || selection?.nextValue || '--').trim() || '--';
-      const response = await fetch('/api/bordero/cloud-sync-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nextCoreo, serata: metadata, brani: orderedTracks })
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!window.firebaseCloudClient) {
+        throw new Error('Client Firebase cloud non disponibile.');
+      }
+      await window.firebaseCloudClient.publishState({ nextCoreo, serata: metadata, brani: orderedTracks });
     } catch (error) {
       console.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
     }
@@ -714,16 +712,14 @@
 
     try {
       const currentSerata = dataLoader.getCurrentSerata();
-      const response = await fetch('/api/bordero/cloud-sync-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nextCoreo,
-          serata: currentSerata?.metadata || {},
-          brani: currentSerata?.brani || archiveTracks
-        })
+      if (!window.firebaseCloudClient) {
+        throw new Error('Client Firebase cloud non disponibile.');
+      }
+      await window.firebaseCloudClient.publishState({
+        nextCoreo,
+        serata: currentSerata?.metadata || {},
+        brani: currentSerata?.brani || archiveTracks
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } catch (error) {
       console.warn('Impossibile sincronizzare la selezione NEXT sul cloud', error?.message || error);
     }
@@ -779,12 +775,10 @@
     try {
       const selection = Storage.get('bordero_next_coreo_selection', null);
       const nextCoreo = String(selection?.title || selection?.nextValue || '--').trim() || '--';
-      const response = await fetch('/api/bordero/cloud-sync-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nextCoreo, serata: metadata, brani: orderedTracks })
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!window.firebaseCloudClient) {
+        throw new Error('Client Firebase cloud non disponibile.');
+      }
+      await window.firebaseCloudClient.publishState({ nextCoreo, serata: metadata, brani: orderedTracks });
     } catch (error) {
       console.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
     }

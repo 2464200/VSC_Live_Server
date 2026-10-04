@@ -2,7 +2,7 @@
  * BORDERO - Firebase Realtime Cloud Client
  * Gestisce la sincronizzazione cloud bidirezionale:
  * - Su Web/Firebase Hosting: riceve gli aggiornamenti live (SSE / Polling) in tempo reale senza ricaricare la pagina.
- * - In Locale (VS Code / PC): invia lo stato aggiornato a Firebase tramite il server unificato.
+ * - In Locale (VS Code / PC): pubblica lo stato con Google Auth e regole RTDB.
  */
 
 (function () {
@@ -10,20 +10,30 @@
 
   const MAX_CLOUD_STATE_AGE_MS = 48 * 60 * 60 * 1000;
   const MAX_FUTURE_CLOCK_SKEW_MS = 5 * 60 * 1000;
+  const ALLOWED_PUBLISHER_EMAILS = new Set([
+    'lucafaby@gmail.com',
+    'djdaniele1984@gmail.com',
+    'azzurriditalia@yahoo.it'
+  ]);
 
   class FirebaseCloudClient {
     constructor() {
       this.dbUrl = (typeof BORDERO_CONFIG !== 'undefined' && BORDERO_CONFIG?.FIREBASE_REALTIME_DB_URL)
-        || 'https://my-project-1525790600392-default-rtdb.firebaseio.com';
+        || 'https://my-project-1525790600392-default-rtdb.europe-west1.firebasedatabase.app';
       this.syncPath = '/bordero/display_state.json';
       this.isCloudHost = this.detectCloudHost();
+      this.isPublisherPage = this.detectPublisherPage();
       this.eventSource = null;
       this.pollingTimer = null;
       this.lastStateTimestamp = null;
+      this.latestCloudState = null;
       this.hasFreshCloudState = false;
       this.latestNextCoreo = '--';
       this.isConnected = false;
       this.localPushDebounceTimer = null;
+      this.publisherAuth = null;
+      this.publisherDatabase = null;
+      this.authReady = Promise.resolve();
 
       this.init();
     }
@@ -32,25 +42,121 @@
       if (typeof window === 'undefined' || !window.location) return false;
       const host = window.location.hostname.toLowerCase();
       const search = window.location.search.toLowerCase();
+      const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(host);
       return (
         host.includes('web.app') ||
         host.includes('firebaseapp.com') ||
         host.includes('github.io') ||
         search.includes('cloud=1') ||
-        search.includes('cloudsync=1')
+        search.includes('cloudsync=1') ||
+        (!isLocalHost && window.location.port !== '5500')
       );
+    }
+
+    detectPublisherPage() {
+      if (typeof window === 'undefined' || !window.location) return false;
+      return /\/pages\/(?:bordero|admin|dj-preselezione)\.html$/i.test(window.location.pathname);
     }
 
     init() {
       if (this.isCloudHost) {
         console.log('[FirebaseCloudClient] Modalità Cloud attiva (Host:', window.location.hostname, ')');
         this.startCloudListener();
-      } else {
-        console.log('[FirebaseCloudClient] Modalità Locale attiva. Sincronizzazione automatica verso Cloud.');
+      } else if (this.isPublisherPage) {
+        console.log('[FirebaseCloudClient] Modalità publisher locale: autenticazione Google richiesta.');
+        this.initializePublisherAuth();
         this.setupLocalSyncTriggers();
-        window.setTimeout(() => this.pushCurrentLocalStateToBackend(), 1500);
       }
       this.injectStatusIndicator();
+    }
+
+    async initializePublisherAuth() {
+      try {
+        if (!window.firebase?.initializeApp || !window.firebase?.auth || !window.firebase?.database) {
+          throw new Error('Firebase Auth SDK non caricato.');
+        }
+
+        const projectId = BORDERO_CONFIG.FIREBASE_PROJECT_ID;
+        const response = await fetch(BORDERO_CONFIG.FIREBASE_WEB_CONFIG_URL, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Configurazione Firebase non disponibile (HTTP ${response.status}).`);
+        }
+
+        const firebaseConfig = await response.json();
+        if (firebaseConfig.projectId !== projectId) {
+          throw new Error('La configurazione web Firebase non corrisponde al progetto Borderò.');
+        }
+        firebaseConfig.databaseURL = firebaseConfig.databaseURL || this.dbUrl;
+
+        const app = window.firebase.apps.length
+          ? window.firebase.app()
+          : window.firebase.initializeApp(firebaseConfig);
+        this.publisherAuth = app.auth();
+        this.publisherDatabase = app.database();
+
+        this.authReady = new Promise((resolve) => {
+          let resolved = false;
+          const markReady = () => {
+            if (resolved) return;
+            resolved = true;
+            resolve();
+          };
+
+          this.publisherAuth.onAuthStateChanged((user) => {
+            this.updatePublisherControls(user);
+            markReady();
+
+            if (user && this.isAuthorizedPublisher(user)) {
+              this.fetchCloudStateDirect();
+            } else if (user) {
+              this.updateStatusBadge(false, '🔒 Account non autorizzato');
+            } else {
+              this.updateStatusBadge(false, '🔒 Accedi per sincronizzare');
+            }
+          }, (error) => {
+            markReady();
+            console.error('[FirebaseCloudClient] Errore stato autenticazione:', error);
+            this.updateStatusBadge(false, '⚠️ Errore autenticazione');
+          });
+        });
+      } catch (error) {
+        this.authReady = Promise.resolve();
+        console.error('[FirebaseCloudClient] Inizializzazione Auth fallita:', error);
+        this.updateStatusBadge(false, '⚠️ Auth non disponibile');
+      }
+    }
+
+    isAuthorizedPublisher(user) {
+      return Boolean(user?.email && ALLOWED_PUBLISHER_EMAILS.has(user.email.toLowerCase()));
+    }
+
+    async togglePublisherAuth() {
+      try {
+        if (!this.publisherAuth) {
+          throw new Error('Firebase Auth non è inizializzato.');
+        }
+        if (this.publisherAuth.currentUser) {
+          await this.publisherAuth.signOut();
+          return;
+        }
+
+        await this.publisherAuth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider());
+      } catch (error) {
+        console.error('[FirebaseCloudClient] Accesso Google non riuscito:', error);
+        this.updateStatusBadge(false, '⚠️ Accesso Google non riuscito');
+      }
+    }
+
+    updatePublisherControls(user = this.publisherAuth?.currentUser) {
+      const authButton = document.getElementById('firebase-cloud-auth');
+      const publishButton = document.getElementById('firebase-cloud-publish');
+      if (authButton) {
+        authButton.textContent = user ? `Esci (${user.email || 'Google'})` : 'Accedi con Google';
+        authButton.title = user ? `Account: ${user.email || 'Google'}` : 'Accedi per pubblicare lo stato live';
+      }
+      if (publishButton) {
+        publishButton.hidden = !user || !this.isAuthorizedPublisher(user);
+      }
     }
 
     getDbEndpoint() {
@@ -132,13 +238,40 @@
             this.isConnected = true;
             this.updateStatusBadge(true, '🟢 Cloud Live');
             this.handleCloudState(data);
+            return data;
+          } else {
+            this.clearMissingCloudState();
+            return null;
           }
+        } else if (res.status === 404) {
+          this.clearMissingCloudState();
+          return null;
         } else {
+          this.isConnected = false;
           this.updateStatusBadge(false, '🟡 Cloud Inattivo');
         }
       } catch (err) {
+        this.isConnected = false;
         this.updateStatusBadge(false, '⚪ Offline');
+        console.warn('[FirebaseCloudClient] Lettura stato cloud non riuscita:', err);
       }
+      return undefined;
+    }
+
+    clearMissingCloudState() {
+      this.hasFreshCloudState = false;
+      this.latestNextCoreo = '--';
+      this.latestCloudState = null;
+
+      if (this.isCloudHost && typeof Storage !== 'undefined' && typeof BORDERO_CONFIG !== 'undefined') {
+        Storage.remove(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA);
+      }
+
+      const nextCoreoEl = document.getElementById('next-coreo');
+      if (nextCoreoEl) nextCoreoEl.textContent = '--';
+      if (window.displayMonitor?.refresh) window.displayMonitor.refresh();
+      if (window.nextCoreoDisplay?.refresh) window.nextCoreoDisplay.refresh();
+      this.updateStatusBadge(true, '🟡 Nessuno stato Cloud');
     }
 
     /**
@@ -148,6 +281,7 @@
       if (!payload || typeof payload !== 'object') return;
 
       const { nextCoreo, serata, brani, catalogBrani, updatedAt } = payload;
+      this.latestCloudState = payload;
       const timestamp = Date.parse(updatedAt || '');
       const stateKey = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : 'missing-timestamp';
 
@@ -180,7 +314,7 @@
         if (Array.isArray(catalogBrani)) {
           Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, catalogBrani);
           Storage.set('BORDERO_BRANI_DATA', catalogBrani);
-          dataLoader.brani = catalogBrani;
+          if (typeof dataLoader !== 'undefined') dataLoader.brani = catalogBrani;
         }
         if (serata) {
           const currentSerata = {
@@ -245,51 +379,91 @@
 
     async pushCurrentLocalStateToBackend() {
       try {
-        let currentSerata = null;
-        let nextCoreoVal = '--';
-
-        if (typeof dataLoader !== 'undefined' && typeof dataLoader.getCurrentSerata === 'function') {
-          currentSerata = dataLoader.getCurrentSerata();
-        } else if (typeof Storage !== 'undefined' && typeof BORDERO_CONFIG !== 'undefined') {
-          currentSerata = Storage.get(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA, null);
+        await this.authReady;
+        const user = this.publisherAuth?.currentUser;
+        if (!user) {
+          this.updateStatusBadge(false, '🔒 Accedi per sincronizzare');
+          return;
         }
+        await this.publishState(this.getCurrentLocalState());
+      } catch (error) {
+        console.error('[FirebaseCloudClient] Pubblicazione locale non riuscita:', error);
+      }
+    }
 
-        if (typeof Storage !== 'undefined') {
-          const nextCoreoObj = Storage.get('bordero_next_coreo_selection', null);
-          if (nextCoreoObj) {
-            nextCoreoVal = nextCoreoObj.title || nextCoreoObj.nextValue || '--';
-          }
-        }
+    getCurrentLocalState() {
+      let currentSerata = null;
+      if (typeof dataLoader !== 'undefined' && typeof dataLoader.getCurrentSerata === 'function') {
+        currentSerata = dataLoader.getCurrentSerata();
+      } else if (typeof Storage !== 'undefined' && typeof BORDERO_CONFIG !== 'undefined') {
+        currentSerata = Storage.get(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA, null);
+      }
 
-        const payload = {
-          nextCoreo: nextCoreoVal,
-          serata: currentSerata?.metadata || {},
-          brani: currentSerata?.brani || (typeof dataLoader !== 'undefined' ? dataLoader.brani : []),
-          catalogBrani: Storage.get('BORDERO_BRANI_DATA', null)
+      const nextCoreo = typeof Storage !== 'undefined'
+        ? Storage.get('bordero_next_coreo_selection', null)
+        : null;
+      const brani = Array.isArray(currentSerata?.brani)
+        ? currentSerata.brani
+        : (typeof dataLoader !== 'undefined' && Array.isArray(dataLoader.brani) ? dataLoader.brani : []);
+
+      return {
+        nextCoreo: nextCoreo?.title || nextCoreo?.nextValue || '--',
+        serata: currentSerata?.metadata || {},
+        brani,
+        catalogBrani: typeof Storage !== 'undefined'
+          ? Storage.get('BORDERO_BRANI_DATA', null)
             || (typeof dataLoader !== 'undefined' && Array.isArray(dataLoader.brani)
               ? dataLoader.brani
               : Storage.get(BORDERO_CONFIG.CACHE_KEY_BRANI, []))
-        };
+          : []
+      };
+    }
 
-        await fetch('/api/bordero/cloud-sync-state', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } catch (_) {
-        // Fallback silenzioso in locale se il server unificato ha il sync via filesystem watcher
+    async publishState(payload = {}) {
+      await this.authReady;
+      const user = this.publisherAuth?.currentUser;
+      if (!user || !this.isAuthorizedPublisher(user)) {
+        this.updateStatusBadge(false, '🔒 Account Google non autorizzato');
+        throw new Error('Accedi con uno degli account Google autorizzati per pubblicare.');
+      }
+      if (!this.publisherDatabase) {
+        throw new Error('Firebase Realtime Database non è inizializzato.');
+      }
+
+      const state = {
+        ...(this.latestCloudState || {}),
+        ...this.getCurrentLocalState(),
+        ...payload,
+        updatedAt: new Date().toISOString(),
+        source: 'bordero-google-auth'
+      };
+      const databasePath = this.syncPath.replace(/\.json$/, '').replace(/^\/+/, '');
+
+      try {
+        await this.publisherDatabase.ref(databasePath).set(state);
+        this.latestCloudState = state;
+        this.isConnected = true;
+        this.updateStatusBadge(true, '🟢 Cloud aggiornato');
+        return state;
+      } catch (error) {
+        const denied = error?.code === 'PERMISSION_DENIED'
+          || /permission_denied|permission denied/i.test(error?.message || '');
+        this.updateStatusBadge(false, denied ? '🔒 Scrittura RTDB negata' : '⚠️ Errore sync Cloud');
+        throw error;
       }
     }
 
     injectStatusIndicator() {
       if (typeof document === 'undefined') return;
-      document.addEventListener('DOMContentLoaded', () => {
+      const inject = () => {
         const header = document.querySelector('.display-header') || document.querySelector('header');
-        if (!header || document.getElementById('firebase-cloud-badge')) return;
+        if (!header) return;
 
-        const badge = document.createElement('div');
-        badge.id = 'firebase-cloud-badge';
-        badge.style.cssText = `
+        let badge = document.getElementById('firebase-cloud-badge');
+        if (!badge) {
+          badge = document.createElement('div');
+          badge.id = 'firebase-cloud-badge';
+          badge.style.cssText = `
           display: inline-flex;
           align-items: center;
           gap: 6px;
@@ -304,11 +478,49 @@
           margin-left: 10px;
           vertical-align: middle;
         `;
-        badge.textContent = this.isCloudHost ? '🟡 Connessione Cloud...' : '🟢 Server Locale';
+          badge.textContent = this.isCloudHost ? '🟡 Connessione Cloud...' : '🟢 Server Locale';
+          const titleContainer = document.querySelector('.display-title-row')
+            || header.querySelector('.header-content')
+            || header;
+          titleContainer.appendChild(badge);
+        }
 
-        const titleContainer = document.querySelector('.display-title-row') || header;
-        titleContainer.appendChild(badge);
-      });
+        if (this.isPublisherPage && !this.isCloudHost && !document.getElementById('firebase-cloud-auth')) {
+          const controls = document.createElement('div');
+          controls.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;';
+
+          const authButton = document.createElement('button');
+          authButton.id = 'firebase-cloud-auth';
+          authButton.type = 'button';
+          authButton.addEventListener('click', () => this.togglePublisherAuth());
+          controls.appendChild(authButton);
+
+          const publishButton = document.createElement('button');
+          publishButton.id = 'firebase-cloud-publish';
+          publishButton.type = 'button';
+          publishButton.textContent = 'Pubblica stato locale';
+          publishButton.hidden = true;
+          publishButton.addEventListener('click', () => this.pushCurrentLocalStateToBackend());
+          controls.appendChild(publishButton);
+
+          const titleContainer = header.querySelector('.header-content') || header;
+          titleContainer.appendChild(controls);
+          this.updatePublisherControls();
+          if (!this.publisherAuth) {
+            this.updateStatusBadge(false, '🔒 Inizializzo accesso Google');
+          } else if (this.publisherAuth.currentUser) {
+            this.updateStatusBadge(true, `🔐 ${this.publisherAuth.currentUser.email || 'Google'}`);
+          } else {
+            this.updateStatusBadge(false, '🔒 Accedi per sincronizzare');
+          }
+        }
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inject, { once: true });
+      } else {
+        inject();
+      }
     }
 
     updateStatusBadge(isOnline, text) {

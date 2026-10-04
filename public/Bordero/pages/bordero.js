@@ -1556,6 +1556,13 @@ class BorderoTableManager {
       this.mergeCurrentSerata(currentSerata.brani);
     });
 
+    window.addEventListener('bordero:cloud-updated', () => {
+      const currentSerata = dataLoader.getCurrentSerata();
+      if (currentSerata && Array.isArray(currentSerata.brani)) {
+        this.mergeCurrentSerata(currentSerata.brani);
+      }
+    });
+
     const refreshFromSerata = () => {
       const currentSerata = dataLoader.getCurrentSerata();
       if (!currentSerata || !Array.isArray(currentSerata.brani)) return;
@@ -2129,19 +2136,14 @@ class BorderoTableManager {
   async publishNextCoreoToCloud(nextCoreo) {
     try {
       const normalizedNextCoreo = this.getFirstNonEmptyNextCoreoValue(nextCoreo, '--') || '--';
-      const response = await fetch('/api/bordero/cloud-sync-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nextCoreo: normalizedNextCoreo,
-          serata: this.serata || {},
-          brani: this.allBrani || []
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      if (!window.firebaseCloudClient) {
+        throw new Error('Client Firebase cloud non disponibile.');
       }
+      await window.firebaseCloudClient.publishState({
+        nextCoreo: normalizedNextCoreo,
+        serata: this.serata || {},
+        brani: this.allBrani || []
+      });
     } catch (error) {
       logger.warn('Impossibile sincronizzare NEXT sul cloud', error?.message || error);
     }
@@ -3589,24 +3591,17 @@ class BorderoTableManager {
   }
 
   async publishCloudState() {
-    if (typeof fetch !== 'function') return;
-
     try {
       const nextSelection = Storage.get('bordero_next_coreo_selection', null);
       const nextCoreo = this.getFirstNonEmptyNextCoreoValue(nextSelection?.title, nextSelection?.nextValue, '--') || '--';
-      const response = await fetch('/api/bordero/cloud-sync-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nextCoreo,
-          serata: this.serata || {},
-          brani: this.allBrani || []
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      if (!window.firebaseCloudClient) {
+        throw new Error('Client Firebase cloud non disponibile.');
       }
+      await window.firebaseCloudClient.publishState({
+        nextCoreo,
+        serata: this.serata || {},
+        brani: this.allBrani || []
+      });
     } catch (error) {
       logger.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
     }

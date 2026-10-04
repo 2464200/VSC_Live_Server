@@ -3,7 +3,7 @@
     "bordero": {
       "display_state": {
         ".read": true,
-        ".write": false,
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'lucafaby@gmail.com' || auth.token.email == 'djdaniele1984@gmail.com' || auth.token.email == 'azzurriditalia@yahoo.it')",
         ".validate": "newData.hasChildren(['updatedAt', 'brani'])"
       }
     }

@@ -4,26 +4,18 @@
  * Non introduce dipendenze esterne: usa https nativo di Node.js.
  */
 
-const https = require('https');
-const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { URL } = require('url');
 const { parse: parseCsv } = require('csv-parse/sync');
-const { cert, getApp, getApps, initializeApp } = require('firebase-admin/app');
-const { getDatabase } = require('firebase-admin/database');
 
 class FirebaseCloudSync {
   constructor(options = {}) {
     this.enabled = process.env.FIREBASE_CLOUD_SYNC_ENABLED !== 'false';
     this.databaseUrl = process.env.FIREBASE_DATABASE_URL || 'https://my-project-1525790600392-default-rtdb.europe-west1.firebasedatabase.app';
-    this.databaseSecret = process.env.FIREBASE_DATABASE_SECRET || process.env.FIREBASE_AUTH_TOKEN || '';
-    this.serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || '';
-    this.adminDatabase = null;
-    this.authenticationMode = 'unconfigured';
+    this.authenticationMode = 'google-auth-client';
     this.syncPath = '/bordero/display_state.json';
     this.lastSyncTime = null;
-    this.lastSyncStatus = 'initialized';
+    this.lastSyncStatus = 'client-auth-required';
     this.lastError = null;
     this.syncDebounceTimer = null;
     this.fileWatchers = [];
@@ -42,7 +34,6 @@ class FirebaseCloudSync {
       source: 'local-server'
     };
 
-    this.initializeAdminDatabase();
     this.initWatchers();
     if (this.enabled) {
       setImmediate(() => this.initializeFromCloudAndSync());
@@ -56,65 +47,9 @@ class FirebaseCloudSync {
    * attualmente visibile sul display.
    */
   async initializeFromCloudAndSync() {
-    if (this.adminDatabase) {
-      try {
-        const snapshot = await this.adminDatabase.ref('bordero/display_state').get();
-        const cloudState = snapshot.exists() ? snapshot.val() : null;
-        if (cloudState && typeof cloudState === 'object') {
-          this.lastKnownState = {
-            ...this.lastKnownState,
-            ...cloudState,
-            serata: {
-              ...this.lastKnownState.serata,
-              ...(cloudState.serata && typeof cloudState.serata === 'object' ? cloudState.serata : {})
-            },
-            brani: Array.isArray(cloudState.brani) ? cloudState.brani : this.lastKnownState.brani,
-            catalogBrani: Array.isArray(cloudState.catalogBrani) ? cloudState.catalogBrani : this.lastKnownState.catalogBrani
-          };
-        }
-      } catch (error) {
-        console.warn('Firebase Cloud Sync: impossibile ripristinare lo stato cloud iniziale:', error?.message || error);
-      }
-    }
-
     await this.syncFromLocalFiles();
   }
 
-  initializeAdminDatabase() {
-    if (!this.serviceAccountPath || !fs.existsSync(this.serviceAccountPath)) {
-      this.authenticationMode = this.databaseSecret ? 'database-secret' : 'missing-service-account';
-      return;
-    }
-
-    try {
-      const serviceAccount = JSON.parse(fs.readFileSync(this.serviceAccountPath, 'utf8'));
-      const appName = 'bordero-cloud-sync';
-      const app = getApps().some((item) => item.name === appName)
-        ? getApp(appName)
-        : initializeApp({
-          credential: cert(serviceAccount),
-          databaseURL: this.databaseUrl
-        }, appName);
-      this.adminDatabase = getDatabase(app);
-      this.authenticationMode = 'service-account';
-    } catch (error) {
-      this.authenticationMode = 'invalid-service-account';
-      this.lastError = `Service account Firebase non valido: ${error?.message || error}`;
-      console.warn('Firebase Cloud Sync: service account non utilizzabile:', error?.message || error);
-    }
-  }
-
-  getDbUrl() {
-    let urlStr = this.databaseUrl.replace(/\/+$/, '') + this.syncPath;
-    if (this.databaseSecret) {
-      urlStr += `?auth=${encodeURIComponent(this.databaseSecret)}`;
-    }
-    return urlStr;
-  }
-
-  /**
-   * Invia payload a Firebase Realtime Database tramite HTTP PUT
-   */
   async pushState(payload = {}) {
     if (!this.enabled) {
       return { success: false, reason: 'Firebase Cloud Sync disabilitato' };
@@ -128,85 +63,9 @@ class FirebaseCloudSync {
     };
 
     this.lastKnownState = mergedPayload;
-
-    if (this.adminDatabase) {
-      try {
-        await this.adminDatabase.ref('bordero/display_state').set(mergedPayload);
-        this.lastSyncTime = new Date().toISOString();
-        this.lastSyncStatus = 'ok';
-        this.lastError = null;
-        return { success: true, timestamp: this.lastSyncTime };
-      } catch (error) {
-        const errMsg = `Firebase Admin: ${error?.message || error}`;
-        this.lastSyncStatus = 'error';
-        this.lastError = errMsg;
-        return { success: false, error: errMsg };
-      }
-    }
-
-    return new Promise((resolve) => {
-      try {
-        const fullUrl = new URL(this.getDbUrl());
-        const postData = JSON.stringify(mergedPayload);
-        const isHttps = fullUrl.protocol === 'https:';
-        const client = isHttps ? https : http;
-
-        const reqOptions = {
-          protocol: fullUrl.protocol,
-          hostname: fullUrl.hostname,
-          port: fullUrl.port || (isHttps ? 443 : 80),
-          path: fullUrl.pathname + fullUrl.search,
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(postData)
-          },
-          timeout: 8000
-        };
-
-        const req = client.request(reqOptions, (res) => {
-          let body = '';
-          res.setEncoding('utf8');
-          res.on('data', (chunk) => { body += chunk; });
-          res.on('end', () => {
-            if (res.statusCode >= 200 && res.statusCode < 300) {
-              this.lastSyncTime = new Date().toISOString();
-              this.lastSyncStatus = 'ok';
-              this.lastError = null;
-              resolve({ success: true, timestamp: this.lastSyncTime });
-            } else {
-              const errMsg = `HTTP ${res.statusCode}: ${body}`;
-              this.lastSyncStatus = 'error';
-              this.lastError = errMsg;
-              resolve({ success: false, error: errMsg, statusCode: res.statusCode });
-            }
-          });
-        });
-
-        req.on('timeout', () => {
-          req.destroy();
-          const errMsg = 'Timeout connessione Firebase';
-          this.lastSyncStatus = 'timeout';
-          this.lastError = errMsg;
-          resolve({ success: false, error: errMsg });
-        });
-
-        req.on('error', (err) => {
-          const errMsg = err?.message || String(err);
-          this.lastSyncStatus = 'error';
-          this.lastError = errMsg;
-          resolve({ success: false, error: errMsg });
-        });
-
-        req.write(postData);
-        req.end();
-      } catch (err) {
-        const errMsg = err?.message || String(err);
-        this.lastSyncStatus = 'error';
-        this.lastError = errMsg;
-        resolve({ success: false, error: errMsg });
-      }
-    });
+    this.lastSyncStatus = 'client-auth-required';
+    this.lastError = 'La pubblicazione cloud richiede un utente Google autorizzato nella pagina Borderò.';
+    return { success: false, reason: this.lastError };
   }
 
   /**
@@ -268,7 +127,7 @@ class FirebaseCloudSync {
         } catch (_) {}
       }
 
-      await this.pushState({
+      return await this.pushState({
         nextCoreo: nextCoreoVal,
         catalogBrani: braniList.length > 0 ? braniList : this.lastKnownState.catalogBrani
       });
@@ -302,7 +161,7 @@ class FirebaseCloudSync {
 
   getStatus() {
     return {
-      enabled: this.enabled,
+      enabled: false,
       databaseUrl: this.databaseUrl,
       authenticationMode: this.authenticationMode,
       syncPath: this.syncPath,

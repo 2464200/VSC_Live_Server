@@ -102,6 +102,16 @@ L'applicazione consente ai DJ di:
 - Offline mode con fallback su CSV/cache
 - Percorso consigliato file Excel: `C:\VSC_Live_Server\Excel\`
 
+### Pubblicazione live su Firebase
+
+Le pagine Borderò locali pubblicano lo stato live direttamente sul Realtime Database del progetto Firebase tramite Google Sign-In. Non servono service account o token Firebase sui PC.
+
+- Accedi dalla pagina Borderò locale con uno degli account Google autorizzati dalle regole RTDB.
+- Le modifiche alla serata e a NEXT vengono sincronizzate dopo l'accesso; per inizializzare manualmente uno stato cloud vuoto usa **Pubblica stato locale**.
+- Il Display su Firebase Hosting è in sola lettura e riceve gli aggiornamenti live senza autenticazione.
+- Nuovi PC non richiedono credenziali installate: basta avviare l'app, aprire `http://localhost:5500/Bordero/pages/bordero.html` e accedere con un account autorizzato.
+- Le autorizzazioni sono definite in `database.rules.json`; la configurazione del provider Google e dei domini è in `firebase.json`.
+
 ### 11. **Admin Panel avanzato** (admin.html)
 - Selezione file Excel da UI
 - Sync separato per Brani, Comuni, dBase e Location
@@ -119,18 +129,20 @@ L'applicazione consente ai DJ di:
 
 ### Steps
 1. Clona o copia il progetto nella cartella `/Bordero`
-2. Apri `index.html` in un browser
-3. I dati vengono caricati automaticamente da `data/brani.csv`
+2. Avvia `unified-server.js` dalla root del repository
+3. Apri `http://localhost:5500/Bordero/pages/bordero.html`
+4. Per pubblicare aggiornamenti live, accedi con Google usando un account autorizzato
 
 ### Per sviluppo locale
 ```bash
-# Usa un server HTTP locale (non file://)
+# Anteprima statica; per il flusso completo e la pubblicazione usa unified-server.js
 python -m http.server 8000
 # oppure
 npx http-server -c-1
 ```
 
-Poi visita: `http://localhost:5500/Bordero/`
+Poi visita: `http://localhost:8000/Bordero/`
+La pubblicazione autenticata è prevista sul runtime standard `http://localhost:5500`.
 
 Per il runtime completo del progetto usa invece:
 - `http://localhost:5500/Bordero/pages/bordero.html`
@@ -458,4 +470,3 @@ Copyleft 2026 - Progetto Borderò
 
 Per domande dettagliate sul progetto, controlla il file di estrazione:  
 👉 `../REPORT_ESTRAZIONE_BORDERO.md`
-

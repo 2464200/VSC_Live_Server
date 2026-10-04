@@ -3617,7 +3617,7 @@ app.get('/api/bordero/sync-google/status', (req, res) => {
 app.post('/api/bordero/cloud-sync-state', async (req, res) => {
     try {
         const result = await firebaseCloudSync.pushState(req.body || {});
-        res.json(result);
+        res.status(result.success ? 200 : 409).json(result);
     } catch (err) {
         res.status(500).json({ success: false, error: err?.message || String(err) });
     }
@@ -3629,8 +3629,11 @@ app.get('/api/bordero/cloud-sync-status', (req, res) => {
 
 app.post('/api/bordero/cloud-sync-trigger', async (req, res) => {
     try {
-        await firebaseCloudSync.syncFromLocalFiles();
-        res.json({ success: true, status: firebaseCloudSync.getStatus() });
+        const result = await firebaseCloudSync.syncFromLocalFiles();
+        if (!result?.success) {
+            return res.status(409).json({ success: false, result, status: firebaseCloudSync.getStatus() });
+        }
+        return res.json({ success: true, status: firebaseCloudSync.getStatus() });
     } catch (err) {
         res.status(500).json({ success: false, error: err?.message || String(err) });
     }
