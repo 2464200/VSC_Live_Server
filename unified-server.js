@@ -3092,6 +3092,31 @@ app.use('/__/auth', (req, res) => {
 app.use(express.json({ limit: '2mb' }));
 require('./Bordero/server/firebase-publisher-token').registerPublisherTokenRoute(app);
 
+const DJ_PRESELECTION_FILE = path.join(BORDERO_DATA_DIR, 'dj-preselezione-state.json');
+app.get('/api/dj-preselezione/state', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        res.json({ ok: true, state: JSON.parse(fs.readFileSync(DJ_PRESELECTION_FILE, 'utf8')) });
+    } catch (error) {
+        res.json({ ok: true, state: null });
+    }
+});
+app.put('/api/dj-preselezione/state', (req, res) => {
+    const state = req.body;
+    if (!state || !Array.isArray(state.playlists) || !state.playlists.length) {
+        return res.status(400).json({ ok: false, error: 'Stato non valido.' });
+    }
+    try {
+        fs.mkdirSync(BORDERO_DATA_DIR, { recursive: true });
+        const tmpFile = `${DJ_PRESELECTION_FILE}.tmp`;
+        fs.writeFileSync(tmpFile, JSON.stringify(state), 'utf8');
+        fs.renameSync(tmpFile, DJ_PRESELECTION_FILE);
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
 function escapeBorderoCsvValue(value) {
     if (value === null || value === undefined) return '';
     const text = String(value);

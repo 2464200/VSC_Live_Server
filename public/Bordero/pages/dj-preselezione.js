@@ -57,35 +57,73 @@
     };
   }
 
+  function parseSavedState(parsed) {
+    if (parsed && Array.isArray(parsed.playlists) && parsed.playlists.length) {
+      const playlists = parsed.playlists
+        .filter((playlist) => playlist && typeof playlist.id === 'string' && typeof playlist.name === 'string')
+        .map((playlist) => ({
+          id: playlist.id,
+          name: playlist.name,
+          tracks: Array.isArray(playlist.tracks)
+            ? playlist.tracks.filter((track) => track && (track.branoId || track.id))
+            : []
+        }));
+      if (playlists.length) {
+        const selected = playlists.some((playlist) => playlist.id === parsed.selectedPlaylistId)
+          ? parsed.selectedPlaylistId
+          : playlists[0].id;
+        return { selectedPlaylistId: selected, playlists };
+      }
+    }
+    return null;
+  }
+
   function loadSavedState() {
     try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      if (parsed && Array.isArray(parsed.playlists) && parsed.playlists.length) {
-        const playlists = parsed.playlists
-          .filter((playlist) => playlist && typeof playlist.id === 'string' && typeof playlist.name === 'string')
-          .map((playlist) => ({
-            id: playlist.id,
-            name: playlist.name,
-            tracks: Array.isArray(playlist.tracks)
-              ? playlist.tracks.filter((track) => track && (track.branoId || track.id))
-              : []
-          }));
-        if (playlists.length) {
-          const selected = playlists.some((playlist) => playlist.id === parsed.selectedPlaylistId)
-            ? parsed.selectedPlaylistId
-            : playlists[0].id;
-          return { selectedPlaylistId: selected, playlists };
-        }
-      }
+      const parsed = parseSavedState(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
+      if (parsed) return parsed;
     } catch (error) {
       console.warn('Impossibile leggere la preselezione salvata', error);
     }
     return defaultState();
   }
 
+  let serverStateReady = false;
+  let serverSaveTimer = null;
+
+  function pushStateToServer() {
+    window.clearTimeout(serverSaveTimer);
+    serverSaveTimer = window.setTimeout(() => {
+      fetch('/api/dj-preselezione/state', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(savedState)
+      }).catch((error) => console.warn('Salvataggio preselezione su server non riuscito', error));
+    }, 300);
+  }
+
+  async function hydrateStateFromServer() {
+    try {
+      const response = await fetch('/api/dj-preselezione/state', { cache: 'no-store' });
+      const body = await response.json();
+      const serverState = parseSavedState(body?.state);
+      if (serverState) {
+        savedState = serverState;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+        renderPlaylistPicker();
+        renderSelection();
+      }
+    } catch (error) {
+      console.warn('Preselezione dal server non disponibile, uso i dati locali', error);
+    }
+    serverStateReady = true;
+    pushStateToServer();
+  }
+
   function saveState() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+      if (serverStateReady) pushStateToServer();
       window.dispatchEvent(new CustomEvent('bordero:preselection-updated', {
         detail: { count: currentPlaylist()?.tracks.length || 0 }
       }));
@@ -1007,6 +1045,7 @@
   elements.refreshButton.addEventListener('click', refreshArchive);
   renderPlaylistPicker();
   renderSelection();
+  hydrateStateFromServer();
   refreshArchive();
   window.setInterval(() => {
     if (document.visibilityState === 'visible') refreshArchive({ silent: true });
