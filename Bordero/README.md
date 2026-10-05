@@ -104,14 +104,15 @@ L'applicazione consente ai DJ di:
 
 ### Pubblicazione live su Firebase
 
-Le pagine Borderò locali pubblicano lo stato live direttamente sul Realtime Database del progetto Firebase tramite Google Sign-In. Non servono service account o token Firebase sui PC.
+La configurazione degli account, l'accesso Google e il deploy Hosting sono descritti in [FIREBASE_DEPLOYMENT.md](FIREBASE_DEPLOYMENT.md).
 
-- Accedi dalla pagina Borderò locale con uno degli account Google autorizzati dalle regole RTDB.
-- Le modifiche alla serata e a NEXT vengono sincronizzate dopo l'accesso; per inizializzare manualmente uno stato cloud vuoto usa **Pubblica stato locale**.
-- Il Display su Firebase Hosting è in sola lettura e riceve gli aggiornamenti live senza autenticazione.
-- Nuovi PC non richiedono credenziali installate: basta avviare l'app, aprire `http://localhost:5500/Bordero/pages/bordero.html` e accedere con un account autorizzato.
-- Le autorizzazioni sono definite in `database.rules.json`; la configurazione del provider Google e dei domini è in `firebase.json`.
-- Il workflow GitHub pubblica Hosting. Se cambiano provider Auth o regole RTDB, distribuiscili con `firebase deploy --only auth,database --project my-project-1525790600392`.
+In breve:
+
+- L'accesso e la pubblicazione manuale si gestiscono nella sezione **Google Account** della pagina Admin, non dalla pagina Borderò.
+- Nel browser si usa Google Sign-In con selezione dell'account. In Electron si sceglie tra `lucafaby@gmail.com` e `djdaniele1984@gmail.com`; l'app riutilizza poi la sessione Firebase sulle pagine Borderò.
+- Le regole Realtime Database autorizzano `lucafaby@gmail.com`, `djdaniele1984@gmail.com` e `azzurriditalia@yahoo.it` (con e-mail verificata). L'account `azzurriditalia@yahoo.it` è autorizzato dal backend ma non è tra le opzioni del selettore Electron.
+- Il Display pubblicato è in sola lettura. Il runtime locale standard per autenticazione e pubblicazione è `http://localhost:5500`.
+- Il deploy Hosting automatico parte dopo un push su `develop`; le modifiche a provider Auth o regole Realtime Database vanno distribuite separatamente.
 
 ### 11. **Admin Panel avanzato** (admin.html)
 - Selezione file Excel da UI
@@ -132,7 +133,7 @@ Le pagine Borderò locali pubblicano lo stato live direttamente sul Realtime Dat
 1. Clona o copia il progetto nella cartella `/Bordero`
 2. Avvia `unified-server.js` dalla root del repository
 3. Apri `http://localhost:5500/Bordero/pages/bordero.html`
-4. Per pubblicare aggiornamenti live, accedi con Google usando un account autorizzato
+4. Per scegliere l'account Google e pubblicare manualmente, apri Admin e usa la sezione **Google Account**
 
 ### Per sviluppo locale
 ```bash

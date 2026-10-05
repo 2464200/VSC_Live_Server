@@ -61,6 +61,18 @@ Promozione in produzione:
 - `develop` -> `main` dopo test e review
 - guida completa: `GUIDA_GIT_MAIN_DEVELOP.md`
 
+### Eccezione: deploy Firebase Hosting
+
+Il deploy del sito Firebase segue il workflow dedicato e non aspetta la promozione a `main`:
+
+- ogni push su `develop` avvia `.github/workflows/firebase-hosting-merge.yml` e pubblica il canale live Hosting;
+- le Pull Request interne usano `.github/workflows/firebase-hosting-pull-request.yml` per creare una preview;
+- i workflow usano il secret GitHub `FIREBASE_SERVICE_ACCOUNT_MY_PROJECT_1525790600392`;
+- il predeploy sincronizza `Bordero/` e gli altri asset in `public/`;
+- il deploy Hosting non aggiorna il provider Firebase Auth né le regole Realtime Database.
+
+Le istruzioni per login publisher, account autorizzati e deploy Auth/Realtime Database sono in [Bordero/FIREBASE_DEPLOYMENT.md](Bordero/FIREBASE_DEPLOYMENT.md).
+
 ## Troubleshooting
 ### Se il sistema non parte
 - verifica Node.js con `node --version`
@@ -79,6 +91,5 @@ Nel flusso standard serve solo:
 - `5500`
 
 Le vecchie porte `3000`, `3010` e `8765` sono legacy e non necessarie per l'uso normale del progetto.
-
 
 

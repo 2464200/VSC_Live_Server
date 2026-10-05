@@ -84,6 +84,12 @@ Flusso aggiornato Bordero:
 - Directory di riferimento file Excel locali: `C:\VSC_Live_Server\Excel\`.
 - In caso di rete assente: fallback su cache localStorage e CSV locali in `Bordero/data/`.
 
+### Google Account e deploy Firebase Hosting
+
+- Accesso Google e pubblicazione manuale dello stato Borderò si gestiscono nella sezione **Google Account** di Admin.
+- I dettagli degli account autorizzati, della modalità browser/Electron e dei requisiti locali sono in [Bordero/FIREBASE_DEPLOYMENT.md](Bordero/FIREBASE_DEPLOYMENT.md).
+- Il workflow Firebase Hosting pubblica automaticamente il sito quando viene aggiornato il branch `develop`. Il deploy Hosting sincronizza prima `Bordero/` in `public/`; non distribuisce le regole Auth o Realtime Database, che richiedono un deploy Firebase separato.
+
 ## Eventi e pagine collegate
 
 La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
@@ -129,6 +135,7 @@ La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
 ### Documenti Bordero
 
 - [Bordero/README.md](Bordero/README.md)
+- [Bordero/FIREBASE_DEPLOYMENT.md](Bordero/FIREBASE_DEPLOYMENT.md)
 - [Bordero/GOOGLE_SHEETS_API_SETUP.md](Bordero/GOOGLE_SHEETS_API_SETUP.md)
 - [Bordero/PROJECT_COMPLETION_REPORT.md](Bordero/PROJECT_COMPLETION_REPORT.md)
 - [Bordero/PROJECT_STATUS.md](Bordero/PROJECT_STATUS.md)
