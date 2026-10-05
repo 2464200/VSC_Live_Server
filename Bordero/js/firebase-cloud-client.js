@@ -10,6 +10,7 @@
 
   const MAX_CLOUD_STATE_AGE_MS = 48 * 60 * 60 * 1000;
   const MAX_FUTURE_CLOCK_SKEW_MS = 5 * 60 * 1000;
+  const FIREBASE_CONFIG_CACHE_MAX_AGE_MS = 60 * 60 * 1000;
   const ALLOWED_PUBLISHER_EMAILS = new Set([
     'lucafaby@gmail.com',
     'djdaniele1984@gmail.com',
@@ -27,6 +28,7 @@
       this.syncPath = '/bordero/display_state.json';
       this.isCloudHost = this.detectCloudHost();
       this.isPublisherPage = this.detectPublisherPage();
+      this.isAdminPage = this.detectAdminPage();
       this.eventSource = null;
       this.pollingTimer = null;
       this.lastStateTimestamp = null;
@@ -62,6 +64,11 @@
       return /\/pages\/(?:bordero|admin|dj-preselezione)\.html$/i.test(window.location.pathname);
     }
 
+    detectAdminPage() {
+      if (typeof window === 'undefined' || !window.location) return false;
+      return /\/pages\/admin\.html$/i.test(window.location.pathname);
+    }
+
     init() {
       if (this.isCloudHost) {
         console.log('[FirebaseCloudClient] Modalità Cloud attiva (Host:', window.location.hostname, ')');
@@ -81,15 +88,7 @@
         }
 
         const projectId = BORDERO_CONFIG.FIREBASE_PROJECT_ID;
-        const response = await fetch(BORDERO_CONFIG.FIREBASE_WEB_CONFIG_URL, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`Configurazione Firebase non disponibile (HTTP ${response.status}).`);
-        }
-
-        const firebaseConfig = await response.json();
-        if (firebaseConfig.projectId !== projectId) {
-          throw new Error('La configurazione web Firebase non corrisponde al progetto Borderò.');
-        }
+        const firebaseConfig = await this.loadFirebaseConfig(projectId);
         firebaseConfig.databaseURL = firebaseConfig.databaseURL || this.dbUrl;
 
         const app = window.firebase.apps.length
@@ -128,6 +127,48 @@
         console.error('[FirebaseCloudClient] Inizializzazione Auth fallita:', error);
         this.updateStatusBadge(false, '⚠️ Auth non disponibile');
       }
+    }
+
+    async loadFirebaseConfig(projectId) {
+      const cacheKey = `bordero-firebase-web-config:${projectId}`;
+      try {
+        const cachedValue = sessionStorage.getItem(cacheKey);
+        if (cachedValue) {
+          const cached = JSON.parse(cachedValue);
+          const age = Date.now() - cached.cachedAt;
+          if (
+            cached.config?.projectId === projectId
+            && Number.isFinite(age)
+            && age >= 0
+            && age < FIREBASE_CONFIG_CACHE_MAX_AGE_MS
+          ) {
+            return { ...cached.config };
+          }
+          sessionStorage.removeItem(cacheKey);
+        }
+      } catch (error) {
+        console.warn('[FirebaseCloudClient] Cache configurazione Firebase non leggibile:', error);
+      }
+
+      const response = await fetch(BORDERO_CONFIG.FIREBASE_WEB_CONFIG_URL, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`Configurazione Firebase non disponibile (HTTP ${response.status}).`);
+      }
+
+      const firebaseConfig = await response.json();
+      if (firebaseConfig.projectId !== projectId) {
+        throw new Error('La configurazione web Firebase non corrisponde al progetto Borderò.');
+      }
+
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          config: firebaseConfig,
+          cachedAt: Date.now()
+        }));
+      } catch (error) {
+        console.warn('[FirebaseCloudClient] Cache configurazione Firebase non disponibile:', error);
+      }
+      return firebaseConfig;
     }
 
     async signInElectronPublisher(email) {
@@ -545,7 +586,7 @@
         if (!header) return;
 
         let badge = document.getElementById('firebase-cloud-badge');
-        if (!badge) {
+        if (!badge && (!this.isPublisherPage || this.isCloudHost)) {
           badge = document.createElement('div');
           badge.id = 'firebase-cloud-badge';
           badge.style.cssText = `
@@ -570,26 +611,18 @@
           titleContainer.appendChild(badge);
         }
 
-        if (this.isPublisherPage && !this.isCloudHost && !document.getElementById('firebase-cloud-auth')) {
-          const controls = document.createElement('div');
-          controls.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;';
-
-          const authButton = document.createElement('button');
-          authButton.id = 'firebase-cloud-auth';
-          authButton.type = 'button';
-          authButton.addEventListener('click', () => this.togglePublisherAuth());
-          controls.appendChild(authButton);
-
-          const publishButton = document.createElement('button');
-          publishButton.id = 'firebase-cloud-publish';
-          publishButton.type = 'button';
-          publishButton.textContent = 'Pubblica stato locale';
-          publishButton.hidden = true;
-          publishButton.addEventListener('click', () => this.pushCurrentLocalStateToBackend());
-          controls.appendChild(publishButton);
-
-          const titleContainer = header.querySelector('.header-content') || header;
-          titleContainer.appendChild(controls);
+        if (this.isAdminPage && !this.isCloudHost) {
+          document.getElementById('google-account-section')?.removeAttribute('hidden');
+          const authButton = document.getElementById('firebase-cloud-auth');
+          const publishButton = document.getElementById('firebase-cloud-publish');
+          if (authButton && !authButton.dataset.firebaseAuthBound) {
+            authButton.dataset.firebaseAuthBound = 'true';
+            authButton.addEventListener('click', () => this.togglePublisherAuth());
+          }
+          if (publishButton && !publishButton.dataset.firebasePublishBound) {
+            publishButton.dataset.firebasePublishBound = 'true';
+            publishButton.addEventListener('click', () => this.pushCurrentLocalStateToBackend());
+          }
           this.updatePublisherControls();
           if (!this.publisherAuth) {
             this.updateStatusBadge(false, '🔒 Inizializzo accesso Google');

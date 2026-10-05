@@ -35,7 +35,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script defer src="../js/firebase-cloud-client.js?v=20261005-2"></script>
+  <script defer src="../js/firebase-cloud-client.js?v=20261005-4"></script>
   <script defer src="admin.js"></script>
 </head>
 
@@ -74,6 +74,20 @@
           <span class="label">Cache Size:</span>
           <span class="value" id="status-cache">--</span>
         </div>
+      </div>
+    </section>
+
+    <section id="google-account-section" class="admin-section google-account-section" hidden>
+      <h2>Google Account</h2>
+      <p class="display-scroll-help">
+        Scegli l'account autorizzato per la sincronizzazione e la pubblicazione dello stato Borderò.
+      </p>
+      <div class="display-scroll-actions google-account-actions">
+        <button id="firebase-cloud-auth" class="btn btn-primary" type="button">Accedi con Google</button>
+        <button id="firebase-cloud-publish" class="btn btn-secondary" type="button" hidden>Pubblica stato locale</button>
+      </div>
+      <div id="firebase-cloud-badge" class="google-account-status" role="status" aria-live="polite">
+        Inizializzazione accesso Google...
       </div>
     </section>
 
