@@ -143,7 +143,7 @@
       } catch (error) {
         console.warn('[FirebaseCloudClient] Accesso automatico non disponibile:', error?.message || error);
         if (force) {
-          this.updateStatusBadge(false, '⚠️ Accesso automatico non disponibile (chiave firebase/service-account.json?)');
+          this.updateStatusBadge(false, '⚠️ Accesso automatico non disponibile (chiave .firebase/service-account.json?)');
         }
         return false;
       }

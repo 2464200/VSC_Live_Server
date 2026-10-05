@@ -4,8 +4,14 @@ const fs = require('fs');
 const path = require('path');
 
 const PUBLISHER_EMAIL = 'lucafaby@gmail.com';
-const SERVICE_ACCOUNT_PATH = process.env.FIREBASE_SERVICE_ACCOUNT_PATH
-  || path.join(__dirname, '..', '..', 'firebase', 'service-account.json');
+const ROOT_DIR = path.join(__dirname, '..', '..');
+const SERVICE_ACCOUNT_CANDIDATES = [
+  process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+  path.join(ROOT_DIR, '.firebase', 'service-account.json'),
+  path.join(ROOT_DIR, 'firebase', 'service-account.json')
+].filter(Boolean);
+const SERVICE_ACCOUNT_PATH = SERVICE_ACCOUNT_CANDIDATES.find((p) => fs.existsSync(p))
+  || SERVICE_ACCOUNT_CANDIDATES[0];
 
 let adminApp = null;
 
