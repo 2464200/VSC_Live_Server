@@ -15,6 +15,10 @@
     'djdaniele1984@gmail.com',
     'azzurriditalia@yahoo.it'
   ]);
+  const ELECTRON_PUBLISHER_EMAILS = [
+    'lucafaby@gmail.com',
+    'djdaniele1984@gmail.com'
+  ];
 
   class FirebaseCloudClient {
     constructor() {
@@ -112,7 +116,6 @@
               this.updateStatusBadge(false, '🔒 Account non autorizzato');
             } else {
               this.updateStatusBadge(false, '🔒 Accedi per sincronizzare');
-              this.tryAutoPublisherSignIn();
             }
           }, (error) => {
             markReady();
@@ -127,13 +130,12 @@
       }
     }
 
-    async tryAutoPublisherSignIn({ force = false } = {}) {
-      if (!window.electronAPI?.runtime?.isElectron || (this.autoSignInAttempted && !force)) {
-        return false;
-      }
-      this.autoSignInAttempted = true;
+    async signInElectronPublisher(email) {
       try {
-        const response = await fetch('/api/firebase-publisher-token', { cache: 'no-store' });
+        const response = await fetch(
+          `/api/firebase-publisher-token?email=${encodeURIComponent(email)}`,
+          { cache: 'no-store' }
+        );
         const body = await response.json().catch(() => ({}));
         if (!response.ok || !body.token) {
           throw new Error(body.error || `HTTP ${response.status}`);
@@ -141,12 +143,61 @@
         await this.publisherAuth.signInWithCustomToken(body.token);
         return true;
       } catch (error) {
-        console.warn('[FirebaseCloudClient] Accesso automatico non disponibile:', error?.message || error);
-        if (force) {
-          this.updateStatusBadge(false, '⚠️ Accesso automatico non disponibile (chiave .firebase/service-account.json?)');
-        }
-        return false;
+        console.error('[FirebaseCloudClient] Accesso Firebase locale non riuscito:', error);
+        this.updateStatusBadge(false, '⚠️ Accesso non riuscito');
+        throw error;
       }
+    }
+
+    chooseElectronPublisherEmail() {
+      return new Promise((resolve) => {
+        const dialog = document.createElement('dialog');
+        dialog.setAttribute('aria-labelledby', 'publisher-account-title');
+        dialog.style.cssText = 'padding:20px;border:1px solid #ccc;border-radius:8px;max-width: min(90vw, 420px);';
+
+        const title = document.createElement('h2');
+        title.id = 'publisher-account-title';
+        title.textContent = 'Scegli il profilo Google';
+
+        const label = document.createElement('label');
+        label.htmlFor = 'publisher-account-select';
+        label.textContent = 'Account da usare per la pubblicazione:';
+
+        const select = document.createElement('select');
+        select.id = 'publisher-account-select';
+        select.style.cssText = 'display:block;width:100%;margin:12px 0;padding:8px;';
+        for (const email of ELECTRON_PUBLISHER_EMAILS) {
+          const option = document.createElement('option');
+          option.value = email;
+          option.textContent = email;
+          select.appendChild(option);
+        }
+
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;';
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.textContent = 'Annulla';
+        const signInButton = document.createElement('button');
+        signInButton.type = 'button';
+        signInButton.textContent = 'Accedi';
+        actions.append(cancelButton, signInButton);
+        dialog.append(title, label, select, actions);
+        document.body.appendChild(dialog);
+
+        let selectedEmail = null;
+        const finish = () => {
+          dialog.remove();
+          resolve(selectedEmail);
+        };
+        cancelButton.addEventListener('click', () => dialog.close());
+        signInButton.addEventListener('click', () => {
+          selectedEmail = select.value;
+          dialog.close();
+        });
+        dialog.addEventListener('close', finish, { once: true });
+        dialog.showModal();
+      });
     }
 
     isAuthorizedPublisher(user) {
@@ -160,16 +211,19 @@
         }
         if (this.publisherAuth.currentUser) {
           await this.publisherAuth.signOut();
-          return;
         }
 
         if (window.electronAPI?.runtime?.isElectron) {
-          // Il redirect https su localhost dà schermo bianco e il popup OAuth viene chiuso: in Electron si usa il token del server.
-          await this.tryAutoPublisherSignIn({ force: true });
+          const email = await this.chooseElectronPublisherEmail();
+          if (email) {
+            await this.signInElectronPublisher(email);
+          }
           return;
         }
 
-        await this.publisherAuth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider());
+        const provider = new window.firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await this.publisherAuth.signInWithPopup(provider);
       } catch (error) {
         console.error('[FirebaseCloudClient] Accesso Google non riuscito:', error);
         this.updateStatusBadge(false, '⚠️ Accesso Google non riuscito');
@@ -180,8 +234,10 @@
       const authButton = document.getElementById('firebase-cloud-auth');
       const publishButton = document.getElementById('firebase-cloud-publish');
       if (authButton) {
-        authButton.textContent = user ? `Esci (${user.email || 'Google'})` : 'Accedi con Google';
-        authButton.title = user ? `Account: ${user.email || 'Google'}` : 'Accedi per pubblicare lo stato live';
+        authButton.textContent = user ? `Cambia account (${user.email || 'Google'})` : 'Accedi con Google';
+        authButton.title = user
+          ? `Account attivo: ${user.email || 'Google'}. Clicca per sceglierne un altro.`
+          : 'Scegli il profilo Google per pubblicare lo stato live';
       }
       if (publishButton) {
         publishButton.hidden = !user || !this.isAuthorizedPublisher(user);

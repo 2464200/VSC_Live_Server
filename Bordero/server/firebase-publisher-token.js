@@ -3,7 +3,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const PUBLISHER_EMAIL = 'lucafaby@gmail.com';
+const PUBLISHER_EMAILS = new Set([
+  'lucafaby@gmail.com',
+  'djdaniele1984@gmail.com',
+  'azzurriditalia@yahoo.it'
+]);
 const ROOT_DIR = path.join(__dirname, '..', '..');
 const SERVICE_ACCOUNT_CANDIDATES = [
   process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
@@ -30,9 +34,15 @@ function getAdminApp() {
   return adminApp;
 }
 
-async function createPublisherCustomToken() {
+async function createPublisherCustomToken(email = 'lucafaby@gmail.com') {
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (!PUBLISHER_EMAILS.has(normalizedEmail)) {
+    const error = new Error('Account Google non autorizzato per la pubblicazione.');
+    error.code = 'PUBLISHER_EMAIL_NOT_ALLOWED';
+    throw error;
+  }
   const auth = require('firebase-admin/auth').getAuth(getAdminApp());
-  const user = await auth.getUserByEmail(PUBLISHER_EMAIL);
+  const user = await auth.getUserByEmail(normalizedEmail);
   return auth.createCustomToken(user.uid);
 }
 
@@ -46,9 +56,13 @@ function registerPublisherTokenRoute(app) {
     if (!isLoopbackRequest(req)) {
       return res.status(403).json({ ok: false, error: 'Solo accesso locale.' });
     }
+    const email = String(req.query.email || 'lucafaby@gmail.com').trim().toLowerCase();
+    if (!PUBLISHER_EMAILS.has(email)) {
+      return res.status(400).json({ ok: false, error: 'Account Google non autorizzato per la pubblicazione.' });
+    }
     try {
       res.set('Cache-Control', 'no-store');
-      res.json({ ok: true, token: await createPublisherCustomToken() });
+      res.json({ ok: true, token: await createPublisherCustomToken(email) });
     } catch (error) {
       const status = error.code === 'SERVICE_ACCOUNT_MISSING' ? 404 : 500;
       res.status(status).json({ ok: false, error: error.message });
