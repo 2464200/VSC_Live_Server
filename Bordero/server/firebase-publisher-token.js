@@ -18,14 +18,14 @@ function getAdminApp() {
     error.code = 'SERVICE_ACCOUNT_MISSING';
     throw error;
   }
-  const admin = require('firebase-admin');
+  const { initializeApp, cert } = require('firebase-admin/app');
   const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8'));
-  adminApp = admin.initializeApp({ credential: admin.credential.cert(serviceAccount) }, 'publisher-token');
+  adminApp = initializeApp({ credential: cert(serviceAccount) }, 'publisher-token');
   return adminApp;
 }
 
 async function createPublisherCustomToken() {
-  const auth = getAdminApp().auth();
+  const auth = require('firebase-admin/auth').getAuth(getAdminApp());
   const user = await auth.getUserByEmail(PUBLISHER_EMAIL);
   return auth.createCustomToken(user.uid);
 }

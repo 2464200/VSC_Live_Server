@@ -87,23 +87,12 @@
           throw new Error('La configurazione web Firebase non corrisponde al progetto Borderò.');
         }
         firebaseConfig.databaseURL = firebaseConfig.databaseURL || this.dbUrl;
-        if (window.electronAPI?.runtime?.isElectron) {
-          // Il redirect OAuth passa dal proxy /__/auth di unified-server (stessa origine).
-          firebaseConfig.authDomain = window.location.host;
-        }
 
         const app = window.firebase.apps.length
           ? window.firebase.app()
           : window.firebase.initializeApp(firebaseConfig);
         this.publisherAuth = app.auth();
         this.publisherDatabase = app.database();
-
-        if (typeof this.publisherAuth.getRedirectResult === 'function') {
-          this.publisherAuth.getRedirectResult().catch((error) => {
-            console.error('[FirebaseCloudClient] Esito redirect Google non riuscito:', error);
-            this.updateStatusBadge(false, '⚠️ Accesso Google non riuscito');
-          });
-        }
 
         this.authReady = new Promise((resolve) => {
           let resolved = false;
@@ -138,9 +127,9 @@
       }
     }
 
-    async tryAutoPublisherSignIn() {
-      if (this.autoSignInAttempted || !window.electronAPI?.runtime?.isElectron) {
-        return;
+    async tryAutoPublisherSignIn({ force = false } = {}) {
+      if (!window.electronAPI?.runtime?.isElectron || (this.autoSignInAttempted && !force)) {
+        return false;
       }
       this.autoSignInAttempted = true;
       try {
@@ -150,8 +139,13 @@
           throw new Error(body.error || `HTTP ${response.status}`);
         }
         await this.publisherAuth.signInWithCustomToken(body.token);
+        return true;
       } catch (error) {
         console.warn('[FirebaseCloudClient] Accesso automatico non disponibile:', error?.message || error);
+        if (force) {
+          this.updateStatusBadge(false, '⚠️ Accesso automatico non disponibile (chiave firebase/service-account.json?)');
+        }
+        return false;
       }
     }
 
@@ -169,14 +163,13 @@
           return;
         }
 
-        const provider = new window.firebase.auth.GoogleAuthProvider();
         if (window.electronAPI?.runtime?.isElectron) {
-          // In Electron il popup OAuth viene chiuso dal sistema: si usa il redirect nella finestra principale.
-          await this.publisherAuth.signInWithRedirect(provider);
+          // Il redirect https su localhost dà schermo bianco e il popup OAuth viene chiuso: in Electron si usa il token del server.
+          await this.tryAutoPublisherSignIn({ force: true });
           return;
         }
 
-        await this.publisherAuth.signInWithPopup(provider);
+        await this.publisherAuth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider());
       } catch (error) {
         console.error('[FirebaseCloudClient] Accesso Google non riuscito:', error);
         this.updateStatusBadge(false, '⚠️ Accesso Google non riuscito');
