@@ -25,13 +25,17 @@ test('source and published Bordero clients target the Hosting project Realtime D
   assert.ok(sourceClient.includes(`|| '${expectedDatabaseUrl}'`));
 });
 
-test('Realtime Database rules allow public reads but restrict writes to the three approved Google accounts', () => {
+test('Realtime Database rules allow public reads but restrict writes to Luca and Daniele', () => {
   const rules = JSON.parse(fs.readFileSync(path.join(repoRoot, 'database.rules.json'), 'utf8'));
   const stateRules = rules.rules.bordero.display_state;
 
   assert.equal(stateRules['.read'], true);
   assert.equal(stateRules['.write'].includes('auth != null'), true);
-  for (const email of ['lucafaby@gmail.com', 'djdaniele1984@gmail.com', 'azzurriditalia@yahoo.it']) {
+  assert.equal(
+    stateRules['.write'],
+    "auth != null && auth.token.email_verified == true && (auth.token.email == 'lucafaby@gmail.com' || auth.token.email == 'djdaniele1984@gmail.com')",
+  );
+  for (const email of ['lucafaby@gmail.com', 'djdaniele1984@gmail.com']) {
     assert.ok(stateRules['.write'].includes(email));
   }
   assert.equal(stateRules['.write'].includes('auth.token.email_verified == true'), true);

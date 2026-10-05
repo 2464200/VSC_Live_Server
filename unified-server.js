@@ -3090,7 +3090,6 @@ app.use('/__/auth', (req, res) => {
 });
 
 app.use(express.json({ limit: '2mb' }));
-require('./Bordero/server/firebase-publisher-token').registerPublisherTokenRoute(app);
 
 const DJ_PRESELECTION_FILE = path.join(BORDERO_DATA_DIR, 'dj-preselezione-state.json');
 app.get('/api/dj-preselezione/state', (req, res) => {

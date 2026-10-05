@@ -13,13 +13,8 @@
   const FIREBASE_CONFIG_CACHE_MAX_AGE_MS = 60 * 60 * 1000;
   const ALLOWED_PUBLISHER_EMAILS = new Set([
     'lucafaby@gmail.com',
-    'djdaniele1984@gmail.com',
-    'azzurriditalia@yahoo.it'
-  ]);
-  const ELECTRON_PUBLISHER_EMAILS = [
-    'lucafaby@gmail.com',
     'djdaniele1984@gmail.com'
-  ];
+  ]);
 
   class FirebaseCloudClient {
     constructor() {
@@ -171,76 +166,6 @@
       return firebaseConfig;
     }
 
-    async signInElectronPublisher(email) {
-      try {
-        const response = await fetch(
-          `/api/firebase-publisher-token?email=${encodeURIComponent(email)}`,
-          { cache: 'no-store' }
-        );
-        const body = await response.json().catch(() => ({}));
-        if (!response.ok || !body.token) {
-          throw new Error(body.error || `HTTP ${response.status}`);
-        }
-        await this.publisherAuth.signInWithCustomToken(body.token);
-        return true;
-      } catch (error) {
-        console.error('[FirebaseCloudClient] Accesso Firebase locale non riuscito:', error);
-        this.updateStatusBadge(false, '⚠️ Accesso non riuscito');
-        throw error;
-      }
-    }
-
-    chooseElectronPublisherEmail() {
-      return new Promise((resolve) => {
-        const dialog = document.createElement('dialog');
-        dialog.setAttribute('aria-labelledby', 'publisher-account-title');
-        dialog.style.cssText = 'padding:20px;border:1px solid #ccc;border-radius:8px;max-width: min(90vw, 420px);';
-
-        const title = document.createElement('h2');
-        title.id = 'publisher-account-title';
-        title.textContent = 'Scegli il profilo Google';
-
-        const label = document.createElement('label');
-        label.htmlFor = 'publisher-account-select';
-        label.textContent = 'Account da usare per la pubblicazione:';
-
-        const select = document.createElement('select');
-        select.id = 'publisher-account-select';
-        select.style.cssText = 'display:block;width:100%;margin:12px 0;padding:8px;';
-        for (const email of ELECTRON_PUBLISHER_EMAILS) {
-          const option = document.createElement('option');
-          option.value = email;
-          option.textContent = email;
-          select.appendChild(option);
-        }
-
-        const actions = document.createElement('div');
-        actions.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;';
-        const cancelButton = document.createElement('button');
-        cancelButton.type = 'button';
-        cancelButton.textContent = 'Annulla';
-        const signInButton = document.createElement('button');
-        signInButton.type = 'button';
-        signInButton.textContent = 'Accedi';
-        actions.append(cancelButton, signInButton);
-        dialog.append(title, label, select, actions);
-        document.body.appendChild(dialog);
-
-        let selectedEmail = null;
-        const finish = () => {
-          dialog.remove();
-          resolve(selectedEmail);
-        };
-        cancelButton.addEventListener('click', () => dialog.close());
-        signInButton.addEventListener('click', () => {
-          selectedEmail = select.value;
-          dialog.close();
-        });
-        dialog.addEventListener('close', finish, { once: true });
-        dialog.showModal();
-      });
-    }
-
     isAuthorizedPublisher(user) {
       return Boolean(user?.email && ALLOWED_PUBLISHER_EMAILS.has(user.email.toLowerCase()));
     }
@@ -252,14 +177,6 @@
         }
         if (this.publisherAuth.currentUser) {
           await this.publisherAuth.signOut();
-        }
-
-        if (window.electronAPI?.runtime?.isElectron) {
-          const email = await this.chooseElectronPublisherEmail();
-          if (email) {
-            await this.signInElectronPublisher(email);
-          }
-          return;
         }
 
         const provider = new window.firebase.auth.GoogleAuthProvider();

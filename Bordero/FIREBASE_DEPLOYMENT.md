@@ -4,13 +4,12 @@ Questa guida documenta l'accesso degli account publisher Borderò, la sincronizz
 
 ## Account Google autorizzati
 
-Le regole in `database.rules.json` consentono la scrittura al percorso `bordero/display_state` solo a utenti autenticati con e-mail verificata e appartenenti a questa lista:
+Le regole in `database.rules.json` consentono la scrittura al percorso `bordero/display_state` solo ai due utenti autenticati con e-mail verificata:
 
 - `lucafaby@gmail.com`
 - `djdaniele1984@gmail.com`
-- `azzurriditalia@yahoo.it`
 
-La stessa allowlist è applicata al client Borderò e all'endpoint locale che crea custom token. L'account `azzurriditalia@yahoo.it` è autorizzato alle regole Firebase ma non è offerto dal selettore Electron, che espone intenzionalmente solo i due profili Luca e Daniele.
+La stessa allowlist è applicata dal client Borderò prima di mostrare l'azione di pubblicazione; l'autorizzazione effettiva di scrittura è sempre verificata dalle regole Realtime Database. Il selettore Google può mostrare altri account configurati nel browser, ma solo questi due indirizzi verificati sono autorizzati a pubblicare.
 
 ## Dove accedere
 
@@ -21,17 +20,18 @@ Usare il runtime standard locale:
 1. Avviare `unified-server.js` dalla root del repository.
 2. Aprire `http://localhost:5500/Bordero/pages/admin.html`.
 3. In **Google Account**, premere **Accedi con Google** e scegliere il profilo autorizzato.
-4. Se un account è già connesso, il pulsante consente di cambiare account. La sessione Firebase è condivisa dalle pagine della stessa origine.
+4. Se un account è già connesso, il pulsante consente di cambiare account. Google mostra la schermata di selezione e richiede l'autenticazione dell'account scelto.
 5. Per inviare immediatamente lo stato locale, premere **Pubblica stato locale**. Dopo l'accesso, le modifiche a serata e NEXT continuano a sincronizzarsi automaticamente.
 
-Il runtime standard deve essere aperto tramite `localhost:5500`: server di anteprima statici o host/porte differenti possono non avere l'endpoint locale necessario.
+Per l'uso completo dell'applicazione locale, avviare il runtime standard su `localhost:5500`; un'anteprima statica può non esporre tutte le API applicative richieste dal progetto.
 
 ## Browser ed Electron
 
-- **Browser:** Firebase Authentication apre il popup Google con `prompt=select_account`, così è possibile scegliere o cambiare profilo. L'identità viene verificata dal provider Google/Firebase.
-- **Electron:** il flusso OAuth popup non è usato. L'interfaccia propone `lucafaby@gmail.com` e `djdaniele1984@gmail.com`; il server locale crea un Firebase custom token per l'utente corrispondente. L'endpoint `/api/firebase-publisher-token` accetta solo richieste loopback e rifiuta indirizzi e-mail fuori allowlist.
-- Per il flusso Electron serve un account di servizio Firebase disponibile solo sul PC/server, tramite `FIREBASE_SERVICE_ACCOUNT_PATH`, `.firebase/service-account.json` o `firebase/service-account.json`. Non committare né pubblicare questa chiave e non copiarla nella cartella `public/`. Il normale accesso browser non richiede questa chiave.
-- Il selettore Electron assegna il token all'utente Firebase corrispondente all'e-mail selezionata; non effettua un secondo popup OAuth Google nel runtime Electron.
+- **Browser ed Electron:** entrambi usano Firebase Authentication con Google Sign-In, `prompt=select_account` e l'identità restituita direttamente dal provider. In Electron il popup Google è gestito da `electron/google-auth-popup.js` e dalle policy delle finestre in `electron/main.js`.
+- Ogni utente sceglie e autentica il proprio account Google; l'e-mail e la password, quando Google le richiede, sono verificate da Google. Se Google riconosce già una sessione, può completare il login senza chiedere nuovamente la password. L'app non riceve né memorizza la password.
+- Scegliere o scrivere un'e-mail in un elenco non autentica l'utente. Il vecchio endpoint locale che emetteva un custom token sulla sola base dell'e-mail selezionata è stato rimosso.
+- L'autenticazione publisher non richiede un account di servizio Firebase locale. Il secret account di servizio GitHub Actions menzionato sotto è usato esclusivamente per il deploy Hosting.
+- Dopo il login, la sessione Firebase è condivisa dalle pagine della stessa origine; Admin ospita i comandi di accesso e pubblicazione, mentre Borderò continua a sincronizzare lo stato.
 
 ## Autenticazione Firebase e regole RTDB
 
@@ -40,9 +40,9 @@ Configurazione del provider Google e domini autorizzati: `firebase.json`.
 - Domini configurati: `localhost`, `my-project-1525790600392.firebaseapp.com`, `my-project-1525790600392.web.app`.
 - Regole di lettura/scrittura: `database.rules.json`.
 - Il display su Firebase Hosting legge lo stato in sola lettura e non richiede login.
-- La chiave account di servizio è una credenziale privata server-side e non sostituisce le regole RTDB.
+- Il secret account di servizio GitHub Actions è una credenziale privata per il deploy e non sostituisce le regole RTDB; non copiarlo in `public/` né inserirlo nel repository.
 
-Se cambiano provider Google, domini autorizzati o regole RTDB, distribuire esplicitamente tali configurazioni da un ambiente Firebase CLI autenticato:
+Se cambiano provider Google, domini autorizzati o regole RTDB, distribuire esplicitamente tali configurazioni da un ambiente Firebase CLI autenticato. In particolare, dopo la rimozione di un account autorizzato, il deploy delle regole è necessario perché il cambiamento abbia effetto anche sul database remoto:
 
 ```powershell
 npm exec -- firebase deploy --only auth,database --project my-project-1525790600392
@@ -73,5 +73,4 @@ Lo script distribuisce Hosting e avvia la sincronizzazione `public/` configurata
 ## Prestazioni e cache
 
 - La configurazione web Firebase viene conservata in `sessionStorage` per un massimo di un'ora per ridurre le richieste ripetute durante la sessione della scheda.
-- Il token publisher usa `Cache-Control: no-store`; non deve essere salvato o riutilizzato come cache applicativa.
 - Le pagine e gli script usano versioni query-string per invalidare le cache quando cambiano gli asset. Aggiornare la versione del client Firebase nei relativi HTML quando si modifica il comportamento di autenticazione.

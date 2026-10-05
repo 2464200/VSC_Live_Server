@@ -109,8 +109,8 @@ La configurazione degli account, l'accesso Google e il deploy Hosting sono descr
 In breve:
 
 - L'accesso e la pubblicazione manuale si gestiscono nella sezione **Google Account** della pagina Admin, non dalla pagina Borderò.
-- Nel browser si usa Google Sign-In con selezione dell'account. In Electron si sceglie tra `lucafaby@gmail.com` e `djdaniele1984@gmail.com`; l'app riutilizza poi la sessione Firebase sulle pagine Borderò.
-- Le regole Realtime Database autorizzano `lucafaby@gmail.com`, `djdaniele1984@gmail.com` e `azzurriditalia@yahoo.it` (con e-mail verificata). L'account `azzurriditalia@yahoo.it` è autorizzato dal backend ma non è tra le opzioni del selettore Electron.
+- Nel browser e in Electron si usa il popup Google Sign-In per selezionare e autenticare il proprio account con le proprie credenziali; l'app riutilizza poi la sessione Firebase sulle pagine Borderò. L'e-mail scelta da sola non concede l'accesso.
+- Le regole Realtime Database autorizzano solo `lucafaby@gmail.com` e `djdaniele1984@gmail.com`, con e-mail verificata.
 - Il Display pubblicato è in sola lettura. Il runtime locale standard per autenticazione e pubblicazione è `http://localhost:5500`.
 - Il deploy Hosting automatico parte dopo un push su `develop`; le modifiche a provider Auth o regole Realtime Database vanno distribuite separatamente.
 
