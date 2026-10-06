@@ -25,7 +25,8 @@
         "PAGINA08",
         "PAGINA09",
         "PAGINA10",
-        "PAGINA11"
+        "PAGINA11",
+        "PAGINA12"
       ]);
       const badge = implemented.has(form.id) ? "MVP pronto" : "Placeholder";
       return `

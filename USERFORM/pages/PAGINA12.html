@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GENERATORE SCALLETTA COUNTRY - USERFORM</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/pagina12-generator.js"></script>
+  <script defer src="../js/pagina12-actions.js"></script>
+</head>
+<body class="fit-video-frame">
+  <div class="layout">
+    <header class="topbar">
+      <div>
+        <h1>GENERATORE SCALLETTA COUNTRY</h1>
+        <p class="subtitle">Crea una scaletta proporzionata ai livelli e al tempo della serata.</p>
+      </div>
+      <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+      </nav>
+    </header>
+
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">PAGINA12</span>
+    </nav>
+
+    <main class="page-shell pagina12-shell">
+      <section class="panel pagina12-config">
+        <h2>Parametri serata</h2>
+        <div class="setlist-time-field">
+          <label class="field-label" for="setlist-available-time">Tempo disponibile (HH:MM)</label>
+          <input id="setlist-available-time" class="field-input" type="text" inputmode="numeric" autocomplete="off" placeholder="03:00" value="03:00" aria-describedby="setlist-time-hint" />
+          <p id="setlist-time-hint" class="hint">Esempio: 03:00 indica tre ore. Sono ammessi anche eventi oltre 24 ore.</p>
+        </div>
+
+        <fieldset class="setlist-levels">
+          <legend>Brani richiesti per ciclo</legend>
+          <label class="setlist-level-field" for="setlist-count-base"><span>BASE</span><input id="setlist-count-base" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
+          <label class="setlist-level-field" for="setlist-count-intermedio"><span>INTERMEDIO</span><input id="setlist-count-intermedio" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
+          <label class="setlist-level-field" for="setlist-count-avanzato-1"><span>AVANZATO 1</span><input id="setlist-count-avanzato-1" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
+          <label class="setlist-level-field" for="setlist-count-avanzato-2"><span>AVANZATO 2</span><input id="setlist-count-avanzato-2" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
+          <label class="setlist-level-field" for="setlist-count-super-1"><span>SUPER AVANZATO 1</span><input id="setlist-count-super-1" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
+          <label class="setlist-level-field" for="setlist-count-super-2"><span>SUPER AVANZATO 2</span><input id="setlist-count-super-2" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
+        </fieldset>
+
+        <div class="control-toolbar setlist-actions">
+          <button id="btn-generate-setlist" class="btn btn-primary" type="button" disabled>GENERA SCALLETTA</button>
+          <button id="btn-new-setlist" class="btn btn-secondary" type="button" disabled>NUOVA GENERAZIONE</button>
+          <button id="btn-clear-setlist" class="btn btn-secondary" type="button">PULISCI</button>
+        </div>
+      </section>
+
+      <section class="panel pagina12-summary">
+        <h2>Riepilogo</h2>
+        <div class="setlist-metrics" aria-live="polite">
+          <div><span>Tempo disponibile</span><strong id="summary-available">03:00:00</strong></div>
+          <div><span>Tempo utilizzato</span><strong id="summary-used">--:--</strong></div>
+          <div><span>Brani selezionati</span><strong id="summary-track-count">0</strong></div>
+          <div><span>Tempo residuo</span><strong id="summary-remaining">--:--</strong></div>
+        </div>
+        <dl id="setlist-level-summary" class="setlist-level-summary"></dl>
+        <div id="pagina12-status" class="status-box" role="status" aria-live="polite">Caricamento catalogo Borderò...</div>
+      </section>
+
+      <section class="panel pagina12-results">
+        <h2>Scaletta</h2>
+        <div class="data-shell setlist-table-shell">
+          <table class="data-table setlist-table">
+            <thead>
+              <tr>
+                <th scope="col">N°</th>
+                <th scope="col">LIVELLO</th>
+                <th scope="col">ARTISTA</th>
+                <th scope="col">COREOGRAFIA</th>
+                <th scope="col">BRANO</th>
+                <th scope="col">DURATA</th>
+              </tr>
+            </thead>
+            <tbody id="setlist-table-body">
+              <tr><td colspan="6" class="setlist-empty">Genera una scaletta per visualizzare i brani.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel pagina12-navigation">
+        <div class="page-nav">
+          <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+          <a id="next-form" class="btn" href="#">Form successivo</a>
+          <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/nav.js"></script>
+</body>
+</html>

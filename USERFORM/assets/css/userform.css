@@ -740,3 +740,171 @@ button:active,
   }
 }
 
+.pagina12-shell {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "config"
+    "summary"
+    "results"
+    "navigation";
+  gap: 8px;
+}
+
+.pagina12-config { grid-area: config; }
+.pagina12-summary { grid-area: summary; }
+.pagina12-results { grid-area: results; display: flex; flex-direction: column; }
+.pagina12-navigation { grid-area: navigation; }
+
+body.fit-video-frame .page-shell.pagina12-shell > .pagina12-config { grid-area: config; }
+body.fit-video-frame .page-shell.pagina12-shell > .pagina12-summary { grid-area: summary; }
+body.fit-video-frame .page-shell.pagina12-shell > .pagina12-results { grid-area: results; }
+body.fit-video-frame .page-shell.pagina12-shell > .pagina12-navigation { grid-area: navigation; }
+
+.setlist-time-field {
+  max-width: 260px;
+  margin-bottom: 10px;
+}
+
+.setlist-levels {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.setlist-levels legend {
+  padding: 0 6px;
+  color: var(--brand);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.setlist-level-field {
+  display: grid;
+  gap: 4px;
+  color: #ddd;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.setlist-level-field .field-input {
+  min-height: 34px;
+  padding: 5px 8px;
+}
+
+.setlist-actions {
+  margin-top: 8px;
+}
+
+.setlist-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.setlist-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.setlist-metrics > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #414141;
+  padding: 3px 0;
+  font-size: 0.82rem;
+}
+
+.setlist-metrics span { color: var(--muted); }
+.setlist-metrics strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.setlist-level-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px 10px;
+  margin: 8px 0 0;
+  font-size: 0.76rem;
+}
+
+.setlist-level-item { display: flex; justify-content: space-between; gap: 6px; min-width: 0; }
+.setlist-level-item dt { color: var(--muted); }
+.setlist-level-item dd { margin: 0; color: var(--ink); font-weight: 700; }
+
+#pagina12-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+  margin-top: 8px;
+  padding: 6px 9px;
+  font-size: 0.8rem;
+}
+
+#pagina12-status p { margin: 0; }
+#pagina12-status[data-kind="error"] { border-color: #c0392b; color: #ffb4aa; }
+#pagina12-status[data-kind="warning"] { border-color: #bd7b22; color: #ffd08a; }
+#pagina12-status[data-kind="success"] { border-color: #378354; color: #9de0b4; }
+
+.setlist-table-shell {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+.setlist-table { min-width: 760px; }
+.setlist-table th:first-child,
+.setlist-table td:first-child { width: 54px; text-align: right; }
+.setlist-table th:last-child,
+.setlist-table td:last-child { width: 90px; white-space: nowrap; }
+.setlist-empty { padding: 20px !important; color: var(--muted); text-align: center !important; }
+
+.pagina12-navigation .page-nav { justify-content: space-between; }
+
+@media (max-width: 1240px) {
+  body.fit-video-frame .pagina12-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(240px, 1fr) auto;
+    grid-template-areas:
+      "config"
+      "summary"
+      "results"
+      "navigation";
+  }
+
+  .setlist-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .setlist-level-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pagina12-shell > .panel { min-width: 0; }
+  .setlist-table-shell { width: 100%; min-width: 0; max-height: 55vh; }
+}
+
+@media (max-width: 680px) {
+  .setlist-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .setlist-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .setlist-level-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pagina12-navigation .page-nav { justify-content: flex-start; }
+
+  body.fit-video-frame .pagina12-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "config"
+      "summary"
+      "results"
+      "navigation";
+  }
+
+  body.fit-video-frame .pagina12-shell button,
+  body.fit-video-frame .pagina12-shell .btn {
+    transition: background-color 0.15s ease;
+  }
+
+  body.fit-video-frame .pagina12-shell button:hover,
+  body.fit-video-frame .pagina12-shell .btn:hover {
+    transform: none;
+  }
+}
+

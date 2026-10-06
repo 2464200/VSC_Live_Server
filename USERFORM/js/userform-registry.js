@@ -9,6 +9,7 @@ window.USERFORM_REGISTRY = [
   { id: "PAGINA08", caption: "frmPAGINA08", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA09", caption: "frmPAGINA09", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA10", caption: "frmPAGINA10", clientWidth: 16770, clientHeight: 12420 },
-  { id: "PAGINA11", caption: "frmPAGINA11", clientWidth: 16770, clientHeight: 12420 }
+  { id: "PAGINA11", caption: "frmPAGINA11", clientWidth: 16770, clientHeight: 12420 },
+  { id: "PAGINA12", caption: "frmPAGINA12", clientWidth: 16770, clientHeight: 12420 }
 ];
 

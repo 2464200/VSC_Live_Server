@@ -24,6 +24,7 @@ Development status:
 - PAGINA09: converted (Bordero/Eventi bridge launchers).
 - PAGINA10: converted (DASH + UI timer controls with auto-start behavior).
 - PAGINA11: delegata alla pagina gia completa Bordero/pages/location.html (link bridge).
+- PAGINA12: generatore scaletta country alimentato in sola lettura da Bordero/data/brani.csv.
 
 Mapped VBA forms:
 - INDICE
