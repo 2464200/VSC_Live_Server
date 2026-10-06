@@ -15,33 +15,37 @@
   <div class="layout">
     <header class="topbar">
       <div>
-        <h1>SCALETTA COUNTRY</h1>
+        <div class="scaletta-title-row">
+          <h1>SCALETTA COUNTRY</h1>
+          <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+            <a href="../index.html">Home</a>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">SCALETTA</span>
+          </nav>
+        </div>
         <p class="subtitle">Crea una scaletta proporzionata ai livelli e al tempo della serata.</p>
       </div>
       <nav class="top-actions" aria-label="Azioni principali">
+        <a class="btn btn-secondary" href="../../Bordero/pages/bordero.html">BORDERO</a>
+        <a class="btn btn-secondary" href="../../Bordero/pages/dj-preselezione.html">PRESELEZIONE</a>
         <a class="btn btn-secondary" href="../index.html">Indice USERFORM</a>
       </nav>
     </header>
 
-    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
-      <a href="../index.html">Home</a>
-      <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-current">SCALETTA</span>
-    </nav>
-
     <main class="page-shell scaletta-shell">
       <section class="panel scaletta-config">
         <h2>Parametri serata</h2>
+        <div class="setlist-params-row">
         <div class="setlist-time-field">
           <label class="field-label" for="setlist-available-time">Tempo disponibile (HH:MM)</label>
-          <input id="setlist-available-time" class="field-input" type="text" inputmode="numeric" autocomplete="off" placeholder="03:00" value="03:00" aria-describedby="setlist-time-hint" />
-          <p id="setlist-time-hint" class="hint">Esempio: 03:00 indica tre ore. Sono ammessi anche eventi oltre 24 ore.</p>
+          <input id="setlist-available-time" class="field-input" type="text" inputmode="numeric" autocomplete="off" placeholder="03:00" value="03:00" title="Esempio: 03:00 indica tre ore. Sono ammessi anche eventi oltre 24 ore." />
         </div>
 
         <div class="setlist-file-fields">
           <label class="setlist-file-field" for="setlist-dj-name">DJ<input id="setlist-dj-name" class="field-input" type="text" maxlength="60" autocomplete="name" /></label>
           <label class="setlist-file-field" for="setlist-event-date">Data evento<input id="setlist-event-date" class="field-input" type="date" /></label>
           <label class="setlist-file-field" for="setlist-event-name">Evento<input id="setlist-event-name" class="field-input" type="text" maxlength="80" placeholder="Nome evento" /></label>
+        </div>
         </div>
         <p class="setlist-file-name">File: <strong id="setlist-file-name-preview">DJ_DATA_EVENTO.json</strong></p>
 
@@ -65,12 +69,14 @@
       </section>
 
       <section class="panel scaletta-summary">
+        <div class="setlist-summary-head">
         <h2>Riepilogo</h2>
         <div class="setlist-metrics" aria-live="polite">
           <div><span>Tempo disponibile</span><strong id="summary-available">03:00:00</strong></div>
           <div><span>Tempo utilizzato</span><strong id="summary-used">--:--</strong></div>
           <div><span>Brani selezionati</span><strong id="summary-track-count">0</strong></div>
           <div><span>Tempo residuo</span><strong id="summary-remaining">--:--</strong></div>
+        </div>
         </div>
         <dl id="setlist-level-summary" class="setlist-level-summary"></dl>
         <div id="scaletta-status" class="status-box" role="status" aria-live="polite">Caricamento catalogo BorderÃ²...</div>

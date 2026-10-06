@@ -132,7 +132,7 @@ test('TEST 7: esclude durate non valide e avvisa senza interrompere la generazio
 
 test('TEST 8: elimina duplicati usando lâ€™ID e impedisce il riuso del brano', () => {
   const catalog = generator.buildCatalog([track('d1', 'BASE', '02:00'), track('d1', 'BASE', '02:00')]);
-  const result = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 240 });
+  const result = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 150 });
   assert.equal(catalog.stats.duplicates, 1);
   assert.equal(result.tracks.length, 1);
   assert.equal(result.tracks[0].id, 'd1');
@@ -156,7 +156,7 @@ test('TEST 10: tratta i tre cataloghi aggiuntivi come categorie indipendenti', (
     ...Array.from({ length: 2 }, (_, index) => track(`t${index}`, 'SUPER AVANZATO 3', '02:00')),
     ...Array.from({ length: 2 }, (_, index) => track(`x${index}`, 'ALTRE COREO', '02:00'))
   ]);
-  const result = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 2, 2, 2), durationSeconds: 7200 });
+  const result = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 2, 2, 2), durationSeconds: 720 });
   assert.deepEqual(result.errors, []);
   assert.equal(result.levelCounts.SUPERAVANZATO_1_2, 2);
   assert.equal(result.levelCounts.SUPERAVANZATO_3, 2);
@@ -164,6 +164,23 @@ test('TEST 10: tratta i tre cataloghi aggiuntivi come categorie indipendenti', (
 
   const shortage = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 3), durationSeconds: 7200 });
   assert.match(shortage.errors.join(' '), /Brani SUPER AVANZATO 1\+2 insufficienti: richiesti 3, disponibili 2/);
+});
+
+test('TEST 10b: nessun duplicato finche esistono brani non ancora usati', () => {
+  const catalog = generator.buildCatalog(Array.from({ length: 5 }, (_, index) => track(`n${index}`, 'BASE', '03:00')));
+  const result = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 960 });
+  const ids = result.tracks.map((item) => item.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(ids.length, 5);
+});
+
+test('TEST 10c: a catalogo esaurito ripete brani solo per riempire il tempo', () => {
+  const catalog = generator.buildCatalog([track('e1', 'BASE', '03:00'), track('e2', 'BASE', '03:00'), track('e3', 'INTERMEDIO', '03:00')]);
+  const result = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 1800 });
+  const ids = result.tracks.map((item) => item.id);
+  assert.ok(ids.length > 2);
+  assert.ok(['e1', 'e2'].every((id) => ids.includes(id)));
+  assert.ok(result.warnings.some((warning) => warning.includes('ripetuti')));
 });
 
 test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e pulisce i dati', async () => {

@@ -896,6 +896,30 @@ body.fit-video-frame .page-shell.scaletta-shell > .scaletta-navigation { grid-ar
 
 .scaletta-navigation .page-nav { justify-content: space-between; }
 
+/* Compattazione spazio verticale */
+.scaletta-title-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.scaletta-title-row .nav-breadcrumb { margin: 0; padding: 2px 10px; }
+body.fit-video-frame .scaletta-shell > .panel { padding: 6px 10px; }
+body.fit-video-frame .scaletta-shell .panel h2 { margin: 0 0 4px; font-size: 0.9rem; }
+.scaletta-shell { gap: 6px; }
+.setlist-params-row { display: flex; align-items: flex-end; gap: 10px; }
+.setlist-params-row .setlist-time-field { flex: 0 0 170px; max-width: none; margin: 0; }
+.setlist-params-row .field-label { margin-bottom: 4px; font-size: 0.76rem; }
+.setlist-params-row .setlist-file-fields { flex: 1; margin: 0; }
+.setlist-params-row .setlist-time-field .field-input { min-height: 34px; padding: 5px 8px; }
+.setlist-levels { padding: 4px 8px 6px; }
+.setlist-actions { margin-top: 6px; }
+.setlist-summary-head { display: flex; align-items: center; gap: 14px; }
+.setlist-summary-head h2 { margin: 0 !important; white-space: nowrap; }
+.setlist-summary-head .setlist-metrics { flex: 1; gap: 14px; }
+.setlist-metrics > div { padding: 0; border-bottom: 0; }
+.setlist-level-summary { margin-top: 4px; }
+#scaletta-status { margin-top: 4px; padding: 3px 8px; font-size: 0.76rem; }
+
+@media (max-width: 1240px) {
+  .setlist-params-row, .setlist-summary-head { flex-wrap: wrap; }
+}
+
 @media (max-width: 1240px) {
   body.fit-video-frame .page-shell.scaletta-shell {
     grid-template-columns: minmax(0, 1fr);

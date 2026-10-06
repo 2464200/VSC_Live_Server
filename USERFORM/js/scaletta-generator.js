@@ -320,7 +320,7 @@
     return repeats;
   }
 
-  function runSelection(catalogByLevel, counts, durationSeconds, random) {
+  function runSelection(catalogByLevel, counts, durationSeconds, random, allTracks = []) {
     const used = new Set();
     const selected = [];
     const selectedCounts = Object.fromEntries(LEVELS.map((level) => [level.key, 0]));
@@ -346,12 +346,35 @@
       if (!addedThisCycle || totalDurationSeconds >= durationSeconds) break;
     }
 
+    // Ripetizioni solo se tutti i brani dei livelli richiesti sono gia stati usati e resta tempo.
+    let repeatedCount = 0;
+    const requestedTracks = new Set(LEVELS.filter((level) => counts[level.key] > 0)
+      .flatMap((level) => catalogByLevel[level.key].map((track) => track.id)));
+    if ([...requestedTracks].every((id) => used.has(id))) {
+      const repeatCounts = new Map();
+      for (;;) {
+        const remaining = durationSeconds - totalDurationSeconds;
+        const fitting = allTracks.filter((track) => track.durationSeconds <= remaining);
+        if (!fitting.length) break;
+        const fewest = Math.min(...fitting.map((track) => repeatCounts.get(track.id) || 0));
+        const pool = fitting.filter((track) => (repeatCounts.get(track.id) || 0) === fewest);
+        const track = pool[Math.floor(random() * pool.length)];
+        const levelKey = track.levels[Math.floor(random() * track.levels.length)];
+        repeatCounts.set(track.id, fewest + 1);
+        totalDurationSeconds += track.durationSeconds;
+        selectedCounts[levelKey] += 1;
+        repeatedCount += 1;
+        selected.push({ ...track, level: levelKey, cycle: maxCycles + fewest + 1 });
+      }
+    }
+
     selected.sort((left, right) => LEVEL_BY_KEY[left.level].priority - LEVEL_BY_KEY[right.level].priority
       || left.coreografia.localeCompare(right.coreografia, 'it', { sensitivity: 'base' })
       || left.id.localeCompare(right.id, 'it', { numeric: true }));
 
     return {
       tracks: selected,
+      repeatedCount,
       selectedCounts,
       totalDurationSeconds,
       fullCycles: completedCycles(counts, selectedCounts),
@@ -382,7 +405,7 @@
     let best = null;
     const totalAttempts = Math.max(1, Math.min(40, Number(attempts) || 1));
     for (let attempt = 0; attempt < totalAttempts; attempt += 1) {
-      const candidate = runSelection(catalog.catalogByLevel, counts, durationSeconds, random);
+      const candidate = runSelection(catalog.catalogByLevel, counts, durationSeconds, random, catalog.tracks);
       if (isBetter(candidate, best)) best = candidate;
     }
 
@@ -391,6 +414,7 @@
     if (catalog.stats.unknownLevels) warnings.push(`${catalog.stats.unknownLevels} brani con livello non riconosciuto esclusi dal catalogo.`);
     if (catalog.stats.duplicates) warnings.push(`${catalog.stats.duplicates} righe duplicate escluse usando l'ID del brano.`);
     if (!best.tracks.length) warnings.push('Nessun brano entra nel tempo disponibile.');
+    else if (best.repeatedCount) warnings.push(`Catalogo esaurito: ${best.repeatedCount} brani ripetuti per riempire il tempo disponibile.`);
     else if (best.totalDurationSeconds < durationSeconds) warnings.push('Tempo residuo: non esiste una combinazione compatibile piu vicina senza superare il limite e la proporzione richiesta.');
 
     return {
