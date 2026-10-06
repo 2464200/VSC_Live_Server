@@ -41,6 +41,7 @@ Mapped VBA forms:
 - PAGINA09
 - PAGINA10
 - PAGINA11
+- SCALETTA
 
 Entry point:
 - Open ./index.html from the USERFORM folder.

@@ -667,7 +667,8 @@ class AdminPanel {
       { path: '/userform/pages/pagina08.html', primary: true, secondary: false },
       { path: '/userform/pages/pagina09.html', primary: true, secondary: false },
       { path: '/userform/pages/pagina10.html', primary: true, secondary: false },
-      { path: '/userform/pages/pagina11.html', primary: true, secondary: false }
+      { path: '/userform/pages/pagina11.html', primary: true, secondary: false },
+      { path: '/userform/pages/scaletta.html', primary: true, secondary: false }
     ];
   }
 
@@ -723,7 +724,8 @@ class AdminPanel {
       { path: '/userform/pages/pagina08.html', label: 'Pagina 08', description: 'Pagina USERFORM 08' },
       { path: '/userform/pages/pagina09.html', label: 'Pagina 09', description: 'Pagina USERFORM 09' },
       { path: '/userform/pages/pagina10.html', label: 'Pagina 10', description: 'Pagina USERFORM 10' },
-      { path: '/userform/pages/pagina11.html', label: 'Pagina 11', description: 'Pagina USERFORM 11' }
+      { path: '/userform/pages/pagina11.html', label: 'Pagina 11', description: 'Pagina USERFORM 11' },
+      { path: '/userform/pages/scaletta.html', label: 'Scaletta', description: 'Generatore scaletta country' }
     ];
   }
 

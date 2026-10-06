@@ -211,6 +211,10 @@
     "primary": true,
     "secondary": false
   },
+  "/userform/pages/scaletta.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/userform/pages/qrcode.html": {
     "primary": true,
     "secondary": true

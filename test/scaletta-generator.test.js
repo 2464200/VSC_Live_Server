@@ -1,9 +1,9 @@
-const assert = require('node:assert/strict');
+﻿const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const { JSDOM } = require('jsdom');
-const generator = require('../USERFORM/js/pagina12-generator.js');
+const generator = require('../USERFORM/js/scaletta-generator.js');
 
 const root = path.resolve(__dirname, '..');
 const csv = fs.readFileSync(path.join(root, 'Bordero/data/brani.csv'), 'utf8');
@@ -63,7 +63,7 @@ test('TEST 1: legge il catalogo reale e genera la proporzione completa senza sup
   assert.equal(new Set(result.tracks.map((item) => item.id)).size, result.tracks.length);
 });
 
-test('TEST 2: rispetta i livelli richiesti per una serata di un’ora', () => {
+test('TEST 2: rispetta i livelli richiesti per una serata di unâ€™ora', () => {
   const result = generator.generateSetlist({
     catalog: generator.buildCatalog(csv),
     counts: counts(1, 1, 1, 1),
@@ -130,7 +130,7 @@ test('TEST 7: esclude durate non valide e avvisa senza interrompere la generazio
   assert.ok(result.warnings.some((warning) => warning.includes('durata mancante o non valida')));
 });
 
-test('TEST 8: elimina duplicati usando l’ID e impedisce il riuso del brano', () => {
+test('TEST 8: elimina duplicati usando lâ€™ID e impedisce il riuso del brano', () => {
   const catalog = generator.buildCatalog([track('d1', 'BASE', '02:00'), track('d1', 'BASE', '02:00')]);
   const result = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 240 });
   assert.equal(catalog.stats.duplicates, 1);
@@ -167,9 +167,9 @@ test('TEST 10: tratta i tre cataloghi aggiuntivi come categorie indipendenti', (
 });
 
 test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e pulisce i dati', async () => {
-  const html = fs.readFileSync(path.join(root, 'USERFORM/pages/PAGINA12.html'), 'utf8');
+  const html = fs.readFileSync(path.join(root, 'USERFORM/pages/SCALETTA.html'), 'utf8');
   const dom = new JSDOM(html, {
-    url: 'http://localhost/USERFORM/pages/PAGINA12.html',
+    url: 'http://localhost/USERFORM/pages/SCALETTA.html',
     runScripts: 'outside-only'
   });
   const { window } = dom;
@@ -197,9 +197,9 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
     };
   };
 
-  window.eval(fs.readFileSync(path.join(root, 'USERFORM/js/pagina12-generator.js'), 'utf8'));
+  window.eval(fs.readFileSync(path.join(root, 'USERFORM/js/scaletta-generator.js'), 'utf8'));
   window.eval(fs.readFileSync(path.join(root, 'Bordero/pages/dj-preselezione-file.js'), 'utf8'));
-  window.eval(fs.readFileSync(path.join(root, 'USERFORM/js/pagina12-actions.js'), 'utf8'));
+  window.eval(fs.readFileSync(path.join(root, 'USERFORM/js/scaletta-actions.js'), 'utf8'));
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(window.document.getElementById('btn-generate-setlist').disabled, false);

@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const forms = window.USERFORM_REGISTRY || [];
   const grid = document.getElementById("forms-grid");
 
@@ -26,7 +26,7 @@
         "PAGINA09",
         "PAGINA10",
         "PAGINA11",
-        "PAGINA12"
+        "SCALETTA"
       ]);
       const badge = implemented.has(form.id) ? "MVP pronto" : "Placeholder";
       return `

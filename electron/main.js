@@ -98,7 +98,8 @@ const PAGE_POLICY = new Map([
   ['/userform/pages/pagina08.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina09.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina10.html', { primary: true, secondary: false }],
-  ['/userform/pages/pagina11.html', { primary: true, secondary: false }]
+  ['/userform/pages/pagina11.html', { primary: true, secondary: false }],
+  ['/userform/pages/scaletta.html', { primary: true, secondary: false }]
 ]);
 
 let currentPagePolicy = new Map(PAGE_POLICY);
