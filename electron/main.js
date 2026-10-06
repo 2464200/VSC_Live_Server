@@ -627,15 +627,9 @@ function isManagedHtmlAppUrl(candidateUrl) {
   return normalizePathname(parsed.toString()).endsWith('.html');
 }
 
-const USERFORM_CANONICAL_PAGE_IDS = new Set(
-  ['qrcode', 'servizio', 'pagina03', 'pagina04', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11']
-);
-
 function isCanonicalUserFormPage(candidateUrl) {
   const normalizedPath = normalizePathname(candidateUrl);
-  const fileName = normalizedPath.split('/').filter(Boolean).pop() || '';
-  const stem = fileName.replace(/\.html$/i, '').toLowerCase();
-  return Boolean(stem) && USERFORM_CANONICAL_PAGE_IDS.has(stem) && normalizedPath.includes('/userform/pages/');
+  return /^\/userform\/pages\/[^/]+\.html$/i.test(normalizedPath);
 }
 
 function getMonitorPolicyForUrl(candidateUrl) {

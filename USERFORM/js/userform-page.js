@@ -13,10 +13,8 @@ function normalizeRouteTarget(target) {
 
 function isCanonicalUserFormRoute(target) {
   const normalized = normalizeRouteTarget(target).toLowerCase();
-  const fileName = normalized.split('/').filter(Boolean).pop() || '';
-  const stem = fileName.replace(/\.html$/i, '');
-  const canonicalSet = new Set(['qrcode', 'servizio', 'pagina03', 'pagina04', 'pagina06', 'pagina07', 'pagina08', 'pagina09', 'pagina10', 'pagina11', 'pagina12']);
-  return normalized.includes('/userform/pages/') && canonicalSet.has(stem);
+  const pathOnly = normalized.split(/[?#]/, 1)[0];
+  return /^\/userform\/pages\/[^/]+\.html$/.test(pathOnly);
 }
 
 function openManagedPage(target) {
