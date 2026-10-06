@@ -190,7 +190,9 @@
     currentSearch = query;
     filteredTracks = archiveTracks.filter((track) => matchesTrack(track, query));
     for (const [field, filter] of Object.entries(currentFilters)) {
-      if (filter.mode === 'richiesteZero') {
+      if (filter.mode === 'restorable') {
+        filteredTracks = filteredTracks.filter((track) => isTrackExecuted(track));
+      } else if (filter.mode === 'richiesteZero') {
         filteredTracks = filteredTracks.filter((track) => isZero(track.richieste));
       } else if (filter.mode === 'richiesteNonZero') {
         filteredTracks = filteredTracks.filter((track) => !isZero(track.richieste));
@@ -203,6 +205,8 @@
     if (currentSort) {
       if (currentSort === 'selected') {
         filteredTracks.sort((left, right) => Number(selectedIds.has(String(right.id))) - Number(selectedIds.has(String(left.id))));
+      } else if (currentSort === 'restorable') {
+        filteredTracks.sort((left, right) => Number(isTrackExecuted(right)) - Number(isTrackExecuted(left)));
       } else {
         const direction = currentSortDirection === 'asc' ? 1 : -1;
         filteredTracks.sort((left, right) => compareTracks(left, right, currentSort) * direction);
@@ -335,7 +339,7 @@
   }
 
   function updateSortButtonStates() {
-    const fields = { 'btn-sort-id': 'id', 'btn-sort-coreografo': 'coreografo', 'btn-sort-autore': 'autore', 'btn-sort-richieste': 'richieste', 'btn-sort-selected': 'selected' };
+    const fields = { 'btn-sort-id': 'id', 'btn-sort-coreografo': 'coreografo', 'btn-sort-autore': 'autore', 'btn-sort-richieste': 'richieste', 'btn-sort-selected': 'selected', 'btn-sort-restorable': 'restorable' };
     for (const [id, field] of Object.entries(fields)) {
       const button = document.getElementById(id);
       button?.classList.toggle('active', currentSort === field);
@@ -345,7 +349,7 @@
   }
 
   function updateFilterButtonStates() {
-    const fields = { 'btn-filter-coreografia': 'info_livello', 'btn-filter-livello': 'coreografo', 'btn-filter-altro': 'autore', 'btn-filter-richieste': 'richieste' };
+    const fields = { 'btn-filter-coreografia': 'info_livello', 'btn-filter-livello': 'coreografo', 'btn-filter-altro': 'autore', 'btn-filter-richieste': 'richieste', 'btn-filter-restorable': 'restorable' };
     for (const [id, field] of Object.entries(fields)) {
       document.getElementById(id)?.classList.toggle('active', Boolean(currentFilters[field]));
     }
@@ -966,11 +970,12 @@
     'btn-sort-coreografo': 'coreografo',
     'btn-sort-autore': 'autore',
     'btn-sort-richieste': 'richieste',
-    'btn-sort-selected': 'selected'
+    'btn-sort-selected': 'selected',
+    'btn-sort-restorable': 'restorable'
   };
   Object.entries(sortButtons).forEach(([buttonId, field]) => {
     document.getElementById(buttonId).addEventListener('click', () => {
-      currentSortDirection = field === 'selected'
+      currentSortDirection = field === 'selected' || field === 'restorable'
         ? 'asc'
         : currentSort === field && currentSortDirection === 'asc' ? 'desc' : 'asc';
       currentSort = field;
@@ -983,12 +988,19 @@
     'btn-filter-coreografia': ['info_livello', 'LIVELLO'],
     'btn-filter-livello': ['coreografo', 'COREOGRAFO'],
     'btn-filter-altro': ['autore', 'AUTORE'],
-    'btn-filter-richieste': ['richieste', 'RICHIESTE']
+    'btn-filter-richieste': ['richieste', 'RICHIESTE'],
+    'btn-filter-restorable': ['restorable', 'RIPRISTINABILI']
   };
   Object.entries(filterButtons).forEach(([buttonId, [field, label]]) => {
     document.getElementById(buttonId).addEventListener('click', () => {
       if (currentFilters[field]) {
         delete currentFilters[field];
+        currentPage = 1;
+        renderArchive();
+        return;
+      }
+      if (field === 'restorable') {
+        currentFilters[field] = { mode: 'restorable' };
         currentPage = 1;
         renderArchive();
         return;
