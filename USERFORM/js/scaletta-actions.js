@@ -31,7 +31,44 @@
 
   let catalog = null;
   let setlist = [];
+  let lastResult = null;
+  let lastAvailableSeconds = 0;
+  const STORAGE_KEY = 'userform_scaletta_state';
   window.SCALETTA_SETLIST = setlist;
+
+  function persistState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        time: document.getElementById('setlist-available-time').value,
+        counts: Object.fromEntries([...levelInputs].map(([key, input]) => [key, input.value])),
+        dj: fileFields.dj.value,
+        date: fileFields.date.value,
+        event: fileFields.event.value,
+        result: lastResult,
+        availableSeconds: lastAvailableSeconds
+      }));
+    } catch {
+      // storage non disponibile o pieno: la scaletta resta solo in memoria
+    }
+  }
+
+  function restoreState() {
+    const state = readStoredValue(STORAGE_KEY);
+    if (!state || typeof state !== 'object') return;
+    if (typeof state.time === 'string') document.getElementById('setlist-available-time').value = state.time;
+    levelInputs.forEach((input, key) => {
+      if (state.counts && state.counts[key] !== undefined) input.value = String(state.counts[key]);
+    });
+    if (state.dj || state.date || state.event) {
+      fileFields.dj.value = state.dj || '';
+      fileFields.date.value = state.date || '';
+      fileFields.event.value = state.event || '';
+      updateFileNamePreview();
+    }
+    if (state.result && Array.isArray(state.result.tracks) && state.result.tracks.length && state.availableSeconds > 0) {
+      renderSetlist(state.result, state.availableSeconds);
+    }
+  }
 
   function setStatus(message, kind = 'info') {
     if (!statusNode) return;
@@ -59,6 +96,8 @@
 
   function renderSetlist(result, availableSeconds) {
     setlist = result.tracks;
+    lastResult = { tracks: result.tracks, levelCounts: result.levelCounts, totalDurationSeconds: result.totalDurationSeconds };
+    lastAvailableSeconds = availableSeconds;
     window.SCALETTA_SETLIST = setlist;
     tableBody.replaceChildren();
 
@@ -183,6 +222,7 @@
     }
 
     renderSetlist(result, availableSeconds);
+    persistState();
     const statusMessages = [`Scaletta generata: ${result.tracks.length} brani in ${generator.formatDuration(result.totalDurationSeconds)}.`, ...result.warnings];
     setStatus(statusMessages.join('\n'), result.warnings.length ? 'warning' : 'success');
   }
@@ -195,6 +235,9 @@
     fileFields.event.value = '';
     updateFileNamePreview();
     setlist = [];
+    lastResult = null;
+    lastAvailableSeconds = 0;
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignorato */ }
     window.SCALETTA_SETLIST = setlist;
     tableBody.replaceChildren();
     const row = document.createElement('tr');
@@ -234,9 +277,13 @@
   saveButton?.addEventListener('click', saveSetlistForPreselection);
   document.getElementById('btn-clear-setlist')?.addEventListener('click', clearSetlist);
   Object.values(fileFields).filter((field) => field !== fileFields.preview).forEach((field) => {
-    field.addEventListener('input', updateFileNamePreview);
-    field.addEventListener('change', updateFileNamePreview);
+    field.addEventListener('input', () => { updateFileNamePreview(); persistState(); });
+    field.addEventListener('change', () => { updateFileNamePreview(); persistState(); });
+  });
+  [document.getElementById('setlist-available-time'), ...levelInputs.values()].forEach((input) => {
+    input.addEventListener('input', persistState);
   });
   initializeFileMetadata();
+  restoreState();
   loadCatalog();
 })();
