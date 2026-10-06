@@ -7,13 +7,14 @@ const generator = require('../USERFORM/js/pagina12-generator.js');
 
 const root = path.resolve(__dirname, '..');
 const csv = fs.readFileSync(path.join(root, 'Bordero/data/brani.csv'), 'utf8');
-const counts = (base = 0, intermediate = 0, advanced1 = 0, advanced2 = 0, super1 = 0, super2 = 0) => ({
+const counts = (base = 0, intermediate = 0, advanced1 = 0, advanced2 = 0, super12 = 0, super3 = 0, other = 0) => ({
   BASE: base,
   INTERMEDIO: intermediate,
   AVANZATO_1: advanced1,
   AVANZATO_2: advanced2,
-  SUPERAVANZATO_1: super1,
-  SUPERAVANZATO_2: super2
+  SUPERAVANZATO_1_2: super12,
+  SUPERAVANZATO_3: super3,
+  ALTRE_COREO: other
 });
 
 function track(id, level, duration, artist = 'Artist') {
@@ -37,19 +38,21 @@ function seededRandom(seed) {
 
 test('TEST 1: legge il catalogo reale e genera la proporzione completa senza superare tre ore', () => {
   assert.deepEqual(generator.normalizeLevel('Avanzato1'), ['AVANZATO_1']);
-  assert.deepEqual(generator.normalizeLevel('SUPERAVANZATO 1'), ['SUPERAVANZATO_1']);
-  assert.deepEqual(generator.normalizeLevel('SUPER AVANZATO 1+2'), ['SUPERAVANZATO_1', 'SUPERAVANZATO_2']);
+  assert.deepEqual(generator.normalizeLevel('SUPERAVANZATO 1+2'), ['SUPERAVANZATO_1_2']);
+  assert.deepEqual(generator.normalizeLevel('SUPER AVANZATO 3'), ['SUPERAVANZATO_3']);
+  assert.deepEqual(generator.normalizeLevel('ALTRE COREO'), ['ALTRE_COREO']);
   const catalog = generator.buildCatalog(csv);
   assert.equal(catalog.catalogByLevel.BASE.length, 98);
   assert.equal(catalog.catalogByLevel.INTERMEDIO.length, 64);
   assert.equal(catalog.catalogByLevel.AVANZATO_1.length, 36);
   assert.equal(catalog.catalogByLevel.AVANZATO_2.length, 29);
-  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_1.length, 43);
-  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_2.length, 43);
+  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_1_2.length, 43);
+  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_3.length, 20);
+  assert.equal(catalog.catalogByLevel.ALTRE_COREO.length, 288);
 
   const result = generator.generateSetlist({
     catalog,
-    counts: counts(3, 2, 2, 2, 1, 1),
+    counts: counts(3, 2, 2, 2, 1, 1, 1),
     durationSeconds: generator.parseEventTime('03:00'),
     random: seededRandom(1),
     attempts: 4
@@ -79,7 +82,7 @@ test('TEST 2: rispetta i livelli richiesti per una serata di un’ora', () => {
 test('TEST 3: genera solo i livelli avanzati richiesti', () => {
   const result = generator.generateSetlist({
     catalog: generator.buildCatalog(csv),
-    counts: counts(0, 0, 3, 2, 1, 1),
+    counts: counts(0, 0, 3, 2, 1, 1, 1),
     durationSeconds: 7200,
     random: seededRandom(3),
     attempts: 4
@@ -88,8 +91,9 @@ test('TEST 3: genera solo i livelli avanzati richiesti', () => {
   assert.ok(result.totalDurationSeconds <= 7200);
   assert.ok(result.levelCounts.AVANZATO_1 >= 3);
   assert.ok(result.levelCounts.AVANZATO_2 >= 2);
-  assert.ok(result.levelCounts.SUPERAVANZATO_1 >= 1);
-  assert.ok(result.levelCounts.SUPERAVANZATO_2 >= 1);
+  assert.ok(result.levelCounts.SUPERAVANZATO_1_2 >= 1);
+  assert.ok(result.levelCounts.SUPERAVANZATO_3 >= 1);
+  assert.ok(result.levelCounts.ALTRE_COREO >= 1);
   assert.equal(result.levelCounts.BASE, 0);
 });
 
@@ -146,48 +150,96 @@ test('TEST 9: generazioni successive possono produrre brani differenti', () => {
   assert.ok(new Set(outputs).size > 1);
 });
 
-test('TEST 10: riconosce il pool condiviso SUPER AVANZATO 1+2 senza doppiare gli ID', () => {
+test('TEST 10: tratta i tre cataloghi aggiuntivi come categorie indipendenti', () => {
   const catalog = generator.buildCatalog([
-    ...Array.from({ length: 2 }, (_, index) => track(`s${index}`, 'SUPER AVANZATO 1', '02:00')),
-    ...Array.from({ length: 2 }, (_, index) => track(`t${index}`, 'SUPER AVANZATO 2', '02:00')),
-    ...Array.from({ length: 3 }, (_, index) => track(`x${index}`, 'SUPER AVANZATO 1+2', '02:00'))
+    ...Array.from({ length: 2 }, (_, index) => track(`s${index}`, 'SUPER AVANZATO 1+2', '02:00')),
+    ...Array.from({ length: 2 }, (_, index) => track(`t${index}`, 'SUPER AVANZATO 3', '02:00')),
+    ...Array.from({ length: 2 }, (_, index) => track(`x${index}`, 'ALTRE COREO', '02:00'))
   ]);
-  const result = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 4, 4), durationSeconds: 7200 });
-  assert.match(result.errors.join(' '), /disponibili 7 senza duplicati/);
+  const result = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 2, 2, 2), durationSeconds: 7200 });
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.levelCounts.SUPERAVANZATO_1_2, 2);
+  assert.equal(result.levelCounts.SUPERAVANZATO_3, 2);
+  assert.equal(result.levelCounts.ALTRE_COREO, 2);
+
+  const shortage = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 3), durationSeconds: 7200 });
+  assert.match(shortage.errors.join(' '), /Brani SUPER AVANZATO 1\+2 insufficienti: richiesti 3, disponibili 2/);
 });
 
-test('PAGINA12: carica il CSV, genera il risultato e pulisce i dati visualizzati', async () => {
+test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e pulisce i dati', async () => {
   const html = fs.readFileSync(path.join(root, 'USERFORM/pages/PAGINA12.html'), 'utf8');
   const dom = new JSDOM(html, {
     url: 'http://localhost/USERFORM/pages/PAGINA12.html',
     runScripts: 'outside-only'
   });
   const { window } = dom;
-  window.fetch = async (url) => ({
-    ok: true,
-    status: 200,
-    text: async () => {
-      assert.match(url, /\.\.\/\.\.\/Bordero\/data\/brani\.csv/);
-      return csv;
+  let savedPayload = null;
+  window.fetch = async (url, options = {}) => {
+    if (String(url).includes('brani.csv')) {
+      return {
+        ok: true,
+        status: 200,
+        text: async () => csv
+      };
     }
-  });
+    assert.equal(url, '/api/dj-preselezione/files');
+    assert.equal(options.method, 'POST');
+    savedPayload = JSON.parse(options.body);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        folder: 'VSC_PRESELEZIONE',
+        fileName: 'Luca_Rossi_2026-10-06_Country_Night.json',
+        trackCount: savedPayload.tracks.length
+      })
+    };
+  };
 
   window.eval(fs.readFileSync(path.join(root, 'USERFORM/js/pagina12-generator.js'), 'utf8'));
+  window.eval(fs.readFileSync(path.join(root, 'Bordero/pages/dj-preselezione-file.js'), 'utf8'));
   window.eval(fs.readFileSync(path.join(root, 'USERFORM/js/pagina12-actions.js'), 'utf8'));
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(window.document.getElementById('btn-generate-setlist').disabled, false);
-  window.document.getElementById('setlist-count-base').value = '1';
-  window.document.getElementById('setlist-available-time').value = '01:00';
+  for (const id of [
+    'setlist-count-base',
+    'setlist-count-intermedio',
+    'setlist-count-avanzato-1',
+    'setlist-count-avanzato-2',
+    'setlist-count-super-12',
+    'setlist-count-super-3',
+    'setlist-count-altre-coreo'
+  ]) {
+    window.document.getElementById(id).value = '1';
+  }
+  window.document.getElementById('setlist-available-time').value = '03:00';
   window.document.getElementById('btn-generate-setlist').click();
-  assert.ok(window.PAGINA12_SETLIST.length > 0);
-  assert.equal(window.document.querySelectorAll('#setlist-table-body tr').length, window.PAGINA12_SETLIST.length);
-  assert.equal(window.document.querySelectorAll('.setlist-level-item').length, 6);
-  assert.equal(window.document.querySelector('.setlist-level-item dt').textContent, 'BASE');
-  assert.equal(window.document.getElementById('summary-track-count').textContent, String(window.PAGINA12_SETLIST.length));
+  assert.ok(window.SCALETTA_SETLIST.length > 0);
+  assert.equal(window.document.querySelectorAll('#setlist-table-body tr').length, window.SCALETTA_SETLIST.length);
+  assert.equal(window.document.querySelectorAll('.setlist-level-item').length, 7);
+  assert.deepEqual(Array.from(window.document.querySelectorAll('.setlist-level-item dt'), (item) => item.textContent), [
+    'BASE', 'INTERMEDIO', 'AVANZATO 1', 'AVANZATO 2', 'SUPER AVANZATO 1+2', 'SUPER AVANZATO 3', 'ALTRE COREO'
+  ]);
+  assert.ok(window.SCALETTA_SETLIST.every((item) => item.level));
+  assert.equal(window.document.getElementById('summary-track-count').textContent, String(window.SCALETTA_SETLIST.length));
+  window.document.getElementById('setlist-dj-name').value = 'Luca Rossi';
+  window.document.getElementById('setlist-event-date').value = '2026-10-06';
+  window.document.getElementById('setlist-event-name').value = 'Country Night';
+  window.document.getElementById('setlist-dj-name').dispatchEvent(new window.Event('input'));
+  window.document.getElementById('setlist-event-date').dispatchEvent(new window.Event('input'));
+  window.document.getElementById('setlist-event-name').dispatchEvent(new window.Event('input'));
+  assert.equal(window.document.getElementById('setlist-file-name-preview').textContent, 'Luca_Rossi_2026-10-06_Country_Night.json');
+  window.document.getElementById('btn-save-setlist').click();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(savedPayload.dj, 'Luca Rossi');
+  assert.equal(savedPayload.evento, 'Country Night');
+  assert.ok(savedPayload.tracks.length > 0);
+  assert.match(window.document.getElementById('scaletta-status').textContent, /VSC_PRESELEZIONE\/Luca_Rossi_2026-10-06_Country_Night\.json/);
 
   window.document.getElementById('btn-clear-setlist').click();
-  assert.equal(window.PAGINA12_SETLIST.length, 0);
+  assert.equal(window.SCALETTA_SETLIST.length, 0);
   assert.equal(window.document.getElementById('summary-track-count').textContent, '0');
   window.close();
 });

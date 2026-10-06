@@ -59,6 +59,7 @@
 }
 
 .playlist-picker select,
+.saved-playlist-select,
 .new-playlist-form input,
 .archive-search {
   background: #151515;
@@ -71,6 +72,11 @@
 }
 
 .playlist-picker select {
+  min-width: 190px;
+}
+
+.saved-playlist-select {
+  max-width: 260px;
   min-width: 190px;
 }
 
@@ -681,6 +687,12 @@
 
   .playlist-picker select {
     flex: 1 1 130px;
+    min-width: 0;
+  }
+
+  .saved-playlist-select {
+    flex: 1 1 160px;
+    max-width: none;
     min-width: 0;
   }
 

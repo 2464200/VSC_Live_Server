@@ -12,6 +12,10 @@
   const elements = {
     playlistSelect: document.getElementById('playlist-select'),
     newPlaylistButton: document.getElementById('btn-new-playlist'),
+    savedPlaylistSelect: document.getElementById('saved-playlist-select'),
+    loadSavedPlaylistButton: document.getElementById('btn-load-saved-playlist'),
+    importPlaylistButton: document.getElementById('btn-import-playlist'),
+    importPlaylistFile: document.getElementById('import-playlist-file'),
     deletePlaylistButton: document.getElementById('btn-delete-playlist'),
     newPlaylistForm: document.getElementById('new-playlist-form'),
     newPlaylistName: document.getElementById('new-playlist-name'),
@@ -90,6 +94,8 @@
 
   let serverStateReady = false;
   let serverSaveTimer = null;
+  let resolveServerStateHydration;
+  const serverStateHydration = new Promise((resolve) => { resolveServerStateHydration = resolve; });
 
   function pushStateToServer() {
     window.clearTimeout(serverSaveTimer);
@@ -117,6 +123,8 @@
       console.warn('Preselezione dal server non disponibile, uso i dati locali', error);
     }
     serverStateReady = true;
+    resolveServerStateHydration();
+    await refreshSavedPlaylistFiles();
     pushStateToServer();
   }
 
@@ -558,6 +566,109 @@
     return true;
   }
 
+  function applyImportedPlaylist(imported) {
+      const existingNames = new Set(savedState.playlists.map((playlist) => playlist.name.toLocaleLowerCase('it')));
+      const baseName = imported.name.slice(0, 60) || 'Scaletta importata';
+      let name = baseName;
+      let suffix = 2;
+      while (existingNames.has(name.toLocaleLowerCase('it'))) {
+        const suffixText = ` (${suffix})`;
+        name = `${baseName.slice(0, 60 - suffixText.length)}${suffixText}`;
+        suffix += 1;
+      }
+
+      const playlist = {
+        id: createId(),
+        name,
+        tracks: imported.tracks.map((selected) => {
+          const id = String(selected.branoId || selected.id);
+          const catalogTrack = archiveTracks.find((track) => String(track.id) === id);
+          return {
+            id,
+            branoId: id,
+            deck: 1,
+            brano: { ...(catalogTrack || selected.brano), id }
+          };
+        })
+      };
+      const previousPlaylistId = savedState.selectedPlaylistId;
+      savedState.playlists.push(playlist);
+      savedState.selectedPlaylistId = playlist.id;
+      if (!saveState()) {
+        savedState.playlists = savedState.playlists.filter((item) => item.id !== playlist.id);
+        savedState.selectedPlaylistId = previousPlaylistId;
+        return;
+      }
+
+      renderPlaylistPicker();
+      renderSelection();
+      const skippedMessage = imported.skipped ? ` ${imported.skipped} righe non valide o duplicate ignorate.` : '';
+      const trackLabel = playlist.tracks.length === 1 ? 'brano pronto' : 'brani pronti';
+      setActionStatus(`Importata “${name}”: ${playlist.tracks.length} ${trackLabel} in Preselezione.${skippedMessage}`, 'success');
+  }
+
+  async function importPlaylistFile(file) {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setActionStatus('File troppo grande: il limite di importazione è 2 MB.', 'error');
+      return;
+    }
+
+    try {
+      await serverStateHydration;
+      applyImportedPlaylist(window.DjPreselectionFile.parseImport(await file.text()));
+    } catch (error) {
+      setActionStatus(`Importazione non riuscita: ${error?.message || error}`, 'error');
+    }
+  }
+
+  async function refreshSavedPlaylistFiles() {
+    try {
+      const response = await fetch('/api/dj-preselezione/files', { cache: 'no-store' });
+      const body = await response.json();
+      if (!response.ok || !body.ok) throw new Error(body.error || `Errore HTTP ${response.status}`);
+      elements.savedPlaylistSelect.replaceChildren();
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = body.files.length ? 'Seleziona scaletta salvata' : 'Nessuna scaletta salvata';
+      elements.savedPlaylistSelect.append(placeholder);
+      body.files.forEach((file) => {
+        const option = document.createElement('option');
+        option.value = file.fileName;
+        option.textContent = `${file.name} (${file.trackCount})`;
+        elements.savedPlaylistSelect.append(option);
+      });
+      elements.loadSavedPlaylistButton.disabled = body.files.length === 0 || !serverStateReady;
+    } catch (error) {
+      elements.savedPlaylistSelect.replaceChildren();
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Cartella VSC_PRESELEZIONE non disponibile';
+      elements.savedPlaylistSelect.append(option);
+      elements.loadSavedPlaylistButton.disabled = true;
+      setActionStatus(`Lettura VSC_PRESELEZIONE non riuscita: ${error.message}`, 'error');
+    }
+  }
+
+  async function importSavedPlaylist() {
+    const fileName = elements.savedPlaylistSelect.value;
+    if (!fileName) return;
+    setButtonBusy(elements.loadSavedPlaylistButton, true, 'Caricamento...');
+    try {
+      await serverStateHydration;
+      const response = await fetch(`/api/dj-preselezione/files/${encodeURIComponent(fileName)}`, { cache: 'no-store' });
+      const body = await response.json();
+      if (!response.ok || !body.ok) throw new Error(body.error || `Errore HTTP ${response.status}`);
+      applyImportedPlaylist(window.DjPreselectionFile.parseImport(body.payload));
+    } catch (error) {
+      setActionStatus(`Importazione da VSC_PRESELEZIONE non riuscita: ${error.message}`, 'error');
+      await refreshSavedPlaylistFiles();
+    } finally {
+      setButtonBusy(elements.loadSavedPlaylistButton, false);
+      elements.loadSavedPlaylistButton.disabled = !elements.savedPlaylistSelect.value;
+    }
+  }
+
   async function resolveAudioFile(track) {
     const brano = track.brano || track;
     const response = await fetch('/api/music-archive/match', {
@@ -939,6 +1050,17 @@
     if (!elements.newPlaylistForm.hidden) elements.newPlaylistName.focus();
   });
 
+  elements.importPlaylistButton.addEventListener('click', () => elements.importPlaylistFile.click());
+  elements.loadSavedPlaylistButton.addEventListener('click', importSavedPlaylist);
+  elements.savedPlaylistSelect.addEventListener('change', () => {
+    elements.loadSavedPlaylistButton.disabled = !elements.savedPlaylistSelect.value;
+  });
+  elements.importPlaylistFile.addEventListener('change', async () => {
+    const [file] = elements.importPlaylistFile.files || [];
+    await importPlaylistFile(file);
+    elements.importPlaylistFile.value = '';
+  });
+
   elements.cancelNewPlaylistButton.addEventListener('click', () => {
     elements.newPlaylistForm.hidden = true;
     elements.newPlaylistName.value = '';
@@ -1063,9 +1185,15 @@
     if (document.visibilityState === 'visible') refreshArchive({ silent: true });
   }, AUTO_REFRESH_INTERVAL_MS);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') refreshArchive({ silent: true });
+    if (document.visibilityState === 'visible') {
+      refreshArchive({ silent: true });
+      refreshSavedPlaylistFiles();
+    }
   });
-  window.addEventListener('focus', () => refreshArchive({ silent: true }));
+  window.addEventListener('focus', () => {
+    refreshArchive({ silent: true });
+    refreshSavedPlaylistFiles();
+  });
   window.addEventListener('storage', (event) => {
     if (event.key === BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) syncSelectionExecutionState();
     if (event.key === 'bordero_next_coreo_selection') renderSelection();

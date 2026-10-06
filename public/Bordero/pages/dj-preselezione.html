@@ -17,6 +17,7 @@
   <script defer src="../js/data-loader.js"></script>
   <script defer src="../js/title-visibility-utils.js"></script>
   <script defer src="../js/video-only-brani.js"></script>
+  <script defer src="dj-preselezione-file.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -56,6 +57,13 @@
         </form>
 
         <div class="toolbar-actions">
+          <label class="sr-only" for="saved-playlist-select">Scaletta salvata in VSC_PRESELEZIONE</label>
+          <select id="saved-playlist-select" class="saved-playlist-select" aria-label="Scalette salvate nella cartella VSC_PRESELEZIONE">
+            <option value="">Caricamento scalette...</option>
+          </select>
+          <button id="btn-load-saved-playlist" class="preselect-button preselect-button-primary" type="button" title="Importa la scaletta scelta da VSC_PRESELEZIONE" disabled>Carica dalla cartella</button>
+          <button id="btn-import-playlist" class="preselect-button preselect-button-primary" type="button" title="Importa un file JSON salvato da SCALETTA">Importa scaletta</button>
+          <input id="import-playlist-file" type="file" accept=".json,application/json" hidden />
           <button id="btn-refresh-archive" class="preselect-button preselect-button-quiet" type="button" title="Aggiorna l'archivio">Aggiorna</button>
         </div>
       </section>

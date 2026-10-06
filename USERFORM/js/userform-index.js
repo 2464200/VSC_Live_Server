@@ -32,7 +32,7 @@
       return `
         <article class="form-card">
           <span class="badge">${badge}</span>
-          <h3>${form.id}</h3>
+          <h3>${form.displayName || form.id}</h3>
           <p class="meta">Caption VBA: ${form.caption}</p>
           <p class="meta">Client size: ${size}</p>
           <a class="btn" href="pages/${form.id}.html">Apri pagina</a>

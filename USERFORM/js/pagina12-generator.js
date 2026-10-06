@@ -8,11 +8,11 @@
     { key: 'INTERMEDIO', label: 'INTERMEDIO' },
     { key: 'AVANZATO_1', label: 'AVANZATO 1' },
     { key: 'AVANZATO_2', label: 'AVANZATO 2' },
-    { key: 'SUPERAVANZATO_1', label: 'SUPER AVANZATO 1' },
-    { key: 'SUPERAVANZATO_2', label: 'SUPER AVANZATO 2' }
+    { key: 'SUPERAVANZATO_1_2', label: 'SUPER AVANZATO 1+2' },
+    { key: 'SUPERAVANZATO_3', label: 'SUPER AVANZATO 3' },
+    { key: 'ALTRE_COREO', label: 'ALTRE COREO' }
   ];
   const LEVEL_BY_KEY = Object.fromEntries(LEVELS.map((level, index) => [level.key, { ...level, priority: index + 1 }]));
-  const OTHER_LEVEL_PATTERN = /^(ALTRE COREO|COREOGRAFIA|SUPER AVANZATO 3)$/;
 
   function normalizeText(value) {
     return String(value ?? '')
@@ -31,8 +31,9 @@
   function normalizeLevel(value) {
     const text = normalizeText(value);
     if (!text) return [];
-    if (/\bBASE\b/.test(text)) return ['BASE'];
-    if (/\bINTERMEDI(?:O|CO)\b/.test(text)) return ['INTERMEDIO'];
+    if (text === 'BASE') return ['BASE'];
+    if (text === 'INTERMEDIO' || text === 'INTERMEDICO') return ['INTERMEDIO'];
+    if (text === 'ALTRE COREO') return ['ALTRE_COREO'];
 
     const isSuper = /\bSUPER\b/.test(text);
     const isAdvanced = /\bAVANZATO\b/.test(text);
@@ -41,9 +42,8 @@
     const hasOne = /\b1\b/.test(text);
     const hasTwo = /\b2\b/.test(text);
     if (isSuper) {
-      if (hasOne && hasTwo) return ['SUPERAVANZATO_1', 'SUPERAVANZATO_2'];
-      if (hasOne) return ['SUPERAVANZATO_1'];
-      if (hasTwo) return ['SUPERAVANZATO_2'];
+      if (/\b3\b/.test(text)) return ['SUPERAVANZATO_3'];
+      if (hasOne || hasTwo) return ['SUPERAVANZATO_1_2'];
       return [];
     }
     if (hasOne && hasTwo) return ['AVANZATO_1', 'AVANZATO_2'];
@@ -170,7 +170,6 @@
     let duplicates = 0;
     let invalidDurations = 0;
     let unknownLevels = 0;
-    let otherLevels = 0;
     let missingLevels = 0;
 
     rows.forEach((row) => {
@@ -190,9 +189,7 @@
       const levels = normalizeLevel(getField(row, 'info_livello', 'info livello', 'livello'));
       if (!levels.length) {
         const rawLevel = getField(row, 'info_livello', 'info livello', 'livello');
-        const normalizedLevel = normalizeText(rawLevel);
         if (!rawLevel) missingLevels += 1;
-        else if (OTHER_LEVEL_PATTERN.test(normalizedLevel)) otherLevels += 1;
         else unknownLevels += 1;
         return;
       }
@@ -214,7 +211,7 @@
     return {
       catalogByLevel,
       tracks,
-      stats: { sourceRows: rows.length, duplicates, invalidDurations, unknownLevels, otherLevels, missingLevels }
+      stats: { sourceRows: rows.length, duplicates, invalidDurations, unknownLevels, missingLevels }
     };
   }
 
@@ -284,15 +281,6 @@
       }
     });
 
-    const superOne = counts.SUPERAVANZATO_1;
-    const superTwo = counts.SUPERAVANZATO_2;
-    const shared = catalogByLevel.SUPERAVANZATO_1.filter((track) => track.levels.includes('SUPERAVANZATO_2')).length;
-    const exclusiveOne = catalogByLevel.SUPERAVANZATO_1.length - shared;
-    const exclusiveTwo = catalogByLevel.SUPERAVANZATO_2.length - shared;
-    const sharedNeeded = Math.max(0, superOne - exclusiveOne) + Math.max(0, superTwo - exclusiveTwo);
-    if (sharedNeeded > shared) {
-      messages.push(`Brani SUPER AVANZATO 1/2 insufficienti: richiesti ${superOne + superTwo} complessivi, disponibili ${exclusiveOne + exclusiveTwo + shared} senza duplicati.`);
-    }
     return messages;
   }
 

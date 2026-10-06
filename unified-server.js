@@ -26,6 +26,7 @@ const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXT
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
+const DjPreselectionFile = require('./Bordero/pages/dj-preselezione-file');
 const { DEPLOY_CONTROL_VERSION, resolveDeployControl } = require('./scripts/deploy-policy');
 
 const app = express();
@@ -3092,6 +3093,7 @@ app.use('/__/auth', (req, res) => {
 app.use(express.json({ limit: '2mb' }));
 
 const DJ_PRESELECTION_FILE = path.join(BORDERO_DATA_DIR, 'dj-preselezione-state.json');
+const DJ_PRESELECTION_EXPORT_DIR = path.join(__dirname, 'VSC_PRESELEZIONE');
 app.get('/api/dj-preselezione/state', (req, res) => {
     res.set('Cache-Control', 'no-store');
     try {
@@ -3112,6 +3114,67 @@ app.put('/api/dj-preselezione/state', (req, res) => {
         fs.renameSync(tmpFile, DJ_PRESELECTION_FILE);
         res.json({ ok: true });
     } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+app.get('/api/dj-preselezione/files', (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        fs.mkdirSync(DJ_PRESELECTION_EXPORT_DIR, { recursive: true });
+        const files = fs.readdirSync(DJ_PRESELECTION_EXPORT_DIR)
+            .filter((fileName) => path.extname(fileName).toLowerCase() === '.json')
+            .map((fileName) => {
+                try {
+                    const payload = JSON.parse(fs.readFileSync(path.join(DJ_PRESELECTION_EXPORT_DIR, fileName), 'utf8'));
+                    const imported = DjPreselectionFile.parseImport(payload);
+                    return { fileName, name: imported.name, trackCount: imported.tracks.length };
+                } catch {
+                    return null;
+                }
+            })
+            .filter(Boolean)
+            .sort((left, right) => left.name.localeCompare(right.name, 'it', { sensitivity: 'base' }));
+        res.json({ ok: true, folder: 'VSC_PRESELEZIONE', files });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+app.get('/api/dj-preselezione/files/:fileName', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const fileName = String(req.params.fileName || '');
+    if (path.basename(fileName) !== fileName || path.extname(fileName).toLowerCase() !== '.json') {
+        return res.status(400).json({ ok: false, error: 'Nome file non valido.' });
+    }
+    try {
+        const filePath = path.join(DJ_PRESELECTION_EXPORT_DIR, fileName);
+        const payload = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        DjPreselectionFile.parseImport(payload);
+        res.json({ ok: true, payload });
+    } catch (error) {
+        const status = error.code === 'ENOENT' ? 404 : 400;
+        res.status(status).json({ ok: false, error: status === 404 ? 'File non trovato in VSC_PRESELEZIONE.' : 'File scaletta non valido.' });
+    }
+});
+
+app.post('/api/dj-preselezione/files', (req, res) => {
+    let payload;
+    try {
+        payload = DjPreselectionFile.createPayload(req.body || {});
+    } catch (error) {
+        return res.status(400).json({ ok: false, error: error.message });
+    }
+
+    const filePath = path.join(DJ_PRESELECTION_EXPORT_DIR, payload.fileName);
+    const temporaryPath = `${filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
+    try {
+        fs.mkdirSync(DJ_PRESELECTION_EXPORT_DIR, { recursive: true });
+        fs.writeFileSync(temporaryPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+        fs.renameSync(temporaryPath, filePath);
+        res.json({ ok: true, folder: 'VSC_PRESELEZIONE', fileName: payload.fileName, trackCount: payload.tracks.length });
+    } catch (error) {
+        fs.rmSync(temporaryPath, { force: true });
         res.status(500).json({ ok: false, error: error.message });
     }
 });
