@@ -79,6 +79,30 @@ test('TEST 2: rispetta i livelli richiesti per una serata di unâ€™ora', () 
   assert.ok(result.levelCounts.AVANZATO_2 >= 1);
 });
 
+test('SCALETTA: mantiene l’ordine dei livelli in ogni ciclo', () => {
+  const catalog = generator.buildCatalog([
+    ...Array.from({ length: 10 }, (_, index) => track(`b${index}`, 'BASE', 60)),
+    ...Array.from({ length: 10 }, (_, index) => track(`i${index}`, 'INTERMEDIO', 60)),
+    ...Array.from({ length: 10 }, (_, index) => track(`a1-${index}`, 'AVANZATO 1', 60)),
+    ...Array.from({ length: 10 }, (_, index) => track(`a2-${index}`, 'AVANZATO 2', 60))
+  ]);
+  const result = generator.generateSetlist({
+    catalog,
+    counts: counts(2, 1, 1, 1),
+    durationSeconds: 1500,
+    random: seededRandom(42),
+    attempts: 1
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.tracks.length, 25);
+  const expectedCycle = ['BASE', 'BASE', 'INTERMEDIO', 'AVANZATO_1', 'AVANZATO_2'];
+  assert.deepEqual(
+    result.tracks.map((item) => item.level),
+    Array.from({ length: 5 }, () => expectedCycle).flat()
+  );
+});
+
 test('TEST 3: genera solo i livelli avanzati richiesti', () => {
   const result = generator.generateSetlist({
     catalog: generator.buildCatalog(csv),

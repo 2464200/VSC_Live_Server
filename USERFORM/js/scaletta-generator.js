@@ -368,10 +368,6 @@
       }
     }
 
-    selected.sort((left, right) => LEVEL_BY_KEY[left.level].priority - LEVEL_BY_KEY[right.level].priority
-      || left.coreografia.localeCompare(right.coreografia, 'it', { sensitivity: 'base' })
-      || left.id.localeCompare(right.id, 'it', { numeric: true }));
-
     return {
       tracks: selected,
       repeatedCount,

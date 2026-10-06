@@ -15,5 +15,15 @@
         "**/node_modules": true,
         "**/.git": true,
         "**/logs": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        "/^node --test --test-name-pattern=\"mantiene l’ordine dei livelli in ogni ciclo\" test/scaletta-generator\\.test\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node --test test/scaletta-generator\\.test\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }
