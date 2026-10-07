@@ -18,7 +18,7 @@ Development status:
 - PAGINA03: converted (report generation group, D2 binding, report views).
 - PAGINA04: converted (display/public/mobile launcher groups).
 - PAGINA05: converted (camera profile, FFmpeg recording flow, VLC live controls).
-- PAGINA06: converted (Google Forms/Sheets/Drive link hub).
+- COLLEGAMENTI: Google Forms/Sheets/Drive link hub with image previews.
 - PAGINA07: converted (webcam preview, rec timer, open last video flow).
 - PAGINA08: converted (ScriptPDF launchers).
 - PAGINA09: converted (Bordero/Eventi bridge launchers).
@@ -35,7 +35,7 @@ Mapped VBA forms:
 - PAGINA03
 - PAGINA04
 - PAGINA05
-- PAGINA06
+- COLLEGAMENTI
 - PAGINA07
 - PAGINA08
 - PAGINA09
@@ -45,4 +45,3 @@ Mapped VBA forms:
 
 Entry point:
 - Open ./index.html from the USERFORM folder.
-

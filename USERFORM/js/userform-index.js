@@ -20,7 +20,7 @@
         "PAGINA03",
         "PAGINA04",
         "WEBCAM",
-        "PAGINA06",
+        "COLLEGAMENTI",
         "PAGINA07",
         "PAGINA08",
         "PAGINA09",
@@ -41,4 +41,3 @@
     })
     .join("");
 })();
-

@@ -93,7 +93,7 @@ const PAGE_POLICY = new Map([
   ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
   ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina04.html', { primary: true, secondary: false }],
-  ['/userform/pages/pagina06.html', { primary: true, secondary: false }],
+  ['/userform/pages/collegamenti.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina07.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina08.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina09.html', { primary: true, secondary: false }],

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171717" />
+  <title>USERFORM - COLLEGAMENTI | Hub operativo</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <link rel="stylesheet" href="../assets/css/collegamenti.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/collegamenti-actions.js"></script>
+</head>
+<body class="collegamenti-page">
+  <div class="layout collegamenti-layout">
+    <header class="topbar collegamenti-topbar">
+      <div class="collegamenti-brand">
+        <span class="collegamenti-brand-mark" aria-hidden="true">B</span>
+        <div>
+          <p class="collegamenti-eyebrow">BORDERO' · CENTRO OPERATIVO</p>
+          <h1 id="form-name">COLLEGAMENTI</h1>
+          <p class="subtitle">Moduli, risposte e risorse sempre a portata di mano.</p>
+        </div>
+      </div>
+      <a class="btn btn-secondary collegamenti-index-link" href="../index.html">
+        <span aria-hidden="true">←</span> Indice USERFORM
+      </a>
+    </header>
+
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Hub operativo</span>
+    </nav>
+
+    <main class="collegamenti-main">
+      <section class="collegamenti-intro" aria-labelledby="collegamenti-title">
+        <div>
+          <p class="collegamenti-kicker">I TUOI COLLEGAMENTI</p>
+          <h2 id="collegamenti-title">Tutto quello che ti serve,<br /><span>in un unico spazio.</span></h2>
+          <p class="collegamenti-intro-copy">Apri i moduli Google, consulta le risposte o raggiungi il catalogo e il QR code.</p>
+        </div>
+        <div id="resource-count-label" class="collegamenti-resource-count" aria-label="Otto collegamenti disponibili">
+          <strong id="resource-count">08</strong>
+          <span>risorse<br />disponibili</span>
+        </div>
+      </section>
+
+      <section class="collegamenti-toolbar" aria-label="Cerca e filtra le risorse">
+        <label class="collegamenti-search">
+          <span class="collegamenti-search-icon" aria-hidden="true">⌕</span>
+          <span class="visually-hidden">Cerca una risorsa</span>
+          <input id="resource-search" type="search" placeholder="Cerca moduli, risposte, QR code..." autocomplete="off" />
+          <kbd>/</kbd>
+        </label>
+        <div class="collegamenti-filters" role="group" aria-label="Filtra per categoria">
+          <button class="collegamenti-filter is-active" type="button" data-filter="all" aria-pressed="true">Tutte <span>08</span></button>
+          <button class="collegamenti-filter" type="button" data-filter="lista" aria-pressed="false">Lista</button>
+          <button class="collegamenti-filter" type="button" data-filter="risposte" aria-pressed="false">Risposte</button>
+          <button class="collegamenti-filter" type="button" data-filter="catalogo" aria-pressed="false">Catalogo A–Z</button>
+          <button class="collegamenti-filter" type="button" data-filter="strumenti" aria-pressed="false">Strumenti</button>
+        </div>
+      </section>
+
+      <section class="collegamenti-resource-section" aria-labelledby="lista-title">
+        <div class="collegamenti-section-heading">
+          <div>
+            <span class="collegamenti-section-index">01</span>
+            <h2 id="lista-title">Lista serata</h2>
+          </div>
+          <p>Compila la lista o consulta le risposte raccolte.</p>
+        </div>
+        <div class="collegamenti-resource-grid">
+          <article class="collegamenti-resource-card" data-category="lista" data-search="lista serata form compilazione modifica editor google forms">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">01</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://docs.google.com/forms/d/1HfSXBECjlmS0w1VHSmjoswG0z73fp0ht0ZkK5di7U1c/edit" type="button" aria-label="Apri l'anteprima del Form Lista">
+                <img src="../assets/images/collegamenti/lista-form.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">MODULO</span>
+            </div>
+            <h3>Modifica il Form Lista</h3>
+            <p>Apri il modulo di gestione per aggiornare domande e impostazioni.</p>
+            <button class="collegamenti-open-link" data-link="https://docs.google.com/forms/d/1HfSXBECjlmS0w1VHSmjoswG0z73fp0ht0ZkK5di7U1c/edit" type="button">
+              Apri editor <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+          <article class="collegamenti-resource-card" data-category="lista" data-search="lista serata form pubblico compilazione partecipanti google forms">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">02</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://docs.google.com/forms/d/e/1FAIpQLScg2JFr5mfUdaVzc6d9hGKAauqOJ8zGaW7282ROE2pG-m-aZg/viewform" type="button" aria-label="Apri l'anteprima del Form Lista pubblico">
+                <img src="../assets/images/collegamenti/lista-form-pubblico.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">PUBBLICO</span>
+            </div>
+            <h3>Condividi il Form Lista</h3>
+            <p>Apri la versione pubblica da compilare e condividere con i partecipanti.</p>
+            <button class="collegamenti-open-link" data-link="https://docs.google.com/forms/d/e/1FAIpQLScg2JFr5mfUdaVzc6d9hGKAauqOJ8zGaW7282ROE2pG-m-aZg/viewform" type="button">
+              Apri modulo <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+          <article class="collegamenti-resource-card" data-category="risposte" data-search="risposte modulo 8 foglio google sheets">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">03</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://docs.google.com/spreadsheets/d/1LfaAi0A5Hfws8sYO_6gapiuQ2na9Lpu3f68slJ35CtE/edit?usp=sharing" type="button" aria-label="Apri l'anteprima delle risposte del Modulo 8">
+                <img src="../assets/images/collegamenti/risposte-modulo-8.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">RISPOSTE</span>
+            </div>
+            <h3>Risposte Modulo 8</h3>
+            <p>Consulta il foglio con le risposte inviate tramite il Modulo 8.</p>
+            <button class="collegamenti-open-link" data-link="https://docs.google.com/spreadsheets/d/1LfaAi0A5Hfws8sYO_6gapiuQ2na9Lpu3f68slJ35CtE/edit?usp=sharing" type="button">
+              Apri risposte <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+          <article class="collegamenti-resource-card" data-category="risposte" data-search="risposte modulo 12 foglio google sheets">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">04</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://docs.google.com/spreadsheets/d/1LfaAi0A5Hfws8sYO_6gapiuQ2na9Lpu3f68slJ35CtE/edit?gid=1644446046#gid=1644446046" type="button" aria-label="Apri l'anteprima delle risposte del Modulo 12">
+                <img src="../assets/images/collegamenti/risposte-modulo-12.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">RISPOSTE</span>
+            </div>
+            <h3>Risposte Modulo 12</h3>
+            <p>Vai direttamente alla scheda delle risposte del Modulo 12.</p>
+            <button class="collegamenti-open-link" data-link="https://docs.google.com/spreadsheets/d/1LfaAi0A5Hfws8sYO_6gapiuQ2na9Lpu3f68slJ35CtE/edit?gid=1644446046#gid=1644446046" type="button">
+              Apri risposte <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="collegamenti-resource-section" aria-labelledby="catalogo-title">
+        <div class="collegamenti-section-heading">
+          <div>
+            <span class="collegamenti-section-index">02</span>
+            <h2 id="catalogo-title">Catalogo coreografie</h2>
+          </div>
+          <p>Gestisci il modulo A–Z e consulta l'elenco condiviso.</p>
+        </div>
+        <div class="collegamenti-resource-grid">
+          <article class="collegamenti-resource-card" data-category="catalogo" data-search="catalogo coreografie az elenco alfabetico form editor modifica google forms">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">A–Z</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://docs.google.com/forms/d/1iuET4cYUJOPEsoVSqqfyxZNPGi7YnU5NcIt2IjTvMhQ/edit" type="button" aria-label="Apri l'anteprima del Form A–Z">
+                <img src="../assets/images/collegamenti/catalogo-form.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">MODULO</span>
+            </div>
+            <h3>Modifica il Form A–Z</h3>
+            <p>Apri l'editor del modulo dedicato al catalogo delle coreografie.</p>
+            <button class="collegamenti-open-link" data-link="https://docs.google.com/forms/d/1iuET4cYUJOPEsoVSqqfyxZNPGi7YnU5NcIt2IjTvMhQ/edit" type="button">
+              Apri editor <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+          <article class="collegamenti-resource-card" data-category="catalogo" data-search="catalogo coreografie az pubblico form google forms">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">A–Z</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://docs.google.com/forms/d/e/1FAIpQLSdzlRn6KDVr81MaWIaGAO4alXixT3znSHLJIA6y6uSPJ9eVVA/viewform?usp=header" type="button" aria-label="Apri l'anteprima del Form A–Z pubblico">
+                <img src="../assets/images/collegamenti/catalogo-form-pubblico.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">PUBBLICO</span>
+            </div>
+            <h3>Condividi il Form A–Z</h3>
+            <p>Apri la versione pubblica del modulo per l'invio delle coreografie.</p>
+            <button class="collegamenti-open-link" data-link="https://docs.google.com/forms/d/e/1FAIpQLSdzlRn6KDVr81MaWIaGAO4alXixT3znSHLJIA6y6uSPJ9eVVA/viewform?usp=header" type="button">
+              Apri modulo <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+          <article class="collegamenti-resource-card" data-category="strumenti" data-search="elenco statico catalogo condiviso foglio google sheets">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">≡</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://docs.google.com/spreadsheets/d/1vWgzzwSHL2hK9RGvP87sCy_AtGGNTcDRM-h85bIpMMM/edit?usp=sharing" type="button" aria-label="Apri l'anteprima dell'elenco statico">
+                <img src="../assets/images/collegamenti/elenco-statico.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">CATALOGO</span>
+            </div>
+            <h3>Elenco statico</h3>
+            <p>Consulta l'elenco condiviso delle coreografie e dei relativi dati.</p>
+            <button class="collegamenti-open-link" data-link="https://docs.google.com/spreadsheets/d/1vWgzzwSHL2hK9RGvP87sCy_AtGGNTcDRM-h85bIpMMM/edit?usp=sharing" type="button">
+              Apri elenco <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+          <article class="collegamenti-resource-card" data-category="strumenti" data-search="qr code condivisione link drive">
+            <div class="collegamenti-card-topline">
+              <span class="collegamenti-card-icon" aria-hidden="true">⌗</span>
+              <button class="collegamenti-preview collegamenti-open-link" data-link="https://drive.google.com/file/d/1vixeNJdq7k26w1Hhrkcr71hoyFKFLiyn/view?usp=sharing" type="button" aria-label="Apri l'anteprima del QR Code">
+                <img src="../assets/images/collegamenti/qr-code.jpg" alt="" loading="lazy" decoding="async" />
+              </button>
+              <span class="collegamenti-tag">CONDIVISIONE</span>
+            </div>
+            <h3>QR Code</h3>
+            <p>Visualizza il QR code pronto per l'accesso rapido al modulo.</p>
+            <button class="collegamenti-open-link" data-link="https://drive.google.com/file/d/1vixeNJdq7k26w1Hhrkcr71hoyFKFLiyn/view?usp=sharing" type="button">
+              Visualizza QR <span aria-hidden="true">↗</span>
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <p id="empty-resources" class="collegamenti-empty" hidden>Nessuna risorsa corrisponde alla ricerca. Prova a cambiare filtro o parola chiave.</p>
+
+      <section class="collegamenti-footer-panel" aria-label="Navigazione USERFORM">
+        <div id="collegamenti-status" class="collegamenti-status" role="status" aria-live="polite">
+          <span class="collegamenti-status-dot" aria-hidden="true"></span>
+          <span class="collegamenti-status-message">Pronto. Seleziona una risorsa per aprirla.</span>
+        </div>
+        <div class="collegamenti-footer-actions">
+          <a class="btn btn-secondary" href="../index.html">Torna all'indice</a>
+          <div class="page-nav">
+            <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+            <a id="next-form" class="btn" href="#">Form successivo</a>
+          </div>
+          <button id="btn-close-collegamenti" class="btn btn-danger" type="button">Chiudi pagina</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/nav.js"></script>
+</body>
+</html>

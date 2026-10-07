@@ -156,6 +156,9 @@ withTempRuntime(
     const videoPlayerEntry = policyMap.get('/bordero/pages/video-player.html');
     const servicePublicationEntry = policyMap.get('/userform/pages/servizio-pubblica.html');
     const primaryBorderoEntry = policyMap.get('/bordero/pages/bordero.html');
+    const userFormCollegamentiEntry = policyMap.get('/userform/pages/collegamenti.html');
+    const userFormCollegamentiPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/COLLEGAMENTI.html')", sandbox);
+    const legacyUserFormPagina06Entry = policyMap.get('/userform/pages/pagina06.html');
     const adminEntry = policyMap.get('/bordero/pages/admin.html');
     const newUserFormPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/scaletta.html')", sandbox);
     const newBorderoPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Bordero/pages/new-report.html')", sandbox);
@@ -170,6 +173,9 @@ withTempRuntime(
     assert(videoPlayerEntry && videoPlayerEntry.primary === false && videoPlayerEntry.secondary === true, 'Video-player page must remain on the secondary monitor.');
     assert(servicePublicationEntry && servicePublicationEntry.primary === false && servicePublicationEntry.secondary === true, 'Servizio pubblica must remain on the secondary monitor.');
     assert(primaryBorderoEntry && primaryBorderoEntry.primary === true && primaryBorderoEntry.secondary === false, 'Main Bordero page must remain on the primary monitor.');
+    assert(userFormCollegamentiEntry && userFormCollegamentiEntry.primary === true && userFormCollegamentiEntry.secondary === false, 'USERFORM COLLEGAMENTI must be registered exclusively on the primary monitor.');
+    assert(userFormCollegamentiPolicy.primary === true && userFormCollegamentiPolicy.secondary === false, 'USERFORM COLLEGAMENTI must be managed exclusively on the primary monitor.');
+    assert(!legacyUserFormPagina06Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
     assert(adminEntry && adminEntry.primary === true && adminEntry.secondary === false, 'Admin page must stay on the primary monitor.');
     assert(newUserFormIsManaged === true, 'New local USERFORM HTML pages must be managed without registering their filenames.');
     assert(newUserFormPolicy.primary === true && newUserFormPolicy.secondary === false, 'New USERFORM pages must stay on the primary monitor.');
