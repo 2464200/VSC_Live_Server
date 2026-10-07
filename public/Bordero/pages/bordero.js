@@ -2594,6 +2594,12 @@ class BorderoTableManager {
   }
 
   async refreshDeckLoadButtonsState() {
+    if (!this.isVirtualDjBridgeEnabled()) {
+      this.setDeckLoadButtonState(1, 'unknown');
+      this.setDeckLoadButtonState(2, 'unknown');
+      return [1, 2].map((deck) => ({ deck, unavailable: true }));
+    }
+
     try {
       const [deck1, deck2] = await Promise.all([
         this.queryVirtualDjDeckState(1),

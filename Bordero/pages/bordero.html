@@ -11,7 +11,7 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css?v=20260811-3" />
+  <link rel="stylesheet" href="bordero.css?v=20261007-6" />
   
   <!-- XLSX Library locale per lettura file Excel -->
   <script src="../assets/lib/xlsx.min.js"></script>
@@ -38,7 +38,7 @@
   <script defer src="../js/firebase-cloud-client.js?v=20261005-5"></script>
   <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
   <script defer src="../js/video-only-brani.js"></script>
-  <script defer src="bordero.js?v=20261004-1"></script>
+  <script defer src="bordero.js?v=20261007-1"></script>
 </head>
 
 <body>
@@ -169,6 +169,12 @@
         <button id="btn-load-deck-2" class="btn btn-deck2" title="Carica il brano selezionato in NEXT sul Deck 2">
           CARICA SU DECK 2
         </button>
+        <div class="stat-badge stat-action" role="group" aria-label="Azione rapida reset filtri">
+          <span class="stat-label">Azione rapida:</span>
+          <button id="btn-reset-filters-stats" class="btn btn-secondary" title="Resetta tutti i filtri e ordina per ID crescente">
+            RESET FILTRI + ID ↑
+          </button>
+        </div>
       </div>
 
       <div class="toolbar-section">
@@ -252,6 +258,10 @@
 
     <!-- STATISTICHE LIVE -->
     <section class="live-stats">
+      <div class="stat-badge stat-mode" role="status" aria-live="polite">
+        <span class="stat-label">Eseguiti in fondo:</span>
+        <span class="stat-value stat-value-mode mode-off" id="stat-executed-bottom-mode">OFF</span>
+      </div>
       <div class="stat-badge">
         <span class="stat-label">Brani Totali:</span>
         <span class="stat-value" id="stat-total">0</span>
@@ -279,16 +289,6 @@
       <div class="stat-badge">
         <span class="stat-label">Ultimo Aggiornamento:</span>
         <span class="stat-value" id="stat-last-action">--:--</span>
-      </div>
-      <div class="stat-badge stat-action" role="group" aria-label="Azione rapida reset filtri">
-        <span class="stat-label">Azione rapida:</span>
-        <button id="btn-reset-filters-stats" class="btn btn-secondary" title="Resetta tutti i filtri e ordina per ID crescente">
-          RESET FILTRI + ID ↑
-        </button>
-      </div>
-      <div class="stat-badge stat-mode" role="status" aria-live="polite">
-        <span class="stat-label">Eseguiti in fondo:</span>
-        <span class="stat-value stat-value-mode mode-off" id="stat-executed-bottom-mode">OFF</span>
       </div>
     </section>
 
