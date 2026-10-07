@@ -411,20 +411,54 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
   assert.equal(window.document.getElementById('summary-track-count').textContent, '0');
 
   const refreshedRows = generator.parseCsv(csv);
-  refreshedRows[0].info_google_nuova = 'CATEGORIA GOOGLE NUOVA';
-  const refreshedHeaders = Object.keys(refreshedRows[0]);
+  const selectedTagRow = refreshedRows.find((row) => row.id === selectedTrack.id);
+  assert.ok(selectedTagRow);
+  selectedTagRow.info_google_nuova = 'CATEGORIA GOOGLE NUOVA';
   const quoteCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
-  csvForFetch = [refreshedHeaders, ...refreshedRows.map((row) => refreshedHeaders.map((header) => row[header] ?? ''))]
-    .map((row) => row.map(quoteCsv).join(','))
-    .join('\n');
+  const serializeRows = (rows) => {
+    const headers = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+    return [headers, ...rows.map((row) => headers.map((header) => row[header] ?? ''))]
+      .map((row) => row.map(quoteCsv).join(','))
+      .join('\n');
+  };
+  const includeModeBeforeRefresh = window.document.querySelector('input[name="setlist-info-filter-mode"][value="include"]');
+  includeModeBeforeRefresh.checked = true;
+  includeModeBeforeRefresh.dispatchEvent(new window.Event('change'));
+  const selectedBeforeRefresh = [...window.document.querySelectorAll('#setlist-info-options input[type="checkbox"]')]
+    .find((input) => input.value === selectedTag);
+  selectedBeforeRefresh.checked = true;
+  selectedBeforeRefresh.dispatchEvent(new window.Event('change'));
+
+  csvForFetch = serializeRows(refreshedRows);
   assert.equal(typeof refreshCatalogCallback, 'function');
   await refreshCatalogCallback();
-  assert.ok([...window.document.querySelectorAll('#setlist-info-options input')]
-    .some((input) => input.value === 'CATEGORIA GOOGLE NUOVA'));
+  const optionsAfterAddition = [...window.document.querySelectorAll('#setlist-info-options input[type="checkbox"]')];
+  assert.equal(window.document.querySelector('input[name="setlist-info-filter-mode"][value="include"]').checked, true);
+  assert.equal(optionsAfterAddition.find((input) => input.value === selectedTag)?.checked, true);
+  assert.equal(optionsAfterAddition.find((input) => input.value === 'CATEGORIA GOOGLE NUOVA')?.checked, false);
+  assert.deepEqual(JSON.parse(window.localStorage.getItem('userform_scaletta_state')).infoFilter, {
+    mode: 'include',
+    tags: [selectedTag]
+  });
+
+  refreshedRows.forEach((row) => {
+    Object.keys(row).forEach((field) => {
+      if (field.startsWith('info_') && row[field] === selectedTag) row[field] = '';
+    });
+  });
+  csvForFetch = serializeRows(refreshedRows);
+  await refreshCatalogCallback();
+  const optionsAfterRemoval = [...window.document.querySelectorAll('#setlist-info-options input[type="checkbox"]')];
+  assert.equal(optionsAfterRemoval.some((input) => input.value === selectedTag), false);
+  assert.equal(window.document.querySelector('input[name="setlist-info-filter-mode"][value="include"]').checked, true);
+  assert.deepEqual(JSON.parse(window.localStorage.getItem('userform_scaletta_state')).infoFilter, {
+    mode: 'include',
+    tags: []
+  });
 
   csvForFetch = csv;
   await refreshCatalogCallback();
-  assert.equal([...window.document.querySelectorAll('#setlist-info-options input')]
+  assert.equal([...window.document.querySelectorAll('#setlist-info-options input[type="checkbox"]')]
     .some((input) => input.value === 'CATEGORIA GOOGLE NUOVA'), false);
   window.close();
 });
