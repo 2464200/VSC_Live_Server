@@ -14,6 +14,8 @@ class DisplayMonitor {
     };
     this.lastRefresh = null;
     this.refreshInterval = null;
+    this.catalogRefreshInterval = null;
+    this.catalogRefreshInProgress = false;
     this.scrollDirection = 1; // 1 = down, -1 = up
     this.scrollSpeedPxPerStep = 1;
     this.scrollStepMs = 16;
@@ -49,6 +51,21 @@ class DisplayMonitor {
     this.init();
   }
 
+  async refreshBraniCatalog() {
+    if (this.catalogRefreshInProgress || document.hidden) return;
+
+    this.catalogRefreshInProgress = true;
+    try {
+      const brani = await dataLoader.loadBrani({ silent: true });
+      if (!Array.isArray(brani) || brani.length === 0) return;
+
+      this.allBrani = brani;
+      this.refresh();
+    } finally {
+      this.catalogRefreshInProgress = false;
+    }
+  }
+
   async init() {
     logger.info('DisplayMonitor initializing...');
 
@@ -64,6 +81,11 @@ class DisplayMonitor {
 
       // Auto-refresh ogni 1 secondo
       this.refreshInterval = setInterval(() => this.refresh(), 1000);
+      this.catalogRefreshInterval = setInterval(() => {
+        this.refreshBraniCatalog().catch((error) => {
+          logger.error('Errore aggiornamento catalogo display', error);
+        });
+      }, 30000);
 
       // Refresh iniziale
       this.refresh();
@@ -160,10 +182,10 @@ class DisplayMonitor {
       this.serata = currentSerata.metadata || this.serata;
     } else {
       this.serata = {
-        dj: this.serata.dj || '',
-        data: this.serata.data || '',
-        luogo: this.serata.luogo || '',
-        evento: this.serata.evento || '',
+        dj: '',
+        data: this.displayCsvDate || '',
+        luogo: '',
+        evento: '',
       };
     }
 
@@ -260,36 +282,42 @@ class DisplayMonitor {
   }
 
   buildDisplaySourceBrani(currentSerata) {
-    if ((!currentSerata || !Array.isArray(currentSerata.brani) || currentSerata.brani.length === 0) && Array.isArray(this.displayCsvBrani) && this.displayCsvBrani.length > 0) {
+    const hasCurrentSerata = Array.isArray(currentSerata?.brani) && currentSerata.brani.length > 0;
+    const hasCatalog = Array.isArray(this.allBrani) && this.allBrani.length > 0;
+    if (!hasCurrentSerata && !hasCatalog && Array.isArray(this.displayCsvBrani) && this.displayCsvBrani.length > 0) {
       return this.displayCsvBrani;
     }
 
     const baseBrani = Array.isArray(this.allBrani) ? this.allBrani : [];
     const serataBrani = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
 
-    // Base: lista completa da sorgente corrente; dalla serata riporta solo lo stato eseguito.
+    // Base: dati correnti del catalogo; la serata attiva è la fonte autorevole per gli eseguiti.
     const mergedMap = new Map(
-      baseBrani.map((item) => [this.normalizeBranoIdKey(item.id), { ...item }]).filter(([key]) => Boolean(key))
+      baseBrani
+        .map((item) => [
+          this.normalizeBranoIdKey(item.id),
+          { ...item, ...(hasCurrentSerata ? { flag: '' } : {}) }
+        ])
+        .filter(([key]) => Boolean(key))
     );
 
     serataBrani.forEach((item) => {
       const id = this.normalizeBranoIdKey(item?.id);
       if (!id) return;
       if (window.isVideoOnlyBrano?.(item)) return;
-      if (String(item?.flag || '').toUpperCase() !== 'X') {
-        return;
-      }
 
       const base = mergedMap.get(id);
       if (!base) {
-        // Fallback: se il brano non esiste nella base corrente, usa i dati serata.
+        // Mantiene i brani della serata anche se mancano dal catalogo corrente.
         mergedMap.set(id, {
           ...item,
           id: String(item?.id ?? id),
-          flag: 'X'
+          flag: String(item?.flag || '').toUpperCase() === 'X' ? 'X' : ''
         });
         return;
       }
+
+      if (String(item?.flag || '').toUpperCase() !== 'X') return;
 
       mergedMap.set(id, {
         ...base,
@@ -313,7 +341,7 @@ class DisplayMonitor {
       }
     });
 
-    if (ids.size === 0 && Array.isArray(sourceBrani)) {
+    if (fromSerata.length === 0 && Array.isArray(sourceBrani)) {
       sourceBrani.forEach((brano) => {
         if (window.isVideoOnlyBrano?.(brano)) return;
         if (String(brano?.flag || '').toUpperCase() === 'X') {
@@ -622,10 +650,18 @@ class DisplayMonitor {
       }
     });
 
-    window.addEventListener('focus', () => this.refresh());
+    window.addEventListener('focus', () => {
+      this.refresh();
+      this.refreshBraniCatalog().catch((error) => {
+        logger.error('Errore aggiornamento catalogo display al focus', error);
+      });
+    });
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         this.refresh();
+        this.refreshBraniCatalog().catch((error) => {
+          logger.error('Errore aggiornamento catalogo display alla riattivazione', error);
+        });
       }
     });
   }
@@ -910,6 +946,9 @@ class DisplayMonitor {
           if (dataMatch && (!this.serata.data || this.serata.data === '--')) {
             this.serata.data = dataMatch[1];
           }
+          if (dataMatch) {
+            this.displayCsvDate = dataMatch[1];
+          }
 
           const items = [];
           for (let i = 3; i < lines.length; i++) {
@@ -1152,6 +1191,10 @@ class DisplayMonitor {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
       this.refreshInterval = null;
+    }
+    if (this.catalogRefreshInterval) {
+      clearInterval(this.catalogRefreshInterval);
+      this.catalogRefreshInterval = null;
     }
     if (this.clockInterval) {
       clearInterval(this.clockInterval);

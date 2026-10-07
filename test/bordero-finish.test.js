@@ -457,6 +457,42 @@ const displayExecutedIds = displayMonitor.buildExecutedIdSet({
 if (displayExecutedIds.has('599') || !displayExecutedIds.has('601')) {
   throw new Error('Display incorrectly counted a video-only track as executed');
 }
+const currentSerataUnexecutedIds = displayMonitor.buildExecutedIdSet({
+  brani: [{ id: '601', titolo: 'Ordinary Track', flag: '' }],
+}, [{ id: '601', titolo: 'Ordinary Track', flag: 'X' }]);
+if (currentSerataUnexecutedIds.size !== 0) {
+  throw new Error('Display reused an executed flag from the catalog despite the current serata showing the track as pending');
+}
+displayMonitor.allBrani = [{ id: '601', titolo: 'Ordinary Track', richieste: '1', flag: 'X' }];
+displayMonitor.displayCsvBrani = [{ id: '999', titolo: 'Stale Display CSV Track', richieste: '1' }];
+const currentSerataSource = displayMonitor.buildDisplaySourceBrani({
+  brani: [{ id: '601', titolo: 'Ordinary Track', flag: '' }],
+});
+displayMonitor.executedIds = currentSerataUnexecutedIds;
+if (
+  currentSerataSource.length !== 1 ||
+  currentSerataSource[0]?.id !== '601' ||
+  currentSerataSource[0]?.flag === 'X' ||
+  displayMonitor.isBranoExecuted(currentSerataSource[0])
+) {
+  throw new Error('Display kept stale catalog data over the current serata state');
+}
+displayMonitor.allBrani = [{ id: '601', titolo: 'Current Catalog Track', richieste: '1' }];
+const currentCatalogSource = displayMonitor.buildDisplaySourceBrani(null);
+if (currentCatalogSource.length !== 1 || currentCatalogSource[0]?.id !== '601') {
+  throw new Error('Display preferred stale projection data over the current catalog');
+}
+displayMonitor.allBrani = [];
+const currentSerataFallbackSource = displayMonitor.buildDisplaySourceBrani({
+  brani: [{ id: '602', titolo: 'Current Serata Track', richieste: '2', flag: '' }],
+});
+if (currentSerataFallbackSource.length !== 1 || currentSerataFallbackSource[0]?.id !== '602') {
+  throw new Error('Display omitted a current-serata track missing from the catalog');
+}
+const projectionFallbackSource = displayMonitor.buildDisplaySourceBrani(null);
+if (projectionFallbackSource.length !== 1 || projectionFallbackSource[0]?.id !== '999') {
+  throw new Error('Display did not fall back to projection data when the current catalog is unavailable');
+}
 displayMonitor.executedIds = displayExecutedIds;
 if (displayMonitor.isBranoExecuted({ id: '599', titolo: 'AUDIO VIDEO TESTER', flag: 'X' })) {
   throw new Error('Display rendered a video-only choreography as executed');
