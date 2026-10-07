@@ -138,6 +138,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  min-width: 0;
 }
 
 .live-date {
@@ -147,18 +148,18 @@
 }
 
 .next-coreo-wrap {
-  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
 }
 
 .next-coreo-label {
-  position: absolute;
-  right: calc(100% + 82px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 24px;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: clamp(12px, 2.6vw, 24px);
   color: #fff;
   margin-bottom: 0;
   font-weight: 800;
@@ -167,21 +168,26 @@
 }
 
 .next-coreo-stage {
-  position: relative;
   display: flex;
   align-items: center;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 #next-coreo {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 10px 22px;
   border: 4px solid #ffa200;
   border-radius: 15px;
   animation: neonPulse 2s infinite ease-in-out;
-  display: inline-block;
   color: #fff;
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
   background-color: rgba(0, 0, 0, 0.25);
-  font-size: 34px;
+  font-size: clamp(16px, 3.4vw, 34px);
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   white-space: nowrap;
   font-weight: 600;
@@ -195,11 +201,8 @@
 }
 
 .arrow-side {
-  position: absolute;
-  right: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 54px;
+  flex: 0 1 auto;
+  font-size: clamp(24px, 4.2vw, 54px);
   color: #ffa200;
   animation: arrowBlink 1s infinite ease-in-out;
   text-shadow: 0 0 10px #ffae42, 0 0 20px #ffae42;
@@ -595,17 +598,16 @@
   }
 
   .next-coreo-label {
-    font-size: 20px;
+    font-size: clamp(12px, 2.6vw, 20px);
   }
 
   #next-coreo {
-    font-size: 26px;
+    font-size: clamp(16px, 3.4vw, 26px);
     padding: 8px 14px;
   }
 
   .arrow-side {
-    right: calc(100% + 8px);
-    font-size: 40px;
+    font-size: clamp(24px, 4.2vw, 40px);
   }
 
   .brani-table {
