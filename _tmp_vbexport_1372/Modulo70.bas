@@ -73,8 +73,9 @@ Public Sub GeneraFileSIAE()
     ' Dimensionamento array
     ' Colonna 1 = Titolo
     ' Colonna 2 = Autore
+    ' Colonna 3 = Durata
     '-----------------------------
-    ReDim dati(1 To n, 1 To 2)
+    ReDim dati(1 To n, 1 To 3)
     
     '-----------------------------
     ' Seconda passata: caricamento dati
@@ -87,6 +88,7 @@ Public Sub GeneraFileSIAE()
             n = n + 1
             dati(n, 1) = Trim(Replace(wsSorgente.cells(i, "E").Value, """", ""))
             dati(n, 2) = Trim(Replace(wsSorgente.cells(i, "F").Value, """", ""))
+            dati(n, 3) = Trim(wsSorgente.cells(i, "O").text)
             
         End If
         
@@ -108,7 +110,8 @@ Public Sub GeneraFileSIAE()
     For i = 1 To UBound(dati, 1)
         contenutoCSV = contenutoCSV & _
                        dati(i, 1) & "," & _
-                       dati(i, 2) & ",,," & vbCrLf
+                       dati(i, 2) & ",,," & _
+                       dati(i, 3) & vbCrLf
     Next i
     
     '-----------------------------
@@ -153,26 +156,32 @@ End Sub
 Private Sub OrdinaArrayPerTitolo(ByRef arr As Variant)
 
     Dim i As Long, j As Long
-    Dim tmpTitolo As String, tmpAutore As String
-    
+    Dim tmpTitolo As String
+    Dim tmpAutore As String
+    Dim tmpDurata As String
+
     For i = LBound(arr, 1) To UBound(arr, 1) - 1
+
         For j = i + 1 To UBound(arr, 1)
-            
+
             If StrComp(arr(i, 1), arr(j, 1), vbTextCompare) > 0 Then
-                
+
                 tmpTitolo = arr(i, 1)
                 tmpAutore = arr(i, 2)
-                
+                tmpDurata = arr(i, 3)
+
                 arr(i, 1) = arr(j, 1)
                 arr(i, 2) = arr(j, 2)
-                
+                arr(i, 3) = arr(j, 3)
+
                 arr(j, 1) = tmpTitolo
                 arr(j, 2) = tmpAutore
-                
+                arr(j, 3) = tmpDurata
+
             End If
-            
+
         Next j
+
     Next i
 
 End Sub
-

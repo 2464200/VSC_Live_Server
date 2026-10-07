@@ -65,7 +65,7 @@ Sub CopiaERifila(criterio As String)
     
     ' Applica il filtro
     With wsLista
-        .Range("$A$7:$G4508").AutoFilter Field:=5, Criteria1:=criterio
+        .Range("$A$7:$G$612").AutoFilter Field:=5, Criteria1:=criterio
     End With
     
     ' MsgBox "Operazione completata con successo!", vbInformation

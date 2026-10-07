@@ -95,7 +95,7 @@ End Sub
 
 Private Sub CommandButton249_Click()
     ' Apre la pagina in finestra isolata (modalità app), una sola scheda/finestra
-    ApriPaginaInChromeSecondoMonitorFullScreen "http://127.0.0.1:5500/servizio.html"
+    ApriPaginaInChromeSecondoMonitorFullScreen "http://127.0.0.1:5500/public/servizio.html"
 End Sub
 
 Private Sub CommandButton239_Click()

@@ -7,7 +7,7 @@ Sub avvia_ricerca_ID()
 '
 
 '
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=3, Criteria1:=Range("$D$9:$D$9"), _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=3, Criteria1:=Range("$D$9:$D$9"), _
         Operator:=xlAnd
     Range("$D$9").Select
     End Sub
@@ -20,7 +20,7 @@ Sub cancella_ricerca_ID()
 
 '
     ActiveSheet.AutoFilterMode = False
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=3
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=3
     Range("$D$9").Select
     Selection.ClearContents
 End Sub

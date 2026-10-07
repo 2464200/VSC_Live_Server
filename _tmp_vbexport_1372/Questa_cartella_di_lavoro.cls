@@ -15,9 +15,9 @@ Private Sub Workbook_Open1()
     ' Avvio automatico all'apertura del file
     On Error GoTo GestioneErrore
     VideoGiaAvviato = False
+    Call CaricaFileVideo
     Call AvviaTimer
     Call VerificaMatch
-    Call CaricaFileVideo
     Call Esporta_ElencoBraniStatico_InCSV
     
     Exit Sub

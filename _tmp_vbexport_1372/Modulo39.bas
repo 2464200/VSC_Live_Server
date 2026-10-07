@@ -44,11 +44,11 @@ Sub NextCoreo()
         ' Scrivi in B1 la coreografia (colonna D)
         wsNext.Range("B1").Value = wsElenco.cells(cellaTrovata.Row, "D").Value
         
-        ' Scrivi in C1 il livello (colonna H)
-        wsNext.Range("C1").Value = wsElenco.cells(cellaTrovata.Row, "H").Value
+        ' Scrivi in C1 il livello (colonna I)
+        wsNext.Range("C1").Value = wsElenco.cells(cellaTrovata.Row, "I").Value
         
-        ' Scrivi in D1 lo script (colonna N)
-        wsNext.Range("D1").Value = wsElenco.cells(cellaTrovata.Row, "N").Value
+        ' Scrivi in D1 lo script (colonna O)
+        wsNext.Range("D1").Value = wsElenco.cells(cellaTrovata.Row, "O").Value
         
         ' Salva il risultato per feedback
         risultato = wsElenco.cells(cellaTrovata.Row, "D").Value

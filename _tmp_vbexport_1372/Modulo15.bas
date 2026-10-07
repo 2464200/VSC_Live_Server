@@ -7,13 +7,13 @@ Attribute studiate.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     ActiveSheet.AutoFilterMode = False
-    ActiveSheet.Range("$A$11:$n$612").AutoFilter Field:=6
-    ActiveSheet.Range("$A$11:$n$612").AutoFilter Field:=7
-    ActiveSheet.Range("$A$11:$n$612").AutoFilter Field:=8
-    ActiveSheet.Range("$A$11:$n$612").AutoFilter Field:=9
-    ActiveSheet.Range("$A$11:$n$612").AutoFilter Field:=10
-    ActiveSheet.Range("$A$11:$n$612").AutoFilter Field:=12
-        ActiveSheet.Range("$A$12:$N$612").AutoFilter Field:=11, Criteria1:="<>", _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=7
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=8
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=9
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=10
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=12
+        ActiveSheet.Range("$A$12:$O$612").AutoFilter Field:=11, Criteria1:="<>", _
     Operator:=xlAnd
 End Sub
 
@@ -25,7 +25,7 @@ Sub coreografo()
     Dim rngOrdinamento As Range
     Set ws = ActiveSheet
     
-    With ws.Range("$A$11:$N$612")
+    With ws.Range("$A$11:$O$612")
         .AutoFilter Field:=6
         .AutoFilter Field:=8
         .AutoFilter Field:=9
@@ -36,7 +36,7 @@ Sub coreografo()
     End With
     
     ' Imposta l'intervallo di dati da ordinare
-    Set rngOrdinamento = ws.Range("$A$12:$N$612")
+    Set rngOrdinamento = ws.Range("$A$12:$O$612")
     
     ' Ordina l'intervallo basato sulla colonna L
     rngOrdinamento.Sort Key1:=ws.Range("$L$12"), Order1:=xlAscending, header:=xlNo

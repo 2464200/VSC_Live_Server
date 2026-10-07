@@ -1,14 +1,14 @@
 Attribute VB_Name = "Modulo17"
 Option Explicit
 
-' Filtra solo la colonna G (Field 7) nel range fisso A11:N612
+' Filtra solo la colonna G (Field 7) nel range fisso A11:O612
 Public Sub Request()
 
     Dim ws As Worksheet
     Dim dataRange As Range
 
     Set ws = ThisWorkbook.Worksheets("borderò")
-    Set dataRange = ws.Range("A11:N612")
+    Set dataRange = ws.Range("A11:O612")
 
     ' Rimuove eventuali filtri esistenti
     If ws.AutoFilterMode Then

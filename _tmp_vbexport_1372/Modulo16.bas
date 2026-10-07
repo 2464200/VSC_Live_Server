@@ -7,13 +7,13 @@ Attribute filtra_base.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=6
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=9
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=10
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=11
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=7
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=12
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=8, Criteria1:="BASE"
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=9
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=10
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=11
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=7
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=12
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=8, Criteria1:="BASE"
 End Sub
 Sub filtra_avanzato()
 Attribute filtra_avanzato.VB_ProcData.VB_Invoke_Func = " \n14"
@@ -23,13 +23,13 @@ Attribute filtra_avanzato.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=6
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=9
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=10
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=11
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=7
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=12
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=9
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=10
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=11
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=7
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=12
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=8, Criteria1:= _
         "=AVANZATO 1", Operator:=xlOr, Criteria2:="=AVANZATO 2"
 End Sub
 Sub filtra_intermedio()
@@ -40,13 +40,13 @@ Attribute filtra_intermedio.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=6
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=9
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=10
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=11
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=7
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=12
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=9
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=10
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=11
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=7
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=12
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=8, Criteria1:= _
         "INTERMEDIO"
 End Sub
 Sub filtra_superavanzato()
@@ -84,13 +84,13 @@ Sub filtra_gold()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=6
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=9
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=10
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=11
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=7
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=12
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=9
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=10
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=11
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=7
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=12
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=8, Criteria1:= _
         "GOLD"
 End Sub
 Sub filtra_altrecoreo()
@@ -100,13 +100,13 @@ Sub filtra_altrecoreo()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=6
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=9
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=10
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=11
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=7
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=12
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=8, Criteria1:= _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=9
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=10
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=11
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=7
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=12
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=8, Criteria1:= _
         "ALTRE COREO"
 End Sub
 Sub filtra_request()
@@ -116,12 +116,12 @@ Sub filtra_request()
 
 '
     Call cancella_filtro
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=6
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=8
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=9
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=10
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=11
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=12
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=7, Criteria1:= _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=8
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=9
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=10
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=11
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=12
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=7, Criteria1:= _
         "<>"
 End Sub

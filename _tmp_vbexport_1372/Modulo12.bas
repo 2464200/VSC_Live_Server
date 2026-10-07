@@ -23,16 +23,16 @@ Attribute pulisci_foglio.VB_ProcData.VB_Invoke_Func = " \n14"
     Selection.End(xlUp).Select
     ActiveWindow.SmallScroll Down:=-6
     Selection.ClearContents
-    Range("$A$11:$N$11").Select
+    Range("$A$11:$O$11").Select
     Range(Selection, Selection.End(xlDown)).Select
     Range(Selection, Selection.End(xlUp)).Select
-    Range("$A12:$N$612").Select
+    Range("$A12:$O$612").Select
     ActiveWorkbook.Worksheets("borderò").Sort.SortFields.Clear
     ActiveWorkbook.Worksheets("borderò").Sort.SortFields.Add2 Key:=Range( _
         "$C$12:$C$612"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
         xlSortNormal
     With ActiveWorkbook.Worksheets("borderò").Sort
-        .SetRange Range("$A$12:$N$612")
+        .SetRange Range("$A$12:$O$612")
         .header = xlGuess
         .MatchCase = False
         .Orientation = xlTopToBottom

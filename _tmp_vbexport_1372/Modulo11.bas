@@ -6,7 +6,7 @@ Attribute avvia_ricerca.VB_ProcData.VB_Invoke_Func = " \n14"
 '
 
 '
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=4, Criteria1:=Range("$d$7:$d$7"), _
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=4, Criteria1:=Range("$d$7:$d$7"), _
         Operator:=xlAnd
     Range("$d$7").Select
 End Sub
@@ -18,7 +18,7 @@ Attribute cancella_ricerca.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     ActiveSheet.AutoFilterMode = False
-    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=4
+    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=4
     Range("$D$7").Select
     Selection.ClearContents
 End Sub

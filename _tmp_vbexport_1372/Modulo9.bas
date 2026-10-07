@@ -50,7 +50,7 @@ End Sub
 '        .SortMethod = xlPinYin
 '        .Apply
 '    End With
-'    ActiveSheet.Range("$A$11:$N$612").AutoFilter Field:=6, Criteria1:="<>"
+'    ActiveSheet.Range("$A$11:$O$612").AutoFilter Field:=6, Criteria1:="<>"
 'End Sub
 
 
