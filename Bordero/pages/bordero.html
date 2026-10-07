@@ -11,7 +11,7 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css?v=20261007-6" />
+  <link rel="stylesheet" href="bordero.css?v=20261007-13" />
   
   <!-- XLSX Library locale per lettura file Excel -->
   <script src="../assets/lib/xlsx.min.js"></script>
@@ -38,7 +38,7 @@
   <script defer src="../js/firebase-cloud-client.js?v=20261005-5"></script>
   <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
   <script defer src="../js/video-only-brani.js"></script>
-  <script defer src="bordero.js?v=20261007-1"></script>
+  <script defer src="bordero.js?v=20261007-2"></script>
 </head>
 
 <body>
@@ -212,6 +212,30 @@
               START WEBCAM
             </button>
           </div>
+        </div>
+        <div class="stat-badge stat-action toolbar-page-card" role="group" aria-label="Apri una pagina Borderò">
+          <label class="stat-label" for="bordero-page-select">Apri pagina:</label>
+          <select id="bordero-page-select" class="select-input toolbar-page-select">
+            <option value="">Seleziona...</option>
+            <option value="bordero.html">Borderò (Principale)</option>
+            <option value="display.html">Display (Monitor 2)</option>
+            <option value="next-coreo.html">NextCoreo</option>
+            <option value="videoclip.html">Video Player</option>
+            <option value="../../USERFORM/index.html">USERFORM</option>
+            <option value="dj-preselezione.html">Preselezione DJ</option>
+            <option value="lista-serata.html">Lista Serata</option>
+            <option value="brani-eseguiti.html">Brani Eseguiti</option>
+            <option value="brani-nascosti.html">Brani Nascosti</option>
+            <option value="location.html">Location</option>
+            <option value="risultati.html">Risultati</option>
+            <option value="bordero-presentazione.html">Presentazione Borderò</option>
+            <option value="admin.html">⚙️ Admin</option>
+            <option value="/eventi/eventi.html">Eventi DJ SET</option>
+            <option value="/vdj/test-vdj.html">Test VirtualDJ</option>
+            <option value="/LedDisplay.html">LedDisplay</option>
+            <option value="/diagnostica.html">Diagnostica</option>
+            <option value="coreografie-stampa.html">Stampa Coreografie</option>
+          </select>
         </div>
       </div>
 

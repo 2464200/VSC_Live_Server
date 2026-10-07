@@ -762,6 +762,10 @@ class BorderoTableManager {
     this.setupMusicMatchModal();
     this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
     this.setupVirtualDjConsolePolling();
+    document.getElementById('bordero-page-select')?.addEventListener('change', (event) => {
+      const destination = event.currentTarget.value;
+      if (destination) window.location.assign(destination);
+    });
 
     // Sort buttons (esclusivi)
     this.bindSortButton('btn-sort-id', 'id', 'ID');

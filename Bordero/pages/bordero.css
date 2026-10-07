@@ -229,8 +229,11 @@
 }
 
 .toolbar-section > .stat-action {
-  align-self: flex-start;
+  align-self: stretch;
   width: 100%;
+  min-width: 0;
+  border-top: 1px solid rgba(255, 127, 0, 0.45);
+  border-bottom: 1px solid rgba(255, 127, 0, 0.45);
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
@@ -241,6 +244,19 @@
 .toolbar-section > .stat-action .stat-label {
   color: #ffb347;
   font-size: 0.68em;
+  font-weight: 700;
+}
+
+.toolbar-section > .toolbar-page-card {
+  transform: translateY(9px);
+}
+
+.toolbar-page-select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 6px 8px;
+  font-size: 0.78em;
   font-weight: 700;
 }
 
@@ -791,7 +807,8 @@
 }
 
 #btn-reset-filters-stats {
-  height: 40px;
+  height: 38px;
+  min-width: 0;
   padding: 8px 14px;
   font-size: 0.84em;
   line-height: 1;
@@ -1505,8 +1522,17 @@
   }
 
   .toolbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 15px;
+  }
+
+  .toolbar-section {
+    min-width: 0;
+  }
+
+  .toolbar-section > .stat-action,
+  .toolbar-page-card {
+    transform: none;
   }
 
   .search-actions-row {
