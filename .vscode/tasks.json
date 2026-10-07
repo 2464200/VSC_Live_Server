@@ -81,14 +81,10 @@
     },
     {
       "label": "avviodaniele",
-      "type": "shell",
-      "command": "powershell",
+      "type": "process",
+      "command": "node",
       "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-Command",
-        "$ErrorActionPreference = 'Stop'; if (-not (Test-Path '${workspaceFolder}\\node_modules\\firebase-admin\\app')) { Write-Host 'Dipendenze mancanti: eseguo npm install...'; npm install }; & '${workspaceFolder}\\startup-retry.ps1' -NoWait"
+        "${workspaceFolder}${pathSeparator}scripts${pathSeparator}start-daniele.js"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -96,7 +92,7 @@
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
-        "focus": true,
+        "focus": false,
         "clear": false,
         "showReuseMessage": false
       },
