@@ -23,7 +23,7 @@
             <span class="breadcrumb-current">SCALETTA</span>
           </nav>
         </div>
-        <p class="subtitle">Ogni ciclo segue l’ordine dei livelli: BASE, INTERMEDIO, AVANZATO 1, AVANZATO 2 e poi gli altri livelli richiesti.</p>
+        <p class="subtitle">Ogni ciclo segue l’ordine dei livelli richiesti; il generatore evita di ripetere una coreografia nella stessa serata quando sono disponibili alternative compatibili.</p>
       </div>
       <nav class="top-actions" aria-label="Azioni principali">
         <a class="btn btn-secondary" href="../../Bordero/pages/bordero.html">BORDERO</a>
@@ -58,6 +58,18 @@
           <label class="setlist-level-field" for="setlist-count-super-12"><span>SUPER AVANZATO 1+2</span><input id="setlist-count-super-12" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
           <label class="setlist-level-field" for="setlist-count-super-3"><span>SUPER AVANZATO 3</span><input id="setlist-count-super-3" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
           <label class="setlist-level-field" for="setlist-count-altre-coreo"><span>ALTRE COREO</span><input id="setlist-count-altre-coreo" class="field-input" type="number" min="0" max="999" step="1" value="0" inputmode="numeric" /></label>
+        </fieldset>
+
+        <fieldset class="setlist-advanced">
+          <legend>Avanzate</legend>
+          <div class="setlist-info-filter-mode" role="radiogroup" aria-label="Modalità filtro categorie">
+            <label><input type="radio" name="setlist-info-filter-mode" value="all" checked /> Tutte le categorie</label>
+            <label><input type="radio" name="setlist-info-filter-mode" value="include" /> Includi selezionate</label>
+            <label><input type="radio" name="setlist-info-filter-mode" value="exclude" /> Escludi selezionate</label>
+          </div>
+          <div id="setlist-info-options" class="setlist-info-options" aria-live="polite">
+            <span class="setlist-info-empty">Caricamento categorie dal catalogo...</span>
+          </div>
         </fieldset>
 
         <div class="control-toolbar setlist-actions">

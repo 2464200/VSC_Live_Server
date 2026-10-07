@@ -6,6 +6,7 @@
   const generateButton = document.getElementById('btn-generate-setlist');
   const newButton = document.getElementById('btn-new-setlist');
   const saveButton = document.getElementById('btn-save-setlist');
+  const infoOptionsNode = document.getElementById('setlist-info-options');
   const fileFields = {
     dj: document.getElementById('setlist-dj-name'),
     date: document.getElementById('setlist-event-date'),
@@ -33,6 +34,7 @@
   let setlist = [];
   let lastResult = null;
   let lastAvailableSeconds = 0;
+  let pendingInfoFilter = null;
   const STORAGE_KEY = 'userform_scaletta_state';
   window.SCALETTA_SETLIST = setlist;
 
@@ -41,6 +43,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         time: document.getElementById('setlist-available-time').value,
         counts: Object.fromEntries([...levelInputs].map(([key, input]) => [key, input.value])),
+        infoFilter: getInfoFilter(),
         dj: fileFields.dj.value,
         date: fileFields.date.value,
         event: fileFields.event.value,
@@ -55,6 +58,7 @@
   function restoreState() {
     const state = readStoredValue(STORAGE_KEY);
     if (!state || typeof state !== 'object') return;
+    pendingInfoFilter = state.infoFilter && typeof state.infoFilter === 'object' ? state.infoFilter : null;
     if (typeof state.time === 'string') document.getElementById('setlist-available-time').value = state.time;
     levelInputs.forEach((input, key) => {
       if (state.counts && state.counts[key] !== undefined) input.value = String(state.counts[key]);
@@ -86,6 +90,60 @@
       key,
       input.value.trim() === '' ? NaN : Number(input.value)
     ]));
+  }
+
+  function getInfoFilter() {
+    const mode = document.querySelector('input[name="setlist-info-filter-mode"]:checked')?.value || 'all';
+    const tags = [...infoOptionsNode.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value);
+    return { mode, tags };
+  }
+
+  function setInfoFilterMode(mode) {
+    document.querySelectorAll('#setlist-info-options input[type="checkbox"]').forEach((input) => {
+      input.disabled = mode === 'all';
+    });
+  }
+
+  function displayInfoTag(tag) {
+    const labels = {
+      CERCHIO: 'Balli in cerchio',
+      CONTRA: 'Contra-dance',
+      COPPIA: 'Balli di coppia',
+      NATALIZIA: 'Natalizia / Natale'
+    };
+    return labels[generator.normalizeText(tag)] || tag;
+  }
+
+  function renderInfoOptions(options) {
+    const savedMode = ['include', 'exclude'].includes(pendingInfoFilter?.mode) ? pendingInfoFilter.mode : 'all';
+    const savedTags = new Set((pendingInfoFilter?.tags || []).map(generator.normalizeText));
+    const selectedMode = document.querySelector(`input[name="setlist-info-filter-mode"][value="${savedMode}"]`);
+    if (selectedMode) selectedMode.checked = true;
+    infoOptionsNode.replaceChildren();
+
+    if (!options.length) {
+      const empty = document.createElement('span');
+      empty.className = 'setlist-info-empty';
+      empty.textContent = 'Nessuna categoria informativa disponibile.';
+      infoOptionsNode.appendChild(empty);
+      setInfoFilterMode(savedMode);
+      return;
+    }
+
+    options.forEach((tag) => {
+      const label = document.createElement('label');
+      label.className = 'setlist-info-option';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = tag;
+      checkbox.checked = savedTags.has(generator.normalizeText(tag));
+      checkbox.disabled = savedMode === 'all';
+      checkbox.addEventListener('change', persistState);
+      const text = document.createElement('span');
+      text.textContent = displayInfoTag(tag);
+      label.append(checkbox, text);
+      infoOptionsNode.appendChild(label);
+    });
   }
 
   function appendCell(row, value) {
@@ -215,7 +273,7 @@
     }
 
     const availableSeconds = generator.parseEventTime(document.getElementById('setlist-available-time').value);
-    const result = generator.generateSetlist({ catalog, counts: getCounts(), durationSeconds: availableSeconds });
+    const result = generator.generateSetlist({ catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter: getInfoFilter() });
     if (result.errors.length) {
       setStatus(result.errors.join('\n'), 'error');
       return;
@@ -230,6 +288,9 @@
   function clearSetlist() {
     document.getElementById('setlist-available-time').value = '';
     levelInputs.forEach((input) => { input.value = '0'; });
+    document.querySelector('input[name="setlist-info-filter-mode"][value="all"]').checked = true;
+    document.querySelectorAll('#setlist-info-options input[type="checkbox"]').forEach((input) => { input.checked = false; });
+    setInfoFilterMode('all');
     fileFields.dj.value = '';
     fileFields.date.value = '';
     fileFields.event.value = '';
@@ -264,6 +325,7 @@
       const csv = await response.text();
       catalog = generator.buildCatalog(csv);
       if (!catalog.stats.sourceRows) throw new Error('Il catalogo non contiene righe leggibili.');
+      renderInfoOptions(catalog.infoOptions);
       generateButton.disabled = false;
       setStatus(`Catalogo Borderò caricato: ${catalog.stats.sourceRows} righe, ${catalog.tracks.length} brani nei livelli richiesti.`);
     } catch (error) {
@@ -276,6 +338,12 @@
   newButton?.addEventListener('click', generate);
   saveButton?.addEventListener('click', saveSetlistForPreselection);
   document.getElementById('btn-clear-setlist')?.addEventListener('click', clearSetlist);
+  document.querySelectorAll('input[name="setlist-info-filter-mode"]').forEach((input) => {
+    input.addEventListener('change', () => {
+      setInfoFilterMode(input.value);
+      persistState();
+    });
+  });
   Object.values(fileFields).filter((field) => field !== fileFields.preview).forEach((field) => {
     field.addEventListener('input', () => { updateFileNamePreview(); persistState(); });
     field.addEventListener('change', () => { updateFileNamePreview(); persistState(); });

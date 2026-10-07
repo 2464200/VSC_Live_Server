@@ -121,17 +121,21 @@ test('TEST 3: genera solo i livelli avanzati richiesti', () => {
   assert.equal(result.levelCounts.BASE, 0);
 });
 
-test('TEST 4: non sostituisce un livello senza brani con un altro livello', () => {
+test('TEST 4: passa al livello successivo quando il livello richiesto non ha brani compatibili', () => {
   const catalog = generator.buildCatalog([track('i1', 'INTERMEDIO', '03:00')]);
-  const result = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 3600 });
-  assert.match(result.errors.join(' '), /Brani BASE insufficienti: richiesti 1, disponibili 0/);
-  assert.equal(result.tracks.length, 0);
+  const result = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 180 });
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.tracks.length, 1);
+  assert.equal(result.tracks[0].level, 'INTERMEDIO');
+  assert.ok(result.warnings.some((warning) => warning.includes('BASE -> INTERMEDIO')));
 });
 
-test('TEST 5: segnala la quantita superiore ai brani disponibili', () => {
-  const catalog = generator.buildCatalog([track('b1', 'BASE', '03:00'), track('b2', 'BASE', '04:00')]);
-  const result = generator.generateSetlist({ catalog, counts: counts(3), durationSeconds: 3600 });
-  assert.match(result.errors.join(' '), /Brani BASE insufficienti: richiesti 3, disponibili 2/);
+test('TEST 5: usa i brani disponibili e avvisa se la quota resta incompleta', () => {
+  const catalog = generator.buildCatalog([track('b1', 'BASE', 60), track('b2', 'BASE', 70)]);
+  const result = generator.generateSetlist({ catalog, counts: counts(3), durationSeconds: 130 });
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.tracks.length, 2);
+  assert.ok(result.warnings.some((warning) => warning.includes('BASE: 2/3')));
 });
 
 test('TEST 6: seleziona una combinazione di durate differenti che raggiunge il limite', () => {
@@ -186,8 +190,10 @@ test('TEST 10: tratta i tre cataloghi aggiuntivi come categorie indipendenti', (
   assert.equal(result.levelCounts.SUPERAVANZATO_3, 2);
   assert.equal(result.levelCounts.ALTRE_COREO, 2);
 
-  const shortage = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 3), durationSeconds: 7200 });
-  assert.match(shortage.errors.join(' '), /Brani SUPER AVANZATO 1\+2 insufficienti: richiesti 3, disponibili 2/);
+  const shortage = generator.generateSetlist({ catalog, counts: counts(0, 0, 0, 0, 3), durationSeconds: 360 });
+  assert.deepEqual(shortage.errors, []);
+  assert.deepEqual(shortage.tracks.map((item) => item.level), ['SUPERAVANZATO_1_2', 'SUPERAVANZATO_1_2', 'SUPERAVANZATO_3']);
+  assert.ok(shortage.warnings.some((warning) => warning.includes('SUPER AVANZATO 1+2 -> SUPER AVANZATO 3')));
 });
 
 test('TEST 10b: nessun duplicato finche esistono brani non ancora usati', () => {
@@ -205,6 +211,70 @@ test('TEST 10c: a catalogo esaurito ripete brani solo per riempire il tempo', ()
   assert.ok(ids.length > 2);
   assert.ok(['e1', 'e2'].every((id) => ids.includes(id)));
   assert.ok(result.warnings.some((warning) => warning.includes('ripetuti')));
+});
+
+test('SCALETTA: evita coreografie gia selezionate e segnala le ripetizioni inevitabili', () => {
+  const catalog = generator.buildCatalog([
+    { ...track('same-1', 'BASE', 60), coreografia: 'La stessa' },
+    { ...track('same-2', 'BASE', 60), coreografia: 'la STESSA' },
+    { ...track('different', 'BASE', 60), coreografia: 'Un altra' }
+  ]);
+  const result = generator.generateSetlist({
+    catalog,
+    counts: counts(1),
+    durationSeconds: 120,
+    random: () => 0,
+    attempts: 1
+  });
+
+  assert.equal(new Set(result.tracks.map((item) => item.coreografia.toUpperCase())).size, result.tracks.length);
+  assert.equal(result.warnings.some((warning) => warning.includes('Coreografie ripetute')), false);
+
+  const onlyOneChoreography = generator.buildCatalog([
+    { ...track('only-1', 'BASE', 60), coreografia: 'La stessa' },
+    { ...track('only-2', 'BASE', 60), coreografia: 'LA STESSA' }
+  ]);
+  const repeated = generator.generateSetlist({
+    catalog: onlyOneChoreography,
+    counts: counts(1),
+    durationSeconds: 120,
+    random: () => 0,
+    attempts: 1
+  });
+  assert.equal(repeated.tracks.length, 2);
+  assert.ok(repeated.warnings.some((warning) => warning.includes('Coreografie ripetute: 1')));
+});
+
+test('SCALETTA: include o esclude i tag informativi selezionati', () => {
+  const catalog = generator.buildCatalog([
+    { ...track('tag-couple', 'BASE', 60), 'info coreo 1': 'COPPIA', 'info coreo 2': 'NATALIZIA' },
+    { ...track('tag-circle', 'BASE', 60), 'info coreo 1': 'CERCHIO', 'info coreo 2': '' },
+    { ...track('tag-none', 'BASE', 60), 'info coreo 1': '', 'info coreo 2': '' }
+  ]);
+
+  assert.deepEqual(catalog.infoOptions, ['CERCHIO', 'COPPIA', 'NATALIZIA']);
+  const included = generator.filterCatalogByInfo(catalog, { mode: 'include', tags: ['COPPIA', 'NATALIZIA'] });
+  assert.deepEqual(included.tracks.map((item) => item.id), ['tag-couple']);
+  const excluded = generator.filterCatalogByInfo(catalog, { mode: 'exclude', tags: ['CERCHIO'] });
+  assert.deepEqual(excluded.tracks.map((item) => item.id), ['tag-couple', 'tag-none']);
+
+  const fallbackCatalog = generator.buildCatalog([
+    { ...track('fallback-intermedio', 'INTERMEDIO', 60), 'info coreo 1': 'COPPIA' },
+    { ...track('fallback-advanced', 'AVANZATO 1', 60), 'info coreo 1': 'COPPIA' },
+    { ...track('filtered-out', 'BASE', 60), 'info coreo 1': 'HALLOWEEN' }
+  ]);
+  const fallback = generator.generateSetlist({
+    catalog: fallbackCatalog,
+    counts: counts(2),
+    durationSeconds: 120,
+    infoFilter: { mode: 'include', tags: ['COPPIA'] },
+    random: () => 0,
+    attempts: 1
+  });
+  assert.deepEqual(fallback.errors, []);
+  assert.deepEqual(fallback.tracks.map((item) => item.id), ['fallback-intermedio', 'fallback-advanced']);
+  assert.deepEqual(fallback.tracks.map((item) => item.level), ['INTERMEDIO', 'AVANZATO_1']);
+  assert.ok(fallback.tracks.every((item) => item.infoTags.includes('COPPIA')));
 });
 
 test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e pulisce i dati', async () => {
@@ -244,6 +314,42 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(window.document.getElementById('btn-generate-setlist').disabled, false);
+  const catalogInfoOptions = generator.buildCatalog(csv).infoOptions;
+  const infoCheckboxes = [...window.document.querySelectorAll('#setlist-info-options input[type="checkbox"]')];
+  assert.deepEqual(infoCheckboxes.map((input) => input.value), catalogInfoOptions);
+  const selectedTag = catalogInfoOptions[0];
+  const selectedCheckbox = infoCheckboxes.find((input) => input.value === selectedTag);
+  const selectedTrack = generator.buildCatalog(csv).tracks.find((item) => item.infoTags.includes(selectedTag));
+  const inputByLevel = {
+    BASE: 'setlist-count-base',
+    INTERMEDIO: 'setlist-count-intermedio',
+    AVANZATO_1: 'setlist-count-avanzato-1',
+    AVANZATO_2: 'setlist-count-avanzato-2',
+    SUPERAVANZATO_1_2: 'setlist-count-super-12',
+    SUPERAVANZATO_3: 'setlist-count-super-3',
+    ALTRE_COREO: 'setlist-count-altre-coreo'
+  };
+  Object.values(inputByLevel).forEach((id) => { window.document.getElementById(id).value = '0'; });
+  window.document.getElementById(inputByLevel[selectedTrack.levels[0]]).value = '1';
+  window.document.getElementById('setlist-available-time').value = '03:00';
+  const includeMode = window.document.querySelector('input[name="setlist-info-filter-mode"][value="include"]');
+  includeMode.checked = true;
+  includeMode.dispatchEvent(new window.Event('change'));
+  selectedCheckbox.checked = true;
+  selectedCheckbox.dispatchEvent(new window.Event('change'));
+  window.document.getElementById('btn-generate-setlist').click();
+  assert.ok(window.SCALETTA_SETLIST.length > 0);
+  assert.ok(window.SCALETTA_SETLIST.every((item) => item.infoTags.includes(selectedTag)));
+  assert.deepEqual(JSON.parse(window.localStorage.getItem('userform_scaletta_state')).infoFilter, {
+    mode: 'include',
+    tags: [selectedTag]
+  });
+
+  const allMode = window.document.querySelector('input[name="setlist-info-filter-mode"][value="all"]');
+  allMode.checked = true;
+  allMode.dispatchEvent(new window.Event('change'));
+  selectedCheckbox.checked = false;
+  selectedCheckbox.dispatchEvent(new window.Event('change'));
   for (const id of [
     'setlist-count-base',
     'setlist-count-intermedio',
