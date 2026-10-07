@@ -858,21 +858,116 @@ body.fit-video-frame .page-shell.scaletta-shell > .scaletta-navigation { grid-ar
   gap: 6px;
 }
 
-.setlist-info-filter-mode input,
-.setlist-info-option input {
+.setlist-info-filter-mode input {
   accent-color: var(--brand);
 }
 
 .setlist-info-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 5px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.setlist-info-option {
+  position: relative;
+  display: flex;
+  flex: 1 1 185px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: min(100%, 185px);
+  min-height: 34px;
+  padding: 5px 8px 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--bg-soft);
   color: #ddd;
   font-size: 0.76rem;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.setlist-info-option > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+
+.setlist-info-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.setlist-info-switch {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 58px;
+  align-items: center;
+  width: 58px;
+  height: 24px;
+  border-radius: 999px;
+  background: #595959;
+  transition: background-color 140ms ease;
+}
+
+.setlist-info-switch::before {
+  position: absolute;
+  right: 5px;
+  color: #fff;
+  content: 'OFF';
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
+.setlist-info-switch::after {
+  position: absolute;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  content: '';
+  transition: transform 140ms ease;
+}
+
+.setlist-info-option:has(input:checked) {
+  border-color: #438c5b;
+  background: #202923;
+}
+
+.setlist-info-option:has(input:checked) .setlist-info-switch {
+  background: #318653;
+}
+
+.setlist-info-option:has(input:checked) .setlist-info-switch::before {
+  right: auto;
+  left: 7px;
+  content: 'ON';
+}
+
+.setlist-info-option:has(input:checked) .setlist-info-switch::after {
+  transform: translateX(34px);
+}
+
+.setlist-info-option:has(input:focus-visible) {
+  outline: 2px solid var(--brand-dark);
+  outline-offset: 2px;
+}
+
+.setlist-info-option:not(:has(input:disabled)):hover {
+  border-color: var(--brand);
 }
 
 .setlist-info-option:has(input:disabled) {
   color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .setlist-info-empty {

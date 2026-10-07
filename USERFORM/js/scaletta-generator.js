@@ -241,7 +241,7 @@
   function filterCatalogByInfo(catalog, filter = {}) {
     const mode = ['include', 'exclude'].includes(filter.mode) ? filter.mode : 'all';
     const selected = new Set((Array.isArray(filter.tags) ? filter.tags : []).map(normalizeText).filter(Boolean));
-    if (mode === 'all' || !selected.size) return catalog;
+    if (mode === 'all' || (mode === 'exclude' && !selected.size)) return catalog;
 
     const tracks = catalog.tracks.filter((track) => {
       const matches = track.infoTags.some((tag) => selected.has(normalizeText(tag)));

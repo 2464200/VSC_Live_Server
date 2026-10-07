@@ -1671,6 +1671,11 @@ class AdminPanel {
           ? `${result.summary.successCount}/${result.summary.totalSheets} fogli sincronizzati`
           : (result.message || 'sincronizzazione completata');
 
+        try {
+          localStorage.setItem('bordero-google-sync-completed', result?.summary?.syncedAt || new Date().toISOString());
+        } catch {
+          // SCALETTA verifica comunque periodicamente il CSV aggiornato.
+        }
         updateStatus();
         this.log(`✓ Sync Google Sheets completato: ${successMessage}`, 'success');
         this.addSyncLog(`Sync Google Sheets completato: ${successMessage}`, 'success');

@@ -7,6 +7,9 @@
   const newButton = document.getElementById('btn-new-setlist');
   const saveButton = document.getElementById('btn-save-setlist');
   const infoOptionsNode = document.getElementById('setlist-info-options');
+  const INCLUDE_FILTER_WARNING = 'Con “Includi selezionate” attivare almeno una categoria oppure scegliere “Tutte le categorie”.';
+  const GOOGLE_SYNC_STORAGE_KEY = 'bordero-google-sync-completed';
+  const CATALOG_REFRESH_INTERVAL_MS = 30_000;
   const fileFields = {
     dj: document.getElementById('setlist-dj-name'),
     date: document.getElementById('setlist-event-date'),
@@ -35,6 +38,8 @@
   let lastResult = null;
   let lastAvailableSeconds = 0;
   let pendingInfoFilter = null;
+  let catalogCsv = null;
+  let catalogLoadPromise = null;
   const STORAGE_KEY = 'userform_scaletta_state';
   window.SCALETTA_SETLIST = setlist;
 
@@ -83,6 +88,12 @@
       paragraph.textContent = line;
       statusNode.appendChild(paragraph);
     });
+  }
+
+  function clearIncludeFilterWarning() {
+    if (statusNode?.dataset.kind === 'warning' && statusNode.textContent === INCLUDE_FILTER_WARNING) {
+      setStatus('');
+    }
   }
 
   function getCounts() {
@@ -138,10 +149,16 @@
       checkbox.value = tag;
       checkbox.checked = savedTags.has(generator.normalizeText(tag));
       checkbox.disabled = savedMode === 'all';
-      checkbox.addEventListener('change', persistState);
+      checkbox.addEventListener('change', () => {
+        clearIncludeFilterWarning();
+        persistState();
+      });
       const text = document.createElement('span');
       text.textContent = displayInfoTag(tag);
-      label.append(checkbox, text);
+      const toggle = document.createElement('span');
+      toggle.className = 'setlist-info-switch';
+      toggle.setAttribute('aria-hidden', 'true');
+      label.append(checkbox, text, toggle);
       infoOptionsNode.appendChild(label);
     });
   }
@@ -273,7 +290,13 @@
     }
 
     const availableSeconds = generator.parseEventTime(document.getElementById('setlist-available-time').value);
-    const result = generator.generateSetlist({ catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter: getInfoFilter() });
+    const infoFilter = getInfoFilter();
+    if (infoFilter.mode === 'include' && !infoFilter.tags.length) {
+      setStatus(INCLUDE_FILTER_WARNING, 'warning');
+      return;
+    }
+
+    const result = generator.generateSetlist({ catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter });
     if (result.errors.length) {
       setStatus(result.errors.join('\n'), 'error');
       return;
@@ -318,21 +341,59 @@
     setStatus('Parametri e risultato puliti.');
   }
 
-  async function loadCatalog() {
+  async function loadCatalog({ silent = false } = {}) {
+    if (catalogLoadPromise) return catalogLoadPromise;
+
+    catalogLoadPromise = (async () => {
+      try {
+        const response = await fetch(`../../Bordero/data/brani.csv?t=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Risposta HTTP ${response.status}`);
+        const csv = await response.text();
+        if (catalogCsv !== null && csv === catalogCsv) return false;
+
+        const previousCsv = catalogCsv;
+        const updatedCatalog = generator.buildCatalog(csv);
+        if (!updatedCatalog.stats.sourceRows) throw new Error('Il catalogo non contiene righe leggibili.');
+        if (previousCsv !== null) pendingInfoFilter = getInfoFilter();
+
+        catalog = updatedCatalog;
+        catalogCsv = csv;
+        renderInfoOptions(catalog.infoOptions);
+        pendingInfoFilter = null;
+        generateButton.disabled = false;
+        if (previousCsv === null) {
+          setStatus(`Catalogo Borderò caricato: ${catalog.stats.sourceRows} righe, ${catalog.tracks.length} brani nei livelli richiesti.`);
+        } else {
+          persistState();
+          setStatus(`Catalogo aggiornato da Google: ${catalog.stats.sourceRows} righe, ${catalog.tracks.length} brani. Opzioni Avanzate aggiornate.`, 'success');
+        }
+        return previousCsv !== null;
+      } catch (error) {
+        if (!silent || !catalog) {
+          setStatus(`Errore nel caricamento del catalogo Borderò: ${error.message}`, 'error');
+        }
+        return false;
+      }
+    })();
+
     try {
-      const response = await fetch(`../../Bordero/data/brani.csv?t=${Date.now()}`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Risposta HTTP ${response.status}`);
-      const csv = await response.text();
-      catalog = generator.buildCatalog(csv);
-      if (!catalog.stats.sourceRows) throw new Error('Il catalogo non contiene righe leggibili.');
-      renderInfoOptions(catalog.infoOptions);
-      generateButton.disabled = false;
-      setStatus(`Catalogo Borderò caricato: ${catalog.stats.sourceRows} righe, ${catalog.tracks.length} brani nei livelli richiesti.`);
-    } catch (error) {
-      catalog = null;
-      setStatus(`Errore nel caricamento del catalogo Borderò: ${error.message}`, 'error');
+      return await catalogLoadPromise;
+    } finally {
+      catalogLoadPromise = null;
     }
   }
+
+  function refreshCatalogIfVisible() {
+    if (document.visibilityState === 'hidden') return Promise.resolve(false);
+    return loadCatalog({ silent: true });
+  }
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === GOOGLE_SYNC_STORAGE_KEY) void loadCatalog({ silent: true });
+  });
+  window.addEventListener('focus', () => { void refreshCatalogIfVisible(); });
+  document.addEventListener('visibilitychange', () => { void refreshCatalogIfVisible(); });
+  window.setInterval(() => refreshCatalogIfVisible(), CATALOG_REFRESH_INTERVAL_MS);
 
   generateButton?.addEventListener('click', generate);
   newButton?.addEventListener('click', generate);
@@ -341,6 +402,7 @@
   document.querySelectorAll('input[name="setlist-info-filter-mode"]').forEach((input) => {
     input.addEventListener('change', () => {
       setInfoFilterMode(input.value);
+      clearIncludeFilterWarning();
       persistState();
     });
   });
@@ -353,5 +415,5 @@
   });
   initializeFileMetadata();
   restoreState();
-  loadCatalog();
+  void loadCatalog();
 })();

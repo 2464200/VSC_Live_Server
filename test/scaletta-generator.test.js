@@ -255,8 +255,12 @@ test('SCALETTA: include o esclude i tag informativi selezionati', () => {
   assert.deepEqual(catalog.infoOptions, ['CERCHIO', 'COPPIA', 'NATALIZIA']);
   const included = generator.filterCatalogByInfo(catalog, { mode: 'include', tags: ['COPPIA', 'NATALIZIA'] });
   assert.deepEqual(included.tracks.map((item) => item.id), ['tag-couple']);
+  const includedNone = generator.filterCatalogByInfo(catalog, { mode: 'include', tags: [] });
+  assert.deepEqual(includedNone.tracks, []);
   const excluded = generator.filterCatalogByInfo(catalog, { mode: 'exclude', tags: ['CERCHIO'] });
   assert.deepEqual(excluded.tracks.map((item) => item.id), ['tag-couple', 'tag-none']);
+  const excludedNone = generator.filterCatalogByInfo(catalog, { mode: 'exclude', tags: [] });
+  assert.deepEqual(excludedNone.tracks.map((item) => item.id), ['tag-couple', 'tag-circle', 'tag-none']);
 
   const fallbackCatalog = generator.buildCatalog([
     { ...track('fallback-intermedio', 'INTERMEDIO', 60), 'info coreo 1': 'COPPIA' },
@@ -285,12 +289,18 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
   });
   const { window } = dom;
   let savedPayload = null;
+  let csvForFetch = csv;
+  let refreshCatalogCallback = null;
+  window.setInterval = (callback) => {
+    refreshCatalogCallback = callback;
+    return 1;
+  };
   window.fetch = async (url, options = {}) => {
     if (String(url).includes('brani.csv')) {
       return {
         ok: true,
         status: 200,
-        text: async () => csv
+        text: async () => csvForFetch
       };
     }
     assert.equal(url, '/api/dj-preselezione/files');
@@ -335,6 +345,17 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
   const includeMode = window.document.querySelector('input[name="setlist-info-filter-mode"][value="include"]');
   includeMode.checked = true;
   includeMode.dispatchEvent(new window.Event('change'));
+  window.document.getElementById('btn-generate-setlist').click();
+  assert.equal(window.SCALETTA_SETLIST.length, 0);
+  assert.equal(window.document.getElementById('scaletta-status').dataset.kind, 'warning');
+  assert.match(window.document.getElementById('scaletta-status').textContent, /attivare almeno una categoria/);
+  const allModeAfterWarning = window.document.querySelector('input[name="setlist-info-filter-mode"][value="all"]');
+  allModeAfterWarning.checked = true;
+  allModeAfterWarning.dispatchEvent(new window.Event('change'));
+  assert.equal(window.document.getElementById('scaletta-status').textContent, '');
+  includeMode.checked = true;
+  includeMode.dispatchEvent(new window.Event('change'));
+
   selectedCheckbox.checked = true;
   selectedCheckbox.dispatchEvent(new window.Event('change'));
   window.document.getElementById('btn-generate-setlist').click();
@@ -388,5 +409,22 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
   window.document.getElementById('btn-clear-setlist').click();
   assert.equal(window.SCALETTA_SETLIST.length, 0);
   assert.equal(window.document.getElementById('summary-track-count').textContent, '0');
+
+  const refreshedRows = generator.parseCsv(csv);
+  refreshedRows[0].info_google_nuova = 'CATEGORIA GOOGLE NUOVA';
+  const refreshedHeaders = Object.keys(refreshedRows[0]);
+  const quoteCsv = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  csvForFetch = [refreshedHeaders, ...refreshedRows.map((row) => refreshedHeaders.map((header) => row[header] ?? ''))]
+    .map((row) => row.map(quoteCsv).join(','))
+    .join('\n');
+  assert.equal(typeof refreshCatalogCallback, 'function');
+  await refreshCatalogCallback();
+  assert.ok([...window.document.querySelectorAll('#setlist-info-options input')]
+    .some((input) => input.value === 'CATEGORIA GOOGLE NUOVA'));
+
+  csvForFetch = csv;
+  await refreshCatalogCallback();
+  assert.equal([...window.document.querySelectorAll('#setlist-info-options input')]
+    .some((input) => input.value === 'CATEGORIA GOOGLE NUOVA'), false);
   window.close();
 });
