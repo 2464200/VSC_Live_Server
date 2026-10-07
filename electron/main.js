@@ -842,13 +842,11 @@ async function restoreSecondaryPageBeforeLedDisplay() {
   return loadInSecondaryWindow(restoreUrl);
 }
 
-async function routeUrlByPolicy(targetUrl, source = 'unknown', options = {}) {
+async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   await ensureWindows();
 
   const absoluteTargetUrl = toAbsoluteAppUrl(targetUrl);
-  const policy = options.forcePrimary
-    ? { primary: true, secondary: false }
-    : getMonitorPolicyForUrl(absoluteTargetUrl);
+  const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
 
   const result = {
     url: absoluteTargetUrl,
@@ -1322,7 +1320,7 @@ ipcMain.handle('bordero-window:open-primary', async (_event, payload) => {
     if (!isManagedHtmlAppUrl(targetUrl)) {
       throw new Error('Pagina locale non valida');
     }
-    const routeResult = await routeUrlByPolicy(targetUrl, 'ipc-open-primary', { forcePrimary: true });
+    const routeResult = await routeUrlByPolicy(targetUrl, 'ipc-open-primary');
     return {
       success: Boolean(routeResult.primaryUpdated),
       url: targetUrl,
