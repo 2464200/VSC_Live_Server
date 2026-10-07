@@ -162,6 +162,7 @@ withTempRuntime(
     const newUserFormIsManaged = vm.runInContext("isManagedHtmlAppUrl('http://localhost:5500/USERFORM/pages/scaletta.html')", sandbox);
     const remoteHtmlIsManaged = vm.runInContext("isManagedHtmlAppUrl('https://example.com/new-report.html')", sandbox);
     const mainSource = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.js'), 'utf8');
+    const preloadSource = fs.readFileSync(path.join(__dirname, '..', 'electron', 'preload.js'), 'utf8');
 
     assert(invalidEntry && invalidEntry.primary === true && invalidEntry.secondary === false, 'Invalid policy entry should be sanitized to a safe default.');
     assert(validEntry && validEntry.primary === true && validEntry.secondary === false, 'Valid policy entry should be preserved as-is.');
@@ -174,6 +175,8 @@ withTempRuntime(
     assert(newUserFormPolicy.primary === true && newUserFormPolicy.secondary === false, 'New USERFORM pages must stay on the primary monitor.');
     assert(newBorderoPolicy.primary === true && newBorderoPolicy.secondary === false, 'Unregistered Bordero HTML pages must use the primary monitor by default.');
     assert(remoteHtmlIsManaged === false, 'Remote HTML pages must not be captured by the project window manager.');
+    assert(mainSource.includes("ipcMain.handle('bordero-window:open-primary'") && mainSource.includes('{ forcePrimary: true }'), 'The page selector must have an explicit primary-window route that overrides page policy.');
+    assert(preloadSource.includes("openPrimaryPage: (payload) => ipcRenderer.invoke('bordero-window:open-primary', payload)"), 'The primary page route must be exposed to the Bordero renderer.');
     assert(mainSource.includes('bordero-window:stop-service-publication') && mainSource.includes('restoreSecondaryPageBeforeLedDisplay'), 'Service publication stop and restore hooks must be present in the Electron main process.');
 
     console.log('PASS: Electron runtime defaults and sanitization are resilient and project-safe.');

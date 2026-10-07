@@ -762,9 +762,24 @@ class BorderoTableManager {
     this.setupMusicMatchModal();
     this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
     this.setupVirtualDjConsolePolling();
-    document.getElementById('bordero-page-select')?.addEventListener('change', (event) => {
+    document.getElementById('bordero-page-select')?.addEventListener('change', async (event) => {
       const destination = event.currentTarget.value;
-      if (destination) window.location.assign(destination);
+      if (!destination) return;
+      const selector = event.currentTarget;
+      if (window.electronAPI?.windowManager?.openPrimaryPage) {
+        try {
+          const path = new URL(destination, window.location.href).pathname;
+          const result = await window.electronAPI.windowManager.openPrimaryPage({ path });
+          if (!result?.success) throw new Error(result?.error || 'Apertura della pagina non riuscita.');
+        } catch (error) {
+          console.error('Errore apertura pagina sul monitor principale:', error);
+          window.Toast?.error?.(error.message || 'Apertura della pagina non riuscita.');
+        } finally {
+          selector.value = '';
+        }
+        return;
+      }
+      window.location.assign(destination);
     });
 
     // Sort buttons (esclusivi)

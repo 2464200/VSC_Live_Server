@@ -842,11 +842,13 @@ async function restoreSecondaryPageBeforeLedDisplay() {
   return loadInSecondaryWindow(restoreUrl);
 }
 
-async function routeUrlByPolicy(targetUrl, source = 'unknown') {
+async function routeUrlByPolicy(targetUrl, source = 'unknown', options = {}) {
   await ensureWindows();
 
   const absoluteTargetUrl = toAbsoluteAppUrl(targetUrl);
-  const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
+  const policy = options.forcePrimary
+    ? { primary: true, secondary: false }
+    : getMonitorPolicyForUrl(absoluteTargetUrl);
 
   const result = {
     url: absoluteTargetUrl,
@@ -1306,6 +1308,24 @@ ipcMain.handle('bordero-window:open-secondary', async (_event, payload) => {
       success: Boolean(routeResult.primaryUpdated || routeResult.secondaryUpdated),
       url: targetUrl,
       policy: routeResult.policy,
+      primaryUpdated: routeResult.primaryUpdated,
+      secondaryUpdated: routeResult.secondaryUpdated
+    };
+  } catch (error) {
+    return { success: false, error: error?.message || String(error) };
+  }
+});
+
+ipcMain.handle('bordero-window:open-primary', async (_event, payload) => {
+  try {
+    const targetUrl = toAbsoluteAppUrl(payload?.path);
+    if (!isManagedHtmlAppUrl(targetUrl)) {
+      throw new Error('Pagina locale non valida');
+    }
+    const routeResult = await routeUrlByPolicy(targetUrl, 'ipc-open-primary', { forcePrimary: true });
+    return {
+      success: Boolean(routeResult.primaryUpdated),
+      url: targetUrl,
       primaryUpdated: routeResult.primaryUpdated,
       secondaryUpdated: routeResult.secondaryUpdated
     };
