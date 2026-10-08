@@ -322,17 +322,5 @@
   "/led-display/": {
     "primary": false,
     "secondary": true
-  },
-  "/temp.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/test-bordero-frontend.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/test-csv-loading.html": {
-    "primary": true,
-    "secondary": false
   }
 }

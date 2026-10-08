@@ -131,15 +131,16 @@ function sanitizePagePolicyEntry(value) {
 function discoverManagedPagePolicies() {
   const discovered = new Map();
   const roots = [
-    { directory: path.join(__dirname, '..'), prefix: '' },
-    { directory: path.join(__dirname, '..', 'public'), prefix: '' }
+    { directory: path.join(__dirname, '..'), prefix: '', excludePublicDirectory: true },
+    { directory: path.join(__dirname, '..', 'public'), prefix: '', excludePublicDirectory: false }
   ];
 
-  const visit = (directory, prefix) => {
+  const visit = (directory, prefix, excludePublicDirectory = false) => {
     if (!fs.existsSync(directory) || !fs.statSync(directory).isDirectory()) return;
 
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-      if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'public') continue;
+      if (entry.name === 'node_modules' || entry.name === '.git') continue;
+      if (excludePublicDirectory && !prefix && entry.name === 'public') continue;
 
       const absolutePath = path.join(directory, entry.name);
       const relativePath = path.posix.join(prefix, entry.name).replace(/^\/+/, '');
@@ -155,7 +156,7 @@ function discoverManagedPagePolicies() {
   };
 
   for (const root of roots) {
-    visit(root.directory, root.prefix);
+    visit(root.directory, root.prefix, root.excludePublicDirectory);
   }
 
   return discovered;

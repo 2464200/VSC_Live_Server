@@ -15,8 +15,8 @@ function loadElectronMainFor(tempDir) {
       platform: process.platform,
       arch: process.arch,
     },
-    __dirname: tempDir,
-    __filename: path.join(tempDir, 'main.js'),
+    __dirname: path.join(tempDir, 'electron'),
+    __filename: path.join(tempDir, 'electron', 'main.js'),
     module: { exports: {} },
     exports: {},
     require: (name) => {
@@ -129,16 +129,17 @@ function withTempRuntime(files, callback) {
 
 withTempRuntime(
   {
-    'monitor-preferences.json': JSON.stringify({
+    'electron/monitor-preferences.json': JSON.stringify({
       primaryMonitorChoice: 0,
       swapPrimarySecondary: true,
       selectionConfirmed: false,
       autoConfigureDisplay: false,
     }, null, 2),
-    'page-policy.json': JSON.stringify({
+    'electron/page-policy.json': JSON.stringify({
       '/bad-route': { primary: false, secondary: false },
       '/good-route': { primary: true, secondary: false },
     }, null, 2),
+    'Eventi/public/admin.html': '<!doctype html>',
   },
   (tempDir) => {
     const sandbox = loadElectronMainFor(tempDir);
@@ -167,6 +168,7 @@ withTempRuntime(
     const scriptPdfTestPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Prova/ScriptPDF1.html')", sandbox);
     const scriptPdfViewerPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/viewers/ScriptPDF1.html')", sandbox);
     const adminEntry = policyMap.get('/bordero/pages/admin.html');
+    const nestedPublicEntry = policyMap.get('/eventi/public/admin.html');
     const newUserFormPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/scaletta.html')", sandbox);
     const newBorderoPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Bordero/pages/new-report.html')", sandbox);
     const newUserFormIsManaged = vm.runInContext("isManagedHtmlAppUrl('http://localhost:5500/USERFORM/pages/scaletta.html')", sandbox);
@@ -192,6 +194,7 @@ withTempRuntime(
     assert(scriptPdfTestPolicy.primary === false && scriptPdfTestPolicy.secondary === true, 'The legacy ScriptPDF test alias must be routed to the temporary secondary display.');
     assert(scriptPdfViewerPolicy.primary === false && scriptPdfViewerPolicy.secondary === true, 'The legacy ScriptPDF viewer alias must be routed to the temporary secondary display.');
     assert(adminEntry && adminEntry.primary === true && adminEntry.secondary === false, 'Admin page must stay on the primary monitor.');
+    assert(nestedPublicEntry && nestedPublicEntry.primary === true && nestedPublicEntry.secondary === false, 'Pages inside nested public folders must be discovered and assigned a default policy.');
     assert(newUserFormIsManaged === true, 'New local USERFORM HTML pages must be managed without registering their filenames.');
     assert(newUserFormPolicy.primary === true && newUserFormPolicy.secondary === false, 'New USERFORM pages must stay on the primary monitor.');
     assert(newBorderoPolicy.primary === true && newBorderoPolicy.secondary === false, 'Unregistered Bordero HTML pages must use the primary monitor by default.');
