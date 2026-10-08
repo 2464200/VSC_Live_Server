@@ -130,8 +130,8 @@ async function runTests() {
         });
     });
 
-    // Test 7: pagina canonica ScriptPDF Prova è accessibile
-    await addTest('Pagina ScriptPDF Prova è accessibile', async () => {
+    // Test 7: URL storico ScriptPDF resta accessibile come redirect
+    await addTest('URL storico ScriptPDF resta accessibile', async () => {
         const response = await fetch(`${BASE_URL}/pdf/pages/script-pdf-prova.html`);
         if (response.status !== 200) {
             throw new Error(`Status ${response.status} - atteso 200`);
@@ -161,7 +161,7 @@ async function runTests() {
     summaryDiv.innerHTML = `
         <h2>${passCount === testCount ? '✓ TUTTI I TEST PASSATI!' : '✗ ALCUNI TEST FALLITI'}</h2>
         <p>Test completati: <strong>${passCount}/${testCount}</strong></p>
-        ${passCount === testCount ? '        <p><strong>Puoi ora aprire e usare ScriptPDF Prova</strong></p>' : ''}
+        ${passCount === testCount ? '        <p><strong>Puoi ora aprire e usare ScriptPDF Gestione</strong></p>' : ''}
     `;
     testsContainer.appendChild(summaryDiv);
 }
