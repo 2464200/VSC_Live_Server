@@ -29,13 +29,27 @@ function loadElectronMainFor(tempDir) {
     module: { exports: {} },
     exports: {},
     require: (name) => {
+      if (name === 'http') {
+        return {
+          createServer() {
+            return {
+              listen(_port, _host, callback) {
+                callback?.();
+                return this;
+              },
+              on() { return this; },
+            };
+          },
+        };
+      }
+
       if (name === 'electron') {
         return {
           app: {
             commandLine: { appendSwitch() {} },
             on() {},
             once() {},
-            whenReady() { return Promise.resolve(); },
+            whenReady() { return new Promise(() => {}); },
             quit() {},
             exit() {},
             isQuitting: false,

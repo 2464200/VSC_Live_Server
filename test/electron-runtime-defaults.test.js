@@ -26,7 +26,7 @@ function loadElectronMainFor(tempDir) {
             commandLine: { appendSwitch() {} },
             on() {},
             once() {},
-            whenReady() { return Promise.resolve(); },
+            whenReady() { return new Promise(() => {}); },
             quit() {},
             isQuitting: false,
           },

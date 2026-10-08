@@ -115,7 +115,7 @@
 <div id="pdf-container">
     <div id="controls">
         <h2 id="pdf-title">Visualizzatore PDF</h2>
-        <button id="close-btn" onclick="closePdfViewer()">✕ Chiudi</button>
+        <button id="close-btn" type="button">✕ Chiudi</button>
     </div>
     <div id="pdf-display">
         <div class="loading">Caricamento PDF...</div>
@@ -175,6 +175,10 @@
         });
         setTimeout(() => window.close(), 500);
     }
+
+    document.getElementById('close-btn').addEventListener('click', () => {
+        void closePdfViewer();
+    });
     
     // Supporto tasto ESC per chiudere
     document.addEventListener('keydown', (e) => {
