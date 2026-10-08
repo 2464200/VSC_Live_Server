@@ -866,11 +866,41 @@ class DataLoader {
    * SERATA MANAGEMENT
    * Salva lo stato della serata corrente (brani + metadata)
    */
+  mergeMissingExecutedBrani(braniWithFlags, previousBrani = []) {
+    if (!Array.isArray(braniWithFlags)) return [];
+
+    const normalizeId = (id) => {
+      const value = String(id ?? '').trim();
+      return /^\d+$/.test(value) ? value.replace(/^0+(?=\d)/, '') : value;
+    };
+    const incomingIds = new Set(
+      braniWithFlags
+        .map((brano) => normalizeId(brano?.id))
+        .filter(Boolean)
+    );
+    const omittedExecutedBrani = (Array.isArray(previousBrani) ? previousBrani : [])
+      .filter((brano) => {
+        const id = normalizeId(brano?.id);
+        const isExecuted = String(brano?.flag || '').toUpperCase() === 'X'
+          || brano?.eseguito === true
+          || String(brano?.eseguito || '').toUpperCase() === 'X'
+          || brano?.executed === true
+          || String(brano?.executed || '').toUpperCase() === 'X';
+        return id
+          && !incomingIds.has(id)
+          && isExecuted
+          && !window.isVideoOnlyBrano?.(brano);
+      });
+
+    return [...braniWithFlags, ...omittedExecutedBrani];
+  }
+
   saveCurrentSerata(serataMetadata, braniWithFlags) {
+    const currentSerata = this.getCurrentSerata();
     const serata = {
       id: DateUtils.now(),
       metadata: serataMetadata,
-      brani: braniWithFlags,
+      brani: this.mergeMissingExecutedBrani(braniWithFlags, currentSerata?.brani),
       savedAt: new Date().toISOString(),
     };
 

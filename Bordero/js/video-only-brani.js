@@ -3,6 +3,7 @@
     'audio video tester',
     'video promo monster 2023',
   ]);
+  const videoOnlyIds = new Set(['596', '597']);
 
   function normalizeVideoOnlyTitle(value) {
     return String(value ?? '')
@@ -14,6 +15,13 @@
   }
 
   function isVideoOnlyBrano(branoOrTitle) {
+    if (branoOrTitle && typeof branoOrTitle === 'object') {
+      const id = String(branoOrTitle.id ?? '').trim();
+      if (/^\d+$/.test(id) && videoOnlyIds.has(id.replace(/^0+(?=\d)/, ''))) {
+        return true;
+      }
+    }
+
     const title = branoOrTitle && typeof branoOrTitle === 'object'
       ? branoOrTitle.titolo || branoOrTitle.coreografia || branoOrTitle.brano || branoOrTitle.title || ''
       : branoOrTitle;

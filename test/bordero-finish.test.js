@@ -184,6 +184,11 @@ if (!context.window.isVideoOnlyBrano(' VIDEO  PROMO MONSTER 2023 ')) {
 if (!context.window.isVideoOnlyBrano({ titolo: 'Audio Video Tester' })) {
   throw new Error('Audio Video Tester was not classified as video-only');
 }
+for (const id of ['596', '597', '0596', '0597']) {
+  if (!context.window.isVideoOnlyBrano({ id, titolo: `Regular title ${id}` })) {
+    throw new Error(`Brano ${id} was not classified as video-only`);
+  }
+}
 if (context.window.isVideoOnlyBrano('ordinary choreography')) {
   throw new Error('A normal choreography was classified as video-only');
 }
