@@ -125,6 +125,22 @@ function syncPublic() {
     }
   }
 
+  // Keep both ScriptPDF entry pages and their shared workbench assets in Hosting.
+  for (const [sourceRelative, destinationRelative] of [
+    ['pdf/viewers/ScriptPDF1.html', 'public/ScriptPDF1.html'],
+    ['Prova/ScriptPDF1.html', 'public/Prova/ScriptPDF1.html'],
+    ['pdf/assets/scriptpdf-workbench.css', 'public/pdf/assets/scriptpdf-workbench.css'],
+    ['pdf/assets/scriptpdf-workbench.js', 'public/pdf/assets/scriptpdf-workbench.js'],
+  ]) {
+    if (deferredPaths.has('*') || deferredPaths.has(sourceRelative) || deferredPaths.has(destinationRelative)) continue;
+    const source = path.join(repoRoot, sourceRelative);
+    const destination = path.join(repoRoot, destinationRelative);
+    if (!fs.existsSync(source)) continue;
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.copyFileSync(source, destination);
+    console.log(`  ✓ Copiato ${sourceRelative} -> ${destinationRelative}`);
+  }
+
   // 1. Sotto-cartelle Bordero
   const subfolders = ['pages', 'js', 'assets', 'data'];
   for (const folder of subfolders) {

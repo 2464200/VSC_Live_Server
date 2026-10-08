@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171717" />
+  <title>USERFORM - SCRIPT-PDF | Gestione PDF</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <link rel="stylesheet" href="../assets/css/script-pdf.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
+  <script defer src="../js/script-pdf-actions.js"></script>
+</head>
+<body class="script-pdf-page">
+  <div class="layout script-pdf-layout">
+    <header class="topbar script-pdf-topbar">
+      <div class="script-pdf-brand">
+        <span class="script-pdf-brand-mark" aria-hidden="true">B</span>
+        <div>
+          <p class="script-pdf-eyebrow">BORDERO' · CENTRO OPERATIVO</p>
+          <h1 id="form-name">SCRIPT-PDF</h1>
+          <p class="subtitle">Accesso rapido agli strumenti ScriptPDF.</p>
+        </div>
+      </div>
+      <a class="btn btn-secondary script-pdf-index-link" href="../index.html">
+        <span aria-hidden="true">←</span> Indice USERFORM
+      </a>
+    </header>
+
+    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Gestione PDF</span>
+    </nav>
+
+    <main class="script-pdf-main">
+      <section class="script-pdf-intro" aria-labelledby="script-pdf-title">
+        <div>
+          <p class="script-pdf-kicker">STRUMENTI PDF</p>
+          <h2 id="script-pdf-title">Scegli l'ambiente<br /><span>ScriptPDF da aprire.</span></h2>
+          <p class="script-pdf-intro-copy">Apri il gestore PDF principale o la versione di prova. Entrambi vengono aperti attraverso la gestione finestre del progetto.</p>
+        </div>
+        <div class="script-pdf-intro-mark" aria-hidden="true">PDF</div>
+      </section>
+
+      <section class="script-pdf-launchers" aria-label="Launcher ScriptPDF">
+        <article class="script-pdf-launch-card">
+          <div class="script-pdf-card-topline">
+            <span class="script-pdf-card-index">1073</span>
+            <span class="script-pdf-tag">PRINCIPALE</span>
+          </div>
+          <div>
+            <p class="script-pdf-card-kicker">GESTIONE DOCUMENTI</p>
+            <h3>ScriptPDF1</h3>
+            <p>Apri il gestore PDF principale per consultare e avviare i documenti disponibili.</p>
+          </div>
+          <button class="script-pdf-open-link script-pdf-thumbnail-control" data-route="/ScriptPDF1.html" data-label="ScriptPDF1 principale" type="button" aria-label="Apri ScriptPDF1 principale">
+            <img class="script-pdf-thumbnail" src="../../archivio/ScriptPDF-principale.jpg" alt="" aria-hidden="true" />
+          </button>
+          <code class="script-pdf-route">/ScriptPDF1.html</code>
+          <button id="btn-scriptpdf-root" class="script-pdf-open-link" data-route="/ScriptPDF1.html" type="button">
+            Apri ScriptPDF1 <span aria-hidden="true">↗</span>
+          </button>
+        </article>
+
+        <article class="script-pdf-launch-card">
+          <div class="script-pdf-card-topline">
+            <span class="script-pdf-card-index">1074</span>
+            <span class="script-pdf-tag">AMBIENTE DI PROVA</span>
+          </div>
+          <div>
+            <p class="script-pdf-card-kicker">TEST E VERIFICA</p>
+            <h3>ScriptPDF1 · Prova</h3>
+            <p>Apri l'ambiente di prova ScriptPDF senza modificare o sostituire il launcher principale.</p>
+          </div>
+          <button class="script-pdf-open-link script-pdf-thumbnail-control" data-route="/Prova/ScriptPDF1.html" data-label="ScriptPDF Prova" type="button" aria-label="Apri ScriptPDF Prova">
+            <img class="script-pdf-thumbnail" src="../../archivio/ScriptPDF-prova.jpg" alt="" aria-hidden="true" />
+          </button>
+          <code class="script-pdf-route">/Prova/ScriptPDF1.html</code>
+          <button id="btn-scriptpdf-prova" class="script-pdf-open-link" data-route="/Prova/ScriptPDF1.html" type="button">
+            Apri ScriptPDF Prova <span aria-hidden="true">↗</span>
+          </button>
+        </article>
+      </section>
+
+      <section class="script-pdf-footer-panel" aria-label="Navigazione USERFORM">
+        <div id="script-pdf-status" class="script-pdf-status" role="status" aria-live="polite">
+          <span class="script-pdf-status-dot" aria-hidden="true"></span>
+          <span class="script-pdf-status-message">Pronto. Seleziona un ambiente ScriptPDF.</span>
+        </div>
+        <div class="script-pdf-footer-actions">
+          <a class="btn btn-secondary" href="../index.html">Torna all'indice</a>
+          <div class="page-nav">
+            <a id="prev-form" class="btn btn-secondary" href="#">Form precedente</a>
+            <a id="next-form" class="btn" href="#">Form successivo</a>
+          </div>
+          <button id="btn-close-script-pdf" class="btn btn-danger" type="button">Chiudi pagina</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/nav.js"></script>
+</body>
+</html>

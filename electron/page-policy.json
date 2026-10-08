@@ -15,10 +15,6 @@
     "primary": true,
     "secondary": false
   },
-  "/bordero/pages/dj-preselezione.html": {
-    "primary": true,
-    "secondary": false
-  },
   "/bordero/pages/brani-eseguiti.html": {
     "primary": true,
     "secondary": false
@@ -34,6 +30,10 @@
   "/bordero/pages/display.html": {
     "primary": false,
     "secondary": true
+  },
+  "/bordero/pages/dj-preselezione.html": {
+    "primary": true,
+    "secondary": false
   },
   "/bordero/pages/elenco-richieste.html": {
     "primary": true,
@@ -179,6 +179,10 @@
     "primary": true,
     "secondary": false
   },
+  "/userform/pages/collegamenti.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/userform/pages/pagina03.html": {
     "primary": true,
     "secondary": false
@@ -187,15 +191,11 @@
     "primary": true,
     "secondary": false
   },
-  "/userform/pages/collegamenti.html": {
-    "primary": true,
-    "secondary": false
-  },
   "/userform/pages/pagina07.html": {
     "primary": true,
     "secondary": false
   },
-  "/userform/pages/pagina08.html": {
+  "/userform/pages/script-pdf.html": {
     "primary": true,
     "secondary": false
   },
@@ -211,13 +211,13 @@
     "primary": true,
     "secondary": false
   },
-  "/userform/pages/scaletta.html": {
-    "primary": true,
-    "secondary": false
-  },
   "/userform/pages/qrcode.html": {
     "primary": true,
     "secondary": true
+  },
+  "/userform/pages/scaletta.html": {
+    "primary": true,
+    "secondary": false
   },
   "/userform/pages/servizio-logo.html": {
     "primary": true,
@@ -307,6 +307,14 @@
     "primary": true,
     "secondary": false
   },
+  "/eventi/public/eventi.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/led-display/": {
+    "primary": false,
+    "secondary": true
+  },
   "/temp.html": {
     "primary": true,
     "secondary": false
@@ -318,13 +326,5 @@
   "/test-csv-loading.html": {
     "primary": true,
     "secondary": false
-  },
-  "/eventi/public/eventi.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/led-display/": {
-    "primary": false,
-    "secondary": true
   }
 }

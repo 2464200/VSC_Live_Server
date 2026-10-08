@@ -20,7 +20,7 @@ Development status:
 - PAGINA05: converted (camera profile, FFmpeg recording flow, VLC live controls).
 - COLLEGAMENTI: Google Forms/Sheets/Drive link hub with image previews.
 - PAGINA07: converted (webcam preview, rec timer, open last video flow).
-- PAGINA08: converted (ScriptPDF launchers).
+- SCRIPT-PDF: Bordero-styled ScriptPDF launch hub with clickable previews in `archivio/ScriptPDF-principale.jpg` and `archivio/ScriptPDF-prova.jpg`; its main and test pages share the PDF workbench and Electron monitor policy.
 - PAGINA09: converted (Bordero/Eventi bridge launchers).
 - PAGINA10: converted (DASH + UI timer controls with auto-start behavior).
 - PAGINA11: delegata alla pagina gia completa Bordero/pages/location.html (link bridge).
@@ -37,7 +37,7 @@ Mapped VBA forms:
 - PAGINA05
 - COLLEGAMENTI
 - PAGINA07
-- PAGINA08
+- SCRIPT-PDF
 - PAGINA09
 - PAGINA10
 - PAGINA11

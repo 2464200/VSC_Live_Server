@@ -22,7 +22,7 @@
         "WEBCAM",
         "COLLEGAMENTI",
         "PAGINA07",
-        "PAGINA08",
+        "SCRIPT-PDF",
         "PAGINA09",
         "PAGINA10",
         "PAGINA11",

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const vm = require('vm');
 
@@ -111,9 +112,7 @@ function assert(condition, message) {
 }
 
 function withTempRuntime(files, callback) {
-  const tempDir = path.join(__dirname, '..', '.tmp-electron-config-test');
-  fs.rmSync(tempDir, { recursive: true, force: true });
-  fs.mkdirSync(tempDir, { recursive: true });
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vsc-live-electron-config-test-'));
 
   for (const [fileName, content] of Object.entries(files)) {
     const fullPath = path.join(tempDir, fileName);
@@ -159,6 +158,11 @@ withTempRuntime(
     const userFormCollegamentiEntry = policyMap.get('/userform/pages/collegamenti.html');
     const userFormCollegamentiPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/COLLEGAMENTI.html')", sandbox);
     const legacyUserFormPagina06Entry = policyMap.get('/userform/pages/pagina06.html');
+    const legacyUserFormPagina08Entry = policyMap.get('/userform/pages/pagina08.html');
+    const userFormScriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html')", sandbox);
+    const scriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/ScriptPDF1.html')", sandbox);
+    const scriptPdfTestPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Prova/ScriptPDF1.html')", sandbox);
+    const scriptPdfViewerPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/viewers/ScriptPDF1.html')", sandbox);
     const adminEntry = policyMap.get('/bordero/pages/admin.html');
     const newUserFormPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/scaletta.html')", sandbox);
     const newBorderoPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Bordero/pages/new-report.html')", sandbox);
@@ -176,6 +180,11 @@ withTempRuntime(
     assert(userFormCollegamentiEntry && userFormCollegamentiEntry.primary === true && userFormCollegamentiEntry.secondary === false, 'USERFORM COLLEGAMENTI must be registered exclusively on the primary monitor.');
     assert(userFormCollegamentiPolicy.primary === true && userFormCollegamentiPolicy.secondary === false, 'USERFORM COLLEGAMENTI must be managed exclusively on the primary monitor.');
     assert(!legacyUserFormPagina06Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
+    assert(!legacyUserFormPagina08Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
+    assert(userFormScriptPdfPolicy.primary === true && userFormScriptPdfPolicy.secondary === false, 'USERFORM SCRIPT-PDF must be managed exclusively on the primary monitor.');
+    assert(scriptPdfPolicy.primary === true && scriptPdfPolicy.secondary === false, 'The main ScriptPDF page must be routed to the primary monitor.');
+    assert(scriptPdfTestPolicy.primary === true && scriptPdfTestPolicy.secondary === false, 'The ScriptPDF test page must be routed to the primary monitor.');
+    assert(scriptPdfViewerPolicy.primary === true && scriptPdfViewerPolicy.secondary === false, 'The ScriptPDF viewer alias must be routed to the primary monitor.');
     assert(adminEntry && adminEntry.primary === true && adminEntry.secondary === false, 'Admin page must stay on the primary monitor.');
     assert(newUserFormIsManaged === true, 'New local USERFORM HTML pages must be managed without registering their filenames.');
     assert(newUserFormPolicy.primary === true && newUserFormPolicy.secondary === false, 'New USERFORM pages must stay on the primary monitor.');

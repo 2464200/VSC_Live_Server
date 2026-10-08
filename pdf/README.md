@@ -36,13 +36,18 @@ Il sistema PDF Ã¨ integrato nel **unified-server.js** (porta 5500) avviato aut
 
 ## Viewer
 
-- **ScriptPDF1.html**: Interfaccia principale per gestione PDF
-- **pdf-viewer.html**: Componente embed per visualizzazione
+- **/ScriptPDF1.html**: gestione PDF principale, collegata al modulo USERFORM e gestita da Electron sul monitor principale.
+- **/Prova/ScriptPDF1.html**: ambiente di prova, con tentativi ripetuti per la connessione al server.
+- Entrambe le pagine usano `pdf/assets/scriptpdf-workbench.css` e `pdf/assets/scriptpdf-workbench.js`.
+- **pdf/viewers/pdf-viewer.html**: componente embed per visualizzazione.
+
+Le pagine riprendono dal progetto VBA la cartella `C:\VSC_SCRIPT_PDF`, la selezione e navigazione dell'elenco, la scelta del viewer e l'apertura sul monitor secondario. La pagina di prova mantiene un secondo tentativo di connessione. La chiusura remota richiede conferma e riguarda solo le sessioni registrate come avviate da ScriptPDF.
+
+ADMIN pubblica entrambe le pagine nel pannello delle route monitor. La sincronizzazione Hosting mantiene le copie in `public/` e gli asset condivisi.
 
 ## Note
 
 - I PDF sono letti dalla cartella `C:\VSC_SCRIPT_PDF`
 - I viewer si aprono in modalitÃ  kiosk sul monitor secondario
 - Stato dei viewer tracciato in `config/opened-viewers.json`
-
 
