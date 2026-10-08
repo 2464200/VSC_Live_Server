@@ -131,15 +131,15 @@
     "primary": true,
     "secondary": false
   },
-  "/pdf/viewers/pdf-viewer.html": {
-    "primary": false,
-    "secondary": true
-  },
   "/pdf/pages/script-pdf-gestione.html": {
-    "primary": false,
-    "secondary": true
+    "primary": true,
+    "secondary": false
   },
   "/pdf/pages/script-pdf-prova.html": {
+    "primary": false,
+    "secondary": true
+  },
+  "/pdf/viewers/pdf-viewer.html": {
     "primary": false,
     "secondary": true
   },
@@ -203,10 +203,6 @@
     "primary": true,
     "secondary": false
   },
-  "/userform/pages/script-pdf.html": {
-    "primary": true,
-    "secondary": false
-  },
   "/userform/pages/pagina09.html": {
     "primary": true,
     "secondary": false
@@ -224,6 +220,10 @@
     "secondary": true
   },
   "/userform/pages/scaletta.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/userform/pages/script-pdf.html": {
     "primary": true,
     "secondary": false
   },
