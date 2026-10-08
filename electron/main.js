@@ -516,7 +516,7 @@ function ensureUnifiedServer() {
     return ensureUnifiedServerPromise;
   }
 
-  ensureUnifiedServerPromise = waitForServer('http://127.0.0.1:5500')
+  ensureUnifiedServerPromise = waitForServer('http://127.0.0.1:5500', 1500)
     .then(() => {
       console.log('Unified server already available');
     })
@@ -525,6 +525,7 @@ function ensureUnifiedServer() {
       serverProcess = spawn(process.execPath, [serverScript], {
         cwd: path.join(__dirname, '..'),
         windowsHide: false,
+        env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
         stdio: ['ignore', 'pipe', 'pipe']
       });
 
@@ -545,7 +546,7 @@ function ensureUnifiedServer() {
         }
       });
 
-      return waitForServer('http://127.0.0.1:5500', 20000);
+      return waitForServer('http://127.0.0.1:5500', 120000);
     })
     .finally(() => {
       ensureUnifiedServerPromise = null;
@@ -1596,7 +1597,10 @@ function handleDisplayChange() {
   applyWindowLayout();
 }
 
-app.whenReady().then(() => {
+if (!app.requestSingleInstanceLock()) {
+  console.warn('Un\'altra istanza di Electron è già attiva: uscita.');
+  app.quit();
+} else app.whenReady().then(() => {
   ensureWindows().catch((error) => {
     console.error('Failed to initialize dual-monitor windows:', error);
   });

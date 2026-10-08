@@ -1,40 +1,338 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "GitHub - Backup develop",
-            "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                "$ErrorActionPreference = 'Stop'; " +
-                "Write-Host ''; " +
-                "Write-Host '=== BACKUP DEL BRANCH DEVELOP ===' -ForegroundColor Cyan; " +
-                "Write-Host ''; " +
-                "git fetch origin develop; " +
-                "if ($LASTEXITCODE -ne 0) { throw 'Errore durante git fetch.' }; " +
-                "$date = Get-Date -Format 'yyyy-MM-dd'; " +
-                "$backup = \"develop-backup-$date\"; " +
-                "$exists = git ls-remote --heads origin $backup; " +
-                "if ($exists) { " +
-                "    $time = Get-Date -Format 'HHmm'; " +
-                "    $backup = \"develop-backup-$date-$time\"; " +
-                "    Write-Host \"Backup della giornata gia esistente. Nuovo nome: $backup\" -ForegroundColor Yellow; " +
-                "}; " +
-                "Write-Host \"Creo $backup partendo da origin/develop...\" -ForegroundColor Cyan; " +
-                "git push origin \"origin/develop:refs/heads/$backup\"; " +
-                "if ($LASTEXITCODE -ne 0) { throw 'Errore durante la creazione del backup su GitHub.' }; " +
-                "Write-Host ''; " +
-                "Write-Host \"BACKUP CREATO: $backup\" -ForegroundColor Green; " +
-                "Write-Host ''; "
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Auto-startup all servers",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\startup-retry.ps1",
+        "-NoMonitor"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false,
+        "group": "startup"
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Auto-shutdown all servers",
+      "hide": true,
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\shutdown.ps1"
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "close": true
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderClose"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Start All Servers Manually",
+      "hide": true,
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\startup-retry.ps1",
+        "-NoMonitor"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "avviodaniele",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}${pathSeparator}scripts${pathSeparator}start-daniele.js"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": {
+        "owner": "avviodaniele",
+        "pattern": {
+          "regexp": "^(NEVER_MATCH_AVVIODANIELE_TASK_PATTERN)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": false,
+          "beginsPattern": "^\\[avviodaniele\\] Avvio del server standard unified-server\\.js\\.$",
+          "endsPattern": "^.*UNIFIED SERVER - Server consolidato avviato.*$"
         }
-    ]
+      },
+      "group": "build"
+    },
+    {
+      "label": "Stop All Servers Manually",
+      "hide": true,
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\shutdown.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Restart All Servers",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "& '${workspaceFolder}\\shutdown.ps1'; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1' -NoMonitor"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Restart All Servers (with AutoCommit)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "& '${workspaceFolder}\\shutdown.ps1' -AutoCommit; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1' -NoMonitor"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Restart Electron",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "Get-Process electron -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 1; npm run electron"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Test System Integrity",
+      "hide": true,
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}\\test-system.js"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Git: STASH ADD COMMIT PUSH",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\git-quick-push.ps1",
+        "-CommitMessage",
+        "${input:gitCommitMessage}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Git: PULL",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$ErrorActionPreference = 'Stop'; $branch = (git branch --show-current).Trim(); if ([string]::IsNullOrWhiteSpace($branch)) { throw 'Impossibile determinare il branch corrente.' }; Write-Host \"Branch locale: $branch\"; git status --short --branch; git fetch --prune origin; Write-Host \"Remote verificato: origin/$branch\"; $changes = @(git status --porcelain); if ($changes.Count -gt 0) { $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'; git stash push -u -m \"pre-pull $branch $stamp\"; Write-Host 'Modifiche locali salvate nello stash.' } else { Write-Host 'Nessuna modifica locale da salvare.' }; git pull --ff-only origin $branch; git status --short --branch; git log -1 --oneline --decorate"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "GitHub - Backup(DATA)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$ErrorActionPreference = 'Stop'; Write-Host ''; Write-Host '=== BACKUP DEL BRANCH DEVELOP ===' -ForegroundColor Cyan; Write-Host ''; git fetch origin develop; if ($LASTEXITCODE -ne 0) { throw 'Errore durante git fetch.' }; $date = Get-Date -Format 'yyyy-MM-dd'; $base = \"develop-backup-$date\"; $backup = $base; while ($true) { $exists = git ls-remote --heads origin \"refs/heads/$backup\"; if ($LASTEXITCODE -ne 0) { throw 'Errore durante la verifica del backup remoto.' }; if (-not $exists) { break }; $backup = \"$base-$(Get-Date -Format 'HHmmssfff')\"; Write-Host \"Backup gia esistente. Nuovo nome: $backup\" -ForegroundColor Yellow; }; Write-Host \"Creo $backup partendo da origin/develop...\" -ForegroundColor Cyan; git push origin \"origin/develop:refs/heads/$backup\"; if ($LASTEXITCODE -ne 0) { throw 'Errore durante la creazione del backup su GitHub.' }; Write-Host ''; Write-Host \"BACKUP CREATO: $backup\" -ForegroundColor Green; Write-Host ''; "
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Windows: Update Dev Environment",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\update-development-tools.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Firebase: Deploy Hosting (branch allineato)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\deploy-if-synced.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true,
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "gitCommitMessage",
+      "type": "promptString",
+      "description": "Messaggio del commit",
+      "default": "chore: aggiornamenti"
+    }
+  ]
 }
