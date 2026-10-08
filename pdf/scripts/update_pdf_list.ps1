@@ -1,7 +1,12 @@
 # Script PowerShell per generare la lista dei file PDF da C:\VSC_SCRIPT_PDF
 # Questo script deve essere eseguito periodicamente per mantenere aggiornata la lista
 
-$pdfFolderPath = "C:\VSC_SCRIPT_PDF"
+$driveRoot = [System.IO.Path]::GetPathRoot($PSScriptRoot)
+$pdfFolderPath = if ($env:VSC_SCRIPT_PDF_DIR) {
+    $env:VSC_SCRIPT_PDF_DIR
+} else {
+    Join-Path $driveRoot "VSC_SCRIPT_PDF"
+}
 $outputPath = "$PSScriptRoot\Prova\pdf-list.json"
 
 # Verifica se la cartella esiste

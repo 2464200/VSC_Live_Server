@@ -328,7 +328,7 @@
         ? state.files.findIndex((file) => file.path === previousPath)
         : -1;
       state.currentIndex = retainedIndex >= 0 ? retainedIndex : (state.files.length ? 0 : -1);
-      const folder = result.folder || health.pdfFolder || "C:\\VSC_SCRIPT_PDF";
+      const folder = result.folder || health.pdfFolder || "Cartella configurata sul server";
       nodes.folderPath.textContent = folder;
       if (state.files.length) {
         setStatus(

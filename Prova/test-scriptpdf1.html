@@ -107,11 +107,14 @@ async function runTests() {
     });
 
     // Test 5: Lista PDF caricata
-    await addTest('Cartella C:\\VSC_SCRIPT_PDF contiene file PDF', async () => {
+    await addTest('Cartella PDF configurata contiene file PDF', async () => {
         const response = await fetch(`${BASE_URL}/api/pdf-list`);
         const data = await response.json();
+        if (!data.folder) {
+            throw new Error('Il server non ha restituito il percorso della cartella PDF');
+        }
         if (data.files.length === 0) {
-            throw new Error('Nessun file PDF trovato in C:\\VSC_SCRIPT_PDF');
+            throw new Error(`Nessun file PDF trovato in ${data.folder}`);
         }
     });
 
