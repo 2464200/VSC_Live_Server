@@ -41,6 +41,8 @@ function loadElectronMainFor(tempDir) {
             isQuitting: false,
           },
           BrowserWindow: class {
+            static getAllWindows() { return createdWindows; }
+
             constructor(options = {}) {
               this.options = options;
               let currentUrl = options.url || '';
