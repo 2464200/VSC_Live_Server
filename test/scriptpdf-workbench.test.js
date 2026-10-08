@@ -221,9 +221,9 @@ async function run() {
   }
   const legacyAliases = [
     ['pdf/viewers/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
-    ['Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-prova.html'],
+    ['Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
     ['public/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
-    ['public/Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-prova.html'],
+    ['public/Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
   ];
   for (const [aliasPath, canonicalRoute] of legacyAliases) {
     const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
@@ -233,6 +233,27 @@ async function run() {
     const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
     assert.match(alias, /location\.replace\("\/pdf\/pages\/script-pdf-gestione\.html"\)/);
   }
+
+  const viewerHtml = fs.readFileSync(path.join(root, 'pdf', 'viewers', 'pdf-viewer.html'), 'utf8');
+  const viewerDom = new JSDOM(viewerHtml, {
+    url: 'http://localhost:5500/pdf/viewers/pdf-viewer.html?file=C%3A%5CVSC_SCRIPT_PDF%5Ctest.pdf&name=test.pdf',
+    runScripts: 'dangerously',
+    beforeParse(window) {
+      window.electronAPI = {
+        windowManager: {
+          async restoreSecondaryPage() {
+            restoreCalls += 1;
+            return { success: true };
+          },
+        },
+      };
+    },
+  });
+  let restoreCalls = 0;
+  viewerDom.window.document.getElementById('close-btn').click();
+  await settle();
+  assert.equal(restoreCalls, 1, 'Closing the Electron PDF viewer should restore DISPLAY through the window manager.');
+  viewerDom.window.close();
 }
 
 run().catch((error) => {

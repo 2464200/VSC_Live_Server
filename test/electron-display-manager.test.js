@@ -287,6 +287,13 @@ test('ScriptPDF pages use a temporary always-on-top window above the persistent 
     assert.equal(state.options.alwaysOnTop, true, 'The ScriptPDF window should remain above Display.');
     assert.equal(state.options.fullscreen, true, 'The ScriptPDF window should use the established fullscreen presentation.');
 
+    const pdfResult = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/pdf/viewers/pdf-viewer.html?file=C%3A%5CVSC_SCRIPT_PDF%5Ctest.pdf&name=test.pdf', 'test-pdf-overlay');", sandbox);
+    const pdfState = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow.webContents.getURL(), options: temporarySecondaryWindow.options })', sandbox);
+    assert.equal(pdfResult.secondaryUpdated, true, 'The PDF viewer should route to the managed secondary display.');
+    assert.match(pdfState.secondary, /Bordero\/pages\/display\.html/i, 'DISPLAY should remain underneath the PDF viewer.');
+    assert.match(pdfState.temporary, /pdf\/viewers\/pdf-viewer\.html\?file=/i, 'The selected PDF should load in the temporary window.');
+    assert.equal(pdfState.options.alwaysOnTop, true, 'The PDF viewer should remain above DISPLAY.');
+
     vm.runInContext('closeTemporarySecondaryWindow();', sandbox);
     assert.equal(vm.runInContext('Boolean(!temporarySecondaryWindow)', sandbox), true, 'Closing ScriptPDF should close its temporary window.');
     assert.match(vm.runInContext('secondaryWindow.webContents.getURL()', sandbox), /Bordero\/pages\/display\.html/i, 'Closing ScriptPDF should restore Display.');

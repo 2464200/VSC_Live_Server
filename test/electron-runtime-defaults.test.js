@@ -161,7 +161,7 @@ withTempRuntime(
     const legacyUserFormPagina08Entry = policyMap.get('/userform/pages/pagina08.html');
     const userFormScriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html')", sandbox);
     const scriptPdfManagementPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-gestione.html')", sandbox);
-    const scriptPdfTestPagePolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-prova.html')", sandbox);
+    const scriptPdfLegacyPagePolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-prova.html')", sandbox);
     const scriptPdfViewerPagePolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/viewers/pdf-viewer.html')", sandbox);
     const scriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/ScriptPDF1.html')", sandbox);
     const scriptPdfTestPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Prova/ScriptPDF1.html')", sandbox);
@@ -186,7 +186,7 @@ withTempRuntime(
     assert(!legacyUserFormPagina08Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
     assert(userFormScriptPdfPolicy.primary === true && userFormScriptPdfPolicy.secondary === false, 'USERFORM SCRIPT-PDF must be managed exclusively on the primary monitor.');
     assert(scriptPdfManagementPolicy.primary === false && scriptPdfManagementPolicy.secondary === true, 'Canonical ScriptPDF management page must be routed to the temporary secondary display.');
-    assert(scriptPdfTestPagePolicy.primary === false && scriptPdfTestPagePolicy.secondary === true, 'Canonical ScriptPDF test page must be routed to the temporary secondary display.');
+    assert(scriptPdfLegacyPagePolicy.primary === false && scriptPdfLegacyPagePolicy.secondary === true, 'Legacy ScriptPDF URL must remain routed to the temporary secondary display before redirecting.');
     assert(scriptPdfViewerPagePolicy.primary === false && scriptPdfViewerPagePolicy.secondary === true, 'PDF viewer page must be routed to the temporary secondary display.');
     assert(scriptPdfPolicy.primary === false && scriptPdfPolicy.secondary === true, 'The legacy main ScriptPDF alias must remain routed to the temporary secondary display.');
     assert(scriptPdfTestPolicy.primary === false && scriptPdfTestPolicy.secondary === true, 'The legacy ScriptPDF test alias must be routed to the temporary secondary display.');
