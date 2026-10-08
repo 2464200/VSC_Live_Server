@@ -424,14 +424,11 @@ class VideoClipManager {
     nextAvailableFiles.forEach((fullName, index) => {
       const baseName = nextAvailableBasenames[index] || fullName;
       const parsed = this.parseVideoFileReference(baseName);
-      const normalizedName = this.normalizeForMatch(parsed.name || baseName);
       nextVideoCatalog.push({
         fullName,
         baseName,
         prefix: parsed.prefix || '',
-        name: parsed.name || baseName,
-        normalizedName,
-        tokens: this.tokenizeForMatch(normalizedName)
+        name: parsed.name || baseName
       });
     });
 
@@ -810,7 +807,7 @@ class VideoClipManager {
       this.pendingMainVideoPlay = false;
       mainVideo.muted = false;
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
-      this.markBranoExecutedFromVideoEnd(this.currentBrano);
+      this.markBranoExecuted(this.currentBrano);
       if (playbackStatus) {
         playbackStatus.textContent = `Video pronto: monitor principale HTML5 attivo, monitor secondario via ${this.getSecondaryBackendLabel()}.`;
       }
@@ -846,7 +843,7 @@ class VideoClipManager {
         this.pendingMainVideoPlay = false;
         mainVideo.muted = false;
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
-        this.markBranoExecutedFromVideoEnd(this.currentBrano);
+        this.markBranoExecuted(this.currentBrano);
         if (playbackStatus) {
           playbackStatus.textContent = `Video pronto: monitor principale HTML5 attivo, monitor secondario via ${this.getSecondaryBackendLabel()}.`;
         }
@@ -1425,7 +1422,7 @@ class VideoClipManager {
       titolo: brano.titolo || ''
     });
 
-    this.markBranoExecutedFromVideoEnd(brano);
+    this.markBranoExecuted(brano);
   }
 
   updateMainVideoDebugIndicator(stateLabel = 'updated') {
@@ -1485,130 +1482,27 @@ class VideoClipManager {
     };
   }
 
-  normalizeForMatch(value) {
-    let text = String(value || '').trim();
-    if (!text) return '';
-
-    try {
-      text = text.normalize('NFD').replace(/\p{Diacritic}/gu, '');
-    } catch (e) {
-      text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    }
-
-    return text
-      .toLowerCase()
-      .replace(/&/g, ' e ')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  tokenizeForMatch(normalizedText) {
-    return String(normalizedText || '')
-      .split(' ')
-      .map(token => token.trim())
-      .filter(token => token.length >= 2);
-  }
-
-  buildBranoMatchProfile(brano) {
-    const idDigits = String(brano?.id ?? '').replace(/\D+/g, '');
-    const idPrefix = idDigits ? idDigits.padStart(3, '0') : '';
-
-    const rawNames = [
-      brano?.coreografia,
-      brano?.titolo,
-      brano?.brano,
-      brano?.song,
-      brano?.canzone
-    ].map(value => String(value || '').trim()).filter(Boolean);
-
-    const normalizedNames = [...new Set(rawNames
-      .map(name => this.normalizeForMatch(name))
-      .filter(name => name.length >= 3))];
-
-    const tokenSet = new Set();
-    normalizedNames.forEach(name => {
-      this.tokenizeForMatch(name).forEach(token => tokenSet.add(token));
-    });
-
-    return {
-      idPrefix,
-      normalizedNames,
-      tokens: [...tokenSet]
-    };
-  }
-
-  scoreVideoCandidate(profile, candidate) {
-    let score = 0;
-
-    const hasPrefix = Boolean(profile.idPrefix);
-    if (hasPrefix && candidate.prefix === profile.idPrefix) {
-      score += 1000;
-    }
-
-    if (profile.normalizedNames.includes(candidate.normalizedName)) {
-      score += 450;
-    }
-
-    const includesName = profile.normalizedNames.some(name =>
-      candidate.normalizedName.includes(name) || name.includes(candidate.normalizedName)
-    );
-    if (includesName) {
-      score += 120;
-    }
-
-    if (profile.tokens.length > 0 && candidate.tokens.length > 0) {
-      const shared = candidate.tokens.filter(token => profile.tokens.includes(token)).length;
-      const ratio = shared / Math.max(profile.tokens.length, candidate.tokens.length);
-      score += Math.round(ratio * 100);
-    }
-
-    return score;
-  }
-
   /**
-   * Cerca un file video corrispondente al brano nella lista this.availableFiles.
-   * I file video hanno formato: 3 cifre + spazio + nome coreografia.
+   * Associa i videoclip esclusivamente tramite il prefisso numerico a tre cifre.
    */
   findMatchingVideoFile(brano) {
     if (!Array.isArray(this.videoCatalog) || this.videoCatalog.length === 0) return null;
 
-    const profile = this.buildBranoMatchProfile(brano);
-    const normalizedNameSet = new Set(profile.normalizedNames);
+    const rawId = String(brano?.id ?? '').trim();
+    if (!/^\d{1,3}$/.test(rawId)) return null;
 
-    if (profile.idPrefix) {
-      const prefixMatches = this.videoCatalog.filter(item => item.prefix === profile.idPrefix);
-      if (prefixMatches.length === 1) {
-        return prefixMatches[0].fullName;
-      }
-
-      if (prefixMatches.length > 1) {
-        const exactNameMatch = prefixMatches.find(item => normalizedNameSet.has(item.normalizedName));
-        if (exactNameMatch) {
-          return exactNameMatch.fullName;
-        }
-
-        logger.warn('Match ambiguo: prefisso ID duplicato', {
-          branoId: brano?.id,
-          matches: prefixMatches.map(entry => entry.fullName)
-        });
-        return null;
-      }
+    const idPrefix = rawId.padStart(3, '0');
+    const prefixMatches = this.videoCatalog.filter(item => item.prefix === idPrefix);
+    if (prefixMatches.length === 1) {
+      return prefixMatches[0].fullName;
     }
 
-    const exactNameMatches = this.videoCatalog.filter(item => normalizedNameSet.has(item.normalizedName));
-    if (exactNameMatches.length === 1) {
-      return exactNameMatches[0].fullName;
-    }
-
-    if (exactNameMatches.length > 1) {
-      logger.warn('Match ambiguo: nome coreografia/brano coincide con più file', {
+    if (prefixMatches.length > 1) {
+      logger.warn('Match ambiguo: prefisso videoclip duplicato', {
         branoId: brano?.id,
-        matches: exactNameMatches.map(entry => entry.fullName)
+        matches: prefixMatches.map(entry => entry.fullName)
       });
-      return null;
     }
-
     return null;
   }
 
@@ -1702,6 +1596,7 @@ class VideoClipManager {
             hidden: document.hidden,
             focus: document.hasFocus()
           });
+          this.markBranoExecuted(this.currentBrano);
           logger.debug('[PLAY] Starting main playback via playMainVideo()');
           const mainPlaybackPromise = this.playMainVideo();
           mainPlaybackPromise.catch((playErr) => {
@@ -1848,7 +1743,7 @@ class VideoClipManager {
       filePath
     });
 
-    this.markBranoExecutedFromVideoEnd(brano);
+    this.markBranoExecuted(brano);
   }
 
   normalizeCompletionFileName(value) {
@@ -1884,7 +1779,11 @@ class VideoClipManager {
     return this.brani.find((item) => String(item.id) === String(fallback)) || null;
   }
 
-  markBranoExecutedFromVideoEnd(brano) {
+  markBranoExecuted(brano) {
+    if (!brano || brano.id === null || brano.id === undefined || this.isBranoExecuted(brano)) {
+      return false;
+    }
+
     const targetId = String(brano.id);
     const nowTimestamp = DateUtils.formatDate(new Date());
     const mainVideo = document.getElementById('main-video');
@@ -1949,6 +1848,7 @@ class VideoClipManager {
       timestamp: nowTimestamp
     });
     Toast.success(`Brano marcato eseguito: ${brano.titolo || brano.id}`);
+    return true;
   }
 
   updateFilterButtons() {
@@ -2030,6 +1930,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         event.preventDefault();
         event.stopPropagation();
+        window.videoClipManager.markBranoExecuted(window.videoClipManager.currentBrano);
         mainVideo.pause();
         mainVideo.currentTime = 0;
         mainVideo.volume = 0;

@@ -47,6 +47,7 @@ function loadElectronMainFor(tempDir) {
         return {
           app: {
             commandLine: { appendSwitch() {} },
+            requestSingleInstanceLock() { return true; },
             on() {},
             once() {},
             whenReady() { return new Promise(() => {}); },
