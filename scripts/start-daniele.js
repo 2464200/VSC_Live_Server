@@ -3,12 +3,15 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const http = require('node:http');
 const { spawn } = require('node:child_process');
 
 const projectRoot = path.resolve(__dirname, '..');
 const packageFile = path.join(projectRoot, 'package.json');
 const lockFile = path.join(projectRoot, 'package-lock.json');
+const SERVER_URL = 'http://127.0.0.1:5500';
 let installProcess = null;
+let electronProcess = null;
 let interrupted = false;
 
 function checkNodeVersion() {
@@ -33,7 +36,12 @@ function getMissingPackages() {
   const manifest = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
   const lock = JSON.parse(fs.readFileSync(lockFile, 'utf8'));
 
-  return Object.keys(manifest.dependencies || {}).filter((packageName) => {
+  const required = [
+    ...Object.keys(manifest.dependencies || {}),
+    ...(manifest.devDependencies?.electron ? ['electron'] : [])
+  ];
+
+  return required.filter((packageName) => {
     try {
       require.resolve(packageName, { paths: [projectRoot] });
       const packagePath = path.join(projectRoot, 'node_modules', ...packageName.split('/'), 'package.json');
@@ -80,6 +88,9 @@ function handleInterrupt() {
   if (installProcess) {
     installProcess.kill();
   } else {
+    if (electronProcess) {
+      electronProcess.kill();
+    }
     process.exit(130);
   }
 }
@@ -103,6 +114,62 @@ async function main() {
 
   console.log('[avviodaniele] Avvio del server standard unified-server.js.');
   require(path.join(projectRoot, 'unified-server.js'));
+
+  await waitForServer(SERVER_URL, 120000);
+  startElectron();
+}
+
+function waitForServer(url, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  return new Promise((resolve, reject) => {
+    const attempt = () => {
+      const req = http.get(url, (res) => {
+        res.resume();
+        resolve();
+      });
+      req.setTimeout(2000, () => req.destroy());
+      req.on('error', () => {
+        if (interrupted) {
+          reject(new Error('Attesa del server interrotta.'));
+        } else if (Date.now() >= deadline) {
+          reject(new Error(`Server non raggiungibile su ${url}.`));
+        } else {
+          setTimeout(attempt, 500);
+        }
+      });
+    };
+    attempt();
+  });
+}
+
+// Electron apre BORDERO sul monitor principale e DISPLAY sul monitor secondario (electron/main.js).
+function startElectron() {
+  let electronPath;
+  try {
+    electronPath = require(path.join(projectRoot, 'node_modules', 'electron'));
+  } catch (error) {
+    console.error(`[avviodaniele] Electron non disponibile: ${error.message}`);
+    return;
+  }
+
+  console.log('[avviodaniele] Avvio di Electron: BORDERO su monitor 1, DISPLAY su monitor 2.');
+  const env = { ...process.env };
+  delete env.ELECTRON_RUN_AS_NODE;
+
+  electronProcess = spawn(electronPath, [path.join(projectRoot, 'electron', 'main.js')], {
+    cwd: projectRoot,
+    env,
+    stdio: 'inherit',
+    windowsHide: false
+  });
+  electronProcess.once('error', (error) => {
+    console.error(`[avviodaniele] Impossibile avviare Electron: ${error.message}`);
+    electronProcess = null;
+  });
+  electronProcess.once('exit', (code) => {
+    console.log(`[avviodaniele] Electron chiuso (codice ${code ?? 'sconosciuto'}).`);
+    electronProcess = null;
+  });
 }
 
 process.on('SIGINT', handleInterrupt);
