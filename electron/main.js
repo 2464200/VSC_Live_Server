@@ -76,6 +76,8 @@ const PAGE_POLICY = new Map([
   ['/eventi/tutti.html', { primary: true, secondary: false }],
   ['/eventi/visualizer.html', { primary: true, secondary: false }],
   ['/diagnostica.html', { primary: true, secondary: false }],
+  ['/pdf/pages/script-pdf-gestione.html', { primary: true, secondary: false }],
+  ['/pdf/pages/script-pdf-prova.html', { primary: true, secondary: false }],
   ['/scriptpdf1.html', { primary: true, secondary: false }],
   ['/prova/scriptpdf1.html', { primary: true, secondary: false }],
   ['/prova/report.html', { primary: true, secondary: false }],

@@ -79,7 +79,7 @@ Default: Ascolta sulla **porta 8765**
 
 Tramite VSCode Live Server:
 ```
-http://localhost:5500/Prova/ScriptPDF1.html
+http://localhost:5500/pdf/pages/script-pdf-prova.html
 ```
 
 Il sistema automaticamente:

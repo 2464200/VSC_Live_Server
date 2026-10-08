@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset='UTF-8'>
-<title>Test ScriptPDF1</title>
+<title>Verifica ScriptPDF</title>
 <style>
 body {
     font-family: Arial;
@@ -37,7 +37,7 @@ nav a:hover { text-decoration: underline; }
 <body>
 <div id="global-nav-container"></div>
 <script src="../nav.js"></script>
-<h1>🧪 Test ScriptPDF1</h1>
+<h1>🧪 Verifica ScriptPDF</h1>
 
 <div id="tests"></div>
 
@@ -102,7 +102,7 @@ async function runTests() {
         const data = await response.json();
         if (!data.files) throw new Error('Manca proprietà files');
         if (!Array.isArray(data.files)) throw new Error('files non è un array');
-        if (!data.totalFiles) throw new Error('Manca proprietà totalFiles');
+        if (!Number.isInteger(data.totalCount)) throw new Error('Manca proprietà totalCount');
         if (!data.timestamp) throw new Error('Manca proprietà timestamp');
     });
 
@@ -127,9 +127,9 @@ async function runTests() {
         });
     });
 
-    // Test 7: Pagina ScriptPDF1.html è accessibile
-    await addTest('Pagina ScriptPDF1.html è accessibile', async () => {
-        const response = await fetch(`${BASE_URL}/Prova/ScriptPDF1.html`);
+    // Test 7: pagina canonica ScriptPDF Prova è accessibile
+    await addTest('Pagina ScriptPDF Prova è accessibile', async () => {
+        const response = await fetch(`${BASE_URL}/pdf/pages/script-pdf-prova.html`);
         if (response.status !== 200) {
             throw new Error(`Status ${response.status} - atteso 200`);
         }
@@ -158,7 +158,7 @@ async function runTests() {
     summaryDiv.innerHTML = `
         <h2>${passCount === testCount ? '✓ TUTTI I TEST PASSATI!' : '✗ ALCUNI TEST FALLITI'}</h2>
         <p>Test completati: <strong>${passCount}/${testCount}</strong></p>
-        ${passCount === testCount ? '<p><strong>Puoi ora aprire e usare ScriptPDF1.html</strong></p>' : ''}
+        ${passCount === testCount ? '        <p><strong>Puoi ora aprire e usare ScriptPDF Prova</strong></p>' : ''}
     `;
     testsContainer.appendChild(summaryDiv);
 }

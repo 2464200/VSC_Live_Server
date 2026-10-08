@@ -25,9 +25,9 @@ COME FUNZIONA
 
 1. APRIRE LA PAGINA HTML
    📍 Luogo: Monitor Primario (0,0)
-   Browser: http://localhost:8765/Prova/ScriptPDF1.html
+   Browser: http://localhost:5500/pdf/pages/script-pdf-prova.html
    o
-   file:///C:/VSC_Live_Server/Prova/ScriptPDF1.html
+   file:///C:/VSC_Live_Server/pdf/pages/script-pdf-prova.html
 
 2. CLICCARE SU "Apri" (dentro HTML)
    📍 Azione: Server riceve richiesta POST /api/open-pdf
@@ -139,8 +139,8 @@ PORTE:
    • Browser Client: 3000 (via http-server)
 
 CARTELLE:
-   • PDF: C:\SCRIPT_PDF
-   • HTML: C:\VSC_Live_Server\Prova\ScriptPDF1.html
+   • PDF: C:\VSC_SCRIPT_PDF
+   • HTML: C:\VSC_Live_Server\pdf/pages/script-pdf-prova.html
    • Temp: %TEMP%\ (script PowerShell)
 
 PROCESSI:
@@ -186,22 +186,22 @@ ISTRUZIONI PER L'USO
    ```
    ========================================
    Server PDF avviato su http://localhost:8765
-   Pagina: http://localhost:8765/Prova/ScriptPDF1.html
+   Pagina: http://localhost:5500/pdf/pages/script-pdf-prova.html
    API: http://localhost:8765/api/pdf-list
-   Cartella PDF: C:\SCRIPT_PDF
+   Cartella PDF: C:\VSC_SCRIPT_PDF
    ========================================
    ```
 
 2. APRI PAGINA HTML
    Opzione A: Browser
    ```
-   http://localhost:8000/Prova/ScriptPDF1.html
+   http://localhost:5500/pdf/pages/script-pdf-prova.html
    ```
    (se usi http-server come dev server)
    
    Opzione B: File locale
    ```
-   file:///C:/VSC_Live_Server/Prova/ScriptPDF1.html
+   file:///C:/VSC_Live_Server/pdf/pages/script-pdf-prova.html
    ```
 
 3. USA L'INTERFACCIA

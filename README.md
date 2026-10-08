@@ -112,7 +112,7 @@ La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
 - [README_SETUP_STABILE.md](README_SETUP_STABILE.md)
 - [README_BORDERÒ.md](README_BORDERÒ.md)
 - [README_PDF_FIXES.md](README_PDF_FIXES.md)
-- [README_ScriptPDF1.md](README_ScriptPDF1.md)
+- [Documentazione ScriptPDF](pdf/README.md)
 - [README_SOLUZIONE_DINAMICA.md](README_SOLUZIONE_DINAMICA.md)
 - [PROJECT_COMPLETE.md](PROJECT_COMPLETE.md)
 - [PROJECT_STATUS.md](PROJECT_STATUS.md)

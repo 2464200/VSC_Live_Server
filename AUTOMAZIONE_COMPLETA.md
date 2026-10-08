@@ -27,7 +27,7 @@ Quando chiudi il progetto:
 ## URL principali
 - `http://localhost:5500/index.html`
 - `http://localhost:5500/diagnostica.html`
-- `http://localhost:5500/Prova/ScriptPDF1.html`
+- `http://localhost:5500/pdf/pages/script-pdf-prova.html`
 - `http://localhost:5500/eventi/eventi.html`
 - `http://localhost:5500/eventi/visualizer.html`
 

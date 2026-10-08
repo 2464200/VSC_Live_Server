@@ -12,9 +12,9 @@ PROBLEMA RIPORTATO
 
 ❌ "continua a non caricare i file PDF dalla cartella"
 
-File HTML: Prova/ScriptPDF1.html
+File HTML: Prova/pdf/pages/script-pdf-gestione.html
 Server: http://localhost:8765
-Cartella PDF: C:\SCRIPT_PDF
+Cartella PDF: C:\VSC_SCRIPT_PDF
 
 ================================================================================
 ANALISI DEL PROBLEMA
@@ -23,7 +23,7 @@ ANALISI DEL PROBLEMA
 FASE 1: VERIFICA INFRASTRUTTURA
 ─────────────────────────────
 Trovato:
-✅ Cartella C:\SCRIPT_PDF esiste
+✅ Cartella C:\VSC_SCRIPT_PDF esiste
 ✅ Contiene 2 file PDF:
    - whiskey-wiggle-p.pdf
    - whiskey.pdf
@@ -57,7 +57,7 @@ RISULTATO FINALE:
 SOLUZIONE IMPLEMENTATA
 ================================================================================
 
-1. COMPLETAMENTE RISCRITTO: Prova/ScriptPDF1.html
+1. COMPLETAMENTE RISCRITTO: Prova/pdf/pages/script-pdf-gestione.html
    - Versione precedente: 524 righe + errori
    - Versione nuova: ~430 righe, semplice e robusta
 
@@ -127,7 +127,7 @@ VERIFICA FINALE
    Status: 200 OK
    Response: 2 PDF files found
 
-✅ HTML File: Prova/ScriptPDF1.html
+✅ HTML File: Prova/pdf/pages/script-pdf-gestione.html
    Size: 10,019 bytes
    Syntax: Valid HTML5
    Status: Ready for production
@@ -152,7 +152,7 @@ FILE BACKUP
 ================================================================================
 
 Versione precedente salvata in:
-   Prova/ScriptPDF1.html.backup
+   Prova/pdf/pages/script-pdf-gestione.html.backup
 
 Dimensione vecchia: ~524 righe
 Dimensione nuova: ~430 righe (60% del codice eliminato)
@@ -164,7 +164,7 @@ CONFIGURAZIONE
 
 Server PDF (Node.js):
 - Porta: 8765
-- Cartella: C:\SCRIPT_PDF
+- Cartella: C:\VSC_SCRIPT_PDF
 - Express.js with CORS enabled
 - GET /api/pdf-list → JSON list
 - POST /api/open-pdf → Chrome kiosk mode
@@ -188,11 +188,11 @@ ISTRUZIONI PER L'USO
 
 2. APRIRE IL FILE HTML
    ```
-   http://localhost:8000/Prova/ScriptPDF1.html
+   http://localhost:5500/pdf/pages/script-pdf-prova.html
    ```
    oppure
    ```
-   file:///C:/VSC_Live_Server/Prova/ScriptPDF1.html
+   file:///C:/VSC_Live_Server/pdf/pages/script-pdf-prova.html
    ```
 
 3. INTERFACCIA
@@ -208,7 +208,7 @@ ISTRUZIONI PER L'USO
      → Verifica porta 8765 sia libera
    
    - Select vuoto = Nessun PDF trovato
-     → Verifica C:\SCRIPT_PDF
+     → Verifica C:\VSC_SCRIPT_PDF
      → Verifica permissions
    
    - Timeout = Server non risponde

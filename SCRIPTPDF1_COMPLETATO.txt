@@ -7,7 +7,7 @@
 ═════════════════════════════════════════════════════════════════════════════════
 
 [✅] Interfaccia HTML con stile Report_black.html (nero + arancione)
-[✅] ComboBox per selezionare file PDF da C:\SCRIPT_PDF
+[✅] ComboBox per selezionare file PDF da C:\VSC_SCRIPT_PDF
 [✅] Pulsante "◀ Precedente" (CommandButton63)
 [✅] Pulsante "Successivo ▶" (CommandButton64)
 [✅] Pulsante "✕ Chiudi" (CommandButton65)
@@ -37,7 +37,7 @@
 ✅ Processi Chrome: ATTIVI (9 processi in esecuzione)
 
 ✅ Pagina HTML: ACCESSIBILE
-   URL: http://localhost:8765/Prova/ScriptPDF1.html
+   URL: http://localhost:5500/pdf/pages/script-pdf-prova.html
    Funzione openCurrentPdf: PRESENTE
 
 ═════════════════════════════════════════════════════════════════════════════════
@@ -46,7 +46,7 @@
 ═════════════════════════════════════════════════════════════════════════════════
 
 1. ACCEDI ALLA PAGINA
-   URL: http://localhost:8765/Prova/ScriptPDF1.html
+   URL: http://localhost:5500/pdf/pages/script-pdf-prova.html
    Apri il link nel browser
 
 2. INTERFACCIA PRINCIPALE
@@ -54,7 +54,7 @@
    
    Sezione 1: SELEZIONE FILE
    └─ ComboBox: "Seleziona un file PDF"
-                (mostra lista da C:\SCRIPT_PDF)
+                (mostra lista da C:\VSC_SCRIPT_PDF)
    
    Sezione 2: VISUALIZZAZIONE INFO
    └─ Nome file corrente
@@ -102,7 +102,7 @@ C:\VSC_Live_Server\
 ├─ Prova\
 │  └─ ScriptPDF1.html .................. Interfaccia grafica
 │  └─ test-scriptpdf1.html ............ Pagina di test (facoltativa)
-└─ C:\SCRIPT_PDF\ ....................... Cartella file PDF
+└─ C:\VSC_SCRIPT_PDF\ ....................... Cartella file PDF
    ├─ whiskey-wiggle-p.pdf ............ Esempio 1
    └─ whiskey.pdf ..................... Esempio 2
 
@@ -117,12 +117,12 @@ SOLUZIONE:
      → cd C:\VSC_Live_Server && node pdf-server.js
   
   2. ✓ Verifica che il file esista:
-     → explorer C:\SCRIPT_PDF
+     → explorer C:\VSC_SCRIPT_PDF
   
   3. ✓ Usa Alt+Tab per visualizzare Chrome (potrebbe essere nascosto)
   
   4. ✓ Controlla la console del browser (F12) per errori
-     → Apri http://localhost:8765/Prova/ScriptPDF1.html
+     → Apri http://localhost:5500/pdf/pages/script-pdf-prova.html
      → Premi F12 per aprire DevTools
      → Guarda la console per messaggi di errore
   
@@ -144,7 +144,7 @@ SOLUZIONE:
 
 PROBLEMA: "Nessun file PDF trovato nella cartella"
 SOLUZIONE:
-  1. ✓ Aggiungi file PDF in: C:\SCRIPT_PDF
+  1. ✓ Aggiungi file PDF in: C:\VSC_SCRIPT_PDF
   2. ✓ Filtra solo .pdf (non .txt, .doc, ecc)
   3. ✓ Ricarica la pagina HTML (F5)
   4. ✓ Riavvia il server
@@ -248,7 +248,7 @@ Ogni volta che vuoi usare ScriptPDF1:
 1. Apri PowerShell
 2. Digita: cd C:\VSC_Live_Server && node pdf-server.js
 3. Attendi il messaggio "Server started"
-4. Apri nel browser: http://localhost:8765/Prova/ScriptPDF1.html
+4. Apri nel browser: http://localhost:5500/pdf/pages/script-pdf-prova.html
 5. Usa la pagina per selezionare e aprire i PDF
 
 ═════════════════════════════════════════════════════════════════════════════════
@@ -260,13 +260,13 @@ Ogni volta che vuoi usare ScriptPDF1:
   → Prova: Invoke-WebRequest http://localhost:8765/api/pdf-list
 
 ✓ File PDF presenti?
-  → Apri: C:\SCRIPT_PDF
+  → Apri: C:\VSC_SCRIPT_PDF
 
 ✓ Chrome installato?
   → Controlla: C:\Program Files\Google\Chrome\Application\chrome.exe
 
 ✓ La pagina si apre?
-  → Apri: http://localhost:8765/Prova/ScriptPDF1.html
+  → Apri: http://localhost:5500/pdf/pages/script-pdf-prova.html
 
 ═════════════════════════════════════════════════════════════════════════════════
 

@@ -11,7 +11,7 @@ Ho rivisto **TUTTO il codice** e applicato correzioni complete per risolvere i p
 ### âœ… **File modificati (5):**
 - âœï¸ `index.html` â†’ Cache-busting, error handling, timeout robusto
 - âœï¸ `servizio.html` â†’ Cache-busting, fallback intelligenti, logging
-- âœï¸ `Prova/ScriptPDF1.html` â†’ URL corretti (127.0.0.1:8765), timeout, retry
+- âœï¸ `Prova/pdf/pages/script-pdf-gestione.html` â†’ URL corretti (127.0.0.1:8765), timeout, retry
 - âœï¸ `pdf-server.js` â†’ Porta configurabile via env, log migliorati
 - âœï¸ `script.js` â†’ GiÃ  stabile (nessuna modifica)
 
@@ -66,7 +66,7 @@ Dopo l'avvio, apri nel browser:
 |--------|-----|
 | **ðŸ  Home** | http://127.0.0.1:5500/index.html |
 | **ðŸ“Š Servizio** | http://127.0.0.1:5500/servizio.html |
-| **ðŸ“„ Gestione PDF** | http://127.0.0.1:5500/Prova/ScriptPDF1.html |
+| **ðŸ“„ Gestione PDF** | http://localhost:5500/pdf/pages/script-pdf-prova.html |
 | **ðŸ” Diagnostica** | http://127.0.0.1:5500/diagnostica.html |
 
 ---

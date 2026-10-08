@@ -32,7 +32,7 @@ node simple-server.js
 
 ### Opzione 2: Avvio da Browser
 
-Apri: **http://localhost:5500/Prova/ScriptPDF1.html**
+Apri: **http://localhost:5500/pdf/pages/script-pdf-prova.html**
 
 Il sistema farÃ  automaticamente:
 1. âœ… ContatterÃ  il Server Manager
@@ -52,7 +52,7 @@ Il sistema farÃ  automaticamente:
 
 **1. pdf-server-simple.js** (NUOVO)
 - âœ… Semplice e facile da capire
-- âœ… Legge i 32 PDF correttamente da C:\SCRIPT_PDF
+- âœ… Legge i 32 PDF correttamente da C:\VSC_SCRIPT_PDF
 - âœ… Logging dettagliato per debug
 - âœ… Proper error handling
 - âœ… API REST stabile
@@ -110,7 +110,7 @@ Il sistema farÃ  automaticamente:
 ```
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
 â”‚  Browser http://localhost:5500         â”‚
-â”‚  Prova/ScriptPDF1.html                 â”‚
+â”‚  Prova/pdf/pages/script-pdf-gestione.html                 â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
               â”‚
               â–¼
@@ -136,7 +136,7 @@ Il sistema farÃ  automaticamente:
   â”‚ - /api/pdf-list          â”‚
   â”‚ - /api/open-pdf          â”‚
   â”‚ - /api/health            â”‚
-  â”‚ - Reads C:\SCRIPT_PDF    â”‚
+  â”‚ - Reads C:\VSC_SCRIPT_PDF    â”‚
   â”‚ - Manages 32 PDF files   â”‚
   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
@@ -152,7 +152,7 @@ Il sistema farÃ  automaticamente:
 | `api-config.js` | âœï¸ AGGIORNATO | Miglior rilevamento |
 | `simple-server.js` | ðŸ†• NUOVO | Web server stabile |
 | `package.json` | âœï¸ AGGIORNATO | Version 2.0.0, nuovi script |
-| `Prova/ScriptPDF1.html` | âœï¸ AGGIORNATO | Migliore error handling |
+| `Prova/pdf/pages/script-pdf-gestione.html` | âœï¸ AGGIORNATO | Migliore error handling |
 
 ---
 
@@ -181,7 +181,7 @@ Get-Process node | Stop-Process -Force
 ## ðŸŽ“ Come Funziona
 
 ### Avvio
-1. Browser visita: http://localhost:5500/Prova/ScriptPDF1.html
+1. Browser visita: http://localhost:5500/pdf/pages/script-pdf-prova.html
 2. Pagina HTML carica (via simple-server.js)
 3. JavaScript contatta Server Manager (porta 3000)
 
@@ -189,7 +189,7 @@ Get-Process node | Stop-Process -Force
 4. Server Manager riceve richiesta di avvio
 5. Spawna `pdf-server-simple.js` come child process
 6. PDF Server (porta 8765) si avvia in <2 secondi
-7. Legge C:\SCRIPT_PDF e carica 32 file
+7. Legge C:\VSC_SCRIPT_PDF e carica 32 file
 
 ### Operazione
 8. Pagina richiede `/api/pdf-list`
@@ -219,12 +219,12 @@ node simple-server.js   # Terminale 2
 ### "Cartella PDF non trovata"
 ```powershell
 # Verifica che esista
-Test-Path C:\SCRIPT_PDF
+Test-Path C:\VSC_SCRIPT_PDF
 
 # Verificare contenuto
-ls C:\SCRIPT_PDF | where { $_.Name -like "*.pdf" } | measure
+ls C:\VSC_SCRIPT_PDF | where { $_.Name -like "*.pdf" } | measure
 
-# Se mancano file, aggiungere PDF a C:\SCRIPT_PDF
+# Se mancano file, aggiungere PDF a C:\VSC_SCRIPT_PDF
 ```
 
 ### "Porta giÃ  in uso"

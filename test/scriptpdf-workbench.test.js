@@ -7,14 +7,14 @@ const root = path.join(__dirname, '..');
 const clientScript = fs.readFileSync(path.join(root, 'pdf', 'assets', 'scriptpdf-workbench.js'), 'utf8');
 const routes = [
   {
-    source: 'pdf/viewers/ScriptPDF1.html',
-    public: 'public/ScriptPDF1.html',
+    source: 'pdf/pages/script-pdf-gestione.html',
+    public: 'public/pdf/pages/script-pdf-gestione.html',
     mode: 'principale',
     retryCount: 1,
   },
   {
-    source: 'Prova/ScriptPDF1.html',
-    public: 'public/Prova/ScriptPDF1.html',
+    source: 'pdf/pages/script-pdf-prova.html',
+    public: 'public/pdf/pages/script-pdf-prova.html',
     mode: 'prova',
     retryCount: 2,
   },
@@ -189,10 +189,21 @@ async function run() {
     const sourceHtml = fs.readFileSync(path.join(root, route.source), 'utf8');
     const publicHtml = fs.readFileSync(path.join(root, route.public), 'utf8');
     assert.equal(publicHtml, sourceHtml, `${route.source} and ${route.public} should stay in sync.`);
+    assert.match(sourceHtml, /\/pdf\/pages\/script-pdf-(?:gestione|prova)\.html/);
     assert.match(sourceHtml, /\/pdf\/assets\/scriptpdf-workbench\.css/);
     assert.match(sourceHtml, /\/pdf\/assets\/scriptpdf-workbench\.js/);
     await runPage(route);
     console.log(`PASS: ${route.mode} page preserves PDF selection, navigation, viewer preferences, and managed-session controls.`);
+  }
+  const legacyAliases = [
+    ['pdf/viewers/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
+    ['Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-prova.html'],
+    ['public/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
+    ['public/Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-prova.html'],
+  ];
+  for (const [aliasPath, canonicalRoute] of legacyAliases) {
+    const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
+    assert.match(alias, new RegExp(canonicalRoute.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 }
 

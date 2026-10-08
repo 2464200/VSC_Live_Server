@@ -127,7 +127,7 @@
 #### **Problemi Trovati e Corretti**:
 1. `ScriptPDF1_prova.html` - Usa ancora `localhost` âŒ â†’ âœ… Allineato a 127.0.0.1
 2. `pdf-viewer.html` - Codice duplicato e conflittuale âŒ â†’ âœ… Pulito e consolidato
-3. `/Prova/ScriptPDF1.html` - Non allineato âŒ â†’ âœ… Allineato a 127.0.0.1
+3. `/pdf/pages/script-pdf-prova.html` - Non allineato âŒ â†’ âœ… Allineato a 127.0.0.1
 
 #### **Risultato**:
 âœ… Tutti i client PDF (4 file) utilizzano URL consistente: `http://127.0.0.1:8765`
@@ -252,7 +252,7 @@ Tutte le pagine HTML e gli script sono stati rivisti e corretti per garantire **
 - âœ… Migliorato error handling
 - âœ… Aggiunto logging per debug
 
-### 3. **Prova/ScriptPDF1.html** âœï¸
+### 3. **Prova/pdf/pages/script-pdf-gestione.html** âœï¸
 - âœ… Aggiornato porta API da `localhost:8765` a `127.0.0.1:8765`
 - âœ… Aggiunto timeout robusto (8s) con AbortController
 - âœ… Aggiunto retry logic per fetch
@@ -459,7 +459,7 @@ Clicca "Esegui tutti i test" per verificare che tutto funziona.
 
 - âœ… Nessuna esposizione di password/segreti
 - âœ… CORS middleware presente in pdf-server.js
-- âœ… File system limited a C:\SCRIPT_PDF per PDF
+- âœ… File system limited a C:\VSC_SCRIPT_PDF per PDF
 - âœ… Nessun eval() o dynamic code execution
 - âœ… Validazione input su API endpoints
 

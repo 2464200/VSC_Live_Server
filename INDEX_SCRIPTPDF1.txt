@@ -37,7 +37,7 @@ CARTELLA PRINCIPALE: C:\VSC_Live_Server
 │  └─ INDEX_SCRIPTPDF1.txt ................. Questo file
 │
 └─ CARTELLA DATI (creata automaticamente)
-   └─ C:\SCRIPT_PDF/ ........................ Cartella per i tuoi file PDF
+   └─ C:\VSC_SCRIPT_PDF/ ........................ Cartella per i tuoi file PDF
 
 ═══════════════════════════════════════════════════════════════════════════════════
 
@@ -45,7 +45,7 @@ CARTELLA PRINCIPALE: C:\VSC_Live_Server
 ═══════════════════════════════════════════════════════════════════════════════════
 
 ✅ INTERFACCIA UTENTE (HTML)
-   • ComboBox per selezionare file PDF dalla cartella C:\SCRIPT_PDF
+   • ComboBox per selezionare file PDF dalla cartella C:\VSC_SCRIPT_PDF
    • Pulsante "Precedente" (◀) - naviga al file precedente
    • Pulsante "Successivo" (▶) - naviga al file successivo
    • Pulsante "Chiudi" (✕) - chiude Chrome e torna a Excel
@@ -78,7 +78,7 @@ CARTELLA PRINCIPALE: C:\VSC_Live_Server
    • Script di setup iniziale
    • Verifica Node.js
    • Installazione Express.js
-   • Creazione cartella C:\SCRIPT_PDF
+   • Creazione cartella C:\VSC_SCRIPT_PDF
    • Verifica Chrome
 
 ═══════════════════════════════════════════════════════════════════════════════════
@@ -92,7 +92,7 @@ PASSO 1: Setup (eseclui una sola volta)
    Segui le istruzioni
 
 PASSO 2: Aggiungi file PDF
-   Copia i tuoi PDF in C:\SCRIPT_PDF
+   Copia i tuoi PDF in C:\VSC_SCRIPT_PDF
    
 PASSO 3: Avvia il programma
    Opzione A: .\Start_ScriptPDF1.ps1 (PowerShell)
@@ -111,7 +111,7 @@ PASSO 3: Avvia il programma
 
 2. SELEZIONE FILE
    ✓ ComboBox in alto mostra "-- Caricamento lista... --"
-   ✓ Aspetta 2-3 secondi mentre carica i file da C:\SCRIPT_PDF
+   ✓ Aspetta 2-3 secondi mentre carica i file da C:\VSC_SCRIPT_PDF
    ✓ Seleziona il file che vuoi aprire dal menu a tendina
 
 3. NAVIGAZIONE
@@ -152,9 +152,9 @@ Per informazioni tecniche complete:
 FLUSSO DI ESECUZIONE:
    1. Utente esegue: .\Start_ScriptPDF1.ps1
    2. PowerShell avvia: node pdf-server.js (listening su 8765)
-   3. PowerShell avvia: chrome.exe --kiosk http://localhost:8765/Prova/ScriptPDF1.html
+   3. PowerShell avvia: chrome.exe --kiosk http://localhost:5500/pdf/pages/script-pdf-prova.html
    4. Pagina HTML carica e fa fetch a: http://localhost:8765/api/pdf-list
-   5. Server legge file da: C:\SCRIPT_PDF e ritorna lista JSON
+   5. Server legge file da: C:\VSC_SCRIPT_PDF e ritorna lista JSON
    6. HTML popola ComboBox
    7. Utente interagisce con l'interfaccia
    8. Click su file → POST http://localhost:8765/api/open-pdf
@@ -186,7 +186,7 @@ Avvio programma (File Batch - più semplice):
    C:\VSC_Live_Server\Start_ScriptPDF1.bat
 
 Apri cartella PDF:
-   explorer "C:\SCRIPT_PDF"
+   explorer "C:\VSC_SCRIPT_PDF"
 
 Test connessione server:
    Invoke-WebRequest http://localhost:8765/api/pdf-list
@@ -208,7 +208,7 @@ Cambia porta server:
    • Start_ScriptPDF1.ps1: stessa porta
 
 Cambia colori/stile:
-   • Prova/ScriptPDF1.html: modificare CSS alle righe 8-26
+   • Prova/pdf/pages/script-pdf-gestione.html: modificare CSS alle righe 8-26
    • Colori correnti: #111 (sfondo), #ff7f00 (accento arancione)
 
 Cambia cartella PDF:
@@ -236,7 +236,7 @@ ERRORE: "Porta 8765 già in uso"
    → Oppure modifica il numero porta nel codice
 
 ERRORE: "Nessun file PDF trovato"
-   → Aggiungi file PDF in C:\SCRIPT_PDF
+   → Aggiungi file PDF in C:\VSC_SCRIPT_PDF
    → Aggiorna pagina HTML (F5)
    → Riavvia il server
 
@@ -282,7 +282,7 @@ File di documentazione:
 Comandi di verifica:
    1. node --version           (verifica Node.js)
    2. npm list express         (verifica Express)
-   3. Test-Path "C:\SCRIPT_PDF" (verifica cartella PDF)
+   3. Test-Path "C:\VSC_SCRIPT_PDF" (verifica cartella PDF)
    4. Invoke-WebRequest http://localhost:8765/api/pdf-list (verifica server)
 
 Log di debug:
@@ -303,10 +303,10 @@ Preparazione:
 Setup:
    ☐ Esegui Setup_ScriptPDF1.ps1
    ☐ Verificai tutte le dipendenze
-   ☐ Controlla che cartella C:\SCRIPT_PDF sia stata creata
+   ☐ Controlla che cartella C:\VSC_SCRIPT_PDF sia stata creata
 
 Test:
-   ☐ Aggiungi file PDF in C:\SCRIPT_PDF
+   ☐ Aggiungi file PDF in C:\VSC_SCRIPT_PDF
    ☐ Esegui Start_ScriptPDF1.ps1
    ☐ Verifica che Chrome si apra in Kiosk
    ☐ Seleziona e apri un PDF

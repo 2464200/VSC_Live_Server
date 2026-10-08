@@ -96,7 +96,7 @@ curl http://127.0.0.1:8765/api/pdf-list
 ```
 
 ### 3. Test Pagina
-- Apertura: `http://127.0.0.1:8765/Prova/ScriptPDF1.html`
+- Apertura: `http://localhost:5500/pdf/pages/script-pdf-prova.html`
 - Dovrebbe mostare: "Server pronto - X PDF disponibili"
 - Se fallisce: Controlla console browser (F12 > Console)
 

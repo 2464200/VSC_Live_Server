@@ -135,6 +135,14 @@
     "primary": true,
     "secondary": false
   },
+  "/pdf/pages/script-pdf-gestione.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/pdf/pages/script-pdf-prova.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/pdf/viewers/scriptpdf1.html": {
     "primary": true,
     "secondary": false

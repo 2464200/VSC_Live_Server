@@ -123,7 +123,7 @@ async function runTests() {
         console.log('');
         console.log('URL di accesso:');
         console.log('  Homepage:    http://localhost:5500/index.html');
-        console.log('  PDF:         http://localhost:5500/Prova/ScriptPDF1.html');
+        console.log('  PDF:         http://localhost:5500/pdf/pages/script-pdf-gestione.html');
         console.log('  Eventi:      http://localhost:5500/eventi/eventi.html');
         console.log('  Visualizer:  http://localhost:5500/eventi/visualizer.html');
     } else {

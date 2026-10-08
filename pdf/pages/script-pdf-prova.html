@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171717" />
+  <title>ScriptPDF | Ambiente di prova</title>
+  <link rel="stylesheet" href="/pdf/assets/scriptpdf-workbench.css" />
+  <script defer src="/pdf/assets/scriptpdf-workbench.js"></script>
+</head>
+<body class="pdf-workbench" data-scriptpdf-mode="prova">
+  <div class="pdf-shell">
+    <header class="pdf-topbar">
+      <a class="pdf-brand" href="/USERFORM/pages/SCRIPT-PDF.html" aria-label="Torna al launcher Script-PDF">
+        <span class="pdf-brand-mark" aria-hidden="true">B</span>
+        <span>
+          <span class="pdf-eyebrow">BORDERO' · CENTRO OPERATIVO</span>
+          <strong>GESTIONE PDF</strong>
+        </span>
+      </a>
+      <nav class="pdf-topbar-actions" aria-label="Navigazione ScriptPDF">
+        <a class="pdf-nav-link" href="/USERFORM/pages/SCRIPT-PDF.html">Launcher Script-PDF</a>
+        <a class="pdf-nav-link" href="/pdf/pages/script-pdf-gestione.html">Ambiente principale <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="pdf-hero pdf-hero-test" aria-labelledby="page-title">
+        <div>
+          <p class="pdf-kicker">AMBIENTE DI PROVA · MONITOR 1</p>
+          <h1 id="page-title">ScriptPDF <span>Verifica e collaudo</span></h1>
+          <p class="pdf-hero-copy">Ambiente di test indipendente per provare selezione, navigazione e apertura dei PDF sul monitor secondario.</p>
+        </div>
+        <div class="pdf-hero-mark" aria-hidden="true">TEST</div>
+      </section>
+
+      <section class="pdf-status-panel" aria-label="Stato del servizio PDF">
+        <span class="pdf-status-indicator" aria-hidden="true"></span>
+        <div>
+          <p id="pdf-status" class="pdf-status-title" data-state="loading" role="status" aria-live="polite">Connessione al server unificato…</p>
+          <p id="pdf-folder" class="pdf-status-detail">Verifica con tentativi ripetuti del servizio locale sulla porta 5500.</p>
+        </div>
+        <button id="refresh-pdf-list" class="pdf-button pdf-button-quiet" type="button">Aggiorna elenco</button>
+      </section>
+
+      <section class="pdf-workspace" aria-label="Selezione e apertura PDF">
+        <article class="pdf-panel pdf-selection-panel">
+          <div class="pdf-panel-heading">
+            <div>
+              <p class="pdf-kicker">ARCHIVIO DOCUMENTI</p>
+              <h2>Scegli un PDF</h2>
+            </div>
+            <span id="pdf-count" class="pdf-count">0 documenti</span>
+          </div>
+
+          <div class="pdf-library-tools">
+            <div>
+              <label class="pdf-field-label" for="pdf-search">Cerca per nome</label>
+              <input id="pdf-search" class="pdf-input" type="search" autocomplete="off" placeholder="Es. relazione, verbale…" />
+            </div>
+            <div>
+              <label class="pdf-field-label" for="pdf-filter">Filtra elenco</label>
+              <select id="pdf-filter" class="pdf-select">
+                <option value="all">Tutti i PDF</option>
+                <option value="recent">Aperti negli ultimi 30 giorni</option>
+                <option value="unopened">Mai aperti</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="pdf-field-label" for="pdf-select">Documento disponibile</label>
+          <select id="pdf-select" class="pdf-select" disabled>
+            <option value="">Connessione in corso…</option>
+          </select>
+
+          <div id="pdf-empty" class="pdf-empty" hidden>
+            <span class="pdf-empty-icon" aria-hidden="true">PDF</span>
+            <strong id="pdf-empty-title">Nessun documento disponibile</strong>
+            <span id="pdf-empty-message">Inserisci i file PDF nella cartella indicata e aggiorna l'elenco.</span>
+          </div>
+
+          <div id="pdf-current" class="pdf-current" hidden>
+            <div class="pdf-document-icon" aria-hidden="true">PDF</div>
+            <div class="pdf-document-copy">
+              <p class="pdf-kicker">SELEZIONATO</p>
+              <h3 id="pdf-name"></h3>
+              <p id="pdf-metadata"></p>
+            </div>
+            <span id="pdf-position" class="pdf-position"></span>
+          </div>
+
+          <div class="pdf-navigation">
+            <button id="previous-pdf" class="pdf-button pdf-button-secondary" type="button" disabled>
+              <span aria-hidden="true">←</span> Precedente
+            </button>
+            <button id="next-pdf" class="pdf-button pdf-button-secondary" type="button" disabled>
+              Successivo <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <button id="toggle-preview" class="pdf-button pdf-button-secondary pdf-preview-toggle" type="button" aria-expanded="false" disabled>Mostra anteprima</button>
+          <section id="pdf-preview-panel" class="pdf-preview-panel" aria-label="Anteprima PDF selezionato" hidden>
+            <iframe id="pdf-preview" title="Anteprima del PDF selezionato" loading="lazy"></iframe>
+          </section>
+
+          <details class="pdf-history-details">
+            <summary>Ultimi PDF aperti</summary>
+            <div class="pdf-history-content">
+              <div class="pdf-history-heading">
+                <span id="pdf-history-count">Cronologia locale</span>
+                <button id="clear-history" class="pdf-text-button" type="button">Svuota cronologia</button>
+              </div>
+              <ul id="pdf-history-list" class="pdf-history-list">
+                <li>Nessun PDF aperto di recente.</li>
+              </ul>
+            </div>
+          </details>
+
+          <p class="pdf-folder-path"><span>Cartella PDF</span><code id="pdf-folder-path">C:\VSC_SCRIPT_PDF</code></p>
+        </article>
+
+        <article class="pdf-panel pdf-open-panel">
+          <div class="pdf-panel-heading">
+            <div>
+              <p class="pdf-kicker">APERTURA CONTROLLATA</p>
+              <h2>Impostazioni viewer</h2>
+            </div>
+            <span class="pdf-monitor-chip"><span aria-hidden="true">◉</span> Monitor 2</span>
+          </div>
+
+          <label class="pdf-field-label" for="viewer-select">Apri il documento con</label>
+          <select id="viewer-select" class="pdf-select">
+            <option value="auto">Automatico · Acrobat, poi Chrome</option>
+            <option value="adobe">Solo Adobe Acrobat / Reader</option>
+            <option value="chrome">Solo Google Chrome</option>
+          </select>
+
+          <label class="pdf-field-label" for="adobe-path">Percorso Adobe (facoltativo)</label>
+          <div class="pdf-input-row">
+            <input id="adobe-path" class="pdf-input" type="text" autocomplete="off" placeholder="C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe" />
+            <button id="save-adobe-path" class="pdf-button pdf-button-quiet" type="button">Salva</button>
+          </div>
+          <p class="pdf-field-help">La preferenza viene salvata nel browser di questo dispositivo.</p>
+
+          <div class="pdf-primary-actions">
+            <button id="open-pdf" class="pdf-button pdf-button-primary" type="button" disabled>
+              <span aria-hidden="true">↗</span> Apri PDF sul monitor 2
+            </button>
+            <button id="close-viewers" class="pdf-button pdf-button-danger" type="button">
+              Chiudi sessioni PDF gestite
+            </button>
+          </div>
+
+          <p id="pdf-message" class="pdf-message" role="status" aria-live="polite"></p>
+          <details class="pdf-viewers-details">
+            <summary>Sessioni PDF aperte da ScriptPDF</summary>
+            <div class="pdf-viewers-content">
+              <button id="refresh-viewers" class="pdf-text-button" type="button">Aggiorna sessioni</button>
+              <ul id="opened-viewers" class="pdf-viewers-list">
+                <li>Le sessioni vengono caricate su richiesta.</li>
+              </ul>
+            </div>
+          </details>
+        </article>
+      </section>
+
+      <footer class="pdf-footer">
+        <span>ScriptPDF · Ambiente di prova</span>
+        <a href="/USERFORM/pages/SCRIPT-PDF.html">Torna al launcher <span aria-hidden="true">↗</span></a>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

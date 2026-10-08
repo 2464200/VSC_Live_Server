@@ -11,7 +11,7 @@
 |----------|-------|
 | `ScriptPDF1_prova.html` usa `localhost` | âœ… RISOLTO |
 | `pdf-viewer.html` ha codice duplicato | âœ… RISOLTO |
-| `/Prova/ScriptPDF1.html` non allineato | âœ… RISOLTO |
+| `/pdf/pages/script-pdf-prova.html` non allineato | âœ… RISOLTO |
 
 ### Fase 2: Verifica Isolamento Moduli
 
@@ -28,7 +28,7 @@
 - Client Pages:
   - `ScriptPDF1.html` âœ… Allineato (127.0.0.1)
   - `ScriptPDF1_prova.html` âœ… Allineato (127.0.0.1)
-  - `/Prova/ScriptPDF1.html` âœ… Allineato (127.0.0.1)
+  - `/pdf/pages/script-pdf-prova.html` âœ… Allineato (127.0.0.1)
   - `pdf-viewer.html` âœ… Allineato (127.0.0.1)
 
 #### âœ… Modulo Root (Prova) - **OPERATIVO**

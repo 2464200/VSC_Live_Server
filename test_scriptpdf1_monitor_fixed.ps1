@@ -233,7 +233,7 @@ function Show-Summary {
     Write-ColorOutput "====================================================" "Section"
     
     Write-ColorOutput "`n[OK] COSA VERIFICARE MANUALMENTE:" "Success"
-    Write-ColorOutput "   1. Apri http://localhost:5500/Prova/ScriptPDF1.html" "Info"
+    Write-ColorOutput "   1. Apri http://localhost:5500/pdf/pages/script-pdf-prova.html" "Info"
     Write-ColorOutput "   2. Seleziona un PDF dalla ComboBox" "Info"
     Write-ColorOutput "   3. Clicca i pulsanti 'Successivo' o 'Precedente'" "Info"
     Write-ColorOutput "   4. Chrome dovrebbe aprirsi sul monitor secondario" "Info"

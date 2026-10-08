@@ -130,7 +130,7 @@ Configurazione Alternativa (monitor verticali):
 ═════════════════════════════════════════════════════════════════════════════════
 
 METODO 1: Via pagina ScriptPDF1
-1. Apri: http://localhost:8765/Prova/ScriptPDF1.html
+1. Apri: http://localhost:5500/pdf/pages/script-pdf-prova.html
 2. In alto vedrai: "Monitor Primario: ... | Monitor Secondario: ..."
 3. Le coordinate ti dicono esattamente dove sono i tuoi monitor
 
@@ -193,7 +193,7 @@ passare da Chrome alla pagina HTML.
 ═════════════════════════════════════════════════════════════════════════════════
 
 TEST 1: Verifica che i monitor siano rilevati
-  1. Apri pagina: http://localhost:8765/Prova/ScriptPDF1.html
+  1. Apri pagina: http://localhost:5500/pdf/pages/script-pdf-prova.html
   2. Guarda il testo "Monitor Primario | Monitor Secondario" in alto
   3. Se vedi coordinate diverse, i monitor sono rilevati correttamente
 
@@ -346,7 +346,7 @@ Endpoint API:
   POST /api/close-chrome     → Chiudi Chrome
 
 Pagina principale:
-  http://localhost:8765/Prova/ScriptPDF1.html
+  http://localhost:5500/pdf/pages/script-pdf-prova.html
 
 File componenti:
   • pdf-server.js           → Server Node.js

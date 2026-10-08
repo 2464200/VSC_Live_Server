@@ -20,7 +20,7 @@ Tutti i test danno esito POSITIVO.
 2. ✅ STRUTTURA PROGETTO
    - Tutti i file critici presenti
    - Cartelle organizzate correttamente
-   - 2 file PDF disponibili in C:\SCRIPT_PDF
+   - 2 file PDF disponibili in C:\VSC_SCRIPT_PDF
    - Node_modules completo (1.139 items)
 
 3. ✅ VALIDITA CODICE
@@ -67,7 +67,7 @@ Tutti i test danno esito POSITIVO.
 - package-lock.json (lock file)
 - pdf-server.js (server Node.js)
 - test_scriptpdf1_monitor_fixed.ps1 (test fornito)
-- Prova/ScriptPDF1.html (interfaccia)
+- Prova/pdf/pages/script-pdf-gestione.html (interfaccia)
 - Prova/test-scriptpdf1.html (test browser)
 
 📊 FILE DI VERIFICA CREATI
@@ -97,7 +97,7 @@ Per avviare il server:
   node pdf-server.js
 
 Per accedere al progetto:
-  http://localhost:8765/Prova/ScriptPDF1.html
+  http://localhost:5500/pdf/pages/script-pdf-prova.html
 
 Per eseguire test:
   powershell -ExecutionPolicy Bypass -File test_scriptpdf1_monitor_fixed.ps1

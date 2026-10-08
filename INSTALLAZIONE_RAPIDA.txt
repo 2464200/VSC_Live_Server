@@ -22,7 +22,7 @@
 Questo farà:
 • Verifica Node.js
 • Installa dipendenze npm (Express.js)
-• Crea cartella C:\SCRIPT_PDF
+• Crea cartella C:\VSC_SCRIPT_PDF
 • Verifica Chrome
 
 🎯 PASSO 2: USA IL PROGRAMMA
@@ -45,7 +45,7 @@ OPZIONE B: Integrazione con Excel
 📁 PASSO 3: AGGIUNGI FILE PDF
 ================================================================================
 
-1. Copia i tuoi file PDF in: C:\SCRIPT_PDF
+1. Copia i tuoi file PDF in: C:\VSC_SCRIPT_PDF
 2. La lista si aggiorna automaticamente nella pagina HTML
 3. Seleziona il file dalla ComboBox
 4. Clicca due volte per aprire
@@ -55,7 +55,7 @@ OPZIONE B: Integrazione con Excel
 
 Avvio server:           .\Start_ScriptPDF1.ps1
 Setup iniziale:         .\Setup_ScriptPDF1.ps1
-Apri cartella PDF:      explorer C:\SCRIPT_PDF
+Apri cartella PDF:      explorer C:\VSC_SCRIPT_PDF
 Test connessione:       Invoke-WebRequest http://localhost:8765/api/pdf-list
 Stop server:            Ctrl+C (nella finestra PowerShell)
 
@@ -99,7 +99,7 @@ Soluzione:
 
 Problema: "Nessun file PDF trovato"
 Soluzione:
-  1. Aggiungi file PDF in C:\SCRIPT_PDF
+  1. Aggiungi file PDF in C:\VSC_SCRIPT_PDF
   2. Aggiorna la pagina HTML (F5)
   3. Se il server è avviato, la lista si aggiorna automaticamente
 
@@ -113,7 +113,7 @@ Soluzione:
 Problema: "PDF non si apre in Chrome"
 Soluzione:
   1. Verifica che il file PDF sia leggibile
-  2. Controlla i permessi di accesso a C:\SCRIPT_PDF
+  2. Controlla i permessi di accesso a C:\VSC_SCRIPT_PDF
   3. Riavvia il server
   4. Prova ad aprire il PDF manualmente con Chrome
 
@@ -136,8 +136,8 @@ Disabilita modalità Kiosk:
 📚 FILE IMPORTANTI
 ================================================================================
 
-Cartella PDF:           C:\SCRIPT_PDF
-Interfaccia HTML:       C:\VSC_Live_Server\Prova\ScriptPDF1.html
+Cartella PDF:           C:\VSC_SCRIPT_PDF
+Interfaccia HTML:       C:\VSC_Live_Server\pdf/pages/script-pdf-prova.html
 Server Node.js:         C:\VSC_Live_Server\pdf-server.js
 Script avvio:           C:\VSC_Live_Server\Start_ScriptPDF1.ps1
 Script setup:           C:\VSC_Live_Server\Setup_ScriptPDF1.ps1

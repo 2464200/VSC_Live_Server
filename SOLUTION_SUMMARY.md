@@ -157,7 +157,7 @@ window.APIConfig = {
 
 ### 3. **ScriptPDF1.html** (REWRITTEN - 320+ linee)
 
-**URL:** `C:\VSC_Live_Server\Prova\ScriptPDF1.html`
+**URL:** `C:\VSC_Live_Server\pdf/pages/script-pdf-prova.html`
 
 ```html
 <!-- Include api-config.js -->
@@ -427,7 +427,7 @@ Aggiornato per avviare:
 # 
 # ðŸ“ URL per accedere:
 #    ðŸ  Home: http://localhost:5500/index.html
-#    ðŸ“„ PDF: http://localhost:5500/Prova/ScriptPDF1.html
+#    ðŸ“„ PDF: http://localhost:5500/pdf/pages/script-pdf-prova.html
 ```
 
 ---
@@ -438,7 +438,7 @@ Aggiornato per avviare:
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
 â”‚                    UTENTE (Browser)                  â”‚
 â”‚                http://localhost:5500                 â”‚
-â”‚               /Prova/ScriptPDF1.html                 â”‚
+â”‚               /pdf/pages/script-pdf-prova.html                 â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
                        â”‚ Apre pagina
                        â–¼
@@ -571,7 +571,7 @@ cd C:\VSC_Live_Server
 .\launch-all.ps1
 
 # 2. Apri il browser su:
-http://localhost:5500/Prova/ScriptPDF1.html
+http://localhost:5500/pdf/pages/script-pdf-prova.html
 
 # 3. La pagina auto-avvia il PDF Server
 # 4. Quando chiudi la pagina, il server auto-si-spegne
@@ -602,7 +602,7 @@ http://localhost:5500/Prova/ScriptPDF1.html
 |------|-------|-------------|
 | `server-manager.js` | **CREATED** | Master process manager (150 linee) |
 | `api-config.js` | **UPDATED** | Auto-start + robust fetch wrapper |
-| `Prova/ScriptPDF1.html` | **REWRITTEN** | Lifecycle management added |
+| `Prova/pdf/pages/script-pdf-gestione.html` | **REWRITTEN** | Lifecycle management added |
 | `start-server-manager.ps1` | **CREATED** | PowerShell startup script |
 | `stop-server-manager.ps1` | **CREATED** | PowerShell shutdown script |
 | `launch-all.ps1` | **UPDATED** | Include Server Manager |
@@ -639,7 +639,7 @@ http://localhost:5500/Prova/ScriptPDF1.html
 
 1. Esegui `.\start-server-manager.ps1` per avviare Server Manager
 2. Esegui `.\launch-all.ps1` per avviare Live Server
-3. Apri http://localhost:5500/Prova/ScriptPDF1.html
+3. Apri http://localhost:5500/pdf/pages/script-pdf-prova.html
 4. Osserva i log: Status â†’ Avvio server â†’ Server pronto â†’ PDF caricati
 5. Chiudi il tab â†’ Server auto-si-spegne
 6. Perfetto! âœ…

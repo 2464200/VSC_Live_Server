@@ -10,7 +10,7 @@ STATO: ✅ COMPLETATO E SINCRONIZZATO
 CORREZIONI EFFETTUATE
 ================================================================================
 
-1. FILE: Prova/ScriptPDF1.html
+1. FILE: Prova/pdf/pages/script-pdf-gestione.html
    PROBLEMA CORRETTO:
    - Rimossi i doppi event listeners su DOMContentLoaded
    - Spostati gli addEventListener dei pulsanti dentro al DOMContentLoaded

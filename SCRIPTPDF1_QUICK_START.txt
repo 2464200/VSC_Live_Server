@@ -11,13 +11,13 @@ PASSO 1: Preparazione File e Cartelle
 
 1. Crea la cartella per i PDF (se non esiste):
    
-   mkdir C:\SCRIPT_PDF
+   mkdir C:\VSC_SCRIPT_PDF
    
    Nota: Oppure usa Explorer: Tasto Destro → Nuova cartella → SCRIPT_PDF
 
 2. Copia i tuoi file PDF in questa cartella:
    
-   Copia: file1.pdf, file2.pdf, file3.pdf → C:\SCRIPT_PDF
+   Copia: file1.pdf, file2.pdf, file3.pdf → C:\VSC_SCRIPT_PDF
    
    Nota: Possono essere PDF di qualsiasi dimensione
 
@@ -62,7 +62,7 @@ PASSO 4: Usare l'Interfaccia HTML
 ──────────────────────────────────────────────────────────────────────────────
 
 1. Apri il browser (Chrome, Firefox, Edge, ecc.)
-2. Vai a: http://localhost:8765/Prova/ScriptPDF1.html
+2. Vai a: http://localhost:5500/pdf/pages/script-pdf-prova.html
 3. Vedrai la pagina di controllo con:
    
    📊 Monitor Primario e Secondario (coordinate in alto)
@@ -95,13 +95,13 @@ ESEGUIRE TEST:
   powershell -File test_scriptpdf1_monitor.ps1
 
 APRIRE PAGINA HTML:
-  http://localhost:8765/Prova/ScriptPDF1.html
+  http://localhost:5500/pdf/pages/script-pdf-prova.html
 
 CONTROLLARE MONITOR:
   (Invoke-WebRequest -Uri "http://localhost:8765/api/monitor-info" -UseBasicParsing).Content | ConvertFrom-Json | Format-List
 
 AGGIUNGERE PDF:
-  Copia file .pdf in → C:\SCRIPT_PDF
+  Copia file .pdf in → C:\VSC_SCRIPT_PDF
 
 CHIUDERE CHROME:
   Clicca il pulsante "✕ Chiudi" oppure premi ESC
@@ -141,9 +141,9 @@ Soluzione:
 
 PROBLEMA 3: "Nessun file PDF trovato"
 ──────────────────────────────────────
-Causa: La cartella C:\SCRIPT_PDF è vuota o non esiste
+Causa: La cartella C:\VSC_SCRIPT_PDF è vuota o non esiste
 Soluzione:
-  1. Crea: mkdir C:\SCRIPT_PDF
+  1. Crea: mkdir C:\VSC_SCRIPT_PDF
   2. Copia almeno un file PDF in quella cartella
   3. Riavvia il server
   4. Rifai il test
@@ -162,16 +162,16 @@ PROBLEMA 5: "La pagina HTML non carica"
 Causa: Indirizzo sbagliato o server non è in esecuzione
 Soluzione:
   1. Verifica di aver eseguito: node pdf-server.js
-  2. Usa esattamente questo indirizzo: http://localhost:8765/Prova/ScriptPDF1.html
+  2. Usa esattamente questo indirizzo: http://localhost:5500/pdf/pages/script-pdf-prova.html
   3. (Con la L maiuscola in "Prova")
   4. Se il problema persiste, leggi i messaggi di errore di Node.js
 
-PROBLEMA 6: "Erro: Cannot GET /Prova/ScriptPDF1.html"
+PROBLEMA 6: "Erro: Cannot GET /pdf/pages/script-pdf-prova.html"
 ──────────────────────────────────────────────────────
 Causa: Percorso file non trovato
 Soluzione:
   1. Verifica che il file esista:
-     ls C:\VSC_Live_Server\Prova\ScriptPDF1.html
+     ls C:\VSC_Live_Server\pdf/pages/script-pdf-prova.html
   2. Il file DEVE essere in C:\VSC_Live_Server\Prova\
   3. Se manca, è stato spostato o rinominato
 
@@ -213,7 +213,7 @@ C:\VSC_Live_Server                       ← Cartella principale
 ├── SCRIPTPDF1_QUICK_START.txt           ← Questo file
 └── package.json                         ← Dipendenze Node.js
 
-C:\SCRIPT_PDF                            ← Copia i tuoi PDF qui
+C:\VSC_SCRIPT_PDF                            ← Copia i tuoi PDF qui
 ├── documento1.pdf
 ├── documento2.pdf
 └── documento3.pdf
@@ -234,7 +234,7 @@ C:\SCRIPT_PDF                            ← Copia i tuoi PDF qui
    • Configurazioni speciali per vari setup
 
 2. PROVA CON I TUOI PDF:
-   • Copia il file PDF effettivo in C:\SCRIPT_PDF
+   • Copia il file PDF effettivo in C:\VSC_SCRIPT_PDF
    • Apri la pagina HTML
    • Naviga tra i tuoi PDF
 
@@ -278,7 +278,7 @@ Requisiti:
   • Node.js 18+ (con npm)
   • Chrome installato
   • Almeno un file PDF
-  • Cartella C:\SCRIPT_PDF
+  • Cartella C:\VSC_SCRIPT_PDF
 
 Data creazione:                19 Febbraio 2026
 Ultimo aggiornamento:          19 Febbraio 2026

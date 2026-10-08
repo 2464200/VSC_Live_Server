@@ -85,7 +85,7 @@ Modifiche:
        Passa il percorso del PDF via query parameters
      - Mantiene il posizionamento sul monitor secondario
 
-  📝 Prova/ScriptPDF1.html
+  📝 Prova/pdf/pages/script-pdf-gestione.html
      - Aggiornate tooltips dei pulsanti
      - Pulsante "Chiudi PDF" con descrizione migliorata
 

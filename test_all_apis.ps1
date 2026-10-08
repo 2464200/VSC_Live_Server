@@ -120,7 +120,7 @@ Write-Host ''
 Write-Host 'TEST 5: Pagine HTML' -ForegroundColor Yellow
 $htmlPages = @(
   'index.html',
-  'Prova/ScriptPDF1.html',
+  'Prova/pdf/pages/script-pdf-gestione.html',
   'Prova/test-scriptpdf1.html'
 )
 

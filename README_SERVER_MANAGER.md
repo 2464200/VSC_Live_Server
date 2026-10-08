@@ -127,7 +127,7 @@ npx http-server -c-1 -p 5500
 .\launch-all.ps1
 
 # 2. Apri il browser su:
-# http://localhost:5500/Prova/ScriptPDF1.html
+# http://localhost:5500/pdf/pages/script-pdf-prova.html
 
 # 3. La pagina auto-avvia il PDF Server
 
@@ -381,7 +381,7 @@ async function fetchAPI(endpoint, options = {}) {
 
 ### 3. **ScriptPDF1.html** (Interface Utente)
 
-File: `C:\VSC_Live_Server\Prova\ScriptPDF1.html`
+File: `C:\VSC_Live_Server\pdf/pages/script-pdf-prova.html`
 
 **ResponsabilitÃ :**
 - Interfaccia grafica per visualizzare PDF
@@ -515,10 +515,10 @@ Test-NetConnection -ComputerName localhost -Port 3000
    - Vai su Console
    - Cerca messaggi di errore
 
-2. **Verifica che C:\SCRIPT_PDF esista**
+2. **Verifica che C:\VSC_SCRIPT_PDF esista**
    ```powershell
-   Test-Path C:\SCRIPT_PDF
-   ls C:\SCRIPT_PDF | Format-Table
+   Test-Path C:\VSC_SCRIPT_PDF
+   ls C:\VSC_SCRIPT_PDF | Format-Table
    ```
 
 3. **Testa manualmente l'endpoint**
@@ -676,7 +676,7 @@ POST http://localhost:8765/api/close-chrome
 |------|------|-------------|
 | `server-manager.js` | Node.js | Manager process (porta 3000) |
 | `api-config.js` | JavaScript | Client-side utility per auto-start |
-| `Prova/ScriptPDF1.html` | HTML | Interfaccia utente con lifecycle |
+| `Prova/pdf/pages/script-pdf-gestione.html` | HTML | Interfaccia utente con lifecycle |
 | `pdf-server.js` | Node.js | Server PDF (porta 8765) |
 | `start-server-manager.ps1` | PowerShell | Avvia Server Manager |
 | `stop-server-manager.ps1` | PowerShell | Ferma Server Manager |
@@ -691,7 +691,7 @@ POST http://localhost:8765/api/close-chrome
 - [ ] `start-server-manager.ps1` esiste e Ã¨ eseguibile
 - [ ] `api-config.js` Ã¨ nella cartella root
 - [ ] `ScriptPDF1.html` ha `<script src="/api-config.js"></script>`
-- [ ] C:\SCRIPT_PDF esiste e contiene PDF
+- [ ] C:\VSC_SCRIPT_PDF esiste e contiene PDF
 - [ ] Browser DevTools F12 non mostra errori di rete
 - [ ] Porta 3000 Ã¨ disponibile
 - [ ] Porta 8765 Ã¨ disponibile

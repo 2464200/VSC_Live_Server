@@ -25,7 +25,7 @@ Ho ricreato **ScriptPDF1.html** con una **soluzione completa e dinamica** che:
 - **`AVVIO_RAPIDO.md`** - Guida rapida
 
 ### **Modificati:**
-- **`Prova/ScriptPDF1.html`** - Completamente riscritto
+- **`Prova/pdf/pages/script-pdf-gestione.html`** - Completamente riscritto
 - **`pdf-server.js`** - Porta corretta (8765 default)
 
 ### **Invariati:**
@@ -76,7 +76,7 @@ Click "Go Live" in VSCode
 - Apre: http://localhost:5500
 
 ### **3. Apri ScriptPDF1:**
-http://localhost:5500/Prova/ScriptPDF1.html
+http://localhost:5500/pdf/pages/script-pdf-prova.html
 - Automaticamente:
   - Rileva `localhost` da browser
   - Tenta `localhost:8765` (PDF Server)
@@ -199,7 +199,7 @@ SOLUZIONE DEFINITIVA! ðŸš€
 Consulta:
 - **`README_SOLUZIONE_DINAMICA.md`** - Documentazione tecnica
 - **`api-config.js`** - Codice sorgente helper (commentato)
-- **`Prova/ScriptPDF1.html`** - Implementazione (commentata)
+- **`Prova/pdf/pages/script-pdf-gestione.html`** - Implementazione (commentata)
 
 ---
 

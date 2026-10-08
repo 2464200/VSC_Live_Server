@@ -160,6 +160,8 @@ withTempRuntime(
     const legacyUserFormPagina06Entry = policyMap.get('/userform/pages/pagina06.html');
     const legacyUserFormPagina08Entry = policyMap.get('/userform/pages/pagina08.html');
     const userFormScriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html')", sandbox);
+    const scriptPdfManagementPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-gestione.html')", sandbox);
+    const scriptPdfTestPagePolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-prova.html')", sandbox);
     const scriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/ScriptPDF1.html')", sandbox);
     const scriptPdfTestPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Prova/ScriptPDF1.html')", sandbox);
     const scriptPdfViewerPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/viewers/ScriptPDF1.html')", sandbox);
@@ -182,9 +184,11 @@ withTempRuntime(
     assert(!legacyUserFormPagina06Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
     assert(!legacyUserFormPagina08Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
     assert(userFormScriptPdfPolicy.primary === true && userFormScriptPdfPolicy.secondary === false, 'USERFORM SCRIPT-PDF must be managed exclusively on the primary monitor.');
-    assert(scriptPdfPolicy.primary === true && scriptPdfPolicy.secondary === false, 'The main ScriptPDF page must be routed to the primary monitor.');
-    assert(scriptPdfTestPolicy.primary === true && scriptPdfTestPolicy.secondary === false, 'The ScriptPDF test page must be routed to the primary monitor.');
-    assert(scriptPdfViewerPolicy.primary === true && scriptPdfViewerPolicy.secondary === false, 'The ScriptPDF viewer alias must be routed to the primary monitor.');
+    assert(scriptPdfManagementPolicy.primary === true && scriptPdfManagementPolicy.secondary === false, 'Canonical ScriptPDF management page must be routed to the primary monitor.');
+    assert(scriptPdfTestPagePolicy.primary === true && scriptPdfTestPagePolicy.secondary === false, 'Canonical ScriptPDF test page must be routed to the primary monitor.');
+    assert(scriptPdfPolicy.primary === true && scriptPdfPolicy.secondary === false, 'The legacy main ScriptPDF alias must remain routed to the primary monitor.');
+    assert(scriptPdfTestPolicy.primary === true && scriptPdfTestPolicy.secondary === false, 'The legacy ScriptPDF test alias must remain routed to the primary monitor.');
+    assert(scriptPdfViewerPolicy.primary === true && scriptPdfViewerPolicy.secondary === false, 'The legacy ScriptPDF viewer alias must remain routed to the primary monitor.');
     assert(adminEntry && adminEntry.primary === true && adminEntry.secondary === false, 'Admin page must stay on the primary monitor.');
     assert(newUserFormIsManaged === true, 'New local USERFORM HTML pages must be managed without registering their filenames.');
     assert(newUserFormPolicy.primary === true && newUserFormPolicy.secondary === false, 'New USERFORM pages must stay on the primary monitor.');

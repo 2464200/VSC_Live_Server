@@ -115,7 +115,7 @@ ConfiguraGestorePDF()
   • Usa una sola volta all'inizio
 
 ApriCartellaScriptPDF()
-  • Apre C:\SCRIPT_PDF in Esplora file
+  • Apre C:\VSC_SCRIPT_PDF in Esplora file
   • Usa per: aggiungere/gestire file PDF
 
 TestConessione()

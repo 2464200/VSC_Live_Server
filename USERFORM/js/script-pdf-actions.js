@@ -14,7 +14,8 @@
 
     try {
       const target = new URL(route, window.location.origin);
-      if (target.origin !== window.location.origin || !/^\/(?:prova\/)?ScriptPDF1\.html$/i.test(target.pathname)) {
+      const isScriptPdfRoute = /^\/(?:pdf\/pages\/script-pdf-(?:gestione|prova)\.html|(?:prova\/)?scriptpdf1\.html|pdf\/viewers\/scriptpdf1\.html)$/i.test(target.pathname);
+      if (target.origin !== window.location.origin || !isScriptPdfRoute) {
         throw new Error("Percorso ScriptPDF non valido.");
       }
 

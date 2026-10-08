@@ -20,7 +20,7 @@
   });
 
   document.getElementById("btn-open-pdf")?.addEventListener("click", () => {
-    const full = `${baseUrl}/Prova/ScriptPDF1.html`;
+    const full = `${baseUrl}/pdf/pages/script-pdf-prova.html`;
     openManagedPage(full);
     setStatus(`apertura richiesta: ${full}`);
   });
