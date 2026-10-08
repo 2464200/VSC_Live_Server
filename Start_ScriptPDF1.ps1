@@ -1,4 +1,4 @@
-# Script PowerShell compatibile per avviare ScriptPDF Prova
+# Script PowerShell compatibile per avviare ScriptPDF Gestione
 # Questo script:
 # 1. Avvia il server Node.js unificato
 # 2. Apre la pagina HTML in Chrome (modalità Kiosk) sul monitor secondario
@@ -10,7 +10,7 @@ param(
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $serverScript = Join-Path $scriptPath "unified-server.js"
-$htmlUrl = "http://localhost:5500/pdf/pages/script-pdf-prova.html"
+$htmlUrl = "http://localhost:5500/pdf/pages/script-pdf-gestione.html"
 
 # Verifica che Node.js sia installato
 try {

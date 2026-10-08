@@ -2,8 +2,10 @@
   const body = document.body;
   if (!body?.classList.contains("pdf-workbench")) return;
 
-  const mode = body.dataset.scriptpdfMode === "prova" ? "prova" : "principale";
-  const retryCount = mode === "prova" ? 2 : 1;
+  const electronWindowManager = window.electronAPI?.windowManager;
+  const useElectronPdfOverlay = typeof electronWindowManager?.openSecondaryPage === "function"
+    && typeof electronWindowManager?.restoreSecondaryPage === "function";
+  const retryCount = 1;
   const requestTimeoutMs = 8000;
   const storageKey = "scriptpdf.adobePath";
   const historyStorageKey = "scriptpdf.openHistory";
@@ -39,8 +41,11 @@
     historyList: document.getElementById("pdf-history-list"),
     clearHistory: document.getElementById("clear-history"),
     viewer: document.getElementById("viewer-select"),
+    viewerSettings: document.getElementById("external-viewer-settings"),
+    managedViewers: document.getElementById("managed-viewer-sessions"),
     adobePath: document.getElementById("adobe-path"),
     openButton: document.getElementById("open-pdf"),
+    openLabel: document.getElementById("open-pdf-label"),
     message: document.getElementById("pdf-message"),
     previous: document.getElementById("previous-pdf"),
     next: document.getElementById("next-pdf"),
@@ -50,6 +55,12 @@
     refreshViewers: document.getElementById("refresh-viewers"),
     openedViewers: document.getElementById("opened-viewers")
   };
+
+  if (useElectronPdfOverlay) {
+    nodes.viewerSettings.hidden = true;
+    nodes.managedViewers.hidden = true;
+    nodes.openLabel.textContent = "Mostra PDF su DISPLAY (Monitor 2)";
+  }
 
   function getApiOrigin() {
     const current = new URL(window.location.href);
@@ -307,7 +318,7 @@
     state.loading = true;
     nodes.refresh.disabled = true;
     setMessage("");
-    setStatus(mode === "prova" ? "Verifica del server PDF (tentativi ripetuti)…" : "Verifica del server PDF…");
+    setStatus("Verifica del server PDF…");
     renderCurrentFile();
 
     try {
@@ -386,23 +397,38 @@
     setStatus(`Apertura di ${file.name}…`, "loading");
     setMessage("Richiesta di apertura sul monitor secondario…");
     try {
-      const result = await requestJson("/api/open-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filePath: file.path,
-          fileName: file.name,
-          viewer,
-          adobePath: nodes.adobePath.value.trim()
-        })
-      });
+      let result;
+      if (useElectronPdfOverlay) {
+        const viewerRoute = new URL("/pdf/viewers/pdf-viewer.html", window.location.origin);
+        viewerRoute.searchParams.set("file", file.path);
+        viewerRoute.searchParams.set("name", file.name);
+        result = await electronWindowManager.openSecondaryPage({
+          path: `${viewerRoute.pathname}${viewerRoute.search}`
+        });
+      } else {
+        result = await requestJson("/api/open-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filePath: file.path,
+            fileName: file.name,
+            viewer,
+            adobePath: nodes.adobePath.value.trim()
+          })
+        });
+      }
       if (!result.success) {
-        throw new Error(result.error || "Il server non ha confermato l'apertura del PDF.");
+        throw new Error(result.error || "Il sistema non ha confermato l'apertura del PDF.");
       }
       recordOpenedFile(file);
-      setStatus(`PDF inviato al viewer · ${file.name}`, "ready");
-      setMessage(result.message || `Apertura richiesta per ${file.name} sul monitor secondario.`, "success");
-      await refreshOpenedViewers(false);
+      setStatus(`${useElectronPdfOverlay ? "PDF mostrato su DISPLAY" : "PDF inviato al viewer"} · ${file.name}`, "ready");
+      setMessage(
+        useElectronPdfOverlay
+          ? `${file.name} è in sovraimpressione su DISPLAY. Chiudi il viewer per ripristinare la pagina.`
+          : (result.message || `Apertura richiesta per ${file.name} sul monitor secondario.`),
+        "success"
+      );
+      if (!useElectronPdfOverlay) await refreshOpenedViewers(false);
     } catch (error) {
       const message = error?.name === "AbortError"
         ? "Timeout durante l'apertura del PDF."

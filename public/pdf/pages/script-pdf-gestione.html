@@ -20,7 +20,6 @@
       </a>
       <nav class="pdf-topbar-actions" aria-label="Navigazione ScriptPDF">
         <a class="pdf-nav-link" href="/USERFORM/pages/SCRIPT-PDF.html">Launcher Script-PDF</a>
-        <a class="pdf-nav-link" href="/pdf/pages/script-pdf-prova.html">Ambiente di prova <span aria-hidden="true">↗</span></a>
       </nav>
     </header>
 
@@ -128,39 +127,43 @@
             <span class="pdf-monitor-chip"><span aria-hidden="true">◉</span> Monitor 2</span>
           </div>
 
-          <label class="pdf-field-label" for="viewer-select">Apri il documento con</label>
-          <select id="viewer-select" class="pdf-select">
-            <option value="auto">Automatico · Acrobat, poi Chrome</option>
-            <option value="adobe">Solo Adobe Acrobat / Reader</option>
-            <option value="chrome">Solo Google Chrome</option>
-          </select>
+          <div id="external-viewer-settings">
+            <label class="pdf-field-label" for="viewer-select">Apri il documento con</label>
+            <select id="viewer-select" class="pdf-select">
+              <option value="auto">Automatico · Acrobat, poi Chrome</option>
+              <option value="adobe">Solo Adobe Acrobat / Reader</option>
+              <option value="chrome">Solo Google Chrome</option>
+            </select>
 
-          <label class="pdf-field-label" for="adobe-path">Percorso Adobe (facoltativo)</label>
-          <div class="pdf-input-row">
-            <input id="adobe-path" class="pdf-input" type="text" autocomplete="off" placeholder="C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe" />
-            <button id="save-adobe-path" class="pdf-button pdf-button-quiet" type="button">Salva</button>
+            <label class="pdf-field-label" for="adobe-path">Percorso Adobe (facoltativo)</label>
+            <div class="pdf-input-row">
+              <input id="adobe-path" class="pdf-input" type="text" autocomplete="off" placeholder="C:\Program Files\Adobe\Acrobat DC\Acrobat\Acrobat.exe" />
+              <button id="save-adobe-path" class="pdf-button pdf-button-quiet" type="button">Salva</button>
+            </div>
+            <p class="pdf-field-help">La preferenza viene salvata nel browser di questo dispositivo.</p>
           </div>
-          <p class="pdf-field-help">La preferenza viene salvata nel browser di questo dispositivo.</p>
 
           <div class="pdf-primary-actions">
             <button id="open-pdf" class="pdf-button pdf-button-primary" type="button" disabled>
-              <span aria-hidden="true">↗</span> Apri PDF sul monitor 2
+              <span aria-hidden="true">↗</span> <span id="open-pdf-label">Apri PDF sul monitor 2</span>
             </button>
-            <button id="close-viewers" class="pdf-button pdf-button-danger" type="button">
-              Chiudi sessioni PDF gestite
-            </button>
+            <div id="managed-viewer-sessions">
+              <button id="close-viewers" class="pdf-button pdf-button-danger" type="button">
+                Chiudi sessioni PDF gestite
+              </button>
+              <details class="pdf-viewers-details">
+                <summary>Sessioni PDF aperte da ScriptPDF</summary>
+                <div class="pdf-viewers-content">
+                  <button id="refresh-viewers" class="pdf-text-button" type="button">Aggiorna sessioni</button>
+                  <ul id="opened-viewers" class="pdf-viewers-list">
+                    <li>Le sessioni vengono caricate su richiesta.</li>
+                  </ul>
+                </div>
+              </details>
+            </div>
           </div>
 
           <p id="pdf-message" class="pdf-message" role="status" aria-live="polite"></p>
-          <details class="pdf-viewers-details">
-            <summary>Sessioni PDF aperte da ScriptPDF</summary>
-            <div class="pdf-viewers-content">
-              <button id="refresh-viewers" class="pdf-text-button" type="button">Aggiorna sessioni</button>
-              <ul id="opened-viewers" class="pdf-viewers-list">
-                <li>Le sessioni vengono caricate su richiesta.</li>
-              </ul>
-            </div>
-          </details>
         </article>
       </section>
 

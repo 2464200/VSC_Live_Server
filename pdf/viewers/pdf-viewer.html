@@ -152,8 +152,20 @@
     }
     
     // Funzione per chiudere il viewer
-    function closePdfViewer() {
+    async function closePdfViewer() {
         console.log('🔴 Chiusura PDF viewer...');
+        const restoreSecondaryPage = window.electronAPI?.windowManager?.restoreSecondaryPage;
+        if (typeof restoreSecondaryPage === 'function') {
+            try {
+                const result = await restoreSecondaryPage();
+                if (result?.success) return;
+            } catch (error) {
+                console.warn('Ripristino DISPLAY non riuscito:', error?.message || error);
+            }
+            document.getElementById('pdf-title').textContent = 'Impossibile ripristinare DISPLAY';
+            return;
+        }
+
         // Prova a chiudere il server in remoto
         fetch(PDF_SERVER_HOST + '/api/close-chrome', {
             method: 'POST',
@@ -166,17 +178,10 @@
     
     // Supporto tasto ESC per chiudere
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            console.log('🔑 ESC premuto - chiusura viewer');
-            closePdfViewer();
-        }
-    });
-    
-    // Supporto Alt+Q come scorciatoia alternativa
-    document.addEventListener('keydown', (e) => {
-        if (e.altKey && e.key === 'q') {
-            console.log('🔑 Alt+Q premuto - chiusura viewer');
-            closePdfViewer();
+        if (e.key === 'Escape' || (e.altKey && e.key.toLowerCase() === 'q')) {
+            e.preventDefault();
+            console.log('🔑 Scorciatoia chiusura viewer');
+            void closePdfViewer();
         }
     });
     

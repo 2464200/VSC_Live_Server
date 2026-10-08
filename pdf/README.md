@@ -17,8 +17,8 @@ pdf/
 â”‚   â”œâ”€â”€ stop-pdf-server.ps1
 â”‚   â””â”€â”€ update_pdf_list.ps1
 â”œâ”€â”€ pages/             # Pagine ScriptPDF con nomenclatura descrittiva
-â”‚   â”œâ”€â”€ script-pdf-gestione.html # Gestione principale
-â”‚   â””â”€â”€ script-pdf-prova.html    # Ambiente di prova
+â”‚   â”œâ”€â”€ script-pdf-gestione.html # Workbench canonico
+â”‚   â””â”€â”€ script-pdf-prova.html    # Redirect compatibile
 â”œâ”€â”€ viewers/           # Componenti di visualizzazione
 â”‚   â””â”€â”€ pdf-viewer.html      # Viewer embed
 â”œâ”€â”€ config/            # File di configurazione e stato
@@ -40,16 +40,16 @@ Il sistema PDF Ã¨ integrato nel **unified-server.js** (porta 5500) avviato aut
 ## Viewer
 
 - **/pdf/pages/script-pdf-gestione.html**: pagina principale per gestione PDF, ricerca, filtri, cronologia e anteprima.
-- **/pdf/pages/script-pdf-prova.html**: ambiente di prova, con tentativi ripetuti per la connessione al server e tutte le funzioni di gestione.
-- I vecchi URL `/ScriptPDF1.html`, `/Prova/ScriptPDF1.html` e `/pdf/viewers/ScriptPDF1.html` restano alias compatibili verso i nuovi percorsi.
-- Entrambe le pagine usano `pdf/assets/scriptpdf-workbench.css` e `pdf/assets/scriptpdf-workbench.js`.
+- **/pdf/pages/script-pdf-prova.html**: redirect di compatibilità verso la pagina canonica.
+- I vecchi URL `/ScriptPDF1.html`, `/Prova/ScriptPDF1.html`, `/pdf/viewers/ScriptPDF1.html` e `/pdf/pages/script-pdf-prova.html` restano compatibili.
+- La pagina canonica usa `pdf/assets/scriptpdf-workbench.css` e `pdf/assets/scriptpdf-workbench.js`.
 - **pdf/viewers/pdf-viewer.html**: componente embed per visualizzazione.
 
-Le pagine riprendono dal progetto VBA la cartella `C:\VSC_SCRIPT_PDF`, la selezione e navigazione dell'elenco, la scelta del viewer e l'apertura sul monitor secondario. La ricerca per nome e i filtri per PDF aperti negli ultimi 30 giorni o mai aperti lavorano sulla lista caricata. L'anteprima integrata usa l'endpoint locale e la cronologia conserva gli ultimi 20 PDF aperti nel browser, condivisi tra le due pagine. La pagina di prova mantiene un secondo tentativo di connessione. La chiusura remota richiede conferma e riguarda solo le sessioni registrate come avviate da ScriptPDF.
+La pagina canonica gestisce selezione, ricerca, filtri, anteprima e cronologia locale. In Electron il pulsante apre il PDF in una finestra temporanea always-on-top sul monitor secondario, sopra DISPLAY; il pulsante Chiudi o ESC ripristina DISPLAY. Nei browser normali resta disponibile l'apertura tramite Acrobat/Chrome. La chiusura remota riguarda solo le sessioni esterne registrate come avviate da ScriptPDF.
 
 Il server usa `C:\VSC_SCRIPT_PDF` come directory predefinita su Windows; `VSC_SCRIPT_PDF_DIR` in `.env` può cambiarla intenzionalmente. L'endpoint di apertura e quello di anteprima verificano che il file sia un PDF interno alla directory configurata, inclusi i collegamenti simbolici.
 
-ADMIN pubblica entrambe le pagine canoniche nel pannello delle route monitor; Electron le apre sul monitor principale. La sincronizzazione Hosting mantiene le copie canoniche, gli alias compatibili e gli asset condivisi in `public/`.
+ADMIN espone la sola pagina canonica come finestra temporanea sul monitor secondario. La sincronizzazione Hosting mantiene la pagina, il redirect compatibile e gli asset condivisi in `public/`.
 
 ## Note
 

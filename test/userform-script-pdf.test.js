@@ -30,20 +30,14 @@ async function run() {
   window.eval(actions);
 
   window.document.getElementById('btn-scriptpdf-root').click();
-  window.document.getElementById('btn-scriptpdf-prova').click();
   window.document.querySelector('.script-pdf-thumbnail-control[data-route="/pdf/pages/script-pdf-gestione.html"]').click();
-  window.document.querySelector('.script-pdf-thumbnail-control[data-route="/pdf/pages/script-pdf-prova.html"]').click();
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.deepEqual(electronRoutes, [
     '/pdf/pages/script-pdf-gestione.html',
-    '/pdf/pages/script-pdf-prova.html',
     '/pdf/pages/script-pdf-gestione.html',
-    '/pdf/pages/script-pdf-prova.html',
   ]);
-  assert.match(window.document.querySelector('.script-pdf-status-message').textContent, /ScriptPDF Prova/);
   assert.equal(window.document.querySelector('img[src="../../archivio/ScriptPDF-principale.jpg"]')?.closest('button')?.dataset.route, '/pdf/pages/script-pdf-gestione.html');
-  assert.equal(window.document.querySelector('img[src="../../archivio/ScriptPDF-prova.jpg"]')?.closest('button')?.dataset.route, '/pdf/pages/script-pdf-prova.html');
 
   window.electronAPI.windowManager.openSecondaryPage = async () => ({ success: false });
   window.document.getElementById('btn-scriptpdf-root').click();
@@ -61,12 +55,12 @@ async function run() {
   await new Promise((resolve) => setImmediate(resolve));
   assert.deepEqual(browserRoutes, ['http://localhost:5500/pdf/pages/script-pdf-gestione.html']);
 
-  assert.equal(window.document.querySelectorAll('.script-pdf-launch-card').length, 2);
+  assert.equal(window.document.querySelectorAll('.script-pdf-launch-card').length, 1);
   assert.equal(window.document.querySelector('#prev-form').getAttribute('href'), 'PAGINA07.html');
   assert.equal(window.document.querySelector('#next-form').getAttribute('href'), 'PAGINA09.html');
 
   window.close();
-  console.log('PASS: SCRIPT-PDF routes both canonical pages through Electron monitor policy.');
+  console.log('PASS: SCRIPT-PDF routes the single canonical page through Electron monitor policy.');
   console.log('PASS: SCRIPT-PDF validates Electron failures and preserves browser-mode fallback.');
   console.log('PASS: SCRIPT-PDF retains the previous/next USERFORM navigation.');
 }

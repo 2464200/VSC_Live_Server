@@ -539,7 +539,7 @@ try {
 }
 Write-Host "URL per accesso:"
 Write-Host "  Homepage:    http://localhost:$($UnifiedPort)/index.html"
-Write-Host "  PDF:         http://localhost:$($UnifiedPort)/pdf/pages/script-pdf-prova.html"
+Write-Host "  PDF:         http://localhost:$($UnifiedPort)/pdf/pages/script-pdf-gestione.html"
 Write-Host "  Diagnostica: http://localhost:$($UnifiedPort)/diagnostica.html"
 Write-Host "  Eventi:      http://localhost:$($UnifiedPort)/eventi/eventi.html"
 Write-Host ""

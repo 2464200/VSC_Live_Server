@@ -5,18 +5,13 @@ const { JSDOM } = require('jsdom');
 
 const root = path.join(__dirname, '..');
 const clientScript = fs.readFileSync(path.join(root, 'pdf', 'assets', 'scriptpdf-workbench.js'), 'utf8');
+const publicClientScript = fs.readFileSync(path.join(root, 'public', 'pdf', 'assets', 'scriptpdf-workbench.js'), 'utf8');
 const routes = [
   {
     source: 'pdf/pages/script-pdf-gestione.html',
     public: 'public/pdf/pages/script-pdf-gestione.html',
     mode: 'principale',
     retryCount: 1,
-  },
-  {
-    source: 'pdf/pages/script-pdf-prova.html',
-    public: 'public/pdf/pages/script-pdf-prova.html',
-    mode: 'prova',
-    retryCount: 2,
   },
 ];
 
@@ -43,7 +38,7 @@ async function waitFor(predicate, description) {
   }
 }
 
-async function runPage({ source, mode, retryCount }) {
+async function runPage({ source, mode, retryCount }, electronMode = false) {
   const html = fs.readFileSync(path.join(root, source), 'utf8');
   const dom = new JSDOM(html, {
     url: `http://localhost:5500/${source}`,
@@ -55,6 +50,7 @@ async function runPage({ source, mode, retryCount }) {
   let confirmCalls = 0;
   let confirmation = false;
   let closed = false;
+  const electronRoutes = [];
   let pdfFiles = [
     { name: '01-primo.pdf', path: 'C:\\VSC_SCRIPT_PDF\\01-primo.pdf', size: '1.00 MB', created: '08/10/2026' },
     { name: '02-secondo.pdf', path: 'C:\\VSC_SCRIPT_PDF\\02-secondo.pdf', size: '2.00 MB', created: '08/10/2026' },
@@ -64,6 +60,19 @@ async function runPage({ source, mode, retryCount }) {
     confirmCalls += 1;
     return confirmation;
   };
+  if (electronMode) {
+    window.electronAPI = {
+      windowManager: {
+        async openSecondaryPage(payload) {
+          electronRoutes.push(payload.path);
+          return { success: true };
+        },
+        async restoreSecondaryPage() {
+          return { success: true };
+        },
+      },
+    };
+  }
   window.fetch = async (url, options = {}) => {
     const pathname = new URL(url).pathname;
     requests.push({ pathname, options });
@@ -141,13 +150,24 @@ async function runPage({ source, mode, retryCount }) {
   document.getElementById('open-pdf').click();
   await settle();
   const openRequest = requests.find((item) => item.pathname === '/api/open-pdf');
-  assert.ok(openRequest, 'Opening the selected PDF calls the unified-server endpoint.');
-  assert.deepEqual(JSON.parse(openRequest.options.body), {
-    filePath: 'C:\\VSC_SCRIPT_PDF\\02-secondo.pdf',
-    fileName: '02-secondo.pdf',
-    viewer: 'adobe',
-    adobePath: 'C:\\Adobe\\Acrobat.exe',
-  });
+  if (electronMode) {
+    assert.equal(electronRoutes.length, 1, 'Electron should open one managed secondary window.');
+    const viewerRoute = new URL(electronRoutes[0], 'http://localhost:5500');
+    assert.equal(viewerRoute.pathname, '/pdf/viewers/pdf-viewer.html');
+    assert.equal(viewerRoute.searchParams.get('file'), 'C:\\VSC_SCRIPT_PDF\\02-secondo.pdf');
+    assert.equal(viewerRoute.searchParams.get('name'), '02-secondo.pdf');
+    assert.equal(openRequest, undefined, 'Electron must not launch an external Acrobat/Chrome viewer.');
+    assert.equal(document.getElementById('external-viewer-settings').hidden, true);
+    assert.equal(document.getElementById('managed-viewer-sessions').hidden, true);
+  } else {
+    assert.ok(openRequest, 'Opening the selected PDF calls the unified-server endpoint in a browser.');
+    assert.deepEqual(JSON.parse(openRequest.options.body), {
+      filePath: 'C:\\VSC_SCRIPT_PDF\\02-secondo.pdf',
+      fileName: '02-secondo.pdf',
+      viewer: 'adobe',
+      adobePath: 'C:\\Adobe\\Acrobat.exe',
+    });
+  }
   assert.equal(document.getElementById('pdf-message').dataset.state, 'success');
   const history = JSON.parse(window.localStorage.getItem('scriptpdf.openHistory'));
   assert.equal(history.length, 1);
@@ -159,17 +179,19 @@ async function runPage({ source, mode, retryCount }) {
   document.querySelector('.pdf-history-open').click();
   assert.equal(document.getElementById('pdf-name').textContent, '02-secondo.pdf', 'History entries reselect PDFs present in the current archive.');
 
-  document.getElementById('close-viewers').click();
-  await settle();
-  assert.equal(confirmCalls, 1, 'Closing managed viewer sessions requires confirmation.');
-  assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 0, 'Cancel leaves all viewer sessions open.');
+  if (!electronMode) {
+    document.getElementById('close-viewers').click();
+    await settle();
+    assert.equal(confirmCalls, 1, 'Closing managed viewer sessions requires confirmation.');
+    assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 0, 'Cancel leaves all viewer sessions open.');
 
-  confirmation = true;
-  document.getElementById('close-viewers').click();
-  await settle();
-  assert.equal(confirmCalls, 2);
-  assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 1);
-  assert.match(document.getElementById('pdf-message').textContent, /sessioni PDF gestite chiuse/i);
+    confirmation = true;
+    document.getElementById('close-viewers').click();
+    await settle();
+    assert.equal(confirmCalls, 2);
+    assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 1);
+    assert.match(document.getElementById('pdf-message').textContent, /sessioni PDF gestite chiuse/i);
+  }
 
   pdfFiles = [];
   document.getElementById('refresh-pdf-list').click();
@@ -185,15 +207,17 @@ async function runPage({ source, mode, retryCount }) {
 }
 
 async function run() {
+  assert.equal(publicClientScript, clientScript, 'source and public workbench scripts should stay in sync.');
   for (const route of routes) {
     const sourceHtml = fs.readFileSync(path.join(root, route.source), 'utf8');
     const publicHtml = fs.readFileSync(path.join(root, route.public), 'utf8');
     assert.equal(publicHtml, sourceHtml, `${route.source} and ${route.public} should stay in sync.`);
-    assert.match(sourceHtml, /\/pdf\/pages\/script-pdf-(?:gestione|prova)\.html/);
+    assert.match(sourceHtml, /data-scriptpdf-mode="principale"/);
     assert.match(sourceHtml, /\/pdf\/assets\/scriptpdf-workbench\.css/);
     assert.match(sourceHtml, /\/pdf\/assets\/scriptpdf-workbench\.js/);
     await runPage(route);
-    console.log(`PASS: ${route.mode} page preserves PDF selection, navigation, viewer preferences, and managed-session controls.`);
+    await runPage(route, true);
+    console.log('PASS: canonical page preserves PDF browsing and uses Electron overlay with browser fallback.');
   }
   const legacyAliases = [
     ['pdf/viewers/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
@@ -204,6 +228,10 @@ async function run() {
   for (const [aliasPath, canonicalRoute] of legacyAliases) {
     const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
     assert.match(alias, new RegExp(canonicalRoute.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  for (const aliasPath of ['pdf/pages/script-pdf-prova.html', 'public/pdf/pages/script-pdf-prova.html']) {
+    const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
+    assert.match(alias, /location\.replace\("\/pdf\/pages\/script-pdf-gestione\.html"\)/);
   }
 }
 
