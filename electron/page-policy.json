@@ -132,20 +132,20 @@
     "secondary": false
   },
   "/pdf/viewers/pdf-viewer.html": {
-    "primary": true,
-    "secondary": false
+    "primary": false,
+    "secondary": true
   },
   "/pdf/pages/script-pdf-gestione.html": {
-    "primary": true,
-    "secondary": false
+    "primary": false,
+    "secondary": true
   },
   "/pdf/pages/script-pdf-prova.html": {
-    "primary": true,
-    "secondary": false
+    "primary": false,
+    "secondary": true
   },
   "/pdf/viewers/scriptpdf1.html": {
-    "primary": true,
-    "secondary": false
+    "primary": false,
+    "secondary": true
   },
   "/playlist-country/index.html": {
     "primary": true,
@@ -172,8 +172,8 @@
     "secondary": false
   },
   "/prova/scriptpdf1.html": {
-    "primary": true,
-    "secondary": false
+    "primary": false,
+    "secondary": true
   },
   "/prova/test-scriptpdf1.html": {
     "primary": true,

@@ -27,9 +27,9 @@ Interpretazione:
 **Verificato:**
 ```
 ✅ config.js crea projectConfig singleton
-✅ Usa .env per override (fallback a project-relative defaults)
+✅ Usa .env per gli override; ScriptPDF predefinito in `C:\VSC_SCRIPT_PDF`
 ✅ Auto-create cartelle su startup
-✅ Tutti i path relativi al project root
+✅ Path centralizzati con default espliciti e configurabili
 ```
 
 **File interessati:**
@@ -44,10 +44,10 @@ Interpretazione:
 const projectRoot = path.resolve(__dirname, '..');
 const config = {
   port: Number(process.env.UNIFIED_PORT || 5500),
-  pdfFolder: resolvePortablePath(process.env.VSC_SCRIPT_PDF_DIR, path.join(projectRoot, 'pdf')),
+  pdfFolder: resolvePortablePath(process.env.VSC_SCRIPT_PDF_DIR, 'C:\\VSC_SCRIPT_PDF'),
   videoClipDir: resolvePortablePath(process.env.VSC_VIDEOCLIP_PATH, path.join(projectRoot, 'videos')),
   siaeExportDir: resolvePortablePath(process.env.VSC_SIAE_DIR, path.join(projectRoot, 'exports', 'siae')),
-  // ... tutti i path usano fallback project-relative
+  // ... path centralizzati con default espliciti, inclusa la cartella PDF condivisa
 }
 ```
 
@@ -142,7 +142,7 @@ const config = {
 
 ```
 ✅ .env.example contiene tutte le variabili
-✅ Valori di default sono project-relative
+✅ `.env.example` configura ScriptPDF su `C:\VSC_SCRIPT_PDF`
 ✅ server.js carica dotenv PRIMA di spawn
 ✅ unified-server.js legge da process.env
 ✅ Fallback a config.js se .env manca

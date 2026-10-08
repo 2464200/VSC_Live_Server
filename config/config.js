@@ -10,9 +10,7 @@ function resolvePortablePath(candidate, fallback) {
 }
 
 const projectRoot = path.resolve(__dirname, '..');
-const defaultPdfFolder = process.platform === 'win32'
-  ? path.join(path.parse(projectRoot).root, 'VSC_SCRIPT_PDF')
-  : path.join(projectRoot, 'pdf');
+const defaultPdfFolder = 'C:\\VSC_SCRIPT_PDF';
 
 const config = {
   projectRoot,

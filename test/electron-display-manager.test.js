@@ -260,6 +260,39 @@ test('secondary display remains loaded while a temporary secondary page is foreg
   }
 });
 
+test('ScriptPDF pages use a temporary always-on-top window above the persistent Display page', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-scriptpdf-secondary');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    const result = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/pdf/pages/script-pdf-gestione.html', 'test-scriptpdf-route');", sandbox);
+    const state = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow.webContents.getURL(), options: temporarySecondaryWindow.options })', sandbox);
+
+    assert.equal(result.primaryUpdated, false, 'ScriptPDF should not replace the primary window.');
+    assert.equal(result.secondaryUpdated, true, 'ScriptPDF should open on the secondary display.');
+    assert.match(state.primary, /Bordero\/pages\/bordero\.html/i, 'The primary Bordero page should remain unchanged.');
+    assert.match(state.secondary, /Bordero\/pages\/display\.html/i, 'Persistent Display should remain underneath the temporary page.');
+    assert.match(state.temporary, /pdf\/pages\/script-pdf-gestione\.html/i, 'The ScriptPDF page should be loaded in the temporary window.');
+    assert.equal(state.options.alwaysOnTop, true, 'The ScriptPDF window should remain above Display.');
+    assert.equal(state.options.fullscreen, true, 'The ScriptPDF window should use the established fullscreen presentation.');
+
+    vm.runInContext('closeTemporarySecondaryWindow();', sandbox);
+    assert.equal(vm.runInContext('Boolean(!temporarySecondaryWindow)', sandbox), true, 'Closing ScriptPDF should close its temporary window.');
+    assert.match(vm.runInContext('secondaryWindow.webContents.getURL()', sandbox), /Bordero\/pages\/display\.html/i, 'Closing ScriptPDF should restore Display.');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('webcam is not treated as a managed secondary userform route', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'USERFORM', 'js', 'userform-page.js'), 'utf8');
   const start = source.indexOf('function normalizeRouteTarget');

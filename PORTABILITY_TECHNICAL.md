@@ -9,14 +9,14 @@
 ## Architecture Overview
 
 ### Core Principle
-**No hard-coded local paths.** All paths resolve relative to project root using environment variables with fallbacks.
+**Centralized paths.** Runtime paths use environment variables or explicit defaults; ScriptPDF reads documents from `C:\VSC_SCRIPT_PDF` by default.
 
 ### Config Layer
 
 #### `config/config.js`
 Central configuration hub for all runtime paths:
 - Reads from `.env` (environment variables)
-- Falls back to project-relative defaults
+- Uses explicit defaults; ScriptPDF defaults to `C:\VSC_SCRIPT_PDF`
 - Auto-creates missing directories
 - Exports singleton `projectConfig` object
 
