@@ -59,6 +59,8 @@ function loadElectronMainFor(tempDir) {
 
             constructor(options = {}) {
               this.options = options;
+              this.events = {};
+              this.fullScreen = Boolean(options.fullscreen);
               let currentUrl = options.url || '';
               this.webContents = {
                 on() {},
@@ -78,10 +80,12 @@ function loadElectronMainFor(tempDir) {
             setMenuBarVisibility() {}
             setVisibleOnAllWorkspaces() {}
             setAlwaysOnTop() {}
-            setFullScreen() {}
+            setFullScreen(value) { this.fullScreen = value; }
+            isFullScreen() { return this.fullScreen; }
             setBounds() {}
             show() { this.visible = true; }
             focus() { this.focused = true; }
+            on(event, callback) { this.events[event] = callback; }
             once(_event, callback) { if (_event === 'closed') this.onClosed = callback; }
             close() { this.closed = true; this.onClosed?.(); }
             destroy() { this.closed = true; }
@@ -241,6 +245,12 @@ test('ensureWindows recreates a missing secondary window when primary already ex
     assert.ok(hasPrimary, 'primaryWindow should remain available');
     assert.ok(hasSecondary, 'secondaryWindow should be recreated');
     assert.equal(createdWindows.length >= 2, true, 'ensureWindows should create both windows');
+    const secondary = createdWindows.find((window) => window.options.kiosk);
+    assert.ok(secondary, 'secondary monitor window should be created in kiosk mode');
+    assert.equal(secondary.fullScreen, true, 'secondary monitor window should start fullscreen');
+    secondary.setFullScreen(false);
+    secondary.events['leave-full-screen']();
+    assert.equal(secondary.fullScreen, true, 'secondary monitor window should return to fullscreen after leaving it');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

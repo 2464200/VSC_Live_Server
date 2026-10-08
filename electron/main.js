@@ -108,6 +108,24 @@ const PAGE_POLICY = new Map([
 
 let currentPagePolicy = new Map(PAGE_POLICY);
 
+function keepSecondaryWindowFullscreen(win) {
+  if (!win || typeof win.on !== 'function') {
+    return;
+  }
+
+  win.on('leave-full-screen', () => {
+    if (win.isDestroyed()) {
+      return;
+    }
+
+    try {
+      win.setFullScreen(true);
+    } catch (error) {
+      console.warn('Unable to restore fullscreen on secondary monitor:', error?.message || error);
+    }
+  });
+}
+
 function normalizePolicyPath(pagePath) {
   const normalized = normalizePathname(pagePath || '');
   return normalized || String(pagePath || '').trim().toLowerCase();
@@ -798,6 +816,7 @@ async function loadInTemporarySecondaryWindow(url) {
       autoHideMenuBar: true,
       alwaysOnTop: true
     });
+    keepSecondaryWindowFullscreen(temporarySecondaryWindow);
     temporarySecondaryWindow.setMenuBarVisibility(false);
     temporarySecondaryWindow.setFullScreen(true);
     temporarySecondaryWindow.once('closed', () => {
@@ -1064,6 +1083,7 @@ function createVideoPlayerWindow() {
   });
 
   win.setMenuBarVisibility(false);
+  keepSecondaryWindowFullscreen(win);
   win.setVisibleOnAllWorkspaces(false);
   win.setAlwaysOnTop(true, 'screen-saver');
   win.once('closed', () => {
@@ -1578,6 +1598,7 @@ async function ensureWindows() {
       autoHideMenuBar: true
     });
 
+    keepSecondaryWindowFullscreen(secondaryWindow);
     secondaryWindow.setMenuBarVisibility(false);
     secondaryWindow.setFullScreen(true);
     secondaryWindow.once('closed', () => {
