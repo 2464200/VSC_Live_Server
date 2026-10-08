@@ -2385,62 +2385,23 @@ class BorderoTableManager {
   findMatchingVideoFile(brano) {
     if (!Array.isArray(this.videoClipCatalog) || this.videoClipCatalog.length === 0) return null;
 
-    const profile = this.buildBranoMatchProfile(brano);
-    const hasNames = profile.normalizedNames.length > 0;
+    const rawId = String(brano?.id ?? '').trim();
+    if (!/^\d{1,3}$/.test(rawId)) return null;
 
-    let pool = this.videoClipCatalog;
-    if (profile.idPrefix) {
-      const byPrefix = this.videoClipCatalog.filter(item => item.prefix === profile.idPrefix);
-      if (byPrefix.length > 0) {
-        pool = byPrefix;
-      }
+    const idPrefix = rawId.padStart(3, '0');
+    const prefixMatches = this.videoClipCatalog.filter(item => item.prefix === idPrefix);
+    if (prefixMatches.length === 1) {
+      return prefixMatches[0].fullName;
     }
 
-    const scored = pool
-      .map(item => ({ item, score: this.scoreVideoCandidate(profile, item) }))
-      .sort((a, b) => b.score - a.score);
-
-    if (scored.length === 0 || scored[0].score <= 0) {
-      return null;
+    if (prefixMatches.length > 1) {
+      logger.warn('Match ambiguo: prefisso videoclip duplicato', {
+        branoId: brano?.id,
+        matches: prefixMatches.map(entry => entry.fullName)
+      });
     }
 
-    const best = scored[0];
-    const second = scored[1];
-
-    if (profile.idPrefix && pool.length > 1 && hasNames) {
-      const ambiguous = second && (best.score - second.score) < 80;
-      if (ambiguous) {
-        logger.warn('Match ambiguo: prefisso ID duplicato senza differenza significativa', {
-          branoId: brano?.id,
-          best: best.item.fullName,
-          second: second.item.fullName,
-          bestScore: best.score,
-          secondScore: second.score
-        });
-        return null;
-      }
-    }
-
-    if (!profile.idPrefix) {
-      const exactNameMatches = scored.filter(entry => profile.normalizedNames.includes(entry.item.normalizedName));
-      if (exactNameMatches.length === 1) {
-        return exactNameMatches[0].item.fullName;
-      }
-
-      if (exactNameMatches.length > 1) {
-        logger.warn('Match ambiguo: titolo coincide con più file senza prefisso ID', {
-          branoId: brano?.id,
-          matches: exactNameMatches.map(entry => entry.item.fullName)
-        });
-        return null;
-      }
-
-      if (best.score < 260) {
-        return null;
-      }
-    }
-
-    return best.item.fullName;
+    return null;
   }
 
   getSelectedDjSoftware() {

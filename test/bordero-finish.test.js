@@ -194,6 +194,26 @@ if (context.window.isVideoOnlyBrano('ordinary choreography')) {
 }
 
 const BaseManager = context.BorderoTableManager;
+const videoMatchManager = Object.create(BaseManager.prototype);
+videoMatchManager.videoClipCatalog = [
+  { prefix: '005', fullName: '005 16 TONS.mp4' },
+  { prefix: '006', fullName: '006 DIFFERENT TITLE.mp4' },
+  { prefix: '', fullName: '16 TONS.mp4' },
+];
+if (videoMatchManager.findMatchingVideoFile({ id: '5', titolo: 'Different Title' }) !== '005 16 TONS.mp4') {
+  throw new Error('Videoclip availability did not match the three-digit brano ID prefix');
+}
+if (videoMatchManager.findMatchingVideoFile({ id: '7', titolo: '16 TONS' }) !== null) {
+  throw new Error('Videoclip availability incorrectly fell back to a matching title');
+}
+if (videoMatchManager.findMatchingVideoFile({ id: '1000', titolo: '16 TONS' }) !== null) {
+  throw new Error('Videoclip availability accepted an ID longer than three digits');
+}
+videoMatchManager.videoClipCatalog.push({ prefix: '005', fullName: '005 SECOND FILE.mp4' });
+if (videoMatchManager.findMatchingVideoFile({ id: '005', titolo: '16 TONS' }) !== null) {
+  throw new Error('Videoclip availability did not reject duplicate ID prefixes');
+}
+
 BaseManager.prototype.init = function initStub() {
   this.allBrani = [
     { id: '1', titolo: 'A', flag: '', originalIndex: 0 },
