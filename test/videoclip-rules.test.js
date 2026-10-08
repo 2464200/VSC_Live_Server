@@ -3,6 +3,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { annotateBraniByTitleVisibility } = require('../Bordero/js/title-visibility-utils.js');
 
 const videoclipScripts = [
   'Bordero/pages/videoclip.js',
@@ -22,6 +23,7 @@ function loadVideoClipManager(scriptPath) {
     history: { replaceState() {} },
     videoClipManager: null
   };
+  const storageValues = new Map();
   const document = {
     hidden: false,
     title: 'VideoClip test',
@@ -51,9 +53,19 @@ function loadVideoClipManager(scriptPath) {
     console,
     logger: { debug() {}, info() {}, warn() {}, error() {} },
     dataLoader: {
+      brani: [],
       getCurrentSerata() { return { metadata: {} }; },
       saveCurrentSerata() {}
     },
+    Storage: {
+      get(key, fallback = null) {
+        return storageValues.has(key) ? storageValues.get(key) : fallback;
+      },
+      set(key, value) {
+        storageValues.set(key, value);
+      }
+    },
+    BORDERO_CONFIG: { CACHE_KEY_BRANI: 'bordero_brani' },
     DateUtils: { formatDate() { return '2026-10-08'; } },
     Toast: { success() {} },
     localStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
@@ -77,7 +89,26 @@ function loadVideoClipManager(scriptPath) {
   vm.runInNewContext(`${source}\nglobalThis.VideoClipManager = VideoClipManager;`, context, {
     filename: sourcePath
   });
-  return { VideoClipManager: context.VideoClipManager, context };
+  return { VideoClipManager: context.VideoClipManager, context, storageValues };
+}
+
+function loadDisplayMonitor(scriptPath) {
+  const sourcePath = path.join(__dirname, '..', ...scriptPath.split('/'));
+  const source = fs.readFileSync(sourcePath, 'utf8');
+  const context = {
+    window: {
+      isVideoOnlyBrano() { return false; },
+      addEventListener() {}
+    },
+    document: { addEventListener() {} },
+    logger: { info() {}, debug() {} },
+    BORDERO_CONFIG: {}
+  };
+
+  vm.runInNewContext(`${source}\nglobalThis.DisplayMonitor = DisplayMonitor;`, context, {
+    filename: sourcePath
+  });
+  return context.DisplayMonitor;
 }
 
 for (const scriptPath of videoclipScripts) {
@@ -109,12 +140,18 @@ for (const scriptPath of videoclipScripts) {
   });
 
   test(`${scriptPath}: clicking PLAY marks the choreography executed before playback`, async () => {
-    const { VideoClipManager, context } = loadVideoClipManager(scriptPath);
+    const { VideoClipManager, context, storageValues } = loadVideoClipManager(scriptPath);
     const manager = Object.create(VideoClipManager.prototype);
     const selected = { id: '005', titolo: '16 TONS' };
     const calls = [];
     let savedBrani;
     manager.brani = [selected];
+    context.dataLoader.brani = [
+      { id: '005', titolo: '16 TONS', richieste: '7' },
+      { id: '006', titolo: 'OTHER TRACK', richieste: '2' }
+    ];
+    storageValues.set('bordero_brani', context.dataLoader.brani);
+    storageValues.set('BORDERO_BRANI_DATA', context.dataLoader.brani);
     manager.filteredBrani = [selected];
     manager.currentBrano = selected;
     manager.currentPlaybackBranoId = null;
@@ -146,6 +183,35 @@ for (const scriptPath of videoclipScripts) {
     assert.equal(manager.brani[0].flag, 'X');
     assert.equal(manager.brani[0].executed, true);
     assert.equal(savedBrani[0].flag, 'X');
+    for (const key of ['bordero_brani', 'BORDERO_BRANI_DATA']) {
+      const cachedBrani = storageValues.get(key);
+      assert.equal(cachedBrani.find((brano) => brano.id === '005')?.flag, 'X');
+      assert.equal(cachedBrani.find((brano) => brano.id === '005')?.executed, true);
+      assert.equal(cachedBrani.find((brano) => brano.id === '006')?.flag, undefined);
+    }
+    assert.equal(context.dataLoader.brani.find((brano) => brano.id === '005')?.flag, 'X');
     assert.deepEqual(calls, ['saved', 'main', 'secondary']);
+
+    for (const displayPath of ['Bordero/pages/display.js', 'public/Bordero/pages/display.js']) {
+      const DisplayMonitor = loadDisplayMonitor(displayPath);
+      const display = Object.create(DisplayMonitor.prototype);
+      display.allBrani = [storageValues.get('bordero_brani').find((brano) => brano.id === '005')];
+      display.executedIds = display.buildExecutedIdSet({ brani: savedBrani }, display.allBrani);
+      const displayedBrani = annotateBraniByTitleVisibility(
+        display.buildDisplaySourceBrani({ brani: savedBrani }),
+        {
+          isExecuted: (brano) => display.isBranoExecuted(brano),
+          isRequested: () => true
+        }
+      );
+
+      assert.equal(displayedBrani.length, 1, `${displayPath}: executed video brano remains displayed`);
+      assert.equal(display.isBranoExecuted(displayedBrani[0]), true);
+      assert.match(
+        display.createBranoRow(displayedBrani[0]),
+        /brano-row completed/,
+        `${displayPath}: executed video brano receives the completed orange-row class`
+      );
+    }
   });
 }

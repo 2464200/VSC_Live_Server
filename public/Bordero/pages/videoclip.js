@@ -1816,6 +1816,32 @@ class VideoClipManager {
       };
     });
 
+    const updateCatalog = (items) => Array.isArray(items)
+      ? items.map((item) => String(item?.id) === targetId
+        ? {
+          ...item,
+          flag: 'X',
+          eseguito: 'X',
+          executed: true,
+          timestamp: nowTimestamp
+        }
+        : item)
+      : items;
+
+    if (Array.isArray(dataLoader.brani)) {
+      dataLoader.brani = updateCatalog(dataLoader.brani);
+    }
+    const catalogKeys = [
+      BORDERO_CONFIG?.CACHE_KEY_BRANI,
+      'BORDERO_BRANI_DATA'
+    ].filter(Boolean);
+    catalogKeys.forEach((key) => {
+      const cachedBrani = Storage.get(key);
+      if (Array.isArray(cachedBrani)) {
+        Storage.set(key, updateCatalog(cachedBrani));
+      }
+    });
+
     if (this.currentBrano && String(this.currentBrano.id) === targetId) {
       this.currentBrano = {
         ...this.currentBrano,
