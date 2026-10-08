@@ -1,7 +1,8 @@
 param(
     [int]$MaxAttempts = 3,
     [int]$RetryDelaySeconds = 3,
-    [switch]$NoWait
+    [switch]$NoWait,
+    [switch]$NoMonitor
 )
 
 $RootPath = $PSScriptRoot
@@ -30,6 +31,7 @@ while ($attempt -lt $MaxAttempts) {
         $StartupScript
     )
     if ($NoWait) { $startupArguments += '-NoWait' }
+    if ($NoMonitor) { $startupArguments += '-NoMonitor' }
 
     $process = Start-Process -FilePath 'powershell.exe' `
         -ArgumentList $startupArguments `

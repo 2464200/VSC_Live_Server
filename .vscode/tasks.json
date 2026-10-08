@@ -10,7 +10,8 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\startup-retry.ps1"
+        "${workspaceFolder}\\startup-retry.ps1",
+        "-NoMonitor"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -65,7 +66,8 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\startup-retry.ps1"
+        "${workspaceFolder}\\startup-retry.ps1",
+        "-NoMonitor"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -89,6 +91,7 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "isBackground": true,
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
@@ -96,7 +99,18 @@
         "clear": false,
         "showReuseMessage": false
       },
-      "problemMatcher": [],
+      "problemMatcher": {
+        "owner": "avviodaniele",
+        "pattern": {
+          "regexp": "^(NEVER_MATCH_AVVIODANIELE_TASK_PATTERN)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": false,
+          "beginsPattern": "^\\[avviodaniele\\] Avvio del server standard unified-server\\.js\\.$",
+          "endsPattern": "^.*UNIFIED SERVER - Server consolidato avviato.*$"
+        }
+      },
       "group": "build"
     },
     {
@@ -127,7 +141,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "& '${workspaceFolder}\\shutdown.ps1'; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1'"
+        "& '${workspaceFolder}\\shutdown.ps1'; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1' -NoMonitor"
       ],
       "presentation": {
         "reveal": "always",
@@ -145,7 +159,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "& '${workspaceFolder}\\shutdown.ps1' -AutoCommit; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1'"
+        "& '${workspaceFolder}\\shutdown.ps1' -AutoCommit; Start-Sleep -Seconds 1; & '${workspaceFolder}\\startup-retry.ps1' -NoMonitor"
       ],
       "presentation": {
         "reveal": "always",

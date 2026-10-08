@@ -3,7 +3,8 @@
 ######################################################################
 
 param(
-    [switch]$NoWait = $false
+    [switch]$NoWait = $false,
+    [switch]$NoMonitor = $false
 )
 
 Write-Host ""
@@ -547,7 +548,7 @@ Write-Host "  - Unified Server (porta $UnifiedPort): Web + PDF + Eventi"
 Write-Host "  - Bordero Sync API integrato nel Unified Server (porta $UnifiedPort)"
 Write-Host ""
 
-if (-not $NoWait) {
+if (-not $NoWait -and -not $NoMonitor) {
     Write-Host "Eseguito in foreground. Premi Ctrl+C per terminare tutti i server..."
     while ($true) {
         $allRunning = $true
