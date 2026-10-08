@@ -14,7 +14,8 @@ function normalizeRouteTarget(target) {
 function isCanonicalUserFormRoute(target) {
   const normalized = normalizeRouteTarget(target).toLowerCase();
   const pathOnly = normalized.split(/[?#]/, 1)[0];
-  return /^\/userform\/pages\/[^/]+\.html$/.test(pathOnly);
+  return /^\/userform\/pages\/[^/]+\.html$/.test(pathOnly)
+    && pathOnly !== "/userform/pages/webcam.html";
 }
 
 function openManagedPage(target) {

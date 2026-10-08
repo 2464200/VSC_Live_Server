@@ -316,7 +316,7 @@ test('ScriptPDF pages use a temporary always-on-top window above the persistent 
   }
 });
 
-test('webcam is not treated as a managed secondary userform route', () => {
+test('webcam control stays out of managed USERFORM routes while standard pages remain managed', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'USERFORM', 'js', 'userform-page.js'), 'utf8');
   const start = source.indexOf('function normalizeRouteTarget');
   const end = source.indexOf('function openManagedPage');
@@ -330,5 +330,6 @@ test('webcam is not treated as a managed secondary userform route', () => {
   vm.runInNewContext(`${snippet}\nthis.isCanonicalUserFormRoute = isCanonicalUserFormRoute;`, context);
 
   assert.equal(context.isCanonicalUserFormRoute('http://localhost:5500/USERFORM/pages/WEBCAM.html'), false, 'webcam should not be routed to the secondary monitor');
+  assert.equal(context.isCanonicalUserFormRoute('http://localhost:5500/USERFORM/pages/webcam.html?mode=preview#camera'), false, 'webcam must remain excluded with query strings and fragments');
   assert.equal(context.isCanonicalUserFormRoute('http://localhost:5500/USERFORM/pages/pagina03.html'), true, 'valid managed UserForm pages should still be routed');
 });
