@@ -354,6 +354,15 @@
 
       // 2. Aggiorna Serata & Brani
       if (typeof Storage !== 'undefined' && Storage.set) {
+        const storedSerata = typeof dataLoader !== 'undefined' && typeof dataLoader.getCurrentSerata === 'function'
+          ? dataLoader.getCurrentSerata()
+          : null;
+        const incomingBrani = Array.isArray(brani) ? brani : (storedSerata?.brani || []);
+        const mergedBrani = typeof dataLoader !== 'undefined'
+          && typeof dataLoader.mergeMissingExecutedBrani === 'function'
+          ? dataLoader.mergeMissingExecutedBrani(incomingBrani, storedSerata?.brani)
+          : incomingBrani;
+
         if (Array.isArray(catalogBrani)) {
           Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, catalogBrani);
           Storage.set('BORDERO_BRANI_DATA', catalogBrani);
@@ -363,7 +372,7 @@
           const currentSerata = {
             id: Date.now(),
             metadata: serata,
-            brani: Array.isArray(brani) ? brani : [],
+            brani: mergedBrani,
             savedAt: updatedAt || new Date().toISOString()
           };
           if (typeof BORDERO_CONFIG !== 'undefined') {

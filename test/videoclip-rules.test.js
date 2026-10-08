@@ -215,3 +215,36 @@ for (const scriptPath of videoclipScripts) {
     }
   });
 }
+
+for (const displayPath of ['Bordero/pages/display.js', 'public/Bordero/pages/display.js']) {
+  test(`${displayPath}: refresh retains executed tracks omitted from a partial session snapshot`, () => {
+    const DisplayMonitor = loadDisplayMonitor(displayPath);
+    const display = Object.create(DisplayMonitor.prototype);
+    const videoTrack = { id: '005', titolo: '16 TONS', richieste: '4', flag: 'X' };
+    const otherTrack = { id: '006', titolo: 'OTHER TRACK', richieste: '2', flag: '' };
+    const partialSerata = { brani: [otherTrack] };
+    display.allBrani = [videoTrack, otherTrack];
+    display.executedIds = display.buildExecutedIdSet(partialSerata, display.allBrani);
+
+    const renderedSource = display.buildDisplaySourceBrani(partialSerata);
+    const retainedVideoTrack = renderedSource.find((brano) => brano.id === '005');
+    assert.equal(retainedVideoTrack.flag, 'X');
+    assert.equal(display.isBranoExecuted(retainedVideoTrack), true);
+
+    const explicitlyUnmarkedSerata = {
+      brani: [{ ...videoTrack, flag: '', eseguito: 'X', executed: true }]
+    };
+    display.executedIds = display.buildExecutedIdSet(explicitlyUnmarkedSerata, display.allBrani);
+    const explicitlyUnmarked = display.buildDisplaySourceBrani(explicitlyUnmarkedSerata)
+      .find((brano) => brano.id === '005');
+    assert.equal(explicitlyUnmarked.flag, '');
+    assert.equal(display.isBranoExecuted(explicitlyUnmarked), false);
+
+    const aliasExecutedSerata = { brani: [{ id: '005', titolo: '16 TONS', executed: true }] };
+    display.executedIds = display.buildExecutedIdSet(aliasExecutedSerata, display.allBrani);
+    const aliasExecuted = display.buildDisplaySourceBrani(aliasExecutedSerata)
+      .find((brano) => brano.id === '005');
+    assert.equal(aliasExecuted.flag, 'X');
+    assert.equal(display.isBranoExecuted(aliasExecuted), true);
+  });
+}

@@ -290,14 +290,27 @@ class DisplayMonitor {
 
     const baseBrani = Array.isArray(this.allBrani) ? this.allBrani : [];
     const serataBrani = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
+    const serataById = new Map(
+      serataBrani
+        .map((item) => [this.normalizeBranoIdKey(item?.id), item])
+        .filter(([key]) => Boolean(key))
+    );
 
-    // Base: dati correnti del catalogo; la serata attiva è la fonte autorevole per gli eseguiti.
     const mergedMap = new Map(
       baseBrani
-        .map((item) => [
-          this.normalizeBranoIdKey(item.id),
-          { ...item, ...(hasCurrentSerata ? { flag: '' } : {}) }
-        ])
+        .map((item) => {
+          const key = this.normalizeBranoIdKey(item.id);
+          const serataBrano = serataById.get(key);
+          const executionSource = serataBrano || item;
+          return [
+            key,
+            {
+              ...item,
+              flag: this.hasExecutedMarker(executionSource) ? 'X' : '',
+              timestamp: executionSource.timestamp || item.timestamp || ''
+            }
+          ];
+        })
         .filter(([key]) => Boolean(key))
     );
 
@@ -312,21 +325,23 @@ class DisplayMonitor {
         mergedMap.set(id, {
           ...item,
           id: String(item?.id ?? id),
-          flag: String(item?.flag || '').toUpperCase() === 'X' ? 'X' : ''
+          flag: this.hasExecutedMarker(item) ? 'X' : ''
         });
-        return;
       }
-
-      if (String(item?.flag || '').toUpperCase() !== 'X') return;
-
-      mergedMap.set(id, {
-        ...base,
-        flag: 'X',
-        timestamp: item?.timestamp || base.timestamp || ''
-      });
     });
 
     return Array.from(mergedMap.values());
+  }
+
+  hasExecutedMarker(brano) {
+    if (brano && Object.prototype.hasOwnProperty.call(brano, 'flag')) {
+      return String(brano.flag || '').toUpperCase() === 'X';
+    }
+
+    return brano?.eseguito === true
+      || String(brano?.eseguito || '').toUpperCase() === 'X'
+      || brano?.executed === true
+      || String(brano?.executed || '').toUpperCase() === 'X';
   }
 
   buildExecutedIdSet(currentSerata, sourceBrani) {
@@ -335,7 +350,7 @@ class DisplayMonitor {
 
     fromSerata.forEach((brano) => {
       if (window.isVideoOnlyBrano?.(brano)) return;
-      if (String(brano?.flag || '').toUpperCase() === 'X') {
+      if (this.hasExecutedMarker(brano)) {
         const key = this.normalizeBranoIdKey(brano.id);
         if (key) ids.add(key);
       }
@@ -344,7 +359,7 @@ class DisplayMonitor {
     if (fromSerata.length === 0 && Array.isArray(sourceBrani)) {
       sourceBrani.forEach((brano) => {
         if (window.isVideoOnlyBrano?.(brano)) return;
-        if (String(brano?.flag || '').toUpperCase() === 'X') {
+        if (this.hasExecutedMarker(brano)) {
           const key = this.normalizeBranoIdKey(brano.id);
           if (key) ids.add(key);
         }
@@ -407,7 +422,7 @@ class DisplayMonitor {
     if (id && this.executedIds.has(id)) {
       return true;
     }
-    return String(brano.flag || '').toUpperCase() === 'X';
+    return this.hasExecutedMarker(brano);
   }
 
   /**
