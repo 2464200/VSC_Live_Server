@@ -10,11 +10,14 @@ function resolvePortablePath(candidate, fallback) {
 }
 
 const projectRoot = path.resolve(__dirname, '..');
+const defaultPdfFolder = process.platform === 'win32'
+  ? 'C:\\VSC_SCRIPT_PDF'
+  : path.join(projectRoot, 'pdf');
 
 const config = {
   projectRoot,
   port: Number(process.env.UNIFIED_PORT || 5500),
-  pdfFolder: resolvePortablePath(process.env.VSC_SCRIPT_PDF_DIR, path.join(projectRoot, 'pdf')),
+  pdfFolder: resolvePortablePath(process.env.VSC_SCRIPT_PDF_DIR, defaultPdfFolder),
   videoClipDir: 'C:\\VSC_VIDEOCLIP',
   siaeExportDir: resolvePortablePath(process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR, 'C:\\VSC_SIAE'),
   userformRecordingsDir: resolvePortablePath(process.env.USERFORM_RECORDINGS_DIR, path.join(projectRoot, 'userform-recordings')),

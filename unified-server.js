@@ -4684,6 +4684,48 @@ app.use((req, res, next) => {
 
 // ===== API PDF =====
 
+function resolvePdfFilePath(filePath) {
+    if (typeof filePath !== 'string' || !filePath.trim()) {
+        const error = new Error('Percorso PDF non fornito');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const allowedRoot = fs.realpathSync(PDF_FOLDER);
+    const requestedPath = path.resolve(filePath);
+    const isWithinRoot = (candidate) => {
+        const relative = path.relative(allowedRoot, candidate);
+        return relative !== '' && relative !== '..'
+            && !relative.startsWith(`..${path.sep}`)
+            && !path.isAbsolute(relative);
+    };
+
+    if (!isWithinRoot(requestedPath)) {
+        const error = new Error('Accesso al file non consentito');
+        error.statusCode = 403;
+        throw error;
+    }
+    if (!fs.existsSync(requestedPath)) {
+        const error = new Error('File PDF non trovato');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const canonicalPath = fs.realpathSync(requestedPath);
+    if (!isWithinRoot(canonicalPath)) {
+        const error = new Error('Accesso al file non consentito');
+        error.statusCode = 403;
+        throw error;
+    }
+    const stats = fs.statSync(canonicalPath);
+    if (!stats.isFile() || path.extname(canonicalPath).toLowerCase() !== '.pdf') {
+        const error = new Error('Il percorso indicato non è un file PDF valido');
+        error.statusCode = 400;
+        throw error;
+    }
+    return canonicalPath;
+}
+
 // Lista PDF
 app.get('/api/pdf-list', (req, res) => {
     try {
@@ -4708,7 +4750,7 @@ app.get('/api/pdf-list', (req, res) => {
             .sort()
             .map(filename => {
                 try {
-                    const fullPath = path.join(PDF_FOLDER, filename);
+                    const fullPath = resolvePdfFilePath(path.join(PDF_FOLDER, filename));
                     const stats = fs.statSync(fullPath);
 
                     return {
@@ -4747,12 +4789,13 @@ app.get('/api/pdf-list', (req, res) => {
 // Apri PDF
 app.post('/api/open-pdf', (req, res) => {
     try {
-        const { filePath } = req.body;
-
-        if (!filePath) {
-            return res.status(400).json({
+        let filePath;
+        try {
+            filePath = resolvePdfFilePath(req.body?.filePath);
+        } catch (error) {
+            return res.status(error.statusCode || 500).json({
                 success: false,
-                error: 'filePath non fornito'
+                error: error.message
             });
         }
 
@@ -4911,30 +4954,20 @@ app.get('/api/health', (req, res) => {
 // Serve PDF files for embedded viewer
 app.get('/api/serve-pdf', (req, res) => {
     try {
-        const fileParam = req.query.file;
-        if (!fileParam) {
-            return res.status(400).send('Parametro file mancante');
+        let requestedPath;
+        try {
+            requestedPath = resolvePdfFilePath(req.query.file);
+        } catch (error) {
+            return res.status(error.statusCode || 500).send(error.message);
         }
-
-        const requestedPath = path.resolve(fileParam);
-        const allowedRoot = path.resolve(PDF_FOLDER);
-        if (requestedPath !== allowedRoot && !requestedPath.startsWith(allowedRoot + path.sep)) {
-            return res.status(403).send('Accesso al file non consentito');
-        }
-
-        if (!fs.existsSync(requestedPath)) {
-            return res.status(404).send('File non trovato');
-        }
-
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename="' + path.basename(requestedPath) + '"');
-        const stream = fs.createReadStream(requestedPath);
-        stream.pipe(res);
-        stream.on('error', error => {
+        res.type('application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${path.basename(requestedPath)}"`);
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.sendFile(requestedPath, error => {
+            if (!error) return;
             console.error('❌ Errore serve-pdf:', error.message);
-            if (!res.headersSent) {
-                res.status(500).send('Errore interno server');
-            }
+            if (res.headersSent) return res.destroy(error);
+            return res.status(error.statusCode || 500).send('Errore durante la lettura del PDF');
         });
     } catch (err) {
         console.error('❌ Errore API /api/serve-pdf:', err.message);

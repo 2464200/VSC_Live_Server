@@ -6,12 +6,15 @@
   const retryCount = mode === "prova" ? 2 : 1;
   const requestTimeoutMs = 8000;
   const storageKey = "scriptpdf.adobePath";
+  const historyStorageKey = "scriptpdf.openHistory";
   const state = {
     files: [],
     currentIndex: -1,
+    history: [],
     serverReady: false,
     loading: false,
-    opening: false
+    opening: false,
+    previewOpen: false
   };
 
   const nodes = {
@@ -19,12 +22,22 @@
     statusDetail: document.getElementById("pdf-folder"),
     folderPath: document.getElementById("pdf-folder-path"),
     count: document.getElementById("pdf-count"),
+    search: document.getElementById("pdf-search"),
+    filter: document.getElementById("pdf-filter"),
     select: document.getElementById("pdf-select"),
     empty: document.getElementById("pdf-empty"),
+    emptyTitle: document.getElementById("pdf-empty-title"),
+    emptyMessage: document.getElementById("pdf-empty-message"),
     current: document.getElementById("pdf-current"),
     name: document.getElementById("pdf-name"),
     metadata: document.getElementById("pdf-metadata"),
     position: document.getElementById("pdf-position"),
+    previewButton: document.getElementById("toggle-preview"),
+    previewPanel: document.getElementById("pdf-preview-panel"),
+    previewFrame: document.getElementById("pdf-preview"),
+    historyCount: document.getElementById("pdf-history-count"),
+    historyList: document.getElementById("pdf-history-list"),
+    clearHistory: document.getElementById("clear-history"),
     viewer: document.getElementById("viewer-select"),
     adobePath: document.getElementById("adobe-path"),
     openButton: document.getElementById("open-pdf"),
@@ -88,6 +101,108 @@
     }
   }
 
+  function normalizePath(filePath) {
+    return String(filePath || "").replace(/\//g, "\\").toLocaleLowerCase("it-IT");
+  }
+
+  function loadHistory() {
+    try {
+      const stored = window.localStorage.getItem(historyStorageKey);
+      if (!stored) return;
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed) || !parsed.every((entry) => (
+        entry
+        && typeof entry.path === "string"
+        && typeof entry.name === "string"
+        && Number.isFinite(new Date(entry.openedAt).getTime())
+      ))) {
+        throw new Error("La cronologia PDF salvata non ha un formato valido.");
+      }
+      state.history = parsed.slice(0, 20);
+    } catch (error) {
+      setMessage(`Impossibile leggere la cronologia PDF: ${error.message}`, "error");
+    }
+  }
+
+  function saveHistory() {
+    try {
+      window.localStorage.setItem(historyStorageKey, JSON.stringify(state.history));
+      return true;
+    } catch (error) {
+      setMessage(`Impossibile salvare la cronologia PDF: ${error.message}`, "error");
+      return false;
+    }
+  }
+
+  function getHistoryEntry(filePath) {
+    const normalized = normalizePath(filePath);
+    return state.history.find((entry) => normalizePath(entry.path) === normalized);
+  }
+
+  function renderHistory() {
+    nodes.historyList.replaceChildren();
+    nodes.historyCount.textContent = `${state.history.length} ${state.history.length === 1 ? "documento recente" : "documenti recenti"}`;
+
+    if (!state.history.length) {
+      const empty = document.createElement("li");
+      empty.textContent = "Nessun PDF aperto di recente.";
+      nodes.historyList.append(empty);
+      return;
+    }
+
+    const availableFiles = new Map(state.files.map((file) => [normalizePath(file.path), file]));
+    state.history.forEach((entry) => {
+      const item = document.createElement("li");
+      const file = availableFiles.get(normalizePath(entry.path));
+      if (file) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "pdf-history-open";
+        button.dataset.path = file.path;
+        button.textContent = file.name;
+        item.append(button);
+      } else {
+        const name = document.createElement("span");
+        name.className = "pdf-history-missing";
+        name.textContent = `${entry.name} · non presente nella cartella`;
+        item.append(name);
+      }
+      const timestamp = document.createElement("time");
+      timestamp.dateTime = new Date(entry.openedAt).toISOString();
+      timestamp.textContent = new Date(entry.openedAt).toLocaleString("it-IT");
+      item.append(timestamp);
+      nodes.historyList.append(item);
+    });
+  }
+
+  function recordOpenedFile(file) {
+    const normalized = normalizePath(file.path);
+    state.history = [
+      { path: file.path, name: file.name, openedAt: Date.now() },
+      ...state.history.filter((entry) => normalizePath(entry.path) !== normalized)
+    ].slice(0, 20);
+    if (saveHistory()) {
+      renderHistory();
+      if (nodes.filter.value === "unopened") nodes.filter.value = "all";
+      renderFileOptions();
+    }
+  }
+
+  function getFilteredFiles() {
+    const query = nodes.search.value.trim().toLocaleLowerCase("it-IT");
+    const filter = nodes.filter.value;
+    const recentThreshold = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    return state.files
+      .map((file, index) => ({ file, index }))
+      .filter(({ file }) => !query || file.name.toLocaleLowerCase("it-IT").includes(query))
+      .filter(({ file }) => {
+        const entry = getHistoryEntry(file.path);
+        if (filter === "recent") return entry && entry.openedAt >= recentThreshold;
+        if (filter === "unopened") return !entry;
+        return true;
+      });
+  }
+
   function getSelectedFile() {
     return state.currentIndex >= 0 && state.currentIndex < state.files.length
       ? state.files[state.currentIndex]
@@ -96,40 +211,75 @@
 
   function renderCurrentFile() {
     const hasFiles = state.files.length > 0;
+    const visibleFiles = getFilteredFiles();
     const file = getSelectedFile();
-    nodes.count.textContent = `${state.files.length} ${state.files.length === 1 ? "documento" : "documenti"}`;
-    nodes.select.disabled = !hasFiles || state.loading;
+    const hasFilters = nodes.search.value.trim() || nodes.filter.value !== "all";
+    nodes.count.textContent = hasFilters
+      ? `${visibleFiles.length} di ${state.files.length} PDF`
+      : `${state.files.length} ${state.files.length === 1 ? "documento" : "documenti"}`;
+    nodes.select.disabled = !visibleFiles.length || state.loading;
     nodes.openButton.disabled = !state.serverReady || !file || state.opening;
-    nodes.previous.disabled = !state.serverReady || state.files.length < 2 || state.loading;
-    nodes.next.disabled = !state.serverReady || state.files.length < 2 || state.loading;
-    nodes.empty.hidden = hasFiles || state.loading;
+    nodes.previous.disabled = !state.serverReady || visibleFiles.length < 2 || state.loading;
+    nodes.next.disabled = !state.serverReady || visibleFiles.length < 2 || state.loading;
+    nodes.empty.hidden = visibleFiles.length > 0 || state.loading;
     nodes.current.hidden = !file;
+    nodes.previewButton.disabled = !state.serverReady || !file;
+    nodes.previewPanel.hidden = !state.previewOpen || !file;
+
+    if (!visibleFiles.length && hasFiles) {
+      nodes.emptyTitle.textContent = "Nessun PDF corrisponde ai filtri";
+      nodes.emptyMessage.textContent = "Modifica la ricerca o scegli un altro filtro.";
+    } else {
+      nodes.emptyTitle.textContent = "Nessun documento disponibile";
+      nodes.emptyMessage.textContent = "Inserisci i file PDF nella cartella indicata e aggiorna l'elenco.";
+    }
 
     if (!file) return;
 
     nodes.name.textContent = file.name;
     nodes.metadata.textContent = [file.size, file.created].filter(Boolean).join(" · ") || "Documento PDF";
-    nodes.position.textContent = `${state.currentIndex + 1} / ${state.files.length}`;
+    const visibleIndex = visibleFiles.findIndex(({ index }) => index === state.currentIndex);
+    nodes.position.textContent = `${visibleIndex + 1} / ${visibleFiles.length}`;
     nodes.select.value = String(state.currentIndex);
+    if (state.previewOpen) setPreviewSource(file);
+  }
+
+  function setPreviewSource(file) {
+    const previewUrl = `${getApiOrigin()}/api/serve-pdf?file=${encodeURIComponent(file.path)}`;
+    if (nodes.previewFrame.src !== previewUrl) nodes.previewFrame.src = previewUrl;
+  }
+
+  function togglePreview() {
+    state.previewOpen = !state.previewOpen;
+    const file = getSelectedFile();
+    nodes.previewPanel.hidden = !state.previewOpen || !file;
+    nodes.previewButton.setAttribute("aria-expanded", String(state.previewOpen));
+    nodes.previewButton.textContent = state.previewOpen ? "Nascondi anteprima" : "Mostra anteprima";
+    if (state.previewOpen && file) setPreviewSource(file);
   }
 
   function renderFileOptions() {
     nodes.select.replaceChildren();
-    if (!state.files.length) {
+    const visibleFiles = getFilteredFiles();
+    if (!visibleFiles.length) {
       const emptyOption = document.createElement("option");
       emptyOption.value = "";
-      emptyOption.textContent = state.loading ? "Connessione in corso…" : "Nessun PDF nell'elenco";
+      emptyOption.textContent = state.loading ? "Connessione in corso…" : "Nessun PDF corrispondente";
       nodes.select.append(emptyOption);
+      if (state.currentIndex >= 0) state.currentIndex = -1;
       renderCurrentFile();
       return;
     }
 
-    state.files.forEach((file, index) => {
+    visibleFiles.forEach(({ file, index }) => {
       const option = document.createElement("option");
       option.value = String(index);
       option.textContent = `${String(index + 1).padStart(2, "0")} · ${file.name}`;
       nodes.select.append(option);
     });
+    if (!visibleFiles.some(({ index }) => index === state.currentIndex)) {
+      state.currentIndex = visibleFiles[0].index;
+    }
     renderCurrentFile();
   }
 
@@ -173,6 +323,7 @@
 
       state.files = result.files;
       state.serverReady = true;
+      renderHistory();
       const retainedIndex = previousPath
         ? state.files.findIndex((file) => file.path === previousPath)
         : -1;
@@ -193,6 +344,7 @@
       state.serverReady = false;
       state.files = [];
       state.currentIndex = -1;
+      renderHistory();
       renderFileOptions();
       const message = error?.name === "AbortError"
         ? "Timeout durante la connessione al server locale."
@@ -207,8 +359,11 @@
   }
 
   function moveSelection(direction) {
-    if (state.files.length < 2) return;
-    state.currentIndex = (state.currentIndex + direction + state.files.length) % state.files.length;
+    const visibleFiles = getFilteredFiles();
+    if (visibleFiles.length < 2) return;
+    const visibleIndex = visibleFiles.findIndex(({ index }) => index === state.currentIndex);
+    const nextIndex = (visibleIndex + direction + visibleFiles.length) % visibleFiles.length;
+    state.currentIndex = visibleFiles[nextIndex].index;
     renderCurrentFile();
     setMessage("");
   }
@@ -244,6 +399,7 @@
       if (!result.success) {
         throw new Error(result.error || "Il server non ha confermato l'apertura del PDF.");
       }
+      recordOpenedFile(file);
       setStatus(`PDF inviato al viewer · ${file.name}`, "ready");
       setMessage(result.message || `Apertura richiesta per ${file.name} sul monitor secondario.`, "success");
       await refreshOpenedViewers(false);
@@ -332,9 +488,32 @@
     }
   }
 
+  function selectHistoryFile(event) {
+    const button = event.target.closest(".pdf-history-open");
+    if (!button) return;
+    nodes.search.value = "";
+    nodes.filter.value = "all";
+    const index = state.files.findIndex((file) => normalizePath(file.path) === normalizePath(button.dataset.path));
+    if (index < 0) return;
+    state.currentIndex = index;
+    renderFileOptions();
+    setMessage("");
+  }
+
+  function clearHistory() {
+    state.history = [];
+    if (saveHistory()) {
+      renderHistory();
+      renderFileOptions();
+      setMessage("Cronologia PDF locale svuotata.", "success");
+    }
+  }
+
   nodes.refresh.addEventListener("click", () => void loadPdfList());
   nodes.previous.addEventListener("click", () => moveSelection(-1));
   nodes.next.addEventListener("click", () => moveSelection(1));
+  nodes.search.addEventListener("input", () => renderFileOptions());
+  nodes.filter.addEventListener("change", () => renderFileOptions());
   nodes.select.addEventListener("change", () => {
     const index = Number.parseInt(nodes.select.value, 10);
     if (Number.isInteger(index) && index >= 0 && index < state.files.length) {
@@ -343,6 +522,9 @@
       setMessage("");
     }
   });
+  nodes.previewButton.addEventListener("click", togglePreview);
+  nodes.historyList.addEventListener("click", selectHistoryFile);
+  nodes.clearHistory.addEventListener("click", clearHistory);
   nodes.openButton.addEventListener("click", () => void openCurrentPdf());
   nodes.saveAdobe.addEventListener("click", saveAdobePath);
   nodes.adobePath.addEventListener("change", saveAdobePath);
@@ -355,5 +537,7 @@
   });
 
   loadAdobePath();
+  loadHistory();
+  renderHistory();
   void loadPdfList();
 })();

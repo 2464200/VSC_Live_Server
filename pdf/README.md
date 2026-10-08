@@ -33,6 +33,7 @@ Il sistema PDF Ã¨ integrato nel **unified-server.js** (porta 5500) avviato aut
 - `POST /api/open-pdf` - Apre PDF in Chrome (monitor secondario)
 - `POST /api/close-chrome` - Chiude tutti i viewer
 - `GET /api/opened-viewers` - Stato viewer aperti
+- `GET /api/serve-pdf?file=...` - Serve in modo inline un PDF della cartella configurata per l'anteprima
 
 ## Viewer
 
@@ -41,13 +42,14 @@ Il sistema PDF Ã¨ integrato nel **unified-server.js** (porta 5500) avviato aut
 - Entrambe le pagine usano `pdf/assets/scriptpdf-workbench.css` e `pdf/assets/scriptpdf-workbench.js`.
 - **pdf/viewers/pdf-viewer.html**: componente embed per visualizzazione.
 
-Le pagine riprendono dal progetto VBA la cartella `C:\VSC_SCRIPT_PDF`, la selezione e navigazione dell'elenco, la scelta del viewer e l'apertura sul monitor secondario. La pagina di prova mantiene un secondo tentativo di connessione. La chiusura remota richiede conferma e riguarda solo le sessioni registrate come avviate da ScriptPDF.
+Le pagine riprendono dal progetto VBA la cartella `C:\VSC_SCRIPT_PDF`, la selezione e navigazione dell'elenco, la scelta del viewer e l'apertura sul monitor secondario. La ricerca per nome e i filtri per PDF aperti negli ultimi 30 giorni o mai aperti lavorano sulla lista caricata. L'anteprima integrata usa l'endpoint locale e la cronologia conserva gli ultimi 20 PDF aperti nel browser, condivisi tra le due pagine. La pagina di prova mantiene un secondo tentativo di connessione. La chiusura remota richiede conferma e riguarda solo le sessioni registrate come avviate da ScriptPDF.
+
+Il server usa `C:\VSC_SCRIPT_PDF` come directory predefinita su Windows; `VSC_SCRIPT_PDF_DIR` in `.env` può cambiarla intenzionalmente. L'endpoint di apertura e quello di anteprima verificano che il file sia un PDF interno alla directory configurata, inclusi i collegamenti simbolici.
 
 ADMIN pubblica entrambe le pagine nel pannello delle route monitor. La sincronizzazione Hosting mantiene le copie in `public/` e gli asset condivisi.
 
 ## Note
 
-- I PDF sono letti dalla cartella `C:\VSC_SCRIPT_PDF`
+- Su Windows, i PDF sono letti per impostazione predefinita dalla cartella `C:\VSC_SCRIPT_PDF`
 - I viewer si aprono in modalitÃ  kiosk sul monitor secondario
 - Stato dei viewer tracciato in `config/opened-viewers.json`
-

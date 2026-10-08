@@ -69,11 +69,12 @@ Questo mostrerà:
 ### File `.env` (opzionale, creato automaticamente)
 ```env
 UNIFIED_PORT=5500
-VSC_SCRIPT_PDF_DIR=./exports/pdfs
+VSC_SCRIPT_PDF_DIR=C:\VSC_SCRIPT_PDF
 VSC_VIDEOCLIP_PATH=./exports/videoclips
 VSC_SIAE_DIR=C:\VSC_SIAE
 USERFORM_RECORDINGS_DIR=./exports/recordings
 ```
+La directory PDF predefinita su Windows è `C:\VSC_SCRIPT_PDF`; modifica `VSC_SCRIPT_PDF_DIR` solo se vuoi usare un archivio diverso.
 
 ### Localizzazioni Disponibili
 - **Windows**: Automatico tramite `$env:USERNAME`, `$env:ProgramFiles`

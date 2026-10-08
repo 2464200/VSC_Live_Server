@@ -107,6 +107,20 @@ async function runPage({ source, mode, retryCount }) {
   assert.equal(document.getElementById('pdf-name').textContent, '01-primo.pdf');
   assert.equal(healthCalls, retryCount);
 
+  document.getElementById('pdf-search').value = 'secondo';
+  document.getElementById('pdf-search').dispatchEvent(new window.Event('input'));
+  assert.equal(document.getElementById('pdf-select').options.length, 1, 'Search filters by PDF filename.');
+  assert.equal(document.getElementById('pdf-name').textContent, '02-secondo.pdf');
+  document.getElementById('pdf-search').value = '';
+  document.getElementById('pdf-search').dispatchEvent(new window.Event('input'));
+  document.getElementById('pdf-filter').value = 'unopened';
+  document.getElementById('pdf-filter').dispatchEvent(new window.Event('change'));
+  assert.equal(document.getElementById('pdf-select').options.length, 2, 'Unopened filter includes PDFs absent from local history.');
+  document.getElementById('pdf-filter').value = 'all';
+  document.getElementById('pdf-filter').dispatchEvent(new window.Event('change'));
+  document.getElementById('pdf-select').value = '0';
+  document.getElementById('pdf-select').dispatchEvent(new window.Event('change'));
+
   document.getElementById('previous-pdf').click();
   assert.equal(document.getElementById('pdf-name').textContent, '02-secondo.pdf', 'Previous navigation wraps to the last PDF.');
   document.getElementById('next-pdf').click();
@@ -114,6 +128,11 @@ async function runPage({ source, mode, retryCount }) {
 
   document.getElementById('pdf-select').value = '1';
   document.getElementById('pdf-select').dispatchEvent(new window.Event('change'));
+  document.getElementById('toggle-preview').click();
+  const previewUrl = new URL(document.getElementById('pdf-preview').src);
+  assert.equal(previewUrl.pathname, '/api/serve-pdf');
+  assert.equal(previewUrl.searchParams.get('file'), 'C:\\VSC_SCRIPT_PDF\\02-secondo.pdf');
+  assert.equal(document.getElementById('pdf-preview-panel').hidden, false, 'Selected PDF can be previewed inline.');
   document.getElementById('viewer-select').value = 'adobe';
   document.getElementById('adobe-path').value = 'C:\\Adobe\\Acrobat.exe';
   document.getElementById('save-adobe-path').click();
@@ -130,6 +149,15 @@ async function runPage({ source, mode, retryCount }) {
     adobePath: 'C:\\Adobe\\Acrobat.exe',
   });
   assert.equal(document.getElementById('pdf-message').dataset.state, 'success');
+  const history = JSON.parse(window.localStorage.getItem('scriptpdf.openHistory'));
+  assert.equal(history.length, 1);
+  assert.equal(history[0].path, 'C:\\VSC_SCRIPT_PDF\\02-secondo.pdf');
+  assert.equal(document.querySelectorAll('.pdf-history-open').length, 1, 'Recently opened PDFs are listed as selectable history entries.');
+  document.getElementById('pdf-filter').value = 'recent';
+  document.getElementById('pdf-filter').dispatchEvent(new window.Event('change'));
+  assert.equal(document.getElementById('pdf-select').options.length, 1, 'Recent filter returns the PDF opened in this browser.');
+  document.querySelector('.pdf-history-open').click();
+  assert.equal(document.getElementById('pdf-name').textContent, '02-secondo.pdf', 'History entries reselect PDFs present in the current archive.');
 
   document.getElementById('close-viewers').click();
   await settle();
@@ -147,7 +175,7 @@ async function runPage({ source, mode, retryCount }) {
   document.getElementById('refresh-pdf-list').click();
   await waitFor(() => document.getElementById('pdf-status').dataset.state === 'loading', `${mode} PDF list refresh`);
   await waitFor(
-    () => document.getElementById('pdf-select').options[0]?.textContent === "Nessun PDF nell'elenco",
+    () => document.getElementById('pdf-select').options[0]?.textContent === 'Nessun PDF corrispondente',
     `${mode} empty PDF list state`,
   );
   assert.equal(document.getElementById('pdf-status').dataset.state, 'ready');

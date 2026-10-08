@@ -23,7 +23,7 @@ Central configuration hub for all runtime paths:
 ```javascript
 projectConfig = {
   port: 5500,
-  pdfFolder: './exports/pdfs',
+  pdfFolder: 'C:\\VSC_SCRIPT_PDF',
   videoClipDir: './exports/videoclips',
   siaeExportDir: 'C:\\VSC_SIAE',
   userformRecordingsDir: './exports/recordings',
@@ -35,7 +35,7 @@ projectConfig = {
 Optional overrides for environment-specific values:
 ```env
 UNIFIED_PORT=5500
-VSC_SCRIPT_PDF_DIR=./exports/pdfs
+VSC_SCRIPT_PDF_DIR=C:\VSC_SCRIPT_PDF
 VSC_VIDEOCLIP_PATH=./exports/videoclips
 VSC_SIAE_DIR=C:\VSC_SIAE
 ```
@@ -124,7 +124,7 @@ c:\VSC_Live_Server\
 
 ### Read from `.env`
 - `UNIFIED_PORT`: Override default port (5500)
-- `VSC_SCRIPT_PDF_DIR`: PDF folder (./exports/pdfs)
+- `VSC_SCRIPT_PDF_DIR`: PDF folder (Windows default: `C:\VSC_SCRIPT_PDF`; override supported)
 - `VSC_VIDEOCLIP_PATH`: Video clips (./exports/videoclips)
 - `VSC_SIAE_DIR`: SIAE exports (`C:\VSC_SIAE`)
 - `USERFORM_RECORDINGS_DIR`: Recordings (./exports/recordings)
