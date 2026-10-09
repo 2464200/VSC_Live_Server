@@ -113,6 +113,7 @@ async function run() {
   assert.equal(textRoute.searchParams.get('output'), 'text');
   assert.equal(textRoute.searchParams.get('text'), 'Messaggio predefinito personalizzato');
   assert.equal(operator.localStorage.getItem('userform-servizio-input'), '', 'A default publication must not replace the one-time message value.');
+  assert.equal(operator.document.getElementById('stop-text-btn').classList.contains('is-publishing'), true);
 
   operator.document.getElementById('service-message-input').value = 'Messaggio valido solo questa volta';
   operator.document.getElementById('publish-text-btn').click();
@@ -187,6 +188,7 @@ async function run() {
   operator.document.getElementById('stop-text-btn').click();
   await settle();
   assert.equal(stopCalls, 1, 'STOP closes the Electron publication window.');
+  assert.equal(operator.document.getElementById('stop-text-btn').classList.contains('is-publishing'), false);
   assert.match(operator.document.getElementById('service-status').textContent, /Pubblicazione fermata/i);
 
   const browserDom = createPage('http://localhost:5500/USERFORM/pages/SERVIZIO.html');
