@@ -888,8 +888,7 @@ class DataLoader {
           || String(brano?.executed || '').toUpperCase() === 'X';
         return id
           && !incomingIds.has(id)
-          && isExecuted
-          && !window.isVideoOnlyBrano?.(brano);
+          && isExecuted;
       });
 
     return [...braniWithFlags, ...omittedExecutedBrani];

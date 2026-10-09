@@ -177,12 +177,19 @@ class BorderoTableManager {
     this.allBrani.forEach((brano) => {
       if (!this.isVideoOnlyBrano(brano)) return;
 
+      const isExecuted = String(brano.flag || '').toUpperCase() === 'X'
+        || brano.eseguito === true
+        || String(brano.eseguito || '').toUpperCase() === 'X'
+        || brano.executed === true
+        || String(brano.executed || '').toUpperCase() === 'X';
+
+      if (isExecuted) {
+        if (brano.next_selected) changed = true;
+        brano.next_selected = false;
+        return;
+      }
+
       if (
-        String(brano.flag || '').toUpperCase() === 'X' ||
-        brano.eseguito === true ||
-        String(brano.eseguito || '').toUpperCase() === 'X' ||
-        brano.executed === true ||
-        String(brano.executed || '').toUpperCase() === 'X' ||
         brano.timestamp ||
         brano.next_selected
       ) {
