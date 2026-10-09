@@ -155,7 +155,10 @@ withTempRuntime(
     const validEntry = policyMap.get('/good-route');
     const displayEntry = policyMap.get('/bordero/pages/display.html');
     const videoPlayerEntry = policyMap.get('/bordero/pages/video-player.html');
-    const servicePublicationEntry = policyMap.get('/userform/pages/servizio-pubblica.html');
+    const serviceEntry = policyMap.get('/userform/pages/servizio.html');
+    const serviceDisplayPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=text')", sandbox);
+    const removedServiceLogoEntry = policyMap.get('/userform/pages/servizio-logo.html');
+    const removedServicePublicationEntry = policyMap.get('/userform/pages/servizio-pubblica.html');
     const primaryBorderoEntry = policyMap.get('/bordero/pages/bordero.html');
     const userFormCollegamentiEntry = policyMap.get('/userform/pages/collegamenti.html');
     const userFormCollegamentiPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/COLLEGAMENTI.html')", sandbox);
@@ -182,7 +185,9 @@ withTempRuntime(
     assert(validEntry && validEntry.primary === true && validEntry.secondary === false, 'Valid policy entry should be preserved as-is.');
     assert(displayEntry && displayEntry.primary === false && displayEntry.secondary === true, 'Display page must remain on the secondary monitor.');
     assert(videoPlayerEntry && videoPlayerEntry.primary === false && videoPlayerEntry.secondary === true, 'Video-player page must remain on the secondary monitor.');
-    assert(servicePublicationEntry && servicePublicationEntry.primary === false && servicePublicationEntry.secondary === true, 'Servizio pubblica must remain on the secondary monitor.');
+    assert(serviceEntry && serviceEntry.primary === true && serviceEntry.secondary === false, 'The SERVIZIO operator route must stay on the primary monitor.');
+    assert(serviceDisplayPolicy.primary === false && serviceDisplayPolicy.secondary === true, 'SERVIZIO display mode must route only to the secondary monitor.');
+    assert(!removedServiceLogoEntry && !removedServicePublicationEntry, 'The separate SERVIZIO pages must not remain in Electron policy.');
     assert(primaryBorderoEntry && primaryBorderoEntry.primary === true && primaryBorderoEntry.secondary === false, 'Main Bordero page must remain on the primary monitor.');
     assert(userFormCollegamentiEntry && userFormCollegamentiEntry.primary === true && userFormCollegamentiEntry.secondary === false, 'USERFORM COLLEGAMENTI must be registered exclusively on the primary monitor.');
     assert(userFormCollegamentiPolicy.primary === true && userFormCollegamentiPolicy.secondary === false, 'USERFORM COLLEGAMENTI must be managed exclusively on the primary monitor.');
@@ -194,6 +199,9 @@ withTempRuntime(
     assert(committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.primary === true && committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.secondary === false, 'Persisted policy must keep canonical ScriptPDF management on the primary monitor.');
     assert(!Object.hasOwn(committedPagePolicy, '/pdf/pages/script-pdf-prova.html'), 'Persisted policy must not retain the deleted ScriptPDF test route.');
     assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/script-pdf.html'), 'Persisted policy must not retain the deleted USERFORM launcher route.');
+    assert(committedPagePolicy['/userform/pages/servizio.html']?.primary === true && committedPagePolicy['/userform/pages/servizio.html']?.secondary === false, 'Persisted policy must keep the SERVIZIO operator on the primary monitor.');
+    assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/servizio-logo.html'), 'Persisted policy must not retain the separate logo page.');
+    assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/servizio-pubblica.html'), 'Persisted policy must not retain the separate publication page.');
     assert(scriptPdfViewerPagePolicy.primary === false && scriptPdfViewerPagePolicy.secondary === true, 'PDF viewer page must be routed to the temporary secondary display.');
     assert(scriptPdfPolicy.primary === true && scriptPdfPolicy.secondary === false, 'The legacy main ScriptPDF alias must route to the primary monitor before opening canonical management.');
     assert(scriptPdfTestPolicy.primary === true && scriptPdfTestPolicy.secondary === false, 'The legacy ScriptPDF alias must route to the primary monitor before opening canonical management.');

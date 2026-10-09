@@ -93,7 +93,6 @@ const PAGE_POLICY = new Map([
   ['/leddisplay.html', { primary: true, secondary: false }],
   ['/userform/pages/qrcode.html', { primary: true, secondary: true }],
   ['/userform/pages/servizio.html', { primary: true, secondary: false }],
-  ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
   ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina04.html', { primary: true, secondary: false }],
   ['/userform/pages/collegamenti.html', { primary: true, secondary: false }],
@@ -657,6 +656,11 @@ function isCanonicalUserFormPage(candidateUrl) {
 
 function getMonitorPolicyForUrl(candidateUrl) {
   const normalizedPath = normalizePathname(candidateUrl);
+  const parsedUrl = tryParseUrl(candidateUrl);
+
+  if (normalizedPath === '/userform/pages/servizio.html' && parsedUrl?.searchParams.get('mode') === 'display') {
+    return { primary: false, secondary: true };
+  }
 
   if (currentPagePolicy.has(normalizedPath)) {
     return currentPagePolicy.get(normalizedPath);
@@ -887,6 +891,8 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   if (policy.secondary) {
     const secondaryTargetUrl = normalizePathname(absoluteTargetUrl) === '/userform/pages/qrcode.html'
       ? `${absoluteTargetUrl}${absoluteTargetUrl.includes('?') ? '&' : '?'}display=secondary`
+      : normalizePathname(absoluteTargetUrl) === '/userform/pages/servizio.html' && !new URL(absoluteTargetUrl).searchParams.has('mode')
+        ? `${absoluteTargetUrl}?mode=display&output=text`
       : absoluteTargetUrl;
     if (isPersistentSecondaryPageUrl(absoluteTargetUrl)) {
       closeTemporarySecondaryWindow();
@@ -1365,7 +1371,11 @@ ipcMain.handle('bordero-window:stop-service-publication', async () => {
   }
 
   const currentUrl = temporarySecondaryWindow.webContents.getURL();
-  if (!normalizePathname(currentUrl).endsWith('/userform/pages/servizio-pubblica.html')) {
+  const parsedUrl = tryParseUrl(currentUrl);
+  if (
+    normalizePathname(currentUrl) !== '/userform/pages/servizio.html'
+    || parsedUrl?.searchParams.get('mode') !== 'display'
+  ) {
     return { success: false, reason: 'service-publication-not-active' };
   }
 

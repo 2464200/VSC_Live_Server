@@ -219,14 +219,6 @@
     "primary": true,
     "secondary": true
   },
-  "/userform/pages/servizio-logo.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/userform/pages/servizio-pubblica.html": {
-    "primary": false,
-    "secondary": true
-  },
   "/userform/pages/servizio.html": {
     "primary": true,
     "secondary": false

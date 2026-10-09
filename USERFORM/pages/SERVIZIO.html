@@ -3,432 +3,513 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>USERFORM - PAGINA02</title>
+  <meta name="theme-color" content="#171717" />
+  <title>USERFORM · Servizio</title>
   <link rel="stylesheet" href="../assets/css/userform.css" />
   <script defer src="../js/userform-registry.js"></script>
   <script defer src="../js/userform-page.js"></script>
   <script defer src="../js/servizio-actions.js"></script>
   <style>
     :root {
-      --p02-bg: #dfe3df;
-      --p02-panel: #e7e9e7;
-      --p02-dark: #1d1d1d;
-      --p02-line: #9f9f9f;
-      --p02-muted: #4b4b4b;
-      --p02-text: #1f1f1f;
-      --p02-btn: #f0f0f0;
-      --p02-btn-text: #111;
-      --p02-accent: #ff7f00;
+      --service-accent: #ff7f00;
+      --service-accent-soft: #ffc477;
+      --service-bg: #171717;
+      --service-panel: #22201e;
+      --service-panel-raised: #2b2825;
+      --service-line: #49423b;
+      --service-text: #f5f1ec;
+      --service-muted: #bbb2a9;
+      --service-danger: #c0392b;
     }
 
-    * { box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-    body {
+    body.service-page {
+      min-width: 320px;
+      min-height: 100vh;
       margin: 0;
-      min-height: 100vh;
-      background: #b9babb;
-      color: var(--p02-text);
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding: clamp(12px, 2vw, 26px);
+      background:
+        radial-gradient(ellipse at 6% 0%, rgba(255, 127, 0, 0.12), transparent 34rem),
+        linear-gradient(155deg, #202020 0%, var(--service-bg) 64%);
+      color: var(--service-text);
+      font-family: "Segoe UI", Tahoma, sans-serif;
     }
 
-    .p02-shell {
-      width: 100%;
-      min-height: 100vh;
-      padding: 14px 12px 10px;
-      background: var(--p02-bg);
-      position: relative;
+    .service-shell {
+      width: min(100%, 1500px);
+      min-height: calc(100vh - 2 * clamp(12px, 2vw, 26px));
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: clamp(14px, 2vh, 22px);
     }
 
-    .nav-breadcrumb {
-      margin: 0 0 8px;
-      padding-left: 8px;
-      font-size: 12px;
-      min-height: auto;
-    }
-
-    .p02-window {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid #9ea39d;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
-      min-height: calc(100vh - 62px);
-      padding: 0;
-      position: relative;
-    }
-
-    .p02-window-header {
+    .service-header {
       display: flex;
+      min-width: 0;
       align-items: center;
       justify-content: space-between;
-      height: 28px;
-      padding: 0 8px 0 10px;
-      border-bottom: 1px solid rgba(0,0,0,0.18);
-      background: rgba(255,255,255,0.08);
-      font-size: 12px;
-      color: #111;
-      font-weight: 600;
-    }
-
-    .p02-window-header .title {
-      letter-spacing: 0.02em;
-    }
-
-    .p02-close {
-      width: 18px;
-      height: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(0,0,0,0.25);
-      background: rgba(255,255,255,0.15);
-      color: #111;
-      font-size: 14px;
-      line-height: 1;
-      padding: 0;
-    }
-
-    .p02-body {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
       gap: 18px;
-      padding: 12px 14px 14px;
-      min-height: 720px;
+      padding: 14px 18px;
+      border: 1px solid var(--service-line);
+      border-bottom: 2px solid var(--service-accent);
+      border-radius: 8px;
+      background: rgba(34, 32, 30, 0.96);
     }
 
-    .p02-message {
+    .service-brand {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .service-mark {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 7px;
+      background: linear-gradient(140deg, #ffad5e, #e9680b);
+      color: #20150c;
+      font-size: 1.4rem;
+      font-weight: 900;
+    }
+
+    .service-kicker {
+      margin: 0 0 3px;
+      color: var(--service-accent-soft);
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .service-brand h1 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(1.35rem, 2.3vw, 2rem);
+      line-height: 1.1;
+    }
+
+    .service-breadcrumb {
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 9px 12px;
+      border: 1px solid #53483c;
+      border-radius: 5px;
+      background: #292521;
+      color: var(--service-text);
+      font-size: 0.88rem;
+    }
+
+    .service-intro h2 {
+      margin: 0 0 4px;
+      color: #fff;
+      font-size: clamp(1.25rem, 2.2vw, 1.8rem);
+    }
+
+    .service-intro p {
+      margin: 0;
+      color: var(--service-muted);
+      font-size: 0.95rem;
+    }
+
+    .service-workspace {
+      display: grid;
+      min-height: 0;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .service-panel {
+      min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding: 8px 8px 0;
+      gap: 15px;
+      padding: clamp(17px, 2vw, 25px);
+      border: 1px solid var(--service-line);
+      border-radius: 8px;
+      background: linear-gradient(155deg, rgba(43, 40, 37, 0.98), rgba(31, 30, 28, 0.98));
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
     }
 
-    .p02-message p {
-      margin: 0;
-      font-size: clamp(18px, 2vw, 34px);
-      line-height: 1.25;
-      color: var(--p02-text);
-      font-weight: 400;
-      letter-spacing: -0.02em;
-    }
-
-    .p02-message .small-note {
-      margin-top: 18px;
-      font-size: 10px;
-      letter-spacing: 0.04em;
-      color: #5a5a5a;
-      padding-top: 10px;
-      border-top: 1px solid rgba(0,0,0,0.2);
-    }
-
-    .p02-brand {
+    .service-panel-heading {
       display: flex;
       align-items: flex-start;
-      justify-content: flex-end;
-      padding-top: 10px;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #49423b;
     }
 
-    .p02-logo-mark {
-      width: 156px;
-      height: 156px;
-      border-radius: 18px;
-      border: 2px solid #000;
-      background: linear-gradient(135deg, #f7f7f7, #d9d9d9);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    .p02-logo-mark::before {
-      content: "DANIEL WEST";
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #111;
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      transform: rotate(-12deg);
-    }
-
-    .p02-banner {
-      grid-column: 1 / -1;
-      margin: 0 0 8px;
-      padding: 16px 18px 14px;
-      min-height: 120px;
-      border-top: 1px solid rgba(0,0,0,0.25);
-      border-bottom: 1px solid rgba(0,0,0,0.25);
-      background: rgba(255,255,255,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: clamp(28px, 3vw, 55px);
-      font-weight: 700;
-      line-height: 1.1;
-      color: #202020;
-      letter-spacing: -0.04em;
-    }
-
-    .p02-input-wrap {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      margin-top: 2px;
-      margin-bottom: 8px;
-    }
-
-    .p02-input-label {
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #3d3d3d;
-      font-weight: 700;
-    }
-
-    .p02-input {
-      width: min(100%, 520px);
-      padding: 12px 14px;
-      border: 1px solid rgba(0,0,0,0.28);
-      background: rgba(255,255,255,0.18);
-      color: #111;
-      font-size: 16px;
-      outline: none;
-    }
-
-    .p02-input:focus {
-      border-color: var(--p02-accent);
-      box-shadow: 0 0 0 2px rgba(255,127,0,0.18);
-    }
-
-    .p02-actions {
-      grid-column: 1 / -1;
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      margin-top: 2px;
-      margin-bottom: 8px;
-    }
-
-    .p02-button {
-      min-width: 170px;
-      min-height: 42px;
-      border: 1px solid rgba(0,0,0,0.35);
-      background: rgba(255,255,255,0.15);
-      color: #111;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 10px 18px;
-      border-radius: 0;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
-    }
-
-    .p02-button.primary {
-      background: rgba(255,255,255,0.4);
-    }
-
-    .p02-grid {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: 1fr 1.15fr;
-      gap: 18px;
-      margin-top: 8px;
-      align-items: end;
-    }
-
-    .p02-card {
-      min-height: 210px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      text-align: center;
-      color: var(--p02-text);
-      padding: 16px 12px 12px;
-    }
-
-    .p02-card .label {
-      display: inline-block;
-      margin-top: 16px;
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--p02-text);
-    }
-
-    .p02-poster {
-      width: 220px;
-      height: 220px;
-      border: 1px solid rgba(0,0,0,0.25);
-      background: #0e0e0f;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .p02-poster.logo {
-      background: radial-gradient(circle at 50% 35%, rgba(42, 143, 255, 0.35), transparent 35%), #0a0d12;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .p02-poster.logo::before {
-      content: "M";
-      font-size: 120px;
-      color: #ffde59;
-      font-weight: 900;
-      text-shadow: 0 0 18px rgba(255, 196, 0, 0.55);
-    }
-
-    .p02-poster.file {
-      background: linear-gradient(135deg, rgba(255, 194, 55, 0.18), rgba(255,255,255,0.06));
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #111;
-      position: relative;
-    }
-
-    .p02-poster.file::before {
-      content: "BUFFALO GRILL";
-      position: absolute;
-      inset: 16px 12px auto 12px;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      color: #f1d146;
-      text-shadow: 0 0 12px rgba(242, 165, 0, 0.8);
-      text-align: center;
-    }
-
-    .p02-poster.file::after {
-      content: "Serata Country\A\A 18 / 12 / 2025";
-      white-space: pre-line;
-      position: absolute;
-      left: 20px;
-      right: 20px;
-      bottom: 18px;
+    .service-panel-heading h3 {
+      margin: 0;
       color: #fff;
-      font-weight: 700;
-      font-size: 16px;
-      line-height: 1.4;
-      text-align: center;
+      font-size: 1.1rem;
     }
 
-    .p02-footer {
+    .service-panel-heading p {
+      margin: 4px 0 0;
+      color: var(--service-muted);
+      font-size: 0.83rem;
+    }
+
+    .service-panel-index {
+      color: var(--service-accent-soft);
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .service-label {
+      color: #e9e0d7;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .service-text-input {
+      width: 100%;
+      min-height: 130px;
+      resize: vertical;
+      padding: 13px 14px;
+      border: 1px solid #5b5045;
+      border-radius: 5px;
+      background: #171615;
+      color: var(--service-text);
+      font: inherit;
+      font-size: 1.05rem;
+      line-height: 1.45;
+    }
+
+    .service-text-input:focus,
+    .service-file-input:focus-visible {
+      outline: 2px solid var(--service-accent-soft);
+      outline-offset: 2px;
+    }
+
+    .service-hint {
+      margin: -7px 0 0;
+      color: var(--service-muted);
+      font-size: 0.78rem;
+    }
+
+    .service-actions {
       display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .service-actions .btn,
+    .service-footer .btn {
+      min-width: 128px;
+      min-height: 46px;
+      padding: 10px 17px;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .service-actions .btn-danger {
+      border: 1px solid #a83329;
+      background: #7f2923;
+      color: #fff;
+    }
+
+    .service-actions .btn-danger:hover {
+      background: #a83329;
+    }
+
+    .service-dropzone {
+      display: grid;
+      min-height: 190px;
+      place-items: center;
+      padding: 18px;
+      border: 2px dashed #665644;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--service-muted);
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease;
+    }
+
+    .service-dropzone:hover,
+    .service-dropzone.is-dragging {
+      border-color: var(--service-accent);
+      background: rgba(255, 127, 0, 0.07);
+    }
+
+    .service-dropzone-content {
+      display: grid;
+      justify-items: center;
+      gap: 7px;
+    }
+
+    .service-upload-mark {
+      color: var(--service-accent-soft);
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .service-file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+
+    .service-preview-wrap {
+      display: grid;
+      min-height: 180px;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid #49423b;
+      border-radius: 5px;
+      background: #141312;
+    }
+
+    .service-preview-wrap[hidden] {
+      display: none;
+    }
+
+    .service-preview {
+      display: block;
+      width: 100%;
+      height: 210px;
+      object-fit: contain;
+    }
+
+    .service-file-name {
+      min-height: 18px;
+      margin: 0;
+      color: var(--service-muted);
+      font-size: 0.82rem;
+      overflow-wrap: anywhere;
+    }
+
+    .service-status {
+      min-height: 22px;
+      margin: 0;
+      color: var(--service-muted);
+      font-size: 0.84rem;
+    }
+
+    .service-status[data-state="error"] {
+      color: #ffaaa2;
+    }
+
+    .service-status[data-state="success"] {
+      color: #9ad8a5;
+    }
+
+    .service-footer {
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-top: 18px;
-      border-top: 1px solid rgba(0,0,0,0.22);
       padding-top: 12px;
-      font-size: 12px;
-      color: #1c1c1c;
+      border-top: 1px solid var(--service-line);
     }
 
-    .p02-footer-left,
-    .p02-footer-right {
+    .service-footer .page-nav {
       display: flex;
-      align-items: center;
-      gap: 12px;
       flex-wrap: wrap;
+      gap: 8px;
     }
 
-    .p02-footer .mini-btn {
-      min-width: 0;
-      padding: 8px 16px;
-      font-size: 12px;
-      border: 1px solid rgba(0,0,0,0.25);
-      background: rgba(255,255,255,0.18);
-      color: #111;
+    .service-presentation[hidden],
+    .service-operator[hidden] {
+      display: none !important;
     }
 
-    @media (max-width: 900px) {
-      .p02-body {
-        grid-template-columns: 1fr;
-      }
+    body.service-display-mode {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #10100f;
+    }
 
-      .p02-brand {
-        justify-content: center;
-      }
+    .service-presentation {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: clamp(24px, 5vw, 80px);
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 50% 48%, rgba(255, 127, 0, 0.12), transparent 55%),
+        #10100f;
+    }
 
-      .p02-grid {
-        grid-template-columns: 1fr;
-      }
+    .service-presentation-content {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 4px solid var(--service-accent);
+      border-radius: 10px;
+      background: #171615;
+      box-shadow: 0 0 24px rgba(255, 127, 0, 0.24);
+      animation: serviceFramePulse 3s ease-in-out infinite;
+    }
 
-      .p02-footer {
-        flex-direction: column;
+    .published-message {
+      width: min(90%, 1500px);
+      margin: 0;
+      color: #fff;
+      font-size: clamp(32px, 8vw, 150px);
+      font-weight: 850;
+      line-height: 1.08;
+      text-align: center;
+      overflow-wrap: anywhere;
+      text-shadow: 0 0 24px rgba(255, 167, 55, 0.3);
+    }
+
+    .published-image {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 80vw;
+      max-height: 78vh;
+      object-fit: contain;
+    }
+
+    .published-image[hidden],
+    .published-message[hidden] {
+      display: none !important;
+    }
+
+    @keyframes serviceFramePulse {
+      0%, 100% { box-shadow: 0 0 16px rgba(255, 127, 0, 0.2); }
+      50% { box-shadow: 0 0 34px rgba(255, 179, 71, 0.42); }
+    }
+
+    @media (max-width: 760px) {
+      .service-header {
         align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .service-workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .service-panel {
+        min-height: 330px;
+      }
+
+      .service-footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .service-presentation-content {
+        animation: none;
       }
     }
   </style>
 </head>
-<body>
-  <div class="p02-shell">
-    <nav class="nav-breadcrumb" aria-label="Navigazione pagina">
-      <a href="../index.html">Home</a>
-      <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-current">PAGINA02</span>
-    </nav>
-
-    <div class="p02-window">
-      <div class="p02-window-header">
-        <span class="title">frmPagina02</span>
-        <button id="close-window-btn" class="p02-close" type="button" aria-label="Chiudi">×</button>
-      </div>
-
-      <div class="p02-body">
-        <div class="p02-message">
-          <p>Digitare il testo da visualizzare sullo schema</p>
-          <p>premi INVIO per confermare il testo</p>
-          <p>- premi PUBBLICA per visualizzare un HTML</p>
-          <p>- premi STOP per terminare</p>
-          <p class="small-note">NON utilizzare caratteri speciali o punteggiatura</p>
-        </div>
-
-        <div class="p02-brand">
-          <div class="p02-logo-mark" aria-label="Logo Danie West"></div>
-        </div>
-
-        <div class="p02-input-wrap" aria-label="Inserimento testo da pubblicare">
-          <label class="p02-input-label" for="service-message-input">Inserisci il testo da pubblicare</label>
-          <input id="service-message-input" class="p02-input" type="text" maxlength="160" placeholder="Inserisci il testo da pubblicare" />
-        </div>
-
-        <div class="p02-actions" aria-label="Azioni pagina">
-          <button id="publish-text-btn" type="button" class="p02-button primary">Pubblica</button>
-          <button id="stop-text-btn" type="button" class="p02-button">STOP</button>
-        </div>
-
-        <div class="p02-grid">
-          <div class="p02-card">
-            <button id="publish-file-btn" type="button" class="p02-poster file" aria-label="Pubblica un file"></button>
-            <span class="label">Pubblica un file</span>
-          </div>
-        </div>
-
-        <div class="p02-footer">
-          <div class="p02-footer-left">
-            <span>© 2025</span>
-            <span>DJ'S BORDERO'</span>
-            <span>Tutti i diritti riservati.</span>
-          </div>
-          <div class="p02-footer-right">
-            <button id="index-btn" type="button" class="mini-btn">Indice</button>
-            <button id="close-btn" type="button" class="mini-btn">Chiudi</button>
-          </div>
+<body class="service-page">
+  <div class="service-shell service-operator" id="service-operator">
+    <header class="service-header">
+      <div class="service-brand">
+        <span class="service-mark" aria-hidden="true">B</span>
+        <div>
+          <p class="service-kicker">BORDERO' · CENTRO OPERATIVO</p>
+          <h1>SERVIZIO</h1>
         </div>
       </div>
-    </div>
+      <nav class="nav-breadcrumb service-breadcrumb" aria-label="Navigazione pagina">
+        <a href="../index.html">Indice USERFORM</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Servizio</span>
+      </nav>
+    </header>
+
+    <section class="service-intro" aria-labelledby="service-title">
+      <h2 id="service-title">Pubblica sul monitor secondario</h2>
+      <p>Invia un messaggio o un’immagine; il monitor principale mantiene qui i controlli operatore.</p>
+    </section>
+
+    <main class="service-workspace">
+      <section class="service-panel" aria-labelledby="text-panel-title">
+        <div class="service-panel-heading">
+          <div>
+            <h3 id="text-panel-title">Messaggio</h3>
+            <p>Testo grande a schermo per i partecipanti.</p>
+          </div>
+          <span class="service-panel-index">01</span>
+        </div>
+        <label class="service-label" for="service-message-input">Testo da pubblicare</label>
+        <textarea id="service-message-input" class="service-text-input" maxlength="240" placeholder="La serata inizierà a breve"></textarea>
+        <p class="service-hint">Premi Ctrl+Invio per pubblicare. Lascia vuoto per mostrare il messaggio predefinito.</p>
+        <div class="service-actions">
+          <button id="publish-text-btn" class="btn" type="button">Pubblica testo</button>
+          <button id="stop-text-btn" class="btn btn-danger" type="button">Ferma pubblicazione</button>
+        </div>
+      </section>
+
+      <section class="service-panel" aria-labelledby="logo-panel-title">
+        <div class="service-panel-heading">
+          <div>
+            <h3 id="logo-panel-title">Logo o immagine</h3>
+            <p>Seleziona o trascina un’immagine da inviare al monitor 2.</p>
+          </div>
+          <span class="service-panel-index">02</span>
+        </div>
+        <input id="service-image-input" class="service-file-input" type="file" accept="image/*" />
+        <label id="service-dropzone" class="service-dropzone" for="service-image-input">
+          <span class="service-dropzone-content">
+            <span class="service-upload-mark" aria-hidden="true">↑</span>
+            <strong>Seleziona o trascina un’immagine</strong>
+            <span>Immagini fino a 1,5 MB</span>
+          </span>
+        </label>
+        <div id="service-preview-wrap" class="service-preview-wrap" hidden>
+          <img id="service-image-preview" class="service-preview" alt="Anteprima dell’immagine da pubblicare" />
+        </div>
+        <p id="service-file-name" class="service-file-name" aria-live="polite"></p>
+        <div class="service-actions">
+          <button id="publish-logo-btn" class="btn" type="button" disabled>Pubblica immagine</button>
+          <button id="clear-logo-btn" class="btn btn-secondary" type="button" disabled>Rimuovi selezione</button>
+        </div>
+      </section>
+    </main>
+
+    <p id="service-status" class="service-status" role="status" aria-live="polite">Pronto.</p>
+
+    <footer class="service-footer">
+      <nav class="page-nav" aria-label="Navigazione form">
+        <a id="prev-form" class="btn btn-secondary" href="#" aria-disabled="true">Indietro</a>
+        <a id="next-form" class="btn" href="#">Avanti</a>
+        <a class="btn btn-secondary" href="../index.html">Indice</a>
+      </nav>
+      <a class="btn btn-danger" href="../index.html">Chiudi pagina</a>
+    </footer>
   </div>
 
-    <script src=/nav.js></script></body>
-</html>
+  <main id="service-presentation" class="service-presentation" aria-label="Contenuto pubblicato" hidden>
+    <div class="service-presentation-content">
+      <p id="published-message" class="published-message" role="status" aria-live="polite"></p>
+      <img id="published-image" class="published-image" alt="Immagine pubblicata" hidden />
+    </div>
+  </main>
 
+  <script src="/nav.js"></script>
+</body>
+</html>

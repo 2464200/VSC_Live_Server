@@ -272,16 +272,52 @@ test('secondary display remains loaded while a temporary secondary page is foreg
     });
 
     await vm.runInContext('ensureWindows();', sandbox);
-    const result = await vm.runInContext("loadInTemporarySecondaryWindow('http://localhost:5500/userform/pages/servizio-pubblica.html?text=debug');", sandbox);
+    const result = await vm.runInContext("loadInTemporarySecondaryWindow('http://localhost:5500/userform/pages/servizio.html?mode=display&output=text&text=debug');", sandbox);
     const state = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow && temporarySecondaryWindow.webContents.getURL() })', sandbox);
 
     assert.equal(result, true, `temporary secondary load failed: ${JSON.stringify(result)}`);
     assert.match(state.secondary, /Bordero\/pages\/display\.html/i, `persistent secondary URL: ${state.secondary}`);
-    assert.match(state.temporary, /userform\/pages\/servizio-pubblica\.html/i, `temporary secondary URL: ${state.temporary}`);
+    assert.match(state.temporary, /userform\/pages\/servizio\.html\?mode=display/i, `temporary secondary URL: ${state.temporary}`);
 
     vm.runInContext('closeTemporarySecondaryWindow();', sandbox);
     assert.equal(vm.runInContext('Boolean(!temporarySecondaryWindow)', sandbox), true, 'temporary secondary page should close and reveal the persistent Display window');
     assert.equal(vm.runInContext('Boolean(secondaryWindow && secondaryWindow.focused)', sandbox), true, 'persistent Display window should be restored to the foreground');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('SERVIZIO keeps operator controls primary and sends publication modes only to the secondary monitor', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-servizio-unified');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    const openResult = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/USERFORM/pages/SERVIZIO.html', 'test-service-operator');", sandbox);
+    const initialState = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow?.webContents.getURL() || null })', sandbox);
+    const outputResult = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=logo&id=logo-1', 'test-service-logo');", sandbox);
+    const outputState = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow?.webContents.getURL() || null })', sandbox);
+
+    assert.equal(openResult.primaryUpdated, true);
+    assert.equal(openResult.secondaryUpdated, true);
+    assert.match(initialState.primary, /USERFORM\/pages\/SERVIZIO\.html$/i);
+    assert.match(initialState.secondary, /Bordero\/pages\/display\.html/i);
+    assert.equal(initialState.temporary, null, 'Opening the operator page must not publish the default message automatically.');
+    assert.equal(outputResult.primaryUpdated, false, 'A display-mode update must not reload the operator window.');
+    assert.equal(outputResult.secondaryUpdated, true);
+    assert.equal(outputState.primary, initialState.primary);
+    assert.match(outputState.temporary, /mode=display&output=logo&id=logo-1/i);
+
+    vm.runInContext('closeTemporarySecondaryWindow();', sandbox);
+    assert.match(vm.runInContext('secondaryWindow.webContents.getURL()', sandbox), /Bordero\/pages\/display\.html/i);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
