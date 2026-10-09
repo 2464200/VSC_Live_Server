@@ -48,7 +48,7 @@ function loadDataLoader(scriptPath) {
 }
 
 for (const scriptPath of dataLoaderScripts) {
-  test(`${scriptPath}: partial serata saves retain omitted executed tracks`, () => {
+  test(`${scriptPath}: stale serata saves retain executed tracks`, () => {
     const dataLoader = loadDataLoader(scriptPath);
     dataLoader.saveCurrentSerata({}, [
       { id: '5', titolo: 'Normal video', flag: 'X', timestamp: '20:00' },
@@ -57,6 +57,7 @@ for (const scriptPath of dataLoaderScripts) {
     ]);
 
     const updated = dataLoader.saveCurrentSerata({}, [
+      { id: '5', titolo: 'Normal video', flag: '' },
       { id: '6', titolo: 'Not executed', flag: '' }
     ]);
 
@@ -78,20 +79,20 @@ for (const scriptPath of dataLoaderScripts) {
 
     const explicitlyUnmarked = dataLoader.saveCurrentSerata({}, [
       { id: '5', titolo: 'Normal video', flag: '' }
-    ]);
+    ], { allowUnmarkIds: ['5'] });
     assert.equal(explicitlyUnmarked.brani.find((brano) => brano.id === '5')?.flag, '');
     assert.equal(explicitlyUnmarked.brani.find((brano) => brano.id === '6')?.flag, 'X');
 
     const reset = dataLoader.saveCurrentSerata({}, [
       { id: '5', titolo: 'Normal video', flag: '' },
       { id: '6', titolo: 'Another track', flag: '' }
-    ]);
+    ], { resetExecuted: true });
     assert.equal(reset.brani.some((brano) => brano.flag === 'X'), false);
   });
 }
 
 for (const scriptPath of firebaseClientScripts) {
-  test(`${scriptPath}: partial cloud snapshots retain omitted executed tracks`, () => {
+  test(`${scriptPath}: stale cloud snapshots retain local executed tracks`, () => {
     const values = new Map();
     const storage = {
       get(key, fallback = null) {
@@ -162,8 +163,13 @@ for (const scriptPath of firebaseClientScripts) {
     assert.notEqual(instrumentedSource, source, 'test harness must expose the cloud client class');
     vm.runInNewContext(instrumentedSource, context, { filename: sourcePath });
 
+    const now = Date.now();
     const previouslyExecuted = { id: '5', titolo: 'Normal videoclip', flag: 'X' };
-    storage.set(currentKey, { metadata: { dj: 'DJ' }, brani: [previouslyExecuted] });
+    storage.set(currentKey, {
+      metadata: { dj: 'DJ' },
+      brani: [previouslyExecuted],
+      savedAt: new Date(now + 1000).toISOString()
+    });
     const client = Object.create(context.TestFirebaseCloudClient.prototype);
     client.lastStateTimestamp = null;
     client.latestCloudState = null;
@@ -172,14 +178,32 @@ for (const scriptPath of firebaseClientScripts) {
     client.clearExpiredStoredSerata = () => {};
     client.handleCloudState({
       serata: { dj: 'DJ' },
-      brani: [{ id: '6', titolo: 'Another track', flag: '' }],
-      updatedAt: new Date().toISOString()
+      brani: [
+        { id: '5', titolo: 'Normal videoclip', flag: '' },
+        { id: '6', titolo: 'Another track', flag: '' }
+      ],
+      updatedAt: new Date(now).toISOString()
     });
 
     assert.equal(
       storage.get(currentKey).brani.find((brano) => brano.id === '5')?.flag,
       'X',
-      'cloud refresh must preserve an executed brano omitted from its partial snapshot'
+      'stale cloud refresh must preserve a locally executed brano even when the snapshot contains it with an empty flag'
+    );
+
+    client.handleCloudState({
+      serata: { dj: 'DJ' },
+      brani: [
+        { id: '5', titolo: 'Normal videoclip', flag: '' },
+        { id: '6', titolo: 'Another track', flag: '' }
+      ],
+      updatedAt: new Date(now + 2000).toISOString()
+    });
+
+    assert.equal(
+      storage.get(currentKey).brani.find((brano) => brano.id === '5')?.flag,
+      '',
+      'newer cloud state must still accept an explicit unmark'
     );
   });
 }

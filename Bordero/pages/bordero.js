@@ -177,19 +177,12 @@ class BorderoTableManager {
     this.allBrani.forEach((brano) => {
       if (!this.isVideoOnlyBrano(brano)) return;
 
-      const isExecuted = String(brano.flag || '').toUpperCase() === 'X'
-        || brano.eseguito === true
-        || String(brano.eseguito || '').toUpperCase() === 'X'
-        || brano.executed === true
-        || String(brano.executed || '').toUpperCase() === 'X';
-
-      if (isExecuted) {
-        if (brano.next_selected) changed = true;
-        brano.next_selected = false;
-        return;
-      }
-
       if (
+        String(brano.flag || '').toUpperCase() === 'X' ||
+        brano.eseguito === true ||
+        String(brano.eseguito || '').toUpperCase() === 'X' ||
+        brano.executed === true ||
+        String(brano.executed || '').toUpperCase() === 'X' ||
         brano.timestamp ||
         brano.next_selected
       ) {
@@ -3158,7 +3151,7 @@ class BorderoTableManager {
 
     this.reorderBraniByOriginalIndex();
     Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
-    this.autoSaveSerata();
+    this.autoSaveSerata({ allowUnmarkIds: [String(branoId)] });
 
     this.lastActionTime = new Date();
     this.updateLastActionTime();
@@ -3571,7 +3564,7 @@ class BorderoTableManager {
   /**
    * Salva automaticamente la serata ogni volta che viene marcato un brano
    */
-  autoSaveSerata() {
+  autoSaveSerata(options = {}) {
     const serataData = {
       dj: this.serata.dj,
       data: this.serata.data,
@@ -3579,7 +3572,7 @@ class BorderoTableManager {
       evento: this.serata.evento,
     };
     
-    dataLoader.saveCurrentSerata(serataData, this.allBrani);
+    dataLoader.saveCurrentSerata(serataData, this.allBrani, options);
     this.publishCloudState();
   }
 
@@ -3592,8 +3585,7 @@ class BorderoTableManager {
       }
       await window.firebaseCloudClient.publishState({
         nextCoreo,
-        serata: this.serata || {},
-        brani: this.allBrani || []
+        serata: this.serata || {}
       });
     } catch (error) {
       logger.warn('Impossibile sincronizzare lo stato serata sul cloud', error?.message || error);
@@ -3634,7 +3626,7 @@ class BorderoTableManager {
         }
 
         // Persisti i brani puliti; i metadati persistenti vengono salvati nel reset seguente.
-        dataLoader.saveCurrentSerata(this.serata, this.allBrani);
+        dataLoader.saveCurrentSerata(this.serata, this.allBrani, { resetExecuted: true });
         Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.allBrani);
 
         Toast.info('Stato brani ripristinato per nuova serata');

@@ -317,7 +317,7 @@ class DisplayMonitor {
     serataBrani.forEach((item) => {
       const id = this.normalizeBranoIdKey(item?.id);
       if (!id) return;
-      if (window.isVideoOnlyBrano?.(item) && !this.hasExecutedMarker(item)) return;
+      if (window.isVideoOnlyBrano?.(item)) return;
 
       const base = mergedMap.get(id);
       if (!base) {
@@ -349,6 +349,7 @@ class DisplayMonitor {
     const fromSerata = Array.isArray(currentSerata?.brani) ? currentSerata.brani : [];
 
     fromSerata.forEach((brano) => {
+      if (window.isVideoOnlyBrano?.(brano)) return;
       if (this.hasExecutedMarker(brano)) {
         const key = this.normalizeBranoIdKey(brano.id);
         if (key) ids.add(key);
@@ -357,6 +358,7 @@ class DisplayMonitor {
 
     if (fromSerata.length === 0 && Array.isArray(sourceBrani)) {
       sourceBrani.forEach((brano) => {
+        if (window.isVideoOnlyBrano?.(brano)) return;
         if (this.hasExecutedMarker(brano)) {
           const key = this.normalizeBranoIdKey(brano.id);
           if (key) ids.add(key);
@@ -415,6 +417,7 @@ class DisplayMonitor {
 
   isBranoExecuted(brano) {
     if (!brano || typeof brano !== 'object') return false;
+    if (window.isVideoOnlyBrano?.(brano)) return false;
     const id = this.normalizeBranoIdKey(brano.id);
     if (id && this.executedIds.has(id)) {
       return true;

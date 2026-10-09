@@ -866,40 +866,72 @@ class DataLoader {
    * SERATA MANAGEMENT
    * Salva lo stato della serata corrente (brani + metadata)
    */
-  mergeMissingExecutedBrani(braniWithFlags, previousBrani = []) {
+  mergeMissingExecutedBrani(braniWithFlags, previousBrani = [], options = {}) {
     if (!Array.isArray(braniWithFlags)) return [];
 
+    const { allowUnmarkIds = [], preserveConflictingExecution = true, resetExecuted = false } = options;
     const normalizeId = (id) => {
       const value = String(id ?? '').trim();
       return /^\d+$/.test(value) ? value.replace(/^0+(?=\d)/, '') : value;
     };
+    const isExecuted = (brano) => String(brano?.flag || '').toUpperCase() === 'X'
+      || brano?.eseguito === true
+      || String(brano?.eseguito || '').toUpperCase() === 'X'
+      || brano?.executed === true
+      || String(brano?.executed || '').toUpperCase() === 'X';
+    const allowedUnmarkIds = new Set(allowUnmarkIds.map(normalizeId));
+    const previousById = new Map(
+      (Array.isArray(previousBrani) ? previousBrani : [])
+        .map((brano) => [normalizeId(brano?.id), brano])
+        .filter(([id]) => Boolean(id))
+    );
+    const reconciledBrani = resetExecuted ? braniWithFlags : braniWithFlags.map((brano) => {
+      const id = normalizeId(brano?.id);
+      const previous = previousById.get(id);
+      if (
+        !id ||
+        !previous ||
+        !preserveConflictingExecution ||
+        allowedUnmarkIds.has(id) ||
+        !isExecuted(previous) ||
+        isExecuted(brano) ||
+        window.isVideoOnlyBrano?.(previous) ||
+        window.isVideoOnlyBrano?.(brano)
+      ) {
+        return brano;
+      }
+
+      return {
+        ...brano,
+        flag: 'X',
+        eseguito: previous.eseguito || 'X',
+        executed: true,
+        timestamp: previous.timestamp || brano.timestamp || ''
+      };
+    });
     const incomingIds = new Set(
-      braniWithFlags
+      reconciledBrani
         .map((brano) => normalizeId(brano?.id))
         .filter(Boolean)
     );
-    const omittedExecutedBrani = (Array.isArray(previousBrani) ? previousBrani : [])
+    const omittedExecutedBrani = resetExecuted ? [] : (Array.isArray(previousBrani) ? previousBrani : [])
       .filter((brano) => {
         const id = normalizeId(brano?.id);
-        const isExecuted = String(brano?.flag || '').toUpperCase() === 'X'
-          || brano?.eseguito === true
-          || String(brano?.eseguito || '').toUpperCase() === 'X'
-          || brano?.executed === true
-          || String(brano?.executed || '').toUpperCase() === 'X';
         return id
           && !incomingIds.has(id)
-          && isExecuted;
+          && isExecuted(brano)
+          && !window.isVideoOnlyBrano?.(brano);
       });
 
-    return [...braniWithFlags, ...omittedExecutedBrani];
+    return [...reconciledBrani, ...omittedExecutedBrani];
   }
 
-  saveCurrentSerata(serataMetadata, braniWithFlags) {
+  saveCurrentSerata(serataMetadata, braniWithFlags, options = {}) {
     const currentSerata = this.getCurrentSerata();
     const serata = {
       id: DateUtils.now(),
       metadata: serataMetadata,
-      brani: this.mergeMissingExecutedBrani(braniWithFlags, currentSerata?.brani),
+      brani: this.mergeMissingExecutedBrani(braniWithFlags, currentSerata?.brani, options),
       savedAt: new Date().toISOString(),
     };
 

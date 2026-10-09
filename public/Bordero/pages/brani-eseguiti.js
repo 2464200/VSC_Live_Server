@@ -108,7 +108,7 @@ class BraniEseguitiPage {
     brano.flag = '';
     brano.timestamp = '';
 
-    dataLoader.saveCurrentSerata(this.serata, this.brani);
+    dataLoader.saveCurrentSerata(this.serata, this.brani, { allowUnmarkIds: [String(branoId)] });
     // Notifica la pagina Bordero nello stesso tab
     try {
       window.dispatchEvent(new Event('bordero:serata-updated'));

@@ -357,10 +357,16 @@
         const storedSerata = typeof dataLoader !== 'undefined' && typeof dataLoader.getCurrentSerata === 'function'
           ? dataLoader.getCurrentSerata()
           : null;
-        const incomingBrani = Array.isArray(brani) ? brani : (storedSerata?.brani || []);
+        const localSavedAt = Date.parse(storedSerata?.savedAt || '');
+        const cloudSnapshotIsOlder = Number.isFinite(localSavedAt) && localSavedAt > timestamp;
+        const incomingBrani = cloudSnapshotIsOlder && Array.isArray(storedSerata?.brani)
+          ? storedSerata.brani
+          : (Array.isArray(brani) ? brani : (storedSerata?.brani || []));
         const mergedBrani = typeof dataLoader !== 'undefined'
           && typeof dataLoader.mergeMissingExecutedBrani === 'function'
-          ? dataLoader.mergeMissingExecutedBrani(incomingBrani, storedSerata?.brani)
+          ? dataLoader.mergeMissingExecutedBrani(incomingBrani, storedSerata?.brani, {
+            preserveConflictingExecution: cloudSnapshotIsOlder
+          })
           : incomingBrani;
 
         if (Array.isArray(catalogBrani)) {
@@ -371,9 +377,9 @@
         if (serata) {
           const currentSerata = {
             id: Date.now(),
-            metadata: serata,
+            metadata: cloudSnapshotIsOlder ? (storedSerata?.metadata || serata) : serata,
             brani: mergedBrani,
-            savedAt: updatedAt || new Date().toISOString()
+            savedAt: cloudSnapshotIsOlder ? storedSerata.savedAt : (updatedAt || new Date().toISOString())
           };
           if (typeof BORDERO_CONFIG !== 'undefined') {
             Storage.set(BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA, currentSerata);
