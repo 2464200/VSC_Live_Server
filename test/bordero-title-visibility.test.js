@@ -1,5 +1,9 @@
 const assert = require('assert');
-const { filterBraniByTitleVisibility, annotateBraniByTitleVisibility } = require('../Bordero/js/title-visibility-utils');
+const {
+  filterBraniByTitleVisibility,
+  annotateBraniByTitleVisibility,
+  getHiddenBraniByTitle,
+} = require('../Bordero/js/title-visibility-utils');
 
 function isExecuted(item) {
   return String(item?.flag || '').toUpperCase() === 'X';
@@ -49,5 +53,14 @@ assert.strictEqual(annotated.find((item) => item.id === '4').displayState, 'exec
 assert.strictEqual(annotated.find((item) => item.id === '1').displayState, 'blocked');
 assert.strictEqual(annotated.find((item) => item.id === '2').displayState, 'blocked');
 assert.strictEqual(annotated.find((item) => item.id === '3').displayState, 'available');
+
+const hiddenBrani = getHiddenBraniByTitle(brani, { isExecuted });
+const countedBrani = brani.filter((item) => !hiddenBrani.includes(item));
+assert.deepStrictEqual(
+  countedBrani.map((item) => item.id),
+  ['3', '4'],
+  'Il contatore DISPLAY deve escludere i duplicati nascosti e mantenere quello eseguito',
+);
+assert.strictEqual(countedBrani.filter(isExecuted).length, 1);
 
 console.log('bordero title visibility tests passed');

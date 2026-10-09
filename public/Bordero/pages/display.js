@@ -253,8 +253,12 @@ class DisplayMonitor {
     document.getElementById('header-luogo').textContent = this.serata.luogo || '--';
     document.getElementById('header-evento').textContent = this.serata.evento || '--';
 
-    const completed = brani.filter(b => this.isBranoExecuted(b)).length;
-    document.getElementById('header-completed').textContent = `${completed}/${brani.length}`;
+    const hiddenBrani = typeof window.getHiddenBraniByTitle === 'function'
+      ? new Set(window.getHiddenBraniByTitle(brani, { isExecuted: (brano) => this.isBranoExecuted(brano) }))
+      : new Set();
+    const countedBrani = brani.filter((brano) => !hiddenBrani.has(brano));
+    const completed = countedBrani.filter((brano) => this.isBranoExecuted(brano)).length;
+    document.getElementById('header-completed').textContent = `${completed}/${countedBrani.length}`;
   }
 
   isRichiesteZeroValue(value) {
