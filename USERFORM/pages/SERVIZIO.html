@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="../assets/css/userform.css" />
   <script defer src="../js/userform-registry.js"></script>
   <script defer src="../js/userform-page.js"></script>
+  <script defer src="/node_modules/pako/dist/pako.min.js"></script>
+  <script defer src="/node_modules/utif/UTIF.js"></script>
   <script defer src="../js/servizio-actions.js"></script>
   <style>
     :root {
@@ -347,6 +349,149 @@
       object-fit: contain;
     }
 
+    .service-slideshow-panel {
+      grid-column: 1 / -1;
+    }
+
+    .service-slide-picker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 76px;
+      padding: 13px 16px;
+      border: 1px dashed #665644;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--service-muted);
+      cursor: pointer;
+    }
+
+    .service-slide-picker:hover,
+    .service-slide-picker.is-dragging {
+      border-color: var(--service-accent);
+      background: rgba(255, 127, 0, 0.07);
+    }
+
+    .service-slide-picker strong {
+      color: var(--service-text);
+    }
+
+    .service-slide-list {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .service-slide-item {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr) minmax(106px, 130px) auto;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 8px 10px;
+      border-bottom: 1px solid #49423b;
+    }
+
+    .service-slide-thumb {
+      width: 58px;
+      height: 44px;
+      object-fit: cover;
+      border: 1px solid #5b5045;
+      border-radius: 4px;
+      background: #111;
+    }
+
+    .service-slide-name {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--service-text);
+      font-size: 0.88rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .service-slide-time {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--service-muted);
+      font-size: 0.8rem;
+    }
+
+    .service-slide-time input,
+    .service-slideshow-total input {
+      width: 78px;
+      min-height: 40px;
+      padding: 6px 8px;
+      border: 1px solid #5b5045;
+      border-radius: 4px;
+      background: #171615;
+      color: var(--service-text);
+      font: inherit;
+      text-align: center;
+    }
+
+    .service-slide-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .service-slide-actions button {
+      min-width: 38px;
+      min-height: 38px;
+      padding: 5px 8px;
+      border: 1px solid #5b5045;
+      border-radius: 4px;
+      background: #302b26;
+      color: var(--service-text);
+      cursor: pointer;
+    }
+
+    .service-slideshow-settings {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 18px 28px;
+      padding-top: 12px;
+      border-top: 1px solid #49423b;
+    }
+
+    .service-slideshow-total,
+    .service-loop-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #e9e0d7;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .service-loop-option input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--service-accent);
+    }
+
+    .service-slideshow-summary {
+      margin: -5px 0 0;
+      color: var(--service-muted);
+      font-size: 0.8rem;
+    }
+
+    .service-slide-list:empty,
+    .service-slide-list:empty + .service-slides-empty {
+      display: block;
+    }
+
+    .service-slides-empty {
+      display: none;
+      margin: 0;
+      color: var(--service-muted);
+      font-size: 0.82rem;
+    }
+
     .service-file-name {
       min-height: 18px;
       margin: 0;
@@ -455,6 +600,15 @@
       object-fit: contain;
     }
 
+    .published-image.is-slideshow {
+      animation: slideshowFadeIn 420ms ease both;
+    }
+
+    @keyframes slideshowFadeIn {
+      from { opacity: 0; transform: scale(0.99); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
     .published-image[hidden],
     .published-message[hidden] {
       display: none !important;
@@ -483,6 +637,31 @@
         align-items: flex-start;
         flex-direction: column;
       }
+
+      .service-slide-item {
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        gap: 8px;
+      }
+
+      .service-slide-thumb {
+        width: 48px;
+        height: 38px;
+      }
+
+      .service-slide-time {
+        grid-column: 2;
+        grid-row: 2;
+      }
+
+      .service-slide-actions {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .published-image.is-slideshow { animation: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -561,6 +740,37 @@
         </div>
       </section>
     </main>
+
+    <section class="service-panel service-slideshow-panel" aria-labelledby="slideshow-panel-title">
+      <div class="service-panel-heading">
+        <div>
+          <h3 id="slideshow-panel-title">Presentazione</h3>
+          <p>Carica più immagini e impostane l’ordine e il tempo di permanenza.</p>
+        </div>
+        <span class="service-panel-index">03</span>
+      </div>
+      <input id="service-slideshow-input" class="service-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif,image/tiff,.tif,.tiff" multiple />
+      <label id="service-slideshow-dropzone" class="service-slide-picker" for="service-slideshow-input">
+        <span class="service-upload-mark" aria-hidden="true">＋</span>
+        <span><strong>Aggiungi slide</strong><br />JPEG, PNG, WebP, GIF, BMP, AVIF e TIFF</span>
+      </label>
+      <ol id="service-slide-list" class="service-slide-list" aria-label="Ordine delle slide"></ol>
+      <p id="service-slides-empty" class="service-slides-empty">Nessuna slide selezionata.</p>
+      <div class="service-slideshow-settings">
+        <label class="service-slideshow-total" for="service-total-duration">Durata proiezione
+          <input id="service-total-duration" type="number" min="1" max="86400" step="1" value="120" />
+          <span>secondi</span>
+        </label>
+        <label class="service-loop-option" for="service-loop-forever">
+          <input id="service-loop-forever" type="checkbox" />
+          <span>Ciclo permanente</span>
+        </label>
+      </div>
+      <p id="service-slideshow-summary" class="service-slideshow-summary">Seleziona le slide per iniziare. Il ciclo permanente continua fino a STOP.</p>
+      <div class="service-actions">
+        <button id="publish-slideshow-btn" class="btn" type="button" disabled>Avvia presentazione</button>
+      </div>
+    </section>
 
     <div class="service-stop-row">
       <button id="stop-text-btn" class="btn btn-danger service-stop-button" type="button" aria-pressed="false">FERMA PUBBLICAZIONE</button>

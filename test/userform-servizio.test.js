@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { JSDOM } = require('jsdom');
+const { indexedDB } = require('fake-indexeddb');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'USERFORM', 'pages', 'SERVIZIO.html'), 'utf8');
@@ -9,6 +10,7 @@ const registry = fs.readFileSync(path.join(root, 'USERFORM', 'js', 'userform-reg
 const pageScript = fs.readFileSync(path.join(root, 'USERFORM', 'js', 'userform-page.js'), 'utf8');
 const actions = fs.readFileSync(path.join(root, 'USERFORM', 'js', 'servizio-actions.js'), 'utf8');
 const channels = [];
+let objectUrlSequence = 0;
 
 class TestBroadcastChannel {
   constructor(name) {
@@ -34,6 +36,11 @@ function createPage(url) {
   return new JSDOM(html, {
     url,
     runScripts: 'outside-only',
+    beforeParse(window) {
+      window.indexedDB = indexedDB;
+      window.URL.createObjectURL = () => `blob:servizio-test-${++objectUrlSequence}`;
+      window.URL.revokeObjectURL = () => {};
+    },
   });
 }
 
@@ -48,6 +55,21 @@ async function waitFor(predicate, description) {
     if (Date.now() >= deadline) throw new Error(`Timed out waiting for ${description}.`);
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
+}
+
+async function readIndexedPresentation(id) {
+  const database = await new Promise((resolve, reject) => {
+    const request = indexedDB.open('userform-servizio-presentations', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction('presentations', 'readonly');
+    const request = transaction.objectStore('presentations').get(id);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+    transaction.oncomplete = () => database.close();
+  });
 }
 
 async function run() {
@@ -120,6 +142,48 @@ async function run() {
   assert.ok(logoId);
   assert.equal(JSON.parse(operator.localStorage.getItem('userform-servizio-logo:last')).name, 'logo.png');
 
+  const slideshowInput = operator.document.getElementById('service-slideshow-input');
+  const slideFiles = [
+    new operator.File(['slide-one'], 'slide-one.png', { type: 'image/png' }),
+    new operator.File(['slide-two'], 'slide-two.png', { type: 'image/png' }),
+  ];
+  Object.defineProperty(slideshowInput, 'files', { configurable: true, value: slideFiles });
+  slideshowInput.dispatchEvent(new operator.Event('change'));
+  await waitFor(() => operator.document.querySelectorAll('#service-slide-list .service-slide-item').length === 2, 'two selected slides');
+
+  const slideTimes = operator.document.querySelectorAll('#service-slide-list input[type="number"]');
+  slideTimes[0].value = '1';
+  slideTimes[0].dispatchEvent(new operator.Event('change'));
+  slideTimes[1].value = '1';
+  slideTimes[1].dispatchEvent(new operator.Event('change'));
+  operator.document.getElementById('service-total-duration').value = '2';
+  operator.document.getElementById('service-total-duration').dispatchEvent(new operator.Event('change'));
+  operator.document.getElementById('service-loop-forever').checked = true;
+  operator.document.getElementById('service-loop-forever').dispatchEvent(new operator.Event('change'));
+  assert.equal(operator.document.getElementById('service-total-duration').disabled, true, 'Permanent loop ignores the total projection duration.');
+  operator.document.getElementById('service-loop-forever').checked = false;
+  operator.document.getElementById('service-loop-forever').dispatchEvent(new operator.Event('change'));
+  operator.document.getElementById('publish-slideshow-btn').click();
+  await waitFor(() => routes.length === 4, 'slideshow secondary route');
+  const slideshowRoute = new URL(routes[3], 'http://localhost:5500');
+  const slideshowId = slideshowRoute.searchParams.get('id');
+  assert.equal(slideshowRoute.searchParams.get('output'), 'slideshow');
+  const savedPresentation = await readIndexedPresentation(slideshowId);
+  assert.equal(savedPresentation.slides.length, 2);
+  assert.deepEqual(savedPresentation.slides.map((slide) => slide.durationSeconds), [1, 1]);
+  assert.equal(savedPresentation.loop, false);
+  assert.equal(savedPresentation.totalDurationSeconds, 2);
+
+  const slideshowDom = createPage(`http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=slideshow&id=${encodeURIComponent(slideshowId)}&session=slideshow-test`);
+  const slideshowWindow = slideshowDom.window;
+  let slideshowClosed = false;
+  slideshowWindow.close = () => { slideshowClosed = true; };
+  slideshowWindow.BroadcastChannel = TestBroadcastChannel;
+  slideshowWindow.eval(actions);
+  await waitFor(() => !slideshowWindow.document.querySelector('#published-image').hidden, 'first slide from IndexedDB');
+  await waitFor(() => slideshowWindow.document.querySelector('#published-image').alt === 'slide-two.png', 'slide transition');
+  await waitFor(() => slideshowClosed, 'automatic slideshow duration end');
+
   operator.document.getElementById('stop-text-btn').click();
   await settle();
   assert.equal(stopCalls, 1, 'STOP closes the Electron publication window.');
@@ -166,7 +230,8 @@ async function run() {
   browserDom.window.close();
   outputDom.window.close();
   logoDom.window.close();
-  console.log('PASS: SERVIZIO controls text and image output from one page on both monitors.');
+  slideshowDom.window.close();
+  console.log('PASS: SERVIZIO publishes text, images and timed slides through one operator/display page.');
 }
 
 run().catch((error) => {
