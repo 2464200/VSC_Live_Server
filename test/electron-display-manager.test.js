@@ -287,6 +287,33 @@ test('secondary display remains loaded while a temporary secondary page is foreg
   }
 });
 
+test('QRCODE keeps operator navigation primary and opens a clean presentation on the secondary monitor', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-qrcode-secondary');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    const result = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/USERFORM/pages/QRCODE.html', 'test-qrcode-route');", sandbox);
+    const state = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow?.webContents.getURL() || null })', sandbox);
+    const secondaryUrl = new URL(state.temporary);
+
+    assert.equal(result.primaryUpdated, true, 'The operator QRCODE page should stay on the primary monitor.');
+    assert.equal(result.secondaryUpdated, true, 'A separate QRCODE presentation should open on the secondary monitor.');
+    assert.equal(new URL(state.primary).searchParams.has('display'), false, 'The operator page should retain its navigation controls.');
+    assert.equal(secondaryUrl.searchParams.get('display'), 'secondary', 'The secondary presentation should be explicitly marked.');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('ScriptPDF management stays primary while its PDF viewer overlays the persistent Display page', async () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-scriptpdf-secondary');
   fs.rmSync(tempDir, { recursive: true, force: true });

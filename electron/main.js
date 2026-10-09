@@ -91,7 +91,7 @@ const PAGE_POLICY = new Map([
   ['/leddisplay/server/static/index.html', { primary: false, secondary: true }],
   ['/led-display/off.html', { primary: false, secondary: true }],
   ['/leddisplay.html', { primary: true, secondary: false }],
-  ['/userform/pages/qrcode.html', { primary: true, secondary: false }],
+  ['/userform/pages/qrcode.html', { primary: true, secondary: true }],
   ['/userform/pages/servizio.html', { primary: true, secondary: false }],
   ['/userform/pages/servizio-pubblica.html', { primary: false, secondary: true }],
   ['/userform/pages/pagina03.html', { primary: true, secondary: false }],
@@ -885,11 +885,14 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   }
 
   if (policy.secondary) {
+    const secondaryTargetUrl = normalizePathname(absoluteTargetUrl) === '/userform/pages/qrcode.html'
+      ? `${absoluteTargetUrl}${absoluteTargetUrl.includes('?') ? '&' : '?'}display=secondary`
+      : absoluteTargetUrl;
     if (isPersistentSecondaryPageUrl(absoluteTargetUrl)) {
       closeTemporarySecondaryWindow();
       result.secondaryUpdated = await loadInSecondaryWindow(absoluteTargetUrl);
     } else {
-      result.secondaryUpdated = await loadInTemporarySecondaryWindow(absoluteTargetUrl);
+      result.secondaryUpdated = await loadInTemporarySecondaryWindow(secondaryTargetUrl);
     }
   } else {
     result.secondaryUpdated = await ensureSecondaryDisplayPage();

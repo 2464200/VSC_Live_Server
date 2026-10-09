@@ -3,67 +3,238 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QRCODE</title>
+  <meta name="theme-color" content="#1a1a1a" />
+  <title>USERFORM · QR Code</title>
+  <link rel="stylesheet" href="../assets/css/userform.css" />
+  <script defer src="../js/userform-registry.js"></script>
+  <script defer src="../js/userform-page.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
+    :root {
+      --qr-accent: #ff7f00;
+      --qr-accent-bright: #ffb347;
+      --qr-frame: rgba(255, 127, 0, 0.2);
+    }
+
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
-    html, body {
-      width: 100vw;
-      height: 100vh;
-      background-color: #111;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
-    }
-    .qr-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 4px solid #ffa200;
-      border-radius: 20px;
-      animation: neonPulse 2s infinite ease-in-out;
-      width: auto;
-      max-width: 90vw;
-      max-height: 90vh;
-      aspect-ratio: 8.5 / 11;
-      transform: scale(1.728);
-      transform-origin: center;
-    }
-    #pdf-viewer {
+
+    html,
+    body {
       width: 100%;
       height: 100%;
-      display: block;
-      object-fit: contain;
+      margin: 0;
+      overflow: hidden;
     }
-    @keyframes neonPulse {
-      0% { box-shadow: 0 0 8px #ffa200; }
-      50% { box-shadow: 0 0 25px #ffcc66; }
-      100% { box-shadow: 0 0 8px #ffa200; }
+
+    body.qrcode-page {
+      width: 100%;
+      min-width: 320px;
+      height: 100vh;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: clamp(8px, 1.2vh, 14px);
+      padding: clamp(12px, 1.6vw, 24px);
+      background:
+        radial-gradient(ellipse at 50% 44%, rgba(255, 127, 0, 0.12), transparent 54%),
+        linear-gradient(180deg, #202020 0%, #111 100%);
+    }
+
+    .qrcode-header {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--qr-accent);
+    }
+
+    .qrcode-heading {
+      min-width: 0;
+    }
+
+    .qrcode-eyebrow {
+      margin: 0 0 3px;
+      color: #ffc477;
+      font-size: clamp(11px, 1vw, 15px);
+      font-weight: 800;
+    }
+
+    .qrcode-heading h1 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(24px, 3vw, 42px);
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .qrcode-breadcrumb {
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 8px 12px;
+      border: 1px solid #4a4035;
+      border-radius: 5px;
+      background: #222;
+      font-size: clamp(13px, 1.2vw, 17px);
+    }
+
+    .qr-stage {
+      display: grid;
+      min-width: 0;
+      min-height: 0;
+      place-items: center;
+      container-type: size;
+    }
+
+    .qr-container {
+      width: min(100cqw, 77.2727cqh);
+      max-width: 100%;
+      max-height: 100%;
+      aspect-ratio: 8.5 / 11;
+      overflow: hidden;
+      padding: 5px;
+      border: 3px solid var(--qr-accent);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 0 14px var(--qr-frame);
+      animation: qrFramePulse 3.2s ease-in-out infinite;
+    }
+
+    #pdf-viewer {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    @keyframes qrFramePulse {
+      0%, 100% {
+        border-color: var(--qr-accent);
+        box-shadow: 0 0 14px var(--qr-frame);
+      }
+      50% {
+        border-color: var(--qr-accent-bright);
+        box-shadow: 0 0 24px rgba(255, 179, 71, 0.34);
+      }
+    }
+
+    .qrcode-footer {
+      display: flex;
+      min-width: 0;
+      justify-content: center;
+      padding-top: 10px;
+      border-top: 1px solid #3b342d;
+    }
+
+    .qrcode-navigation {
+      display: flex;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .qrcode-navigation .btn {
+      min-width: 140px;
+      min-height: 50px;
+      padding: 10px 18px;
+      border-radius: 5px;
+      font-size: clamp(14px, 1.2vw, 18px);
+      font-weight: 800;
+    }
+
+    .qrcode-navigation .btn-danger {
+      border: 1px solid #c0392b;
+      background: #c0392b;
+      color: #fff;
+    }
+
+    .qrcode-navigation .btn-danger:hover {
+      background: #a93226;
+    }
+
+    .qrcode-navigation [aria-disabled="true"] {
+      pointer-events: none;
+      opacity: 0.42;
+    }
+
+    .qrcode-navigation :focus-visible,
+    .qrcode-breadcrumb :focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 3px;
+    }
+
+    .qrcode-secondary-presentation .qrcode-footer {
+      display: none;
+    }
+
+    @media (max-width: 620px) {
+      body.qrcode-page {
+        padding: 10px;
+      }
+
+      .qrcode-header {
+        align-items: flex-start;
+      }
+
+      .qrcode-breadcrumb {
+        padding: 6px 8px;
+      }
+
+      .qrcode-navigation {
+        flex-wrap: nowrap;
+        gap: 6px;
+      }
+
+      .qrcode-navigation .btn {
+        min-width: 0;
+        min-height: 46px;
+        flex: 1 1 0;
+        padding: 8px 5px;
+        font-size: 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .qr-container {
+        animation: none;
+      }
     }
   </style>
 </head>
-<body>
-  <nav class="nav-breadcrumb" aria-label="Navigazione pagina" style="margin: 12px; position: fixed; top: 0; left: 0; right: 0; z-index: 10; width: calc(100% - 24px); border-radius: 5px;">
-    <a href="../index.html">Home</a>
-    <span class="breadcrumb-sep">/</span>
-    <span class="breadcrumb-current">QRCODE</span>
-  </nav>
-  <div class="qr-container">
-    <embed id="pdf-viewer" src="../../Prova/Cartello-QR-CODE.pdf#toolbar=0&view=fitH" type="application/pdf" width="600" height="800">
-  </div>
+<body class="qrcode-page">
+  <header class="qrcode-header">
+    <div class="qrcode-heading">
+      <p class="qrcode-eyebrow">BORDERO' · CENTRO OPERATIVO</p>
+      <h1>QR CODE</h1>
+    </div>
+    <nav class="nav-breadcrumb qrcode-breadcrumb" aria-label="Navigazione pagina">
+      <a href="../index.html">Indice USERFORM</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">QRCODE</span>
+    </nav>
+  </header>
 
-  <nav class="bottom-bar" style="position: fixed; bottom: 12px; right: 12px; z-index: 11; gap: 8px; justify-content: flex-end;">
-    <a href="../index.html" class="btn btn-secondary">Indice</a>
-    <button id="btn-close-qrcode-bottom" class="btn btn-primary" type="button">CHIUDI</button>
-  </nav>
+  <main class="qr-stage">
+    <div class="qr-container">
+      <embed id="pdf-viewer" src="../../Prova/Cartello-QR-CODE.pdf#toolbar=0&navpanes=0&scrollbar=0&view=Fit" type="application/pdf" title="Cartello con codice QR" />
+    </div>
+  </main>
+
+  <footer class="qrcode-footer">
+    <nav class="page-nav qrcode-navigation" aria-label="Navigazione form">
+      <a id="prev-form" class="btn btn-secondary" href="#" aria-disabled="true">Indietro</a>
+      <a id="next-form" class="btn" href="SERVIZIO.html">Avanti</a>
+      <a class="btn btn-secondary" href="../index.html">Indice</a>
+      <button id="btn-close-qrcode-bottom" class="btn btn-danger" type="button">Chiudi pagina</button>
+    </nav>
+  </footer>
 
   <script src="../js/qrcode-actions.js"></script>
-
-    <script src=/nav.js></script></body>
+  <script src="/nav.js"></script>
+</body>
 </html>
-
