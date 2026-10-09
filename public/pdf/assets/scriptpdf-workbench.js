@@ -497,6 +497,23 @@
     }
   }
 
+  async function closePdfViewer() {
+    if (!useElectronPdfOverlay) {
+      await closeManagedViewers();
+      return;
+    }
+
+    try {
+      const result = await electronWindowManager.restoreSecondaryPage();
+      if (!result?.success) {
+        throw new Error(result?.error || "Il DISPLAY non è stato ripristinato.");
+      }
+      setMessage("Viewer PDF chiuso. DISPLAY ripristinato.", "success");
+    } catch (error) {
+      setMessage(`Impossibile chiudere il viewer PDF: ${error.message}`, "error");
+    }
+  }
+
   function loadAdobePath() {
     try {
       nodes.adobePath.value = window.localStorage.getItem(storageKey) || "";
@@ -552,6 +569,7 @@
   nodes.historyList.addEventListener("click", selectHistoryFile);
   nodes.clearHistory.addEventListener("click", clearHistory);
   nodes.openButton.addEventListener("click", () => void openCurrentPdf());
+  document.getElementById("close-scriptpdf").addEventListener("click", () => void closePdfViewer());
   nodes.saveAdobe.addEventListener("click", saveAdobePath);
   nodes.adobePath.addEventListener("change", saveAdobePath);
   nodes.closeViewers.addEventListener("click", () => void closeManagedViewers());

@@ -50,6 +50,7 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
   let confirmCalls = 0;
   let confirmation = false;
   let closed = false;
+  let restoreCalls = 0;
   const electronRoutes = [];
   let pdfFiles = [
     { name: '01-primo.pdf', path: 'C:\\VSC_SCRIPT_PDF\\01-primo.pdf', size: '1.00 MB', created: '08/10/2026' },
@@ -68,6 +69,7 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
           return { success: true };
         },
         async restoreSecondaryPage() {
+          restoreCalls += 1;
           return { success: true };
         },
       },
@@ -114,6 +116,7 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
   assert.equal(document.getElementById('pdf-status').dataset.state, 'ready');
   assert.equal(document.getElementById('pdf-select').options.length, 2);
   assert.equal(document.getElementById('pdf-name').textContent, '01-primo.pdf');
+  assert.equal(document.querySelector('.pdf-page-actions a').getAttribute('href'), '/Bordero/index.html');
   assert.equal(healthCalls, retryCount);
 
   document.getElementById('pdf-search').value = 'secondo';
@@ -180,17 +183,27 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
   assert.equal(document.getElementById('pdf-name').textContent, '02-secondo.pdf', 'History entries reselect PDFs present in the current archive.');
 
   if (!electronMode) {
+    document.getElementById('close-scriptpdf').click();
+    await settle();
+    assert.equal(confirmCalls, 1, 'CHIUDI should request closure of browser-managed PDF viewers.');
+    assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 0, 'Cancel leaves the PDF viewer open.');
+
     document.getElementById('close-viewers').click();
     await settle();
-    assert.equal(confirmCalls, 1, 'Closing managed viewer sessions requires confirmation.');
+    assert.equal(confirmCalls, 2, 'Closing managed viewer sessions requires confirmation.');
     assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 0, 'Cancel leaves all viewer sessions open.');
 
     confirmation = true;
     document.getElementById('close-viewers').click();
     await settle();
-    assert.equal(confirmCalls, 2);
+    assert.equal(confirmCalls, 3);
     assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 1);
     assert.match(document.getElementById('pdf-message').textContent, /sessioni PDF gestite chiuse/i);
+  } else {
+    document.getElementById('close-scriptpdf').click();
+    await settle();
+    assert.equal(restoreCalls, 1, 'CHIUDI should restore DISPLAY after closing the Electron PDF viewer.');
+    assert.match(document.getElementById('pdf-message').textContent, /DISPLAY ripristinato/i);
   }
 
   pdfFiles = [];

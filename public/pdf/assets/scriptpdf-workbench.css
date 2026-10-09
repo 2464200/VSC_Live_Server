@@ -596,6 +596,12 @@ select {
   margin-top: 22px;
 }
 
+.pdf-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .pdf-message {
   min-height: 22px;
   margin: 14px 0 0;
@@ -747,6 +753,10 @@ select {
 
   .pdf-primary-actions {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pdf-page-actions {
     flex-direction: column;
   }
 
