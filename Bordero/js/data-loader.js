@@ -888,25 +888,27 @@ class DataLoader {
     const reconciledBrani = resetExecuted ? braniWithFlags : braniWithFlags.map((brano) => {
       const id = normalizeId(brano?.id);
       const previous = previousById.get(id);
-      if (
-        !id ||
-        !previous ||
-        !preserveConflictingExecution ||
-        allowedUnmarkIds.has(id) ||
-        !isExecuted(previous) ||
-        isExecuted(brano) ||
-        window.isVideoOnlyBrano?.(previous) ||
-        window.isVideoOnlyBrano?.(brano)
-      ) {
-        return brano;
-      }
+      if (!id || !previous) return brano;
+
+      const preserveExecution = preserveConflictingExecution
+        && !allowedUnmarkIds.has(id)
+        && isExecuted(previous)
+        && !isExecuted(brano)
+        && !window.isVideoOnlyBrano?.(previous)
+        && !window.isVideoOnlyBrano?.(brano);
+      const preserveAvailability = previous.availability_restored === true
+        && brano.availability_restored !== true;
+      if (!preserveExecution && !preserveAvailability) return brano;
 
       return {
         ...brano,
-        flag: 'X',
-        eseguito: previous.eseguito || 'X',
-        executed: true,
-        timestamp: previous.timestamp || brano.timestamp || ''
+        ...(preserveExecution ? {
+          flag: 'X',
+          eseguito: previous.eseguito || 'X',
+          executed: true,
+          timestamp: previous.timestamp || brano.timestamp || ''
+        } : {}),
+        ...(preserveAvailability ? { availability_restored: true } : {})
       };
     });
     const incomingIds = new Set(
@@ -919,7 +921,7 @@ class DataLoader {
         const id = normalizeId(brano?.id);
         return id
           && !incomingIds.has(id)
-          && isExecuted(brano)
+          && (isExecuted(brano) || brano.availability_restored === true)
           && !window.isVideoOnlyBrano?.(brano);
       });
 

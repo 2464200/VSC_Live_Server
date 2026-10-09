@@ -89,31 +89,21 @@ class BraniNascostiPage {
       return;
     }
 
-      const normalize = (value) => String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
-      const title = normalize(this.titleOf(brano));
-      const relatedBrani = title
-        ? this.brani.filter((item) => normalize(this.titleOf(item)) === title)
-        : [brano];
-      const restoredIds = new Set([String(brano.id)]);
-      relatedBrani.filter((item) => this.isExecuted(item)).forEach((item) => {
-        restoredIds.add(String(item.id));
-      });
-
-      relatedBrani.filter((item) => restoredIds.has(String(item.id))).forEach((item) => {
-        item.flag = '';
-        item.eseguito = false;
-        item.executed = false;
-        item.timestamp = '';
-        item.next_selected = false;
-      });
+      const branoId = String(brano.id);
+      brano.flag = '';
+      brano.eseguito = false;
+      brano.executed = false;
+      brano.timestamp = '';
+      brano.next_selected = false;
+      brano.availability_restored = true;
 
       const nextSelection = Storage.get('bordero_next_coreo_selection', null);
-      if (restoredIds.has(String(nextSelection?.id || ''))) {
+      if (String(nextSelection?.id || '') === branoId) {
         Storage.remove('bordero_next_coreo_selection');
         window.dispatchEvent(new Event('bordero:next-coreo-updated'));
       }
 
-      this.persist([...restoredIds]);
+      this.persist([branoId]);
     Toast.success(`Brano disponibile: selezionalo in NEXT da Bordero (${this.titleOf(brano)})`);
     window.location.href = 'bordero.html';
   }

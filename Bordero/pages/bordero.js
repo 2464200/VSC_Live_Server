@@ -92,11 +92,14 @@ class BorderoTableManager {
         const executedMap = new Map(currentSerata.brani.map(b => [String(b.id), b]));
         this.allBrani = originalBrani.map((brano) => {
           const saved = executedMap.get(String(brano.id));
-          if (saved && String(saved.flag).toUpperCase() === 'X') {
+          if (saved && (String(saved.flag).toUpperCase() === 'X' || saved.availability_restored === true)) {
             return {
               ...brano,
-              flag: 'X',
-              timestamp: saved.timestamp || brano.timestamp,
+              ...(String(saved.flag).toUpperCase() === 'X' ? {
+                flag: 'X',
+                timestamp: saved.timestamp || brano.timestamp,
+              } : {}),
+              ...(saved.availability_restored === true ? { availability_restored: true } : {}),
             };
           }
           return brano;
@@ -722,11 +725,14 @@ class BorderoTableManager {
         const executedMap = new Map(currentSerata.brani.map(b => [String(b.id), b]));
         this.allBrani = originalBrani.map((brano) => {
           const saved = executedMap.get(String(brano.id));
-          if (saved && String(saved.flag).toUpperCase() === 'X') {
+          if (saved && (String(saved.flag).toUpperCase() === 'X' || saved.availability_restored === true)) {
             return {
               ...brano,
-              flag: 'X',
-              timestamp: saved.timestamp || brano.timestamp,
+              ...(String(saved.flag).toUpperCase() === 'X' ? {
+                flag: 'X',
+                timestamp: saved.timestamp || brano.timestamp,
+              } : {}),
+              ...(saved.availability_restored === true ? { availability_restored: true } : {}),
             };
           }
           return brano;
@@ -3618,6 +3624,7 @@ class BorderoTableManager {
           eseguito: false,
           executed: false,
           timestamp: '',
+          availability_restored: false,
         }));
 
         // Ripristina ordine originale (brani disponibili prima, eseguiti dopo)

@@ -89,6 +89,30 @@ for (const scriptPath of dataLoaderScripts) {
     ], { resetExecuted: true });
     assert.equal(reset.brani.some((brano) => brano.flag === 'X'), false);
   });
+
+  test(`${scriptPath}: per-track availability restoration survives saves without changing duplicates`, () => {
+    const dataLoader = loadDataLoader(scriptPath);
+    dataLoader.saveCurrentSerata({}, [
+      { id: '10', titolo: 'Duplicate title', flag: 'X', timestamp: '20:00' },
+      { id: '11', titolo: 'Duplicate title', flag: '', availability_restored: true }
+    ]);
+
+    const refreshed = dataLoader.saveCurrentSerata({}, [
+      { id: '10', titolo: 'Duplicate title', flag: 'X', timestamp: '20:00' },
+      { id: '11', titolo: 'Duplicate title', flag: '' }
+    ]);
+
+    assert.equal(refreshed.brani.find((brano) => brano.id === '11')?.availability_restored, true);
+    assert.equal(refreshed.brani.find((brano) => brano.id === '10')?.flag, 'X');
+    assert.equal(refreshed.brani.find((brano) => brano.id === '10')?.timestamp, '20:00');
+
+    const reset = dataLoader.saveCurrentSerata({}, [
+      { id: '10', titolo: 'Duplicate title', flag: '' },
+      { id: '11', titolo: 'Duplicate title', flag: '', availability_restored: false }
+    ], { resetExecuted: true });
+    assert.equal(reset.brani.find((brano) => brano.id === '11')?.availability_restored, false);
+    assert.equal(reset.brani.some((brano) => brano.flag === 'X'), false);
+  });
 }
 
 for (const scriptPath of firebaseClientScripts) {

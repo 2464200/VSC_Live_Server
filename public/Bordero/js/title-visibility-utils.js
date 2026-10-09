@@ -32,6 +32,7 @@ function getHiddenBraniByTitle(brani, options = {}) {
     return matches.length > 1
       && matches.some((item) => isExecuted(item))
       && !isExecuted(brano)
+      && brano.availability_restored !== true
       && !brano.next_selected;
   });
 }
@@ -48,7 +49,9 @@ function filterBraniByTitleVisibility(brani, options = {}) {
     if (!title) return true;
     const matches = groups.get(title) || [];
     if (matches.length <= 1 || !isRequested(brano)) return true;
-    return matches.filter((item) => isExecuted(item)).length === 0 || isExecuted(brano);
+    return matches.filter((item) => isExecuted(item)).length === 0
+      || isExecuted(brano)
+      || brano.availability_restored === true;
   });
 }
 
@@ -72,7 +75,11 @@ function annotateBraniByTitleVisibility(brani, options = {}) {
     const hasExecutedMatch = matches.filter((item) => isExecuted(item)).length > 0;
     return {
       ...brano,
-      displayState: isExecuted(brano) ? 'executed' : isRequested(brano) && hasExecutedMatch ? 'blocked' : 'available',
+      displayState: isExecuted(brano)
+        ? 'executed'
+        : isRequested(brano) && hasExecutedMatch && brano.availability_restored !== true
+          ? 'blocked'
+          : 'available',
     };
   });
 }

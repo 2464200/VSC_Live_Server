@@ -660,8 +660,17 @@ restoreButtonClick();
 if (context.Storage.get('bordero_next_coreo_selection', null)?.id !== '601' || restoredTrack.next_selected) {
   throw new Error('Restoring a hidden track implicitly selected NEXT');
 }
-if (executedDuplicateTrack.flag || executedDuplicateTrack.timestamp) {
-  throw new Error('Restoring a hidden track did not clear the executed duplicate title');
+if (restoredTrack.availability_restored !== true) {
+  throw new Error('Restoring a hidden track did not save its per-brano visibility override');
+}
+if (executedDuplicateTrack.flag !== 'X' || executedDuplicateTrack.timestamp !== 'old') {
+  throw new Error('Restoring one hidden track modified its executed duplicate');
+}
+const stillHidden = context.getHiddenBraniByTitle(hiddenTracksPage.brani, {
+  isExecuted: (item) => hiddenTracksPage.isExecuted(item),
+});
+if (stillHidden.some((item) => String(item.id) === '600')) {
+  throw new Error('Restored track remained hidden after the per-brano override');
 }
 hiddenTracksPage.restoreAvailability('599');
 if (context.Storage.get('bordero_next_coreo_selection', null)?.id !== '601' || hiddenVideoOnlyTrack.next_selected) {
