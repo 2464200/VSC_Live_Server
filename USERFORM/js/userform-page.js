@@ -64,7 +64,7 @@ function openManagedPage(target) {
 
   if (prevNode) {
     if (prev) {
-      prevNode.href = `${prev.id}.html`;
+      prevNode.href = prev.route || `${prev.id}.html`;
       prevNode.removeAttribute("aria-disabled");
     } else {
       prevNode.setAttribute("aria-disabled", "true");
@@ -74,7 +74,7 @@ function openManagedPage(target) {
 
   if (nextNode) {
     if (next) {
-      nextNode.href = `${next.id}.html`;
+      nextNode.href = next.route || `${next.id}.html`;
       nextNode.removeAttribute("aria-disabled");
     } else {
       nextNode.setAttribute("aria-disabled", "true");

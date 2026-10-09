@@ -287,7 +287,7 @@ test('secondary display remains loaded while a temporary secondary page is foreg
   }
 });
 
-test('ScriptPDF pages use a temporary always-on-top window above the persistent Display page', async () => {
+test('ScriptPDF management stays primary while its PDF viewer overlays the persistent Display page', async () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-scriptpdf-secondary');
   fs.rmSync(tempDir, { recursive: true, force: true });
   fs.mkdirSync(tempDir, { recursive: true });
@@ -302,19 +302,18 @@ test('ScriptPDF pages use a temporary always-on-top window above the persistent 
     });
 
     const result = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/pdf/pages/script-pdf-gestione.html', 'test-scriptpdf-route');", sandbox);
-    const state = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow.webContents.getURL(), options: temporarySecondaryWindow.options })', sandbox);
+    const state = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow?.webContents.getURL() || null, options: temporarySecondaryWindow?.options || null })', sandbox);
 
-    assert.equal(result.primaryUpdated, false, 'ScriptPDF should not replace the primary window.');
-    assert.equal(result.secondaryUpdated, true, 'ScriptPDF should open on the secondary display.');
-    assert.match(state.primary, /Bordero\/pages\/bordero\.html/i, 'The primary Bordero page should remain unchanged.');
+    assert.equal(result.primaryUpdated, true, 'ScriptPDF management should open on the primary monitor.');
+    assert.equal(result.secondaryUpdated, true, 'The persistent Display should stay available on the secondary monitor.');
+    assert.match(state.primary, /pdf\/pages\/script-pdf-gestione\.html/i, 'The canonical ScriptPDF page should be primary.');
     assert.match(state.secondary, /Bordero\/pages\/display\.html/i, 'Persistent Display should remain underneath the temporary page.');
-    assert.match(state.temporary, /pdf\/pages\/script-pdf-gestione\.html/i, 'The ScriptPDF page should be loaded in the temporary window.');
-    assert.equal(state.options.alwaysOnTop, true, 'The ScriptPDF window should remain above Display.');
-    assert.equal(state.options.fullscreen, true, 'The ScriptPDF window should use the established fullscreen presentation.');
+    assert.equal(state.temporary, null, 'Opening ScriptPDF management should not create a temporary secondary window.');
 
     const pdfResult = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/pdf/viewers/pdf-viewer.html?file=C%3A%5CVSC_SCRIPT_PDF%5Ctest.pdf&name=test.pdf', 'test-pdf-overlay');", sandbox);
-    const pdfState = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow.webContents.getURL(), options: temporarySecondaryWindow.options })', sandbox);
+    const pdfState = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow.webContents.getURL(), options: temporarySecondaryWindow.options })', sandbox);
     assert.equal(pdfResult.secondaryUpdated, true, 'The PDF viewer should route to the managed secondary display.');
+    assert.match(pdfState.primary, /pdf\/pages\/script-pdf-gestione\.html/i, 'ScriptPDF management should remain open on the primary monitor.');
     assert.match(pdfState.secondary, /Bordero\/pages\/display\.html/i, 'DISPLAY should remain underneath the PDF viewer.');
     assert.match(pdfState.temporary, /pdf\/viewers\/pdf-viewer\.html\?file=/i, 'The selected PDF should load in the temporary window.');
     assert.equal(pdfState.options.alwaysOnTop, true, 'The PDF viewer should remain above DISPLAY.');

@@ -41,7 +41,7 @@ Il problema "server non disponibile" Ã¨ stato **totalmente risolto**. Il siste
 | `server-manager.js` | âœï¸ Riparato | Process lifecycle manager (auto-start/stop PDF server) |
 | `api-config.js` | âœï¸ Riparato | Client-side configuration con retry robusto |
 | `simple-server.js` | ðŸ†• Nuovo | Web server Express per servire HTML su porta 5500 |
-| `Prova/pdf/pages/script-pdf-gestione.html` | âœï¸ Migliorato | Inizializzazione con migliore gestione errori |
+| `pdf/pages/script-pdf-gestione.html` | âœï¸ Migliorato | Inizializzazione con migliore gestione errori |
 | `start-server-manager.ps1` | âœï¸ Aggiornato | Script PowerShell per avviare il manager |
 | `stop-server-manager.ps1` | âœï¸ Aggiornato | Script PowerShell per fermare il manager |
 
@@ -69,7 +69,7 @@ Apri nel browser:
 http://localhost:5500/                      # Home
 http://localhost:5500/index.html            # Coreografie
 http://localhost:5500/servizio.html        # Servizio
-http://localhost:5500/pdf/pages/script-pdf-prova.html # â† PROVA QUESTA!
+http://localhost:5500/pdf/pages/script-pdf-gestione.html
 ```
 
 Quando apri **ScriptPDF1.html**, il sistema farÃ  automaticamente:

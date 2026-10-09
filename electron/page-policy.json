@@ -135,17 +135,13 @@
     "primary": true,
     "secondary": false
   },
-  "/pdf/pages/script-pdf-prova.html": {
-    "primary": false,
-    "secondary": true
-  },
   "/pdf/viewers/pdf-viewer.html": {
     "primary": false,
     "secondary": true
   },
   "/pdf/viewers/scriptpdf1.html": {
-    "primary": false,
-    "secondary": true
+    "primary": true,
+    "secondary": false
   },
   "/playlist-country/index.html": {
     "primary": true,
@@ -172,8 +168,8 @@
     "secondary": false
   },
   "/prova/scriptpdf1.html": {
-    "primary": false,
-    "secondary": true
+    "primary": true,
+    "secondary": false
   },
   "/prova/test-scriptpdf1.html": {
     "primary": true,
@@ -220,10 +216,6 @@
     "secondary": true
   },
   "/userform/pages/scaletta.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/userform/pages/script-pdf.html": {
     "primary": true,
     "secondary": false
   },

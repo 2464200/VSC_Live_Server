@@ -127,7 +127,7 @@ npx http-server -c-1 -p 5500
 .\launch-all.ps1
 
 # 2. Apri il browser su:
-# http://localhost:5500/pdf/pages/script-pdf-prova.html
+# http://localhost:5500/pdf/pages/script-pdf-gestione.html
 
 # 3. La pagina auto-avvia il PDF Server
 
@@ -381,7 +381,7 @@ async function fetchAPI(endpoint, options = {}) {
 
 ### 3. **ScriptPDF1.html** (Interface Utente)
 
-File: `C:\VSC_Live_Server\pdf/pages/script-pdf-prova.html`
+File: `C:\VSC_Live_Server\pdf/pages/script-pdf-gestione.html`
 
 **ResponsabilitÃ :**
 - Interfaccia grafica per visualizzare PDF
@@ -676,7 +676,7 @@ POST http://localhost:8765/api/close-chrome
 |------|------|-------------|
 | `server-manager.js` | Node.js | Manager process (porta 3000) |
 | `api-config.js` | JavaScript | Client-side utility per auto-start |
-| `Prova/pdf/pages/script-pdf-gestione.html` | HTML | Interfaccia utente con lifecycle |
+| `pdf/pages/script-pdf-gestione.html` | HTML | Interfaccia utente con lifecycle |
 | `pdf-server.js` | Node.js | Server PDF (porta 8765) |
 | `start-server-manager.ps1` | PowerShell | Avvia Server Manager |
 | `stop-server-manager.ps1` | PowerShell | Ferma Server Manager |

@@ -128,7 +128,6 @@ function syncPublic() {
   // Publish the canonical ScriptPDF pages, shared assets, and compatibility aliases.
   for (const [sourceRelative, destinationRelative] of [
     ['pdf/pages/script-pdf-gestione.html', 'public/pdf/pages/script-pdf-gestione.html'],
-    ['pdf/pages/script-pdf-prova.html', 'public/pdf/pages/script-pdf-prova.html'],
     ['pdf/viewers/ScriptPDF1.html', 'public/ScriptPDF1.html'],
     ['Prova/ScriptPDF1.html', 'public/Prova/ScriptPDF1.html'],
     ['pdf/assets/scriptpdf-workbench.css', 'public/pdf/assets/scriptpdf-workbench.css'],

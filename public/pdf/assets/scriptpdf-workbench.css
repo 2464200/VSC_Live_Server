@@ -531,6 +531,21 @@ select {
   color: #e9ddd0;
 }
 
+.pdf-button-bordero {
+  border-color: #ffca28;
+  border-radius: 7px;
+  background: #ffca28;
+  color: #252117;
+  text-decoration: none;
+}
+
+.pdf-button-bordero:hover {
+  border-color: #ffd95b;
+  background: #ffd95b;
+  color: #252117;
+  box-shadow: 0 4px 12px rgba(255, 202, 40, 0.25);
+}
+
 .pdf-button-secondary:not(:disabled):hover,
 .pdf-button-quiet:not(:disabled):hover {
   border-color: #9a5a2b;

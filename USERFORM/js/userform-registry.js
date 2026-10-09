@@ -6,7 +6,7 @@ window.USERFORM_REGISTRY = [
   { id: "WEBCAM", caption: "frmPagina05", clientWidth: 16770, clientHeight: 12420 },
   { id: "COLLEGAMENTI", caption: "COLLEGAMENTI", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA07", caption: "frmPAGINA07", clientWidth: 16770, clientHeight: 12420 },
-  { id: "SCRIPT-PDF", caption: "SCRIPT-PDF", clientWidth: 16770, clientHeight: 12420 },
+  { id: "SCRIPT-PDF", caption: "SCRIPT-PDF", route: "/pdf/pages/script-pdf-gestione.html", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA09", caption: "frmPAGINA09", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA10", caption: "frmPAGINA10", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA11", caption: "frmPAGINA11", clientWidth: 16770, clientHeight: 12420 },

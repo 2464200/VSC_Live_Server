@@ -19,6 +19,11 @@ Purpose: concise, actionable guidance so an AI helper can be productive immediat
 - `display.csv` (root) and `public/display.csv` (deployed) â€” keep them in sync before deploying.
 - `NextCoreo.csv` (root & `public/`) â€” used to show a single label (cell A1). Code strips BOMs and uses cache-busting query strings.
 
+**ScriptPDF routing**
+- USERFORM's `SCRIPT-PDF` entry opens `/pdf/pages/script-pdf-gestione.html` directly; there is no intermediate USERFORM launcher or separate trial page.
+- Keep the canonical management page on the primary monitor and `/pdf/viewers/pdf-viewer.html` on the secondary monitor in Electron's default policy, persisted policy, and both Bordero ADMIN copies.
+- Keep `pdf/pages/script-pdf-gestione.html` and its assets synchronized with `public/`; compatibility aliases should redirect only to the canonical page.
+
 **Project-specific conventions to preserve**
 - CSV parsing always skips the first 3 lines: do NOT remove `.slice(3)` unless you update every consumer.
 - First CSV column is a flag column (index 0). Most renderers skip it and show columns from index 1 onward.

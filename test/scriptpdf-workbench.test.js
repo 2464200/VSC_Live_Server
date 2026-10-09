@@ -242,10 +242,8 @@ async function run() {
     const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
     assert.match(alias, new RegExp(canonicalRoute.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
-  for (const aliasPath of ['pdf/pages/script-pdf-prova.html', 'public/pdf/pages/script-pdf-prova.html']) {
-    const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
-    assert.match(alias, /location\.replace\("\/pdf\/pages\/script-pdf-gestione\.html"\)/);
-  }
+  assert.equal(fs.existsSync(path.join(root, 'pdf/pages/script-pdf-prova.html')), false, 'The unused ScriptPDF test page should be removed.');
+  assert.equal(fs.existsSync(path.join(root, 'public/pdf/pages/script-pdf-prova.html')), false, 'The unused public ScriptPDF test page should be removed.');
 
   const viewerHtml = fs.readFileSync(path.join(root, 'pdf', 'viewers', 'pdf-viewer.html'), 'utf8');
   const viewerDom = new JSDOM(viewerHtml, {

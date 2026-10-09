@@ -32,7 +32,7 @@ node simple-server.js
 
 ### Opzione 2: Avvio da Browser
 
-Apri: **http://localhost:5500/pdf/pages/script-pdf-prova.html**
+Apri: **http://localhost:5500/pdf/pages/script-pdf-gestione.html**
 
 Il sistema farÃ  automaticamente:
 1. âœ… ContatterÃ  il Server Manager
@@ -110,7 +110,7 @@ Il sistema farÃ  automaticamente:
 ```
 â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
 â”‚  Browser http://localhost:5500         â”‚
-â”‚  Prova/pdf/pages/script-pdf-gestione.html                 â”‚
+â”‚  pdf/pages/script-pdf-gestione.html                       â”‚
 â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
               â”‚
               â–¼
@@ -152,7 +152,7 @@ Il sistema farÃ  automaticamente:
 | `api-config.js` | âœï¸ AGGIORNATO | Miglior rilevamento |
 | `simple-server.js` | ðŸ†• NUOVO | Web server stabile |
 | `package.json` | âœï¸ AGGIORNATO | Version 2.0.0, nuovi script |
-| `Prova/pdf/pages/script-pdf-gestione.html` | âœï¸ AGGIORNATO | Migliore error handling |
+| `pdf/pages/script-pdf-gestione.html` | âœï¸ AGGIORNATO | Migliore error handling |
 
 ---
 
@@ -181,7 +181,7 @@ Get-Process node | Stop-Process -Force
 ## ðŸŽ“ Come Funziona
 
 ### Avvio
-1. Browser visita: http://localhost:5500/pdf/pages/script-pdf-prova.html
+1. Browser visita: http://localhost:5500/pdf/pages/script-pdf-gestione.html
 2. Pagina HTML carica (via simple-server.js)
 3. JavaScript contatta Server Manager (porta 3000)
 

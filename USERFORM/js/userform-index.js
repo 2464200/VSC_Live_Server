@@ -29,13 +29,14 @@
         "SCALETTA"
       ]);
       const badge = implemented.has(form.id) ? "MVP pronto" : "Placeholder";
+      const route = form.route || `pages/${form.id}.html`;
       return `
         <article class="form-card">
           <span class="badge">${badge}</span>
           <h3>${form.displayName || form.id}</h3>
           <p class="meta">Caption VBA: ${form.caption}</p>
           <p class="meta">Client size: ${size}</p>
-          <a class="btn" href="pages/${form.id}.html">Apri pagina</a>
+          <a class="btn" href="${route}">Apri pagina</a>
         </article>
       `;
     })

@@ -18,7 +18,6 @@ pdf/
 â”‚   â””â”€â”€ update_pdf_list.ps1
 â”œâ”€â”€ pages/             # Pagine ScriptPDF con nomenclatura descrittiva
 â”‚   â”œâ”€â”€ script-pdf-gestione.html # Workbench canonico
-â”‚   â””â”€â”€ script-pdf-prova.html    # Redirect compatibile
 â”œâ”€â”€ viewers/           # Componenti di visualizzazione
 â”‚   â””â”€â”€ pdf-viewer.html      # Viewer embed
 â”œâ”€â”€ config/            # File di configurazione e stato
@@ -40,8 +39,8 @@ Il sistema PDF Ã¨ integrato nel **unified-server.js** (porta 5500) avviato aut
 ## Viewer
 
 - **/pdf/pages/script-pdf-gestione.html**: pagina principale per gestione PDF, ricerca, filtri, cronologia e anteprima.
-- **/pdf/pages/script-pdf-prova.html**: redirect di compatibilità verso la pagina canonica.
-- I vecchi URL `/ScriptPDF1.html`, `/Prova/ScriptPDF1.html`, `/pdf/viewers/ScriptPDF1.html` e `/pdf/pages/script-pdf-prova.html` restano compatibili.
+- Il form `SCRIPT-PDF` nella griglia USERFORM apre direttamente la pagina canonica; non esiste una pagina launcher intermedia.
+- I vecchi URL `/ScriptPDF1.html`, `/Prova/ScriptPDF1.html` e `/pdf/viewers/ScriptPDF1.html` restano compatibili.
 - La pagina canonica usa `pdf/assets/scriptpdf-workbench.css` e `pdf/assets/scriptpdf-workbench.js`.
 - **pdf/viewers/pdf-viewer.html**: componente embed per visualizzazione.
 
@@ -49,7 +48,7 @@ La pagina canonica gestisce selezione, ricerca, filtri, anteprima e cronologia l
 
 Il server usa `C:\VSC_SCRIPT_PDF` come directory predefinita su Windows; `VSC_SCRIPT_PDF_DIR` in `.env` può cambiarla intenzionalmente. L'endpoint di apertura e quello di anteprima verificano che il file sia un PDF interno alla directory configurata, inclusi i collegamenti simbolici.
 
-ADMIN espone la sola pagina canonica come finestra temporanea sul monitor secondario. La sincronizzazione Hosting mantiene la pagina, il redirect compatibile e gli asset condivisi in `public/`.
+La pagina di gestione resta sul monitor principale; in Electron il viewer PDF si apre temporaneamente sul monitor secondario sopra DISPLAY. ADMIN e policy Electron registrano la pagina canonica sul monitor principale e il viewer sul secondario. La sincronizzazione Hosting pubblica la pagina canonica e gli asset condivisi in `public/`.
 
 ## Note
 

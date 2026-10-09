@@ -27,7 +27,7 @@ Oppure apri la cartella in VS Code e lascia partire il task automatico.
 ## URL corretti
 - Home: `http://localhost:5500/index.html`
 - Diagnostica: `http://localhost:5500/diagnostica.html`
-- PDF: `http://localhost:5500/pdf/pages/script-pdf-prova.html`
+- PDF: `http://localhost:5500/pdf/pages/script-pdf-gestione.html`
 - Eventi: `http://localhost:5500/eventi/eventi.html`
 - Visualizer: `http://localhost:5500/eventi/visualizer.html`
 

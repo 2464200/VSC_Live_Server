@@ -24,6 +24,7 @@ function loadElectronMainFor(tempDir) {
         return {
           app: {
             commandLine: { appendSwitch() {} },
+            requestSingleInstanceLock() { return true; },
             on() {},
             once() {},
             whenReady() { return new Promise(() => {}); },
@@ -160,9 +161,9 @@ withTempRuntime(
     const userFormCollegamentiPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/COLLEGAMENTI.html')", sandbox);
     const legacyUserFormPagina06Entry = policyMap.get('/userform/pages/pagina06.html');
     const legacyUserFormPagina08Entry = policyMap.get('/userform/pages/pagina08.html');
-    const userFormScriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html')", sandbox);
     const scriptPdfManagementPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-gestione.html')", sandbox);
-    const scriptPdfLegacyPagePolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-prova.html')", sandbox);
+    const removedScriptPdfPageEntry = policyMap.get('/pdf/pages/script-pdf-prova.html');
+    const removedUserFormScriptPdfEntry = policyMap.get('/userform/pages/script-pdf.html');
     const scriptPdfViewerPagePolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/viewers/pdf-viewer.html')", sandbox);
     const scriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/ScriptPDF1.html')", sandbox);
     const scriptPdfTestPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Prova/ScriptPDF1.html')", sandbox);
@@ -175,6 +176,7 @@ withTempRuntime(
     const remoteHtmlIsManaged = vm.runInContext("isManagedHtmlAppUrl('https://example.com/new-report.html')", sandbox);
     const mainSource = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.js'), 'utf8');
     const preloadSource = fs.readFileSync(path.join(__dirname, '..', 'electron', 'preload.js'), 'utf8');
+    const committedPagePolicy = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'electron', 'page-policy.json'), 'utf8'));
 
     assert(invalidEntry && invalidEntry.primary === true && invalidEntry.secondary === false, 'Invalid policy entry should be sanitized to a safe default.');
     assert(validEntry && validEntry.primary === true && validEntry.secondary === false, 'Valid policy entry should be preserved as-is.');
@@ -186,13 +188,16 @@ withTempRuntime(
     assert(userFormCollegamentiPolicy.primary === true && userFormCollegamentiPolicy.secondary === false, 'USERFORM COLLEGAMENTI must be managed exclusively on the primary monitor.');
     assert(!legacyUserFormPagina06Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
     assert(!legacyUserFormPagina08Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
-    assert(userFormScriptPdfPolicy.primary === true && userFormScriptPdfPolicy.secondary === false, 'USERFORM SCRIPT-PDF must be managed exclusively on the primary monitor.');
-    assert(scriptPdfManagementPolicy.primary === false && scriptPdfManagementPolicy.secondary === true, 'Canonical ScriptPDF management page must be routed to the temporary secondary display.');
-    assert(scriptPdfLegacyPagePolicy.primary === false && scriptPdfLegacyPagePolicy.secondary === true, 'Legacy ScriptPDF URL must remain routed to the temporary secondary display before redirecting.');
+    assert(!removedScriptPdfPageEntry, 'The deleted ScriptPDF test route must not remain in Electron policy.');
+    assert(!removedUserFormScriptPdfEntry, 'The deleted USERFORM ScriptPDF launcher route must not remain in Electron policy.');
+    assert(scriptPdfManagementPolicy.primary === true && scriptPdfManagementPolicy.secondary === false, 'Canonical ScriptPDF management page must be routed to the primary monitor.');
+    assert(committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.primary === true && committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.secondary === false, 'Persisted policy must keep canonical ScriptPDF management on the primary monitor.');
+    assert(!Object.hasOwn(committedPagePolicy, '/pdf/pages/script-pdf-prova.html'), 'Persisted policy must not retain the deleted ScriptPDF test route.');
+    assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/script-pdf.html'), 'Persisted policy must not retain the deleted USERFORM launcher route.');
     assert(scriptPdfViewerPagePolicy.primary === false && scriptPdfViewerPagePolicy.secondary === true, 'PDF viewer page must be routed to the temporary secondary display.');
-    assert(scriptPdfPolicy.primary === false && scriptPdfPolicy.secondary === true, 'The legacy main ScriptPDF alias must remain routed to the temporary secondary display.');
-    assert(scriptPdfTestPolicy.primary === false && scriptPdfTestPolicy.secondary === true, 'The legacy ScriptPDF test alias must be routed to the temporary secondary display.');
-    assert(scriptPdfViewerPolicy.primary === false && scriptPdfViewerPolicy.secondary === true, 'The legacy ScriptPDF viewer alias must be routed to the temporary secondary display.');
+    assert(scriptPdfPolicy.primary === true && scriptPdfPolicy.secondary === false, 'The legacy main ScriptPDF alias must route to the primary monitor before opening canonical management.');
+    assert(scriptPdfTestPolicy.primary === true && scriptPdfTestPolicy.secondary === false, 'The legacy ScriptPDF alias must route to the primary monitor before opening canonical management.');
+    assert(scriptPdfViewerPolicy.primary === true && scriptPdfViewerPolicy.secondary === false, 'The legacy ScriptPDF viewer alias must route to the primary monitor before opening canonical management.');
     assert(adminEntry && adminEntry.primary === true && adminEntry.secondary === false, 'Admin page must stay on the primary monitor.');
     assert(nestedPublicEntry && nestedPublicEntry.primary === true && nestedPublicEntry.secondary === false, 'Pages inside nested public folders must be discovered and assigned a default policy.');
     assert(newUserFormIsManaged === true, 'New local USERFORM HTML pages must be managed without registering their filenames.');

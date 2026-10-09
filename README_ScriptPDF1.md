@@ -6,12 +6,12 @@ La documentazione operativa aggiornata è mantenuta in [pdf/README.md](pdf/READM
 ## Pagine canoniche
 
 - `/pdf/pages/script-pdf-gestione.html` — gestione principale di `C:\VSC_SCRIPT_PDF`, con ricerca, filtri, anteprima e cronologia.
-- `/pdf/pages/script-pdf-prova.html` — ambiente di prova con le stesse funzioni.
-- `/USERFORM/pages/SCRIPT-PDF.html` — launcher USERFORM con miniature.
+- La griglia di `USERFORM/index.html` apre direttamente `/pdf/pages/script-pdf-gestione.html` per il form `SCRIPT-PDF`; non c'è una pagina intermedia.
+- La pagina di gestione resta sul monitor principale; il viewer del documento si apre temporaneamente sul monitor secondario, sopra DISPLAY.
 
 Gli URL storici `/ScriptPDF1.html`, `/Prova/ScriptPDF1.html` e
 `/pdf/viewers/ScriptPDF1.html` rimangono disponibili come redirect di
 compatibilità. I PDF sono serviti e aperti dal `unified-server.js` su porta
 5500; la directory può essere personalizzata tramite `VSC_SCRIPT_PDF_DIR`.
 
-ADMIN ed Electron elencano e gestiscono i due percorsi canonici sul monitor 1.
+ADMIN ed Electron elencano la pagina canonica sul monitor principale e il viewer PDF sul monitor secondario.
