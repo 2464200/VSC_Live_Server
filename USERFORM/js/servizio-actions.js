@@ -1,7 +1,9 @@
 (function () {
   const defaultBannerText = "la serata inizierà a breve";
+  const defaultTextStorageKey = "userform-servizio-default-text";
   const textStorageKey = "userform-servizio-input";
   const stopStorageKey = "userform-servizio-stop";
+  const publicationStateKey = "userform-servizio-publication-active";
   const lastLogoStorageKey = "userform-servizio-logo:last";
   const params = new URLSearchParams(window.location.search);
   const isDisplayMode = params.get("mode") === "display";
@@ -29,6 +31,39 @@
     } catch (error) {
       setStatus(`Impossibile salvare i dati: ${error.message}`, "error");
       return false;
+    }
+  }
+
+  function getPublicationState() {
+    try {
+      return JSON.parse(readStorage(publicationStateKey) || "null");
+    } catch {
+      return null;
+    }
+  }
+
+  function reflectPublicationState(active) {
+    const stopButton = document.getElementById("stop-text-btn");
+    if (!stopButton) return;
+    stopButton.classList.toggle("is-publishing", active);
+    stopButton.setAttribute("aria-pressed", String(active));
+  }
+
+  function setPublicationActive(active, state = {}) {
+    reflectPublicationState(active);
+    try {
+      if (active) {
+        window.localStorage.setItem(publicationStateKey, JSON.stringify({
+          active: true,
+          output: state.output,
+          session: state.session,
+          updatedAt: Date.now(),
+        }));
+      } else {
+        window.localStorage.removeItem(publicationStateKey);
+      }
+    } catch {
+      // The button still reflects the live state for this page instance.
     }
   }
 
@@ -97,6 +132,26 @@
         if (event.data?.type === "stop") closeDisplayWindow();
       });
     }
+
+    window.addEventListener("pagehide", () => {
+      const session = params.get("session");
+      if (!session) return;
+
+      const publication = getPublicationState();
+      if (publication?.session === session) {
+        try {
+          window.localStorage.removeItem(publicationStateKey);
+        } catch {
+          // A close notification is also broadcast to the operator window.
+        }
+      }
+
+      if (typeof BroadcastChannel !== "undefined") {
+        const channel = new BroadcastChannel("userform-servizio-control");
+        channel.postMessage({ type: "closed", session });
+        channel.close();
+      }
+    }, { once: true });
   }
 
   function initializeDisplay() {
@@ -113,22 +168,25 @@
   }
 
   async function openPublication(output, values = {}) {
-    const query = new URLSearchParams({ mode: "display", output, ...values });
+    const session = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const query = new URLSearchParams({ mode: "display", output, session, ...values });
     const route = `/USERFORM/pages/SERVIZIO.html?${query.toString()}`;
     const openSecondaryPage = window.electronAPI?.windowManager?.openSecondaryPage;
 
     if (typeof openSecondaryPage === "function") {
       const result = await openSecondaryPage({ path: route });
       if (!result?.success) throw new Error(result?.error || "Electron non ha aperto il monitor di pubblicazione.");
-      return;
+      return session;
     }
 
     const opened = window.open(route, "_blank", "width=1200,height=800,resizable=yes,scrollbars=no");
     if (!opened) throw new Error("Il browser ha bloccato l’apertura della finestra di pubblicazione.");
+    return session;
   }
 
   function initializeOperator() {
     const messageInput = document.getElementById("service-message-input");
+    const defaultMessageInput = document.getElementById("service-default-message");
     const imageInput = document.getElementById("service-image-input");
     const dropzone = document.getElementById("service-dropzone");
     const previewWrap = document.getElementById("service-preview-wrap");
@@ -138,14 +196,44 @@
     const clearLogoButton = document.getElementById("clear-logo-btn");
     let selectedLogo = null;
 
+    const currentPublication = getPublicationState();
+    reflectPublicationState(currentPublication?.active === true);
+
+    if (typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel("userform-servizio-control");
+      channel.addEventListener("message", (event) => {
+        if (event.data?.type !== "closed") return;
+        if (getPublicationState()?.session === event.data.session) setPublicationActive(false);
+      });
+    }
+
+    window.addEventListener("storage", (event) => {
+      if (event.key !== publicationStateKey) return;
+      let publication = null;
+      try {
+        publication = event.newValue ? JSON.parse(event.newValue) : null;
+      } catch {
+        publication = null;
+      }
+      reflectPublicationState(publication?.active === true);
+    });
+
     const savedText = readStorage(textStorageKey) || defaultBannerText;
     messageInput.value = savedText === defaultBannerText ? "" : savedText;
+    defaultMessageInput.value = readStorage(defaultTextStorageKey) || defaultBannerText;
+    defaultMessageInput.addEventListener("input", () => {
+      writeStorage(defaultTextStorageKey, defaultMessageInput.value.trim() || defaultBannerText);
+    });
 
     async function publishText() {
-      const text = messageInput.value.trim() || defaultBannerText;
-      writeStorage(textStorageKey, text);
+      const oneTimeText = messageInput.value.trim();
+      const text = oneTimeText
+        || defaultMessageInput.value.trim()
+        || defaultBannerText;
+      writeStorage(textStorageKey, oneTimeText);
       try {
-        await openPublication("text", { text });
+        const session = await openPublication("text", { text });
+        setPublicationActive(true, { output: "text", session });
         setStatus("Messaggio pubblicato sul monitor secondario.", "success");
       } catch (error) {
         setStatus(error.message, "error");
@@ -198,7 +286,8 @@
       if (!writeStorage(lastLogoStorageKey, JSON.stringify(payload))) return;
 
       try {
-        await openPublication("logo", { id });
+        const session = await openPublication("logo", { id });
+        setPublicationActive(true, { output: "logo", session });
         setStatus("Immagine pubblicata sul monitor secondario.", "success");
       } catch (error) {
         setStatus(error.message, "error");
@@ -207,6 +296,7 @@
 
     document.getElementById("publish-text-btn").addEventListener("click", () => void publishText());
     document.getElementById("stop-text-btn").addEventListener("click", () => {
+      setPublicationActive(false);
       messageInput.value = "";
       writeStorage(textStorageKey, defaultBannerText);
       writeStorage(stopStorageKey, JSON.stringify({ type: "stop", timestamp: Date.now() }));

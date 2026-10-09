@@ -45,7 +45,7 @@
       min-height: calc(100vh - 2 * clamp(12px, 2vw, 26px));
       margin: 0 auto;
       display: grid;
-      grid-template-rows: auto auto 1fr auto;
+      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
       gap: clamp(14px, 2vh, 22px);
     }
 
@@ -186,9 +186,28 @@
     }
 
     .service-text-input:focus,
+    .service-default-input:focus,
     .service-file-input:focus-visible {
       outline: 2px solid var(--service-accent-soft);
       outline-offset: 2px;
+    }
+
+    .service-default-group {
+      display: grid;
+      gap: 7px;
+      margin-top: 2px;
+    }
+
+    .service-default-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid #5b5045;
+      border-radius: 5px;
+      background: #171615;
+      color: var(--service-text);
+      font: inherit;
+      font-size: 0.94rem;
     }
 
     .service-hint {
@@ -222,6 +241,47 @@
 
     .service-actions .btn-danger:hover {
       background: #a83329;
+    }
+
+    .service-stop-row {
+      display: flex;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .service-stop-button {
+      width: min(100%, 380px);
+      min-height: 68px;
+      padding: 15px 24px;
+      border: 2px solid #e15348;
+      border-radius: 7px;
+      background: #8e2b25;
+      color: #fff;
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      font-weight: 900;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    .service-stop-button:hover {
+      background: #a83329;
+      box-shadow: 0 5px 18px rgba(193, 52, 43, 0.45);
+    }
+
+    .service-stop-button.is-publishing {
+      animation: publicationStopPulse 900ms ease-in-out infinite;
+    }
+
+    @keyframes publicationStopPulse {
+      0%, 100% {
+        background: #9b2e27;
+        box-shadow: 0 0 10px rgba(225, 76, 64, 0.36);
+      }
+      50% {
+        background: #e15348;
+        box-shadow: 0 0 25px rgba(255, 83, 70, 0.76);
+      }
     }
 
     .service-dropzone {
@@ -308,6 +368,14 @@
 
     .service-status[data-state="success"] {
       color: #9ad8a5;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .service-stop-button.is-publishing {
+        animation: none;
+        background: #c0392b;
+        box-shadow: 0 0 18px rgba(255, 83, 70, 0.58);
+      }
     }
 
     .service-footer {
@@ -458,9 +526,12 @@
         <label class="service-label" for="service-message-input">Testo da pubblicare</label>
         <textarea id="service-message-input" class="service-text-input" maxlength="240" placeholder="La serata inizierà a breve"></textarea>
         <p class="service-hint">Premi Ctrl+Invio per pubblicare. Lascia vuoto per mostrare il messaggio predefinito.</p>
+        <div class="service-default-group">
+          <label class="service-label" for="service-default-message">Testo predefinito (salvato automaticamente)</label>
+          <input id="service-default-message" class="service-default-input" type="text" maxlength="240" autocomplete="off" />
+        </div>
         <div class="service-actions">
           <button id="publish-text-btn" class="btn" type="button">Pubblica testo</button>
-          <button id="stop-text-btn" class="btn btn-danger" type="button">Ferma pubblicazione</button>
         </div>
       </section>
 
@@ -490,6 +561,10 @@
         </div>
       </section>
     </main>
+
+    <div class="service-stop-row">
+      <button id="stop-text-btn" class="btn btn-danger service-stop-button" type="button" aria-pressed="false">FERMA PUBBLICAZIONE</button>
+    </div>
 
     <p id="service-status" class="service-status" role="status" aria-live="polite">Pronto.</p>
 

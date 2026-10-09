@@ -77,14 +77,32 @@ async function run() {
   assert.equal(operator.document.getElementById('prev-form').getAttribute('href'), 'QRCODE.html');
   assert.equal(operator.document.getElementById('next-form').getAttribute('href'), 'PAGINA03.html');
 
-  operator.document.getElementById('service-message-input').value = 'Benvenuti alla serata';
+  const defaultMessageInput = operator.document.getElementById('service-default-message');
+  defaultMessageInput.value = 'Messaggio predefinito personalizzato';
+  defaultMessageInput.dispatchEvent(new operator.Event('input'));
+  assert.equal(operator.localStorage.getItem('userform-servizio-default-text'), 'Messaggio predefinito personalizzato');
+
+  operator.document.getElementById('service-message-input').value = '';
   operator.document.getElementById('publish-text-btn').click();
   await settle();
   const textRoute = new URL(routes[0], 'http://localhost:5500');
   assert.equal(textRoute.pathname, '/USERFORM/pages/SERVIZIO.html');
   assert.equal(textRoute.searchParams.get('mode'), 'display');
   assert.equal(textRoute.searchParams.get('output'), 'text');
-  assert.equal(textRoute.searchParams.get('text'), 'Benvenuti alla serata');
+  assert.equal(textRoute.searchParams.get('text'), 'Messaggio predefinito personalizzato');
+  assert.equal(operator.localStorage.getItem('userform-servizio-input'), '', 'A default publication must not replace the one-time message value.');
+
+  operator.document.getElementById('service-message-input').value = 'Messaggio valido solo questa volta';
+  operator.document.getElementById('publish-text-btn').click();
+  await settle();
+  const overrideRoute = new URL(routes[1], 'http://localhost:5500');
+  assert.equal(overrideRoute.searchParams.get('text'), 'Messaggio valido solo questa volta');
+
+  const reloadedDom = createPage('http://localhost:5500/USERFORM/pages/SERVIZIO.html');
+  reloadedDom.window.localStorage.setItem('userform-servizio-default-text', operator.localStorage.getItem('userform-servizio-default-text'));
+  reloadedDom.window.eval(actions);
+  assert.equal(reloadedDom.window.document.getElementById('service-default-message').value, 'Messaggio predefinito personalizzato');
+  reloadedDom.window.close();
 
   const imageInput = operator.document.getElementById('service-image-input');
   const imageFile = new operator.File(['test-image'], 'logo.png', { type: 'image/png' });
@@ -94,7 +112,7 @@ async function run() {
   assert.equal(operator.document.getElementById('publish-logo-btn').disabled, false);
   operator.document.getElementById('publish-logo-btn').click();
   await settle();
-  const logoRoute = new URL(routes[1], 'http://localhost:5500');
+  const logoRoute = new URL(routes[2], 'http://localhost:5500');
   const logoId = logoRoute.searchParams.get('id');
   assert.equal(logoRoute.pathname, '/USERFORM/pages/SERVIZIO.html');
   assert.equal(logoRoute.searchParams.get('mode'), 'display');
