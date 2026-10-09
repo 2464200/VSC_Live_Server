@@ -332,6 +332,11 @@
   text-overflow: ellipsis;
 }
 
+.search-mode-btn.active {
+  outline: 2px solid var(--success-green);
+  outline-offset: 1px;
+}
+
 .search-webcam-signal-slot {
   margin-left: auto;
   flex: 0 0 auto;
