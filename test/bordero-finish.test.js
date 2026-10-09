@@ -630,17 +630,38 @@ if (nextPageDisplayedBrano !== null) {
 const hiddenTracksScript = fs.readFileSync('Bordero/pages/brani-nascosti.js', 'utf8');
 vm.runInContext(hiddenTracksScript, context);
 const hiddenTracksPage = vm.runInContext('Object.create(BraniNascostiPage.prototype)', context);
-const restoredTrack = { id: '600', titolo: 'Ordinary Track', flag: 'X', timestamp: 'old' };
+const restoredTrack = { id: '600', titolo: 'Ordinary Track', flag: '' };
+const executedDuplicateTrack = { id: '602', titolo: ' ordinary   track ', flag: 'X', timestamp: 'old' };
 const hiddenVideoOnlyTrack = { id: '599', titolo: 'VIDEO PROMO MONSTER 2023', flag: '' };
 const existingNextTrack = { id: '601', titolo: 'Already Selected Track', next_selected: true };
-hiddenTracksPage.brani = [restoredTrack, hiddenVideoOnlyTrack, existingNextTrack];
+hiddenTracksPage.brani = [restoredTrack, executedDuplicateTrack, hiddenVideoOnlyTrack, existingNextTrack];
 hiddenTracksPage.serata = {};
-hiddenTracksPage.render = () => {};
+hiddenTracksPage.hidden = [restoredTrack];
+let restoreButtonClick = null;
+const hiddenTableBody = createElement();
+hiddenTableBody.querySelectorAll = (selector) => selector === '.restore-availability-button'
+  ? [{
+    dataset: { branoId: '600' },
+    addEventListener(eventName, handler) {
+      if (eventName === 'click') restoreButtonClick = handler;
+    }
+  }]
+  : [];
+elements['hidden-tbody'] = hiddenTableBody;
+['info-dj', 'info-data', 'info-luogo', 'info-evento', 'stat-hidden', 'hidden-count', 'stat-titles', 'empty-hidden']
+  .forEach((id) => { elements[id] = createElement(); });
 context.Storage.clear();
 context.Storage.set('bordero_next_coreo_selection', { id: '601', title: 'Already Selected Track', source: 'next-checkbox' });
-hiddenTracksPage.restoreAvailability('600');
+hiddenTracksPage.render();
+if (!hiddenTableBody.innerHTML.includes('restore-availability-button') || !restoreButtonClick) {
+  throw new Error('Hidden-track restore button was not rendered with a click handler');
+}
+restoreButtonClick();
 if (context.Storage.get('bordero_next_coreo_selection', null)?.id !== '601' || restoredTrack.next_selected) {
   throw new Error('Restoring a hidden track implicitly selected NEXT');
+}
+if (executedDuplicateTrack.flag || executedDuplicateTrack.timestamp) {
+  throw new Error('Restoring a hidden track did not clear the executed duplicate title');
 }
 hiddenTracksPage.restoreAvailability('599');
 if (context.Storage.get('bordero_next_coreo_selection', null)?.id !== '601' || hiddenVideoOnlyTrack.next_selected) {

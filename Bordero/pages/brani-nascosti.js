@@ -75,30 +75,53 @@ class BraniNascostiPage {
     empty.style.display = this.hidden.length ? 'none' : 'block';
     tbody.innerHTML = this.hidden.map((brano, index) => {
       const videoclip = brano.videoclip ? `<a class="video-link" href="videoclip.html?branoId=${encodeURIComponent(String(brano.id))}">🎬</a>` : '-';
-      return `<tr><td>${index + 1}</td><td>${this.escape(brano.id)}</td><td>${this.escape(this.titleOf(brano))}</td><td>${this.escape(brano.autore || '--')}</td><td>${this.escape(brano.coreografo || '--')}</td><td class="status-cell"><label class="action-inline"><input type="checkbox" class="checkbox-restore" data-brano-id="${this.escape(brano.id)}" /> Ripristina disponibilità</label></td><td class="video-cell">${videoclip}</td></tr>`;
+        return `<tr><td>${index + 1}</td><td>${this.escape(brano.id)}</td><td>${this.escape(this.titleOf(brano))}</td><td>${this.escape(brano.autore || '--')}</td><td>${this.escape(brano.coreografo || '--')}</td><td class="status-cell"><button type="button" class="restore-availability-button" data-brano-id="${this.escape(brano.id)}">Ripristina disponibilità</button></td><td class="video-cell">${videoclip}</td></tr>`;
     }).join('');
-    tbody.querySelectorAll('.checkbox-restore').forEach((checkbox) => checkbox.addEventListener('change', () => this.restoreAvailability(checkbox.dataset.branoId)));
+      tbody.querySelectorAll('.restore-availability-button').forEach((button) => button.addEventListener('click', () => this.restoreAvailability(button.dataset.branoId)));
   }
 
   restoreAvailability(id) {
     const brano = this.brani.find((item) => String(item.id) === String(id));
+      if (!brano) return;
     if (window.isVideoOnlyBrano?.(brano)) {
       Toast.warning('Questa voce si esegue solo dall’icona VideoClip e non puo essere selezionata in NEXT.');
       this.render();
       return;
     }
-    if (!brano || this.isExecuted(brano)) return;
-    brano.next_selected = false;
-    brano.flag = '';
-    brano.timestamp = '';
-    this.persist();
+
+      const normalize = (value) => String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+      const title = normalize(this.titleOf(brano));
+      const relatedBrani = title
+        ? this.brani.filter((item) => normalize(this.titleOf(item)) === title)
+        : [brano];
+      const restoredIds = new Set([String(brano.id)]);
+      relatedBrani.filter((item) => this.isExecuted(item)).forEach((item) => {
+        restoredIds.add(String(item.id));
+      });
+
+      relatedBrani.filter((item) => restoredIds.has(String(item.id))).forEach((item) => {
+        item.flag = '';
+        item.eseguito = false;
+        item.executed = false;
+        item.timestamp = '';
+        item.next_selected = false;
+      });
+
+      const nextSelection = Storage.get('bordero_next_coreo_selection', null);
+      if (restoredIds.has(String(nextSelection?.id || ''))) {
+        Storage.remove('bordero_next_coreo_selection');
+        window.dispatchEvent(new Event('bordero:next-coreo-updated'));
+      }
+
+      this.persist([...restoredIds]);
     Toast.success(`Brano disponibile: selezionalo in NEXT da Bordero (${this.titleOf(brano)})`);
     window.location.href = 'bordero.html';
   }
 
-  persist() {
-    dataLoader.saveCurrentSerata(this.serata, this.brani);
+    persist(allowUnmarkIds = []) {
+      dataLoader.saveCurrentSerata(this.serata, this.brani, { allowUnmarkIds });
     Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.brani);
+      Storage.set('BORDERO_BRANI_DATA', this.brani);
     window.dispatchEvent(new Event('bordero:serata-updated'));
   }
 
