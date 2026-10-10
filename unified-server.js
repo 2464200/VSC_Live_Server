@@ -75,7 +75,6 @@ const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([
     '.aiff', '.aac', '.ogg', '.wma', '.opus', '.alac', '.mp2', '.mpga', '.mpeg', '.mpg',
     '.mid', '.midi', '.ape'
 ]);
-const MUSIC_ARCHIVE_CACHE_TTL_MS = 30 * 1000;
 
 function normalizeVideoClipPath(candidate = '') {
     const value = String(candidate || '').trim();
@@ -576,10 +575,11 @@ function refreshMusicArchiveIndex(force = false) {
         };
     }
 
+    // L'indice viene ricostruito solo all'avvio del server o su richiesta esplicita (force).
     const cacheIsValid = !force
         && musicArchiveIndexCache.rootPath === rootPath
-        && Array.isArray(musicArchiveIndexCache.files)
-        && (now - musicArchiveIndexCache.scannedAt) < MUSIC_ARCHIVE_CACHE_TTL_MS;
+        && musicArchiveIndexCache.scannedAt > 0
+        && Array.isArray(musicArchiveIndexCache.files);
 
     if (cacheIsValid) {
         return {
