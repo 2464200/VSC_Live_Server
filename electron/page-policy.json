@@ -17,7 +17,7 @@
   },
   "/bordero/pages/brani-eseguiti.html": {
     "primary": true,
-    "secondary": false
+    "secondary": true
   },
   "/bordero/pages/brani-nascosti.html": {
     "primary": true,
@@ -92,6 +92,54 @@
     "secondary": false
   },
   "/eventi/prenotati.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/admin.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/coreografie-aggiuntive.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/dj-manager.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/documentation.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/eventi.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/non-spuntati.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/prenotati.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/qr.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/spuntati.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/statistiche-dj.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/tutti.html": {
+    "primary": true,
+    "secondary": false
+  },
+  "/eventi/public/visualizer.html": {
     "primary": true,
     "secondary": false
   },
@@ -296,10 +344,6 @@
     "secondary": false
   },
   "/servizio.html": {
-    "primary": true,
-    "secondary": false
-  },
-  "/eventi/public/eventi.html": {
     "primary": true,
     "secondary": false
   },

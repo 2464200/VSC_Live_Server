@@ -630,7 +630,7 @@ if (nextPageDisplayedBrano !== null) {
 const hiddenTracksScript = fs.readFileSync('Bordero/pages/brani-nascosti.js', 'utf8');
 vm.runInContext(hiddenTracksScript, context);
 const hiddenTracksPage = vm.runInContext('Object.create(BraniNascostiPage.prototype)', context);
-const restoredTrack = { id: '600', titolo: 'Ordinary Track', flag: '' };
+const restoredTrack = { id: '600', titolo: 'Ordinary Track', brano: 'Song Name', flag: '' };
 const executedDuplicateTrack = { id: '602', titolo: ' ordinary   track ', flag: 'X', timestamp: 'old' };
 const hiddenVideoOnlyTrack = { id: '599', titolo: 'VIDEO PROMO MONSTER 2023', flag: '' };
 const existingNextTrack = { id: '601', titolo: 'Already Selected Track', next_selected: true };
@@ -655,6 +655,9 @@ context.Storage.set('bordero_next_coreo_selection', { id: '601', title: 'Already
 hiddenTracksPage.render();
 if (!hiddenTableBody.innerHTML.includes('restore-availability-button') || !restoreButtonClick) {
   throw new Error('Hidden-track restore button was not rendered with a click handler');
+}
+if (!hiddenTableBody.innerHTML.includes('<td>Song Name</td>')) {
+  throw new Error('Hidden-track song name was not rendered in its own table column');
 }
 restoreButtonClick();
 if (context.Storage.get('bordero_next_coreo_selection', null)?.id !== '601' || restoredTrack.next_selected) {

@@ -75,7 +75,7 @@ class BraniNascostiPage {
     empty.style.display = this.hidden.length ? 'none' : 'block';
     tbody.innerHTML = this.hidden.map((brano, index) => {
       const videoclip = brano.videoclip ? `<a class="video-link" href="videoclip.html?branoId=${encodeURIComponent(String(brano.id))}">🎬</a>` : '-';
-        return `<tr><td>${index + 1}</td><td>${this.escape(brano.id)}</td><td>${this.escape(this.titleOf(brano))}</td><td>${this.escape(brano.autore || '--')}</td><td>${this.escape(brano.coreografo || '--')}</td><td class="status-cell"><button type="button" class="restore-availability-button" data-brano-id="${this.escape(brano.id)}">Ripristina disponibilità</button></td><td class="video-cell">${videoclip}</td></tr>`;
+        return `<tr><td>${index + 1}</td><td>${this.escape(brano.id)}</td><td>${this.escape(this.titleOf(brano))}</td><td>${this.escape(brano.brano || '--')}</td><td>${this.escape(brano.autore || '--')}</td><td>${this.escape(brano.coreografo || '--')}</td><td class="status-cell"><button type="button" class="restore-availability-button" data-brano-id="${this.escape(brano.id)}">Ripristina disponibilità</button></td><td class="video-cell">${videoclip}</td></tr>`;
     }).join('');
       tbody.querySelectorAll('.restore-availability-button').forEach((button) => button.addEventListener('click', () => this.restoreAvailability(button.dataset.branoId)));
   }
