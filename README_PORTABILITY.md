@@ -37,6 +37,19 @@ I setup multi-server storici (`server-manager.js`, `simple-server.js`, `pdf-serv
 4. Eseguire `START-UNATTENDED.bat` oppure `npm run start:portable`
 5. Aprire `http://localhost:5500`
 
+## Aggiornamento ambiente Windows
+
+In VS Code, eseguire il task **Windows: Update Dev Environment** per installare o
+aggiornare gli strumenti di sviluppo richiesti dal repository tramite `winget`,
+aggiornare le estensioni VS Code usate dal progetto, ripristinare i pacchetti
+npm dai rispettivi `package-lock.json` e aggiornare le dipendenze Python in
+`.venv` dai file `requirements-dev.txt` e `LedDisplay/requirements.txt`.
+
+Il task non aggiorna indiscriminatamente tutti i programmi del PC. Gli strumenti
+Office con licenza non possono essere installati automaticamente: Excel
+registrato come componente COM è richiesto dagli script di automazione VBA/Excel.
+`-CheckOnly` esegue i controlli senza installare o aggiornare componenti.
+
 ## Riferimenti portabili
 
 Preferire percorsi relativi o variabili ambiente rispetto a path Windows fissi come:
