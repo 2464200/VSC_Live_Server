@@ -1304,6 +1304,16 @@ function startElectronControlServer() {
         return;
       }
 
+      if (req.method === 'POST' && requestUrl.pathname === '/video-player/pause') {
+        if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
+          sendElectronControlJson(res, 404, { success: false, error: 'Video player window not available' });
+          return;
+        }
+        videoPlayerWindow.webContents.send('bordero-video-player:pause');
+        sendElectronControlJson(res, 200, { success: true });
+        return;
+      }
+
       sendElectronControlJson(res, 404, { success: false, error: 'Not found' });
     } catch (error) {
       sendElectronControlJson(res, 500, { success: false, error: error?.message || String(error) });

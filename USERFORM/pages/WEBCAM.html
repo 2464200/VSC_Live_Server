@@ -182,7 +182,8 @@
     }
 
     .p05-recordings-list {
-      height: calc(100% - 22px);
+      height: 100%;
+      min-height: 0;
       border: 1px solid #b1b1b1;
       background: #fff;
       overflow: auto;
@@ -210,6 +211,45 @@
       margin: 3px 0 0;
       font-size: 11px;
       color: #4b4b4b;
+    }
+
+    .p05-main-box {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      gap: 5px;
+    }
+
+    .p05-main-box .caption {
+      position: static;
+      width: auto;
+      transform: none;
+      font-size: clamp(15px, 1.7vw, 22px);
+      line-height: 1.15;
+    }
+
+    .p05-playback-controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .p05-playback-controls button {
+      min-width: 0;
+      min-height: 34px;
+      padding: 4px;
+      border: 1px solid #ff7f00;
+      border-radius: 4px;
+      background: #302820;
+      color: #ffc477;
+      font-size: clamp(9px, 0.8vw, 12px);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .p05-playback-controls #btn-delete-recording-05 {
+      border-color: #a83329;
+      background: #602c28;
+      color: #ffe3df;
     }
 
     .p05-webcam-image {
@@ -934,8 +974,18 @@
     }
 
     .p05-recordings-list {
-      height: calc(100% - 22px);
+      height: auto;
       min-height: 0;
+    }
+
+    .p05-playback-controls button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 560px) {
+      .p05-playback-controls { gap: 3px; }
+      .p05-playback-controls button { min-height: 28px; padding: 2px; font-size: 0.52rem; }
     }
 
     .p05-preview-row {
@@ -1140,6 +1190,12 @@
       <div class="caption">RIPRODUCI REGISTRAZIONE</div>
       <ul id="recordings-play-list-05" class="p05-recordings-list" aria-label="Elenco registrazioni"></ul>
       <p class="p05-recordings-hint">Doppio click su un file per riprodurlo sul monitor secondario.</p>
+      <div class="p05-playback-controls" aria-label="Controlli riproduzione registrazione">
+        <button id="btn-play-recording-05" type="button">PLAY</button>
+        <button id="btn-pause-recording-05" type="button">PAUSA</button>
+        <button id="btn-stop-recording-05" type="button">STOP</button>
+        <button id="btn-delete-recording-05" type="button">CANCELLA</button>
+      </div>
     </section>
 
     <div class="p05-preview-row">

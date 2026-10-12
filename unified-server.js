@@ -3964,8 +3964,8 @@ app.get('/api/userform/pagina05/cameras', async (req, res) => {
         const cameras = loadUserformCameraProfiles();
         const defaultCameraName = sanitizeCsvValue(systemCamera.detectedName);
         const csvDefault = cameras.find((item) => item.isDefault)?.name || '';
-        const resolvedDefault = csvDefault
-            || (cameras.some((item) => item.name === defaultCameraName) ? defaultCameraName : '')
+        const resolvedDefault = (cameras.some((item) => item.name === defaultCameraName) ? defaultCameraName : '')
+            || csvDefault
             || (cameras[0]?.name || '');
 
         return res.json({
@@ -4090,6 +4090,26 @@ app.get('/api/userform/pagina05/files', (req, res) => {
         });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error), mkvFiles: [], mp4Files: [], allFiles: [] });
+    }
+});
+
+app.delete('/api/userform/pagina05/files/:name', (req, res) => {
+    try {
+        const fileName = String(req.params.name || '');
+        if (!fileName || path.basename(fileName) !== fileName || !['.mkv', '.mp4'].includes(path.extname(fileName).toLowerCase())) {
+            return res.status(400).json({ ok: false, error: 'Nome file registrazione non valido' });
+        }
+        const filePath = path.resolve(USERFORM_RECORDINGS_DIR, fileName);
+        if (path.dirname(filePath) !== path.resolve(USERFORM_RECORDINGS_DIR)) {
+            return res.status(400).json({ ok: false, error: 'Percorso registrazione non valido' });
+        }
+        if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+            return res.status(404).json({ ok: false, error: 'Registrazione non trovata' });
+        }
+        fs.unlinkSync(filePath);
+        return res.json({ ok: true, deleted: fileName });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
 });
 
@@ -4235,6 +4255,15 @@ app.post('/api/userform/pagina05/electron/player/play', async (req, res) => {
         }
 
         const result = await callElectronControl('/video-player/play', { url: videoUrl });
+        return res.json({ ok: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
+app.post('/api/userform/pagina05/electron/player/pause', async (_req, res) => {
+    try {
+        const result = await callElectronControl('/video-player/pause');
         return res.json({ ok: true, ...result });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });

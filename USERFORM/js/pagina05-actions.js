@@ -2,6 +2,10 @@
   const cameraNode = document.getElementById("camera-name-05");
   const recListNode = document.getElementById("recording-list-05");
   const playbackListNode = document.getElementById("recordings-play-list-05");
+  const playbackPlayButton = document.getElementById("btn-play-recording-05");
+  const playbackPauseButton = document.getElementById("btn-pause-recording-05");
+  const playbackStopButton = document.getElementById("btn-stop-recording-05");
+  const playbackDeleteButton = document.getElementById("btn-delete-recording-05");
   const webcamShellNode = document.getElementById("webcam-shell-05");
   const webcamSlideNode = document.getElementById("webcam-slide-05");
   const webcamPreviewNode = document.getElementById("webcam-preview-05");
@@ -576,6 +580,9 @@
         recListNode.value = selectedRecordingName;
       }
     }
+    [playbackPlayButton, playbackDeleteButton].forEach((button) => {
+      if (button) button.disabled = !selectedRecordingName;
+    });
   };
 
   const playRecordingOnSecondary = async (fileName) => {
@@ -606,6 +613,10 @@
 
     playbackListNode.innerHTML = "";
     if (!files.length) {
+      selectedRecordingName = "";
+      [playbackPlayButton, playbackDeleteButton].forEach((button) => {
+        if (button) button.disabled = true;
+      });
       const li = document.createElement("li");
       li.textContent = "Nessuna registrazione disponibile";
       li.style.cursor = "default";
@@ -669,6 +680,56 @@
     renderPlaybackList(availableRecordings);
     return files;
   };
+
+  playbackPlayButton?.addEventListener("click", async () => {
+    if (!selectedRecordingName) return setStatus("Seleziona prima una registrazione.");
+    try {
+      await playRecordingOnSecondary(selectedRecordingName);
+      await refreshSecondaryPlayerState();
+      setStatus(`Riproduzione avviata: ${selectedRecordingName}`);
+    } catch (error) {
+      setStatus(`Errore riproduzione: ${error.message}`);
+    }
+  });
+
+  playbackPauseButton?.addEventListener("click", async () => {
+    try {
+      const result = isElectronVideoPlayerAvailable()
+        ? await window.electronAPI.videoPlayer.pause()
+        : await fetchJson("/api/userform/pagina05/electron/player/pause", { method: "POST", body: "{}" });
+      if (result?.success === false || result?.ok === false) throw new Error(result.error || "Pausa non riuscita");
+      setStatus("Pausa/ripresa richiesta al player sul monitor secondario.");
+    } catch (error) {
+      setStatus(`Errore pausa: ${error.message}`);
+    }
+  });
+
+  playbackStopButton?.addEventListener("click", async () => {
+    try {
+      const result = isElectronVideoPlayerAvailable()
+        ? await window.electronAPI.videoPlayer.stop()
+        : await fetchJson("/api/userform/pagina05/electron/live/stop", { method: "POST", body: "{}" });
+      if (result?.success === false || result?.ok === false) throw new Error(result.error || "Stop non riuscito");
+      await refreshSecondaryPlayerState();
+      setStatus("Riproduzione fermata.");
+    } catch (error) {
+      setStatus(`Errore stop: ${error.message}`);
+    }
+  });
+
+  playbackDeleteButton?.addEventListener("click", async () => {
+    if (!selectedRecordingName) return setStatus("Seleziona prima una registrazione da cancellare.");
+    const fileName = selectedRecordingName;
+    if (!window.confirm(`Cancellare definitivamente la registrazione "${fileName}"?`)) return;
+    try {
+      await fetchJson(`/api/userform/pagina05/files/${encodeURIComponent(fileName)}`, { method: "DELETE" });
+      selectedRecordingName = "";
+      await refreshRecList();
+      setStatus(`Registrazione cancellata: ${fileName}`);
+    } catch (error) {
+      setStatus(`Errore cancellazione: ${error.message}`);
+    }
+  });
 
   const loadCameraProfiles = async () => {
     let cameras = [];
