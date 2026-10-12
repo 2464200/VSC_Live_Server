@@ -72,7 +72,7 @@ UNIFIED_PORT=5500
 VSC_SCRIPT_PDF_DIR=C:\VSC_SCRIPT_PDF
 VSC_VIDEOCLIP_PATH=../VSC_VIDEOCLIP
 VSC_SIAE_DIR=C:\VSC_SIAE
-USERFORM_RECORDINGS_DIR=./exports/recordings
+USERFORM_RECORDINGS_DIR=../VSC_WEBCAM
 ```
 La directory PDF predefinita su Windows è `C:\VSC_SCRIPT_PDF`; modifica `VSC_SCRIPT_PDF_DIR` solo se vuoi usare un archivio diverso.
 

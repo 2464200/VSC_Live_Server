@@ -243,6 +243,38 @@
   min-width: 0;
 }
 
+.video-transport-controls {
+  position: fixed;
+  z-index: 1000;
+  right: 0;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 8px;
+  width: min(560px, calc(100vw - 24px));
+  margin: 0 auto;
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: rgba(25, 25, 25, 0.96);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+.video-transport-controls .btn {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  padding: 10px 8px;
+  font-size: 0.95em;
+}
+
+.container {
+  padding-bottom: 92px;
+}
+
 #btn-playback-backend {
   grid-column: 1 / span 2;
   grid-row: 3;
@@ -288,29 +320,53 @@
 #btn-play.is-idle:focus,
 #btn-play.is-idle:focus-visible {
   animation: play-idle-pulse 1.35s ease-in-out infinite;
-  box-shadow: 0 0 0 0 rgba(255, 179, 71, 0.4);
+  box-shadow: 0 0 0 0 rgba(39, 190, 92, 0.4);
   will-change: transform, box-shadow, filter, background-color;
 }
 
 @keyframes play-idle-pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 179, 71, 0.2);
+    box-shadow: 0 0 0 0 rgba(39, 190, 92, 0.2);
     filter: brightness(1);
-    background: linear-gradient(135deg, #ff9f2f, #ff7f00);
+    background: linear-gradient(135deg, #43d47b, #159447);
   }
   50% {
     transform: scale(1.025);
-    box-shadow: 0 0 0 7px rgba(255, 179, 71, 0.1), 0 0 14px rgba(255, 179, 71, 0.24);
+    box-shadow: 0 0 0 7px rgba(39, 190, 92, 0.1), 0 0 14px rgba(39, 190, 92, 0.24);
     filter: brightness(1.12);
-    background: linear-gradient(135deg, #ffb54b, #ff9314);
+    background: linear-gradient(135deg, #6ce99a, #24b95b);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 179, 71, 0.2);
+    box-shadow: 0 0 0 0 rgba(39, 190, 92, 0.2);
     filter: brightness(1);
-    background: linear-gradient(135deg, #ff9f2f, #ff7f00);
+    background: linear-gradient(135deg, #43d47b, #159447);
   }
+}
+
+.video-transport-controls #btn-play,
+.video-transport-controls #btn-play:hover,
+.video-transport-controls #btn-play:focus-visible {
+  border-color: #12803d;
+  background: #22bd5b;
+  color: #102016;
+}
+
+.video-transport-controls #btn-pause,
+.video-transport-controls #btn-pause:hover,
+.video-transport-controls #btn-pause:focus-visible {
+  border-color: #d97800;
+  background: #ff9f1c;
+  color: #241707;
+}
+
+.video-transport-controls #btn-stop,
+.video-transport-controls #btn-stop:hover,
+.video-transport-controls #btn-stop:focus-visible {
+  border-color: #b71c1c;
+  background: #e53935;
+  color: #fff;
 }
 
 .btn-filter-toggle {

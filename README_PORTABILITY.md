@@ -56,6 +56,6 @@ Preferire percorsi relativi o variabili ambiente rispetto a path Windows fissi c
 
 - `C:\VSC_Live_Server\...`
 - `C:\VSC_SIAE\...` (cartella standard per gli export SIAE)
-- `C:\VSC_WEBCAM\...`
+- `VSC_WEBCAM\...` (cartella sorella del progetto, creata automaticamente e risolta relativamente alla cartella del progetto)
 
 Le configurazioni ora sono gestite in `config/config.js` e possono essere override con variabili d'ambiente.

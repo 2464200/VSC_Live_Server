@@ -4093,9 +4093,15 @@ app.get('/api/userform/pagina05/files', (req, res) => {
     }
 });
 
-app.get('/api/userform/pagina05/state', (req, res) => {
+app.get('/api/userform/pagina05/state', async (req, res) => {
     try {
-        const recording = getUserformRecordingState();
+        let recording = getUserformRecordingState();
+        try {
+            const electronState = await callElectronControl('/webcam-recorder/state');
+            recording = electronState?.recording || recording;
+        } catch (error) {
+            recording.error = error?.message || String(error);
+        }
         const liveVlc = getUserformLiveVlcState();
         return res.json({
             ok: true,
@@ -4112,87 +4118,20 @@ app.get('/api/userform/pagina05/state', (req, res) => {
 
 app.post('/api/userform/pagina05/recording/start', async (req, res) => {
     try {
-        const currentState = getUserformRecordingState();
-        if (currentState.recording) {
-            return res.status(409).json({ ok: false, error: 'Recording already active', state: currentState });
+        const result = await callElectronControl('/webcam-recorder/start', req.body || {});
+        try {
+            updateUserformCameraProfileUsage(sanitizeCsvValue(req.body?.cameraName), {
+                codec: sanitizeCsvValue(req.body?.codec),
+                size: sanitizeCsvValue(req.body?.size),
+                fps: sanitizeCsvValue(req.body?.fps),
+                mode: 'recording',
+                status: 'started',
+                incrementUsage: true
+            });
+        } catch (profileError) {
+            console.warn('[PAGINA05] Impossibile aggiornare statistiche webcam:', profileError?.message || profileError);
         }
-
-        const ffmpegPath = resolveFfmpegExecutable();
-        if (!ffmpegPath) {
-            return res.status(500).json({ ok: false, error: 'FFmpeg non trovato. Configura FFMPEG_PATH o installa in C:/FFMPEG/bin/ffmpeg.exe' });
-        }
-
-        const cameraName = sanitizeCsvValue(req.body?.cameraName);
-        if (!cameraName) {
-            return res.status(400).json({ ok: false, error: 'cameraName obbligatorio' });
-        }
-
-        const cameraProfiles = loadUserformCameraProfiles();
-        const profile = cameraProfiles.find((item) => item.name === cameraName) || {
-            name: cameraName,
-            codec: sanitizeCsvValue(req.body?.codec),
-            size: sanitizeCsvValue(req.body?.size) || '640x480',
-            fps: sanitizeCsvValue(req.body?.fps) || '30'
-        };
-
-        const recDir = ensureUserformRecordingDir();
-        const now = new Date();
-        const isoCompact = now.toISOString().replace(/[-:T]/g, '').replace(/\..+/, '');
-        const timestamp = `${isoCompact}${String(now.getMilliseconds()).padStart(3, '0')}`;
-        const requestedMode = sanitizeCsvValue(req.body?.recordingMode || process.env.USERFORM_RECORDING_MODE || 'direct-mp4');
-        const plan = buildUserformRecordingPlan({
-            recDir,
-            timestamp,
-            recordingMode: requestedMode
-        });
-
-        const ffArgs = buildCameraCaptureArgs(profile, plan.outputFilePath);
-
-        const child = spawn(ffmpegPath, ffArgs, { stdio: ['pipe', 'ignore', 'ignore'], windowsHide: true });
-        userformRecordingProcess = child;
-        userformRecordingFilePath = plan.outputFilePath;
-        userformRecordingPlan = plan;
-        userformRecordingStartedAt = Date.now();
-        setLastUserformRecordingSnapshot(plan, userformRecordingStartedAt);
-
-        updateUserformCameraProfileUsage(cameraName, {
-            codec: profile.codec,
-            size: profile.size,
-            fps: profile.fps,
-            mode: 'recording',
-            status: 'started',
-            incrementUsage: true
-        });
-
-        child.once('exit', () => {
-            if (userformRecordingProcess?.pid === child.pid) {
-                userformRecordingProcess = null;
-                userformRecordingFilePath = '';
-                userformRecordingPlan = null;
-                userformRecordingStartedAt = 0;
-            }
-            if (userformLastRecordingSnapshot?.plan?.targetFilePath === plan.targetFilePath) {
-                userformLastRecordingSnapshot.stoppedAt = Date.now();
-            }
-        });
-
-        return res.json({
-            ok: true,
-            recording: true,
-            pid: child.pid,
-            startedAt: userformRecordingStartedAt,
-            fileName: plan.targetFileName,
-            filePath: plan.targetFilePath,
-            sourceFileName: plan.sourceFileName,
-            sourceFilePath: plan.sourceFilePath,
-            targetFileName: plan.targetFileName,
-            targetFilePath: plan.targetFilePath,
-            recordingMode: plan.recordingMode,
-            convertToMp4OnStop: plan.convertToMp4OnStop,
-            ffmpegPath,
-            ffmpegArgs: ffArgs,
-            profile
-        });
+        return res.json(result);
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }
@@ -4200,12 +4139,8 @@ app.post('/api/userform/pagina05/recording/start', async (req, res) => {
 
 app.post('/api/userform/pagina05/recording/stop', async (req, res) => {
     try {
-        const result = await stopUserformRecordingIfRunning();
-        return res.json({
-            ok: true,
-            ...result,
-            state: getUserformRecordingState()
-        });
+        const result = await callElectronControl('/webcam-recorder/stop', {});
+        return res.json(result);
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });
     }

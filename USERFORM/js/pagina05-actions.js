@@ -26,6 +26,7 @@
   let localPreviewStream = null;
   let localPreviewCameraName = "";
   let previewSuspendedForLive = false;
+  let previewSuspendedForRecording = false;
   let secondaryPlayerPollTimer = null;
   let indicatorWarningReason = "";
   let recordingStartedAt = 0;
@@ -256,7 +257,7 @@
   const setPreviewMode = (live) => {
     if (webcamShellNode) {
       webcamShellNode.classList.toggle("is-live", Boolean(live));
-      webcamShellNode.classList.toggle("is-suspended", Boolean(previewSuspendedForLive));
+      webcamShellNode.classList.toggle("is-suspended", Boolean(previewSuspendedForLive || previewSuspendedForRecording));
     }
     if (webcamSlideNode) {
       webcamSlideNode.classList.toggle("p05-hidden", Boolean(live));
@@ -300,6 +301,19 @@
     if (webcamShellNode) {
       webcamShellNode.classList.remove("is-suspended");
     }
+    return ensurePreviewForSelectedCamera({ silent: true });
+  };
+
+  const suspendPreviewForRecording = () => {
+    previewSuspendedForRecording = true;
+    stopLocalPreview();
+    webcamShellNode?.classList.add("is-suspended");
+  };
+
+  const resumePreviewAfterRecording = async () => {
+    previewSuspendedForRecording = false;
+    setPreviewMode(false);
+    if (previewSuspendedForLive || vlcRunning) return false;
     return ensurePreviewForSelectedCamera({ silent: true });
   };
 
@@ -733,17 +747,15 @@
       size: profile.size || "",
       fps: profile.fps || "",
       label: profile.label || "",
-      // Default strategy: write MP4 directly. Backend supports native-then-MP4 if requested.
-      recordingMode: "direct-mp4"
+      recordingMode: "native-then-mp4"
     };
   };
 
-  const persistSelectedCameraProfile = async ({ asDefault = true, lastStatus = "selected" } = {}) => {
+  const persistSelectedCameraProfile = async ({ asDefault = true, lastStatus = "selected", lastMode = "preview" } = {}) => {
     const payload = selectedProfilePayload();
     if (!payload.cameraName) {
       return;
     }
-
     await fetchJson("/api/userform/pagina05/cameras/profile/save", {
       method: "POST",
       body: JSON.stringify({
@@ -753,7 +765,7 @@
         fps: payload.fps,
         label: payload.label,
         isDefault: asDefault,
-        lastMode: "preview",
+        lastMode,
         lastStatus,
         lastSize: payload.size,
         lastFps: payload.fps,
@@ -866,7 +878,12 @@
         setStatus("Registrazione gia attiva.");
         return;
       }
+      if (vlcRunning || previewSuspendedForLive) {
+        setStatus("Ferma prima la ripresa video in diretta sul monitor secondario.");
+        return;
+      }
       const payload = selectedProfilePayload();
+      suspendPreviewForRecording();
       const out = await fetchJson("/api/userform/pagina05/recording/start", {
         method: "POST",
         body: JSON.stringify(payload)
@@ -879,8 +896,11 @@
       const modeText = out.recordingMode === "native-then-mp4"
         ? "nativo con conversione automatica in MP4 allo stop"
         : "MP4 diretto";
-      setStatus(`Registrazione avviata (${modeText}): ${out.fileName}. Destinazione: C:/VSC_WEBCAM`);
+      setStatus(`Registrazione avviata (${modeText}): ${out.fileName}. Destinazione: ${out.recordingDir || out.targetFilePath || "cartella VSC_WEBCAM"}`);
     } catch (error) {
+      const state = await syncState().catch(() => null);
+      if (!state?.recording?.recording) await resumePreviewAfterRecording().catch(() => null);
+      await refreshRecList().catch(() => null);
       setStatus(`Errore StartRecording: ${error.message}`);
     }
   });
@@ -894,6 +914,8 @@
       recording = false;
       stopRecordingCounterTimer();
       if (recChip) recChip.textContent = "REC: OFF";
+      await resumePreviewAfterRecording();
+      await persistSelectedCameraProfile({ asDefault: true, lastStatus: out.stopped ? "completed" : "not-active", lastMode: "recording" });
       await refreshRecList();
       if (out.stopped) {
         const finalPath = String(out.finalFilePath || out.filePath || out.targetFilePath || "");
@@ -923,6 +945,9 @@
         setStatus("Nessuna registrazione FFmpeg rilevata.");
       }
     } catch (error) {
+      const state = await syncState().catch(() => null);
+      if (!state?.recording?.recording) await resumePreviewAfterRecording().catch(() => null);
+      await refreshRecList().catch(() => null);
       setStatus(`Errore StopRecording: ${error.message}`);
     }
   });
@@ -947,6 +972,10 @@
 
   document.getElementById("btn-vlc-start")?.addEventListener("click", async () => {
     try {
+      if (recording) {
+        setStatus("Ferma prima la registrazione webcam.");
+        return;
+      }
       if (vlcRunning) {
         setStatus("Ripresa video gia in esecuzione.");
         return;

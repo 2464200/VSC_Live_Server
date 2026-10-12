@@ -81,7 +81,7 @@ if (-not (Test-Path $envFile)) {
 $envValues = Parse-EnvFile $envFile
 $port = if ($envValues.ContainsKey('UNIFIED_PORT')) { [int]$envValues['UNIFIED_PORT'] } else { 5500 }
 
-foreach ($dir in @('logs', 'pids', 'videos', 'exports', 'exports/siae', 'userform-recordings', 'legacy-recordings')) {
+foreach ($dir in @('logs', 'pids', 'videos', 'exports', 'exports/siae', '..\VSC_WEBCAM', 'legacy-recordings')) {
     Ensure-Dir (Join-Path $root $dir)
 }
 

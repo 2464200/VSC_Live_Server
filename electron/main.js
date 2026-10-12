@@ -3,6 +3,9 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const { projectConfig } = require('../config/config');
+const { createWebcamRecorder } = require('./webcam-recorder');
 const { getLocalConfigPath } = require('../config/local-config');
 const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectronAppConfig } = require('./display-manager');
 const {
@@ -40,6 +43,10 @@ let electronVideoPlayerState = {
   lastCompletedAt: '',
   lastEvent: 'idle'
 };
+const webcamRecorder = createWebcamRecorder({
+  recordingDir: projectConfig.userformRecordingsDir,
+  ffmpegCandidates: projectConfig.ffmpegCandidates
+});
 
 const MONITOR_PREFERENCES_FILE = getLocalConfigPath('electron/monitor-preferences.json', [path.join(__dirname, 'monitor-preferences.json')]);
 const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : 5512;
@@ -1250,6 +1257,24 @@ function startElectronControlServer() {
         return;
       }
 
+      if (req.method === 'GET' && requestUrl.pathname === '/webcam-recorder/state') {
+        sendElectronControlJson(res, 200, webcamRecorder.getState());
+        return;
+      }
+
+      if (req.method === 'POST' && requestUrl.pathname === '/webcam-recorder/start') {
+        const payload = await readJsonBody(req);
+        const result = await webcamRecorder.start(payload);
+        sendElectronControlJson(res, 200, result);
+        return;
+      }
+
+      if (req.method === 'POST' && requestUrl.pathname === '/webcam-recorder/stop') {
+        const result = await webcamRecorder.stop();
+        sendElectronControlJson(res, 200, result);
+        return;
+      }
+
       if (req.method === 'POST' && requestUrl.pathname === '/video-player/play') {
         const payload = await readJsonBody(req);
         const mode = typeof payload === 'object' && payload?.mode === 'webcam-live' ? 'webcam-live' : 'video';
@@ -1477,6 +1502,13 @@ ipcMain.handle('bordero-file-picker:list-directory', async (_event, targetPath =
 
 let isShuttingDown = false;
 
+app.on('before-quit', (event) => {
+  if (isShuttingDown) return;
+  event.preventDefault();
+  isShuttingDown = true;
+  webcamRecorder.stopForShutdown().finally(() => app.quit());
+});
+
 function runShutdownScript() {
   return new Promise((resolve) => {
     const scriptPath = path.join(__dirname, '..', 'shutdown.ps1');
@@ -1520,6 +1552,8 @@ ipcMain.handle('bordero-app:shutdown', async () => {
   }
   isShuttingDown = true;
   app.isQuitting = true;
+
+  await webcamRecorder.stopForShutdown();
 
   // Ferma i server (locali e avviati dal task di startup) e consolida i CSV prima di chiudere.
   await runShutdownScript();

@@ -38,7 +38,7 @@ function ensureRootPaths() {
     'pids',
     'videos',
     'exports',
-    'userform-recordings',
+    '../VSC_WEBCAM',
     'legacy-recordings',
     'pdf'
   ];

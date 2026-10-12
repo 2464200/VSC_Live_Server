@@ -127,7 +127,7 @@ c:\VSC_Live_Server\
 - `VSC_SCRIPT_PDF_DIR`: PDF folder (Windows default: `C:\VSC_SCRIPT_PDF`; override supported)
 - `VSC_VIDEOCLIP_PATH`: cartella video relativa alla radice del progetto (`../VSC_VIDEOCLIP`, equivalente a `C:\VSC_VIDEOCLIP` su questa installazione)
 - `VSC_SIAE_DIR`: SIAE exports (`C:\VSC_SIAE`)
-- `USERFORM_RECORDINGS_DIR`: Recordings (./exports/recordings)
+- `USERFORM_RECORDINGS_DIR`: registrazioni webcam (`../VSC_WEBCAM`, relativo alla cartella del progetto)
 
 ### Priority
 1. `.env` file (highest)

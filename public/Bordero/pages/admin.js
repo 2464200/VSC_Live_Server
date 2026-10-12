@@ -372,7 +372,7 @@ class AdminPanel {
       try {
         const { response, payload } = await this.fetchJson('/api/videoclip/config', { cache: 'no-store' });
         if (!response.ok || !payload?.ok) throw new Error(payload?.error || `HTTP ${response.status}`);
-        pathInput.value = payload.rootPath || 'C:\\VSC_VIDEOCLIP';
+        pathInput.value = payload.rootPath || '../VSC_VIDEOCLIP';
         if (!payload.exists) {
           renderStatus('Stato VideoClip: cartella configurata ma non raggiungibile', 'error');
           return;
