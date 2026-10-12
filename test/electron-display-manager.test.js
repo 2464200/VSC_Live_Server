@@ -61,6 +61,8 @@ function loadElectronMainFor(tempDir) {
             constructor(options = {}) {
               this.options = options;
               this.events = {};
+              this.boundsCalls = [];
+              this.fullscreenCalls = [];
               this.fullScreen = Boolean(options.fullscreen);
               let currentUrl = options.url || '';
               this.webContents = {
@@ -81,9 +83,9 @@ function loadElectronMainFor(tempDir) {
             setMenuBarVisibility() {}
             setVisibleOnAllWorkspaces() {}
             setAlwaysOnTop() {}
-            setFullScreen(value) { this.fullScreen = value; }
+            setFullScreen(value) { this.fullScreen = value; this.fullscreenCalls.push(value); }
             isFullScreen() { return this.fullScreen; }
-            setBounds() {}
+            setBounds(bounds) { this.boundsCalls.push(bounds); }
             show() { this.visible = true; }
             focus() { this.focused = true; }
             on(event, callback) { this.events[event] = callback; }
@@ -128,6 +130,29 @@ function loadElectronMainFor(tempDir) {
 
       if (name === './google-auth-popup') {
         return require('../electron/google-auth-popup');
+      }
+
+      if (name === './webcam-recorder') {
+        return {
+          createWebcamRecorder() {
+            return { getState() {}, start() {}, stop() {}, stopForShutdown() {} };
+          }
+        };
+      }
+
+      if (name === '../config/local-config') {
+        return {
+          getLocalConfigPath(relativePath, legacyPaths = []) {
+            const destination = path.join(tempDir, '.local', relativePath);
+            if (fs.existsSync(destination)) return destination;
+            const legacyPath = legacyPaths.find((candidate) => fs.existsSync(candidate));
+            if (legacyPath) {
+              fs.mkdirSync(path.dirname(destination), { recursive: true });
+              fs.copyFileSync(legacyPath, destination);
+            }
+            return destination;
+          }
+        };
       }
 
       return require(name);
@@ -252,6 +277,45 @@ test('ensureWindows recreates a missing secondary window when primary already ex
     secondary.setFullScreen(false);
     secondary.events['leave-full-screen']();
     assert.equal(secondary.fullScreen, true, 'secondary monitor window should return to fullscreen after leaving it');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('monitor swap deferred by Google auth popup is applied when the popup closes', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-auth-monitor-swap');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+    await vm.runInContext('ensureWindows();', sandbox);
+
+    const primary = createdWindows.find((window) => !window.options.kiosk);
+    const secondary = createdWindows.find((window) => window.options.kiosk);
+    const primaryBoundsBefore = primary.boundsCalls.length;
+    const secondaryBoundsBefore = secondary.boundsCalls.length;
+    const primaryFullscreenBefore = primary.fullscreenCalls.length;
+    const secondaryFullscreenBefore = secondary.fullscreenCalls.length;
+
+    vm.runInContext('activeAuthPopups = 1; currentSwapMonitors = true; applyWindowLayout({ relocateFullscreenWindows: true });', sandbox);
+    assert.equal(vm.runInContext('pendingWindowLayout', sandbox), true);
+    assert.equal(primary.boundsCalls.length, primaryBoundsBefore);
+    assert.equal(secondary.boundsCalls.length, secondaryBoundsBefore);
+
+    vm.runInContext('activeAuthPopups = 0; if (pendingWindowLayout) applyWindowLayout({ relocateFullscreenWindows: pendingFullscreenRelocation });', sandbox);
+
+    assert.equal(vm.runInContext('pendingWindowLayout', sandbox), false);
+    assert.equal(primary.boundsCalls.at(-1).x, 1920);
+    assert.equal(secondary.boundsCalls.at(-1).x, 0);
+    assert.deepEqual(primary.fullscreenCalls.slice(primaryFullscreenBefore), [false, true, true]);
+    assert.deepEqual(secondary.fullscreenCalls.slice(secondaryFullscreenBefore), [false, true, true]);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

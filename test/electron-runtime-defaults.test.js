@@ -80,6 +80,29 @@ function loadElectronMainFor(tempDir) {
         return require('../electron/google-auth-popup');
       }
 
+      if (name === './webcam-recorder') {
+        return {
+          createWebcamRecorder() {
+            return { getState() {}, start() {}, stop() {}, stopForShutdown() {} };
+          }
+        };
+      }
+
+      if (name === '../config/local-config') {
+        return {
+          getLocalConfigPath(relativePath, legacyPaths = []) {
+            const destination = path.join(tempDir, '.local', relativePath);
+            if (fs.existsSync(destination)) return destination;
+            const legacyPath = legacyPaths.find((candidate) => fs.existsSync(candidate));
+            if (legacyPath) {
+              fs.mkdirSync(path.dirname(destination), { recursive: true });
+              fs.copyFileSync(legacyPath, destination);
+            }
+            return destination;
+          }
+        };
+      }
+
       return require(name);
     },
     Buffer,

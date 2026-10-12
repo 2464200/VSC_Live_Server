@@ -335,11 +335,18 @@ function readMonitorPreferences() {
 }
 
 let activeAuthPopups = 0;
+let pendingWindowLayout = false;
+let pendingFullscreenRelocation = false;
 
-function applyWindowLayout() {
+function applyWindowLayout({ relocateFullscreenWindows = false } = {}) {
   if (activeAuthPopups > 0) {
+    pendingWindowLayout = true;
+    pendingFullscreenRelocation = pendingFullscreenRelocation || relocateFullscreenWindows;
     return;
   }
+
+  pendingWindowLayout = false;
+  pendingFullscreenRelocation = false;
 
   const displays = screen.getAllDisplays();
   const targets = resolveDisplayTargetsForWindows(displays, {
@@ -359,12 +366,24 @@ function applyWindowLayout() {
     }
 
     try {
+      // Electron ignores bounds changes for windows that are already fullscreen.
+      // Leave fullscreen briefly when the monitor assignment changes, then enter
+      // fullscreen again on the newly selected display.
+      const wasFullscreen = win.isFullScreen();
+      if (relocateFullscreenWindows && wasFullscreen) {
+        win.setFullScreen(false);
+      }
+
       win.setBounds({
         x: layout.x,
         y: layout.y,
         width: layout.width,
         height: layout.height
       });
+
+      if (relocateFullscreenWindows && wasFullscreen) {
+        win.setFullScreen(true);
+      }
     } catch (error) {
       console.warn('Unable to set window bounds:', error?.message || error);
     }
@@ -480,7 +499,8 @@ function syncMonitorPreferencesFromDisk() {
   const shouldSwap = Boolean(preferences.swapPrimarySecondary);
   const nextAutoConfigure = Boolean(preferences.autoConfigureDisplay !== false);
   const nextDpiAutoScale = Boolean(preferences.dpiAutoScale !== false);
-  const changed = shouldSwap !== currentSwapMonitors
+  const monitorAssignmentChanged = shouldSwap !== currentSwapMonitors;
+  const changed = monitorAssignmentChanged
     || nextAutoConfigure !== currentAutoConfigureDisplay
     || nextDpiAutoScale !== currentDpiAutoScale;
   if (shouldSwap !== currentSwapMonitors) {
@@ -491,7 +511,7 @@ function syncMonitorPreferencesFromDisk() {
   currentAutoConfigureDisplay = nextAutoConfigure;
   currentDpiAutoScale = nextDpiAutoScale;
   if (changed) {
-    applyWindowLayout();
+    applyWindowLayout({ relocateFullscreenWindows: monitorAssignmentChanged });
   }
 }
 
@@ -948,6 +968,9 @@ function attachFirebaseAuthPopupFocus(ownerWindow) {
     childWindow.once('closed', () => {
       console.log('[auth-popup] closed');
       activeAuthPopups = Math.max(0, activeAuthPopups - 1);
+      if (activeAuthPopups === 0 && pendingWindowLayout) {
+        applyWindowLayout({ relocateFullscreenWindows: pendingFullscreenRelocation });
+      }
       if (primaryWindow && !primaryWindow.isDestroyed()) {
         primaryWindow.show();
         primaryWindow.focus();

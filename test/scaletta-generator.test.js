@@ -47,8 +47,8 @@ test('TEST 1: legge il catalogo reale e genera la proporzione completa senza sup
   assert.equal(catalog.catalogByLevel.AVANZATO_1.length, 36);
   assert.equal(catalog.catalogByLevel.AVANZATO_2.length, 29);
   assert.equal(catalog.catalogByLevel.SUPERAVANZATO_1_2.length, 43);
-  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_3.length, 20);
-  assert.equal(catalog.catalogByLevel.ALTRE_COREO.length, 288);
+  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_3.length, 21);
+  assert.equal(catalog.catalogByLevel.ALTRE_COREO.length, 287);
 
   const result = generator.generateSetlist({
     catalog,

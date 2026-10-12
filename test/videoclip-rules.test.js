@@ -139,7 +139,7 @@ for (const scriptPath of videoclipScripts) {
     );
   });
 
-  test(`${scriptPath}: clicking PLAY marks the choreography executed before playback`, async () => {
+  test(`${scriptPath}: clicking PLAY marks the choreography executed when playback starts`, async () => {
     const { VideoClipManager, context, storageValues } = loadVideoClipManager(scriptPath);
     const manager = Object.create(VideoClipManager.prototype);
     const selected = { id: '005', titolo: '16 TONS' };
@@ -161,6 +161,7 @@ for (const scriptPath of videoclipScripts) {
     manager.filterVideos = () => {};
     manager.updatePlayerInfo = () => {};
     manager.playMainVideo = () => {
+      manager.markBranoExecutedFromVideoEnd(manager.currentBrano);
       assert.equal(manager.brani[0].flag, 'X');
       calls.push('main');
       return Promise.resolve();

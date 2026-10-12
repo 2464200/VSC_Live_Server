@@ -524,21 +524,37 @@
   async function stopServiceVideo(options = {}) {
     const status = document.getElementById("service-video-status");
     const stopTasks = [];
+    const savedActivity = getPublicationState()?.activities?.videoclip;
+    const backend = activeServiceVideoBackend || savedActivity?.backend;
+
+    if (!backend) {
+      clearServiceVideoActivity();
+      if (status) status.textContent = "Nessun video attivo sul monitor 2.";
+      return;
+    }
+
     const electronStop = window.electronAPI?.videoPlayer?.stop;
-    if (typeof electronStop === "function") {
+    if (backend === "electron" && typeof electronStop === "function") {
       stopTasks.push(Promise.resolve(electronStop.call(window.electronAPI.videoPlayer)).then((result) => {
         if (result && result.success === false) throw new Error(result.error || "Player Electron non arrestato.");
       }));
     }
-    stopTasks.push((async () => {
-      const response = await fetch("/api/videoclip/vlc/control", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "stop" }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || payload.success === false) throw new Error(payload.error || `HTTP ${response.status}`);
-    })());
+    if (backend === "vlc") {
+      stopTasks.push((async () => {
+        const response = await fetch("/api/videoclip/vlc/control", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "stop" }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload.success === false) throw new Error(payload.error || `HTTP ${response.status}`);
+      })());
+    }
+
+    if (stopTasks.length === 0) {
+      throw new Error(`Backend video non disponibile per l'arresto: ${backend}`);
+    }
+
     const results = await Promise.allSettled(stopTasks);
     const failed = results.some((result) => result.status === "rejected");
     if (failed && options.updateStatus === false) {
@@ -551,6 +567,7 @@
   async function stopAllServiceActivities() {
     const failures = [];
     setPublicationActive(false);
+    setStatus("Pubblicazione fermata.", "success");
     const messageInput = document.getElementById("service-message-input");
     if (messageInput) messageInput.value = "";
     writeStorage(textStorageKey, defaultBannerText);
@@ -591,7 +608,7 @@
     if (failures.length) {
       setStatus(`Arresto completato con errori: ${failures.join("; ")}`, "error");
     } else {
-      setStatus("Tutte le attività della pagina sono state fermate.", "success");
+      setStatus("Pubblicazione fermata.", "success");
     }
   }
 
