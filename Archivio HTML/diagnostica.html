@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostica Sistema - VSC Live Server</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Courier New", monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #252526;
+            padding: 30px;
+            border-radius: 5px;
+            border-left: 4px solid #ff7f00;
+        }
+        h1 { color: #ff7f00; margin-top: 0; text-align: center; }
+        h2 { color: #4fc3f7; margin-top: 30px; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #1e1e1e;
+            border-left: 3px solid #888;
+            border-radius: 3px;
+        }
+        .test-section.success { border-left-color: #4caf50; background: rgba(76, 175, 80, 0.1); }
+        .test-section.error { border-left-color: #f44336; background: rgba(244, 67, 54, 0.1); }
+        .test-section.warning { border-left-color: #ff9800; background: rgba(255, 152, 0, 0.1); }
+        .test-section.info { border-left-color: #4fc3f7; background: rgba(79, 195, 247, 0.1); }
+        .test-title { font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; }
+        .status-icon { font-size: 20px; margin-right: 10px; }
+        .test-details { padding-left: 30px; font-size: 13px; color: #aaa; }
+        .test-details div { margin: 5px 0; }
+        button {
+            background: #ff7f00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover { background: #ffaa33; }
+        .button-group {
+            margin: 20px 0;
+            padding: 15px;
+            background: #1e1e1e;
+            border-radius: 3px;
+            border-left: 3px solid #4fc3f7;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e1e1e;
+            border-left: 4px solid #4fc3f7;
+            border-radius: 3px;
+        }
+        .summary h3 { margin-top: 0; color: #4fc3f7; }
+        .summary-item { margin: 8px 0; display: flex; align-items: center; }
+        .summary-badge { display: inline-block; min-width: 20px; text-align: center; margin-right: 10px; font-weight: bold; }
+        .nav-breadcrumb {
+            max-width: 1200px;
+            margin: 0 auto 16px;
+            color: #fff;
+            font: 600 16px "Segoe UI", Tahoma, sans-serif;
+        }
+        .nav-breadcrumb a {
+            color: #ff7f00;
+            text-decoration: none;
+        }
+        .nav-breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb-sep { margin: 0 8px; color: #ccc; }
+        .breadcrumb-current { color: #fff; }
+    </style>
+</head>
+<body>
+<nav class="nav-breadcrumb" aria-label="Navigazione pagina">
+    <a href="/Bordero/index.html">Home</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="/Bordero/pages/bordero.html">Borderò</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Diagnostica</span>
+</nav>
+<div class="container">
+    <h1>Diagnostica Sistema VSC Live Server</h1>
+
+    <div class="button-group">
+        <h3>Azioni rapide:</h3>
+        <button onclick="runAllTests()">Esegui tutti i test</button>
+        <button onclick="testUnifiedServer()">Test Unified Server</button>
+        <button onclick="testPdfApi()">Test PDF API</button>
+        <button onclick="testEventiFull()">Test Eventi completo</button>
+        <button onclick="testEventiStatus()">Test Eventi Status</button>
+        <button onclick="testEventiHostIp()">Test Eventi Host IP</button>
+        <button onclick="testEventiApi()">Test Eventi API</button>
+        <button onclick="testEventiDjApi()">Test Eventi DJ API</button>
+        <button onclick="testCsvFiles()">Test CSV Files</button>
+        <button onclick="testPorts()">Test porte</button>
+        <button onclick="testProjectPages()">Test pagine e link</button>
+        <button onclick="testBorderoSyncApi()">Test API Bordero</button>
+        <button onclick="testAutomationEndpoints()">Test automatismi</button>
+        <button onclick="testLegacyComponents()">Test Legacy opzionali</button>
+        <button onclick="clearTests()">Pulisci risultati</button>
+    </div>
+
+    <h2>Risultati Test</h2>
+    <div id="results"></div>
+
+    <div class="summary" id="summary" style="display:none;">
+        <h3>Riepilogo</h3>
+        <div id="summary-content"></div>
+    </div>
+</div>
+
+<script src="../utility.js"></script>
+<script>
+    const resultsDiv = document.getElementById("results");
+    let testResults = [];
+    const CANONICAL_PROJECT_PORT = "5500";
+
+    function getDiagnosticaBaseUrl() {
+        const protocol = window.location.protocol === "file:" ? "http:" : (window.location.protocol || "http:");
+        const host = window.location.hostname || "127.0.0.1";
+        const currentPort = window.location.port || "";
+
+        if (!currentPort || currentPort !== CANONICAL_PROJECT_PORT) {
+            return `${protocol}//${host}:${CANONICAL_PROJECT_PORT}`;
+        }
+
+        return window.location.origin && window.location.origin !== "null"
+            ? window.location.origin
+            : `${protocol}//${host}:${CANONICAL_PROJECT_PORT}`;
+    }
+
+    let DIAGNOSTICA_BASE_URL = getDiagnosticaBaseUrl();
+
+    async function resolveDiagnosticaBaseUrl() {
+        const protocol = window.location.protocol === "file:" ? "http:" : (window.location.protocol || "http:");
+        const host = window.location.hostname || "127.0.0.1";
+        const currentOrigin = window.location.origin && window.location.origin !== "null"
+            ? window.location.origin
+            : `${protocol}//${host}:5500`;
+        const candidates = [currentOrigin, 5500, 5501, 5502]
+            .map(value => typeof value === "number" ? `${protocol}//${host}:${value}` : value)
+            .filter((value, index, values) => values.indexOf(value) === index);
+
+        for (const candidate of candidates) {
+            try {
+                const response = await fetch(`${candidate}/api/health`, { cache: "no-store" });
+                const data = await response.json();
+                if (response.ok && data && data.server === "unified-server") {
+                    DIAGNOSTICA_BASE_URL = candidate;
+                    return candidate;
+                }
+            } catch (error) {
+                // Prova la porta successiva.
+            }
+        }
+
+        return DIAGNOSTICA_BASE_URL;
+    }
+
+    resolveDiagnosticaBaseUrl();
+
+    function resetTests() {
+        resultsDiv.innerHTML = "";
+        testResults = [];
+        document.getElementById("summary").style.display = "none";
+    }
+
+    function log(title, status, details = [], icon = "?") {
+        const section = document.createElement("div");
+        section.className = `test-section ${status}`;
+
+        const statusMap = {
+            success: "OK",
+            error: "NO",
+            warning: "!",
+            info: "i"
+        };
+
+        icon = statusMap[status] || icon;
+
+        let html = `<div class="test-title"><span class="status-icon">${icon}</span>${title}</div>`;
+
+        if (details && details.length > 0) {
+            html += "<div class='test-details'>";
+            details.forEach(d => {
+                html += `<div>${d}</div>`;
+            });
+            html += "</div>";
+        }
+
+        section.innerHTML = html;
+        resultsDiv.appendChild(section);
+        testResults.push({ title, status, details });
+        console.log(`[${status.toUpperCase()}] ${title}`, details);
+    }
+
+    async function fetchJsonStatus(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        const text = await response.text();
+        let data = null;
+        try { data = JSON.parse(text); } catch (e) {}
+        return { response, text, data };
+    }
+
+    async function testUnifiedServer(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = `${DIAGNOSTICA_BASE_URL}/`;
+        try {
+            const response = await fetch(url, { cache: "no-store" });
+            if (response.ok) {
+                log("Unified Server (porta 5500)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`
+                ]);
+            } else {
+                log("Unified Server (porta 5500)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Unified Server (porta 5500)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`,
+                `Suggerimento: verifica che unified-server.js sia avviato`
+            ]);
+        }
+    }
+
+    async function testPdfApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = `${DIAGNOSTICA_BASE_URL}/api/pdf-list`;
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok) {
+                log("PDF API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `PDF trovati: ${data && data.files ? data.files.length : "N/A"}`,
+                    `Cartella: ${data && data.folder ? data.folder : "N/A"}`
+                ]);
+            } else {
+                log("PDF API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("PDF API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiStatus(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/status`;
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok) {
+                log("Eventi Status (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Nome servizio: ${data && data.name ? data.name : "N/A"}`,
+                    `Porta: ${data && data.port ? data.port : "N/A"}`
+                ]);
+            } else {
+                log("Eventi Status (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi Status (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/ping`;
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok) {
+                log("Eventi API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Risposta: ${data && data.ping ? data.ping : "N/A"}`
+                ]);
+            } else {
+                log("Eventi API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiQr(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/qr`;
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok && data && data.ok) {
+                log("Eventi QR API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Link evento: ${data.url || "N/D"}`
+                ]);
+            } else {
+                log("Eventi QR API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi QR API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiHostIp(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/host-ip`;
+        try {
+            const { response, data } = await fetchJsonStatus(url);
+            if (response.ok && data && data.ok) {
+                log("Eventi Host IP", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `Host IP: ${data.ip || "N/D"}`,
+                    `Porta: ${data.port || "N/D"}`
+                ]);
+            } else {
+                log("Eventi Host IP", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi Host IP", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`
+            ]);
+        }
+    }
+
+    async function testEventiFull(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        await testEventiStatus(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiDjApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiQr(false);
+        updateSummary();
+    }
+
+    async function testEventiDjApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const url = `${DIAGNOSTICA_BASE_URL}/eventi/api/dj`;
+        try {
+            const { response, data, text } = await fetchJsonStatus(url);
+            if (response.ok && Array.isArray(data)) {
+                log("Eventi DJ API (integrata in Unified Server)", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} OK`,
+                    `DJ registrati: ${data.length}`
+                ]);
+            } else {
+                log("Eventi DJ API (integrata in Unified Server)", "warning", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`,
+                    `Formato risposta: ${Array.isArray(data) ? "array" : (text || "non valido")}`
+                ]);
+            }
+        } catch (error) {
+            log("Eventi DJ API (integrata in Unified Server)", "error", [
+                `URL: ${url}`,
+                `Errore: ${error.message}`,
+                `Nota: questa API alimenta il selettore DJ della pagina Eventi`
+            ]);
+        }
+    }
+
+    async function testLegacyComponents(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const urls = [
+            `${DIAGNOSTICA_BASE_URL}/api/status`,
+            `${DIAGNOSTICA_BASE_URL}/eventi/api/status`,
+            `${DIAGNOSTICA_BASE_URL}/diagnostica.html`
+        ];
+
+        for (const url of urls) {
+            try {
+                const response = await fetch(url, { cache: "no-store" });
+                log("Componenti standard verificati", "success", [
+                    `URL: ${url}`,
+                    `Status: ${response.status} ${response.statusText}`,
+                    `Il flusso standard usa unified-server.js su 5500 e non richiede componenti legacy.`
+                ]);
+            } catch (error) {
+                log("Componenti standard verificati", "error", [
+                    `URL: ${url}`,
+                    `Esito: ${error.message}`,
+                    `Verifica runtime: il server unificato deve essere attivo su 5500.`
+                ]);
+            }
+        }
+    }
+
+    async function testCsvFiles(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const csvFiles = [
+            "display.csv",
+            "NextCoreo.csv",
+            "servizio.csv",
+            "Bordero/data/brani.csv",
+            "Bordero/data/comuni_italia.csv",
+            "Bordero/data/location.csv",
+            "Bordero/data/location_popup_options.csv"
+        ];
+
+        for (const file of csvFiles) {
+            try {
+                const response = await fetch(file + "?t=" + Date.now());
+                if (response.ok) {
+                    const text = await response.text();
+                    const lines = text.trim().split("\n").length;
+                    log(`CSV: ${file}`, "success", [
+                        `URL: ${file}`,
+                        `Status: ${response.status} OK`,
+                        `Righe: ${lines}`,
+                        `Dimensione: ${(text.length / 1024).toFixed(2)} KB`
+                    ]);
+                } else {
+                    log(`CSV: ${file}`, "warning", [
+                        `URL: ${file}`,
+                        `Status: ${response.status} ${response.statusText}`
+                    ]);
+                }
+            } catch (error) {
+                log(`CSV: ${file}`, "error", [
+                    `URL: ${file}`,
+                    `Errore: ${error.message}`
+                ]);
+            }
+        }
+    }
+
+    async function testPorts(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        try {
+            const { response, data } = await fetchJsonStatus(`${DIAGNOSTICA_BASE_URL}/api/health`);
+            log("Porta canonica 5500", response.ok ? "success" : "error", [
+                `Status: ${response.status}`,
+                `Server: ${data && data.server ? data.server : "N/D"}`
+            ]);
+        } catch (error) {
+            log("Porta canonica 5500", "error", [`Errore: ${error.message}`]);
+        }
+
+        try {
+            const response = await fetch("http://localhost:5501/api/status", { cache: "no-store" });
+            log("Porta legacy 5501 disattivata", "warning", [
+                `Risposta inattesa: HTTP ${response.status}`,
+                "Il runtime standard dovrebbe usare solo la porta 5500"
+            ]);
+        } catch (error) {
+            log("Porta legacy 5501 disattivata", "success", [
+                "Nessun servizio raggiungibile su 5501",
+                "Runtime correttamente unificato su 5500"
+            ]);
+        }
+    }
+
+    async function testProjectPages(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const pages = [
+            "/index.html",
+            "/diagnostica.html",
+            "/Bordero/pages/bordero.html",
+            "/Bordero/pages/admin.html",
+            "/Bordero/pages/display.html",
+            "/Bordero/pages/next-coreo.html",
+            "/eventi/eventi.html",
+            "/eventi/visualizer.html",
+            "/pdf/pages/script-pdf-gestione.html",
+            "/public/mobile1.html"
+        ];
+
+        for (const page of pages) {
+            try {
+                const response = await fetch(`${DIAGNOSTICA_BASE_URL}${page}`, { cache: "no-store" });
+                log(`Pagina: ${page}`, response.ok ? "success" : "error", [
+                    `Status: ${response.status} ${response.statusText}`
+                ]);
+            } catch (error) {
+                log(`Pagina: ${page}`, "error", [`Errore: ${error.message}`]);
+            }
+        }
+    }
+
+    async function testBorderoSyncApi(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const endpoints = [
+            "/api/bordero/sync-brani",
+            "/api/bordero/sync-comuni",
+            "/api/bordero/sync-location",
+            "/api/bordero/sync-location-options",
+            "/api/sync/brani",
+            "/api/sync/comuni",
+            "/api/sync/location",
+            "/api/sync/location-options"
+        ];
+
+        for (const endpoint of endpoints) {
+            try {
+                const response = await fetch(`${DIAGNOSTICA_BASE_URL}${endpoint}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: "{}",
+                    cache: "no-store"
+                });
+                const expected = response.status === 400;
+                log(`API Bordero: ${endpoint}`, expected ? "success" : "error", [
+                    `Status: ${response.status}`,
+                    "Payload vuoto usato: verifica non distruttiva, nessun CSV modificato"
+                ]);
+            } catch (error) {
+                log(`API Bordero: ${endpoint}`, "error", [`Errore: ${error.message}`]);
+            }
+        }
+    }
+
+    async function testAutomationEndpoints(clearPrevious = true) {
+        if (clearPrevious) resetTests();
+        const endpoints = [
+            ["Health server", "/api/health"],
+            ["Status server", "/api/status"],
+            ["Lista videoclip", "/api/videoclip/list"],
+            ["PDF disponibili", "/api/pdf-list"],
+            ["Eventi ping", "/eventi/api/ping"],
+            ["Eventi host IP", "/eventi/api/host-ip"],
+            ["Eventi QR", "/eventi/api/qr"]
+        ];
+
+        for (const [name, path] of endpoints) {
+            try {
+                const { response, data } = await fetchJsonStatus(`${DIAGNOSTICA_BASE_URL}${path}`);
+                log(name, response.ok ? "success" : "error", [
+                    `URL: ${path}`,
+                    `Status: ${response.status}`,
+                    `Risposta JSON: ${data ? "valida" : "non JSON"}`
+                ]);
+            } catch (error) {
+                log(name, "error", [`Errore: ${error.message}`]);
+            }
+        }
+    }
+
+    async function runAllTests() {
+        resetTests();
+        await testUnifiedServer(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testPdfApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiDjApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testEventiQr(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testCsvFiles(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testPorts(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testProjectPages(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testBorderoSyncApi(false);
+        await new Promise(r => setTimeout(r, 250));
+        await testAutomationEndpoints(false);
+        updateSummary();
+    }
+
+    function clearTests() {
+        resultsDiv.innerHTML = "";
+        testResults = [];
+        document.getElementById("summary").style.display = "none";
+    }
+
+    function updateSummary() {
+        const summary = document.getElementById("summary");
+        const summaryContent = document.getElementById("summary-content");
+
+        const successes = testResults.filter(r => r.status === "success").length;
+        const warnings = testResults.filter(r => r.status === "warning").length;
+        const errors = testResults.filter(r => r.status === "error").length;
+        const total = testResults.length;
+
+        let html = `
+            <div class="summary-item">
+                <span class="summary-badge" style="color:#4caf50;">+</span>
+                <span>${successes}/${total} test superati</span>
+            </div>
+        `;
+
+        if (warnings > 0) {
+            html += `
+                <div class="summary-item">
+                    <span class="summary-badge" style="color:#ff9800;">!</span>
+                    <span>${warnings} avvertimento/i</span>
+                </div>
+            `;
+        }
+
+        if (errors > 0) {
+            html += `
+                <div class="summary-item">
+                    <span class="summary-badge" style="color:#f44336;">x</span>
+                    <span>${errors} errore/i - Vedi dettagli sopra</span>
+                </div>
+            `;
+        }
+
+        if (successes === total && errors === 0 && warnings === 0) {
+            html += `
+                <div class="summary-item">
+                    <span style="color:#4caf50; font-weight:bold;">TUTTO OK - Sistema funzionante</span>
+                </div>
+            `;
+        }
+
+        summaryContent.innerHTML = html;
+        summary.style.display = "block";
+    }
+
+    window.addEventListener("load", () => {
+        log("Pagina caricata", "info", [
+            `URL: ${window.location.href}`,
+            `Base diagnostica: ${DIAGNOSTICA_BASE_URL}`,
+            `Browser: ${navigator.userAgent.split(" ").slice(-2).join(" ")}`,
+            `Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+        ]);
+
+        if (window.location.port && window.location.port !== CANONICAL_PROJECT_PORT) {
+            log("Porta non canonica rilevata", "info", [
+                `Porta pagina corrente: ${window.location.port}`,
+                `I test vengono eseguiti sulla porta canonica ${CANONICAL_PROJECT_PORT}`,
+                `Questo evita falsi errori quando Go Live usa una porta diversa`
+            ]);
+        }
+    });
+</script>
+</body>
+</html>

@@ -16,7 +16,7 @@
     }
   },
   "hosting": {
-    "public": "public",
+    "public": "public-display",
     "predeploy": [
       "npm run sync:public"
     ],
@@ -24,6 +24,13 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/Bordero/pages/display.html",
+        "type": 302
+      }
     ],
     "headers": [
       {

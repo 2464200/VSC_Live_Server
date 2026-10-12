@@ -1,0 +1,32 @@
+/* Shared stylesheet for public pages */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #f5f5f5;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.logo {
+  max-width: 220px;
+  display: block;
+  margin: 1rem auto;
+}
+
+.warning {
+  background: #ffb703;
+  color: #111;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+}
+
+.orange-row {
+  background: #ff8c00;
+  color: #111;
+}

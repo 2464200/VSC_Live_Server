@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { filterDeferredPaths, LOCAL_ONLY_CSV_PATHS } = require('./deploy-policy');
+const { buildPublicDisplay } = require('./build-public-display');
 
 const repoRoot = path.resolve(__dirname, '..');
 const borderoSrc = path.join(repoRoot, 'Bordero');
@@ -175,6 +176,7 @@ function syncPublic() {
   }
 
   console.log('✅ Sincronizzazione public/ completata con successo!');
+  buildPublicDisplay();
 }
 
 if (require.main === module) {
