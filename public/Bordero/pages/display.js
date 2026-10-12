@@ -439,6 +439,7 @@ class DisplayMonitor {
 
     if (!brani || brani.length === 0) {
       tbody.innerHTML = '';
+      emptyState?.classList.add('show');
       DOMUtils.show(emptyState);
       if (tableLive) {
         tableLive.scrollTop = 0;
@@ -446,6 +447,7 @@ class DisplayMonitor {
       return;
     }
 
+    emptyState?.classList.remove('show');
     DOMUtils.hide(emptyState);
 
     const previousTop = tableLive ? tableLive.scrollTop : 0;
@@ -1187,6 +1189,7 @@ class DisplayMonitor {
     const emptyMessage = emptyState?.querySelector('p');
 
     tbody.innerHTML = '';
+    emptyState?.classList.add('show');
     DOMUtils.show(emptyState);
     if (emptyMessage) {
       emptyMessage.textContent = message;
