@@ -4093,7 +4093,7 @@ app.get('/api/userform/pagina05/files', (req, res) => {
     }
 });
 
-app.delete('/api/userform/pagina05/files/:name', (req, res) => {
+app.delete('/api/userform/pagina05/files/:name', async (req, res) => {
     try {
         const fileName = String(req.params.name || '');
         if (!fileName || path.basename(fileName) !== fileName || !['.mkv', '.mp4'].includes(path.extname(fileName).toLowerCase())) {
@@ -4106,7 +4106,44 @@ app.delete('/api/userform/pagina05/files/:name', (req, res) => {
         if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
             return res.status(404).json({ ok: false, error: 'Registrazione non trovata' });
         }
-        fs.unlinkSync(filePath);
+
+        // Rilascia il file prima di eliminarlo: Windows può mantenerlo bloccato
+        // mentre Electron o VLC lo stanno riproducendo.
+        try {
+            const player = await callElectronControl('/video-player/state');
+            const activeUrl = String(player?.playerState?.url || '');
+            if (player?.playerState?.active && activeUrl) {
+                const activeName = decodeURIComponent(path.basename(new URL(activeUrl).pathname));
+                if (activeName === fileName) {
+                    await callElectronControl('/video-player/stop', {});
+                    await new Promise((resolve) => setTimeout(resolve, 350));
+                }
+            }
+        } catch (_) {
+            // Il player Electron può non essere in esecuzione.
+        }
+        if (isVlcAlive() && path.resolve(vlcCurrentFile || '') === filePath) {
+            await stopVlcPlayback();
+        }
+
+        let unlinkError = null;
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+            try {
+                fs.unlinkSync(filePath);
+                unlinkError = null;
+                break;
+            } catch (error) {
+                unlinkError = error;
+                if (!['EPERM', 'EBUSY', 'EACCES'].includes(error?.code) || attempt === 3) break;
+                await new Promise((resolve) => setTimeout(resolve, 250));
+            }
+        }
+        if (unlinkError) {
+            const detail = ['EPERM', 'EBUSY', 'EACCES'].includes(unlinkError.code)
+                ? 'File ancora in uso: interrompi la riproduzione o la registrazione e riprova.'
+                : (unlinkError.message || String(unlinkError));
+            return res.status(500).json({ ok: false, error: detail });
+        }
         return res.json({ ok: true, deleted: fileName });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error) });

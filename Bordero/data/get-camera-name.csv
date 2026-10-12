@@ -1,5 +1,5 @@
 value,Codifica,dshow-size,dshow-fps,ELENCO WEBCAM,profile-id,is-default,is-enabled,last-used-at,last-mode,last-status,usage-count,last-size,last-fps,last-codec,notes
-USB Camera,yuyv422,1920x1080,30,Luca - USB Camera,usb-camera,1,1,2026-10-12T12:35:48.293Z,recording,completed,0,1920x1080,30,yuyv422,
+USB Camera,yuyv422,1920x1080,30,Luca - USB Camera,usb-camera,1,1,2026-10-12T12:44:21.615Z,preview,bootstrap-preview,0,1920x1080,30,yuyv422,
 HP Display Camera,mjpeg,1280x720,30,Luca - Monitor HP,hp-display-camera,0,1,2026-10-12T12:34:48.482Z,preview,bootstrap-preview,0,1280x720,30,mjpeg,
 Fotocamera frontale,yuyv422,640x360,30,Luca - Elitebook ERRORE,fotocamera-frontale,0,1,2026-09-30T19:38:31.395Z,preview,live-stop,0,640x360,30,yuyv422,
 HP HD Camera,yuyv422,1280x720,30,Luca - Elitebook,hp-hd-camera,0,1,2026-10-05T19:18:47.961Z,preview,detected-capabilities,0,1280x720,30,yuyv422,Profilo auto-aggiornato da FFmpeg (2026-10-05T19:19:24.298Z)
