@@ -1,7 +1,8 @@
 param(
     [string]$RootPath,
     [string]$StdoutLog,
-    [string]$StderrLog
+    [string]$StderrLog,
+    [int]$Port = 0
 )
 
 if (-not $RootPath) {
@@ -16,6 +17,10 @@ if (-not (Test-Path $serverScript)) {
 }
 
 Set-Location $RootPath
+
+if ($Port -gt 0) {
+    $env:UNIFIED_PORT = [string]$Port
+}
 
 & node $serverScript 1>> $StdoutLog 2>> $StderrLog
 exit $LASTEXITCODE

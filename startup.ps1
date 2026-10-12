@@ -4,7 +4,8 @@
 
 param(
     [switch]$NoWait = $false,
-    [switch]$NoMonitor = $false
+    [switch]$NoMonitor = $false,
+    [int]$PortOverride = 0
 )
 
 Write-Host ""
@@ -15,7 +16,7 @@ Write-Host ""
 
 $RootPath = $PSScriptRoot
 $UnifiedPort = 5500
-$UnifiedPorts = @(5500, 5501, 5502)
+$UnifiedPorts = @()
 $PidDir = Join-Path $RootPath 'pids'
 $PidFile = Join-Path $PidDir 'startup-pids.json'
 $LogsDir = Join-Path $RootPath 'logs'
@@ -73,6 +74,26 @@ function Test-PortListening {
     } catch {
         return $false
     }
+}
+
+function Get-PortCandidates {
+    $basePort = 5500
+    if ($PortOverride -ge 1 -and $PortOverride -le 65515) {
+        $basePort = $PortOverride
+    }
+    $envFile = Join-Path $RootPath '.env'
+    if ($PortOverride -le 0 -and (Test-Path $envFile)) {
+        foreach ($line in Get-Content $envFile) {
+            if ($line -match '^\s*UNIFIED_PORT\s*=\s*["'']?(\d+)["'']?\s*(?:#.*)?$') {
+                $parsedPort = [int]$Matches[1]
+                if ($parsedPort -ge 1 -and $parsedPort -le 65515) { $basePort = $parsedPort }
+                break
+            }
+        }
+    }
+
+    $script:UnifiedPorts = @($basePort..($basePort + 19))
+    return $script:UnifiedPorts
 }
 
 function Test-HttpEndpoint {
@@ -294,6 +315,7 @@ function Stop-NodeListenersOnPort {
 }
 
 function Start-UnifiedServer {
+    param([int]$Port)
     $serverScript = Join-Path $RootPath 'unified-server.js'
     $runnerScript = Join-Path $RootPath 'run-unified-server.ps1'
     if (-not (Test-Path $serverScript)) {
@@ -343,7 +365,9 @@ function Start-UnifiedServer {
                 '-StdoutLog',
                 $stdoutLog,
                 '-StderrLog',
-                $stderrLog
+                $stderrLog,
+                '-Port',
+                [string]$Port
             ) -WorkingDirectory $RootPath -WindowStyle Hidden -PassThru
 
         if (-not $proc) {
@@ -419,26 +443,20 @@ function Find-ActiveUnifiedPort {
         [int]$PortWaitSeconds = 0
     )
 
-    foreach ($port in $UnifiedPorts) {
-        $healthUri = "http://127.0.0.1:$port/api/health"
-        $eventiPingUri = "http://127.0.0.1:$port/eventi/api/ping"
-        $healthReady = if ($PortWaitSeconds -gt 0) {
-            Wait-ForHttpEndpoint -Uri $healthUri -TimeoutSeconds $PortWaitSeconds
-        } else {
-            Test-HttpEndpoint -Uri $healthUri -TimeoutSeconds 2
+    $deadline = (Get-Date).AddSeconds($PortWaitSeconds)
+    do {
+        foreach ($port in $UnifiedPorts) {
+            $healthUri = "http://127.0.0.1:$port/api/health"
+            $eventiPingUri = "http://127.0.0.1:$port/eventi/api/ping"
+            if ((Test-PortListening -Port $port) -and
+                (Test-HttpEndpoint -Uri $healthUri -TimeoutSeconds 2) -and
+                (Test-HttpEndpoint -Uri $eventiPingUri -TimeoutSeconds 2)) {
+                return [int]$port
+            }
         }
-        $eventiReady = if ($healthReady -and $PortWaitSeconds -gt 0) {
-            Wait-ForHttpEndpoint -Uri $eventiPingUri -TimeoutSeconds $PortWaitSeconds
-        } elseif ($healthReady) {
-            Test-HttpEndpoint -Uri $eventiPingUri -TimeoutSeconds 2
-        } else {
-            $false
-        }
-
-        if ($healthReady -and $eventiReady) {
-            return [int]$port
-        }
-    }
+        if ($PortWaitSeconds -le 0 -or (Get-Date) -ge $deadline) { break }
+        Start-Sleep -Milliseconds 500
+    } while ((Get-Date) -lt $deadline)
 
     return $null
 }
@@ -454,6 +472,16 @@ try {
     exit 1
 }
 
+$envFile = Join-Path $RootPath '.env'
+$envExample = Join-Path $RootPath '.env.example'
+if (-not (Test-Path $envFile) -and (Test-Path $envExample)) {
+    Copy-Item -Path $envExample -Destination $envFile
+    Write-Host 'File .env creato dai valori predefiniti.'
+}
+
+Get-PortCandidates | Out-Null
+$UnifiedPort = $UnifiedPorts[0]
+
 Write-Host "Progetto: $RootPath"
 Write-Host "Unified Server: porta $UnifiedPort"
 Write-Host ""
@@ -467,7 +495,7 @@ if ($existingPort) {
     Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
     if ($NoWait) {
         Write-Host "Avvio rapido completato: salto le operazioni opzionali post-avvio."
-        exit 0
+        return
     }
     Write-Host ""
     Write-Host "Generazione dati report..."
@@ -499,10 +527,23 @@ if ($existingPort) {
     exit 0
 }
 
-Clear-OldProcesses
-Stop-NodeListenersOnPort -Port $UnifiedPort
+$selectedPort = $null
+foreach ($candidatePort in $UnifiedPorts) {
+    if (-not (Test-PortListening -Port $candidatePort)) {
+        $selectedPort = [int]$candidatePort
+        break
+    }
+}
+if (-not $selectedPort) {
+    Write-Host "ERRORE FATALE: nessuna porta libera nell'intervallo $($UnifiedPorts[0])-$($UnifiedPorts[-1])" -ForegroundColor Red
+    exit 1
+}
+if ($selectedPort -ne $UnifiedPorts[0]) {
+    Write-Host "Porta $($UnifiedPorts[0]) occupata da un altro servizio: uso la porta libera $selectedPort." -ForegroundColor Yellow
+}
+$UnifiedPort = $selectedPort
 
-$processId = Start-UnifiedServer
+$processId = Start-UnifiedServer -Port $UnifiedPort
 if ($processId) { $startedPids += $processId }
 $syncProcessId = $null
 if ($syncProcessId) { $startedPids += $syncProcessId }
@@ -510,7 +551,7 @@ Save-Pids -Pids $startedPids
 
 if ($NoWait) {
     Write-Host "Avvio rapido completato: server unificato pronto sulla porta $UnifiedPort."
-    exit 0
+    return
 }
 
 Invoke-WebcamProfiling -Port $UnifiedPort

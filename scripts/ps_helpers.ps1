@@ -19,7 +19,7 @@ function Start-ProcessSafe {
             if ($NoNewWindow) { $splat['NoNewWindow'] = $true }
             if ($PassThru) { return Start-Process @splat }
             Start-Process @splat; return $null
-        } catch { Write-Warning "Start-Process failed for URL $FilePath: $($_.Exception.Message)"; return $null }
+        } catch { Write-Warning "Start-Process failed for URL ${FilePath}: $($_.Exception.Message)"; return $null }
     }
 
     # If FilePath is an absolute path, check it exists; otherwise try Get-Command
@@ -48,9 +48,7 @@ function Start-ProcessSafe {
     try {
         return Start-Process @splat
     } catch {
-        Write-Warning "Start-ProcessSafe: failed to start $FilePath: $($_.Exception.Message)"
+        Write-Warning "Start-ProcessSafe: failed to start ${FilePath}: $($_.Exception.Message)"
         return $null
     }
 }
-
-Export-ModuleMember -Function Start-ProcessSafe
