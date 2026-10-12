@@ -18,7 +18,7 @@
       width: min(1000px, 100% - 24px);
       min-height: 740px;
       margin: 12px auto;
-      padding: 18px 16px 56px;
+      padding: 18px 16px 180px;
       border: 1px solid #c7c7c7;
       background: #f8f8f8;
       overflow: hidden;
@@ -34,7 +34,7 @@
     .p05-top {
       margin-top: 14px;
       display: grid;
-      grid-template-columns: 190px 190px 1fr 92px;
+      grid-template-columns: minmax(190px, 1fr) minmax(260px, 1.5fr);
       gap: 14px;
       align-items: start;
     }
@@ -56,6 +56,32 @@
 
     .p05-flat-btn.red {
       background: #ee1f1f;
+    }
+
+    .p05-fixed-controls {
+      position: fixed;
+      z-index: 10000;
+      right: 0;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      width: min(720px, calc(100vw - 24px));
+      margin: 0 auto;
+      padding: 10px;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      background: rgba(248, 248, 248, 0.96);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.32);
+    }
+
+    .p05-fixed-controls .p05-flat-btn {
+      width: 100%;
+      min-width: 0;
+      min-height: 54px;
+      padding: 7px 9px;
+      overflow-wrap: anywhere;
     }
 
     .p05-webcam-box {
@@ -365,29 +391,6 @@
       display: none !important;
     }
 
-    .p05-live-row {
-      margin-top: 8px;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      align-items: stretch;
-      width: 260px;
-    }
-
-    .p05-live-row .p05-flat-btn {
-      min-height: 68px;
-      width: 100%;
-      min-width: 0;
-      font-size: 15px;
-      line-height: 1.1;
-      letter-spacing: 0.01em;
-      white-space: normal;
-      overflow: visible;
-      word-break: break-word;
-      text-align: center;
-      padding: 6px 8px;
-    }
-
     .p05-bottom-bar {
       position: absolute;
       right: 12px;
@@ -513,6 +516,7 @@
       .p05-form {
         min-height: 0;
         overflow: visible;
+        padding-bottom: 180px;
       }
 
       .p05-top {
@@ -544,8 +548,7 @@
         height: 210px;
       }
 
-      .p05-webcam-image,
-      .p05-live-row {
+      .p05-webcam-image {
         width: 100%;
       }
 
@@ -560,14 +563,6 @@
         min-height: 0;
         flex-direction: row;
         justify-content: flex-start;
-      }
-
-      .p05-live-row .green,
-      .p05-live-row .red {
-        transform: none;
-        width: 100%;
-        text-align: center;
-        padding-left: 0;
       }
 
       .p05-bottom-bar {
@@ -590,9 +585,6 @@
     <h1 id="form-name" class="p05-title">frmPagina05</h1>
 
     <section class="p05-top" aria-label="Comandi principali">
-      <button id="btn-rec-start-05" class="p05-flat-btn green" type="button">AVVIA REGISTRAZIONE</button>
-      <button id="btn-rec-stop-05" class="p05-flat-btn red" type="button">STOP REGISTRAZIONE</button>
-
       <div class="p05-recording-counter" aria-label="Tempo e dimensione ultima registrazione">
         <div class="p05-counter-field">
           <span class="p05-counter-label">TEMPO REGISTRAZIONE</span>
@@ -633,11 +625,6 @@
       </div>
     </div>
 
-    <div class="p05-live-row" aria-label="Controllo ripresa diretta">
-      <button id="btn-vlc-start" class="p05-flat-btn green" type="button">START RIPRESA VIDEO IN DIRETTA</button>
-      <button id="btn-vlc-stop" class="p05-flat-btn red" type="button">STOP RIPRESA VIDEO IN DIRETTA</button>
-    </div>
-
     <aside class="p05-side-tools" aria-label="Strumenti conversione e stato">
       <select id="recording-list-05" aria-label="Elenco registrazioni">
         <option value="">Nessun file MKV</option>
@@ -673,6 +660,13 @@
       <a id="next-form" href="#">Form successivo</a>
     </div>
   </main>
+
+  <aside class="p05-fixed-controls" aria-label="Controlli webcam sempre disponibili">
+    <button id="btn-rec-start-05" class="p05-flat-btn green" type="button">AVVIA REGISTRAZIONE</button>
+    <button id="btn-rec-stop-05" class="p05-flat-btn red" type="button">STOP REGISTRAZIONE</button>
+    <button id="btn-vlc-start" class="p05-flat-btn green" type="button">START RIPRESA VIDEO IN DIRETTA</button>
+    <button id="btn-vlc-stop" class="p05-flat-btn red" type="button">STOP RIPRESA VIDEO IN DIRETTA</button>
+  </aside>
 
     <script src=/nav.js></script></body>
 </html>

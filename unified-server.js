@@ -79,7 +79,8 @@ const MUSIC_ARCHIVE_ALLOWED_EXTENSIONS = new Set([
 
 function normalizeVideoClipPath(candidate = '') {
     const value = String(candidate || '').trim();
-    return value && path.isAbsolute(value) ? path.normalize(value) : '';
+    if (!value) return '';
+    return path.normalize(path.isAbsolute(value) ? value : path.resolve(__dirname, value));
 }
 
 function readVideoClipConfig() {

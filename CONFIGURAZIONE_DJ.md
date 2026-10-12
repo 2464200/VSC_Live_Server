@@ -12,13 +12,13 @@ I file runtime locali sono salvati in `.local/` nella cartella principale del pr
 | --- | --- | --- |
 | Cartella dell'archivio musicale | `.local/bordero/music-archive-local-config.json` | Impostata da ADMIN; percorso assoluto specifico del PC. |
 | Indice/cache dell'archivio musicale | `.local/bordero/music-archive-index.csv` | Contiene anche i percorsi assoluti dei brani; viene generato localmente e non va condiviso. |
-| Cartella VideoClip | `.local/bordero/video-clip-local-config.json` | Impostata da ADMIN; se manca, usa `VSC_VIDEOCLIP_PATH` da `.env`, poi la cartella locale `videos`. |
+| Cartella VideoClip | `.local/bordero/video-clip-local-config.json` | Impostata da ADMIN; accetta percorsi assoluti o relativi alla cartella del progetto. Il valore predefinito `../VSC_VIDEOCLIP` punta a `C:\VSC_VIDEOCLIP`; se non configurato, usa `VSC_VIDEOCLIP_PATH` da `.env`. |
 | Monitor primario e opzioni di visualizzazione | `.local/electron/monitor-preferences.json` | Configurata al primo avvio Electron e da ADMIN. |
 | Instradamento delle pagine sui monitor | `.local/electron/page-policy.json` | Preferenze salvate tramite ADMIN/Electron. |
 | Percorsi di PDF, esportazione SIAE, registrazioni, VLC e FFmpeg | `.env` | Variabili per PC già supportate dal progetto; usare `.env.example` come riferimento senza copiarne segreti. |
 | Preferenze ADMIN già nel browser | `localStorage` del browser per il sito locale | Include, tra le altre, software DJ, scorrimento display e tipo di dati del visualizzatore. Rimane sul profilo browser locale e non è condivisa via Git. |
 
-I file in `.local/` sono JSON leggibili e modificabili con un editor di testo. I percorsi non validi o non assoluti vengono ignorati dalle funzioni che li verificano; in quel caso si applica il valore predefinito indicato sopra o nella schermata ADMIN.
+I file in `.local/` sono JSON leggibili e modificabili con un editor di testo. I percorsi relativi sono risolti dalla cartella principale del progetto; quelli assoluti restano disponibili per cartelle specifiche del PC. Un percorso VideoClip non valido viene ignorato e si applica il valore predefinito indicato sopra o nella schermata ADMIN.
 
 ## Impostazioni comuni lasciate invariate
 

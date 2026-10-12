@@ -46,6 +46,7 @@
       width: min(100%, 1500px);
       min-height: calc(100vh - 2 * clamp(12px, 2vw, 26px));
       margin: 0 auto;
+      padding-bottom: 96px;
       display: grid;
       grid-template-rows: auto auto minmax(0, 1fr) auto auto;
       gap: clamp(14px, 2vh, 22px);
@@ -246,14 +247,22 @@
     }
 
     .service-stop-row {
+      position: fixed;
+      z-index: 1000;
+      right: 0;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      left: 0;
       display: flex;
-      width: 100%;
+      width: min(100%, 420px);
+      margin: 0 auto;
+      padding: 0 16px;
       justify-content: center;
       align-items: center;
+      pointer-events: none;
     }
 
     .service-stop-button {
-      width: min(100%, 380px);
+      width: 100%;
       min-height: 68px;
       padding: 15px 24px;
       border: 2px solid #e15348;
@@ -264,6 +273,7 @@
       font-weight: 900;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
       transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+      pointer-events: auto;
     }
 
     .service-stop-button:hover {
@@ -351,6 +361,42 @@
 
     .service-slideshow-panel {
       grid-column: 1 / -1;
+    }
+
+    .service-video-panel {
+      grid-column: 1 / -1;
+    }
+
+    .service-video-list {
+      display: grid;
+      gap: 8px;
+      max-height: 320px;
+      margin: 0;
+      padding: 0;
+      overflow: auto;
+      list-style: none;
+    }
+
+    .service-video-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--service-line);
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .service-video-name {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .service-video-status {
+      margin: 0;
+      color: var(--service-muted);
+      font-size: 0.85rem;
     }
 
     .service-slide-picker {
@@ -770,6 +816,22 @@
       <div class="service-actions">
         <button id="publish-slideshow-btn" class="btn" type="button" disabled>Avvia presentazione</button>
       </div>
+    </section>
+
+    <section class="service-panel service-video-panel" aria-labelledby="service-video-title">
+      <div class="service-panel-heading">
+        <div>
+          <h3 id="service-video-title">Video sul monitor 2</h3>
+          <p>Riproduci sul monitor secondario un video dalla cartella VideoClip di questo PC.</p>
+        </div>
+        <span class="service-panel-index">04</span>
+      </div>
+      <div class="service-actions">
+        <button id="service-video-refresh" class="btn btn-secondary" type="button">Aggiorna elenco</button>
+        <button id="service-video-stop" class="btn btn-danger" type="button">Ferma video</button>
+      </div>
+      <p id="service-video-status" class="service-video-status" role="status" aria-live="polite">Caricamento video...</p>
+      <ul id="service-video-list" class="service-video-list" aria-label="Video disponibili"></ul>
     </section>
 
     <div class="service-stop-row">

@@ -11,6 +11,25 @@
   const params = new URLSearchParams(window.location.search);
   const isDisplayMode = params.get("mode") === "display";
   let stopDisplayHandler = null;
+  let activeServiceVideoBackend = null;
+  let serviceVideoStatePollTimer = null;
+  const serviceStopHandlers = new Map();
+
+  function registerServiceStopHandler(name, stopHandler) {
+    const key = String(name || "").trim();
+    if (!key || typeof stopHandler !== "function") {
+      throw new TypeError("Il registro stop richiede un nome e una funzione di arresto.");
+    }
+    serviceStopHandlers.set(key, stopHandler);
+    return () => {
+      if (serviceStopHandlers.get(key) === stopHandler) serviceStopHandlers.delete(key);
+    };
+  }
+
+  window.userformServiceStopRegistry = Object.freeze({
+    register: registerServiceStopHandler,
+    setActive: setServiceActivityActive,
+  });
 
   function setStatus(message, state = "") {
     if (typeof document === "undefined") return;
@@ -154,22 +173,52 @@
     stopButton.setAttribute("aria-pressed", String(active));
   }
 
-  function setPublicationActive(active, state = {}) {
-    reflectPublicationState(active);
+  function writeServiceActivityState(state) {
+    const activities = state.activities && typeof state.activities === "object" ? state.activities : {};
+    const active = state.publicationActive === true || Object.keys(activities).length > 0;
+    const next = { ...state, activities, active, updatedAt: Date.now() };
     try {
-      if (active) {
-        window.localStorage.setItem(publicationStateKey, JSON.stringify({
-          active: true,
-          output: state.output,
-          session: state.session,
-          updatedAt: Date.now(),
-        }));
-      } else {
-        window.localStorage.removeItem(publicationStateKey);
-      }
+      if (active) window.localStorage.setItem(publicationStateKey, JSON.stringify(next));
+      else window.localStorage.removeItem(publicationStateKey);
     } catch {
-      // The button still reflects the live state for this page instance.
+      // Il pulsante mantiene lo stato anche se il browser non consente la persistenza.
     }
+    reflectPublicationState(active);
+  }
+
+  function setPublicationActive(active, state = {}) {
+    const current = getPublicationState() || {};
+    const next = {
+      ...current,
+      activities: current.activities || {},
+      publicationActive: active,
+    };
+    if (active) {
+      next.output = state.output;
+      next.session = state.session;
+    } else {
+      delete next.output;
+      delete next.session;
+    }
+    writeServiceActivityState(next);
+  }
+
+  function setServiceActivityActive(name, active, details = {}) {
+    const key = String(name || "").trim();
+    if (!key) return;
+    const current = getPublicationState() || {};
+    const activities = { ...(current.activities || {}) };
+    if (active) activities[key] = { ...details, updatedAt: Date.now() };
+    else delete activities[key];
+    const legacyPublication = current.publicationActive === undefined
+      && current.active === true
+      && Boolean(current.output)
+      && current.output !== "video";
+    writeServiceActivityState({
+      ...current,
+      activities,
+      publicationActive: current.publicationActive === true || legacyPublication,
+    });
   }
 
   function closeDisplayWindow() {
@@ -327,11 +376,7 @@
 
       const publication = getPublicationState();
       if (publication?.session === session) {
-        try {
-          window.localStorage.removeItem(publicationStateKey);
-        } catch {
-          // A close notification is also broadcast to the operator window.
-        }
+        setPublicationActive(false);
       }
 
       if (params.get("output") === "slideshow" && params.get("id")) {
@@ -378,6 +423,178 @@
     return session;
   }
 
+  function markServiceVideoActive(fileName, backend) {
+    activeServiceVideoBackend = backend;
+    setServiceActivityActive("videoclip", true, { fileName, backend });
+    if (serviceVideoStatePollTimer) window.clearInterval(serviceVideoStatePollTimer);
+    serviceVideoStatePollTimer = null;
+
+    if (backend === "vlc") {
+      serviceVideoStatePollTimer = window.setInterval(async () => {
+        if (activeServiceVideoBackend !== "vlc") return;
+        try {
+          const response = await fetch("/api/videoclip/vlc/state", { cache: "no-store" });
+          const payload = await response.json().catch(() => ({}));
+          if (response.ok && payload.success && !payload.alive) clearServiceVideoActivity();
+        } catch {
+          // Un errore temporaneo di rete non deve spegnere l'indicatore.
+        }
+      }, 1500);
+    }
+  }
+
+  function clearServiceVideoActivity() {
+    if (serviceVideoStatePollTimer) window.clearInterval(serviceVideoStatePollTimer);
+    serviceVideoStatePollTimer = null;
+    activeServiceVideoBackend = null;
+    setServiceActivityActive("videoclip", false);
+  }
+
+  async function refreshServiceVideoList() {
+    const list = document.getElementById("service-video-list");
+    const status = document.getElementById("service-video-status");
+    if (!list || !status) return;
+
+    list.replaceChildren();
+    status.textContent = "Caricamento video...";
+    try {
+      const response = await fetch("/api/videoclip/list", { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+      const videoExtensions = new Set([".mp4", ".m4v", ".mov", ".avi", ".mkv", ".wmv", ".webm", ".mpeg", ".mpg", ".3gp", ".ts", ".ogv"]);
+      const videos = (Array.isArray(payload.files) ? payload.files : [])
+        .filter((name) => videoExtensions.has(`.${String(name).split(".").pop().toLowerCase()}`));
+      if (!videos.length) {
+        status.textContent = "Nessun video trovato nella cartella VideoClip configurata.";
+        return;
+      }
+
+      status.textContent = `${videos.length} video disponibili nella cartella ${payload.dir || "VideoClip"}.`;
+      for (const name of videos) {
+        const item = document.createElement("li");
+        item.className = "service-video-item";
+        const label = document.createElement("span");
+        label.className = "service-video-name";
+        label.textContent = name;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn";
+        button.textContent = "Riproduci";
+        button.addEventListener("click", () => void playServiceVideo(name, button));
+        item.append(label, button);
+        list.append(item);
+      }
+    } catch (error) {
+      status.textContent = `Impossibile caricare i video: ${error.message || error}`;
+    }
+  }
+
+  async function playServiceVideo(fileName, button) {
+    const status = document.getElementById("service-video-status");
+    if (button) button.disabled = true;
+    if (status) status.textContent = `Avvio di ${fileName} sul monitor 2...`;
+    const url = new URL(`/videos/${encodeURIComponent(fileName)}`, window.location.origin).href;
+    try {
+      const player = window.electronAPI?.videoPlayer;
+      if (typeof player?.play === "function") {
+        const result = await player.play({ url, branoId: null });
+        if (result?.success) {
+          markServiceVideoActive(fileName, "electron");
+          if (status) status.textContent = `In riproduzione sul monitor 2: ${fileName}`;
+          return;
+        }
+      }
+
+      const response = await fetch("/api/videoclip/vlc/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "play", url }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.error || `HTTP ${response.status}`);
+      markServiceVideoActive(fileName, "vlc");
+      if (status) status.textContent = `In riproduzione sul monitor 2: ${fileName}`;
+    } catch (error) {
+      if (status) status.textContent = `Avvio video non riuscito: ${error.message || error}`;
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function stopServiceVideo(options = {}) {
+    const status = document.getElementById("service-video-status");
+    const stopTasks = [];
+    const electronStop = window.electronAPI?.videoPlayer?.stop;
+    if (typeof electronStop === "function") {
+      stopTasks.push(Promise.resolve(electronStop.call(window.electronAPI.videoPlayer)).then((result) => {
+        if (result && result.success === false) throw new Error(result.error || "Player Electron non arrestato.");
+      }));
+    }
+    stopTasks.push((async () => {
+      const response = await fetch("/api/videoclip/vlc/control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "stop" }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload.success === false) throw new Error(payload.error || `HTTP ${response.status}`);
+    })());
+    const results = await Promise.allSettled(stopTasks);
+    const failed = results.some((result) => result.status === "rejected");
+    if (failed && options.updateStatus === false) {
+      throw new Error("Non è stato possibile fermare tutti i player VideoClip.");
+    }
+    if (!failed) clearServiceVideoActivity();
+    if (status) status.textContent = failed ? "Non è stato possibile fermare tutti i player." : "Video fermato sul monitor 2.";
+  }
+
+  async function stopAllServiceActivities() {
+    const failures = [];
+    setPublicationActive(false);
+    const messageInput = document.getElementById("service-message-input");
+    if (messageInput) messageInput.value = "";
+    writeStorage(textStorageKey, defaultBannerText);
+    writeStorage(stopStorageKey, JSON.stringify({ type: "stop", timestamp: Date.now() }));
+
+    try {
+      const channel = new BroadcastChannel("userform-servizio-control");
+      channel.postMessage({ type: "stop" });
+      channel.close();
+    } catch {
+      // Il comando viene inviato anche tramite Electron e localStorage.
+    }
+
+    const tasks = [];
+    const stopPublication = window.electronAPI?.windowManager?.stopServicePublication;
+    if (typeof stopPublication === "function") {
+      tasks.push(["Messaggio, immagine e presentazione", async () => {
+        const result = await stopPublication();
+        if (result && !result.success && !["secondary-window-unavailable", "service-publication-not-active"].includes(result.reason)) {
+          throw new Error(result.error || "La finestra di pubblicazione non si è arrestata.");
+        }
+      }]);
+    }
+
+    tasks.push(["Video sul monitor 2", () => stopServiceVideo({ updateStatus: false })]);
+    for (const [name, stopHandler] of serviceStopHandlers) {
+      tasks.push([name, async () => {
+        await stopHandler();
+        setServiceActivityActive(name, false);
+      }]);
+    }
+
+    const results = await Promise.allSettled(tasks.map(([, stopHandler]) => Promise.resolve().then(stopHandler)));
+    results.forEach((result, index) => {
+      if (result.status === "rejected") failures.push(`${tasks[index][0]}: ${result.reason?.message || result.reason}`);
+    });
+
+    if (failures.length) {
+      setStatus(`Arresto completato con errori: ${failures.join("; ")}`, "error");
+    } else {
+      setStatus("Tutte le attività della pagina sono state fermate.", "success");
+    }
+  }
+
   function initializeOperator() {
     const messageInput = document.getElementById("service-message-input");
     const defaultMessageInput = document.getElementById("service-default-message");
@@ -396,12 +613,22 @@
     const loopInput = document.getElementById("service-loop-forever");
     const slideshowSummary = document.getElementById("service-slideshow-summary");
     const publishSlideshowButton = document.getElementById("publish-slideshow-btn");
+    document.getElementById("service-video-refresh")?.addEventListener("click", () => void refreshServiceVideoList());
+    document.getElementById("service-video-stop")?.addEventListener("click", () => void stopServiceVideo());
+    void refreshServiceVideoList();
     const slides = [];
     let draftSaveQueue = Promise.resolve();
     let selectedLogo = null;
 
     const currentPublication = getPublicationState();
     reflectPublicationState(currentPublication?.active === true);
+
+    window.electronAPI?.videoPlayer?.onEnded?.(() => {
+      if (activeServiceVideoBackend !== "electron") return;
+      clearServiceVideoActivity();
+      const videoStatus = document.getElementById("service-video-status");
+      if (videoStatus) videoStatus.textContent = "Video terminato sul monitor 2.";
+    });
 
     if (typeof BroadcastChannel !== "undefined") {
       const channel = new BroadcastChannel("userform-servizio-control");
@@ -695,30 +922,7 @@
     }
 
     document.getElementById("publish-text-btn").addEventListener("click", () => void publishText());
-    document.getElementById("stop-text-btn").addEventListener("click", () => {
-      setPublicationActive(false);
-      messageInput.value = "";
-      writeStorage(textStorageKey, defaultBannerText);
-      writeStorage(stopStorageKey, JSON.stringify({ type: "stop", timestamp: Date.now() }));
-      try {
-        const channel = new BroadcastChannel("userform-servizio-control");
-        channel.postMessage({ type: "stop" });
-        channel.close();
-      } catch {
-        // The Electron API below still closes the managed display window.
-      }
-      setStatus("Pubblicazione fermata.", "success");
-      const stopRequest = window.electronAPI?.windowManager?.stopServicePublication?.();
-      if (stopRequest?.then) {
-        stopRequest.then((result) => {
-          if (result && !result.success && result.reason !== "secondary-window-unavailable") {
-            setStatus("Non risulta una pubblicazione attiva.", "info");
-          } else {
-            setStatus("Pubblicazione fermata.", "success");
-          }
-        }).catch((error) => setStatus(`Impossibile fermare la pubblicazione: ${error.message}`, "error"));
-      }
-    });
+    document.getElementById("stop-text-btn").addEventListener("click", () => void stopAllServiceActivities());
     publishLogoButton.addEventListener("click", () => void publishLogo());
     clearLogoButton.addEventListener("click", clearLogo);
     imageInput.addEventListener("change", () => readImage(imageInput.files?.[0]));

@@ -9,6 +9,12 @@ function resolvePortablePath(candidate, fallback) {
   return path.isAbsolute(trimmed) ? trimmed : path.resolve(process.cwd(), trimmed);
 }
 
+function resolveProjectPath(candidate, fallback, root) {
+  if (!candidate || typeof candidate !== 'string' || !candidate.trim()) return fallback;
+  const trimmed = candidate.trim();
+  return path.isAbsolute(trimmed) ? path.normalize(trimmed) : path.resolve(root, trimmed);
+}
+
 const projectRoot = path.resolve(__dirname, '..');
 const defaultPdfFolder = 'C:\\VSC_SCRIPT_PDF';
 
@@ -16,7 +22,7 @@ const config = {
   projectRoot,
   port: Number(process.env.UNIFIED_PORT || 5500),
   pdfFolder: resolvePortablePath(process.env.VSC_SCRIPT_PDF_DIR, defaultPdfFolder),
-  videoClipDir: resolvePortablePath(process.env.VSC_VIDEOCLIP_PATH, path.join(projectRoot, 'videos')),
+  videoClipDir: resolveProjectPath(process.env.VSC_VIDEOCLIP_PATH, path.resolve(projectRoot, '..', 'VSC_VIDEOCLIP'), projectRoot),
   siaeExportDir: resolvePortablePath(process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR, 'C:\\VSC_SIAE'),
   userformRecordingsDir: resolvePortablePath(process.env.USERFORM_RECORDINGS_DIR, path.join(projectRoot, 'userform-recordings')),
   legacyRecordingsDir: resolvePortablePath(process.env.LEGACY_RECORDINGS_DIR, path.join(projectRoot, 'legacy-recordings')),

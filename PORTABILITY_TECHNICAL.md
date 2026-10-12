@@ -36,7 +36,7 @@ Optional overrides for environment-specific values:
 ```env
 UNIFIED_PORT=5500
 VSC_SCRIPT_PDF_DIR=C:\VSC_SCRIPT_PDF
-VSC_VIDEOCLIP_PATH=./exports/videoclips
+VSC_VIDEOCLIP_PATH=../VSC_VIDEOCLIP
 VSC_SIAE_DIR=C:\VSC_SIAE
 ```
 
@@ -125,7 +125,7 @@ c:\VSC_Live_Server\
 ### Read from `.env`
 - `UNIFIED_PORT`: Override default port (5500)
 - `VSC_SCRIPT_PDF_DIR`: PDF folder (Windows default: `C:\VSC_SCRIPT_PDF`; override supported)
-- `VSC_VIDEOCLIP_PATH`: Video clips (./exports/videoclips)
+- `VSC_VIDEOCLIP_PATH`: cartella video relativa alla radice del progetto (`../VSC_VIDEOCLIP`, equivalente a `C:\VSC_VIDEOCLIP` su questa installazione)
 - `VSC_SIAE_DIR`: SIAE exports (`C:\VSC_SIAE`)
 - `USERFORM_RECORDINGS_DIR`: Recordings (./exports/recordings)
 

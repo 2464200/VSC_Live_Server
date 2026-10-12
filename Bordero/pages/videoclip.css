@@ -243,6 +243,36 @@
   min-width: 0;
 }
 
+.video-transport-controls {
+  position: fixed;
+  z-index: 1000;
+  right: 0;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: min(560px, calc(100vw - 24px));
+  margin: 0 auto;
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: rgba(25, 25, 25, 0.96);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+.video-transport-controls .btn {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  padding: 10px 8px;
+  font-size: 0.95em;
+}
+
+.container {
+  padding-bottom: 92px;
+}
+
 #btn-playback-backend {
   grid-column: 1 / span 2;
   grid-row: 3;
