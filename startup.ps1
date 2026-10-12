@@ -448,10 +448,16 @@ function Find-ActiveUnifiedPort {
         foreach ($port in $UnifiedPorts) {
             $healthUri = "http://127.0.0.1:$port/api/health"
             $eventiPingUri = "http://127.0.0.1:$port/eventi/api/ping"
-            if ((Test-PortListening -Port $port) -and
-                (Test-HttpEndpoint -Uri $healthUri -TimeoutSeconds 2) -and
-                (Test-HttpEndpoint -Uri $eventiPingUri -TimeoutSeconds 2)) {
-                return [int]$port
+            if (-not (Test-PortListening -Port $port)) { continue }
+            try {
+                $health = Invoke-RestMethod -Uri $healthUri -TimeoutSec 2
+                $eventiPing = Invoke-RestMethod -Uri $eventiPingUri -TimeoutSec 2
+                if ($health.status -eq 'ok' -and $health.server -eq 'unified-server' -and $eventiPing.ok -eq $true) {
+                    return [int]$port
+                }
+            } catch {
+                # A listening port is not enough: only accept this project's
+                # health payload and its Eventi API response.
             }
         }
         if ($PortWaitSeconds -le 0 -or (Get-Date) -ge $deadline) { break }

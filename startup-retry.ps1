@@ -7,6 +7,11 @@ param(
 
 $RootPath = $PSScriptRoot
 $StartupScript = Join-Path $RootPath 'startup.ps1'
+$helpers = Join-Path $RootPath 'scripts\ps_helpers.ps1'
+
+if (Test-Path $helpers) {
+    . $helpers
+}
 
 if (-not (Test-Path $StartupScript)) {
     Write-Host "ERRORE FATALE: startup.ps1 non trovato in $RootPath" -ForegroundColor Red
@@ -33,13 +38,18 @@ while ($attempt -lt $MaxAttempts) {
     if ($NoWait) { $startupArguments += '-NoWait' }
     if ($NoMonitor) { $startupArguments += '-NoMonitor' }
 
-    $process = Start-Process -FilePath 'powershell.exe' `
+    $process = Start-ProcessSafe -FilePath 'powershell.exe' `
         -ArgumentList $startupArguments `
         -WorkingDirectory $RootPath `
-        -PassThru `
-        -Wait
+        -PassThru
 
-    $exitCode = $process.ExitCode
+    if (-not $process) {
+        Write-Host 'ERRORE: impossibile avviare il processo PowerShell di startup.' -ForegroundColor Red
+        $exitCode = 1
+    } else {
+        $process.WaitForExit()
+        $exitCode = $process.ExitCode
+    }
 
     if ($exitCode -eq 0) {
         Write-Host "OK Avvio completato con successo al tentativo $attempt." -ForegroundColor Green

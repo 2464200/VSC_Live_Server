@@ -38,7 +38,7 @@ foreach ($port in $basePort..($basePort + 19)) {
     try {
         $health = Invoke-RestMethod -Uri "http://127.0.0.1:$port/api/health" -TimeoutSec 2
         $eventi = Invoke-RestMethod -Uri "http://127.0.0.1:$port/eventi/api/ping" -TimeoutSec 2
-        if ($health.status -eq 'ok' -and $eventi) {
+        if ($health.status -eq 'ok' -and $health.server -eq 'unified-server' -and $eventi.ok -eq $true) {
             $activePort = $port
             break
         }

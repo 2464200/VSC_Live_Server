@@ -10,11 +10,42 @@ function Start-ProcessSafe {
         [Parameter()] [Switch] $NoNewWindow
     )
 
+    # Start-Process joins ArgumentList into one command-line string. Quote each
+    # value using Windows command-line rules so paths with spaces survive.
+    $quotedArguments = @()
+    foreach ($argument in $ArgumentList) {
+        $value = [string]$argument
+        if ($value -notmatch '[\s"]') {
+            $quotedArguments += $value
+            continue
+        }
+
+        $builder = New-Object System.Text.StringBuilder
+        [void]$builder.Append('"')
+        $slashes = 0
+        foreach ($character in $value.ToCharArray()) {
+            if ($character -eq '\') {
+                $slashes++
+            } elseif ($character -eq '"') {
+                [void]$builder.Append(('\' * (($slashes * 2) + 1)))
+                [void]$builder.Append('"')
+                $slashes = 0
+            } else {
+                if ($slashes -gt 0) { [void]$builder.Append(('\' * $slashes)) }
+                [void]$builder.Append($character)
+                $slashes = 0
+            }
+        }
+        if ($slashes -gt 0) { [void]$builder.Append(('\' * ($slashes * 2))) }
+        [void]$builder.Append('"')
+        $quotedArguments += $builder.ToString()
+    }
+
     # Check if FilePath is a URL - Start-Process can open URLs
     if ($FilePath -match '^[a-zA-Z]+:\/\/') {
         try {
             $splat = @{ FilePath = $FilePath; WindowStyle = $WindowStyle }
-            if ($ArgumentList) { $splat['ArgumentList'] = $ArgumentList }
+            if ($quotedArguments) { $splat['ArgumentList'] = $quotedArguments }
             if ($PassThru) { $splat['PassThru'] = $true }
             if ($NoNewWindow) { $splat['NoNewWindow'] = $true }
             if ($PassThru) { return Start-Process @splat }
@@ -38,7 +69,7 @@ function Start-ProcessSafe {
     }
 
     $splat = @{ FilePath = $FilePath }
-    if ($ArgumentList) { $splat['ArgumentList'] = $ArgumentList }
+    if ($quotedArguments) { $splat['ArgumentList'] = $quotedArguments }
     if ($WorkingDirectory) { $splat['WorkingDirectory'] = $WorkingDirectory }
     if ($WindowStyle) { $splat['WindowStyle'] = $WindowStyle }
     if ($PassThru) { $splat['PassThru'] = $true }
