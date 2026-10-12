@@ -577,14 +577,31 @@
 
 /* FOOTER ACTION */
 .footer-action {
+  position: fixed;
+  z-index: 1000;
+  right: 0;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 0;
   display: flex;
   justify-content: center;
-  margin-bottom: 40px;
+  width: min(360px, calc(100vw - 24px));
+  margin: 0 auto;
+  padding: 8px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: rgba(25, 25, 25, 0.96);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
 }
 
 .footer-action .btn {
-  padding: 15px 40px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 24px;
   font-size: 1em;
+}
+
+.container {
+  padding-bottom: 96px;
 }
 
 /* RESPONSIVE */
