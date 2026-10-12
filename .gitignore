@@ -73,6 +73,9 @@ node_modules/
 electron/monitor-preferences.json
 electron/page-policy.json
 
+# Per-machine Bordero and Electron configuration (never commit or publish)
+.local/
+
 # Firebase service-account credentials (local only)
 secrets/
 

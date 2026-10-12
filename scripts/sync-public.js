@@ -79,7 +79,8 @@ function copyDirRecursive(srcDir, dstDir, repoRelativeDir, deferredPaths) {
     } else if (entry.isFile()) {
       if (deferredPaths.has('*') || deferredPaths.has(repoRelativePath)) continue;
       if (repoRelativePath === 'Bordero/data/music-archive-local-config.json'
-          || repoRelativePath === 'Bordero/data/video-clip-local-config.json') continue;
+          || repoRelativePath === 'Bordero/data/video-clip-local-config.json'
+          || repoRelativePath === 'Bordero/data/music-archive-index.csv') continue;
       fs.copyFileSync(srcPath, dstPath);
     }
   }
@@ -167,6 +168,8 @@ function syncPublic() {
   for (const file of ['music-archive-local-config.json', 'video-clip-local-config.json']) {
     fs.rmSync(path.join(publicBordero, 'data', file), { force: true });
   }
+  // The archive index contains absolute paths from the machine that generated it.
+  fs.rmSync(path.join(publicBordero, 'data', 'music-archive-index.csv'), { force: true });
   for (const file of LOCAL_ONLY_CSV_PATHS) {
     fs.rmSync(path.join(repoRoot, 'public', file), { force: true });
   }

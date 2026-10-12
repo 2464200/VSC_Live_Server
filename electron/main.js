@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const { getLocalConfigPath } = require('../config/local-config');
 const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectronAppConfig } = require('./display-manager');
 const {
   isFirebaseGoogleAuthPopupUrl,
@@ -12,7 +13,7 @@ const {
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
-const PAGE_POLICY_FILE = path.join(__dirname, 'page-policy.json');
+const PAGE_POLICY_FILE = getLocalConfigPath('electron/page-policy.json', [path.join(__dirname, 'page-policy.json')]);
 
 let primaryWindow;
 let secondaryWindow;
@@ -40,7 +41,7 @@ let electronVideoPlayerState = {
   lastEvent: 'idle'
 };
 
-const MONITOR_PREFERENCES_FILE = path.join(__dirname, 'monitor-preferences.json');
+const MONITOR_PREFERENCES_FILE = getLocalConfigPath('electron/monitor-preferences.json', [path.join(__dirname, 'monitor-preferences.json')]);
 const ELECTRON_CONTROL_PORT = process.env.ELECTRON_CONTROL_PORT ? parseInt(process.env.ELECTRON_CONTROL_PORT, 10) : 5512;
 const DISPLAY_PAGE_PATH = '/Bordero/pages/display.html';
 const PRIMARY_DEFAULT_PAGE_PATH = '/Bordero/pages/bordero.html';
