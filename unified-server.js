@@ -5425,9 +5425,13 @@ router.get('/download-siae/:fileName', (req, res) => {
     return res.download(filePath);
 });
 
-router.get('/sync-brani', (req, res) => {
+router.get('/sync-brani', async (req, res) => {
     try {
         ensureExtraCsvFile();
+        const googleSummary = await runBorderoGoogleSync('eventi-admin');
+        if (!googleSummary?.success) {
+            throw new Error(googleSummary?.error || googleSummary?.reason || 'Sincronizzazione Google non riuscita');
+        }
         const { stats } = syncBraniJson(pathBrani);
         res.json({
             ok: true,
@@ -5436,8 +5440,10 @@ router.get('/sync-brani', (req, res) => {
             extraCount: stats.extraCount,
             skippedInvalid: stats.skippedInvalid,
             skippedDuplicates: stats.skippedDuplicates,
+            source: stats.baseFile,
+            googleSync: googleSummary,
             extraFile: EXTRA_CSV_NAME,
-            message: `Sincronizzati ${stats.total} brani da CSV`
+            message: `Sincronizzati ${stats.total} brani dal catalogo Google di Borderò`
         });
     } catch (e) {
         res.status(500).json({ error: 'Errore sincronizzazione brani: ' + e.message });

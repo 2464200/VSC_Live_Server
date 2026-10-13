@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 const QRCodeLib = require('qrcode');
-const { syncBraniJson, EXTRA_CSV_NAME } = require('./brani-utils');
+const { syncBraniFromGoogle, EXTRA_CSV_NAME } = require('./brani-utils');
 
 // Router API della sezione EVENTI
 const eventiRouter = require('./eventi-server.js');
@@ -68,10 +68,10 @@ app.use((err, req, res, next) => {
 });
 
 // Funzione di sincronizzazione brani al startup
-function syncBraniOnStartup() {
+async function syncBraniOnStartup() {
   try {
-    const { stats } = syncBraniJson();
-    console.log(`Startup sync: ${stats.total} brani caricati dai CSV`);
+    const { stats } = await syncBraniFromGoogle();
+    console.log(`Startup sync: ${stats.total} brani caricati dal catalogo Google di Borderò`);
     console.log(`  - Principale: ${stats.baseCount}`);
     console.log(`  - Aggiuntivo (${EXTRA_CSV_NAME}): ${stats.extraCount}`);
   } catch (error) {

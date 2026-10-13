@@ -234,9 +234,9 @@
   <h1>Admin EVENTI</h1>
 
   <div class="section">
-    <h2>Sincronizza Brani dal CSV</h2>
+    <h2>Sincronizza Brani da Google</h2>
 
-    <p>Legge automaticamente <code>Elenco_Brani_statico.csv</code> e, se presente, unisce anche <code>Coreografie_Aggiuntive.csv</code> aggiornando il database dei brani.</p>
+    <p>Usa la stessa sincronizzazione Google di Borderò e aggiorna il database Eventi dal catalogo condiviso.</p>
 
     <button id="btn-sync" onclick="sincronizzaBrani()">Sincronizza Brani Ora</button>
 
@@ -245,9 +245,8 @@
     <div class="info-box">
       <strong>Endpoint API:</strong><br>
       <code>GET /eventi/api/sync-brani</code><br><br>
-      <strong>File CSV:</strong><br>
-      <code>Elenco_Brani_statico.csv</code><br>
-      <code>Coreografie_Aggiuntive.csv</code> (opzionale, per nuove coreografie)<br><br>
+      <strong>Sorgente condivisa:</strong><br>
+      <code>Bordero/data/brani.csv</code> aggiornato dal foglio Google <code>Accoda 8+12</code><br><br>
       <strong>Output:</strong><br>
       <code>data/brani.json</code>
     </div>
@@ -277,7 +276,7 @@
       <strong>File CSV aggiuntivo:</strong><br>
       <code>Coreografie_Aggiuntive.csv</code><br><br>
       <strong>Nota:</strong><br>
-      i brani extra vengono uniti all'elenco principale durante la sincronizzazione; eventuali duplicati per ID o titolo vengono ignorati automaticamente.
+      i brani extra restano separati dal catalogo Google condiviso e sono disponibili per la gestione locale fino al loro inserimento nella sorgente Google.
     </div>
 
     <div class="stats">
@@ -514,7 +513,7 @@ async function sincronizzaBrani() {
     loadingText: 'Sincronizzazione...',
     idleText: 'Sincronizza Brani Ora',
     successText: 'Sincronizzazione completata.',
-    authAction: 'Sincronizza brani da CSV'
+    authAction: 'Sincronizza brani da Google'
   });
 }
 

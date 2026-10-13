@@ -3,15 +3,15 @@
 
 const { syncBraniJson, EXTRA_CSV_NAME } = require('./brani-utils');
 
-console.log('Sincronizzazione brani CSV -> JSON');
+console.log('Sincronizzazione catalogo condiviso Borderò/Google -> Eventi JSON');
 
 try {
   const { stats, jsonPath } = syncBraniJson();
 
   console.log('Sincronizzazione completata');
   console.log(`Brani caricati: ${stats.total}`);
-  console.log(` - CSV principale: ${stats.baseCount}`);
-  console.log(` - CSV aggiuntivo (${EXTRA_CSV_NAME}): ${stats.extraCount}`);
+  console.log(` - Catalogo condiviso: ${stats.baseCount}`);
+  console.log(` - Extra locali separati (${EXTRA_CSV_NAME}): ${stats.extraCount}`);
 
   if (stats.skippedInvalid > 0) {
     console.log(` - Righe incomplete ignorate: ${stats.skippedInvalid}`);

@@ -4,10 +4,12 @@ const path = require('path');
 const BASE_CSV_NAME = 'Elenco_Brani_statico.csv';
 const LEGACY_BASE_CSV_NAME = 'display.csv';
 const EXTRA_CSV_NAME = 'Coreografie_Aggiuntive.csv';
+const BORDERO_CSV_NAME = 'Bordero/data/brani.csv';
 
 const BASE_CSV_PATH = path.join(__dirname, BASE_CSV_NAME);
 const LEGACY_BASE_CSV_PATH = path.join(__dirname, '..', LEGACY_BASE_CSV_NAME);
 const EXTRA_CSV_PATH = path.join(__dirname, EXTRA_CSV_NAME);
+const BORDERO_CSV_PATH = path.join(__dirname, '..', 'Bordero', 'data', 'brani.csv');
 const BRANI_JSON_PATH = path.join(__dirname, 'data', 'brani.json');
 const EXTRA_CSV_HEADER = 'Colonna 1,Colonna 2,ID,coreografia,brano,autore,richieste,info livello,info coreo 1,info coreo 2,studiate,coreografo,collaboratori,descrizione coreo';
 
@@ -81,6 +83,15 @@ function buildStableExtraId({ titolo, brano, autore }, rowNumber) {
 }
 
 function resolveBaseCsvSource() {
+  if (fs.existsSync(BORDERO_CSV_PATH)) {
+    return {
+      csvPath: BORDERO_CSV_PATH,
+      fileName: BORDERO_CSV_NAME,
+      sourceName: 'bordero-google',
+      skipLines: 1
+    };
+  }
+
   if (fs.existsSync(BASE_CSV_PATH)) {
     return {
       csvPath: BASE_CSV_PATH,
@@ -126,7 +137,7 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
 
     const delimiter = sourceName === 'base-static'
       ? ';'
-      : sourceName === 'base-legacy'
+      : sourceName === 'base-legacy' || sourceName === 'bordero-google'
         ? ','
         : detectCsvDelimiter(line);
     const cols = parseCSVLine(line, delimiter).map(c => normalizeValue(c));
@@ -195,9 +206,6 @@ function loadBraniFromSources() {
   const base = parseCsvRows(baseSource.csvPath, baseSource.sourceName, { skipLines: baseSource.skipLines });
   const extra = parseCsvRows(EXTRA_CSV_PATH, 'extra', { optional: true, skipLines: 1 });
 
-  const seenIds = new Set();
-  const seenTitles = new Set();
-  const warnings = [];
   const brani = base.rows.map(item => ({
     id: item.id,
     titolo: item.titolo,
@@ -206,44 +214,6 @@ function loadBraniFromSources() {
     compositore: item.compositore || '',
     durata: item.durata || ''
   }));
-  let skippedDuplicates = 0;
-
-  base.rows.forEach(item => {
-    const idKey = normalizeKey(item.id);
-    const titleKey = normalizeKey(item.titolo);
-
-    seenIds.add(idKey);
-    if (titleKey) seenTitles.add(titleKey);
-  });
-
-  extra.rows.forEach(item => {
-    const idKey = normalizeKey(item.id);
-    const titleKey = normalizeKey(item.titolo);
-
-    if (seenIds.has(idKey)) {
-      skippedDuplicates += 1;
-      warnings.push(`ID duplicato ignorato (${item.id}) dal file ${EXTRA_CSV_NAME}`);
-      return;
-    }
-
-    if (titleKey && seenTitles.has(titleKey)) {
-      skippedDuplicates += 1;
-      warnings.push(`Coreografia duplicata ignorata (${item.titolo}) dal file ${EXTRA_CSV_NAME}`);
-      return;
-    }
-
-    seenIds.add(idKey);
-    if (titleKey) seenTitles.add(titleKey);
-
-    brani.push({
-      id: item.id,
-      titolo: item.titolo,
-      brano: item.brano,
-      autore: item.autore,
-      compositore: item.compositore || '',
-      durata: item.durata || ''
-    });
-  });
 
   return {
     brani,
@@ -251,11 +221,12 @@ function loadBraniFromSources() {
       total: brani.length,
       baseCount: base.rows.length,
       extraCount: extra.rows.length,
+      pendingExtraCount: extra.rows.length,
       skippedInvalid: base.skipped + extra.skipped,
-      skippedDuplicates,
+      skippedDuplicates: 0,
       extraFileMissing: extra.missing,
       baseFile: baseSource.fileName,
-      warnings
+      warnings: []
     }
   };
 }
@@ -304,13 +275,15 @@ function appendExtraBrano(payload, jsonPath = BRANI_JSON_PATH) {
   }
 
   const { brani } = loadBraniFromSources();
-  const duplicateByTitle = brani.find(item => normalizeKey(item.titolo) === normalizeKey(titolo));
+  const existingExtras = parseCsvRows(EXTRA_CSV_PATH, 'extra', { optional: true, skipLines: 1 }).rows;
+  const duplicateCandidates = [...brani, ...existingExtras];
+  const duplicateByTitle = duplicateCandidates.find(item => normalizeKey(item.titolo) === normalizeKey(titolo));
   if (duplicateByTitle) {
     throw new Error(`La coreografia "${titolo}" esiste già con ID ${duplicateByTitle.id}`);
   }
 
   const id = requestedId || buildStableExtraId({ titolo, brano, autore }, Date.now());
-  const duplicateById = brani.find(item => normalizeKey(item.id) === normalizeKey(id));
+  const duplicateById = duplicateCandidates.find(item => normalizeKey(item.id) === normalizeKey(id));
   if (duplicateById) {
     throw new Error(`L'ID ${id} è già presente nel catalogo`);
   }
@@ -358,6 +331,17 @@ function syncBraniJson(jsonPath = BRANI_JSON_PATH) {
   const { brani, stats } = loadBraniFromSources();
   saveBraniJson(brani, jsonPath);
   return { brani, stats, jsonPath };
+}
+
+async function syncBraniFromGoogle(jsonPath = BRANI_JSON_PATH) {
+  const { syncAll } = require('../Bordero/server/google-sheets-sync');
+  const googleSync = await syncAll({ exitOnFailure: false, onlySheets: ['Accoda 8+12'] });
+  if (!googleSync?.success) {
+    const failed = Array.isArray(googleSync?.results)
+      ? googleSync.results.find((result) => !result.success) : null;
+    throw new Error(failed?.error || googleSync?.error || 'Sincronizzazione Google non riuscita');
+  }
+  return { ...syncBraniJson(jsonPath), googleSync };
 }
 
 function updateExtraBrano(id, payload = {}, csvPath = EXTRA_CSV_PATH) {
@@ -468,10 +452,12 @@ module.exports = {
   BASE_CSV_NAME,
   LEGACY_BASE_CSV_NAME,
   EXTRA_CSV_NAME,
+  BORDERO_CSV_NAME,
   EXTRA_CSV_HEADER,
   BASE_CSV_PATH,
   LEGACY_BASE_CSV_PATH,
   EXTRA_CSV_PATH,
+  BORDERO_CSV_PATH,
   BRANI_JSON_PATH,
   ensureExtraCsvFile,
   appendExtraBrano,
@@ -479,5 +465,6 @@ module.exports = {
   deleteExtraBrano,
   loadBraniFromSources,
   saveBraniJson,
-  syncBraniJson
+  syncBraniJson,
+  syncBraniFromGoogle
 };

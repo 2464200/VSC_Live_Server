@@ -2,7 +2,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
+const { syncBraniJson, syncBraniFromGoogle, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
 const { projectConfig } = require('../config/config');
 
 const router = express.Router();
@@ -345,22 +345,23 @@ router.get('/log.csv', (req, res) => {
 });
 
 // ============================
-//   SYNC BRANI DA CSV
+//   SYNC BRANI DA GOOGLE
 // ============================
-// Legge il CSV e converte in JSON
-router.get('/sync-brani', (req, res) => {
+router.get('/sync-brani', async (req, res) => {
   try {
-    const { stats } = syncBraniJson(pathBrani);
+    const { stats, googleSync } = await syncBraniFromGoogle(pathBrani);
 
     res.json({
       ok: true,
       count: stats.total,
       baseCount: stats.baseCount,
       extraCount: stats.extraCount,
+      source: stats.baseFile,
+      googleSync,
       skippedInvalid: stats.skippedInvalid,
       skippedDuplicates: stats.skippedDuplicates,
       extraFile: EXTRA_CSV_NAME,
-      message: `Sincronizzati ${stats.total} brani da CSV`
+      message: `Sincronizzati ${stats.total} brani dal catalogo Google di Borderò`
     });
   } catch (e) {
     res.status(500).json({ error: 'Errore sincronizzazione brani: ' + e.message });
