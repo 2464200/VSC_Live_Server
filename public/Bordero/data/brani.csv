@@ -574,13 +574,13 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,573,MY MARIA,everytime we touch,maggie reilly,04:04,,INTERMEDIO,COPPIA,,,Jgor Pasin
 ,,574,"STOMP 2,3,4","stomp 2,3,4",2341studios,02:44,2,ALTRE COREO,,,,Rob Fowler,,32 conteggi 4 muri
 ,,575,BUMP THAT BASS,drop your tailgate,chase mcdaniel,03:08,,ALTRE COREO,,,,Katy Kearey,,16 conteggi 4 muri
-,,576,WOHOOO,i forgot the steps,scandorable,02:33,1,SUPER AVANZATO 3,,,,Mario Hollnsteiner,,32 conteggi 4 muri
+,,576,WOHOO,i forgot the steps,scandorable,02:33,,SUPER AVANZATO 3,,,,Mario Hollnsteiner,,32 conteggi 4 muri
 ,,577,DIANA,diana,one direction,03:05,,ALTRE COREO,,,,Pol F. Ryan,,64 conteggi 0 muri
 ,,578,BEST DAY EVER,best day ever,sly & the family stallone,02:30,,SUPER AVANZATO 3,,,,Sabine & Priska
-,,579,INTER PARMA,,,,
-,,580,ESIBIZIONE DUE TORRI,,,,
-,,581,ESIBIZIONE DUE TORRI,,,,
-,,582,ESIBIZIONE DUE TORRI,,,,
+,,579,,,,,
+,,580,,,,,
+,,581,,,,,
+,,582,,,,,
 ,,583,,,,,
 ,,584,,,,,
 ,,585,,,,,
@@ -594,8 +594,14 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,593,,,,,
 ,,594,,,,,
 ,,595,,,,,
-,,596,COME COMPILARE MODULO DI GOOGLE,,veed.io,00:38,,,SERVICE,,,dj daniel west
-,,597,NEW VIDEO PROMO CORSI 2026,billy the kid,chris ledoux,00:49,,,PROMO,,,monster country group,vari
-,,598,VIDEO PROMO MONSTER 2023,ain't nobody like you (feat emmi),wildflowers,01:55,,,PROMO,,,monster country group,ivan luca anna daniela daniele
-,,599,AUDIO VIDEO TESTER,tsunami,dvbbs & borgeus,02:22,,,TEST
-,,600,,,,,
+,,596,,,,,
+,,597,,,,,
+,,598,,,,,
+,,599,,,,,
+,,600,ESIBIZIONE DUE TORRI - Black Coffee,black coffee,lacy j dalton,04:14,,,ESIBIZIONE
+,,601,ESIBIZIONE DUE TORRI - Doctor Doctor,bad case of loving you,robert palmer,03:13,,,ESIBIZIONE
+,,602,ESIBIZIONE DUE TORRI - Dancing Violins,duelling violins,ronan hardiman,03:17,,,ESIBIZIONE
+,,603,COME COMPILARE MODULO DI GOOGLE,,veed.io dj daniel west,00:38,,,SERIVZIO
+,,604,NEW VIDEO PROMO CORSI 2026,billy the kid,chris ledoux,00:49,,,PROMO,,,monster country group,vari
+,,605,VIDEO PROMO MONSTER 2023,ain't nobody like you (feat emmi),wildflowers,01:55,,,PROMO,,,monster country group,ivan luca anna daniela daniele
+,,606,AUDIO VIDEO TESTER,tsunami,dvbbs & borgeus,02:22,,,TEST

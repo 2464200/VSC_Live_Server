@@ -17,37 +17,19 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 
 Write-Host '[INFO] Avvio del server unificato tramite startup.ps1...' -ForegroundColor Cyan
 if ($PortOverride -gt 0) {
-    & $startupScript -NoWait -PortOverride $PortOverride
+    $activePort = & $startupScript -NoWait -PortOverride $PortOverride
 } else {
-    & $startupScript -NoWait
+    $activePort = & $startupScript -NoWait
 }
 
-$basePort = if ($PortOverride -gt 0) { $PortOverride } else { 5500 }
-$envFile = Join-Path $root '.env'
-if ($PortOverride -le 0 -and (Test-Path $envFile)) {
-    foreach ($line in Get-Content $envFile) {
-        if ($line -match '^\s*UNIFIED_PORT\s*=\s*["'']?(\d+)["'']?\s*(?:#.*)?$') {
-            $basePort = [int]$Matches[1]
-            break
-        }
-    }
+if ($activePort -is [array]) {
+    $activePort = $activePort | Select-Object -Last 1
 }
-
-$activePort = $null
-foreach ($port in $basePort..($basePort + 19)) {
-    try {
-        $health = Invoke-RestMethod -Uri "http://127.0.0.1:$port/api/health" -TimeoutSec 2
-        $eventi = Invoke-RestMethod -Uri "http://127.0.0.1:$port/eventi/api/ping" -TimeoutSec 2
-        if ($health.status -eq 'ok' -and $health.server -eq 'unified-server' -and $eventi.ok -eq $true) {
-            $activePort = $port
-            break
-        }
-    } catch {}
+$parsedPort = 0
+if (-not [int]::TryParse([string]$activePort, [ref]$parsedPort) -or $parsedPort -lt 1 -or $parsedPort -gt 65535) {
+    throw 'startup.ps1 non ha restituito una porta valida dopo le verifiche di disponibilità.'
 }
-
-if (-not $activePort) {
-    throw "Il server non risponde alle verifiche API sulle porte $basePort-$($basePort + 19)."
-}
+$activePort = $parsedPort
 
 $url = "http://localhost:$activePort/"
 Write-Host "[OK] Server pronto: $url" -ForegroundColor Green

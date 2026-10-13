@@ -501,7 +501,15 @@ if ($existingPort) {
     Write-Host "Server già in esecuzione sulla porta $UnifiedPort - Nessuna azione necessaria"
     if ($NoWait) {
         Write-Host "Avvio rapido completato: salto le operazioni opzionali post-avvio."
-        return
+        return [int]$UnifiedPort
+    }
+    # Electron is the part the user waits for. Start it before camera probing
+    # and report generation so those independent tasks run while its windows load.
+    try {
+        $electronPid = Start-MonitorLaunchers -RootPath $RootPath
+        if ($electronPid) { $startedPids += [int]$electronPid; Save-Pids -Pids $startedPids }
+    } catch {
+        Write-Host "AVVISO: impossibile avviare Electron dual monitor - $_" -ForegroundColor Yellow
     }
     Write-Host ""
     Write-Host "Generazione dati report..."
@@ -523,13 +531,6 @@ if ($existingPort) {
     Write-Host "  Mobile:      http://localhost:$($UnifiedPort)/public/mobile1.html"
     Write-Host ""
     Invoke-WebcamProfiling -Port $UnifiedPort
-    Write-Host ""
-    try {
-        $electronPid = Start-MonitorLaunchers -RootPath $RootPath
-        if ($electronPid) { $startedPids += [int]$electronPid; Save-Pids -Pids $startedPids }
-    } catch {
-        Write-Host "AVVISO: impossibile avviare Electron dual monitor - $_" -ForegroundColor Yellow
-    }
     exit 0
 }
 
@@ -557,7 +558,17 @@ Save-Pids -Pids $startedPids
 
 if ($NoWait) {
     Write-Host "Avvio rapido completato: server unificato pronto sulla porta $UnifiedPort."
-    return
+    return [int]$UnifiedPort
+}
+
+# Electron startup is independent of webcam profiling and report generation.
+# Launch it as soon as the server is healthy so both windows can load in parallel
+# with these existing post-start tasks.
+try {
+    $electronPid = Start-MonitorLaunchers -RootPath $RootPath
+    if ($electronPid) { $startedPids += [int]$electronPid; Save-Pids -Pids $startedPids }
+} catch {
+    Write-Host "AVVISO: impossibile avviare Electron dual monitor - $_" -ForegroundColor Yellow
 }
 
 Invoke-WebcamProfiling -Port $UnifiedPort
@@ -578,12 +589,6 @@ Write-Host "========================================================"
 Write-Host "        SISTEMA COMPLETAMENTE OPERATIVO"
 Write-Host "========================================================"
 Write-Host ""
-try {
-    $electronPid = Start-MonitorLaunchers -RootPath $RootPath
-    if ($electronPid) { $startedPids += [int]$electronPid; Save-Pids -Pids $startedPids }
-} catch {
-    Write-Host "AVVISO: impossibile avviare Electron dual monitor - $_" -ForegroundColor Yellow
-}
 Write-Host "URL per accesso:"
 Write-Host "  Homepage:    http://localhost:$($UnifiedPort)/index.html"
 Write-Host "  PDF:         http://localhost:$($UnifiedPort)/pdf/pages/script-pdf-gestione.html"
