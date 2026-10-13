@@ -274,7 +274,7 @@ class CoreografieStampaPage {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, ' ')
         .toLocaleLowerCase('it-IT');
-      if (window.isVideoOnlyBrano?.(titleKey)) return;
+      if (this.isExcludedFromPrint(brano)) return;
       if (seenTitles.has(titleKey)) return;
       seenTitles.add(titleKey);
       const first = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase();
@@ -284,6 +284,32 @@ class CoreografieStampaPage {
 
     Object.values(groups).forEach(entries => entries.sort((a, b) => this.titleOf(a).localeCompare(this.titleOf(b), 'it', { sensitivity: 'base', numeric: true })));
     return groups;
+  }
+
+  isExcludedFromPrint(brano) {
+    if (window.isVideoOnlyBrano?.(brano)) return true;
+
+    // Regola valida solo per la stampa: le posizioni 600-606 sono video,
+    // esibizioni o contenuti di servizio. I titoli restano come riserva se la
+    // fonte Google li rinumera; aggiornare gli ID se vengono assegnati a brani.
+    const excludedIds = new Set(['600', '601', '602', '603', '604', '605', '606']);
+    const excludedTitles = new Set([
+      'esibizione due torri - black coffee',
+      'esibizione due torri - doctor doctor',
+      'esibizione due torri - dancing violins',
+      'come compilare modulo di google',
+      'new video promo corsi 2026',
+      'video promo monster 2023',
+      'audio video tester'
+    ]);
+    const normalizedId = String(brano?.id ?? '').trim().replace(/^0+(?=\d)/, '');
+    const normalizedTitle = String(brano?.titolo || brano?.coreografia || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+    return excludedIds.has(normalizedId) || excludedTitles.has(normalizedTitle);
   }
 
   renderGroup(initial, entries) {
