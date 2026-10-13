@@ -352,6 +352,26 @@
       • <code>0</code> = nessun limite (illimitato)
     </div>
   </div>
+
+  <div class="section">
+    <h2>Permessi sui brani prenotati</h2>
+    <p>Definisci se un brano prenotato può essere eseguito o annullato da un DJ diverso da quello che lo ha scelto.</p>
+    <div class="info-box" style="display:grid;gap:14px;">
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
+        <input id="allow-other-dj-execute" type="checkbox" style="width:22px;height:22px;flex:0 0 auto;" />
+        <span><strong>Consenti esecuzione a un altro DJ</strong><br><small>Se disattivato, solo il DJ che ha prenotato il brano può segnarlo come eseguito.</small></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;">
+        <input id="allow-other-dj-cancel" type="checkbox" style="width:22px;height:22px;flex:0 0 auto;" />
+        <span><strong>Consenti annullamento a un altro DJ</strong><br><small>Se disattivato, solo il DJ che ha prenotato il brano può annullarne la prenotazione.</small></span>
+      </label>
+    </div>
+    <button id="btn-save-action-permissions" type="button">Salva regole DJ</button>
+    <div id="action-permissions-status" class="status" role="status" aria-live="polite"></div>
+    <div class="info-box">
+      Le regole vengono applicate dal server confrontando il DJ selezionato con il DJ proprietario della prenotazione. Con entrambe le opzioni disattivate, soltanto chi ha prenotato può eseguire o annullare il brano.
+    </div>
+  </div>
 </div>
 
 <script src="config.js"></script>
@@ -547,6 +567,48 @@ async function caricaStats() {
   }
 }
 
+async function caricaPermessiAzioniDJ() {
+  const status = document.getElementById('action-permissions-status');
+  try {
+    const response = await eventiFetch('/action-permissions');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    document.getElementById('allow-other-dj-execute').checked = data.allowOtherDjExecute === true;
+    document.getElementById('allow-other-dj-cancel').checked = data.allowOtherDjCancel === true;
+    status.className = 'status success';
+    status.textContent = 'Regole DJ caricate.';
+  } catch (error) {
+    status.className = 'status error';
+    status.textContent = `Errore caricamento regole DJ: ${error.message}`;
+  }
+}
+
+async function salvaPermessiAzioniDJ() {
+  if (!(await verifyPassword('Modifica permessi sui brani prenotati'))) return;
+  const button = document.getElementById('btn-save-action-permissions');
+  const status = document.getElementById('action-permissions-status');
+  button.disabled = true;
+  try {
+    const response = await eventiFetch('/action-permissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        allowOtherDjExecute: document.getElementById('allow-other-dj-execute').checked,
+        allowOtherDjCancel: document.getElementById('allow-other-dj-cancel').checked
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    status.className = 'status success';
+    status.textContent = 'Regole DJ salvate e già attive.';
+  } catch (error) {
+    status.className = 'status error';
+    status.textContent = `Errore salvataggio regole DJ: ${error.message}`;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function triggerFileDownload(downloadUrl) {
   if (!downloadUrl || typeof downloadUrl !== 'string') {
     throw new Error('URL download non valido');
@@ -739,6 +801,8 @@ async function impostaLimiteSingolo(element) {
 window.addEventListener('DOMContentLoaded', () => {
   caricaStats();
   safeCaricaDJPerLimitiTentativi();
+  caricaPermessiAzioniDJ();
+  document.getElementById('btn-save-action-permissions')?.addEventListener('click', salvaPermessiAzioniDJ);
   
   // Aggiorna automaticamente la tabella limiti ogni 10 secondi
   setInterval(() => {

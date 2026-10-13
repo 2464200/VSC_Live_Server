@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { syncBraniJson, syncBraniFromGoogle, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
 const { projectConfig } = require('../config/config');
-const { resolveDjForState } = require('./dj-association');
+const { resolveDjAction } = require('./dj-association');
+const { createActionPermissionsStore } = require('./action-permissions');
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ const pathDj    = path.join(__dirname, 'data', 'dj.json');
 const pathDjLimits = path.join(__dirname, 'data', 'dj-limits.json');
 const pathCsv   = path.join(__dirname, 'data', 'log.csv');
 const pathEventMeta = path.join(__dirname, 'data', 'event-meta.json');
+const actionPermissionsStore = createActionPermissionsStore();
 // Directory condivisa export SIAE (allineata a Bordero/unified-server).
 const SIAE_EXPORT_DIR = projectConfig.siaeExportDir;
 
@@ -99,7 +101,7 @@ router.get('/log', (req, res) => {
 // ============================
 router.post('/log', (req, res) => {
   try {
-    const { id, stato, timestamp, dj } = req.body;
+    const { id, stato, timestamp, dj, actorDj } = req.body;
 
     // Accetta gli stati stringa usati dal front-end:
     // 'prenotato', 'eseguito', 'disponibile', oppure il vecchio booleano true/false
@@ -115,16 +117,22 @@ router.post('/log', (req, res) => {
     const normalizedState = isBoolState ? (stato ? 'eseguito' : 'disponibile') : stato;
 
     const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
-    const resolvedDj = resolveDjForState(log, id, normalizedState, dj);
-    if (normalizedState !== 'disponibile' && !resolvedDj) {
-      return res.status(400).json({ error: 'Seleziona il DJ prima di aggiornare il brano' });
-    }
-    log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: resolvedDj });
+    const resolution = resolveDjAction(log, id, normalizedState, dj, actorDj, actionPermissionsStore.read());
+    if (!resolution.ok) return res.status(resolution.status).json({ error: resolution.error });
+    log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: resolution.dj, actorDj: resolution.actorDj });
     fs.writeFileSync(pathLog, JSON.stringify(log, null, 2));
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Errore salvataggio log' });
   }
+});
+
+router.get('/action-permissions', (_req, res) => {
+  res.json({ ok: true, ...actionPermissionsStore.read() });
+});
+
+router.post('/action-permissions', (req, res) => {
+  res.json({ ok: true, ...actionPermissionsStore.save(req.body) });
 });
 
 router.post('/brani-extra', (req, res) => {

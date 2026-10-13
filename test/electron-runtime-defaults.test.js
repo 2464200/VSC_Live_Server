@@ -169,6 +169,8 @@ withTempRuntime(
     'electron/page-policy.json': JSON.stringify({
       '/bad-route': { primary: false, secondary: false },
       '/good-route': { primary: true, secondary: false },
+      '/eventi/visualizer.html': { primary: true, secondary: false },
+      '/eventi/public/visualizer.html': { primary: true, secondary: false },
     }, null, 2),
     'Eventi/public/admin.html': '<!doctype html>',
   },
@@ -185,6 +187,8 @@ withTempRuntime(
     const validEntry = policyMap.get('/good-route');
     const displayEntry = policyMap.get('/bordero/pages/display.html');
     const videoPlayerEntry = policyMap.get('/bordero/pages/video-player.html');
+    const visualizerEntry = policyMap.get('/eventi/visualizer.html');
+    const publicVisualizerEntry = policyMap.get('/eventi/public/visualizer.html');
     const serviceEntry = policyMap.get('/userform/pages/servizio.html');
     const serviceDisplayPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=text')", sandbox);
     const removedServiceLogoEntry = policyMap.get('/userform/pages/servizio-logo.html');
@@ -215,6 +219,8 @@ withTempRuntime(
     assert(validEntry && validEntry.primary === true && validEntry.secondary === false, 'Valid policy entry should be preserved as-is.');
     assert(displayEntry && displayEntry.primary === false && displayEntry.secondary === true, 'Display page must remain on the secondary monitor.');
     assert(videoPlayerEntry && videoPlayerEntry.primary === false && videoPlayerEntry.secondary === true, 'Video-player page must remain on the secondary monitor.');
+    assert(visualizerEntry && visualizerEntry.primary === false && visualizerEntry.secondary === true, 'Eventi visualizer must always route to the secondary monitor.');
+    assert(publicVisualizerEntry && publicVisualizerEntry.primary === false && publicVisualizerEntry.secondary === true, 'Direct Eventi visualizer path must always route to the secondary monitor.');
     assert(serviceEntry && serviceEntry.primary === true && serviceEntry.secondary === false, 'The SERVIZIO operator route must stay on the primary monitor.');
     assert(serviceDisplayPolicy.primary === false && serviceDisplayPolicy.secondary === true, 'SERVIZIO display mode must route only to the secondary monitor.');
     assert(!removedServiceLogoEntry && !removedServicePublicationEntry, 'The separate SERVIZIO pages must not remain in Electron policy.');
@@ -227,6 +233,8 @@ withTempRuntime(
     assert(!removedUserFormScriptPdfEntry, 'The deleted USERFORM ScriptPDF launcher route must not remain in Electron policy.');
     assert(scriptPdfManagementPolicy.primary === true && scriptPdfManagementPolicy.secondary === false, 'Canonical ScriptPDF management page must be routed to the primary monitor.');
     assert(committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.primary === true && committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.secondary === false, 'Persisted policy must keep canonical ScriptPDF management on the primary monitor.');
+    assert(committedPagePolicy['/eventi/visualizer.html']?.primary === false && committedPagePolicy['/eventi/visualizer.html']?.secondary === true, 'Persisted policy must route Eventi visualizer to the secondary monitor.');
+    assert(committedPagePolicy['/eventi/public/visualizer.html']?.primary === false && committedPagePolicy['/eventi/public/visualizer.html']?.secondary === true, 'Persisted policy must route the direct Eventi visualizer path to the secondary monitor.');
     assert(!Object.hasOwn(committedPagePolicy, '/pdf/pages/script-pdf-prova.html'), 'Persisted policy must not retain the deleted ScriptPDF test route.');
     assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/script-pdf.html'), 'Persisted policy must not retain the deleted USERFORM launcher route.');
     assert(committedPagePolicy['/userform/pages/servizio.html']?.primary === true && committedPagePolicy['/userform/pages/servizio.html']?.secondary === false, 'Persisted policy must keep the SERVIZIO operator on the primary monitor.');

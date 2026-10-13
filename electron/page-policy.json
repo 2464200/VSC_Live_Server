@@ -144,8 +144,8 @@
     "secondary": false
   },
   "/eventi/public/visualizer.html": {
-    "primary": true,
-    "secondary": false
+    "primary": false,
+    "secondary": true
   },
   "/eventi/qr.html": {
     "primary": true,
@@ -164,8 +164,8 @@
     "secondary": false
   },
   "/eventi/visualizer.html": {
-    "primary": true,
-    "secondary": false
+    "primary": false,
+    "secondary": true
   },
   "/index.html": {
     "primary": true,

@@ -303,6 +303,7 @@ async function salvaStato(id, stato, addTimestamp = false, djOverride = null) {
       id,
       stato,
       dj: djToSave,
+      actorDj: getDJLocal() || null,
       timestamp
     })
   });

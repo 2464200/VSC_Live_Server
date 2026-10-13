@@ -28,7 +28,8 @@ const { createMachineUiPreferencesStore } = require('./config/machine-ui-prefere
 const { createUiPreferencesRouter } = require('./Bordero/server/ui-preferences-routes');
 const { forwardVdjRequest, ensureVirtualDjRunning } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
-const { resolveDjForState } = require('./Eventi/dj-association');
+const { resolveDjAction } = require('./Eventi/dj-association');
+const { createActionPermissionsStore } = require('./Eventi/action-permissions');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
@@ -2924,6 +2925,7 @@ const pathDj = path.join(eventiDataDir, 'dj.json');
 const pathDjLimits = path.join(eventiDataDir, 'dj-limits.json');
 const pathCsv = path.join(eventiDataDir, 'log.csv');
 const pathEventMeta = path.join(eventiDataDir, 'event-meta.json');
+const eventiActionPermissionsStore = createActionPermissionsStore();
 
 // ===== INIZIALIZZAZIONE =====
 function initializeEventiFiles() {
@@ -5152,7 +5154,7 @@ router.get('/log', (req, res) => {
 // Salvataggio log
 router.post('/log', (req, res) => {
     try {
-        const { id, stato, timestamp, dj } = req.body;
+        const { id, stato, timestamp, dj, actorDj } = req.body;
 
         const validStates = ['prenotato', 'eseguito', 'disponibile'];
         const isBoolState = typeof stato === 'boolean';
@@ -5165,17 +5167,23 @@ router.post('/log', (req, res) => {
         const normalizedState = isBoolState ? (stato ? 'eseguito' : 'disponibile') : stato;
 
         const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
-        const resolvedDj = resolveDjForState(log, id, normalizedState, dj);
-        if (normalizedState !== 'disponibile' && !resolvedDj) {
-            return res.status(400).json({ error: 'Seleziona il DJ prima di aggiornare il brano' });
-        }
-        log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: resolvedDj });
+        const resolution = resolveDjAction(log, id, normalizedState, dj, actorDj, eventiActionPermissionsStore.read());
+        if (!resolution.ok) return res.status(resolution.status).json({ error: resolution.error });
+        log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: resolution.dj, actorDj: resolution.actorDj });
         fs.writeFileSync(pathLog, JSON.stringify(log, null, 2));
         res.json({ ok: true });
         broadcastEventiUpdate({ type: 'log-updated' });
     } catch (e) {
         res.status(500).json({ error: 'Errore salvataggio log' });
     }
+});
+
+router.get('/action-permissions', (_req, res) => {
+    res.json({ ok: true, ...eventiActionPermissionsStore.read() });
+});
+
+router.post('/action-permissions', (req, res) => {
+    res.json({ ok: true, ...eventiActionPermissionsStore.save(req.body) });
 });
 
 router.post('/log/reset-times', (req, res) => {

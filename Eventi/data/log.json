@@ -64,5 +64,25 @@
     "stato": "eseguito",
     "timestamp": "2026-10-13T22:01:58.889Z",
     "dj": "DJ Lucas Berry"
+  },
+  {
+    "id": "009",
+    "stato": "prenotato",
+    "timestamp": "2026-10-13T22:05:00.053Z",
+    "dj": "DJ Daniel West"
+  },
+  {
+    "id": "009",
+    "stato": "disponibile",
+    "timestamp": "2026-10-13T22:19:15.077Z",
+    "dj": null,
+    "actorDj": "DJ Daniel West"
+  },
+  {
+    "id": "011",
+    "stato": "eseguito",
+    "timestamp": "2026-10-13T22:19:16.559Z",
+    "dj": "DJ Daniel West",
+    "actorDj": "DJ Daniel West"
   }
 ]

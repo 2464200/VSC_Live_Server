@@ -23,15 +23,17 @@ function getDJLocal() {
 }
 
 async function salvaStato(id, stato, addTimestamp = false, dj = undefined) {
-  const selectedDj = typeof dj === 'string' && dj.trim() ? dj.trim() : getDJLocal();
-  const djToSave = stato === 'disponibile' ? null : (selectedDj || null);
-  if (stato !== 'disponibile' && !djToSave) {
+  const actorDj = getDJLocal();
+  const ownerDj = typeof dj === 'string' && dj.trim() ? dj.trim() : null;
+  const djToSave = stato === 'disponibile' ? null : (ownerDj || actorDj || null);
+  if (!actorDj) {
     throw new Error('Seleziona il DJ nella pagina Eventi prima di aggiornare il brano');
   }
   const payload = {
     id,
     stato,
     dj: djToSave,
+    actorDj,
     timestamp: addTimestamp && stato === 'eseguito' ? new Date().toISOString() : null
   };
 

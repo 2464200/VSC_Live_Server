@@ -87,7 +87,7 @@ const PAGE_POLICY = new Map([
   ['/eventi/spuntati.html', { primary: true, secondary: false }],
   ['/eventi/statistiche-dj.html', { primary: true, secondary: false }],
   ['/eventi/tutti.html', { primary: true, secondary: false }],
-  ['/eventi/visualizer.html', { primary: true, secondary: false }],
+  ['/eventi/visualizer.html', { primary: false, secondary: true }],
   ['/diagnostica.html', { primary: true, secondary: false }],
   ['/pdf/pages/script-pdf-gestione.html', { primary: true, secondary: false }],
   ['/pdf/viewers/pdf-viewer.html', { primary: false, secondary: true }],
@@ -114,6 +114,11 @@ const PAGE_POLICY = new Map([
   ['/userform/pages/pagina10.html', { primary: true, secondary: false }],
   ['/userform/pages/pagina11.html', { primary: true, secondary: false }],
   ['/userform/pages/scaletta.html', { primary: true, secondary: false }]
+]);
+
+const FORCED_PAGE_POLICY = new Map([
+  ['/eventi/visualizer.html', { primary: false, secondary: true }],
+  ['/eventi/public/visualizer.html', { primary: false, secondary: true }]
 ]);
 
 let currentPagePolicy = new Map(PAGE_POLICY);
@@ -197,10 +202,17 @@ function readElectronPagePolicy() {
       merged.set(pathKey, policy);
     }
 
-    if (!fs.existsSync(PAGE_POLICY_FILE)) return merged;
+    const applyForcedPolicies = () => {
+      for (const [pathKey, policy] of FORCED_PAGE_POLICY.entries()) {
+        merged.set(pathKey, policy);
+      }
+      return merged;
+    };
+
+    if (!fs.existsSync(PAGE_POLICY_FILE)) return applyForcedPolicies();
 
     const raw = fs.readFileSync(PAGE_POLICY_FILE, 'utf8').replace(/^\uFEFF/, '').trim();
-    if (!raw) return merged;
+    if (!raw) return applyForcedPolicies();
 
     const parsed = JSON.parse(raw);
     const persisted = new Map();
@@ -220,10 +232,10 @@ function readElectronPagePolicy() {
     for (const [pathKey, policy] of persisted.entries()) {
       merged.set(pathKey, policy);
     }
-    return merged;
+    return applyForcedPolicies();
   } catch (error) {
     console.warn('Unable to read page policy file:', error?.message || error);
-    return new Map(PAGE_POLICY);
+    return new Map([...PAGE_POLICY, ...FORCED_PAGE_POLICY]);
   }
 }
 
@@ -254,6 +266,13 @@ function updateElectronPagePolicy(pathname, primary, secondary) {
   const normalized = normalizePolicyPath(pathname);
   if (!normalized) {
     throw new Error('Invalid page path');
+  }
+
+  if (FORCED_PAGE_POLICY.has(normalized)) {
+    const forcedPolicy = FORCED_PAGE_POLICY.get(normalized);
+    currentPagePolicy.set(normalized, forcedPolicy);
+    writeElectronPagePolicy(currentPagePolicy);
+    return forcedPolicy;
   }
 
   const existingPolicy = currentPagePolicy.has(normalized)
