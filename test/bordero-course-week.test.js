@@ -203,3 +203,30 @@ test('week values, selected sort and filter stay current after curriculum edits 
   h.setState({ activeSeason: '', seasons: {} });
   assert.equal(Array.from(window.document.querySelectorAll('.col-settimana')).slice(1).every((cell) => cell.textContent === '-'), true);
 });
+
+test('reset buttons blink only while their corresponding search or filters are active', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  const searchReset = window.document.getElementById('btn-reset-filters');
+  const filtersReset = window.document.getElementById('btn-reset-filters-stats');
+  manager.applyFilters();
+  assert.equal(searchReset.classList.contains('reset-active-blink'), false);
+  assert.equal(filtersReset.classList.contains('reset-active-blink'), false);
+  manager.currentSearch = 'Alpha';
+  manager.searchMode = 'title';
+  manager.applyFilters();
+  assert.equal(searchReset.classList.contains('reset-active-blink'), true);
+  assert.equal(filtersReset.classList.contains('reset-active-blink'), false);
+  manager.currentSearch = '';
+  manager.currentFilters.info_livello = { mode: 'exactValue', value: 'BASE' };
+  manager.applyFilters();
+  assert.equal(searchReset.classList.contains('reset-active-blink'), false);
+  assert.equal(filtersReset.classList.contains('reset-active-blink'), true);
+  manager.resetFilters({ silent: true });
+  assert.equal(searchReset.classList.contains('reset-active-blink'), false);
+  assert.equal(filtersReset.classList.contains('reset-active-blink'), false);
+  const level = window.document.getElementById('course-board-level');
+  level.value = 'BASE';
+  level.dispatchEvent(new window.Event('change'));
+  assert.equal(filtersReset.classList.contains('reset-active-blink'), true);
+});

@@ -11,8 +11,20 @@
   let current = { primaryTheme: 'night', windowRole: native ? 'unknown' : browserRole };
   let refreshPending = null;
 
-  function applyPrimaryWidth(role) {
-    if (role !== 'primary') {
+  function isDedicatedSecondaryPresentation() {
+    const query = new URLSearchParams(window.location.search);
+    return /\/bordero\/pages\/(display|video-player)\.html$/.test(page)
+      || /\/pdf\/viewers\/pdf-viewer\.html$/.test(page)
+      || page.startsWith('/led-display/')
+      || page.startsWith('/leddisplay/server/static/')
+      || (page.endsWith('/userform/pages/servizio.html') && query.get('mode') === 'display')
+      || (page.endsWith('/userform/pages/qrcode.html') && query.get('display') === 'secondary');
+  }
+
+  function applyMonitorWidth(role) {
+    const layoutRole = role === 'primary' || (role === 'secondary' && !isDedicatedSecondaryPresentation())
+      ? role : '';
+    if (!layoutRole) {
       document.documentElement.removeAttribute('data-monitor-role');
       return;
     }
@@ -23,7 +35,7 @@
       link.href = '/Bordero/assets/css/primary-monitor-layout.css';
       document.head.appendChild(link);
     }
-    document.documentElement.setAttribute('data-monitor-role', 'primary');
+    document.documentElement.setAttribute('data-monitor-role', layoutRole);
   }
 
   function apply(preferences) {
@@ -31,7 +43,7 @@
       primaryTheme: preferences.primaryTheme === 'day' ? 'day' : 'night',
       windowRole: native ? preferences.windowRole : browserRole
     };
-    applyPrimaryWidth(current.windowRole);
+    applyMonitorWidth(current.windowRole);
     if (current.windowRole === 'primary' && current.primaryTheme === 'day') {
       if (!document.getElementById('machine-ui-theme-css')) {
         const link = document.createElement('link');
@@ -78,7 +90,7 @@
     setTheme: (theme) => request('POST', theme)
   };
   native?.onChanged?.(apply);
-  if (!native && local) applyPrimaryWidth(browserRole);
+  if (!native && local) applyMonitorWidth(browserRole);
   if (native || local) {
     const quietlyRefresh = () => refresh().catch(() => {});
     quietlyRefresh();

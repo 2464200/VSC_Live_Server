@@ -15,6 +15,7 @@
       this.editingRecordId = '';
       this.recordsSort = { field: 'week', direction: 'desc' };
       this.recordsSeasonId = '';
+      this.recordsFilter = { level: '', week: 52 };
       this.selectedCsv = null;
       this.init();
     }
@@ -23,6 +24,7 @@
       this.bindEvents();
       this.initializeFileDirectory();
       this.populateLevels();
+      this.populateRecordsFilters();
       this.setSuggestedYear();
       this.setStatus('course-record-status', 'Caricamento catalogo e programmi…');
       try {
@@ -62,6 +64,16 @@
       document.getElementById('btn-import-course-csv').addEventListener('click', () => this.importCsv());
       document.getElementById('btn-download-course-template').addEventListener('click', () => this.downloadTemplate());
       document.getElementById('btn-export-course-csv').addEventListener('click', () => this.exportSeason());
+      for (const id of ['course-records-level-filter', 'course-records-week-filter']) {
+        document.getElementById(id).addEventListener('change', () => {
+          const week = Number(document.getElementById('course-records-week-filter').value);
+          this.recordsFilter = {
+            level: document.getElementById('course-records-level-filter').value,
+            week: Number.isInteger(week) && week >= 1 && week <= 52 ? week : 52
+          };
+          this.renderSelectedSeason();
+        });
+      }
       document.getElementById('btn-sync-course-program').addEventListener('click', () => this.syncAll());
       document.getElementById('btn-pick-course-csv').addEventListener('click', () => this.pickCsv());
       document.getElementById('course-csv-file').addEventListener('change', (event) => {
@@ -176,6 +188,16 @@
       }
     }
 
+    populateRecordsFilters() {
+      const level = document.getElementById('course-records-level-filter');
+      level.replaceChildren(new Option('Tutti i livelli', ''));
+      LEVELS.forEach((value) => level.add(new Option(this.formatLevel(value), value)));
+      const week = document.getElementById('course-records-week-filter');
+      week.replaceChildren(...Array.from({ length: 52 }, (_, index) =>
+        new Option(index === 51 ? '52 · Tutte le settimane' : String(index + 1), String(index + 1))));
+      week.value = '52';
+    }
+
     sortSeasonRecords(records) {
       const compareText = (a, b) => String(a || '').localeCompare(String(b || ''), 'it', { numeric: true, sensitivity: 'base' });
       const title = (record) => {
@@ -277,6 +299,7 @@
       if (this.recordsSeasonId !== seasonId) {
         this.recordsSeasonId = seasonId;
         this.recordsSort = { field: 'week', direction: 'desc' };
+        this.recordsFilter = { level: '', week: 52 };
       }
       this.updateRecordsSortButtons();
       const status = document.getElementById('course-season-status');
@@ -291,13 +314,20 @@
       document.getElementById('btn-import-course-csv').disabled = false;
 
       const records = season && Array.isArray(season.records) ? season.records : [];
-      const rows = this.sortSeasonRecords(records);
+      const levelFilter = document.getElementById('course-records-level-filter');
+      const weekFilter = document.getElementById('course-records-week-filter');
+      levelFilter.value = this.recordsFilter.level;
+      weekFilter.value = String(this.recordsFilter.week);
+      levelFilter.disabled = weekFilter.disabled = !season;
+      const rows = this.sortSeasonRecords(records.filter((record) =>
+        (!this.recordsFilter.level || record.level === this.recordsFilter.level)
+        && Number(record.week) <= this.recordsFilter.week));
       document.getElementById('course-record-count').textContent = season
-        ? `${season.label} · ${records.length} coreografie registrate`
+        ? `${season.label} · ${records.length} coreografie registrate${rows.length !== records.length ? ` · ${rows.length} mostrate` : ''}`
         : 'Seleziona o crea un anno accademico.';
       const body = document.getElementById('course-records-body');
       if (!rows.length) {
-        body.innerHTML = `<tr><td colspan="6">${season ? 'Nessuna coreografia inserita per questa stagione.' : 'Crea o importa una stagione per iniziare.'}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="6">${season ? records.length ? 'Nessuna coreografia per il livello e la settimana selezionati.' : 'Nessuna coreografia inserita per questa stagione.' : 'Crea o importa una stagione per iniziare.'}</td></tr>`;
         return;
       }
       body.innerHTML = rows.map((record) => {

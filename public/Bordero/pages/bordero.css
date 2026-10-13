@@ -844,6 +844,16 @@
   outline-offset: 2px;
 }
 
+#btn-reset-filters.reset-active-blink,
+#btn-reset-filters-stats.reset-active-blink {
+  animation: bordero-reset-active-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes bordero-reset-active-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .stat-label {
   color: #aaa;
   font-size: 0.9em;

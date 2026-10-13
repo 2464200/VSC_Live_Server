@@ -58,6 +58,8 @@
 .course-records-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; margin-left: auto; }
 .course-records-actions .btn.is-sorted { border-color: #ff8a00; background: rgba(255,127,0,.18); color: #ffbd70; }
 .course-table-wrap { overflow-x: auto; }
+.course-records-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+.course-records-filters label { display: grid; gap: 6px; flex: 1; min-width: 180px; font-weight: 600; }
 .course-records-table { width: 100%; border-collapse: collapse; color: #eee; }
 .course-records-table th,
 .course-records-table td { padding: 9px 10px; border-bottom: 1px solid #444; text-align: left; }

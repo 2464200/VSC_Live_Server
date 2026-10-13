@@ -9,6 +9,10 @@ function loadElectronMainFor(tempDir) {
   const mainSource = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.js'), 'utf8');
 
   const createdWindows = [];
+  let displayProfiles = [
+    { id: 1, isPrimary: true, bounds: { x: 0, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
+    { id: 2, isPrimary: false, bounds: { x: 1920, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
+  ];
   const sandbox = {
     console,
     process: {
@@ -65,12 +69,13 @@ function loadElectronMainFor(tempDir) {
               this.fullscreenCalls = [];
               this.fullScreen = Boolean(options.fullscreen);
               let currentUrl = options.url || '';
+              this.zoomCalls = [];
               this.webContents = {
                 on() {},
                 send() {},
                 getURL() { return currentUrl; },
                 loadURL(url) { currentUrl = url; return Promise.resolve(); },
-                setZoomFactor() {},
+                setZoomFactor: (value) => { this.zoomCalls.push(value); },
                 setWindowOpenHandler() { return { action: 'allow' }; },
               };
               this.closed = false;
@@ -95,10 +100,7 @@ function loadElectronMainFor(tempDir) {
           },
           ipcMain: { handle() {}, on() {}, once() {} },
           screen: {
-            getAllDisplays() { return [
-              { id: 1, isPrimary: true, bounds: { x: 0, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
-              { id: 2, isPrimary: false, bounds: { x: 1920, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
-            ]; },
+            getAllDisplays() { return displayProfiles; },
             on() {}
           },
           dialog: { showMessageBox() { return { response: 0 }; } },
@@ -115,8 +117,12 @@ function loadElectronMainFor(tempDir) {
               monitorDisplay: options.swapPrimarySecondary ? primary : secondary,
             };
           },
-          buildDisplayLayoutConfig(display, options = {}) {
-            return { x: display.bounds.x, y: display.bounds.y, width: options.width || display.bounds.width, height: options.height || display.bounds.height, zoomFactor: 1 };
+          buildDisplayLayoutConfig(display) {
+            return {
+              x: display.bounds.x, y: display.bounds.y,
+              width: display.bounds.width, height: display.bounds.height,
+              zoomFactor: Math.max(0.7, Math.min(1.25, 1 / (display.scaleFactor || 1)))
+            };
           },
           buildElectronAppConfig() {
             return {
@@ -185,7 +191,7 @@ function loadElectronMainFor(tempDir) {
   };
 
   vm.runInNewContext(mainSource, sandbox, { filename: 'electron-main.js' });
-  return { sandbox, createdWindows };
+  return { sandbox, createdWindows, setDisplays: (value) => { displayProfiles = value; } };
 }
 
 test('pickDisplayTargets chooses the primary display and a secondary one', () => {
@@ -323,6 +329,40 @@ test('monitor swap deferred by Google auth popup is applied when the popup close
     assert.equal(secondary.boundsCalls.at(-1).x, 0);
     assert.deepEqual(primary.fullscreenCalls.slice(primaryFullscreenBefore), [false, true, true]);
     assert.deepEqual(secondary.fullscreenCalls.slice(secondaryFullscreenBefore), [false, true, true]);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('display resolution and DPI changes relocate fullscreen windows to the new monitor bounds', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-display-change');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+  try {
+    const { sandbox, createdWindows, setDisplays } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false, autoConfigureDisplay: true, dpiAutoScale: true,
+    });
+    await vm.runInContext('ensureWindows();', sandbox);
+    const primary = createdWindows.find((window) => !window.options.kiosk);
+    const secondary = createdWindows.find((window) => window.options.kiosk);
+    const primaryFullscreenBefore = primary.fullscreenCalls.length;
+    const secondaryFullscreenBefore = secondary.fullscreenCalls.length;
+    setDisplays([
+      { id: 1, isPrimary: true, bounds: { x: 0, y: 0, width: 2560, height: 1440 }, scaleFactor: 1.25 },
+      { id: 2, isPrimary: false, bounds: { x: -3840, y: 0, width: 3840, height: 2160 }, scaleFactor: 1.5 },
+    ]);
+    vm.runInContext("handleDisplayChange({}, {}, ['bounds', 'scaleFactor']);", sandbox);
+    assert.deepEqual(JSON.parse(JSON.stringify(primary.boundsCalls.at(-1))), { x: 0, y: 0, width: 2560, height: 1440 });
+    assert.deepEqual(JSON.parse(JSON.stringify(secondary.boundsCalls.at(-1))), { x: -3840, y: 0, width: 3840, height: 2160 });
+    assert.deepEqual(primary.fullscreenCalls.slice(primaryFullscreenBefore), [false, true, true]);
+    assert.deepEqual(secondary.fullscreenCalls.slice(secondaryFullscreenBefore), [false, true, true]);
+    assert.equal(primary.zoomCalls.at(-1), 0.8);
+    assert.equal(secondary.zoomCalls.at(-1), 0.7);
+    const boundsCallsBefore = primary.boundsCalls.length;
+    vm.runInContext("handleDisplayChange({}, {}, ['workArea']);", sandbox);
+    assert.equal(primary.boundsCalls.length, boundsCallsBefore, 'work-area-only events must not cause a fullscreen relocation loop');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

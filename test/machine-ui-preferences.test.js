@@ -96,8 +96,9 @@ test('native preference changes are restricted to ADMIN in the actual main windo
 });
 
 async function themePage(t, store, windowRole, page = 'lista-serata', nativeEnabled = true) {
+  const pageUrl = page.startsWith('http') ? page : `http://localhost:5500/Bordero/pages/${page}.html`;
   const dom = new JSDOM('<!doctype html><html><head></head><body><video></video><canvas></canvas></body></html>', {
-    url: `http://localhost:5500/Bordero/pages/${page}.html`, runScripts: 'outside-only'
+    url: pageUrl, runScripts: 'outside-only'
   });
   t.after(() => dom.window.close());
   const w = dom.window;
@@ -125,9 +126,9 @@ test('same dual-monitor page turns white only in the main window and restores th
   assert.equal(main.document.querySelectorAll('#machine-ui-theme-css').length, 1);
   assert.equal(secondary.document.documentElement.hasAttribute('data-primary-theme'), false);
   assert.equal(unknown.document.documentElement.hasAttribute('data-primary-theme'), false);
-  assert.equal(secondary.document.documentElement.hasAttribute('data-monitor-role'), false);
+  assert.equal(secondary.document.documentElement.dataset.monitorRole, 'secondary');
   assert.equal(unknown.document.documentElement.hasAttribute('data-monitor-role'), false);
-  assert.equal(secondary.document.querySelector('#primary-monitor-layout-css'), null);
+  assert.equal(secondary.document.querySelectorAll('#primary-monitor-layout-css').length, 1);
   assert.equal(secondary.document.querySelector('#machine-ui-theme-css'), null);
   await main.machineUiTheme.setTheme('night');
   assert.equal(main.document.documentElement.hasAttribute('data-primary-theme'), false);
@@ -148,9 +149,26 @@ test('browser display stays dark and a second local browser reads the same machi
   const display = await themePage(t, store, 'secondary', 'display', false);
   assert.equal(browser.document.documentElement.dataset.primaryTheme, 'day');
   assert.equal(display.document.documentElement.hasAttribute('data-primary-theme'), false);
+  assert.equal(display.document.documentElement.hasAttribute('data-monitor-role'), false);
   await browser.machineUiTheme.setTheme('night');
   const reopened = await themePage(t, store, 'primary', 'coreografie-corsi', false);
   assert.equal(reopened.machineUiTheme.getCurrent().primaryTheme, 'night');
+});
+
+test('secondary presentation pages preserve their dedicated fullscreen geometry', async (t) => {
+  const { store } = makeStore(t);
+  const urls = [
+    'http://localhost:5500/Bordero/pages/video-player.html',
+    'http://localhost:5500/PDF/viewers/pdf-viewer.html?file=test.pdf',
+    'http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display',
+    'http://localhost:5500/USERFORM/pages/QRCODE.html?display=secondary',
+    'http://localhost:5500/led-display/index.html'
+  ];
+  for (const url of urls) {
+    const page = await themePage(t, store, 'secondary', url);
+    assert.equal(page.document.documentElement.hasAttribute('data-monitor-role'), false, url);
+    assert.equal(page.document.querySelector('#primary-monitor-layout-css'), null, url);
+  }
 });
 
 async function adminPage(t, store, unavailable = false) {

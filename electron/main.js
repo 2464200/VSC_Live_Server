@@ -1716,8 +1716,12 @@ async function ensureWindows() {
   applyWindowLayout();
 }
 
-function handleDisplayChange() {
-  applyWindowLayout();
+function handleDisplayChange(_event, _display, changedMetrics) {
+  if (Array.isArray(changedMetrics)
+      && !changedMetrics.some((metric) => ['bounds', 'scaleFactor', 'rotation'].includes(metric))) {
+    return;
+  }
+  applyWindowLayout({ relocateFullscreenWindows: true });
 }
 
 if (!app.requestSingleInstanceLock()) {

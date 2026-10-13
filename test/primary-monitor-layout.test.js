@@ -87,27 +87,32 @@ async function checkElectronLayout() {
       printWidth: document.getElementById('print-document') ? getComputedStyle(document.getElementById('print-document')).maxWidth : ''
     };
   })()`;
-  const load = async (win, route, expectedPrimary) => {
+  const load = async (win, route, expectedRole = '') => {
     await win.loadURL(base + route);
     for (let attempt = 0; attempt < 30; attempt++) {
       const state = await win.webContents.executeJavaScript(snapshot);
-      if (!expectedPrimary || state.role === 'primary' && state.ready) return state;
+      if (!expectedRole || state.role === expectedRole && state.ready) return state;
       await new Promise((resolve) => setTimeout(resolve, 30));
     }
-    throw new Error(`Primary layout not loaded: ${route}`);
+    throw new Error(`${expectedRole} layout not loaded: ${route}`);
   };
   let expandedFrames = 0;
   for (const { route } of cases.values()) {
     baseline.setContentSize(1920, 1080);
     const original = await load(baseline, route, false);
-    const untouched = await load(secondary, route, false);
-    assert.deepEqual(untouched.frames, original.frames, `Secondary geometry changed: ${route}`);
-    assert.equal(untouched.role, '', route);
+    const secondaryState = await load(secondary, route, 'secondary');
+    for (const frame of secondaryState.frames) {
+      assert.ok(Math.abs(frame.width - secondaryState.available) <= 5, `Unused secondary width ${route}: ${JSON.stringify(frame)}, available ${secondaryState.available}`);
+    }
+    assert.deepEqual(secondaryState.buttons, original.buttons, `Secondary button font changed: ${route}`);
+    assert.deepEqual(secondaryState.dialogs, original.dialogs, `Secondary dialog limits changed: ${route}`);
+    assert.equal(secondaryState.background, original.background, `Secondary background changed: ${route}`);
+    assert.equal(secondaryState.printWidth, original.printWidth, `Secondary A4 document changed: ${route}`);
     for (const width of [1366, 1920, 2560]) {
       baseline.setContentSize(width, 1080);
       const sameViewportOriginal = await load(baseline, route, false);
       primary.setContentSize(width, 1080);
-      const state = await load(primary, route, true);
+      const state = await load(primary, route, 'primary');
       for (const frame of state.frames) {
         assert.ok(Math.abs(frame.width - state.available) <= 5, `Unused primary width ${route} at ${width}: ${JSON.stringify(frame)}, available ${state.available}`);
       }
@@ -120,7 +125,7 @@ async function checkElectronLayout() {
   }
   const printRoute = '/bordero/pages/coreografie-stampa.html';
   for (const win of [baseline, primary]) {
-    await load(win, printRoute, win === primary);
+    await load(win, printRoute, win === primary ? 'primary' : '');
     win.webContents.debugger.attach('1.3');
     await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia', { media: 'print' });
   }
@@ -133,11 +138,11 @@ async function checkElectronLayout() {
     win.webContents.debugger.detach();
   }
   store.save('day');
-  const day = await load(primary, '/bordero/pages/admin.html', true);
+  const day = await load(primary, '/bordero/pages/admin.html', 'primary');
   assert.equal(day.theme, 'day');
   assert.ok(day.frames.every((frame) => Math.abs(frame.width - day.available) <= 5));
   assert.ok(expandedFrames > 20, 'Expected broad coverage of previously capped primary frames');
-  console.log(JSON.stringify({ pages: cases.size, resolutions: [1366, 1920, 2560], expandedFrames, secondary: 'unchanged', print: 'unchanged', dayAndNight: 'full width' }));
+  console.log(JSON.stringify({ pages: cases.size, resolutions: [1366, 1920, 2560], expandedFrames, secondary: 'full width', print: 'unchanged', dayAndNight: 'full width' }));
   baseline.destroy(); primary.destroy(); secondary.destroy(); server.close(); app.exit(0);
 }
 
@@ -147,13 +152,13 @@ if (process.versions.electron) {
   const test = require('node:test');
   const os = require('node:os');
   const { execFile } = require('node:child_process');
-  test('actual Electron preload expands primary pages at multiple widths while preserving secondary, fonts, dialogs and A4 print', { timeout: 120000 }, async (t) => {
+  test('actual Electron preload expands UI pages on both monitors while preserving fonts, dialogs and A4 print', { timeout: 190000 }, async (t) => {
     const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'bordero-primary-layout-'));
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
     const env = { ...process.env };
     delete env.ELECTRON_RUN_AS_NODE;
     const output = await new Promise((resolve, reject) => execFile(require('electron'), [__filename, temporary], {
-      cwd: root, env, windowsHide: true, timeout: 110000, maxBuffer: 1024 * 1024
+      cwd: root, env, windowsHide: true, timeout: 180000, maxBuffer: 1024 * 1024
     }, (error, stdout, stderr) => error ? reject(new Error(`${error.message}\n${stdout}\n${stderr}`)) : resolve(stdout)));
     console.log(output.trim());
   });

@@ -346,6 +346,38 @@ test('season list defaults to descending weeks and every sort button toggles asc
   assert.equal(document.getElementById('btn-sort-course-title').getAttribute('aria-pressed'), 'false');
 });
 
+test('season view combines level and inclusive week filters without limiting CSV export', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  const document = h.window.document;
+  const records = [record('001', 'BASE', 1), record('002', 'BASE', 3), record('003', 'INTERMEDIO', 2), record('004', 'BASE', 52)];
+  await h.store.saveSeason(season(records));
+  page.render(year);
+  const level = document.getElementById('course-records-level-filter');
+  const week = document.getElementById('course-records-week-filter');
+  const visibleIds = () => Array.from(document.getElementById('course-records-body').children,
+    (row) => row.children[2]?.textContent).filter(Boolean);
+  assert.equal(week.options.length, 52);
+  level.value = 'BASE';
+  level.dispatchEvent(new h.window.Event('change'));
+  week.value = '3';
+  week.dispatchEvent(new h.window.Event('change'));
+  assert.deepEqual(visibleIds(), ['002', '001']);
+  assert.match(document.getElementById('course-record-count').textContent, /2 mostrate/);
+  let exported = '';
+  page.download = (_name, text) => { exported = text; };
+  page.exportSeason();
+  for (const id of ['001', '002', '003', '004']) assert.match(exported, new RegExp(`,${id}`));
+  await h.store.saveSeason({ id: '2025-2026', label: '2025/2026', records: [record('003', 'INTERMEDIO', 10)] });
+  const select = document.getElementById('course-season-select');
+  select.value = '2025-2026';
+  select.dispatchEvent(new h.window.Event('change'));
+  assert.equal(level.value, '');
+  assert.equal(week.value, '52');
+  assert.deepEqual(visibleIds(), ['003']);
+});
+
 test('switching seasons cancels editing so a record cannot be moved accidentally', async (t) => {
   const h = await harness(true);
   t.after(() => h.dom.window.close());
@@ -365,7 +397,7 @@ test('switching seasons cancels editing so a record cannot be moved accidentally
 test('Bordero combines curriculum level/week with existing filters and resets when season changes', async (t) => {
   const h = await harness();
   t.after(() => h.dom.window.close());
-  h.window.document.body.innerHTML = '<select id="course-board-level"></select><input id="course-board-week"><span id="course-board-season"></span><p id="course-board-status"></p>';
+  h.window.document.body.innerHTML = '<select id="course-board-level"></select><select id="course-board-week"></select><span id="course-board-season"></span><p id="course-board-status"></p>';
   h.window.BORDERO_CONFIG = { LIVELLI: ['BASE', 'INTERMEDIO'], CACHE_KEY_CHOREO_LEVEL_SELECTION: 'selection' };
   const values = new Map();
   h.window.Storage = { get: (key, fallback) => values.get(key) || fallback, set: (key, value) => values.set(key, value) };
@@ -382,6 +414,7 @@ test('Bordero combines curriculum level/week with existing filters and resets wh
   manager.setupCourseProgramFilter();
   const level = h.window.document.getElementById('course-board-level');
   const week = h.window.document.getElementById('course-board-week');
+  assert.equal(week.options.length, 52);
   level.value = 'BASE';
   level.dispatchEvent(new h.window.Event('change'));
   week.value = '1';

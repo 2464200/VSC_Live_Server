@@ -1,6 +1,6 @@
-/* Shared screen geometry for the actual primary window; print and secondary views keep their rules. */
+/* Shared screen geometry for ordinary UI pages on both monitor windows. */
 @media screen {
-  html[data-monitor-role="primary"] body {
+  html:is([data-monitor-role="primary"], [data-monitor-role="secondary"]) body {
     box-sizing: border-box;
     width: 100%;
     max-width: none;
@@ -10,7 +10,7 @@
   }
 
   /* Outer page frames only: preserve inner grids, fields, media and dialog dimensions. */
-  html[data-monitor-role="primary"] body > :is(
+  html:is([data-monitor-role="primary"], [data-monitor-role="secondary"]) body > :is(
     .container, .layout, .presentation-shell, .screen-shell, .pdf-shell,
     .service-shell, .control-shell, .shell, .page, .grid, #global-nav-container
   ) {
@@ -22,7 +22,7 @@
   }
 
   /* Eventi and QR pages use several sibling frames instead of a single wrapper. */
-  html[data-monitor-role="primary"] body > :is(
+  html:is([data-monitor-role="primary"], [data-monitor-role="secondary"]) body > :is(
     h1, header, nav, footer, .header, .nav, .tools-row, .labels, .summary-cards,
     .alfabeto-filter, #lista-brani, #lista-render, .card,
     .preview-toolbar,
@@ -34,7 +34,7 @@
     margin-inline: 0;
   }
 
-  html[data-monitor-role="primary"] :is(
+  html:is([data-monitor-role="primary"], [data-monitor-role="secondary"]) :is(
     .screen-shell > .settings-layout, #global-nav-container > nav
   ) {
     box-sizing: border-box;

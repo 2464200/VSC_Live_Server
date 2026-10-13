@@ -11,7 +11,7 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css?v=20261013-4" />
+  <link rel="stylesheet" href="bordero.css?v=20261013-5" />
   <link rel="stylesheet" href="coreografie-corsi.css?v=20261013-1" />
   
   <!-- XLSX Library locale per lettura file Excel -->
@@ -40,7 +40,7 @@
   <script defer src="../js/choreo-program-store.js?v=20261013-1"></script>
   <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
   <script defer src="../js/video-only-brani.js"></script>
-  <script defer src="bordero.js?v=20261013-2"></script>
+  <script defer src="bordero.js?v=20261013-3"></script>
 </head>
 
 <body>
@@ -118,7 +118,7 @@
         <select id="course-board-level" class="select-input"><option value="">Tutto il catalogo</option></select>
       </label>
       <label for="course-board-week">Insegnate fino alla settimana
-        <input id="course-board-week" class="input-text" type="number" min="1" max="52" value="52" />
+        <select id="course-board-week" class="select-input"><option value="52">52 · Tutte le settimane</option></select>
       </label>
       <a href="coreografie-corsi.html" class="btn btn-secondary">Gestisci programma corsi</a>
       <p id="course-board-status" role="status" aria-live="polite">Seleziona un livello per mostrare le coreografie del programma.</p>

@@ -151,6 +151,8 @@ class BorderoTableManager {
     const week = document.getElementById('course-board-week');
     if (!store || !level || !week || this.courseProgramFilterReady) return;
     this.courseProgramFilterReady = true;
+    week.replaceChildren(...Array.from({ length: 52 }, (_, index) =>
+      new Option(index === 51 ? '52 · Tutte le settimane' : String(index + 1), String(index + 1))));
     this.courseSelection = Storage.get(BORDERO_CONFIG.CACHE_KEY_CHOREO_LEVEL_SELECTION, null);
     const updateSelection = () => {
       const selectedWeek = Number(week.value);
@@ -1975,6 +1977,15 @@ class BorderoTableManager {
 
     // Update stats
     this.updateStats();
+    this.updateResetButtonIndicators();
+  }
+
+  updateResetButtonIndicators() {
+    const searchActive = Boolean(this.currentSearch);
+    const filtersActive = Object.values(this.currentFilters).some((filter) => filter && typeof filter === 'object')
+      || this.courseProgramTrackIds() !== null;
+    document.getElementById('btn-reset-filters')?.classList.toggle('reset-active-blink', searchActive);
+    document.getElementById('btn-reset-filters-stats')?.classList.toggle('reset-active-blink', filtersActive);
   }
 
   /**
