@@ -48,6 +48,7 @@ class BorderoTableManager {
     this.coexistingFilterFields = new Set([
       'richieste',
       'info_livello',
+      'course_week',
       'info_coreo_1',
       'info_coreo_2',
       'coreografo',
@@ -124,6 +125,7 @@ class BorderoTableManager {
 
       // Setup UI
       this.setupEventListeners();
+      this.setupCourseProgramFilter();
       this.setupSerataMeta();
       this.setupDataRefreshListeners();
       this.setupAutoRefresh();
@@ -140,6 +142,90 @@ class BorderoTableManager {
     } catch (error) {
       logger.error('Errore inizializzazione', error);
       Toast.error('Errore caricamento tabella: ' + error.message);
+    }
+  }
+
+  setupCourseProgramFilter() {
+    const store = window.choreoProgramStore;
+    const level = document.getElementById('course-board-level');
+    const week = document.getElementById('course-board-week');
+    if (!store || !level || !week || this.courseProgramFilterReady) return;
+    this.courseProgramFilterReady = true;
+    this.courseSelection = Storage.get(BORDERO_CONFIG.CACHE_KEY_CHOREO_LEVEL_SELECTION, null);
+    const updateSelection = () => {
+      const selectedWeek = Number(week.value);
+      if (!Number.isInteger(selectedWeek) || selectedWeek < 1 || selectedWeek > 52) {
+        week.reportValidity();
+        return;
+      }
+      this.courseSelection = { seasonId: store.getState().activeSeason, level: level.value, week: selectedWeek };
+      Storage.set(BORDERO_CONFIG.CACHE_KEY_CHOREO_LEVEL_SELECTION, this.courseSelection);
+      this.refreshCourseProgramFilter();
+    };
+    level.addEventListener('change', updateSelection);
+    week.addEventListener('change', updateSelection);
+    window.addEventListener('bordero:choreo-program-updated', () => this.refreshCourseProgramFilter());
+    this.refreshCourseProgramFilter();
+    store.load({ force: true }).then(() => this.refreshCourseProgramFilter());
+    store.startPolling();
+  }
+
+  refreshCourseProgramFilter() {
+    const state = window.choreoProgramStore?.getState();
+    const level = document.getElementById('course-board-level');
+    const week = document.getElementById('course-board-week');
+    if (!state || !level || !week) return;
+    const season = state.seasons[state.activeSeason];
+    if (!this.courseSelection || this.courseSelection.seasonId !== state.activeSeason) {
+      this.courseSelection = { seasonId: state.activeSeason, level: '', week: 52 };
+    }
+    level.replaceChildren(new Option('Tutto il catalogo', ''));
+    BORDERO_CONFIG.LIVELLI.forEach((value) => level.add(new Option(value, value)));
+    level.value = this.courseSelection.level || '';
+    this.courseSelection.level = level.value;
+    week.value = Number.isInteger(this.courseSelection.week) && this.courseSelection.week >= 1 && this.courseSelection.week <= 52 ? this.courseSelection.week : 52;
+    this.courseSelection.week = Number(week.value);
+    level.disabled = !season;
+    week.disabled = !season || !level.value;
+    document.getElementById('course-board-season').textContent = season ? `· ${season.label || season.id}` : '· Nessuna stagione attiva';
+    const ids = this.courseProgramTrackIds();
+    document.getElementById('course-board-status').textContent = !season
+      ? 'Crea un programma e imposta la stagione attiva dalla pagina Programma corsi.'
+      : ids ? `${ids.size} coreografie per ${level.value}, fino alla settimana ${week.value}. Gli altri filtri e la ricerca si applicano a questo elenco.`
+        : 'Seleziona un livello per mostrare le coreografie insegnate fino alla settimana scelta.';
+    Storage.set(BORDERO_CONFIG.CACHE_KEY_CHOREO_LEVEL_SELECTION, this.courseSelection);
+    this.applyFilters();
+  }
+
+  courseProgramTrackIds() {
+    if (!this.courseSelection?.level) return null;
+    const state = window.choreoProgramStore?.getState();
+    const season = state?.seasons[state.activeSeason];
+    if (!season) return null;
+    return new Set(season.records
+      .filter((record) => record.level === this.courseSelection.level && Number(record.week) <= this.courseSelection.week)
+      .map((record) => String(record.branoId)));
+  }
+
+  applyCourseWeeksToBrani() {
+    const state = window.choreoProgramStore?.getState();
+    const season = state?.seasons[state.activeSeason];
+    const selectedLevel = this.courseSelection?.level || '';
+    const assignments = new Map();
+    for (const record of season?.records || []) {
+      const week = Number(record.week);
+      if (!Number.isInteger(week) || week < 1 || week > 52 || (selectedLevel && record.level !== selectedLevel)) continue;
+      const id = String(record.branoId);
+      if (!assignments.has(id)) assignments.set(id, []);
+      assignments.get(id).push({ week, level: String(record.level || '') });
+    }
+    for (const brano of new Set([...(this.allBrani || []), ...(this.filteredBrani || [])])) {
+      const lessons = assignments.get(String(brano.id)) || [];
+      brano.course_weeks = [...new Set(lessons.map((lesson) => lesson.week))].sort((a, b) => a - b);
+      brano.course_week = brano.course_weeks.join(', ');
+      brano.course_week_details = lessons.length
+        ? `${season.label || season.id}: ${lessons.map((lesson) => `${lesson.level} · settimana ${lesson.week}`).join('; ')}`
+        : 'Coreografia non prevista nel programma della stagione attiva';
     }
   }
 
@@ -750,7 +836,7 @@ class BorderoTableManager {
       this.currentPage = 1;
       await this.populateDJSelect();
       await this.setupLocationPicker();
-      this.renderTable();
+      this.applyFilters();
       logger.info('✓ Dati aggiornati dopo sincronizzazione', { source });
     } catch (error) {
       logger.error('Errore aggiornamento dati dopo sincronizzazione', error);
@@ -810,6 +896,7 @@ class BorderoTableManager {
 
     // Filter buttons
     this.bindFilterPopupButton('btn-filter-coreografia', 'info_livello', 'LIVELLO');
+    this.bindFilterPopupButton('btn-filter-settimana', 'course_week', 'SETTIMANA');
     this.bindFilterPopupButton('btn-filter-livello', 'coreografo', 'COREOGRAFO');
     this.bindFilterPopupButton('btn-filter-altro', 'autore', 'AUTORE');
     this.bindFilterPopupButton('btn-filter-richieste', 'richieste', 'RICHIESTE');
@@ -1325,6 +1412,10 @@ class BorderoTableManager {
   }
 
   getUniqueFieldValues(field) {
+    if (field === 'course_week') {
+      return [...new Set(this.allBrani.flatMap((brano) => brano.course_weeks || []))]
+        .sort((a, b) => a - b).map(String);
+    }
     if (field === 'richieste') {
       const numericValues = this.allBrani
         .map((item) => String(item?.[field] ?? '').trim())
@@ -1653,6 +1744,7 @@ class BorderoTableManager {
   }
 
   reorderBraniByOriginalIndex() {
+    this.applyCourseWeeksToBrani();
     const available = this.allBrani
       .filter(b => !this.isExecutedBrano(b))
       .sort((a, b) => (Number(a.originalIndex) || 0) - (Number(b.originalIndex) || 0));
@@ -1714,6 +1806,7 @@ class BorderoTableManager {
    */
   sortBy(field, forceAscending = false) {
     logger.info(`Sorting by ${field}`);
+    this.applyCourseWeeksToBrani();
 
     if (forceAscending) {
       this.currentSort = field;
@@ -1814,9 +1907,13 @@ class BorderoTableManager {
    */
   applyFilters() {
     logger.debug('Applicando filtri...');
+    this.applyCourseWeeksToBrani();
 
     // Start con tutti i brani
     this.filteredBrani = [...this.allBrani];
+
+    const courseIds = this.courseProgramTrackIds();
+    if (courseIds) this.filteredBrani = this.filteredBrani.filter((brano) => courseIds.has(String(brano.id)));
 
     this.filteredBrani = filterBraniByDuplicateTitleVisibility(this.filteredBrani, {
       isExecuted: (brano) => this.isExecutedBrano(brano),
@@ -1838,7 +1935,9 @@ class BorderoTableManager {
       } else if (config.mode === 'exactValue') {
         const expected = this.normalizeExactFilterValue(config.value);
         this.filteredBrani = this.filteredBrani.filter(item =>
-          this.normalizeExactFilterValue(item[key]) === expected
+          key === 'course_week'
+            ? (item.course_weeks || []).some((week) => String(week) === expected)
+            : this.normalizeExactFilterValue(item[key]) === expected
         );
       } else {
         const value = config.value ?? '';
@@ -1849,7 +1948,7 @@ class BorderoTableManager {
     // Applica ricerca
     if (this.currentSearch) {
       // Include `id` in the general search fields per request
-      let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
+      let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'course_week', 'info_coreo_1', 'info_coreo_2'];
 
       if (this.searchMode === 'title') {
         searchFields = ['titolo'];
@@ -1888,6 +1987,11 @@ class BorderoTableManager {
 
     // Reset globale: azzera tutti i filtri di tutte le colonne.
     this.currentFilters = {};
+    if (this.courseProgramFilterReady) {
+      this.courseSelection.level = '';
+      this.courseSelection.week = 52;
+      this.refreshCourseProgramFilter();
+    }
     this.currentSearch = '';
     this.searchMode = 'general';
     this.currentSort = sortById ? 'id' : null;
@@ -2210,6 +2314,7 @@ class BorderoTableManager {
         <td class="col-autore">${brano.autore}</td>
         <td class="col-richieste${richiesteHighlightClass}">${brano.richieste || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
+        <td class="col-settimana" title="${this.escapeHtml(brano.course_week_details || 'Coreografia non prevista nel programma della stagione attiva').replace(/"/g, '&quot;')}">${brano.course_week || '-'}</td>
         <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
         <td class="col-coreo-2">${brano.info_coreo_2 || '-'}</td>
         <td class="col-coreografo">${brano.coreografo || '-'}</td>
@@ -3214,6 +3319,7 @@ class BorderoTableManager {
   updateFilterButtons() {
     const buttons = [
       { id: 'btn-filter-coreografia', key: 'info_livello' },
+      { id: 'btn-filter-settimana', key: 'course_week' },
       { id: 'btn-filter-next', key: 'next_coreo' },
       { id: 'btn-filter-livello', key: 'coreografo' },
       { id: 'btn-filter-altro', key: 'autore' },
@@ -3258,7 +3364,7 @@ class BorderoTableManager {
     };
 
     const placeholders = {
-      general: '🔍 Cerca ID, titolo, autore, richieste, next, genere, livello, info coreo 1, info coreo 2 o coreografo...',
+      general: '🔍 Cerca ID, titolo, autore, richieste, next, genere, livello, settimana, info coreo 1, info coreo 2 o coreografo...',
       title: '🔍 Cerca per titolo...',
       id: '🔍 Cerca per ID...'
     };
@@ -3286,6 +3392,7 @@ class BorderoTableManager {
       genere: 'Genere',
       next_coreo: 'Next',
       info_livello: 'Livello',
+      course_week: 'Settimana',
       info_coreo_1: 'Info Coreo 1',
       info_coreo_2: 'Info Coreo 2',
       compositore: 'Compositore',
@@ -3298,7 +3405,7 @@ class BorderoTableManager {
     } else if (this.searchMode === 'id') {
       fields = ['id'];
     } else {
-      fields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
+      fields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'course_week', 'info_coreo_1', 'info_coreo_2'];
     }
 
     const readable = fields.map(f => mapping[f] || f).join(', ');

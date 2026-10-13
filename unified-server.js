@@ -21,7 +21,11 @@ const os = require('os');
 const { parse: parseCsv } = require('csv-parse/sync');
 const QRCodeLib = require('qrcode');
 const { projectConfig } = require('./config/config');
+const { createChoreoProgramFileStore } = require('./Bordero/server/choreo-program-files');
+const { createChoreoProgramFileRouter } = require('./Bordero/server/choreo-program-file-routes');
 const { getLocalConfigPath } = require('./config/local-config');
+const { createMachineUiPreferencesStore } = require('./config/machine-ui-preferences');
+const { createUiPreferencesRouter } = require('./Bordero/server/ui-preferences-routes');
 const { forwardVdjRequest, ensureVirtualDjRunning } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
@@ -3093,6 +3097,8 @@ app.use('/__/auth', (req, res) => {
 });
 
 app.use(express.json({ limit: '2mb' }));
+app.use('/api/local-ui/preferences', createUiPreferencesRouter(createMachineUiPreferencesStore(getLocalConfigPath('bordero/ui-preferences.json'))));
+app.use('/api/bordero/course-program/files', createChoreoProgramFileRouter(createChoreoProgramFileStore(projectConfig.choreoProgramDir)));
 
 const DJ_PRESELECTION_FILE = path.join(BORDERO_DATA_DIR, 'dj-preselezione-state.json');
 const DJ_PRESELECTION_EXPORT_DIR = path.join(__dirname, 'VSC_PRESELEZIONE');

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Programma Coreografie Corsi</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="coreografie-corsi.css?v=20261013-6" />
+  <script src="../assets/lib/xlsx.min.js"></script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-file-manager.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script defer src="../js/firebase-cloud-client.js"></script>
+  <script defer src="../js/choreo-program-store.js"></script>
+  <script defer src="coreografie-corsi.js?v=20261013-6"></script>
+</head>
+<body>
+  <div class="container choreo-course-page">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERÒ - Programma Coreografie</h1>
+        <p class="app-subtitle">Programmi annuali e aggiornamento settimanale per livello</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb" aria-label="Navigazione">
+      <a href="../index.html">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="bordero.html">Borderò</a><span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Programma corsi</span>
+    </nav>
+
+    <section class="course-cloud-section" aria-label="Sincronizzazione programma">
+      <div>
+        <strong>Sincronizzazione condivisa</strong>
+        <p>Accedi con l’account Google autorizzato per salvare il programma su Firebase e condividerlo con Borderò.</p>
+      </div>
+      <div class="course-cloud-actions">
+        <button id="firebase-cloud-auth" class="btn btn-primary" type="button">Accedi con Google</button>
+        <button id="btn-sync-course-program" class="btn btn-secondary" type="button">Sincronizza programma</button>
+        <span id="firebase-cloud-badge" role="status" aria-live="polite">Verifica sincronizzazione…</span>
+      </div>
+    </section>
+
+    <main class="course-program-layout">
+      <section class="course-panel" aria-labelledby="season-title">
+        <div class="course-panel-heading">
+          <div>
+            <h2 id="season-title">Anno accademico</h2>
+            <p>Ogni stagione conserva il proprio programma e il proprio storico.</p>
+          </div>
+          <span id="course-season-status" class="course-status-badge">Caricamento…</span>
+        </div>
+        <div class="course-season-controls">
+          <label for="course-season-select">Programma da gestire
+            <select id="course-season-select" class="select-input"></select>
+          </label>
+          <button id="btn-activate-season" class="btn btn-primary" type="button">Imposta stagione attiva</button>
+        </div>
+        <form id="create-season-form" class="course-create-season">
+          <label for="new-season-label">Nuovo anno accademico
+            <input id="new-season-label" class="input-text" type="text" inputmode="numeric" placeholder="2026/2027" pattern="\d{4}\s*(/|–|-)\s*\d{4}" required />
+          </label>
+          <button class="btn btn-secondary" type="submit">Crea programma nuovo</button>
+        </form>
+      </section>
+
+      <section class="course-panel" aria-labelledby="import-title">
+        <div class="course-panel-heading">
+          <div>
+            <h2 id="import-title">Carica il programma annuale</h2>
+            <p>Il CSV collega ogni brano del catalogo a un livello e alla settimana d’insegnamento.</p>
+          </div>
+        </div>
+        <div class="course-import-actions">
+          <button id="btn-pick-course-csv" class="btn btn-secondary" type="button">Seleziona programma CSV</button>
+          <input id="course-csv-file" type="file" accept=".csv,text/csv" hidden />
+          <span id="course-selected-csv">Nessun file selezionato</span>
+          <button id="btn-import-course-csv" class="btn btn-primary" type="button">Importa programma</button>
+          <button id="btn-download-course-template" class="btn btn-secondary" type="button">Scarica modello CSV</button>
+        </div>
+        <p id="course-file-directory" class="course-help">Cartella programma: C:\VSC_PROGRAMMA</p>
+        <div id="course-file-picker-panel" class="course-file-picker-panel" hidden>
+          <label for="course-file-list">CSV nella cartella programma</label>
+          <select id="course-file-list" class="select-input"></select>
+          <button id="btn-choose-course-file" class="btn btn-primary" type="button">Seleziona CSV</button>
+          <button id="btn-browse-other-course-file" class="btn btn-secondary" type="button">Altra cartella…</button>
+          <button id="btn-close-course-file-picker" class="btn btn-secondary" type="button">Chiudi</button>
+        </div>
+        <p class="course-help">Colonne richieste: <code>anno_accademico, livello, settimana, brano_id</code>. Il limite è di tre coreografie per settimana e livello.</p>
+        <div id="course-import-status" class="course-inline-status" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="course-panel" aria-labelledby="weekly-title">
+        <div class="course-panel-heading">
+          <div>
+            <h2 id="weekly-title">Compilazione settimanale</h2>
+            <p>Aggiungi i brani insegnati. Puoi registrare al massimo tre coreografie per livello nella stessa settimana.</p>
+          </div>
+        </div>
+        <form id="course-record-form" class="course-record-form">
+          <input id="course-record-id" type="hidden" />
+          <label for="course-record-week">Settimana
+            <input id="course-record-week" class="input-text" type="number" min="1" max="52" value="1" required />
+          </label>
+          <label for="course-record-level">Livello
+            <select id="course-record-level" class="select-input" required></select>
+          </label>
+          <label for="course-record-song">Coreografia dal catalogo Borderò
+            <input id="course-record-song" class="input-text" type="text" list="course-song-options" placeholder="Seleziona coreografia: digita ID o nome" autocomplete="off" required />
+            <datalist id="course-song-options"></datalist>
+          </label>
+          <button id="btn-save-course-record" class="btn btn-primary" type="submit">Aggiungi coreografia</button>
+          <button id="btn-cancel-course-edit" class="btn btn-secondary" type="button" hidden>Annulla modifica</button>
+        </form>
+        <div id="course-record-status" class="course-inline-status" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="course-panel course-records-panel" aria-labelledby="records-title">
+        <div class="course-panel-heading course-records-heading">
+          <div>
+            <h2 id="records-title">Programma della stagione</h2>
+            <p id="course-record-count" role="status" aria-live="polite">Seleziona o crea un anno accademico.</p>
+          </div>
+          <div class="course-records-actions">
+            <button id="btn-sort-course-week" class="btn btn-secondary" type="button" data-record-sort="week" aria-pressed="true">SETTIMANA ↓</button>
+            <button id="btn-sort-course-level" class="btn btn-secondary" type="button" data-record-sort="level" aria-pressed="false">LIVELLO</button>
+            <button id="btn-sort-course-id" class="btn btn-secondary" type="button" data-record-sort="id" aria-pressed="false">ID</button>
+            <button id="btn-sort-course-title" class="btn btn-secondary" type="button" data-record-sort="title" aria-pressed="false">COREOGRAFIA</button>
+            <button id="btn-export-course-csv" class="btn btn-secondary" type="button">Esporta CSV</button>
+          </div>
+        </div>
+        <div class="course-table-wrap">
+          <table class="course-records-table">
+            <thead><tr><th>Settimana</th><th>Livello</th><th>ID</th><th>Coreografia</th><th>Autore</th><th>Azioni</th></tr></thead>
+            <tbody id="course-records-body"><tr><td colspan="6">Caricamento programma…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+      <p class="course-page-footer"><a class="btn btn-secondary" href="bordero.html">← Torna al tabellone Borderò</a></p>
+    </main>
+  </div>
+  <script src="/nav.js"></script>
+</body>
+</html>

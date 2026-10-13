@@ -27,6 +27,10 @@
     "primary": true,
     "secondary": false
   },
+  "/bordero/pages/coreografie-corsi.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/bordero/pages/display.html": {
     "primary": false,
     "secondary": true

@@ -1,6 +1,15 @@
 (function () {
+    // Browser pages share the machine preference; Electron also loads it from preload.
+    if (['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+        && !window.machineUiTheme
+        && !document.querySelector('script[data-machine-ui-theme], script[src*="machine-ui-theme.js"]')) {
+        const themeScript = document.createElement('script');
+        themeScript.src = '/Bordero/js/machine-ui-theme.js';
+        themeScript.dataset.machineUiTheme = 'true';
+        document.head.appendChild(themeScript);
+    }
     const mountId = 'global-nav-container';
-    const homeUrl = '/Bordero/index.html';
+    const defaultHomeUrl = '/Bordero/index.html';
     const displayPath = '/bordero/pages/display.html';
     const displayWindowName = 'bordero-display-secondary';
     const primaryWindowName = 'bordero-primary';
@@ -137,6 +146,18 @@
 
         document.addEventListener('click', handleNavigationClick, true);
         if (document.querySelector('.nav-breadcrumb') || document.getElementById(mountId)) return;
+
+        let homeUrl = defaultHomeUrl;
+        if (window.location.protocol === 'file:') {
+            const path = window.location.pathname.toLowerCase();
+            if (path.includes('/eventi/')) {
+                homeUrl = '../../Bordero/index.html';
+            } else if (path.includes('/bordero/pages/')) {
+                homeUrl = '../index.html';
+            } else {
+                homeUrl = './Bordero/index.html';
+            }
+        }
 
         const container = document.createElement('div');
         container.id = mountId;

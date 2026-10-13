@@ -28,6 +28,8 @@ const BORDERO_CONFIG = {
   CACHE_KEY_FLAGGED: 'bordero_flagged',
   CACHE_KEY_PREFS: 'bordero_userPrefs',
   CACHE_KEY_CURRENT_SERATA: 'bordero_currentSerata',      // Serata in corso (brani + metadata)
+  CACHE_KEY_CHOREO_PROGRAMS: 'bordero_choreoPrograms',
+  CACHE_KEY_CHOREO_LEVEL_SELECTION: 'bordero_choreoLevelSelection',
   CACHE_KEY_SERATA_HISTORY: 'bordero_serataHistory',      // Array of completed serata
   CACHE_KEY_SERATA_ARCHIVE_DIR: 'C:\\VSC_SIAE\\Storico Serate\\', // Directory archivio
   SYNC_INTERVAL_MS: 60 * 1000, // 1 minuto
@@ -57,6 +59,7 @@ const BORDERO_CONFIG = {
     { id: 'richieste', label: 'Richieste', width: '130px', sortable: true },
     { id: 'genere', label: 'Genere', width: '100px', sortable: true },
     { id: 'info_livello', label: 'Info Livello', width: '120px', sortable: true },
+    { id: 'course_week', label: 'Settimana', width: '90px', sortable: true },
     { id: 'info_coreo_1', label: 'Info Coreo 1', width: '150px', sortable: true },
     { id: 'info_coreo_2', label: 'Info Coreo 2', width: '150px', sortable: true },
     { id: 'coreografo', label: 'Coreografo', width: '150px', sortable: true },
@@ -77,7 +80,13 @@ const BORDERO_CONFIG = {
     'BASE',
     'INTERMEDIO',
     'AVANZATO',
+    'AVANZATO 1',
+    'AVANZATO 2',
+    'AVANZATO 1-2',
     'SUPER AVANZATO',
+    'SUPER AVANZATO 1',
+    'SUPER AVANZATO 2',
+    'SUPER AVANZATO 1-2',
   ],
   
   // ========== CATEGORIE COREOGRAFIA ==========

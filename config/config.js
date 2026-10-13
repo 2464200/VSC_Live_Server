@@ -24,6 +24,7 @@ const config = {
   pdfFolder: resolvePortablePath(process.env.VSC_SCRIPT_PDF_DIR, defaultPdfFolder),
   videoClipDir: resolveProjectPath(process.env.VSC_VIDEOCLIP_PATH, path.resolve(projectRoot, '..', 'VSC_VIDEOCLIP'), projectRoot),
   siaeExportDir: resolvePortablePath(process.env.VSC_SIAE_DIR || process.env.SIAE_EXPORT_DIR, 'C:\\VSC_SIAE'),
+  choreoProgramDir: resolveProjectPath(process.env.VSC_PROGRAMMA_DIR, path.resolve(projectRoot, '..', 'VSC_PROGRAMMA'), projectRoot),
   userformRecordingsDir: resolveProjectPath(process.env.USERFORM_RECORDINGS_DIR, path.resolve(projectRoot, '..', 'VSC_WEBCAM'), projectRoot),
   legacyRecordingsDir: resolvePortablePath(process.env.LEGACY_RECORDINGS_DIR, path.join(projectRoot, 'legacy-recordings')),
   electronControlPort: Number(process.env.ELECTRON_CONTROL_PORT || 5512),
@@ -39,6 +40,7 @@ const config = {
       this.pdfFolder,
       this.videoClipDir,
       this.siaeExportDir,
+      this.choreoProgramDir,
       this.userformRecordingsDir,
       this.legacyRecordingsDir
     ]) {

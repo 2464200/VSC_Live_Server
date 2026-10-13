@@ -24,6 +24,7 @@
       this.isCloudHost = this.detectCloudHost();
       this.isPublisherPage = this.detectPublisherPage();
       this.isAdminPage = this.detectAdminPage();
+      this.isCoursePage = /\/pages\/coreografie-corsi\.html$/i.test(window.location.pathname);
       this.eventSource = null;
       this.pollingTimer = null;
       this.lastStateTimestamp = null;
@@ -56,21 +57,23 @@
 
     detectPublisherPage() {
       if (typeof window === 'undefined' || !window.location) return false;
-      return /\/pages\/(?:bordero|admin|dj-preselezione)\.html$/i.test(window.location.pathname);
+      return /\/pages\/(?:bordero|admin|dj-preselezione|coreografie-corsi)\.html$/i.test(window.location.pathname);
     }
 
     detectAdminPage() {
       if (typeof window === 'undefined' || !window.location) return false;
-      return /\/pages\/admin\.html$/i.test(window.location.pathname);
+      return /\/pages\/(?:admin|coreografie-corsi)\.html$/i.test(window.location.pathname);
     }
 
     init() {
-      if (this.isCloudHost) {
+      if (this.isCoursePage) {
+        this.authReady = this.initializePublisherAuth();
+      } else if (this.isCloudHost) {
         console.log('[FirebaseCloudClient] Modalità Cloud attiva (Host:', window.location.hostname, ')');
         this.startCloudListener();
       } else if (this.isPublisherPage) {
         console.log('[FirebaseCloudClient] Modalità publisher locale: autenticazione Google richiesta.');
-        this.initializePublisherAuth();
+        this.authReady = this.initializePublisherAuth();
         this.setupLocalSyncTriggers();
       }
       this.injectStatusIndicator();
@@ -92,7 +95,7 @@
         this.publisherAuth = app.auth();
         this.publisherDatabase = app.database();
 
-        this.authReady = new Promise((resolve) => {
+        await new Promise((resolve) => {
           let resolved = false;
           const markReady = () => {
             if (resolved) return;
@@ -105,7 +108,8 @@
             markReady();
 
             if (user && this.isAuthorizedPublisher(user)) {
-              this.fetchCloudStateDirect();
+              if (this.isCoursePage) this.updateStatusBadge(true, `🔐 ${user.email || 'Google'}`);
+              else this.fetchCloudStateDirect();
             } else if (user) {
               this.updateStatusBadge(false, '🔒 Account non autorizzato');
             } else {
@@ -543,7 +547,7 @@
           titleContainer.appendChild(badge);
         }
 
-        if (this.isAdminPage && !this.isCloudHost) {
+        if (this.isAdminPage && (!this.isCloudHost || this.isCoursePage)) {
           document.getElementById('google-account-section')?.removeAttribute('hidden');
           const authButton = document.getElementById('firebase-cloud-auth');
           const publishButton = document.getElementById('firebase-cloud-publish');

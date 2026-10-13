@@ -1,0 +1,78 @@
+/* Only the main window receives this attribute. Removing it restores the original night UI. */
+html[data-primary-theme="day"] {
+  color-scheme: light;
+  --bg-dark: #fff;
+  --bg: #fff;
+  --bg-soft: #f5f5f5;
+  --panel: #fff;
+  --text-light: #222;
+  --ink: #222;
+  --muted: #555;
+  --border-color: #b7b7b7;
+  --line: #b7b7b7;
+  --shadow: 0 2px 8px rgba(0, 0, 0, .12);
+  background: #fff !important;
+}
+
+html[data-primary-theme="day"] body {
+  background: #fff !important;
+  color: #222 !important;
+}
+/* Buttons retain their existing action colours and contrasting text. */
+html[data-primary-theme="day"] :is(button, .btn) { --text-light: #fff; }
+
+html[data-primary-theme="day"] :is(
+  .container, .layout, .header, .topbar, .panel, .section, .admin-section,
+  .nav, .nav-breadcrumb, .serata-info, .toolbar, .table-wrapper, .table-container,
+  .course-panel, .course-cloud-section, .course-board-filter, .course-file-picker-panel,
+  .form-card, .menu-card, .card, .info-section, .info-card, .info-box, .stat-box,
+  .footer, .footer-action, .modal-content, .filter-picker-content,
+  .filter-picker-header, .location-picker-content, .location-picker-header,
+  .deploy-control-card, .dj-software-status, .sync-item, .cache-info, .data-viewer,
+  .display-scroll-control, .display-scroll-estimate, .sync-feedback,
+  .monitor-page-routes, .monitor-policy-diagnostics
+) {
+  background: #fff !important;
+  color: #222 !important;
+}
+
+html[data-primary-theme="day"] :is(
+  .display-scroll-help, .deploy-control-card span, .breadcrumb-current, .breadcrumb-sep,
+  .nav-breadcrumb span, .course-help, .course-help code, .course-cloud-section p,
+  .course-panel-heading p, .course-board-filter p, .course-season-controls label,
+  .course-create-season label, .course-record-form label, .course-file-label,
+  #course-selected-csv, #firebase-cloud-badge, .google-account-status,
+  .data-viewer-summary, .data-viewer-table code, .label, .subtitle, .muted, .app-subtitle,
+  .deploy-status, .display-scroll-readout, .sync-feedback-header, .stat-label,
+  .info-card p, .footer p
+) { color: #444 !important; }
+html[data-primary-theme="day"] :is(.deploy-control-card strong, .display-scroll-control label) { color: #914800; }
+html[data-primary-theme="day"] .nav-link:not([style]):not(.nav-link-danger) { background: #fff; color: #222; }
+
+html[data-primary-theme="day"] :is(
+  input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  select, option, textarea
+) {
+  background-color: #fff !important;
+  color: #222 !important;
+  border-color: #999;
+}
+html[data-primary-theme="day"] input::placeholder,
+html[data-primary-theme="day"] textarea::placeholder { color: #666; }
+
+html[data-primary-theme="day"] :is(table, .course-records-table, .data-viewer-table) { color: #222; }
+html[data-primary-theme="day"] :is(.brani-table, .course-records-table, .data-viewer-table) th:not(.active-sort):not(.active-filter) {
+  background: #f3f3f3 !important;
+  color: #914800 !important;
+}
+/* Preserve NEXT, executed, flagged and console state row colours. */
+html[data-primary-theme="day"] .brani-table tbody tr:not(.completed):not([class*="console-row-"]) {
+  background-color: #fff;
+}
+html[data-primary-theme="day"] .brani-table tbody tr:not(.completed):not([class*="console-row-"]):hover {
+  background-color: #f3f3f3;
+}
+html[data-primary-theme="day"] .brani-table tbody tr.console-row-available { color: #eee; }
+html[data-primary-theme="day"] :is(.course-week-pill, .course-records-actions .btn.is-sorted) { color: #914800; }
+html[data-primary-theme="day"] .course-inline-status { color: #216437; }
+html[data-primary-theme="day"] .course-inline-status.is-error { color: #a52020; }

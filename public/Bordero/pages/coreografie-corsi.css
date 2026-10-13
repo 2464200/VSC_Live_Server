@@ -1,0 +1,78 @@
+.choreo-course-page { max-width: 1500px; }
+.course-board-filter { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin: 12px 0; padding: 14px; border: 1px solid rgba(255,127,0,.45); border-radius: 9px; background: #222; color: #eee; }
+.course-board-filter > div { align-self: center; }
+.course-board-filter label { display: flex; flex-direction: column; gap: 5px; font-size: .88rem; }
+.course-board-filter input { width: 140px; }
+.course-board-filter p { flex-basis: 100%; margin: 0; font-size: .88rem; color: #ccc; }
+.course-cloud-section,
+.course-panel {
+  background: #222;
+  border: 1px solid rgba(255, 127, 0, .45);
+  border-radius: 9px;
+  box-shadow: var(--shadow, 0 4px 14px rgba(0,0,0,.18));
+}
+.course-cloud-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 18px;
+  margin: 12px 0;
+}
+.course-cloud-section p,
+.course-panel-heading p { margin: 5px 0 0; color: #bbb; font-size: .92rem; }
+.course-cloud-actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+#firebase-cloud-badge { color: #bbb; font-size: .82rem; }
+.course-program-layout { display: grid; gap: 14px; }
+.course-panel { padding: 18px; }
+.course-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.course-panel-heading h2 { margin: 0; color: #ff8a00; font-size: 1.2rem; }
+.course-season-controls,
+.course-create-season,
+.course-import-actions,
+.course-file-picker-panel,
+.course-record-form { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+.course-season-controls label,
+.course-create-season label,
+.course-record-form label { display: grid; gap: 6px; min-width: 180px; flex: 1; color: #eee; font-weight: 600; }
+.course-create-season { border-top: 1px solid #444; margin-top: 16px; padding-top: 15px; }
+.course-create-season label { max-width: 300px; }
+.course-status-badge { display: inline-block; padding: 6px 10px; border-radius: 18px; background: #444; color: #eee; font-size: .76rem; font-weight: 800; white-space: nowrap; }
+.course-status-badge.is-active { background: #1d5d36; color: #d7ffe4; }
+.course-file-label { position: relative; display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border: 1px solid #777; border-radius: 5px; color: #eee; cursor: pointer; }
+.course-file-label input { max-width: 220px; margin-left: 10px; color: #ccc; }
+.course-file-picker-panel { padding: 12px; margin-top: 12px; background: #2a2a2a; border: 1px solid #555; border-radius: 5px; color: #eee; }
+.course-file-picker-panel[hidden] { display: none; }
+.course-file-picker-panel select { flex: 1; min-width: 180px; }
+#course-selected-csv { color: #ccc; overflow-wrap: anywhere; }
+.course-help { margin: 12px 0 0; color: #aaa; font-size: .88rem; }
+.course-help code { color: #ffd19c; }
+.course-inline-status { min-height: 1.25rem; margin-top: 10px; color: #a9dfb5; font-size: .9rem; }
+.course-inline-status.is-error { color: #ff9999; }
+.course-record-form { align-items: end; }
+.course-record-form label:first-of-type { max-width: 140px; }
+.course-record-form label:nth-of-type(2) { max-width: 220px; }
+.course-record-form label:nth-of-type(3) { flex-basis: 360px; }
+.course-records-panel { min-width: 0; }
+.course-records-heading { align-items: center; flex-wrap: wrap; }
+.course-records-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; margin-left: auto; }
+.course-records-actions .btn.is-sorted { border-color: #ff8a00; background: rgba(255,127,0,.18); color: #ffbd70; }
+.course-table-wrap { overflow-x: auto; }
+.course-records-table { width: 100%; border-collapse: collapse; color: #eee; }
+.course-records-table th,
+.course-records-table td { padding: 9px 10px; border-bottom: 1px solid #444; text-align: left; }
+.course-records-table th { color: #ff9a27; font-size: .82rem; text-transform: uppercase; }
+.course-week-pill { display: inline-block; padding: 4px 8px; border-radius: 12px; background: rgba(255,127,0,.18); color: #ffbd70; font-size: .76rem; font-weight: 800; white-space: nowrap; }
+.course-row-actions { display: flex; gap: 6px; white-space: nowrap; }
+.course-delete-btn { border-color: #923e36; color: #ffb2aa; }
+.course-page-footer { margin: 0 0 24px; }
+@media (max-width: 720px) {
+  .course-cloud-section { align-items: stretch; flex-direction: column; }
+  .course-panel { padding: 14px; }
+  .course-record-form > label,
+  .course-season-controls > label { min-width: 100%; max-width: none !important; }
+  .course-records-table th,
+  .course-records-table td { padding: 7px; font-size: .84rem; }
+  .course-file-label { width: 100%; justify-content: space-between; }
+  .course-file-label input { max-width: 170px; }
+}

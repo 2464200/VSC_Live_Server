@@ -5,6 +5,10 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { projectConfig } = require('../config/config');
+const { createChoreoProgramFileStore } = require('../Bordero/server/choreo-program-files');
+const { registerCourseProgramFileHandlers } = require('./course-program-files');
+const { createMachineUiPreferencesStore } = require('../config/machine-ui-preferences');
+const { registerUiPreferencesHandlers } = require('./ui-preferences');
 const { createWebcamRecorder } = require('./webcam-recorder');
 const { getLocalConfigPath } = require('../config/local-config');
 const { resolveDisplayTargetsForWindows, buildDisplayLayoutConfig, buildElectronAppConfig } = require('./display-manager');
@@ -62,6 +66,7 @@ const PAGE_POLICY = new Map([
   ['/bordero/index.html', { primary: true, secondary: false }],
   ['/bordero/pages/brani-eseguiti.html', { primary: true, secondary: true }],
   ['/bordero/pages/coreografie-stampa.html', { primary: true, secondary: false }],
+  ['/bordero/pages/coreografie-corsi.html', { primary: true, secondary: false }],
   ['/bordero/pages/display.html', { primary: false, secondary: true }],
   ['/bordero/pages/elenco-richieste.html', { primary: true, secondary: false }],
   ['/bordero/pages/lista-serata.html', { primary: true, secondary: true }],
@@ -1487,6 +1492,24 @@ ipcMain.handle('bordero-monitor-policy:last-event', async () => {
     ok: true,
     event: lastMonitorRouteEvent
   };
+});
+
+registerCourseProgramFileHandlers({
+  ipcMain, dialog, BrowserWindow,
+  store: createChoreoProgramFileStore(projectConfig.choreoProgramDir)
+});
+
+registerUiPreferencesHandlers({
+  ipcMain,
+  store: createMachineUiPreferencesStore(getLocalConfigPath('bordero/ui-preferences.json')),
+  getWindowRole: (sender) => {
+    if (primaryWindow?.webContents === sender) return 'primary';
+    if ([secondaryWindow, temporarySecondaryWindow, videoPlayerWindow].some((win) => win?.webContents === sender)) return 'secondary';
+    return 'unknown';
+  },
+  onChanged: (preferences) => {
+    if (primaryWindow && !primaryWindow.isDestroyed()) primaryWindow.webContents.send('bordero-ui-preferences:changed', preferences);
+  }
 });
 
 ipcMain.handle('bordero-file-picker:pick-directory', async () => {

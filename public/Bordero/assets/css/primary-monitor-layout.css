@@ -1,0 +1,46 @@
+/* Shared screen geometry for the actual primary window; print and secondary views keep their rules. */
+@media screen {
+  html[data-monitor-role="primary"] body {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
+    margin-inline: 0;
+    padding-inline: clamp(6px, 0.6vw, 12px);
+  }
+
+  /* Outer page frames only: preserve inner grids, fields, media and dialog dimensions. */
+  html[data-monitor-role="primary"] body > :is(
+    .container, .layout, .presentation-shell, .screen-shell, .pdf-shell,
+    .service-shell, .control-shell, .shell, .page, .grid, #global-nav-container
+  ) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none !important;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  /* Eventi and QR pages use several sibling frames instead of a single wrapper. */
+  html[data-monitor-role="primary"] body > :is(
+    h1, header, nav, footer, .header, .nav, .tools-row, .labels, .summary-cards,
+    .alfabeto-filter, #lista-brani, #lista-render, .card,
+    .preview-toolbar,
+    main:not(.print-document):not(.service-presentation)
+  ) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none !important;
+    margin-inline: 0;
+  }
+
+  html[data-monitor-role="primary"] :is(
+    .screen-shell > .settings-layout, #global-nav-container > nav
+  ) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none !important;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+}

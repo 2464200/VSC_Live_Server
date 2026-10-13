@@ -28,8 +28,11 @@ test('source and published Bordero clients target the Hosting project Realtime D
 test('Realtime Database rules allow public reads but restrict writes to Luca and Daniele', () => {
   const rules = JSON.parse(fs.readFileSync(path.join(repoRoot, 'database.rules.json'), 'utf8'));
   const stateRules = rules.rules.bordero.display_state;
+  const curriculumRules = rules.rules.bordero.dance_curriculum;
 
   assert.equal(stateRules['.read'], true);
+  assert.equal(curriculumRules['.read'], true);
+  assert.equal(curriculumRules['.write'], stateRules['.write']);
   assert.equal(stateRules['.write'].includes('auth != null'), true);
   assert.equal(
     stateRules['.write'],
@@ -47,6 +50,7 @@ test('Firebase Auth enables Google Sign-In for the local and hosted Bordero doma
     'Bordero/pages/bordero.html',
     'Bordero/pages/admin.html',
     'Bordero/pages/dj-preselezione.html',
+    'Bordero/pages/coreografie-corsi.html',
   ];
 
   assert.equal(firebaseConfig.auth.providers.googleSignIn.supportEmail, 'lucafaby@gmail.com');
@@ -61,7 +65,7 @@ test('Firebase Auth enables Google Sign-In for the local and hosted Bordero doma
   }
 });
 
-async function createPublisherClient(email) {
+async function createPublisherClient(email, url = 'http://localhost:5500/Bordero/pages/bordero.html') {
   const writes = [];
   const user = { email };
   const auth = {
@@ -83,10 +87,11 @@ async function createPublisherClient(email) {
   const authFactory = () => auth;
   authFactory.GoogleAuthProvider = class {};
   const stored = new Map();
+  const fetched = [];
   const dom = new JSDOM(
-    '<header><div class="header-content"></div></header>',
+    '<header><div class="header-content"></div></header><button id="firebase-cloud-auth"></button><span id="firebase-cloud-badge"></span>',
     {
-      url: 'http://localhost:5500/Bordero/pages/bordero.html',
+      url,
       runScripts: 'outside-only',
       beforeParse(window) {
         Object.defineProperty(window, 'Storage', {
@@ -112,6 +117,7 @@ async function createPublisherClient(email) {
           database: () => app.database(),
         };
         window.fetch = async (url) => {
+          fetched.push(url);
           if (url === window.BORDERO_CONFIG.FIREBASE_WEB_CONFIG_URL) {
             return {
               ok: true,
@@ -127,11 +133,32 @@ async function createPublisherClient(email) {
   const clientScript = fs.readFileSync(path.join(repoRoot, 'Bordero/js/firebase-cloud-client.js'), 'utf8');
   dom.window.eval(clientScript);
   const client = dom.window.firebaseCloudClient;
-  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
   await client.authReady;
+  assert.ok(client.publisherDatabase);
+  await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
 
-  return { dom, client, writes };
+  return { dom, client, writes, fetched };
 }
+
+test('course page authenticates on local and cloud hosts without publishing or loading evening state', async () => {
+  for (const url of [
+    'http://localhost:5500/Bordero/pages/coreografie-corsi.html',
+    'https://my-project-1525790600392.web.app/Bordero/pages/coreografie-corsi.html'
+  ]) {
+    const { dom, client, writes, fetched } = await createPublisherClient('lucafaby@gmail.com', url);
+    try {
+      assert.equal(client.isCoursePage, true);
+      assert.equal(fetched.length, 1);
+      assert.equal(dom.window.document.getElementById('firebase-cloud-auth').dataset.firebaseAuthBound, 'true');
+      assert.match(dom.window.document.getElementById('firebase-cloud-badge').textContent, /lucafaby@gmail.com/);
+      dom.window.dispatchEvent(new dom.window.StorageEvent('storage', { key: 'bordero_currentSerata' }));
+      assert.equal(client.localPushDebounceTimer, null);
+      assert.equal(writes.length, 0);
+    } finally {
+      dom.window.close();
+    }
+  }
+});
 
 test('authorized Google publisher writes through the authenticated Realtime Database SDK', async () => {
   const { dom, client, writes } = await createPublisherClient('LUCAFABY@gmail.com');

@@ -11,7 +11,8 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css?v=20261007-13" />
+  <link rel="stylesheet" href="bordero.css?v=20261013-3" />
+  <link rel="stylesheet" href="coreografie-corsi.css?v=20261013-1" />
   
   <!-- XLSX Library locale per lettura file Excel -->
   <script src="../assets/lib/xlsx.min.js"></script>
@@ -26,7 +27,7 @@
   </script>
   
   <!-- Config globale -->
-  <script defer src="../js/config.js?v=20261004-1"></script>
+  <script defer src="../js/config.js?v=20261013-2"></script>
   <script defer src="../js/utils.js?v=20260711-2"></script>
   <script defer src="../js/excel-file-manager.js?v=20260711-2"></script>
   <script defer src="../js/excel-sync.js?v=20260711-2"></script>
@@ -35,14 +36,15 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script defer src="../js/firebase-cloud-client.js?v=20261005-5"></script>
+  <script defer src="../js/firebase-cloud-client.js?v=20261013-1"></script>
+  <script defer src="../js/choreo-program-store.js?v=20261013-1"></script>
   <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
   <script defer src="../js/video-only-brani.js"></script>
-  <script defer src="bordero.js?v=20261007-2"></script>
+  <script defer src="bordero.js?v=20261013-2"></script>
 </head>
 
 <body>
-  <div class="container">
+  <div class="container bordero-table-page">
     <!-- HEADER -->
     <header class="header">
       <div class="header-content">
@@ -110,6 +112,18 @@
       </div>
     </section>
 
+    <section class="course-board-filter" aria-label="Filtra il programma dei corsi">
+      <div><strong>Programma corsi</strong> <span id="course-board-season">Caricamento stagione…</span></div>
+      <label for="course-board-level">Livello del corso
+        <select id="course-board-level" class="select-input"><option value="">Tutto il catalogo</option></select>
+      </label>
+      <label for="course-board-week">Insegnate fino alla settimana
+        <input id="course-board-week" class="input-text" type="number" min="1" max="52" value="52" />
+      </label>
+      <a href="coreografie-corsi.html" class="btn btn-secondary">Gestisci programma corsi</a>
+      <p id="course-board-status" role="status" aria-live="polite">Seleziona un livello per mostrare le coreografie del programma.</p>
+    </section>
+
     <!-- TOOLBAR -->
     <section class="toolbar">
       <div class="toolbar-section">
@@ -150,6 +164,9 @@
         <h3>COMANDI FILTRI</h3>
         <button id="btn-filter-coreografia" class="btn btn-filter btn-filter-blue" title="Filtra per livello">
           LIVELLO
+        </button>
+        <button id="btn-filter-settimana" class="btn btn-filter btn-filter-blue" title="Filtra per settimana della stagione attiva">
+          SETTIMANA
         </button>
         <button id="btn-filter-livello" class="btn btn-filter btn-filter-orange" title="Filtra per coreografo">
           COREOGRAFO
@@ -236,6 +253,7 @@
             <option value="../../USERFORM/pages/PAGINA10.html">Pagina 10</option>
             <option value="../../USERFORM/pages/PAGINA11.html">Pagina 11</option>
             <option value="dj-preselezione.html">Preselezione DJ</option>
+            <option value="coreografie-corsi.html">Programma Coreografie Corsi</option>
             <option value="bordero-presentazione.html">Presentazione Borderò</option>
             <option value="../../USERFORM/pages/QRCODE.html">QRCode</option>
             <option value="risultati.html">Risultati</option>
@@ -341,6 +359,7 @@
               <th class="col-autore" data-col="autore">Autore</th>
               <th class="col-richieste" data-col="richieste">Richieste</th>
               <th class="col-livello" data-col="info_livello">Info Livello</th>
+              <th class="col-settimana" data-col="course_week">Settimana</th>
               <th class="col-coreo-1" data-col="info_coreo_1">Info Coreo 1</th>
               <th class="col-coreo-2" data-col="info_coreo_2">Info Coreo 2</th>
               <th class="col-coreografo" data-col="coreografo">Coreografo</th>

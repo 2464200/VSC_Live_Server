@@ -1,6 +1,10 @@
 {
   "rules": {
     "bordero": {
+      "dance_curriculum": {
+        ".read": true,
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'lucafaby@gmail.com' || auth.token.email == 'djdaniele1984@gmail.com')"
+      },
       "display_state": {
         ".read": true,
         ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'lucafaby@gmail.com' || auth.token.email == 'djdaniele1984@gmail.com')",

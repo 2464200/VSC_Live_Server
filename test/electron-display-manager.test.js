@@ -132,6 +132,13 @@ function loadElectronMainFor(tempDir) {
         return require('../electron/google-auth-popup');
       }
 
+      if (name === './course-program-files') {
+        return require('../electron/course-program-files');
+      }
+
+      if (name === './ui-preferences') return require('../electron/ui-preferences');
+      if (name === '../config/machine-ui-preferences') return require('../config/machine-ui-preferences');
+
       if (name === './webcam-recorder') {
         return {
           createWebcamRecorder() {

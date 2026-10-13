@@ -13,6 +13,7 @@ class AdminPanel {
 
   async init() {
     this.setupSystemStatus();
+    this.setupPrimaryThemeSettings();
     this.setupDisplayScrollSettings();
     this.setupDeployControls();
     this.setupExcelFileSelection();
@@ -620,6 +621,7 @@ class AdminPanel {
       { path: '/bordero/pages/admin.html', primary: true, secondary: false },
       { path: '/bordero/pages/bordero-presentazione.html', primary: true, secondary: true },
       { path: '/bordero/pages/bordero.html', primary: true, secondary: false },
+      { path: '/bordero/pages/coreografie-corsi.html', primary: true, secondary: false },
       { path: '/bordero/pages/brani-eseguiti.html', primary: true, secondary: true },
       { path: '/bordero/pages/brani-nascosti.html', primary: true, secondary: false },
       { path: '/bordero/index.html', primary: true, secondary: false },
@@ -674,6 +676,7 @@ class AdminPanel {
       { path: '/bordero/pages/admin.html', label: 'Admin', description: 'Pannello amministrazione' },
       { path: '/bordero/pages/bordero-presentazione.html', label: 'Bordero Presentazione', description: 'Vista presentazione su entrambi i monitor' },
       { path: '/bordero/pages/bordero.html', label: 'Bordero', description: 'Pagina principale del Bordero' },
+      { path: '/bordero/pages/coreografie-corsi.html', label: 'Programma Coreografie Corsi', description: 'Programma stagionale e compilazione settimanale' },
       { path: '/bordero/pages/brani-eseguiti.html', label: 'Brani Eseguiti', description: 'Cronologia brani su entrambi i monitor' },
       { path: '/bordero/pages/brani-nascosti.html', label: 'Brani Nascosti', description: 'Brani con titolo duplicato dopo l’esecuzione di una copia' },
       { path: '/bordero/index.html', label: 'Bordero Home', description: 'Home del modulo Bordero' },
@@ -958,6 +961,39 @@ class AdminPanel {
     const response = await fetch(url, options);
     const payload = await response.json().catch(() => ({}));
     return { response, payload };
+  }
+
+  setupPrimaryThemeSettings() {
+    const dayButton = document.getElementById('btn-primary-theme-day');
+    const nightButton = document.getElementById('btn-primary-theme-night');
+    const status = document.getElementById('primary-theme-status');
+    if (!dayButton || !nightButton || !status) return;
+    const service = window.machineUiTheme;
+    const render = ({ primaryTheme, windowRole }) => {
+      for (const [button, theme] of [[dayButton, 'day'], [nightButton, 'night']]) {
+        button.setAttribute('aria-pressed', String(primaryTheme === theme));
+        button.classList.toggle('btn-primary', primaryTheme === theme);
+        button.classList.toggle('btn-secondary', primaryTheme !== theme);
+        button.disabled = windowRole !== 'primary';
+      }
+      status.textContent = windowRole === 'primary'
+        ? `Modalità ${primaryTheme === 'day' ? 'giorno (sfondo bianco)' : 'notte (sfondo scuro)'} ricordata su questa macchina.`
+        : 'Apri ADMIN sul monitor principale per modificare questa impostazione.';
+    };
+    const showError = (error) => { status.textContent = `Impostazione non disponibile: ${error.message || error}`; };
+    if (!service) {
+      showError(new Error('riavvia l’app locale e ricarica ADMIN.'));
+      return;
+    }
+    window.addEventListener('bordero:primary-theme-changed', (event) => render(event.detail));
+    for (const [button, theme] of [[dayButton, 'day'], [nightButton, 'night']]) {
+      button.addEventListener('click', async () => {
+        dayButton.disabled = nightButton.disabled = true;
+        try { render(await service.setTheme(theme)); }
+        catch (error) { render(service.getCurrent()); showError(error); }
+      });
+    }
+    void service.refresh().then(render).catch(showError);
   }
 
   setupDeployControls() {

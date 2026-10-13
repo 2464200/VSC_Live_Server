@@ -2,6 +2,14 @@
  * BORDERÒ - Tabella Principale Styles
  */
 
+.container.bordero-table-page {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0 clamp(6px, 0.6vw, 12px);
+}
+
 /* ========== NAVIGATION ========== */
 .nav-breadcrumb {
   background-color: #222;
@@ -1390,6 +1398,12 @@
   font-size: 0.9em;
 }
 
+.col-settimana {
+  width: 90px;
+  text-align: center;
+  font-size: 0.9em;
+}
+
 .col-coreo-2 {
   width: 130px;
   font-size: 0.9em;
@@ -1501,6 +1515,46 @@
 }
 
 /* ========== RESPONSIVE ========== */
+@media (min-width: 769px) {
+  .bordero-table-page .brani-table {
+    table-layout: fixed;
+  }
+
+  .bordero-table-page .brani-table th,
+  .bordero-table-page .brani-table td {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .bordero-table-page .brani-table th {
+    padding: 10px clamp(2px, 0.35vw, 6px);
+    font-size: clamp(0.7rem, 0.75vw, 0.85rem);
+    line-height: 1.25;
+    letter-spacing: 0.1px;
+    white-space: normal;
+    overflow-wrap: normal;
+  }
+
+  .bordero-table-page .brani-table td {
+    padding-inline: clamp(3px, 0.4vw, 8px);
+  }
+
+  .bordero-table-page .brani-table .col-flag { width: 3%; }
+  .bordero-table-page .brani-table .col-next-coreo { width: 4.5%; }
+  .bordero-table-page .brani-table .col-id { width: 3.5%; }
+  .bordero-table-page .brani-table .col-timestamp { width: 8%; }
+  .bordero-table-page .brani-table .col-titolo { width: 16%; }
+  .bordero-table-page .brani-table .col-autore { width: 10%; }
+  .bordero-table-page .brani-table .col-richieste { width: 7%; }
+  .bordero-table-page .brani-table .col-livello { width: 7%; }
+  .bordero-table-page .brani-table .col-settimana { width: 6%; }
+  .bordero-table-page .brani-table .col-coreo-1 { width: 6.5%; }
+  .bordero-table-page .brani-table .col-coreo-2 { width: 6.5%; }
+  .bordero-table-page .brani-table .col-coreografo { width: 8%; }
+  .bordero-table-page .brani-table .col-collaboratori { width: 8%; }
+  .bordero-table-page .brani-table .col-videoclip { width: 6%; }
+}
+
 @media (max-width: 1200px) {
   .toolbar {
     grid-template-columns: repeat(2, 1fr);
@@ -1618,6 +1672,7 @@
   .col-richieste,
   .col-genere,
   .col-livello,
+  .col-settimana,
   .col-coreo-1,
   .col-coreo-2,
   .col-coreografo,

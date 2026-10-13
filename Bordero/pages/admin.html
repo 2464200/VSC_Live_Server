@@ -36,6 +36,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script defer src="../js/firebase-cloud-client.js?v=20261005-5"></script>
+  <script defer src="../js/machine-ui-theme.js"></script>
   <script defer src="admin.js"></script>
 </head>
 
@@ -89,6 +90,16 @@
       <div id="firebase-cloud-badge" class="google-account-status" role="status" aria-live="polite">
         Inizializzazione accesso Google...
       </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>Modalità monitor principale</h2>
+      <p class="display-scroll-help">Scegli lo sfondo per tutte le pagine del monitor 1 principale. La scelta viene ricordata su questa macchina.</p>
+      <div class="display-scroll-actions" role="group" aria-label="Modalità monitor principale">
+        <button id="btn-primary-theme-day" class="btn btn-secondary" type="button" aria-pressed="false" disabled>☀️ Giorno</button>
+        <button id="btn-primary-theme-night" class="btn btn-secondary" type="button" aria-pressed="false" disabled>🌙 Notte</button>
+      </div>
+      <p id="primary-theme-status" class="display-scroll-help" role="status" aria-live="polite">Caricamento impostazione…</p>
     </section>
 
     <section class="admin-section">
