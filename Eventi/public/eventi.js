@@ -141,13 +141,17 @@ function renderAlfabetoFilter() {
   });
 }
 function salvaDJLocal(name) {
-  localStorage.setItem('EVENTI_DJ', name || '');
+  const normalized = String(name || '').trim();
+  localStorage.setItem('EVENTI_DJ', normalized);
+  localStorage.setItem('EVENTI_SELECTED_DJ', normalized);
   const saveBadge = document.getElementById('dj-saved');
   if (saveBadge) saveBadge.style.display = name ? 'inline-block' : 'none';
 }
 
 function getDJLocal() {
-  return localStorage.getItem('EVENTI_DJ') || '';
+  const current = localStorage.getItem('EVENTI_DJ') || localStorage.getItem('EVENTI_SELECTED_DJ') || '';
+  if (current) salvaDJLocal(current);
+  return current;
 }
 
 const pageState = {
@@ -263,6 +267,10 @@ async function salvaStato(id, stato, addTimestamp = false, djOverride = null) {
   // Verifica limite prenotazioni per prenotato
   if (stato === 'prenotato') {
     const dj = djOverride !== null ? djOverride : getDJLocal();
+    if (!dj) {
+      document.getElementById('dj-input')?.focus();
+      throw new Error('Seleziona il DJ prima di prendere un brano');
+    }
     if (dj) {
       try {
         const checkRes = await eventiFetch('/check-prenotazione-limit', {
@@ -450,6 +458,19 @@ function updateStatusInfo() {
   renderSummaryCards(EventiState.summarizeBrani(pageState.summaryBrani));
 }
 
+function prepareNextBranoSearch() {
+  const input = document.getElementById('search-input');
+  if (!input) return;
+
+  pageState.alfabetoFilter = 'ALL';
+  pageState.query = '';
+  input.value = '';
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  evidenziaBtn('ALL');
+  input.focus();
+  input.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+}
+
 function renderRows(brani) {
   const container = document.getElementById('lista-brani');
   if (!container) {
@@ -468,8 +489,11 @@ function renderRows(brani) {
     const row = document.createElement('div');
     row.className = 'riga-brano';
     row.dataset.branoId = brano.id;
+    const requestedBadge = EventiState.isRequested(brano.richieste)
+      ? `<span class="requested-pill" title="${brano.richieste} richieste dalla lista canonica">📌 PRENOTATO</span>`
+      : '';
     row.innerHTML = `
-      <span class="stato-pill">disponibile</span>
+      <span class="stato-stack"><span class="stato-pill">disponibile</span>${requestedBadge}</span>
       <label>
         <input type="checkbox" class="checkbox-prenota" />
         <span class="titolo">
@@ -487,11 +511,7 @@ function renderRows(brani) {
       try {
         await salvaStato(brano.id, 'prenotato', false);
         await refreshPageData();
-        if (typeof window.goEventiPage === 'function') {
-          window.goEventiPage('prenotati.html');
-        } else {
-          window.location.href = 'prenotati.html';
-        }
+        prepareNextBranoSearch();
       } catch (error) {
         checkbox.disabled = false;
         checkbox.checked = false;

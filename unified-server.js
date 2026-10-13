@@ -28,6 +28,7 @@ const { createMachineUiPreferencesStore } = require('./config/machine-ui-prefere
 const { createUiPreferencesRouter } = require('./Bordero/server/ui-preferences-routes');
 const { forwardVdjRequest, ensureVirtualDjRunning } = require('./vdj-proxy');
 const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
+const { resolveDjForState } = require('./Eventi/dj-association');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
@@ -5164,7 +5165,11 @@ router.post('/log', (req, res) => {
         const normalizedState = isBoolState ? (stato ? 'eseguito' : 'disponibile') : stato;
 
         const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
-        log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: dj || null });
+        const resolvedDj = resolveDjForState(log, id, normalizedState, dj);
+        if (normalizedState !== 'disponibile' && !resolvedDj) {
+            return res.status(400).json({ error: 'Seleziona il DJ prima di aggiornare il brano' });
+        }
+        log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: resolvedDj });
         fs.writeFileSync(pathLog, JSON.stringify(log, null, 2));
         res.json({ ok: true });
         broadcastEventiUpdate({ type: 'log-updated' });

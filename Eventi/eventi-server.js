@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { syncBraniJson, syncBraniFromGoogle, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
 const { projectConfig } = require('../config/config');
+const { resolveDjForState } = require('./dj-association');
 
 const router = express.Router();
 
@@ -114,7 +115,11 @@ router.post('/log', (req, res) => {
     const normalizedState = isBoolState ? (stato ? 'eseguito' : 'disponibile') : stato;
 
     const log = JSON.parse(fs.readFileSync(pathLog, 'utf-8'));
-    log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: dj || null });
+    const resolvedDj = resolveDjForState(log, id, normalizedState, dj);
+    if (normalizedState !== 'disponibile' && !resolvedDj) {
+      return res.status(400).json({ error: 'Seleziona il DJ prima di aggiornare il brano' });
+    }
+    log.push({ id, stato: normalizedState, timestamp: timestamp || new Date().toISOString(), dj: resolvedDj });
     fs.writeFileSync(pathLog, JSON.stringify(log, null, 2));
     res.json({ ok: true });
   } catch (e) {

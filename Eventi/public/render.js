@@ -11,14 +11,23 @@ const renderState = {
 
 function getDJLocal() {
   try {
-    return localStorage.getItem('EVENTI_SELECTED_DJ') || null;
+    const dj = localStorage.getItem('EVENTI_DJ') || localStorage.getItem('EVENTI_SELECTED_DJ') || '';
+    if (dj) {
+      localStorage.setItem('EVENTI_DJ', dj);
+      localStorage.setItem('EVENTI_SELECTED_DJ', dj);
+    }
+    return dj || null;
   } catch (e) {
     return null;
   }
 }
 
-async function salvaStato(id, stato, addTimestamp = false, dj = null) {
-  const djToSave = dj || getDJLocal() || null;
+async function salvaStato(id, stato, addTimestamp = false, dj = undefined) {
+  const selectedDj = typeof dj === 'string' && dj.trim() ? dj.trim() : getDJLocal();
+  const djToSave = stato === 'disponibile' ? null : (selectedDj || null);
+  if (stato !== 'disponibile' && !djToSave) {
+    throw new Error('Seleziona il DJ nella pagina Eventi prima di aggiornare il brano');
+  }
   const payload = {
     id,
     stato,
@@ -53,7 +62,10 @@ function updateStatusInfo() {
   if (badge) {
     badge.textContent = `Ultimo aggiornamento: ${EventiState.getLastUpdateLabel(renderState.log)}`;
   }
-  renderSummaryCards(EventiState.summarizeBrani(renderState.summaryBrani));
+  const summaryScope = renderState.filtro === 'richiesti'
+    ? EventiState.filterBrani(renderState.summaryBrani, 'richiesti')
+    : renderState.summaryBrani;
+  renderSummaryCards(EventiState.summarizeBrani(summaryScope));
 }
 
 function renderRows(container, brani, opts = {}) {
@@ -83,8 +95,11 @@ function renderRows(container, brani, opts = {}) {
 
     const djLabel = item.dj ? ` - DJ ${item.dj}` : '';
 
+    const richiesteBadge = opts.filtro === 'richiesti'
+      ? `<span class="requested-pill">📌 RICHIESTE: ${item.richieste}</span>`
+      : '';
     row.innerHTML = `
-      <span class="stato-pill ${item.stato}">${item.stato}</span>
+      <span class="stato-stack"><span class="stato-pill ${item.stato}">${item.stato}</span>${richiesteBadge}</span>
       <span class="titolo">
         <strong><span class="red-number">(${index + 1})</span> ${item.titolo}</strong>
         <span class="muted">ID ${item.id}${item.brano ? ` - brano: ${item.brano}` : ''}${djLabel}</span>

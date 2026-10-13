@@ -41,6 +41,16 @@
     return (a?.titolo || '').trim().localeCompare((b?.titolo || '').trim(), 'it', TITLE_SORT_OPTIONS);
   }
 
+  function isRequested(value) {
+    const text = String(value ?? '').trim();
+    if (!text || text === '-') return false;
+    const normalizedNumeric = text.replace(',', '.');
+    if (/^-?\d+(\.\d+)?$/.test(normalizedNumeric)) {
+      return Number(normalizedNumeric) !== 0;
+    }
+    return true;
+  }
+
   function filterBrani(brani, filtro) {
     const data = (brani || []).slice();
     if (filtro === 'spuntati') {
@@ -62,6 +72,14 @@
       return data
         .filter(item => item.stato === 'disponibile')
         .sort(compareTitles);
+    }
+    if (filtro === 'richiesti') {
+      return data
+        .filter(item => isRequested(item.richieste))
+        .sort((a, b) => {
+          const requestsDiff = Number(b.richieste || 0) - Number(a.richieste || 0);
+          return requestsDiff || compareTitles(a, b);
+        });
     }
     return data.sort((a, b) => {
       const stateDiff = STATE_ORDER.indexOf(a.stato) - STATE_ORDER.indexOf(b.stato);
@@ -108,6 +126,7 @@
     summarizeBrani,
     getLastUpdateLabel,
     searchBrani,
+    isRequested,
     shouldRefresh
   };
 })();

@@ -142,7 +142,7 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
         : detectCsvDelimiter(line);
     const cols = parseCSVLine(line, delimiter).map(c => normalizeValue(c));
 
-    let idIndex, titoloIndex, branoIndex, autoreIndex, compositoreIndex, durataIndex;
+    let idIndex, titoloIndex, branoIndex, autoreIndex, compositoreIndex, durataIndex, richiesteIndex;
     if (sourceName === 'base-static') {
       idIndex = findColumn('ID') ?? 2;
       titoloIndex = findColumn('coreografia') ?? 3;
@@ -150,6 +150,7 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
       autoreIndex = findColumn('autore') ?? 5;
       compositoreIndex = findColumn('compositore');
       durataIndex = findColumn('durata');
+      richiesteIndex = findColumn('richieste');
     } else if (sourceName === 'base-legacy') {
       idIndex = 1;
       titoloIndex = 2;
@@ -157,6 +158,7 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
       autoreIndex = 4;
       compositoreIndex = findColumn('compositore');
       durataIndex = findColumn('durata');
+      richiesteIndex = findColumn('richieste');
     } else {
       idIndex = findColumn('ID') ?? 2;
       titoloIndex = findColumn('coreografia') ?? 3;
@@ -164,6 +166,7 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
       autoreIndex = findColumn('autore') ?? 5;
       compositoreIndex = findColumn('compositore');
       durataIndex = findColumn('durata');
+      richiesteIndex = findColumn('richieste');
     }
 
     const titolo = cols[titoloIndex];
@@ -171,6 +174,7 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
     const autore = cols[autoreIndex];
     const compositore = compositoreIndex !== undefined ? cols[compositoreIndex] : '';
     const durata = durataIndex !== undefined ? cols[durataIndex] : '';
+    const richieste = richiesteIndex !== undefined ? cols[richiesteIndex] : '';
 
     if (!titolo) {
       skipped += 1;
@@ -194,6 +198,7 @@ function parseCsvRows(csvPath, sourceName, options = {}) {
       autore: autore || '',
       compositore: compositore || '',
       durata: durata || '',
+      richieste: richieste || '',
       _source: sourceName
     });
   }
@@ -212,7 +217,8 @@ function loadBraniFromSources() {
     brano: item.brano,
     autore: item.autore,
     compositore: item.compositore || '',
-    durata: item.durata || ''
+    durata: item.durata || '',
+    richieste: item.richieste || ''
   }));
 
   return {
