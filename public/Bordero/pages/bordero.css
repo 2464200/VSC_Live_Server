@@ -1515,6 +1515,95 @@
 }
 
 /* ========== RESPONSIVE ========== */
+@media screen and (min-width: 769px) {
+  /* Compact only the command area; the priority card and table retain their sizing. */
+  .bordero-table-page .toolbar {
+    padding-block: 5px;
+  }
+
+  .bordero-table-page .toolbar-section {
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .bordero-table-page .toolbar-section > .stat-action {
+    transform: none;
+  }
+
+  .bordero-table-page .toolbar-section > .toolbar-reset-card {
+    margin-top: 3px;
+    border: 1px solid rgba(255, 127, 0, 0.45);
+    border-left-color: #ffd54f;
+  }
+
+  .bordero-table-page .toolbar-section > .btn,
+  .bordero-table-page .search-actions .btn {
+    min-width: 0;
+    min-height: 32px;
+    height: 32px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    line-height: 1.2;
+  }
+
+  .bordero-table-page .search-group {
+    padding-block: 5px;
+    gap: 3px;
+  }
+
+  .bordero-table-page .search-input {
+    padding: 8px 10px;
+  }
+
+  .bordero-table-page .search-actions {
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .bordero-table-page .search-actions .btn {
+    width: 100%;
+  }
+
+  .bordero-table-page .search-actions-row {
+    gap: 8px;
+  }
+
+  .bordero-table-page .search-webcam-signal-slot {
+    gap: 4px;
+  }
+
+  .bordero-table-page .search-webcam-signal-slot .p05-webcam-signal {
+    min-width: 88px;
+    width: 88px;
+    min-height: 116px;
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .bordero-table-page .search-webcam-signal-slot .p05-webcam-control {
+    min-width: 88px;
+    width: 88px;
+    padding: 4px 6px;
+  }
+
+  .bordero-table-page .toolbar-section > .toolbar-page-card {
+    margin-top: auto;
+    transform: none;
+  }
+
+  .bordero-table-page .remote-rolling-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .bordero-table-page .remote-rolling-controls .btn {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 6px;
+  }
+}
+
 @media (min-width: 769px) {
   .bordero-table-page .brani-table {
     table-layout: fixed;

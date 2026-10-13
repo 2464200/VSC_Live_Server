@@ -5,7 +5,8 @@
 param(
     [switch]$NoWait = $false,
     [switch]$NoMonitor = $false,
-    [int]$PortOverride = 0
+    [int]$PortOverride = 0,
+    [ValidateRange(1, 600)] [int]$ServerReadyTimeoutSeconds = 60
 )
 
 Write-Host ""
@@ -60,19 +61,19 @@ if (Test-Path $helpers) {
 
 function Test-PortListening {
     param([int]$Port)
+    # Loopback readiness does not need slow WMI/netstat scans or elevated rights.
+    $client = New-Object System.Net.Sockets.TcpClient
+    $connection = $null
     try {
-        $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-        if ($null -ne $connections -and $connections.Count -gt 0) {
-            return $true
-        }
-    } catch {
-    }
-
-    try {
-        $result = & netstat -ano 2>$null | Select-String ":$Port\s" | Select-String "LISTENING"
-        return $null -ne $result
+        $connection = $client.BeginConnect('127.0.0.1', $Port, $null, $null)
+        if (-not $connection.AsyncWaitHandle.WaitOne(250)) { return $false }
+        $client.EndConnect($connection)
+        return $client.Connected
     } catch {
         return $false
+    } finally {
+        if ($connection) { $connection.AsyncWaitHandle.Close() }
+        $client.Close()
     }
 }
 
@@ -105,6 +106,7 @@ function Test-HttpEndpoint {
     try {
         $request = [System.Net.HttpWebRequest]::Create($Uri)
         $request.Timeout = $TimeoutSeconds * 1000
+        $request.Proxy = $null
         $request.Method = 'GET'
         $response = $request.GetResponse()
         $response.Close()
@@ -130,6 +132,19 @@ function Wait-ForPort {
         Start-Sleep -Milliseconds 500
     }
     return $false
+}
+
+function Get-LocalJsonResponse {
+    param([Parameter(Mandatory = $true)] [string]$Uri)
+    $request = [System.Net.HttpWebRequest]::Create($Uri)
+    $request.Proxy = $null
+    $request.Timeout = 2000
+    $request.ReadWriteTimeout = 2000
+    $response = $request.GetResponse()
+    try {
+        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+        try { return ($reader.ReadToEnd() | ConvertFrom-Json) } finally { $reader.Dispose() }
+    } finally { $response.Close() }
 }
 
 function Wait-ForHttpEndpoint {
@@ -356,6 +371,7 @@ function Start-UnifiedServer {
     Write-Host "Avvio Unified Server..."
     try {
         $proc = Start-ProcessSafe -FilePath powershell.exe -ArgumentList @(
+                '-NoProfile',
                 '-ExecutionPolicy',
                 'Bypass',
                 '-File',
@@ -376,14 +392,24 @@ function Start-UnifiedServer {
         }
 
         Write-Host "OK Unified Server avviato (PID: $($proc.Id))"
+        $null = $proc.Handle
 
-        $activePort = Find-ActiveUnifiedPort -PortWaitSeconds 15
+        Write-Host "  Attendo le API del server (massimo $ServerReadyTimeoutSeconds secondi)..."
+        $activePort = Find-ActiveUnifiedPort -PortWaitSeconds $ServerReadyTimeoutSeconds -StartedProcess $proc
         if (-not $activePort) {
-            Write-Host "ERRORE FATALE: Unified Server non risponde sulle porte $($UnifiedPorts -join ', ')" -ForegroundColor Red
+            $proc.Refresh()
+            if ($proc.HasExited) {
+                Write-Host "ERRORE FATALE: il processo host si e chiuso prima che le API fossero pronte (codice $($proc.ExitCode))." -ForegroundColor Red
+            } else {
+                Write-Host "ERRORE FATALE: Unified Server non pronto entro $ServerReadyTimeoutSeconds secondi sulle porte $($UnifiedPorts -join ', ')" -ForegroundColor Red
+            }
             Write-Host "  Log stdout: $stdoutLog"
             Write-Host "  Log stderr: $stderrLog"
             try {
-                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+                if (-not $proc.HasExited) {
+                    # Stop only the newly launched tree, including Node, so a retry cannot leave an orphan server.
+                    & taskkill.exe /PID $proc.Id /T /F 2>&1 | Out-Null
+                }
             } catch {
             }
             exit 1
@@ -399,7 +425,7 @@ function Start-UnifiedServer {
             Write-Host "  Log stdout: $stdoutLog"
             Write-Host "  Log stderr: $stderrLog"
             try {
-                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+                & taskkill.exe /PID $proc.Id /T /F 2>&1 | Out-Null
             } catch {
             }
             exit 1
@@ -440,18 +466,25 @@ function Invoke-WebcamProfiling {
 
 function Find-ActiveUnifiedPort {
     param(
-        [int]$PortWaitSeconds = 0
+        [int]$PortWaitSeconds = 0,
+        [System.Diagnostics.Process]$StartedProcess = $null
     )
 
     $deadline = (Get-Date).AddSeconds($PortWaitSeconds)
     do {
+        if ($StartedProcess) {
+            $StartedProcess.Refresh()
+            if ($StartedProcess.HasExited) { return $null }
+        }
         foreach ($port in $UnifiedPorts) {
+            if ($PortWaitSeconds -gt 0 -and (Get-Date) -ge $deadline) { return $null }
             $healthUri = "http://127.0.0.1:$port/api/health"
             $eventiPingUri = "http://127.0.0.1:$port/eventi/api/ping"
             if (-not (Test-PortListening -Port $port)) { continue }
             try {
-                $health = Invoke-RestMethod -Uri $healthUri -TimeoutSec 2
-                $eventiPing = Invoke-RestMethod -Uri $eventiPingUri -TimeoutSec 2
+                # A fresh PowerShell process must not spend its readiness budget on proxy autodetection.
+                $health = Get-LocalJsonResponse -Uri $healthUri
+                $eventiPing = Get-LocalJsonResponse -Uri $eventiPingUri
                 if ($health.status -eq 'ok' -and $health.server -eq 'unified-server' -and $eventiPing.ok -eq $true) {
                     return [int]$port
                 }

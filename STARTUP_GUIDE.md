@@ -30,6 +30,10 @@ npm run start:portable
 
 Se il server non si avvia:
 
+`startup.ps1` verifica le API Unified ed Eventi per un massimo di 60 secondi, con controlli TCP locali rapidi. Non aspetta tutti i 60 secondi se il server è già pronto o il processo termina con un errore. Per una macchina particolarmente lenta puoi specificare `-ServerReadyTimeoutSeconds 120` anche in `startup-retry.ps1`.
+
+Il wrapper mostra l'output di ogni tentativo e lo conserva in `logs/startup-attempt-1.stdout.log` e `logs/startup-attempt-1.stderr.log` (analogamente per i tentativi 2 e 3). I log del server restano in `logs/unified-server.stdout.log` e `logs/unified-server.stderr.log`. Un vero timeout arresta soltanto l'albero del processo appena avviato, evitando processi Node orfani tra un tentativo e l'altro.
+
 ```powershell
 cd C:\VSC_Live_Server
 .\scripts\diagnostic-report.ps1

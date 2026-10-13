@@ -2,7 +2,8 @@ param(
     [int]$MaxAttempts = 3,
     [int]$RetryDelaySeconds = 3,
     [switch]$NoWait,
-    [switch]$NoMonitor
+    [switch]$NoMonitor,
+    [ValidateRange(1, 600)] [int]$ServerReadyTimeoutSeconds = 60
 )
 
 $RootPath = $PSScriptRoot
@@ -20,6 +21,8 @@ if (-not (Test-Path $StartupScript)) {
 
 $attempt = 0
 $exitCode = 1
+$LogsDir = Join-Path $RootPath 'logs'
+New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
 
 while ($attempt -lt $MaxAttempts) {
     $attempt++
@@ -35,20 +38,29 @@ while ($attempt -lt $MaxAttempts) {
         '-File',
         $StartupScript
     )
+    $startupArguments += @('-ServerReadyTimeoutSeconds', [string]$ServerReadyTimeoutSeconds)
     if ($NoWait) { $startupArguments += '-NoWait' }
     if ($NoMonitor) { $startupArguments += '-NoMonitor' }
+    $attemptOutput = Join-Path $LogsDir "startup-attempt-$attempt.stdout.log"
+    $attemptError = Join-Path $LogsDir "startup-attempt-$attempt.stderr.log"
 
     $process = Start-ProcessSafe -FilePath 'powershell.exe' `
         -ArgumentList $startupArguments `
         -WorkingDirectory $RootPath `
+        -RedirectStandardOutput $attemptOutput `
+        -RedirectStandardError $attemptError `
         -PassThru
 
     if (-not $process) {
         Write-Host 'ERRORE: impossibile avviare il processo PowerShell di startup.' -ForegroundColor Red
         $exitCode = 1
     } else {
+        $null = $process.Handle
         $process.WaitForExit()
+        $process.Refresh()
         $exitCode = $process.ExitCode
+        if (Test-Path -LiteralPath $attemptOutput) { Get-Content -LiteralPath $attemptOutput | ForEach-Object { Write-Host $_ } }
+        if (Test-Path -LiteralPath $attemptError) { Get-Content -LiteralPath $attemptError | ForEach-Object { Write-Host $_ -ForegroundColor Yellow } }
     }
 
     if ($exitCode -eq 0) {

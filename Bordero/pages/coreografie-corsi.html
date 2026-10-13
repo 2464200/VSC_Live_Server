@@ -6,7 +6,7 @@
   <title>BORDERÒ - Programma Coreografie Corsi</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/bordero.css" />
-  <link rel="stylesheet" href="coreografie-corsi.css?v=20261013-6" />
+  <link rel="stylesheet" href="coreografie-corsi.css?v=20261013-7" />
   <script src="../assets/lib/xlsx.min.js"></script>
   <script defer src="../js/config.js"></script>
   <script defer src="../js/utils.js"></script>
@@ -18,7 +18,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script defer src="../js/firebase-cloud-client.js"></script>
   <script defer src="../js/choreo-program-store.js"></script>
-  <script defer src="coreografie-corsi.js?v=20261013-6"></script>
+  <script defer src="coreografie-corsi.js?v=20261013-7"></script>
 </head>
 <body>
   <div class="container choreo-course-page">
@@ -135,6 +135,14 @@
             <button id="btn-export-course-csv" class="btn btn-secondary" type="button">Esporta CSV</button>
           </div>
         </div>
+        <div class="course-records-filters" role="group" aria-label="Filtra le coreografie insegnate">
+          <label for="course-records-level-filter">Livello del corso
+            <select id="course-records-level-filter" class="select-input"><option value="">Tutti i livelli</option></select>
+          </label>
+          <label for="course-records-week-filter">Insegnate fino alla settimana
+            <select id="course-records-week-filter" class="select-input"><option value="52">52 · Tutte le settimane</option></select>
+          </label>
+        </div>
         <div class="course-table-wrap">
           <table class="course-records-table">
             <thead><tr><th>Settimana</th><th>Livello</th><th>ID</th><th>Coreografia</th><th>Autore</th><th>Azioni</th></tr></thead>
@@ -142,7 +150,7 @@
           </table>
         </div>
       </section>
-      <p class="course-page-footer"><a class="btn btn-secondary" href="bordero.html">← Torna al tabellone Borderò</a></p>
+      <p class="course-page-footer"><a class="btn btn-secondary" href="bordero.html">← Torna a Bordero'</a></p>
     </main>
   </div>
   <script src="/nav.js"></script>

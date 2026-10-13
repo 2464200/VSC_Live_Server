@@ -7,7 +7,9 @@ function Start-ProcessSafe {
         [Parameter()] [System.Diagnostics.ProcessWindowStyle] $WindowStyle = 'Hidden',
         [Parameter()] [Switch] $PassThru,
         [Parameter()] [string] $Verb,
-        [Parameter()] [Switch] $NoNewWindow
+        [Parameter()] [Switch] $NoNewWindow,
+        [Parameter()] [string] $RedirectStandardOutput,
+        [Parameter()] [string] $RedirectStandardError
     )
 
     # Start-Process joins ArgumentList into one command-line string. Quote each
@@ -75,6 +77,8 @@ function Start-ProcessSafe {
     if ($PassThru) { $splat['PassThru'] = $true }
     if ($Verb) { $splat['Verb'] = $Verb }
     if ($NoNewWindow) { $splat['NoNewWindow'] = $true }
+    if ($RedirectStandardOutput) { $splat['RedirectStandardOutput'] = $RedirectStandardOutput }
+    if ($RedirectStandardError) { $splat['RedirectStandardError'] = $RedirectStandardError }
 
     try {
         return Start-Process @splat
