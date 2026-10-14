@@ -235,7 +235,7 @@ test('search modes and RESET RICERCA preserve filters; RESET FILTRI + ID removes
   assert.deepEqual(copy(manager.currentFilters), {});
   assert.equal(manager.currentSearch, '');
   assert.equal(manager.courseSelection.level, '');
-  assert.equal(manager.courseSelection.week, 52);
+  assert.equal(manager.courseSelection.week, 53);
   assert.equal(manager.currentSort, 'id');
   assert.equal(manager.currentSortDirection, 'asc');
   assert.deepEqual(Array.from(manager.filteredBrani, (brano) => brano.id), allIds);

@@ -6,7 +6,7 @@
   <title>BORDERÒ - Programma Coreografie Corsi</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/bordero.css" />
-  <link rel="stylesheet" href="coreografie-corsi.css?v=20261013-7" />
+  <link rel="stylesheet" href="coreografie-corsi.css?v=20261015-2" />
   <script src="../assets/lib/xlsx.min.js"></script>
   <script defer src="../js/config.js"></script>
   <script defer src="../js/utils.js"></script>
@@ -18,7 +18,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script defer src="../js/firebase-cloud-client.js"></script>
   <script defer src="../js/choreo-program-store.js"></script>
-  <script defer src="coreografie-corsi.js?v=20261014-1"></script>
+  <script defer src="coreografie-corsi.js?v=20261015-2"></script>
 </head>
 <body>
   <div class="container choreo-course-page">
@@ -77,23 +77,53 @@
             <p>Il CSV collega ogni brano del catalogo a un livello e alla settimana d’insegnamento.</p>
           </div>
         </div>
-        <div class="course-import-actions">
-          <button id="btn-pick-course-csv" class="btn btn-secondary" type="button">Seleziona programma CSV</button>
-          <input id="course-csv-file" type="file" accept=".csv,text/csv" hidden />
-          <span id="course-selected-csv">Nessun file selezionato</span>
-          <button id="btn-import-course-csv" class="btn btn-primary" type="button">Importa programma</button>
-          <button id="btn-download-course-template" class="btn btn-secondary" type="button">Scarica modello CSV</button>
+        <div class="course-import-layout">
+          <div class="course-import-content">
+            <div class="course-import-actions">
+              <button id="btn-pick-course-csv" class="btn btn-secondary" type="button">Seleziona programma CSV</button>
+              <input id="course-csv-file" type="file" accept=".csv,text/csv" hidden />
+              <span id="course-selected-csv">Nessun file selezionato</span>
+              <button id="btn-import-course-csv" class="btn btn-primary" type="button">Importa programma</button>
+              <button id="btn-download-course-template" class="btn btn-secondary" type="button">Scarica modello CSV</button>
+              <button id="btn-open-course-calendar" class="btn btn-secondary" type="button" aria-expanded="false" aria-controls="course-calendar" aria-haspopup="dialog">Calendario</button>
+            </div>
+            <p id="course-file-directory" class="course-help">Cartella programma: C:\VSC_PROGRAMMA</p>
+            <div id="course-file-picker-panel" class="course-file-picker-panel" hidden>
+              <label for="course-file-list">CSV nella cartella programma</label>
+              <select id="course-file-list" class="select-input"></select>
+              <button id="btn-choose-course-file" class="btn btn-primary" type="button">Seleziona CSV</button>
+              <button id="btn-browse-other-course-file" class="btn btn-secondary" type="button">Altra cartella…</button>
+              <button id="btn-close-course-file-picker" class="btn btn-secondary" type="button">Chiudi</button>
+            </div>
+            <p class="course-help">Colonne richieste: <code>anno_accademico, livello, settimana, brano_id</code>. Il limite è di tre coreografie per settimana e livello.</p>
+            <div id="course-import-status" class="course-inline-status" role="status" aria-live="polite"></div>
+          </div>
+          <aside id="course-calendar" class="course-calendar" role="dialog" aria-labelledby="course-calendar-title" hidden>
+            <div class="course-calendar-toolbar">
+              <div id="course-calendar-drag" class="course-calendar-drag" tabindex="0" title="Trascina per spostare il calendario. Usa le frecce da tastiera." aria-label="Sposta il calendario con le frecce">
+                <span aria-hidden="true">⠿</span><strong id="course-calendar-title">Calendario</strong>
+              </div>
+              <button id="course-calendar-close" type="button" aria-label="Chiudi calendario">×</button>
+            </div>
+            <button id="course-calendar-toggle" class="course-calendar-selected" type="button" aria-expanded="true" aria-controls="course-calendar-body">
+              <span id="course-calendar-selected-date"></span><span class="course-calendar-chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div id="course-calendar-body">
+              <div class="course-calendar-navigation">
+                <h3 id="course-calendar-month"></h3>
+                <button id="course-calendar-today" type="button">Oggi</button>
+                <button id="course-calendar-prev" type="button" aria-label="Mese precedente">▲</button>
+                <button id="course-calendar-next" type="button" aria-label="Mese successivo">▼</button>
+              </div>
+              <div class="course-calendar-weekdays" aria-hidden="true"><span>lu</span><span>ma</span><span>me</span><span>gi</span><span>ve</span><span>sa</span><span>do</span></div>
+              <div id="course-calendar-days" class="course-calendar-days" role="group" aria-labelledby="course-calendar-month"></div>
+            </div>
+            <div class="course-calendar-result">
+              <output id="course-calendar-week" aria-live="polite" aria-atomic="true"></output>
+              <p>Seleziona un giorno per compilare il campo Settimana.<br>Settimane ISO · lunedì–domenica.</p>
+            </div>
+          </aside>
         </div>
-        <p id="course-file-directory" class="course-help">Cartella programma: C:\VSC_PROGRAMMA</p>
-        <div id="course-file-picker-panel" class="course-file-picker-panel" hidden>
-          <label for="course-file-list">CSV nella cartella programma</label>
-          <select id="course-file-list" class="select-input"></select>
-          <button id="btn-choose-course-file" class="btn btn-primary" type="button">Seleziona CSV</button>
-          <button id="btn-browse-other-course-file" class="btn btn-secondary" type="button">Altra cartella…</button>
-          <button id="btn-close-course-file-picker" class="btn btn-secondary" type="button">Chiudi</button>
-        </div>
-        <p class="course-help">Colonne richieste: <code>anno_accademico, livello, settimana, brano_id</code>. Il limite è di tre coreografie per settimana e livello.</p>
-        <div id="course-import-status" class="course-inline-status" role="status" aria-live="polite"></div>
       </section>
 
       <section class="course-panel" aria-labelledby="weekly-title">
@@ -106,7 +136,7 @@
         <form id="course-record-form" class="course-record-form">
           <input id="course-record-id" type="hidden" />
           <label for="course-record-week">Settimana
-            <input id="course-record-week" class="input-text" type="number" min="1" max="52" value="1" required />
+            <input id="course-record-week" class="input-text" type="number" min="1" max="53" value="1" required />
           </label>
           <label for="course-record-level">Livello
             <select id="course-record-level" class="select-input" required></select>
@@ -140,7 +170,7 @@
             <select id="course-records-level-filter" class="select-input"><option value="">Tutti i livelli</option></select>
           </label>
           <label for="course-records-week-filter">Insegnate fino alla settimana
-            <select id="course-records-week-filter" class="select-input"><option value="52">52 · Tutte le settimane</option></select>
+            <select id="course-records-week-filter" class="select-input"><option value="53">53 · Tutte le settimane</option></select>
           </label>
         </div>
         <div class="course-table-wrap">

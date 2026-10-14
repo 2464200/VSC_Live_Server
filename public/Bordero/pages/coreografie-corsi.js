@@ -14,7 +14,7 @@
       this.editingRecordId = '';
       this.recordsSort = { field: 'week', direction: 'desc' };
       this.recordsSeasonId = '';
-      this.recordsFilter = { level: '', week: 52 };
+      this.recordsFilter = { level: '', week: 53 };
       this.selectedCsv = null;
       this.init();
     }
@@ -25,6 +25,7 @@
       this.populateLevels();
       this.populateRecordsFilters();
       this.setSuggestedYear();
+      this.initializeCalendar();
       this.setStatus('course-record-status', 'Caricamento catalogo e programmi…');
       try {
         await dataLoader.initialize(false);
@@ -94,7 +95,7 @@
           const week = Number(document.getElementById('course-records-week-filter').value);
           this.recordsFilter = {
             level: document.getElementById('course-records-level-filter').value,
-            week: Number.isInteger(week) && week >= 1 && week <= 52 ? week : 52
+            week: Number.isInteger(week) && week >= 1 && week <= 53 ? week : 53
           };
           this.renderSelectedSeason();
         });
@@ -219,8 +220,8 @@
       this.levels.forEach((value) => level.add(new Option(this.formatLevel(value), value)));
       level.value = this.recordsFilter.level;
       const week = document.getElementById('course-records-week-filter');
-      week.replaceChildren(...Array.from({ length: 52 }, (_, index) =>
-        new Option(index === 51 ? '52 · Tutte le settimane' : String(index + 1), String(index + 1))));
+      week.replaceChildren(...Array.from({ length: 53 }, (_, index) =>
+        new Option(index === 52 ? '53 · Tutte le settimane' : String(index + 1), String(index + 1))));
       week.value = String(this.recordsFilter.week);
     }
 
@@ -249,6 +250,185 @@
       const now = new Date();
       const start = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
       document.getElementById('new-season-label').value = `${start}/${start + 1}`;
+    }
+
+    initializeCalendar() {
+      const panel = document.getElementById('course-calendar');
+      document.body.appendChild(panel);
+      document.getElementById('btn-open-course-calendar').addEventListener('click', () => {
+        if (panel.hidden) this.openCalendar();
+        else this.closeCalendar();
+      });
+      document.getElementById('course-calendar-close').addEventListener('click', () => this.closeCalendar());
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !panel.hidden) {
+          event.preventDefault();
+          this.closeCalendar();
+        }
+      });
+      window.addEventListener('resize', () => {
+        if (!panel.hidden) this.positionCalendar(this.calendarPosition.left, this.calendarPosition.top);
+      });
+      const handle = document.getElementById('course-calendar-drag');
+      handle.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        const bounds = panel.getBoundingClientRect();
+        this.calendarDrag = { id: event.pointerId, x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+        handle.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      });
+      handle.addEventListener('pointermove', (event) => {
+        const drag = this.calendarDrag;
+        if (drag && drag.id === event.pointerId) this.positionCalendar(event.clientX - drag.x, event.clientY - drag.y);
+      });
+      const stopDrag = () => { this.calendarDrag = null; };
+      handle.addEventListener('pointerup', stopDrag);
+      handle.addEventListener('pointercancel', stopDrag);
+      handle.addEventListener('lostpointercapture', stopDrag);
+      handle.addEventListener('keydown', (event) => {
+        const moves = { ArrowLeft: [-20, 0], ArrowRight: [20, 0], ArrowUp: [0, -20], ArrowDown: [0, 20] };
+        if (!Object.hasOwn(moves, event.key)) return;
+        event.preventDefault();
+        const [x, y] = moves[event.key];
+        this.positionCalendar(this.calendarPosition.left + x, this.calendarPosition.top + y);
+      });
+      document.getElementById('course-calendar-toggle').addEventListener('click', (event) => {
+        const toggle = event.currentTarget;
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        document.getElementById('course-calendar-body').hidden = expanded;
+        if (!panel.hidden) this.positionCalendar(this.calendarPosition.left, this.calendarPosition.top);
+      });
+      document.getElementById('course-calendar-prev').addEventListener('click', () => this.moveCalendarMonth(-1));
+      document.getElementById('course-calendar-next').addEventListener('click', () => this.moveCalendarMonth(1));
+      document.getElementById('course-calendar-today').addEventListener('click', () => this.selectCalendarDate(new Date()));
+      const days = document.getElementById('course-calendar-days');
+      days.addEventListener('click', (event) => {
+        const day = event.target.closest('button[data-date]');
+        if (day) this.selectCalendarDate(this.calendarDateFromKey(day.dataset.date), true);
+      });
+      days.addEventListener('keydown', (event) => {
+        const day = event.target.closest('button[data-date]');
+        if (!day) return;
+        const date = this.calendarDateFromKey(day.dataset.date);
+        const offsets = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+        if (Object.hasOwn(offsets, event.key)) date.setDate(date.getDate() + offsets[event.key]);
+        else if (event.key === 'Home') date.setDate(date.getDate() - (date.getDay() + 6) % 7);
+        else if (event.key === 'End') date.setDate(date.getDate() + 6 - (date.getDay() + 6) % 7);
+        else return;
+        event.preventDefault();
+        this.selectCalendarDate(date, true);
+      });
+      this.selectCalendarDate(new Date());
+    }
+
+    openCalendar() {
+      const panel = document.getElementById('course-calendar');
+      const button = document.getElementById('btn-open-course-calendar');
+      panel.hidden = false;
+      button.setAttribute('aria-expanded', 'true');
+      if (this.calendarPosition) this.positionCalendar(this.calendarPosition.left, this.calendarPosition.top);
+      else {
+        const anchor = button.getBoundingClientRect();
+        const bounds = panel.getBoundingClientRect();
+        const top = anchor.bottom + bounds.height + 8 <= window.innerHeight - 8
+          ? anchor.bottom + 8 : anchor.top - bounds.height - 8;
+        this.positionCalendar(anchor.right - bounds.width, top);
+      }
+      document.getElementById('course-calendar-drag').focus({ preventScroll: true });
+    }
+
+    closeCalendar() {
+      document.getElementById('course-calendar').hidden = true;
+      const button = document.getElementById('btn-open-course-calendar');
+      button.setAttribute('aria-expanded', 'false');
+      button.focus({ preventScroll: true });
+    }
+
+    positionCalendar(left, top) {
+      const panel = document.getElementById('course-calendar');
+      const bounds = panel.getBoundingClientRect();
+      this.calendarPosition = {
+        left: Math.max(8, Math.min(left, window.innerWidth - bounds.width - 8)),
+        top: Math.max(8, Math.min(top, window.innerHeight - bounds.height - 8))
+      };
+      panel.style.left = `${this.calendarPosition.left}px`;
+      panel.style.top = `${this.calendarPosition.top}px`;
+    }
+
+    calendarDateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    calendarDateFromKey(key) {
+      const [year, month, day] = key.split('-').map(Number);
+      return new Date(year, month - 1, day, 12);
+    }
+
+    isoWeek(date) {
+      const thursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7));
+      const year = thursday.getUTCFullYear();
+      const week = Math.ceil(((thursday.getTime() - Date.UTC(year, 0, 1)) / 86400000 + 1) / 7);
+      return { week, year };
+    }
+
+    selectCalendarDate(date, focus = false) {
+      this.calendarSelectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+      this.calendarMonth = new Date(date.getFullYear(), date.getMonth(), 1, 12);
+      const { week, year } = this.isoWeek(this.calendarSelectedDate);
+      const output = document.getElementById('course-calendar-week');
+      output.textContent = `Settimana ${week} · ${year}`;
+      output.dataset.week = String(week);
+      output.dataset.year = String(year);
+      output.dataset.date = this.calendarDateKey(this.calendarSelectedDate);
+      document.getElementById('btn-open-course-calendar').textContent = `Calendario · sett. ${week}`;
+      document.getElementById('course-calendar-selected-date').textContent = this.calendarSelectedDate.toLocaleDateString('it-IT', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+      const input = document.getElementById('course-record-week');
+      input.value = String(week);
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      this.renderCalendar(focus);
+    }
+
+    moveCalendarMonth(offset) {
+      this.calendarMonth = new Date(this.calendarMonth.getFullYear(), this.calendarMonth.getMonth() + offset, 1, 12);
+      this.renderCalendar();
+    }
+
+    renderCalendar(focus = false) {
+      document.getElementById('course-calendar-month').textContent = this.calendarMonth.toLocaleDateString('it-IT', {
+        month: 'long', year: 'numeric'
+      });
+      const first = new Date(this.calendarMonth);
+      first.setDate(1 - (first.getDay() + 6) % 7);
+      const today = this.calendarDateKey(new Date());
+      const selected = this.calendarDateKey(this.calendarSelectedDate);
+      const days = document.getElementById('course-calendar-days');
+      const buttons = Array.from({ length: 42 }, (_, index) => {
+        const date = new Date(first);
+        date.setDate(first.getDate() + index);
+        const key = this.calendarDateKey(date);
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'course-calendar-day';
+        button.classList.toggle('is-outside', date.getMonth() !== this.calendarMonth.getMonth());
+        button.dataset.date = key;
+        button.textContent = String(date.getDate());
+        button.setAttribute('aria-pressed', String(key === selected));
+        if (key === today) button.setAttribute('aria-current', 'date');
+        const { week, year } = this.isoWeek(date);
+        const label = `${date.toLocaleDateString('it-IT', { dateStyle: 'full' })} · settimana ${week} del ${year}`;
+        button.setAttribute('aria-label', label);
+        button.title = label;
+        button.tabIndex = key === selected ? 0 : -1;
+        return button;
+      });
+      days.replaceChildren(...buttons);
+      const active = days.querySelector('[aria-pressed="true"]') || buttons.find((button) => !button.classList.contains('is-outside'));
+      active.tabIndex = 0;
+      if (focus) active.focus();
     }
 
     populateLevels() {
@@ -371,7 +551,7 @@
       if (this.recordsSeasonId !== seasonId) {
         this.recordsSeasonId = seasonId;
         this.recordsSort = { field: 'week', direction: 'desc' };
-        this.recordsFilter = { level: '', week: 52 };
+        this.recordsFilter = { level: '', week: 53 };
       }
       this.updateRecordsSortButtons();
       const status = document.getElementById('course-season-status');
@@ -462,7 +642,7 @@
       const week = Number(document.getElementById('course-record-week').value);
       const level = this.resolveLevel(document.getElementById('course-record-level').value);
       const branoId = this.selectedSongId();
-      if (!Number.isInteger(week) || week < 1 || week > 52 || !level) {
+      if (!Number.isInteger(week) || week < 1 || week > 53 || !level) {
         return this.setStatus('course-record-status', 'Completa settimana, livello e coreografia.', true);
       }
       if (!branoId) {
@@ -529,7 +709,7 @@
       this.editingRecordId = '';
       document.getElementById('course-record-form').reset();
       document.getElementById('course-record-song').setCustomValidity('');
-      document.getElementById('course-record-week').value = '1';
+      document.getElementById('course-record-week').value = String(this.isoWeek(this.calendarSelectedDate).week);
       document.getElementById('course-record-id').value = '';
       document.getElementById('btn-save-course-record').textContent = 'Aggiungi coreografia';
       document.getElementById('btn-cancel-course-edit').hidden = true;
@@ -549,7 +729,7 @@
           const level = this.resolveLevel(rawLevel);
           const week = Number(row.settimana || row.week);
           const branoId = String(row.brano_id || row.id_brano || row.id || '').trim();
-          if (!year || !level || !Number.isInteger(week) || week < 1 || week > 52 || !branoId) {
+          if (!year || !level || !Number.isInteger(week) || week < 1 || week > 53 || !branoId) {
             throw new Error(`Riga ${index + 2}: anno, livello, settimana o brano_id non valido.`);
           }
           const song = this.findSong(branoId);

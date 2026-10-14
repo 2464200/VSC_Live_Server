@@ -138,6 +138,148 @@ async function importText(h, text) {
   await h.window.choreoCoursePage.importCsv();
 }
 
+test('calendar shows Italian dates, browses months and copies the clicked ISO week into the form', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  page.openCalendar();
+  const document = h.window.document;
+  const output = document.getElementById('course-calendar-week');
+  const input = document.getElementById('course-record-week');
+  page.selectCalendarDate(new h.window.Date(2026, 9, 14, 12));
+  assert.match(document.getElementById('course-calendar-selected-date').textContent, /mercoledì.*14 ottobre 2026/);
+  assert.equal(document.getElementById('course-calendar-month').textContent, 'ottobre 2026');
+  assert.equal(output.textContent, 'Settimana 42 · 2026');
+  assert.equal(input.value, '42');
+  const days = document.getElementById('course-calendar-days');
+  assert.equal(days.children.length, 42);
+  assert.equal(days.firstElementChild.dataset.date, '2026-09-28');
+  assert.equal(days.lastElementChild.dataset.date, '2026-11-08');
+  let changes = 0;
+  input.addEventListener('change', () => { changes += 1; });
+  days.querySelector('[data-date="2026-10-19"]').click();
+  assert.equal(output.textContent, 'Settimana 43 · 2026');
+  assert.equal(input.value, '43');
+  assert.equal(changes, 1);
+  assert.equal(days.querySelector('[aria-pressed="true"]').dataset.date, '2026-10-19');
+  assert.equal(document.activeElement.dataset.date, '2026-10-19');
+  document.getElementById('course-calendar-next').click();
+  assert.equal(document.getElementById('course-calendar-month').textContent, 'novembre 2026');
+  assert.equal(input.value, '43', 'browsing does not change the selected week');
+  assert.equal(days.querySelectorAll('[tabindex="0"]').length, 1);
+  document.getElementById('course-calendar-prev').click();
+  days.querySelector('[data-date="2026-11-01"]').click();
+  assert.equal(document.getElementById('course-calendar-month').textContent, 'novembre 2026');
+  assert.equal(input.value, '44');
+  days.querySelector('[aria-pressed="true"]').dispatchEvent(new h.window.KeyboardEvent('keydown', {
+    key: 'ArrowRight', bubbles: true
+  }));
+  assert.equal(document.activeElement.dataset.date, '2026-11-02');
+  assert.equal(input.value, '45');
+  const toggle = document.getElementById('course-calendar-toggle');
+  toggle.click();
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(document.getElementById('course-calendar-body').hidden, true);
+  assert.equal(output.textContent, 'Settimana 45 · 2026');
+  toggle.click();
+  assert.equal(document.getElementById('course-calendar-body').hidden, false);
+  document.getElementById('course-calendar-today').click();
+  assert.equal(output.dataset.date, page.calendarDateKey(new h.window.Date()));
+  assert.equal(days.querySelector('[aria-current="date"]').getAttribute('aria-pressed'), 'true');
+  page.selectCalendarDate(new h.window.Date(2026, 11, 14, 12));
+  document.getElementById('course-calendar-next').click();
+  assert.equal(document.getElementById('course-calendar-month').textContent, 'gennaio 2027');
+  document.getElementById('course-calendar-prev').click();
+  assert.equal(document.getElementById('course-calendar-month').textContent, 'dicembre 2026');
+});
+
+test('floating calendar opens, closes and stays within the viewport when dragged or resized', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  const document = h.window.document;
+  const panel = document.getElementById('course-calendar');
+  const opener = document.getElementById('btn-open-course-calendar');
+  const handle = document.getElementById('course-calendar-drag');
+  assert.equal(panel.hidden, true);
+  assert.equal(panel.parentNode, document.body);
+  panel.getBoundingClientRect = () => ({
+    left: parseFloat(panel.style.left) || 0, top: parseFloat(panel.style.top) || 0, width: 320, height: 520
+  });
+  opener.click();
+  assert.equal(panel.hidden, false);
+  assert.equal(opener.getAttribute('aria-expanded'), 'true');
+  assert.equal(document.activeElement, handle);
+  page.positionCalendar(100, 100);
+  const pointer = (type, x, y) => {
+    const event = new h.window.MouseEvent(type, { button: 0, clientX: x, clientY: y, bubbles: true });
+    Object.defineProperty(event, 'pointerId', { value: 1 });
+    handle.dispatchEvent(event);
+  };
+  pointer('pointerdown', 110, 110);
+  pointer('pointermove', 300, 200);
+  assert.equal(panel.style.left, '290px');
+  assert.equal(panel.style.top, '190px');
+  pointer('pointermove', 3000, 3000);
+  assert.equal(panel.style.left, `${h.window.innerWidth - 328}px`);
+  assert.equal(panel.style.top, `${h.window.innerHeight - 528}px`);
+  pointer('pointerup', 3000, 3000);
+  pointer('pointermove', 20, 20);
+  assert.equal(panel.style.left, `${h.window.innerWidth - 328}px`, 'pointer release stops dragging');
+  Object.defineProperty(h.window, 'innerWidth', { configurable: true, value: 360 });
+  Object.defineProperty(h.window, 'innerHeight', { configurable: true, value: 620 });
+  h.window.dispatchEvent(new h.window.Event('resize'));
+  assert.equal(panel.style.left, '32px');
+  assert.equal(panel.style.top, '92px');
+  handle.dispatchEvent(new h.window.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+  assert.equal(panel.style.left, '12px');
+  page.selectCalendarDate(page.calendarDateFromKey('2026-10-14'));
+  assert.match(opener.textContent, /sett\. 42/);
+  h.window.dispatchEvent(new h.window.KeyboardEvent('keydown', { key: 'Escape' }));
+  assert.equal(panel.hidden, true);
+  assert.equal(opener.getAttribute('aria-expanded'), 'false');
+  assert.equal(document.activeElement, opener);
+  opener.click();
+  assert.equal(panel.style.left, '12px', 'reopening retains the chosen position');
+  document.getElementById('course-calendar-close').click();
+  assert.equal(panel.hidden, true);
+});
+
+test('calendar handles ISO year boundaries, leap days, daylight saving and week 53 import/export', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  const document = h.window.document;
+  for (const [date, week, year] of [
+    ['2026-01-01', 1, 2026], ['2026-01-04', 1, 2026], ['2026-01-05', 2, 2026],
+    ['2026-10-14', 42, 2026], ['2026-12-28', 53, 2026], ['2026-12-31', 53, 2026],
+    ['2027-01-01', 53, 2026], ['2027-01-03', 53, 2026], ['2027-01-04', 1, 2027],
+    ['2024-12-30', 1, 2025], ['2024-02-29', 9, 2024],
+    ['2026-03-29', 13, 2026], ['2026-03-30', 14, 2026],
+    ['2026-10-25', 43, 2026], ['2026-10-26', 44, 2026]
+  ]) {
+    page.selectCalendarDate(page.calendarDateFromKey(date));
+    const output = document.getElementById('course-calendar-week');
+    assert.equal(output.textContent, `Settimana ${week} · ${year}`, date);
+    assert.equal(document.getElementById('course-record-week').value, String(week), date);
+    assert.equal(document.getElementById('course-record-week').validity.rangeOverflow, false);
+  }
+  await importText(h, 'anno_accademico,livello,settimana,brano_id\n2026/2027,BASE,53,001');
+  assert.equal(h.store.getState().seasons[year].records[0].week, 53);
+  assert.match(document.getElementById('course-records-body').textContent, /SETT\. 53/);
+  page.selectCalendarDate(page.calendarDateFromKey('2026-12-31'));
+  document.getElementById('course-record-level').value = 'BASE';
+  page.setSongSelection('002');
+  await page.saveRecord({ preventDefault() {} });
+  assert.equal(h.store.getState().seasons[year].records.find((item) => item.branoId === '002').week, 53);
+  assert.equal(document.getElementById('course-record-week').value, '53', 'form reset keeps the selected calendar week');
+  let exported;
+  page.download = (_name, text) => { exported = text; };
+  page.exportSeason();
+  assert.match(exported, /2026\/2027,BASE,53,001/);
+  assert.match(exported, /2026\/2027,BASE,53,002/);
+});
+
 test('course levels come only from the catalog, without blank or duplicate values', async (t) => {
   const h = await harness(true);
   t.after(() => h.dom.window.close());
@@ -284,7 +426,7 @@ test('invalid CSV cannot replace a saved program: weekly limit, duplicates, year
     '2026/2027,BASE,1,001\n2027/2028,BASE,1,002',
     '2026/2027,BASE,1,999',
     '2026/2028,BASE,1,001',
-    '2026/2027,BASE,53,001'
+    '2026/2027,BASE,54,001'
   ]) {
     await importText(h, header + rows);
     assert.equal(JSON.stringify(h.store.getState()), original);
@@ -474,7 +616,7 @@ test('season view combines level and inclusive week filters without limiting CSV
   const week = document.getElementById('course-records-week-filter');
   const visibleIds = () => Array.from(document.getElementById('course-records-body').children,
     (row) => row.children[2]?.textContent).filter(Boolean);
-  assert.equal(week.options.length, 52);
+  assert.equal(week.options.length, 53);
   level.value = 'BASE';
   level.dispatchEvent(new h.window.Event('change'));
   week.value = '3';
@@ -490,7 +632,7 @@ test('season view combines level and inclusive week filters without limiting CSV
   select.value = '2025-2026';
   select.dispatchEvent(new h.window.Event('change'));
   assert.equal(level.value, '');
-  assert.equal(week.value, '52');
+  assert.equal(week.value, '53');
   assert.deepEqual(visibleIds(), ['003']);
 });
 
@@ -530,7 +672,7 @@ test('Bordero combines curriculum level/week with existing filters and resets wh
   manager.setupCourseProgramFilter();
   const level = h.window.document.getElementById('course-board-level');
   const week = h.window.document.getElementById('course-board-week');
-  assert.equal(week.options.length, 52);
+  assert.equal(week.options.length, 53);
   level.value = 'BASE';
   level.dispatchEvent(new h.window.Event('change'));
   week.value = '1';

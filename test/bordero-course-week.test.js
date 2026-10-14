@@ -88,6 +88,25 @@ test('SETTIMANA is placed between INFO LIVELLO and INFO COREO 1 and derives only
   assert.deepEqual(Array.from(h.manager.getUniqueFieldValues('course_week')), ['10']);
 });
 
+test('week 53 is shown and included in curriculum level/week filters', async (t) => {
+  const h = await harness(t);
+  const state = curriculum();
+  state.seasons[activeSeason].records.push(lesson('005', 53));
+  h.setState(state);
+  assert.equal(h.window.document.querySelector('[data-brano-id="005"] .col-settimana').textContent, '53');
+  const level = h.window.document.getElementById('course-board-level');
+  const week = h.window.document.getElementById('course-board-week');
+  assert.equal(week.options.length, 53);
+  level.value = 'BASE';
+  level.dispatchEvent(new h.window.Event('change'));
+  week.value = '52';
+  week.dispatchEvent(new h.window.Event('change'));
+  assert.equal(h.visibleIds().includes('005'), false);
+  week.value = '53';
+  week.dispatchEvent(new h.window.Event('change'));
+  assert.equal(h.visibleIds().includes('005'), true);
+});
+
 test('SETTIMANA header follows click toggling, exclusive sort, keyboard and double-click reset rules', async (t) => {
   const h = await harness(t);
   const { manager, window } = h;

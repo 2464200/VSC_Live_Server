@@ -136,12 +136,12 @@ class BorderoTableManager {
     const week = document.getElementById('course-board-week');
     if (!store || !level || !week || this.courseProgramFilterReady) return;
     this.courseProgramFilterReady = true;
-    week.replaceChildren(...Array.from({ length: 52 }, (_, index) =>
-      new Option(index === 51 ? '52 · Tutte le settimane' : String(index + 1), String(index + 1))));
+    week.replaceChildren(...Array.from({ length: 53 }, (_, index) =>
+      new Option(index === 52 ? '53 · Tutte le settimane' : String(index + 1), String(index + 1))));
     this.courseSelection = Storage.get(BORDERO_CONFIG.CACHE_KEY_CHOREO_LEVEL_SELECTION, null);
     const updateSelection = () => {
       const selectedWeek = Number(week.value);
-      if (!Number.isInteger(selectedWeek) || selectedWeek < 1 || selectedWeek > 52) {
+      if (!Number.isInteger(selectedWeek) || selectedWeek < 1 || selectedWeek > 53) {
         week.reportValidity();
         return;
       }
@@ -164,13 +164,13 @@ class BorderoTableManager {
     if (!state || !level || !week) return;
     const season = state.seasons[state.activeSeason];
     if (!this.courseSelection || this.courseSelection.seasonId !== state.activeSeason) {
-      this.courseSelection = { seasonId: state.activeSeason, level: '', week: 52 };
+      this.courseSelection = { seasonId: state.activeSeason, level: '', week: 53 };
     }
     level.replaceChildren(new Option('Tutto il catalogo', ''));
     BORDERO_CONFIG.LIVELLI.forEach((value) => level.add(new Option(value, value)));
     level.value = this.courseSelection.level || '';
     this.courseSelection.level = level.value;
-    week.value = Number.isInteger(this.courseSelection.week) && this.courseSelection.week >= 1 && this.courseSelection.week <= 52 ? this.courseSelection.week : 52;
+    week.value = Number.isInteger(this.courseSelection.week) && this.courseSelection.week >= 1 && this.courseSelection.week <= 53 ? this.courseSelection.week : 53;
     this.courseSelection.week = Number(week.value);
     level.disabled = !season;
     week.disabled = !season || !level.value;
@@ -201,7 +201,7 @@ class BorderoTableManager {
     const assignments = new Map();
     for (const record of season?.records || []) {
       const week = Number(record.week);
-      if (!Number.isInteger(week) || week < 1 || week > 52 || (selectedLevel && record.level !== selectedLevel)) continue;
+      if (!Number.isInteger(week) || week < 1 || week > 53 || (selectedLevel && record.level !== selectedLevel)) continue;
       const id = String(record.branoId);
       if (!assignments.has(id)) assignments.set(id, []);
       assignments.get(id).push({ week, level: String(record.level || '') });
@@ -2023,7 +2023,7 @@ class BorderoTableManager {
     this.currentFilters = {};
     if (this.courseProgramFilterReady) {
       this.courseSelection.level = '';
-      this.courseSelection.week = 52;
+      this.courseSelection.week = 53;
       this.refreshCourseProgramFilter();
     }
     this.currentSearch = '';

@@ -279,7 +279,7 @@ class CoreografieStampaPage {
     const assignments = new Map();
     for (const record of season?.records || []) {
       const week = Number(record.week);
-      if (!Number.isInteger(week) || week < 1 || week > 52) continue;
+      if (!Number.isInteger(week) || week < 1 || week > 53) continue;
       const id = String(record.branoId);
       if (!assignments.has(id)) assignments.set(id, []);
       assignments.get(id).push(week);
