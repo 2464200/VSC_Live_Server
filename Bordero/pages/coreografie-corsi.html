@@ -18,7 +18,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script defer src="../js/firebase-cloud-client.js"></script>
   <script defer src="../js/choreo-program-store.js"></script>
-  <script defer src="coreografie-corsi.js?v=20261015-2"></script>
+  <script defer src="coreografie-corsi.js?v=20261015-3"></script>
 </head>
 <body>
   <div class="container choreo-course-page">
@@ -95,7 +95,7 @@
               <button id="btn-browse-other-course-file" class="btn btn-secondary" type="button">Altra cartella…</button>
               <button id="btn-close-course-file-picker" class="btn btn-secondary" type="button">Chiudi</button>
             </div>
-            <p class="course-help">Colonne richieste: <code>anno_accademico, livello, settimana, brano_id</code>. Il limite è di tre coreografie per settimana e livello.</p>
+            <p class="course-help">Colonne richieste: <code>anno_accademico, livello, settimana, brano_id</code>. Il limite è di cinque coreografie per settimana e livello.</p>
             <div id="course-import-status" class="course-inline-status" role="status" aria-live="polite"></div>
           </div>
           <aside id="course-calendar" class="course-calendar" role="dialog" aria-labelledby="course-calendar-title" hidden>
@@ -130,7 +130,7 @@
         <div class="course-panel-heading">
           <div>
             <h2 id="weekly-title">Compilazione settimanale</h2>
-            <p>Aggiungi i brani insegnati. Puoi registrare al massimo tre coreografie per livello nella stessa settimana.</p>
+            <p>Aggiungi i brani insegnati. Puoi registrare al massimo cinque coreografie per livello nella stessa settimana.</p>
           </div>
         </div>
         <form id="course-record-form" class="course-record-form">
