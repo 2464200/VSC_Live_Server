@@ -118,6 +118,62 @@ test('SETTIMANA header follows click toggling, exclusive sort, keyboard and doub
   assert.deepEqual(h.visibleIds(), catalog.map((brano) => brano.id));
 });
 
+test('SETTIMANA button sorts the whole board descending before choosing a filter, across pages', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  manager.itemsPerPage = 2;
+  manager.currentPage = 2;
+  window.document.getElementById('btn-filter-settimana').click();
+  await waitForClick();
+
+  assert.equal(manager.currentSort, 'course_week');
+  assert.equal(manager.currentSortDirection, 'desc');
+  assert.equal(manager.currentPage, 1);
+  assert.equal(manager.currentFilters.course_week, undefined);
+  assert.equal(window.document.getElementById('filter-picker-modal').hidden, false);
+  assert.equal(h.column().getAttribute('aria-pressed'), 'true');
+  const descendingIds = ['006', '002', '001', '004', '003', '005'];
+  assert.deepEqual(h.visibleIds(), descendingIds);
+  assert.deepEqual(Array.from(manager.allBrani, (brano) => brano.id), descendingIds);
+  assert.deepEqual(Array.from(window.document.querySelectorAll('#brani-tbody tr'), (row) => row.dataset.branoId), ['006', '002']);
+  manager.currentPage = 2;
+  manager.renderTable();
+  assert.deepEqual(Array.from(window.document.querySelectorAll('#brani-tbody tr'), (row) => row.dataset.branoId), ['001', '004']);
+
+  window.document.querySelector('.filter-picker-option.is-clear').click();
+  assert.deepEqual(h.visibleIds(), descendingIds);
+  // Riaprire il filtro deve sempre imporre il decrescente, anche dopo un altro sort.
+  manager.sortBy('id', true);
+  window.document.getElementById('btn-filter-settimana').click();
+  await waitForClick();
+  assert.deepEqual(h.visibleIds(), descendingIds);
+  manager.closeFilterValuePicker();
+  window.document.getElementById('btn-filter-settimana').click();
+  await waitForClick();
+  assert.equal(manager.currentSortDirection, 'desc');
+  assert.deepEqual(h.visibleIds(), descendingIds);
+});
+
+test('SETTIMANA button descending sort preserves other filters, NEXT and executed-bottom mode', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  manager.allBrani.find((brano) => brano.id === '001').next_selected = true;
+  manager.keepExecutedAtBottom = true;
+  manager.currentFilters.info_livello = { mode: 'exactValue', value: 'BASE' };
+  manager.applyFilters();
+  window.document.getElementById('btn-filter-settimana').click();
+  await waitForClick();
+  assert.equal(manager.currentFilters.info_livello.value, 'BASE');
+  assert.deepEqual(h.visibleIds(), ['001', '006', '003', '005', '004']);
+  assert.deepEqual(Array.from(manager.allBrani, (brano) => brano.id), ['001', '006', '002', '003', '005', '004']);
+  const edited = curriculum();
+  edited.seasons[activeSeason].records = edited.seasons[activeSeason].records.filter((record) => record.branoId !== '003');
+  edited.seasons[activeSeason].records.push(lesson('003', 30));
+  h.setState(edited);
+  assert.deepEqual(h.visibleIds(), ['001', '003', '006', '005', '004']);
+  assert.equal(manager.currentSortDirection, 'desc');
+});
+
 test('SETTIMANA exact filter matches any planned week and coexists with existing filters, sort and reset', async (t) => {
   const h = await harness(t);
   const { window, manager } = h;
@@ -125,7 +181,7 @@ test('SETTIMANA exact filter matches any planned week and coexists with existing
   button.click();
   await waitForClick();
   Array.from(window.document.querySelectorAll('.filter-picker-option')).find((item) => item.textContent === '10').click();
-  assert.deepEqual(h.visibleIds(), ['001', '002']);
+  assert.deepEqual(h.visibleIds(), ['002', '001']);
   assert.equal(button.classList.contains('active'), true);
   manager.currentFilters.info_livello = { mode: 'exactValue', value: 'BASE' };
   manager.currentFilters.info_coreo_1 = { mode: 'exactValue', value: 'COPPIA' };
@@ -143,7 +199,7 @@ test('SETTIMANA exact filter matches any planned week and coexists with existing
   window.document.querySelector('th[data-col="id"]').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter' }));
   assert.deepEqual(h.visibleIds(), ['001']);
   assert.equal(manager.currentFilters.course_week.value, '10');
-  button.click();
+  button.dispatchEvent(new window.MouseEvent('dblclick', { bubbles: true }));
   assert.equal(manager.currentFilters.course_week, undefined);
   assert.equal(button.classList.contains('active'), false);
   manager.resetFilters({ silent: true });
@@ -159,6 +215,94 @@ test('SETTIMANA exact filter matches any planned week and coexists with existing
   manager.currentSearch = '21';
   manager.applyFilters();
   assert.deepEqual(h.visibleIds(), ['006']);
+});
+
+test('SETTIMANA reopens an active filter and TUTTI clears it even with no matching picker options', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  const button = window.document.getElementById('btn-filter-settimana');
+  const open = async () => { button.click(); await waitForClick(); };
+  const choose = (text) => Array.from(window.document.querySelectorAll('.filter-picker-option')).find((option) => option.textContent === text).click();
+  await open();
+  assert.equal(window.document.querySelector('.is-clear').getAttribute('aria-pressed'), 'true');
+  choose('10');
+  assert.deepEqual(h.visibleIds(), ['002', '001']);
+  await open();
+  assert.equal(manager.currentFilters.course_week.value, '10');
+  assert.equal(window.document.getElementById('filter-picker-modal').hidden, false);
+  assert.equal(Array.from(window.document.querySelectorAll('.filter-picker-option')).find((option) => option.textContent === '10').getAttribute('aria-pressed'), 'true');
+  manager.currentFilters.info_livello = { mode: 'exactValue', value: 'BASE' };
+  manager.currentSearch = 'Alpha';
+  const search = window.document.getElementById('filter-picker-search');
+  search.value = 'nessuna opzione';
+  search.dispatchEvent(new window.Event('input'));
+  assert.equal(window.document.querySelectorAll('[data-filter-index="0"]').length, 0);
+  window.document.querySelector('.is-clear').click();
+  assert.equal(manager.currentFilters.course_week, undefined);
+  assert.equal(manager.currentFilters.info_livello.value, 'BASE');
+  assert.equal(manager.currentSearch, 'Alpha');
+  assert.deepEqual(h.visibleIds(), ['001']);
+  assert.equal(button.classList.contains('active'), false);
+  assert.equal(window.document.getElementById('filter-picker-modal').hidden, true);
+  delete manager.currentFilters.info_livello;
+  manager.currentSearch = '';
+  manager.applyFilters();
+  assert.deepEqual(h.visibleIds(), ['006', '002', '001', '004', '003', '005']);
+  assert.equal(manager.currentSortDirection, 'desc');
+});
+
+test('SETTIMANA VUOTI selects missing weeks, switches to exact values and TUTTI restores every week', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  const button = window.document.getElementById('btn-filter-settimana');
+  const open = async () => { button.click(); await waitForClick(); };
+  await open();
+  window.document.querySelector('[data-filter-special="empty-value"]').click();
+  assert.deepEqual(h.visibleIds(), ['005']);
+  assert.equal(window.document.querySelector('[data-brano-id="005"] .col-settimana').textContent, '-');
+  assert.equal(button.classList.contains('active'), true);
+  await open();
+  assert.equal(window.document.querySelector('[data-filter-special="empty-value"]').getAttribute('aria-pressed'), 'true');
+  Array.from(window.document.querySelectorAll('.filter-picker-option')).find((option) => option.textContent === '21').click();
+  assert.deepEqual(h.visibleIds(), ['006']);
+  await open();
+  window.document.querySelector('.is-clear').click();
+  assert.deepEqual(h.visibleIds(), ['006', '002', '001', '004', '003', '005']);
+  await open();
+  window.document.querySelector('[data-filter-special="empty-value"]').click();
+  h.setState({ ...curriculum(), activeSeason: '2025-2026' });
+  assert.deepEqual(h.visibleIds().sort(), ['002', '003', '004', '006']);
+  h.setState({ activeSeason: '', seasons: {} });
+  assert.deepEqual(h.visibleIds().sort(), catalog.map((brano) => brano.id));
+  manager.resetFilters({ sortById: true, silent: true });
+  assert.deepEqual(h.visibleIds(), catalog.map((brano) => brano.id));
+  assert.equal(button.classList.contains('active'), false);
+});
+
+test('picker VUOTI handles absent, blank and dash fields without treating numeric zero as empty', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  const emptyValues = [undefined, null, '', '   ', '-', '0'];
+  manager.allBrani.forEach((brano, index) => { brano.autore = emptyValues[index]; });
+  manager.applyFilters();
+  const open = (field, label) => manager.openFilterValuePicker(field, 'btn-filter-altro', label);
+  open('autore', 'AUTORE');
+  assert.deepEqual(Array.from(manager.getUniqueFieldValues('autore')), ['0']);
+  window.document.querySelector('[data-filter-special="empty-value"]').click();
+  assert.deepEqual(h.visibleIds(), ['001', '002', '003', '004', '005']);
+  open('autore', 'AUTORE');
+  window.document.querySelector('.is-clear').click();
+  assert.deepEqual(h.visibleIds(), catalog.map((brano) => brano.id));
+  ['2', '0', '0,0', undefined, '-', '   '].forEach((value, index) => { manager.allBrani[index].richieste = value; });
+  open('richieste', 'RICHIESTE');
+  window.document.querySelector('[data-filter-special="empty-value"]').click();
+  assert.deepEqual(h.visibleIds(), ['004', '005', '006']);
+  open('richieste', 'RICHIESTE');
+  window.document.querySelector('[data-filter-special="richieste-zero"]').click();
+  assert.deepEqual(h.visibleIds(), ['002', '003', '004', '005', '006']);
+  open('richieste', 'RICHIESTE');
+  window.document.querySelector('[data-filter-special="richieste-nonzero"]').click();
+  assert.deepEqual(h.visibleIds(), ['001']);
 });
 
 test('week sorting preserves NEXT priority and executed-bottom mode without restoring filtered-out NEXT', async (t) => {

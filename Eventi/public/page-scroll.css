@@ -1,0 +1,92 @@
+.eventi-page-scroll {
+  position: fixed;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 900;
+  pointer-events: none;
+}
+
+.eventi-page-scroll[hidden],
+.eventi-page-scroll-space[hidden] {
+  display: none !important;
+}
+
+.eventi-page-scroll .eventi-page-scroll-button {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(100, 116, 139, 0.35);
+  border-radius: 50%;
+  background: rgba(241, 245, 249, 0.85);
+  color: #334155;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  opacity: 0.55;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: none;
+  transition: opacity 0.15s;
+}
+
+.eventi-page-scroll .eventi-page-scroll-button:first-child {
+  background: rgba(134, 239, 172, 0.72);
+  border-color: rgba(22, 163, 74, 0.35);
+  color: #166534;
+}
+
+.eventi-page-scroll .eventi-page-scroll-button:last-child {
+  background: rgba(252, 165, 165, 0.72);
+  border-color: rgba(220, 38, 38, 0.35);
+  color: #991b1b;
+}
+
+.eventi-page-scroll .eventi-page-scroll-button:hover,
+.eventi-page-scroll .eventi-page-scroll-button:focus-visible {
+  opacity: 1;
+}
+
+.eventi-page-scroll .eventi-page-scroll-button:focus-visible {
+  outline: 2px solid #0b72ff;
+  outline-offset: 3px;
+}
+
+.eventi-page-scroll .eventi-page-scroll-button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.eventi-page-scroll-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Lascia l'ultima riga completamente sopra i tasti a fondo pagina. */
+.eventi-page-scroll-space {
+  display: block;
+  height: calc(62px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eventi-page-scroll .eventi-page-scroll-button {
+    transition: none;
+  }
+}
+
+@media print {
+  .eventi-page-scroll,
+  .eventi-page-scroll-space {
+    display: none !important;
+  }
+}
