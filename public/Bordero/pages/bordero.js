@@ -1286,7 +1286,7 @@ class BorderoTableManager {
     if (!button) return;
 
     button.addEventListener('click', () => {
-      if (this.isCoexistingFilterField(field) && this.currentFilters[field]) {
+      if (field !== 'course_week' && this.isCoexistingFilterField(field) && this.currentFilters[field]) {
         this.clearSingleColumnFilter(field, label);
         return;
       }
@@ -1298,6 +1298,10 @@ class BorderoTableManager {
 
       const timer = setTimeout(() => {
         this.filterButtonClickTimers.delete(buttonId);
+        if (field === 'course_week') {
+          this.lastHeaderSortField = null;
+          this.sortBy(field, 'desc');
+        }
         this.openFilterValuePicker(field, buttonId, label);
       }, 220);
 
@@ -1410,6 +1414,7 @@ class BorderoTableManager {
     this.currentPage = 1;
     this.updateFilterButtons();
     this.applyFilters();
+    this.updateColumnHeaderSortState();
     Toast.info(`Filtro ${label} resettato`);
   }
 
@@ -1433,7 +1438,7 @@ class BorderoTableManager {
 
     const values = this.allBrani
       .map(item => String(item?.[field] ?? '').trim())
-      .filter(value => value.length > 0);
+      .filter(value => !this.isEmptyFilterValue(value));
 
     return [...new Set(values)].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
   }
@@ -1443,6 +1448,11 @@ class BorderoTableManager {
       .trim()
       .replace(/\s+/g, ' ')
       .toLowerCase();
+  }
+
+  isEmptyFilterValue(value) {
+    const text = String(value ?? '').trim();
+    return text === '' || text === '-';
   }
 
   openFilterValuePicker(field, buttonId, label) {
@@ -1479,19 +1489,25 @@ class BorderoTableManager {
     const values = this.activeFilterPicker.values.filter(value => !query || value.toLowerCase().includes(query));
     this.activeFilterPicker.filteredValues = values;
 
-    const clearButton = '<button type="button" class="filter-picker-option is-clear" data-filter-index="-1">TUTTI (nessun filtro)</button>';
-    const richiesteSpecialButtons = this.activeFilterPicker.field === 'richieste'
+    const { field } = this.activeFilterPicker;
+    const currentFilter = this.currentFilters[field];
+    const allLabel = field === 'course_week' ? 'TUTTI (qualsiasi settimana)' : 'TUTTI (qualsiasi valore)';
+    const clearButton = `<button type="button" class="filter-picker-option is-clear" data-filter-index="-1" aria-pressed="${!currentFilter}">${allLabel}</button>`;
+    const emptyButton = `<button type="button" class="filter-picker-option" data-filter-special="empty-value" aria-pressed="${currentFilter?.mode === 'emptyValue'}">VUOTI (senza valore)</button>`;
+    const richiesteSpecialButtons = field === 'richieste'
       ? [
-            '<button type="button" class="filter-picker-option" data-filter-special="richieste-zero">NON RICHIESTE</button>',
-            '<button type="button" class="filter-picker-option" data-filter-special="richieste-nonzero">RICHIESTE</button>'
+            `<button type="button" class="filter-picker-option" data-filter-special="richieste-zero" aria-pressed="${currentFilter?.mode === 'richiesteZero'}">NON RICHIESTE</button>`,
+            `<button type="button" class="filter-picker-option" data-filter-special="richieste-nonzero" aria-pressed="${currentFilter?.mode === 'richiesteNonZero'}">RICHIESTE</button>`
         ].join('')
       : '';
     const valueButtons = values.map((value, index) => {
       const safe = this.escapeHtml(value);
-      return `<button type="button" class="filter-picker-option" data-filter-index="${index}">${safe}</button>`;
+      const selected = currentFilter?.mode === 'exactValue'
+        && this.normalizeExactFilterValue(currentFilter.value) === this.normalizeExactFilterValue(value);
+      return `<button type="button" class="filter-picker-option" data-filter-index="${index}" aria-pressed="${selected}">${safe}</button>`;
     }).join('');
 
-    optionsEl.innerHTML = clearButton + richiesteSpecialButtons + valueButtons;
+    optionsEl.innerHTML = clearButton + emptyButton + richiesteSpecialButtons + valueButtons;
 
     optionsEl.querySelectorAll('.filter-picker-option').forEach(button => {
       button.addEventListener('click', () => {
@@ -1511,17 +1527,20 @@ class BorderoTableManager {
     if (!this.activeFilterPicker) return;
 
     const { field } = this.activeFilterPicker;
-    if (field !== 'richieste') return;
-
-    if (specialKey === 'richieste-zero') {
+    if (specialKey === 'empty-value') {
+      this.currentFilters[field] = { mode: 'emptyValue' };
+    } else if (field === 'richieste' && specialKey === 'richieste-zero') {
       this.currentFilters[field] = { mode: 'richiesteZero' };
-    } else if (specialKey === 'richieste-nonzero') {
+    } else if (field === 'richieste' && specialKey === 'richieste-nonzero') {
       this.currentFilters[field] = { mode: 'richiesteNonZero' };
+    } else {
+      return;
     }
 
     this.currentPage = 1;
     this.updateFilterButtons();
     this.applyFilters();
+    this.updateColumnHeaderSortState();
     this.closeFilterValuePicker();
   }
 
@@ -1540,25 +1559,23 @@ class BorderoTableManager {
   applyValueFilterFromPicker(selectedIndex) {
     if (!this.activeFilterPicker) return;
 
-    const { field } = this.activeFilterPicker;
+    const { field, label } = this.activeFilterPicker;
+    if (selectedIndex === -1) {
+      this.clearSingleColumnFilter(field, label);
+      return;
+    }
     const values = Array.isArray(this.activeFilterPicker.filteredValues)
       ? this.activeFilterPicker.filteredValues
       : this.activeFilterPicker.values;
 
-    if (!Number.isInteger(selectedIndex) || selectedIndex < 0) {
-      delete this.currentFilters[field];
-    } else {
-      const value = values[selectedIndex];
-      if (!value) {
-        delete this.currentFilters[field];
-      } else {
-        this.currentFilters[field] = { mode: 'exactValue', value };
-      }
-    }
+    if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex >= values.length) return;
+    const value = values[selectedIndex];
+    this.currentFilters[field] = { mode: 'exactValue', value };
 
     this.currentPage = 1;
     this.updateFilterButtons();
     this.applyFilters();
+    this.updateColumnHeaderSortState();
     this.closeFilterValuePicker();
   }
 
@@ -1806,13 +1823,14 @@ class BorderoTableManager {
   /**
    * Sort per colonna (esclusivo - resetta altri sort)
    */
-  sortBy(field, forceAscending = false) {
+  sortBy(field, forceDirection = null) {
     logger.info(`Sorting by ${field}`);
     this.applyCourseWeeksToBrani();
 
-    if (forceAscending) {
+    // Mantiene il supporto a true (crescente) usato dalle intestazioni.
+    if (forceDirection === true || forceDirection === 'asc' || forceDirection === 'desc') {
       this.currentSort = field;
-      this.currentSortDirection = 'asc';
+      this.currentSortDirection = forceDirection === 'desc' ? 'desc' : 'asc';
     } else if (this.currentSort === field) {
       this.currentSortDirection = this.currentSortDirection === 'asc' ? 'desc' : 'asc';
     } else {
@@ -1929,6 +1947,12 @@ class BorderoTableManager {
         const fields = config.fields || [key];
         this.filteredBrani = this.filteredBrani.filter(item =>
           fields.some(field => String(item[field] ?? '').trim() !== '')
+        );
+      } else if (config.mode === 'emptyValue') {
+        this.filteredBrani = this.filteredBrani.filter(item =>
+          key === 'course_week'
+            ? (item.course_weeks || []).length === 0
+            : this.isEmptyFilterValue(item[key])
         );
       } else if (config.mode === 'richiesteZero') {
         this.filteredBrani = this.filteredBrani.filter(item => this.isRichiesteZeroValue(item.richieste));
@@ -3310,7 +3334,7 @@ class BorderoTableManager {
 
     const activeColumnFilterField = headerFields.find((field) => {
       const cfg = this.currentFilters[field];
-      return Boolean(cfg && (cfg.mode === 'hasValue' || cfg.mode === 'exactValue'));
+      return Boolean(cfg && (cfg.mode === 'hasValue' || cfg.mode === 'exactValue' || cfg.mode === 'emptyValue'));
     }) || null;
 
     const activeField = this.currentSort || activeColumnFilterField;

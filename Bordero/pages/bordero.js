@@ -45,17 +45,6 @@ class BorderoTableManager {
     this.nextCoreoBroadcastChannel = typeof BroadcastChannel !== 'undefined'
       ? new BroadcastChannel('bordero-next-coreo')
       : null;
-    this.coexistingFilterFields = new Set([
-      'richieste',
-      'info_livello',
-      'course_week',
-      'info_coreo_1',
-      'info_coreo_2',
-      'coreografo',
-      'collaboratori',
-      'videoclip'
-    ]);
-
     // Serata info
     this.serata = {
       dj: '',
@@ -68,10 +57,6 @@ class BorderoTableManager {
     };
 
     this.init();
-  }
-
-  isCoexistingFilterField(field) {
-    return this.coexistingFilterFields.has(String(field || '').trim());
   }
 
   async init() {
@@ -936,7 +921,7 @@ class BorderoTableManager {
 
     // Reset filters
     document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
-      this.resetFilters();
+      this.resetSearch();
     });
     document.getElementById('btn-load-deck-1')?.addEventListener('click', () => this.loadSelectedBranoToDeck(1));
     document.getElementById('btn-load-deck-2')?.addEventListener('click', () => this.loadSelectedBranoToDeck(2));
@@ -1286,11 +1271,6 @@ class BorderoTableManager {
     if (!button) return;
 
     button.addEventListener('click', () => {
-      if (field !== 'course_week' && this.isCoexistingFilterField(field) && this.currentFilters[field]) {
-        this.clearSingleColumnFilter(field, label);
-        return;
-      }
-
       const existingTimer = this.filterButtonClickTimers.get(buttonId);
       if (existingTimer) {
         clearTimeout(existingTimer);
@@ -1424,16 +1404,15 @@ class BorderoTableManager {
         .sort((a, b) => a - b).map(String);
     }
     if (field === 'richieste') {
-      const numericValues = this.allBrani
+      const values = this.allBrani
         .map((item) => String(item?.[field] ?? '').trim())
-        .filter((value) => value.length > 0)
-        .map((value) => value.replace(',', '.'))
-        .filter((value) => /^-?\d+(\.\d+)?$/.test(value))
-        .map((value) => Number(value));
-
-      return [...new Set(numericValues)]
-        .sort((a, b) => a - b)
-        .map((value) => String(value));
+        .filter((value) => !this.isEmptyFilterValue(value))
+        .map((value) => {
+          const numeric = value.replace(',', '.');
+          return /^-?\d+(\.\d+)?$/.test(numeric) ? String(Number(numeric)) : value;
+        });
+      return ObjectUtils.sortByField([...new Set(values)].map((value) => ({ value })), 'value')
+        .map((item) => item.value);
     }
 
     const values = this.allBrani
@@ -1448,6 +1427,15 @@ class BorderoTableManager {
       .trim()
       .replace(/\s+/g, ' ')
       .toLowerCase();
+  }
+
+  normalizeFilterFieldValue(field, value) {
+    const normalized = this.normalizeExactFilterValue(value);
+    if (field === 'richieste') {
+      const numeric = normalized.replace(',', '.');
+      if (/^-?\d+(\.\d+)?$/.test(numeric)) return String(Number(numeric));
+    }
+    return normalized;
   }
 
   isEmptyFilterValue(value) {
@@ -1503,7 +1491,7 @@ class BorderoTableManager {
     const valueButtons = values.map((value, index) => {
       const safe = this.escapeHtml(value);
       const selected = currentFilter?.mode === 'exactValue'
-        && this.normalizeExactFilterValue(currentFilter.value) === this.normalizeExactFilterValue(value);
+        && this.normalizeFilterFieldValue(field, currentFilter.value) === this.normalizeFilterFieldValue(field, value);
       return `<button type="button" class="filter-picker-option" data-filter-index="${index}" aria-pressed="${selected}">${safe}</button>`;
     }).join('');
 
@@ -1603,7 +1591,6 @@ class BorderoTableManager {
 
         const timer = setTimeout(() => {
           this.headerSortClickTimers.delete(field);
-          this.clearColumnFiltersExcept(field);
 
           if (isFilterOnly) {
             this.togglePresenceFilter(field);
@@ -1611,7 +1598,6 @@ class BorderoTableManager {
             return;
           }
 
-          this.clearVideoClipPresenceFilterOnOtherHeader(field);
           this.sortByFromHeader(field);
         }, 220);
 
@@ -1635,13 +1621,11 @@ class BorderoTableManager {
       header.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          this.clearColumnFiltersExcept(field);
           if (isFilterOnly) {
             this.togglePresenceFilter(field);
             this.updateColumnHeaderSortState();
             return;
           }
-          this.clearVideoClipPresenceFilterOnOtherHeader(field);
           this.sortByFromHeader(field);
         }
       });
@@ -1946,7 +1930,7 @@ class BorderoTableManager {
       if (config.mode === 'hasValue') {
         const fields = config.fields || [key];
         this.filteredBrani = this.filteredBrani.filter(item =>
-          fields.some(field => String(item[field] ?? '').trim() !== '')
+          fields.some(field => !this.isEmptyFilterValue(item[field]))
         );
       } else if (config.mode === 'emptyValue') {
         this.filteredBrani = this.filteredBrani.filter(item =>
@@ -1959,11 +1943,11 @@ class BorderoTableManager {
       } else if (config.mode === 'richiesteNonZero') {
         this.filteredBrani = this.filteredBrani.filter(item => !this.isRichiesteZeroValue(item.richieste));
       } else if (config.mode === 'exactValue') {
-        const expected = this.normalizeExactFilterValue(config.value);
+        const expected = this.normalizeFilterFieldValue(key, config.value);
         this.filteredBrani = this.filteredBrani.filter(item =>
           key === 'course_week'
             ? (item.course_weeks || []).some((week) => String(week) === expected)
-            : this.normalizeExactFilterValue(item[key]) === expected
+            : this.normalizeFilterFieldValue(key, item[key]) === expected
         );
       } else {
         const value = config.value ?? '';
@@ -1972,7 +1956,8 @@ class BorderoTableManager {
     });
 
     // Applica ricerca
-    if (this.currentSearch) {
+    const query = String(this.currentSearch ?? '').trim().toLowerCase();
+    if (query) {
       // Include `id` in the general search fields per request
       let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'course_week', 'info_coreo_1', 'info_coreo_2'];
 
@@ -1982,7 +1967,9 @@ class BorderoTableManager {
         searchFields = ['id'];
       }
 
-      this.filteredBrani = ObjectUtils.searchMultiField(this.filteredBrani, this.currentSearch, searchFields);
+      this.filteredBrani = this.filteredBrani.filter(item =>
+        searchFields.some(field => String(item[field] ?? '').toLowerCase().includes(query))
+      );
     }
 
     this.filteredBrani = this.applyNextSelectionPriority(this.filteredBrani);
@@ -2001,6 +1988,8 @@ class BorderoTableManager {
 
     // Update stats
     this.updateStats();
+    this.updateFilterButtons();
+    this.updateColumnHeaderSortState();
     this.updateResetButtonIndicators();
   }
 
@@ -2010,6 +1999,16 @@ class BorderoTableManager {
       || this.courseProgramTrackIds() !== null;
     document.getElementById('btn-reset-filters')?.classList.toggle('reset-active-blink', searchActive);
     document.getElementById('btn-reset-filters-stats')?.classList.toggle('reset-active-blink', filtersActive);
+  }
+
+  resetSearch() {
+    this.currentSearch = '';
+    this.searchMode = 'general';
+    const searchBox = document.getElementById('search-box');
+    if (searchBox) searchBox.value = '';
+    this.updateSearchButtons();
+    this.updateSearchPlaceholder();
+    this.applyFilters();
   }
 
   /**
@@ -2062,31 +2061,6 @@ class BorderoTableManager {
     }
   }
 
-  clearVideoClipPresenceFilterOnOtherHeader(clickedField) {
-    if (clickedField === 'videoclip') return;
-
-    const current = this.currentFilters.videoclip;
-    if (!current || current.mode !== 'hasValue') return;
-
-    delete this.currentFilters.videoclip;
-  }
-
-  clearColumnFiltersExcept(selectedField) {
-    const columnFields = Array.from(document.querySelectorAll('#brani-table thead th[data-col]'))
-      .map((header) => header.dataset.col)
-      .filter(Boolean);
-
-    columnFields.forEach((field) => {
-      if (field !== selectedField) {
-        // Questi filtri devono poter coesistere e rimanere attivi finché non vengono rimossi esplicitamente.
-        if (this.isCoexistingFilterField(field)) {
-          return;
-        }
-        delete this.currentFilters[field];
-      }
-    });
-  }
-
   /**
    * Renderizza la tabella
    */
@@ -2095,8 +2069,10 @@ class BorderoTableManager {
     const emptyState = document.getElementById('empty-state');
 
     if (this.filteredBrani.length === 0) {
+      this.displayedBrani = [];
       tbody.innerHTML = '';
       DOMUtils.show(emptyState);
+      this.updatePagination();
       this.updateStats();
       return;
     }
@@ -3328,26 +3304,18 @@ class BorderoTableManager {
 
   updateColumnHeaderSortState() {
     const headers = document.querySelectorAll('#brani-table thead th[data-col]');
-    const headerFields = Array.from(headers)
-      .map((header) => header.dataset.col)
-      .filter(Boolean);
-
-    const activeColumnFilterField = headerFields.find((field) => {
-      const cfg = this.currentFilters[field];
-      return Boolean(cfg && (cfg.mode === 'hasValue' || cfg.mode === 'exactValue' || cfg.mode === 'emptyValue'));
-    }) || null;
-
-    const activeField = this.currentSort || activeColumnFilterField;
-
     headers.forEach((header) => {
       const field = header.dataset.col || '';
       const isFilterOnly = header.dataset.filterOnly === 'true';
-      const isActiveField = Boolean(activeField && activeField === field);
-      const isSortActive = isActiveField;
-      const isFilterActive = isActiveField && isFilterOnly;
+      const isSortActive = this.currentSort === field;
+      const isFilterActive = Boolean(this.currentFilters[field]);
       header.classList.toggle('active-sort', isSortActive);
       header.classList.toggle('active-filter', isFilterActive);
       header.setAttribute('aria-pressed', (isSortActive || isFilterActive) ? 'true' : 'false');
+      if (!isFilterOnly) {
+        header.setAttribute('aria-sort', isSortActive
+          ? (this.currentSortDirection === 'desc' ? 'descending' : 'ascending') : 'none');
+      }
     });
   }
 
@@ -3366,6 +3334,7 @@ class BorderoTableManager {
       if (btn) {
         const isActive = Boolean(this.currentFilters[key]);
         btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       }
     });
   }

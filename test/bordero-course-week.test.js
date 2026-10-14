@@ -188,12 +188,10 @@ test('SETTIMANA exact filter matches any planned week and coexists with existing
   manager.currentFilters.coreografo = { mode: 'exactValue', value: 'A' };
   manager.currentFilters.richieste = { mode: 'richiesteNonZero' };
   manager.currentFilters.autore = { mode: 'exactValue', value: 'Autore' };
+  manager.allBrani.find((brano) => brano.id === '001').videoclip = '🎬';
   manager.currentFilters.videoclip = { mode: 'hasValue' };
-  manager.clearColumnFiltersExcept('id');
-  manager.clearVideoClipPresenceFilterOnOtherHeader('id');
-  assert.equal(manager.currentFilters.autore, undefined);
-  assert.equal(manager.currentFilters.videoclip, undefined);
-  for (const field of ['course_week', 'info_livello', 'info_coreo_1', 'coreografo', 'richieste']) assert.ok(manager.currentFilters[field]);
+  window.document.querySelector('th[data-col="id"]').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter' }));
+  for (const field of ['course_week', 'info_livello', 'info_coreo_1', 'coreografo', 'richieste', 'autore', 'videoclip']) assert.ok(manager.currentFilters[field]);
   manager.applyFilters();
   assert.deepEqual(h.visibleIds(), ['001']);
   window.document.querySelector('th[data-col="id"]').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter' }));

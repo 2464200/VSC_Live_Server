@@ -993,6 +993,12 @@
   color: #b3e5fc;
 }
 
+.filter-picker-option[aria-pressed="true"] {
+  border-color: #ffb347;
+  background: #443522;
+  box-shadow: inset 3px 0 #ffb347;
+}
+
 /* ========== DESELECTION CONFIRM MODAL ========== */
 .deselection-confirm-modal {
   position: fixed;
