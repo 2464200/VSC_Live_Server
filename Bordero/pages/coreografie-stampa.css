@@ -476,10 +476,14 @@
   border-top: 0;
 }
 
-.coreography-column-headings {
+.coreography-column-headings,
+.coreography-entry {
   display: grid;
-  grid-template-columns: 13mm minmax(0, 1fr) minmax(45mm, 1.35fr);
+  grid-template-columns: var(--coreography-columns, 13mm minmax(0, 1fr) minmax(45mm, 1.35fr));
   gap: 0;
+}
+
+.coreography-column-headings {
   margin-bottom: 0;
   padding-bottom: 1mm;
   color: #38434d;
@@ -488,35 +492,6 @@
   text-transform: uppercase;
   background: #eef0f2;
   border: 1px solid #bfc5ca;
-}
-
-.print-document.level-enabled .coreography-column-headings,
-.print-document.level-enabled .coreography-entry {
-  grid-template-columns: 13mm minmax(0, 1fr) 22mm minmax(45mm, 1.35fr);
-}
-
-.print-document.info-coreo-1-enabled .coreography-column-headings,
-.print-document.info-coreo-1-enabled .coreography-entry,
-.print-document.info-coreo-2-enabled .coreography-column-headings,
-.print-document.info-coreo-2-enabled .coreography-entry {
-  grid-template-columns: 13mm minmax(0, 1fr) 30mm minmax(45mm, 1.35fr);
-}
-
-.print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings,
-.print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
-  grid-template-columns: 13mm minmax(0, 1fr) 30mm 30mm minmax(45mm, 1.35fr);
-}
-
-.print-document.level-enabled.info-coreo-1-enabled .coreography-column-headings,
-.print-document.level-enabled.info-coreo-1-enabled .coreography-entry,
-.print-document.level-enabled.info-coreo-2-enabled .coreography-column-headings,
-.print-document.level-enabled.info-coreo-2-enabled .coreography-entry {
-  grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm minmax(45mm, 1.35fr);
-}
-
-.print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings,
-.print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
-  grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm 30mm minmax(45mm, 1.35fr);
 }
 
 .coreography-column-headings > span:nth-child(1),
@@ -560,9 +535,6 @@
 }
 
 .coreography-entry {
-  display: grid;
-  grid-template-columns: 13mm minmax(0, 1fr) minmax(45mm, 1.35fr);
-  gap: 0;
   height: 6.5mm;
   min-height: 6.5mm;
   padding: 0.5mm 0;
@@ -599,6 +571,19 @@
   height: 6.5mm;
 }
 
+.coreography-week {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 1mm .5mm;
+  border-left: 1px solid #bfc5ca;
+  color: #38434d;
+  font-size: 7pt;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .coreography-info-coreo {
   display: flex;
   align-items: center;
@@ -624,6 +609,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
+}
+
+.coreography-column-headings > span.coreography-week-heading {
+  padding: 1mm .5mm;
+  font-size: 6.5pt;
+  text-align: center;
 }
 
 .empty-entry {
@@ -851,30 +842,9 @@
     grid-template-columns: 1fr;
   }
 
+  .coreography-column-headings,
   .coreography-entry {
-    grid-template-columns: 13mm minmax(0, 1fr);
-  }
-
-  .print-document.level-enabled .coreography-entry {
-    grid-template-columns: 13mm minmax(0, 1fr) 22mm;
-  }
-
-  .print-document.info-coreo-1-enabled .coreography-entry,
-  .print-document.info-coreo-2-enabled .coreography-entry {
-    grid-template-columns: 13mm minmax(0, 1fr) 30mm;
-  }
-
-  .print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
-    grid-template-columns: 13mm minmax(0, 1fr) 30mm 30mm;
-  }
-
-  .print-document.level-enabled.info-coreo-1-enabled .coreography-entry,
-  .print-document.level-enabled.info-coreo-2-enabled .coreography-entry {
-    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm;
-  }
-
-  .print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-entry {
-    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm 30mm;
+    grid-template-columns: var(--coreography-mobile-columns, 13mm minmax(0, 1fr));
   }
 
   .letter-section {
@@ -882,43 +852,9 @@
     page-break-inside: avoid;
   }
 
-  .coreography-column-headings {
-    grid-template-columns: 13mm minmax(0, 1fr);
-  }
-
-  .print-document.level-enabled .coreography-column-headings {
-    grid-template-columns: 13mm minmax(0, 1fr) 22mm;
-  }
-
-  .print-document.info-coreo-1-enabled .coreography-column-headings,
-  .print-document.info-coreo-2-enabled .coreography-column-headings {
-    grid-template-columns: 13mm minmax(0, 1fr) 30mm;
-  }
-
-  .print-document.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings {
-    grid-template-columns: 13mm minmax(0, 1fr) 30mm 30mm;
-  }
-
-  .print-document.level-enabled.info-coreo-1-enabled .coreography-column-headings,
-  .print-document.level-enabled.info-coreo-2-enabled .coreography-column-headings {
-    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm;
-  }
-
-  .print-document.level-enabled.info-coreo-1-enabled.info-coreo-2-enabled .coreography-column-headings {
-    grid-template-columns: 13mm minmax(0, 1fr) 22mm 30mm 30mm;
-  }
-
-  .coreography-column-headings .event-columns {
-    grid-column: 2;
-  }
-
-  .print-document.level-enabled .coreography-column-headings .event-columns,
-  .print-document.level-enabled .coreography-entry .event-columns {
+  .coreography-column-headings .event-columns,
+  .coreography-entry .event-columns {
     grid-column: 2 / -1;
-  }
-
-  .event-columns {
-    grid-column: 2;
   }
 }
 

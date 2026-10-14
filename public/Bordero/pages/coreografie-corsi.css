@@ -57,6 +57,21 @@
 .course-calendar-toolbar button { min-width: 34px; padding: 0 6px; background: transparent; font-size: 1.4rem; }
 .course-calendar-toolbar button:hover { background: #444; }
 #btn-open-course-calendar { margin-left: auto; }
+#btn-open-course-calendar[aria-expanded="false"],
+.course-calendar:has(.course-calendar-selected[aria-expanded="false"]) {
+  animation: course-calendar-border-blink 1.4s ease-in-out infinite;
+}
+@keyframes course-calendar-border-blink {
+  0%, 100% { border-color: #ff8a00; box-shadow: 0 0 0 transparent; }
+  50% { border-color: #ffe0ab; box-shadow: 0 0 10px rgba(255, 138, 0, .7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #btn-open-course-calendar[aria-expanded="false"],
+  .course-calendar:has(.course-calendar-selected[aria-expanded="false"]) {
+    animation: none;
+    border-color: #ffe0ab;
+  }
+}
 .course-calendar button { font-family: inherit; color: inherit; cursor: pointer; }
 .course-calendar button:hover { transform: none; box-shadow: none; }
 .course-calendar button:focus-visible { outline: 2px solid #00c9e5; outline-offset: 2px; }

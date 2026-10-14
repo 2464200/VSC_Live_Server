@@ -255,7 +255,9 @@ class CoreografieStampaPage {
     if (this.settings.includeWeek) optionalColumns.push('14mm');
     if (this.settings.includeInfoCoreo1) optionalColumns.push('30mm');
     if (this.settings.includeInfoCoreo2) optionalColumns.push('30mm');
-    documentNode.style.setProperty('--optional-columns', optionalColumns.join(' ') || '0px');
+    const columns = ['13mm', 'minmax(0, 1fr)', ...optionalColumns];
+    documentNode.style.setProperty('--coreography-columns', [...columns, 'minmax(45mm, 1.35fr)'].join(' '));
+    documentNode.style.setProperty('--coreography-mobile-columns', columns.join(' '));
     documentNode.innerHTML = `
       ${cover}
       ${selectedGroups.filter(([, entries]) => entries.length).map(([initial, entries]) => this.renderGroup(initial, entries)).join('')}
@@ -358,7 +360,7 @@ class CoreografieStampaPage {
         <section class="letter-section${pageNumber > 1 ? ' continuation-page' : ''}">
           <div class="letter-heading"><h2>${this.escape(initial)} ${pageLabel}</h2><span>${pageEntries.length} di ${entries.length} coreografie</span></div>
           <div class="coreography-column-headings">
-            <span>ID</span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeWeek ? '<span>Settimana</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
+            <span>ID</span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeWeek ? '<span class="coreography-week-heading">Settimana</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
           </div>
           <div class="coreography-list">
             ${pageEntries.map((brano) => this.renderEntry(brano)).join('')}
