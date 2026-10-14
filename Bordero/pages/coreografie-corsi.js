@@ -1,16 +1,15 @@
 (function () {
   'use strict';
 
-  const LEVELS = [
-    'BASE', 'INTERMEDIO', 'AVANZATO', 'AVANZATO 1', 'AVANZATO 2', 'AVANZATO 1-2',
-    'SUPER AVANZATO', 'SUPER AVANZATO 1', 'SUPER AVANZATO 2', 'SUPER AVANZATO 1-2'
-  ];
   const PROGRAM_FILES_API = '/api/bordero/course-program/files';
 
   class ChoreoCoursePage {
     constructor() {
       this.store = window.choreoProgramStore;
       this.brani = [];
+      this.levels = [];
+      this.catalogRevision = 0;
+      this.lastGoogleSyncAt = '';
       this.state = this.store.getState();
       this.editingRecordId = '';
       this.recordsSort = { field: 'week', direction: 'desc' };
@@ -29,12 +28,20 @@
       this.setStatus('course-record-status', 'Caricamento catalogo e programmi…');
       try {
         await dataLoader.initialize(false);
-        this.brani = await dataLoader.loadBrani();
+        await this.refreshCatalog();
+        const cloud = window.firebaseCloudClient;
+        if (cloud?.hasFreshCloudState && Array.isArray(cloud.latestCloudState?.catalogBrani)) {
+          this.setCatalog(cloud.latestCloudState.catalogBrani);
+        }
         await this.store.load({ force: true });
         this.state = this.store.getState();
         this.populateSongOptions();
         this.render();
         this.store.startPolling();
+        if (this.isLocalFileHost()) {
+          this.checkGoogleCatalogSync();
+          this.catalogSyncTimer = window.setInterval(() => this.checkGoogleCatalogSync(), 5000);
+        }
         window.addEventListener('bordero:choreo-program-updated', () => {
           this.state = this.store.getState();
           this.render();
@@ -46,6 +53,24 @@
     }
 
     bindEvents() {
+      window.addEventListener('bordero:cloud-updated', (event) => {
+        if (Array.isArray(event.detail?.catalogBrani)) this.setCatalog(event.detail.catalogBrani);
+      });
+      window.addEventListener('bordero:data-updated', (event) => {
+        if (event.detail?.type !== 'brani') return;
+        const brani = Storage.get('BORDERO_BRANI_DATA');
+        if (Array.isArray(brani)) this.setCatalog(brani);
+      });
+      window.addEventListener('storage', (event) => {
+        if (!['BORDERO_BRANI_DATA', 'bordero_brani'].includes(event.key) || !event.newValue) return;
+        try {
+          const brani = JSON.parse(event.newValue);
+          if (Array.isArray(brani)) this.setCatalog(brani);
+        } catch (error) {
+          console.warn('Catalogo corsi non aggiornato: dati in cache non validi.', error);
+        }
+      });
+      window.addEventListener('focus', () => this.checkGoogleCatalogSync());
       document.getElementById('create-season-form').addEventListener('submit', (event) => this.createSeason(event));
       document.getElementById('course-season-select').addEventListener('change', () => {
         this.resetRecordForm();
@@ -191,11 +216,12 @@
     populateRecordsFilters() {
       const level = document.getElementById('course-records-level-filter');
       level.replaceChildren(new Option('Tutti i livelli', ''));
-      LEVELS.forEach((value) => level.add(new Option(this.formatLevel(value), value)));
+      this.levels.forEach((value) => level.add(new Option(this.formatLevel(value), value)));
+      level.value = this.recordsFilter.level;
       const week = document.getElementById('course-records-week-filter');
       week.replaceChildren(...Array.from({ length: 52 }, (_, index) =>
         new Option(index === 51 ? '52 · Tutte le settimane' : String(index + 1), String(index + 1))));
-      week.value = '52';
+      week.value = String(this.recordsFilter.week);
     }
 
     sortSeasonRecords(records) {
@@ -227,8 +253,54 @@
 
     populateLevels() {
       const select = document.getElementById('course-record-level');
+      const selected = select.value;
       select.replaceChildren(new Option('Seleziona livello', ''));
-      LEVELS.forEach((level) => select.add(new Option(this.formatLevel(level), level)));
+      this.levels.forEach((level) => select.add(new Option(this.formatLevel(level), level)));
+      select.value = this.levels.includes(selected) ? selected : '';
+    }
+
+    songLevel(song) {
+      return this.formatLevel(String(song.info_livello || '').trim() || song['info livello'] || '');
+    }
+
+    setCatalog(brani) {
+      const selectedId = this.selectedSongId();
+      const songInput = document.getElementById('course-record-song');
+      const draft = songInput.value;
+      this.catalogRevision += 1;
+      this.brani = typeof dataLoader.normalizeBraniList === 'function' ? dataLoader.normalizeBraniList(brani) : brani;
+      this.levels = [...new Set(this.brani.map((song) => this.songLevel(song)).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      if (!this.levels.includes(this.recordsFilter.level)) this.recordsFilter.level = '';
+      this.populateLevels();
+      this.populateRecordsFilters();
+      this.populateSongOptions(selectedId);
+      if (!selectedId) songInput.value = draft;
+      this.renderSelectedSeason();
+    }
+
+    async refreshCatalog() {
+      const revision = this.catalogRevision;
+      const brani = await dataLoader.loadBrani({ silent: true });
+      // Un aggiornamento cloud arrivato durante la lettura ha precedenza sul CSV.
+      if (revision === this.catalogRevision) this.setCatalog(brani);
+    }
+
+    async checkGoogleCatalogSync() {
+      if (!this.isLocalFileHost() || this.checkingGoogleSync) return;
+      this.checkingGoogleSync = true;
+      try {
+        const response = await fetch('/api/bordero/sync-google/status', { cache: 'no-store' });
+        if (!response.ok) return;
+        const { ok, state } = await response.json();
+        if (!ok || state?.inProgress || !state?.lastCompletedAt || state.lastCompletedAt === this.lastGoogleSyncAt) return;
+        await this.refreshCatalog();
+        this.lastGoogleSyncAt = state.lastCompletedAt;
+      } catch (error) {
+        // L'endpoint e' disponibile solo nell'app locale con il server unificato.
+      } finally {
+        this.checkingGoogleSync = false;
+      }
     }
 
     populateSongOptions(selectedId = '') {
@@ -388,7 +460,7 @@
       const season = this.currentSeason();
       if (!season) return this.setStatus('course-record-status', 'Crea o seleziona prima una stagione.', true);
       const week = Number(document.getElementById('course-record-week').value);
-      const level = document.getElementById('course-record-level').value;
+      const level = this.resolveLevel(document.getElementById('course-record-level').value);
       const branoId = this.selectedSongId();
       if (!Number.isInteger(week) || week < 1 || week > 52 || !level) {
         return this.setStatus('course-record-status', 'Completa settimana, livello e coreografia.', true);
@@ -557,13 +629,14 @@
     }
 
     resolveLevel(value) {
-      const normalized = String(value).trim().toLocaleUpperCase('it').replace(/\s+/g, ' ').replace(/[–]/g, '-');
-      return LEVELS.find((level) => level === normalized) || '';
+      const normalized = this.formatLevel(value);
+      return this.levels.find((level) => level === normalized) || '';
     }
 
     downloadTemplate() {
       const label = this.currentSeason()?.label || document.getElementById('new-season-label').value;
-      const examples = this.brani.slice(0, 3).map((song, index) => [label, index < 2 ? 'BASE' : 'INTERMEDIO', 1, song.id].map((value) => this.csv(value)).join(','));
+      const examples = this.brani.filter((song) => this.songLevel(song)).slice(0, 3)
+        .map((song) => [label, this.songLevel(song), 1, song.id].map((value) => this.csv(value)).join(','));
       const content = `\uFEFFanno_accademico,livello,settimana,brano_id\r\n${examples.join('\r\n')}\r\n`;
       return this.download(`programma-coreografie-modello.csv`, content, 'text/csv;charset=utf-8');
     }
@@ -632,7 +705,7 @@
     findSong(id) { return this.brani.find((song) => String(song.id) === String(id)); }
     trackTitle(song) { return String(song?.titolo || song?.coreografia || song?.brano || song?.id || 'Brano senza titolo'); }
     trackLabel(song) { return `${song.id ? `${song.id} · ` : ''}${this.trackTitle(song)}${song.autore ? ` — ${song.autore}` : ''}`; }
-    formatLevel(level) { return String(level || '').toLocaleUpperCase('it'); }
+    formatLevel(level) { return String(level || '').trim().replace(/\s+/g, ' ').replace(/–/g, '-').toLocaleUpperCase('it'); }
     csv(value) { const text = String(value ?? ''); return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; }
     escape(value) { const node = document.createElement('span'); node.textContent = String(value ?? ''); return node.innerHTML.replace(/"/g, '&quot;'); }
     setStatus(id, message, isError = false) {

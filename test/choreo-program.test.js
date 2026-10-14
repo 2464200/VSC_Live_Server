@@ -46,7 +46,9 @@ async function harness(page = false) {
   if (page) {
     window.dataLoader = {
       initialize: async () => {},
-      loadBrani: async () => ['001', '002', '003', '004'].map((id) => ({ id, titolo: `Coreografia ${id}`, autore: 'Autore' }))
+      loadBrani: async () => ['001', '002', '003', '004'].map((id, index) => ({
+        id, titolo: `Coreografia ${id}`, autore: 'Autore', info_livello: index === 1 ? 'INTERMEDIO' : 'BASE'
+      }))
     };
     window.confirm = () => true;
     window.eval(read('Bordero/pages/coreografie-corsi.js'));
@@ -135,6 +137,120 @@ async function importText(h, text) {
   });
   await h.window.choreoCoursePage.importCsv();
 }
+
+test('course levels come only from the catalog, without blank or duplicate values', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  const songs = [
+    { id: '001', titolo: 'Uno', info_livello: ' base ' },
+    { id: '002', titolo: 'Due', 'info livello': 'BASE' },
+    { id: '003', titolo: 'Tre', info_livello: ' super   avanzato 1+2 ' },
+    { id: '004', titolo: 'Quattro', info_livello: 'SUPER AVANZATO 3' },
+    { id: '005', titolo: 'Cinque', info_livello: 'ALTRE COREO' },
+    { id: '006', titolo: 'Sei', info_livello: '  ' },
+    { id: '007', titolo: 'Sette' }
+  ];
+  h.window.dataLoader.loadBrani = async () => songs;
+  await page.refreshCatalog();
+  const values = (id) => Array.from(h.window.document.getElementById(id).options, (option) => option.value);
+  const expected = ['', 'ALTRE COREO', 'BASE', 'SUPER AVANZATO 1+2', 'SUPER AVANZATO 3'];
+  assert.deepEqual(values('course-record-level'), expected);
+  assert.deepEqual(values('course-records-level-filter'), expected);
+  assert.equal(page.resolveLevel(' super avanzato 1+2 '), 'SUPER AVANZATO 1+2');
+  assert.equal(page.resolveLevel('SUPER AVANZATO 1-2'), '');
+  assert.equal(page.resolveLevel('AVANZATO'), '');
+  const header = 'anno_accademico,livello,settimana,brano_id\n';
+  await importText(h, header + '2026/2027,SUPER AVANZATO 3,1,004');
+  assert.equal(h.store.getState().seasons[year].records[0].level, 'SUPER AVANZATO 3');
+  await importText(h, header + '2026/2027,AVANZATO,1,001');
+  assert.equal(h.window.document.getElementById('course-import-status').classList.contains('is-error'), true);
+
+  page.setCatalog([{ id: '008', titolo: 'Otto', info_livello: 'NUOVO LIVELLO' }]);
+  let template;
+  page.download = (_name, content) => { template = content; };
+  page.downloadTemplate();
+  assert.match(template, /2026\/2027,NUOVO LIVELLO,1,008/);
+  assert.doesNotMatch(template, /BASE|INTERMEDIO/);
+  page.setCatalog([]);
+  assert.deepEqual(values('course-record-level'), ['']);
+  assert.equal(h.store.getState().seasons[year].records[0].level, 'SUPER AVANZATO 3');
+});
+
+test('each completed Google sync reloads levels and preserves valid form and filter selections', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  await h.store.saveSeason(season([record('001')]));
+  page.render(year);
+  const document = h.window.document;
+  const level = document.getElementById('course-record-level');
+  const filter = document.getElementById('course-records-level-filter');
+  const week = document.getElementById('course-records-week-filter');
+  level.value = filter.value = 'BASE';
+  filter.dispatchEvent(new h.window.Event('change'));
+  week.value = '3';
+  week.dispatchEvent(new h.window.Event('change'));
+  page.setSongSelection('001');
+  let reads = 0;
+  let songs = [
+    { id: '001', titolo: 'Coreografia aggiornata', info_livello: 'BASE' },
+    { id: '002', titolo: 'Due', info_livello: 'SUPER AVANZATO 3' }
+  ];
+  h.window.dataLoader.loadBrani = async () => { reads += 1; return songs; };
+  const state = { inProgress: true, lastCompletedAt: '2026-10-14T10:00:00Z' };
+  h.setFetch(async () => ({ ok: true, json: async () => ({ ok: true, state }) }));
+  await page.checkGoogleCatalogSync();
+  assert.equal(reads, 0, 'wait for Google to finish writing CSV files');
+  state.inProgress = false;
+  await page.checkGoogleCatalogSync();
+  assert.equal(reads, 1);
+  assert.equal(level.value, 'BASE');
+  assert.equal(filter.value, 'BASE');
+  assert.equal(week.value, '3');
+  assert.equal(page.selectedSongId(), '001');
+  assert.match(document.getElementById('course-record-song').value, /Coreografia aggiornata/);
+  assert.equal(page.resolveLevel('SUPER AVANZATO 3'), 'SUPER AVANZATO 3');
+  assert.equal(page.resolveLevel('INTERMEDIO'), '');
+  await page.checkGoogleCatalogSync();
+  assert.equal(reads, 1, 'unchanged Google status does not reload the catalog');
+  songs = [{ id: '001', titolo: 'Uno', info_livello: 'NUOVO LIVELLO' }];
+  state.lastCompletedAt = '2026-10-14T10:05:00Z';
+  h.window.dispatchEvent(new h.window.Event('focus'));
+  await tick();
+  assert.equal(reads, 2);
+  assert.equal(level.value, '');
+  assert.equal(filter.value, '');
+  assert.equal(page.recordsFilter.level, '');
+  assert.equal(week.value, '3');
+  assert.equal(page.resolveLevel('NUOVO LIVELLO'), 'NUOVO LIVELLO');
+});
+
+test('cloud and other-tab catalog updates refresh levels and take precedence over an older CSV read', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  const cloud = [{ id: '001', titolo: 'Cloud', info_livello: 'GOLD' }];
+  let finishRead;
+  h.window.dataLoader.loadBrani = () => new Promise((resolve) => { finishRead = resolve; });
+  const pending = page.refreshCatalog();
+  h.window.dispatchEvent(new h.window.CustomEvent('bordero:cloud-updated', { detail: { catalogBrani: cloud } }));
+  finishRead([{ id: '001', titolo: 'CSV vecchio', info_livello: 'BASE' }]);
+  await pending;
+  assert.equal(page.resolveLevel('GOLD'), 'GOLD');
+  assert.equal(page.resolveLevel('BASE'), '');
+  h.window.dispatchEvent(new h.window.CustomEvent('bordero:cloud-updated', { detail: { brani: [] } }));
+  assert.equal(page.resolveLevel('GOLD'), 'GOLD', 'serata updates do not replace the catalog');
+  const cached = [{ id: '001', titolo: 'Altro tab', 'info livello': 'ALTRE COREO' }];
+  h.window.dispatchEvent(new h.window.StorageEvent('storage', {
+    key: 'BORDERO_BRANI_DATA', newValue: JSON.stringify(cached)
+  }));
+  assert.equal(page.resolveLevel('ALTRE COREO'), 'ALTRE COREO');
+  assert.equal(page.resolveLevel('GOLD'), '');
+  h.window.Storage = { get: () => cloud };
+  h.window.dispatchEvent(new h.window.CustomEvent('bordero:data-updated', { detail: { type: 'brani' } }));
+  assert.equal(page.resolveLevel('GOLD'), 'GOLD');
+});
 
 test('CSV import creates and selects the correct season with leading-zero IDs; export reimports', async (t) => {
   const h = await harness(true);
