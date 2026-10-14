@@ -15,6 +15,8 @@ class CoreografieStampaPage {
     try {
       await dataLoader.initialize();
       this.brani = await dataLoader.loadBrani({ silent: true });
+      await window.choreoProgramStore?.load({ force: true });
+      this.applyCourseWeeksToBrani();
       this.djNames = (await dataLoader.loadDJ())
         .map((dj) => typeof dj === 'string' ? dj : (dj?.nome || dj?.name || ''))
         .filter((dj) => !/^(nome|name|dj)$/i.test(dj.trim()))
@@ -72,6 +74,7 @@ class CoreografieStampaPage {
     document.getElementById('duplex-print').checked = saved?.duplex ?? false;
     document.getElementById('number-pages').checked = saved?.numberPages ?? false;
     document.getElementById('include-level').checked = saved?.includeLevel ?? false;
+    document.getElementById('include-week').checked = saved?.includeWeek ?? false;
     document.getElementById('include-info-coreo-1').checked = saved?.includeInfoCoreo1 ?? false;
     document.getElementById('include-info-coreo-2').checked = saved?.includeInfoCoreo2 ?? false;
   }
@@ -169,6 +172,7 @@ class CoreografieStampaPage {
       duplex: document.getElementById('duplex-print').checked,
       numberPages: document.getElementById('number-pages').checked,
       includeLevel: document.getElementById('include-level').checked,
+      includeWeek: document.getElementById('include-week').checked,
       includeInfoCoreo1: document.getElementById('include-info-coreo-1').checked,
       includeInfoCoreo2: document.getElementById('include-info-coreo-2').checked,
     };
@@ -243,8 +247,15 @@ class CoreografieStampaPage {
     documentNode.classList.toggle('numbered-pages', this.settings.numberPages);
     documentNode.classList.toggle('duplex-print', this.settings.duplex);
     documentNode.classList.toggle('level-enabled', this.settings.includeLevel);
+    documentNode.classList.toggle('week-enabled', this.settings.includeWeek);
     documentNode.classList.toggle('info-coreo-1-enabled', this.settings.includeInfoCoreo1);
     documentNode.classList.toggle('info-coreo-2-enabled', this.settings.includeInfoCoreo2);
+    const optionalColumns = [];
+    if (this.settings.includeLevel) optionalColumns.push('22mm');
+    if (this.settings.includeWeek) optionalColumns.push('14mm');
+    if (this.settings.includeInfoCoreo1) optionalColumns.push('30mm');
+    if (this.settings.includeInfoCoreo2) optionalColumns.push('30mm');
+    documentNode.style.setProperty('--optional-columns', optionalColumns.join(' ') || '0px');
     documentNode.innerHTML = `
       ${cover}
       ${selectedGroups.filter(([, entries]) => entries.length).map(([initial, entries]) => this.renderGroup(initial, entries)).join('')}
@@ -260,6 +271,23 @@ class CoreografieStampaPage {
     if (!Array.isArray(levelFilters) || levelFilters.length === 0) return brani;
     const selectedLevels = new Set(levelFilters.map((level) => String(level).trim().toLocaleLowerCase('it-IT')));
     return brani.filter((brano) => selectedLevels.has(String(brano?.info_livello || '').trim().toLocaleLowerCase('it-IT')));
+  }
+
+  applyCourseWeeksToBrani() {
+    const state = window.choreoProgramStore?.getState();
+    const season = state?.seasons[state.activeSeason];
+    const assignments = new Map();
+    for (const record of season?.records || []) {
+      const week = Number(record.week);
+      if (!Number.isInteger(week) || week < 1 || week > 52) continue;
+      const id = String(record.branoId);
+      if (!assignments.has(id)) assignments.set(id, []);
+      assignments.get(id).push(week);
+    }
+    for (const brano of this.brani) {
+      brano.course_weeks = [...new Set(assignments.get(String(brano.id)) || [])].sort((a, b) => a - b);
+      brano.course_week = brano.course_weeks.join(', ');
+    }
   }
 
   groupByInitial(brani) {
@@ -330,7 +358,7 @@ class CoreografieStampaPage {
         <section class="letter-section${pageNumber > 1 ? ' continuation-page' : ''}">
           <div class="letter-heading"><h2>${this.escape(initial)} ${pageLabel}</h2><span>${pageEntries.length} di ${entries.length} coreografie</span></div>
           <div class="coreography-column-headings">
-            <span>ID</span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
+            <span>ID</span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeWeek ? '<span>Settimana</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
           </div>
           <div class="coreography-list">
             ${pageEntries.map((brano) => this.renderEntry(brano)).join('')}
@@ -356,6 +384,7 @@ class CoreografieStampaPage {
           <h3 class="coreography-title">${this.escape(this.titleOf(brano))}</h3>
         </div>
         ${this.settings.includeLevel ? `<div class="coreography-level">${this.escape(brano.info_livello || '')}</div>` : ''}
+        ${this.settings.includeWeek ? `<div class="coreography-week">${this.escape(brano.course_week || '-')}</div>` : ''}
         ${this.settings.includeInfoCoreo1 ? `<div class="coreography-info-coreo">${this.escape(this.infoCoreoValue(brano, 1))}</div>` : ''}
         ${this.settings.includeInfoCoreo2 ? `<div class="coreography-info-coreo">${this.escape(this.infoCoreoValue(brano, 2))}</div>` : ''}
         <div class="event-columns">${columns}</div>
@@ -370,6 +399,7 @@ class CoreografieStampaPage {
         <div class="coreography-id"></div>
         <div class="coreography-main"></div>
         ${this.settings.includeLevel ? '<div class="coreography-level"></div>' : ''}
+        ${this.settings.includeWeek ? '<div class="coreography-week"></div>' : ''}
         ${this.settings.includeInfoCoreo1 ? '<div class="coreography-info-coreo"></div>' : ''}
         ${this.settings.includeInfoCoreo2 ? '<div class="coreography-info-coreo"></div>' : ''}
         <div class="event-columns">${columns}</div>
