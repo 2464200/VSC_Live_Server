@@ -25,6 +25,7 @@ Purpose: concise, actionable guidance so an AI helper can be productive immediat
 - Keep `pdf/pages/script-pdf-gestione.html` and its assets synchronized with `public/`; compatibility aliases should redirect only to the canonical page.
 
 **Project-specific conventions to preserve**
+- User choices must persist across reloads, navigation, and application restarts. Each valid change replaces the previous saved choice and becomes the new persistent value. Follow the project-wide persistence rules in [AGENTS.md](../AGENTS.md).
 - CSV parsing always skips the first 3 lines: do NOT remove `.slice(3)` unless you update every consumer.
 - First CSV column is a flag column (index 0). Most renderers skip it and show columns from index 1 onward.
 - Desktop vs mobile scroll math differs: desktop uses time-stepped increments (ms per step), mobile uses px/s; keep both in sync when changing UX.

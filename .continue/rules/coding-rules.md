@@ -30,6 +30,7 @@ Stai lavorando al progetto VSC_Live_Server.
 8. Non eseguire deploy, push, reset o altre operazioni Git potenzialmente distruttive senza conferma.
 9. Non introdurre librerie esterne se non strettamente necessarie.
 10. Mantieni compatibilità con Chrome e Windows 11.
+11. Ogni scelta dell'utente deve essere persistente fino alla sua modifica o al suo azzeramento esplicito; ogni variazione valida sostituisce la scelta salvata e diventa il nuovo valore persistente. Applicare in tutto il progetto la regola completa in [AGENTS.md](../../AGENTS.md).
 
 # Procedura di lavoro
 

@@ -36,6 +36,131 @@ function seededRandom(seed) {
   };
 }
 
+function coursePrograms(records, activeSeason = '2026-2027') {
+  return { activeSeason, seasons: { [activeSeason]: { id: activeSeason, records } } };
+}
+
+const lesson = (branoId, week, level = 'BASE') => ({ branoId, week, level });
+
+test('SCALETTA: un brano del corso precede quelli senza settimana anche oltre i primi cinque candidati', () => {
+  const catalog = generator.buildCatalog(Array.from({ length: 8 }, (_, index) => track(`b${index}`, 'BASE', 60)));
+  for (const random of [() => 0, () => 0.99]) {
+    const result = generator.generateSetlist({
+      catalog, counts: counts(1), durationSeconds: 60, attempts: 1, random,
+      coursePrograms: coursePrograms([lesson('b7', 42)])
+    });
+    assert.deepEqual(result.tracks.map((item) => item.id), ['b7']);
+    assert.equal('courseWeekPriority' in result.tracks[0], false, 'La priorità interna non cambia il formato esportato.');
+  }
+});
+
+test('SCALETTA: le settimane proseguono da 52/53 a 1 nell’anno successivo e prevale la lezione più recente', () => {
+  const ids = ['none', 'invalid', 'w40', 'w52', 'w53', 'w1', 'w2', 'w10'];
+  const catalog = generator.buildCatalog(ids.map((id) => track(id, 'BASE', 60)));
+  const result = generator.generateSetlist({
+    catalog, counts: counts(1), durationSeconds: ids.length * 60, attempts: 1, random: () => 0,
+    coursePrograms: coursePrograms([
+      lesson('w40', 40), lesson('w52', 52), lesson('w53', 53),
+      lesson('w1', 1), lesson('w2', 2), lesson('w10', 42), lesson('w10', 10),
+      lesson('invalid', 0), lesson('invalid', 54), lesson('invalid', 1.5)
+    ])
+  });
+  assert.deepEqual(result.tracks.slice(0, 6).map((item) => item.id), ['w10', 'w2', 'w1', 'w53', 'w52', 'w40']);
+  assert.deepEqual(new Set(result.tracks.slice(6).map((item) => item.id)), new Set(['none', 'invalid']));
+  const yearWith52Weeks = generator.generateSetlist({
+    catalog, counts: counts(1), durationSeconds: 120, attempts: 1, random: () => 0,
+    coursePrograms: coursePrograms([lesson('w52', 52), lesson('w1', 1), lesson('w53', 53)], '2025-2026')
+  });
+  assert.deepEqual(yearWith52Weeks.tracks.map((item) => item.id), ['w1', 'w52']);
+});
+
+test('SCALETTA: la settimana vale per il livello della lezione e solo per la stagione attiva', () => {
+  const catalog = generator.buildCatalog([
+    track('base', 'BASE', 60), track('intermedio', 'INTERMEDIO', 60),
+    track('shared', 'AVANZATO 1+2', 60), track('a1', 'AVANZATO 1', 60)
+  ]);
+  const programs = coursePrograms([lesson('intermedio', 1, 'INTERMEDIO'), lesson('shared', 1, 'AVANZATO 2'), lesson('a1', 42, 'AVANZATO 1')]);
+  const base = generator.generateSetlist({ catalog, counts: counts(1), durationSeconds: 60, coursePrograms: programs });
+  assert.equal(base.tracks[0].id, 'base', 'La settimana non deve forzare il passaggio a un livello successivo.');
+  const advanced = generator.generateSetlist({ catalog, counts: counts(0, 0, 1), durationSeconds: 60, coursePrograms: programs });
+  assert.equal(advanced.tracks[0].id, 'a1', 'La settimana di AVANZATO 2 non dà priorità in AVANZATO 1.');
+  const archive = coursePrograms([]);
+  archive.seasons['2025-2026'] = { records: [lesson('a1', 1, 'AVANZATO 1')] };
+  const withoutActiveLessons = generator.generateSetlist({
+    catalog, counts: counts(0, 0, 1), durationSeconds: 60, attempts: 1, random: () => 0, coursePrograms: archive
+  });
+  assert.equal(withoutActiveLessons.tracks[0].id, 'shared');
+});
+
+test('SCALETTA: la priorità settimanale rispetta categorie, tempo e coreografie già scelte', () => {
+  const catalog = generator.buildCatalog([
+    { ...track('first', 'BASE', 60), info_coreo_1: 'COPPIA', coreografia: 'Uguale' },
+    { ...track('duplicate', 'BASE', 60), info_coreo_1: 'COPPIA', coreografia: 'UGUALE' },
+    { ...track('other', 'BASE', 60), info_coreo_1: 'COPPIA' },
+    { ...track('excluded', 'BASE', 60), info_coreo_1: 'CERCHIO' },
+    { ...track('long', 'BASE', 180), info_coreo_1: 'COPPIA' }
+  ]);
+  const result = generator.generateSetlist({
+    catalog, counts: counts(1), durationSeconds: 120, attempts: 1, random: () => 0,
+    infoFilter: { mode: 'include', tags: ['COPPIA'] },
+    coursePrograms: coursePrograms([lesson('first', 2), lesson('duplicate', 1), lesson('excluded', 10), lesson('long', 11)])
+  });
+  assert.deepEqual(result.tracks.map((item) => item.id), ['first', 'other']);
+});
+
+test('SCALETTA: conserva la casualità a settimana pari e bilancia le ripetizioni dopo il catalogo esaurito', () => {
+  const catalog = generator.buildCatalog(['old', 'new', 'none'].map((id) => track(id, 'BASE', 60)));
+  const result = generator.generateSetlist({
+    catalog, counts: counts(1), durationSeconds: 360, attempts: 1, random: () => 0,
+    coursePrograms: coursePrograms([lesson('old', 42), lesson('new', 1)])
+  });
+  assert.deepEqual(result.tracks.map((item) => item.id), ['new', 'old', 'none', 'new', 'old', 'none']);
+  const tiedPrograms = coursePrograms(['old', 'new', 'none'].map((id) => lesson(id, 42)));
+  const choices = [0, 0.5, 0.99].map((value) => generator.generateSetlist({
+    catalog, counts: counts(1), durationSeconds: 60, attempts: 1, random: () => value, coursePrograms: tiedPrograms
+  }).tracks[0].id);
+  assert.equal(new Set(choices).size, 3);
+});
+
+test('SCALETTA: conserva la preferenza per un artista diverso prima della priorità settimanale', () => {
+  const catalog = generator.buildCatalog([
+    track('first', 'BASE', 60, 'Artista A'),
+    track('same-artist', 'BASE', 60, 'Artista A'),
+    track('different-artist', 'BASE', 60, 'Artista B')
+  ]);
+  const result = generator.generateSetlist({
+    catalog, counts: counts(1), durationSeconds: 120, random: () => 0, attempts: 1,
+    coursePrograms: coursePrograms([lesson('first', 2), lesson('same-artist', 1)])
+  });
+  assert.deepEqual(result.tracks.map((item) => item.id), ['first', 'different-artist']);
+});
+
+test('SCALETTA: aggiorna le settimane dal programma condiviso anche quando il CSV non cambia', async (t) => {
+  const html = fs.readFileSync(path.join(root, 'USERFORM/pages/SCALETTA.html'), 'utf8');
+  const dom = new JSDOM(html, { url: 'http://localhost/USERFORM/pages/SCALETTA.html', runScripts: 'outside-only' });
+  t.after(() => dom.window.close());
+  const { window } = dom;
+  let refreshCatalog;
+  let programs = coursePrograms([lesson('late', 53), lesson('early', 1)]);
+  window.setInterval = (callback) => { refreshCatalog = callback; return 1; };
+  window.fetch = async (url) => String(url).includes('brani.csv')
+    ? { ok: true, text: async () => 'id,coreografia,brano,autore,durata,info_livello\nlate,Dicembre,Brano 1,Artista,60,BASE\nearly,Gennaio,Brano 2,Artista,60,BASE\n' }
+    : { ok: true, json: async () => programs };
+  for (const file of ['Bordero/js/choreo-program-store.js', 'USERFORM/js/scaletta-generator.js', 'Bordero/pages/dj-preselezione-file.js', 'USERFORM/js/scaletta-actions.js']) {
+    window.eval(fs.readFileSync(path.join(root, file), 'utf8'));
+  }
+  await new Promise((resolve) => setImmediate(resolve));
+  window.document.getElementById('setlist-available-time').value = '00:01';
+  window.document.getElementById('setlist-count-base').value = '1';
+  window.document.getElementById('btn-generate-setlist').click();
+  assert.equal(window.SCALETTA_SETLIST[0].id, 'early');
+  programs = coursePrograms([lesson('late', 10), lesson('early', 1)]);
+  await refreshCatalog();
+  window.document.getElementById('btn-new-setlist').click();
+  assert.equal(window.SCALETTA_SETLIST[0].id, 'late');
+  assert.equal(JSON.parse(window.localStorage.getItem('bordero_choreoPrograms')).activeSeason, '2026-2027');
+});
+
 test('TEST 1: legge il catalogo reale e genera la proporzione completa senza superare tre ore', () => {
   assert.deepEqual(generator.normalizeLevel('Avanzato1'), ['AVANZATO_1']);
   assert.deepEqual(generator.normalizeLevel('SUPERAVANZATO 1+2'), ['SUPERAVANZATO_1_2']);

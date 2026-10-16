@@ -273,7 +273,46 @@
     return { errors, requested };
   }
 
-  function chooseTrack(pool, used, usedChoreographies, remainingSeconds, previousArtist, random) {
+  function isoWeek(date) {
+    const thursday = new Date(date);
+    thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7));
+    return Math.ceil(((thursday - Date.UTC(thursday.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7);
+  }
+
+  function buildCourseWeekPriorities(state) {
+    const priorities = new Map();
+    const season = state?.seasons?.[state.activeSeason];
+    const years = String(state?.activeSeason || '').match(/^(\d{4})-(\d{4})$/);
+    if (!season || !years || Number(years[2]) !== Number(years[1]) + 1) return priorities;
+    const startYear = Number(years[1]);
+    // Come la pagina Programma corsi, la stagione inizia ad agosto.
+    const firstWeek = isoWeek(new Date(Date.UTC(startYear, 7, 1)));
+    const firstYearWeeks = isoWeek(new Date(Date.UTC(startYear, 11, 28)));
+    const nextYearWeeks = isoWeek(new Date(Date.UTC(startYear + 1, 11, 28)));
+    const records = Array.isArray(season.records) ? season.records : Object.values(season.records || {});
+    for (const record of records) {
+      if (!record) continue;
+      const week = Number(record.week);
+      const firstYear = week >= firstWeek;
+      if (!Number.isInteger(week) || week < 1 || week > (firstYear ? firstYearWeeks : nextYearWeeks)) continue;
+      const id = String(record.branoId ?? '').trim();
+      if (!id) continue;
+      // Gennaio prosegue dopo dicembre: 2026-W53 < 2027-W01.
+      const priority = firstYear ? week : firstYearWeeks + week;
+      for (const level of normalizeLevel(record.level)) {
+        const key = `${level}|${id}`;
+        priorities.set(key, Math.max(priorities.get(key) || 0, priority));
+      }
+    }
+    return priorities;
+  }
+
+  function preferCourseWeeks(pool, getPriority) {
+    const newestWeek = pool.reduce((maximum, item) => Math.max(maximum, getPriority(item)), 0);
+    return newestWeek ? pool.filter((item) => getPriority(item) === newestWeek) : pool;
+  }
+
+  function chooseTrack(pool, used, usedChoreographies, remainingSeconds, previousArtist, random, courseWeeks, levelKey) {
     let candidates = pool.filter((track) => !used.has(track.id) && track.durationSeconds <= remainingSeconds);
     if (!candidates.length) return null;
     const newChoreographies = candidates.filter((track) => {
@@ -285,15 +324,16 @@
       const differentArtist = candidates.filter((track) => normalizeText(track.autore) !== previousArtist);
       if (differentArtist.length) candidates = differentArtist;
     }
+    candidates = preferCourseWeeks(candidates, (track) => courseWeeks.get(`${levelKey}|${track.id}`) || 0);
     candidates.sort((left, right) => right.durationSeconds - left.durationSeconds);
     const shortlist = candidates.slice(0, Math.min(5, candidates.length));
     return shortlist[Math.floor(random() * shortlist.length)];
   }
 
-  function chooseTrackForLevel(catalogByLevel, startIndex, used, usedChoreographies, remainingSeconds, previousArtist, random) {
+  function chooseTrackForLevel(catalogByLevel, startIndex, used, usedChoreographies, remainingSeconds, previousArtist, random, courseWeeks) {
     for (let levelIndex = startIndex; levelIndex < LEVELS.length; levelIndex += 1) {
       const level = LEVELS[levelIndex];
-      const track = chooseTrack(catalogByLevel[level.key], used, usedChoreographies, remainingSeconds, previousArtist, random);
+      const track = chooseTrack(catalogByLevel[level.key], used, usedChoreographies, remainingSeconds, previousArtist, random, courseWeeks, level.key);
       if (track) return { track, levelKey: level.key };
     }
     return null;
@@ -335,7 +375,7 @@
     return repeats;
   }
 
-  function runSelection(catalogByLevel, counts, durationSeconds, random) {
+  function runSelection(catalogByLevel, counts, durationSeconds, random, courseWeeks) {
     const used = new Set();
     const usedChoreographies = new Set();
     const selected = [];
@@ -357,7 +397,7 @@
         const level = LEVELS[requestedIndex];
         for (let index = 0; index < counts[level.key]; index += 1) {
           const remaining = durationSeconds - totalDurationSeconds;
-          const choice = chooseTrackForLevel(catalogByLevel, requestedIndex, used, usedChoreographies, remaining, previousArtistByLevel[level.key], random);
+          const choice = chooseTrackForLevel(catalogByLevel, requestedIndex, used, usedChoreographies, remaining, previousArtistByLevel[level.key], random, courseWeeks);
           if (!choice) continue;
           const { track, levelKey } = choice;
           used.add(track.id);
@@ -372,7 +412,7 @@
             const fallbackKey = `${level.key}|${levelKey}`;
             fallbackCounts[fallbackKey] = (fallbackCounts[fallbackKey] || 0) + 1;
           }
-          selected.push({ ...track, level: levelKey, cycle: cycle + 1 });
+          selected.push({ ...track, level: levelKey, cycle: cycle + 1, courseWeekPriority: courseWeeks.get(`${levelKey}|${track.id}`) || 0 });
         }
       }
       if (!addedThisCycle || totalDurationSeconds >= durationSeconds) break;
@@ -393,8 +433,15 @@
           return !usedChoreographies.has(identity);
         });
         if (newChoreographies.length) pool = newChoreographies;
+        const priorityForTrack = (track) => Math.max(0, ...track.levels
+          .filter((levelKey) => eligibleLevelKeys.has(levelKey))
+          .map((levelKey) => courseWeeks.get(`${levelKey}|${track.id}`) || 0));
+        pool = preferCourseWeeks(pool, priorityForTrack);
         const track = pool[Math.floor(random() * pool.length)];
-        const trackLevels = track.levels.filter((levelKey) => eligibleLevelKeys.has(levelKey));
+        const trackLevels = preferCourseWeeks(
+          track.levels.filter((levelKey) => eligibleLevelKeys.has(levelKey)),
+          (levelKey) => courseWeeks.get(`${levelKey}|${track.id}`) || 0
+        );
         const levelKey = trackLevels[Math.floor(random() * trackLevels.length)];
         const choreography = getChoreographyIdentity(track);
         if (choreography) usedChoreographies.add(choreography);
@@ -402,7 +449,7 @@
         totalDurationSeconds += track.durationSeconds;
         selectedCounts[levelKey] += 1;
         repeatedCount += 1;
-        selected.push({ ...track, level: levelKey, cycle: maxCycles + fewest + 1 });
+        selected.push({ ...track, level: levelKey, cycle: maxCycles + fewest + 1, courseWeekPriority: courseWeeks.get(`${levelKey}|${track.id}`) || 0 });
       }
     }
 
@@ -416,7 +463,9 @@
       fullCycles: completedCycles(counts, fulfilledCounts),
       ratioError: proportionError(counts, fulfilledCounts),
       artistRepeats: artistRepeats(selected),
-      choreographyRepeats: choreographyRepeats(selected)
+      choreographyRepeats: choreographyRepeats(selected),
+      courseTrackCount: selected.filter((track) => track.courseWeekPriority > 0).length,
+      courseWeekTotal: selected.reduce((total, track) => total + track.courseWeekPriority, 0)
     };
   }
 
@@ -426,10 +475,12 @@
     if (candidate.choreographyRepeats !== current.choreographyRepeats) return candidate.choreographyRepeats < current.choreographyRepeats;
     if (Math.abs(candidate.ratioError - current.ratioError) > 0.0001) return candidate.ratioError < current.ratioError;
     if (candidate.totalDurationSeconds !== current.totalDurationSeconds) return candidate.totalDurationSeconds > current.totalDurationSeconds;
-    return candidate.artistRepeats < current.artistRepeats;
+    if (candidate.artistRepeats !== current.artistRepeats) return candidate.artistRepeats < current.artistRepeats;
+    if (candidate.courseTrackCount !== current.courseTrackCount) return candidate.courseTrackCount > current.courseTrackCount;
+    return candidate.courseWeekTotal > current.courseWeekTotal;
   }
 
-  function generateSetlist({ catalog, counts, durationSeconds, random = Math.random, attempts = 24, infoFilter } = {}) {
+  function generateSetlist({ catalog, counts, durationSeconds, random = Math.random, attempts = 24, infoFilter, coursePrograms } = {}) {
     const validation = validateCounts(counts, durationSeconds);
     if (validation.errors.length) return { errors: validation.errors, warnings: [], tracks: [] };
     if (!catalog?.tracks?.length) return { errors: ['Il catalogo dei brani e vuoto o non valido.'], warnings: [], tracks: [] };
@@ -440,9 +491,10 @@
     }
 
     let best = null;
+    const courseWeeks = buildCourseWeekPriorities(coursePrograms);
     const totalAttempts = Math.max(1, Math.min(40, Number(attempts) || 1));
     for (let attempt = 0; attempt < totalAttempts; attempt += 1) {
-      const candidate = runSelection(filteredCatalog.catalogByLevel, counts, durationSeconds, random);
+      const candidate = runSelection(filteredCatalog.catalogByLevel, counts, durationSeconds, random, courseWeeks);
       if (isBetter(candidate, best)) best = candidate;
     }
 
@@ -466,7 +518,7 @@
     return {
       errors: [],
       warnings,
-      tracks: best.tracks.map(({ source, levels, cycle, ...track }) => ({ ...track })),
+      tracks: best.tracks.map(({ source, levels, cycle, courseWeekPriority, ...track }) => ({ ...track })),
       levelCounts: best.selectedCounts,
       totalDurationSeconds: best.totalDurationSeconds,
       availableByLevel: Object.fromEntries(LEVELS.map((level) => [level.key, filteredCatalog.catalogByLevel[level.key].length])),

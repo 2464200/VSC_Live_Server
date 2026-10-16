@@ -296,7 +296,10 @@
       return;
     }
 
-    const result = generator.generateSetlist({ catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter });
+    const result = generator.generateSetlist({
+      catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter,
+      coursePrograms: window.choreoProgramStore?.getState()
+    });
     if (result.errors.length) {
       setStatus(result.errors.join('\n'), 'error');
       return;
@@ -346,7 +349,10 @@
 
     catalogLoadPromise = (async () => {
       try {
-        const response = await fetch(`../../Bordero/data/brani.csv?t=${Date.now()}`, { cache: 'no-store' });
+        const [response] = await Promise.all([
+          fetch(`../../Bordero/data/brani.csv?t=${Date.now()}`, { cache: 'no-store' }),
+          window.choreoProgramStore?.load({ force: true })
+        ]);
         if (!response.ok) throw new Error(`Risposta HTTP ${response.status}`);
         const csv = await response.text();
         if (catalogCsv !== null && csv === catalogCsv) return false;
