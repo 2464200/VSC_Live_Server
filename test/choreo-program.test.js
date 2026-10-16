@@ -412,7 +412,7 @@ test('CSV import creates and selects the correct season with leading-zero IDs; e
   assert.equal(h.store.getState().seasons[year].records.length, 2);
 });
 
-test('manual entries and CSV accept five choreographies per level/week and reject the sixth', async (t) => {
+test('manual entries and CSV accept more than five choreographies per level/week', async (t) => {
   const h = await harness(true);
   t.after(() => h.dom.window.close());
   const page = h.window.choreoCoursePage;
@@ -430,22 +430,27 @@ test('manual entries and CSV accept five choreographies per level/week and rejec
   await save('005');
   assert.equal(h.store.getState().seasons[year].records.length, 5);
   await save('006');
-  assert.equal(h.store.getState().seasons[year].records.length, 5);
-  assert.match(document.getElementById('course-record-status').textContent, /limite di cinque coreografie/);
+  assert.equal(h.store.getState().seasons[year].records.length, 6);
+  assert.equal(h.store.getState().seasons[year].records.every((item) => item.week === 1 && item.level === 'BASE'), true);
+  const firstRecord = h.store.getState().seasons[year].records[0];
+  document.querySelector(`[data-action="edit"][data-record-id="${firstRecord.id}"]`).click();
+  await save(firstRecord.branoId);
+  assert.equal(h.store.getState().seasons[year].records.length, 6, 'editing a full week preserves all records');
   await save('006', 2);
-  assert.equal(h.store.getState().seasons[year].records.length, 6, 'another week has its own limit');
+  assert.equal(h.store.getState().seasons[year].records.length, 6, 'duplicates remain blocked across weeks');
+  assert.match(document.getElementById('course-record-status').textContent, /già presente/);
   await save('006', 1, 'INTERMEDIO');
-  assert.equal(h.store.getState().seasons[year].records.length, 7, 'another level has its own limit');
+  assert.equal(h.store.getState().seasons[year].records.length, 7, 'the same choreography is allowed at another level');
   await importText(h, header + rows(5));
   assert.equal(document.getElementById('course-import-status').classList.contains('is-error'), false);
   assert.equal(h.store.getState().seasons[year].records.length, 5);
-  const original = JSON.stringify(h.store.getState());
   await importText(h, header + rows(6));
-  assert.equal(JSON.stringify(h.store.getState()), original);
-  assert.match(document.getElementById('course-import-status').textContent, /limite è cinque coreografie/);
+  assert.equal(h.store.getState().seasons[year].records.length, 6);
+  assert.equal(document.getElementById('course-import-status').classList.contains('is-error'), false);
+  assert.match(document.getElementById('course-import-status').textContent, /Importate 6/);
 });
 
-test('invalid CSV cannot replace a saved program: weekly limit, duplicates, years, unknown IDs', async (t) => {
+test('invalid CSV cannot replace a saved program: duplicates, years, unknown IDs', async (t) => {
   const h = await harness(true);
   t.after(() => h.dom.window.close());
   const header = 'anno_accademico,livello,settimana,brano_id\n';
@@ -454,7 +459,6 @@ test('invalid CSV cannot replace a saved program: weekly limit, duplicates, year
   let confirmations = 0;
   h.window.confirm = () => { confirmations += 1; return true; };
   for (const rows of [
-    ['001', '002', '003', '004', '005', '006'].map((id) => `2026/2027,BASE,1,${id}`).join('\n'),
     '2026/2027,BASE,1,001\n2026/2027,BASE,2,001',
     '2026/2027,BASE,1,001\n2027/2028,BASE,1,002',
     '2026/2027,BASE,1,999',

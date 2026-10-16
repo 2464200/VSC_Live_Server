@@ -2,7 +2,6 @@
   'use strict';
 
   const PROGRAM_FILES_API = '/api/bordero/course-program/files';
-  const MAX_WEEKLY_CHOREOGRAPHIES = 5;
 
   class ChoreoCoursePage {
     constructor() {
@@ -660,8 +659,6 @@
       }
       const duplicate = records.find((record) => record.id !== editingId && String(record.branoId) === String(branoId) && record.level === level);
       if (duplicate) return this.setStatus('course-record-status', 'Questa coreografia è già presente nel programma di questo livello. Modifica la settimana esistente.', true);
-      const atWeek = records.filter((record) => record.id !== editingId && Number(record.week) === week && record.level === level);
-      if (atWeek.length >= MAX_WEEKLY_CHOREOGRAPHIES) return this.setStatus('course-record-status', `La settimana ${week} per ${this.formatLevel(level)} ha già raggiunto il limite di cinque coreografie.`, true);
       const song = this.findSong(branoId);
       const existing = records.find((item) => item.id === editingId);
       if (!song && (!existing || String(existing.branoId) !== String(branoId))) {
@@ -742,13 +739,8 @@
         const seasonInfo = rows[0].year;
         const seasonId = seasonInfo.id;
         const label = seasonInfo.label;
-        const counts = new Map();
         const duplicateIds = new Set();
         const records = rows.map((row) => {
-          const key = `${row.level}|${row.week}`;
-          const count = (counts.get(key) || 0) + 1;
-          counts.set(key, count);
-          if (count > MAX_WEEKLY_CHOREOGRAPHIES) throw new Error(`Settimana ${row.week}, ${this.formatLevel(row.level)}: il limite è cinque coreografie.`);
           const uniqueKey = `${row.level}|${row.branoId}`;
           if (duplicateIds.has(uniqueKey)) throw new Error(`Il brano ${row.branoId} è ripetuto per ${this.formatLevel(row.level)}.`);
           duplicateIds.add(uniqueKey);
