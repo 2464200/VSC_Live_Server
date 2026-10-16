@@ -2,6 +2,7 @@
   const defaultBannerText = "la serata inizierà a breve";
   const defaultTextStorageKey = "userform-servizio-default-text";
   const textStorageKey = "userform-servizio-input";
+  const textSizeStorageKey = "userform-servizio-text-size";
   const slideshowDatabaseName = "userform-servizio-presentations";
   const slideshowStoreName = "presentations";
   const slideshowDraftId = "draft";
@@ -229,17 +230,26 @@
     }
   }
 
-  function fitPublishedText(text) {
+  function fitPublishedText() {
     const node = document.getElementById("published-message");
-    if (!node) return;
-    const availableWidth = Math.max(320, window.innerWidth * 0.88);
-    const availableHeight = Math.max(240, window.innerHeight * 0.72);
-    const widthSize = availableWidth / Math.max(6, text.length * 0.58);
-    const heightSize = availableHeight / 1.2;
-    node.style.fontSize = `${Math.max(32, Math.min(150, widthSize, heightSize))}px`;
+    if (!node || node.hidden) return;
+    const availableWidth = node.clientWidth;
+    const availableHeight = node.parentElement.clientHeight * 0.9;
+    if (!availableWidth || !availableHeight) return;
+
+    // Misura il testo con gli a capo reali e cerca la dimensione massima nel riquadro.
+    let minimum = 1;
+    let maximum = availableHeight;
+    while (maximum - minimum > 0.5) {
+      const size = (minimum + maximum) / 2;
+      node.style.fontSize = `${size}px`;
+      if (node.scrollWidth <= availableWidth && node.scrollHeight <= availableHeight) minimum = size;
+      else maximum = size;
+    }
+    node.style.fontSize = `${minimum}px`;
   }
 
-  function showPublishedText(text) {
+  function showPublishedText(text, sizing = {}) {
     const message = document.getElementById("published-message");
     const image = document.getElementById("published-image");
     if (!message || !image) return;
@@ -247,8 +257,21 @@
     image.removeAttribute("src");
     message.hidden = false;
     message.textContent = text || defaultBannerText;
-    fitPublishedText(message.textContent);
-    window.addEventListener("resize", () => fitPublishedText(message.textContent));
+    const fontSizePt = Number(sizing.fontSizePt);
+    const manualSize = sizing.textSizeMode === "manual" && Number.isFinite(fontSizePt) && fontSizePt >= 1;
+    const updateSize = () => {
+      if (manualSize) message.style.fontSize = `${fontSizePt}pt`;
+      else fitPublishedText();
+    };
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(updateSize) : null;
+    observer?.observe(message.parentElement);
+    document.fonts?.ready.then(updateSize);
+    window.addEventListener("pagehide", () => {
+      window.removeEventListener("resize", updateSize);
+      observer?.disconnect();
+    }, { once: true });
   }
 
   function showPublishedLogo(id) {
@@ -402,7 +425,9 @@
     } else if (params.get("output") === "logo") {
       showPublishedLogo(params.get("id"));
     } else {
-      showPublishedText(params.get("text") || defaultBannerText);
+      showPublishedText(params.get("text") || defaultBannerText, {
+        textSizeMode: params.get("textSizeMode"), fontSizePt: params.get("fontSizePt"),
+      });
     }
   }
 
@@ -615,6 +640,9 @@
   function initializeOperator() {
     const messageInput = document.getElementById("service-message-input");
     const defaultMessageInput = document.getElementById("service-default-message");
+    const autoTextSizeInput = document.getElementById("service-text-size-auto");
+    const manualTextSizeInput = document.getElementById("service-text-size-manual");
+    const fontSizeInput = document.getElementById("service-font-size");
     const imageInput = document.getElementById("service-image-input");
     const dropzone = document.getElementById("service-dropzone");
     const previewWrap = document.getElementById("service-preview-wrap");
@@ -672,6 +700,31 @@
     defaultMessageInput.addEventListener("input", () => {
       writeStorage(defaultTextStorageKey, defaultMessageInput.value.trim() || defaultBannerText);
     });
+
+    try {
+      const savedSizing = JSON.parse(readStorage(textSizeStorageKey) || "null");
+      if (savedSizing?.textSizeMode === "manual") {
+        manualTextSizeInput.checked = true;
+        autoTextSizeInput.checked = false;
+      }
+      if (Number.isFinite(savedSizing?.fontSizePt) && savedSizing.fontSizePt >= 1) {
+        fontSizeInput.value = String(savedSizing.fontSizePt);
+      }
+    } catch {
+      // Impostazioni assenti o non leggibili: resta attivo l'adattamento automatico.
+    }
+    fontSizeInput.disabled = autoTextSizeInput.checked;
+    function saveTextSizing() {
+      fontSizeInput.disabled = autoTextSizeInput.checked;
+      if (!fontSizeInput.disabled && !fontSizeInput.checkValidity()) return;
+      writeStorage(textSizeStorageKey, JSON.stringify({
+        textSizeMode: autoTextSizeInput.checked ? "auto" : "manual",
+        fontSizePt: Number(fontSizeInput.value) || 72,
+      }));
+    }
+    autoTextSizeInput.addEventListener("change", saveTextSizing);
+    manualTextSizeInput.addEventListener("change", saveTextSizing);
+    fontSizeInput.addEventListener("input", saveTextSizing);
 
     function updateSlideshowSummary() {
       const cycleSeconds = slides.reduce((total, slide) => total + slide.durationSeconds, 0);
@@ -870,13 +923,22 @@
     }
 
     async function publishText() {
+      if (!autoTextSizeInput.checked && (!fontSizeInput.value || !fontSizeInput.checkValidity())) {
+        fontSizeInput.reportValidity();
+        setStatus("Inserisci una dimensione del font di almeno 1 punto, senza decimali.", "error");
+        return;
+      }
       const oneTimeText = messageInput.value.trim();
       const text = oneTimeText
         || defaultMessageInput.value.trim()
         || defaultBannerText;
       writeStorage(textStorageKey, oneTimeText);
       try {
-        const session = await openPublication("text", { text });
+        const session = await openPublication("text", {
+          text,
+          textSizeMode: autoTextSizeInput.checked ? "auto" : "manual",
+          fontSizePt: fontSizeInput.value,
+        });
         setPublicationActive(true, { output: "text", session });
         setStatus("Messaggio pubblicato sul monitor secondario.", "success");
       } catch (error) {

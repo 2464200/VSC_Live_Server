@@ -10,7 +10,7 @@
   <script defer src="../js/userform-page.js"></script>
   <script defer src="/node_modules/pako/dist/pako.min.js"></script>
   <script defer src="/node_modules/utif/UTIF.js"></script>
-  <script defer src="../js/servizio-actions.js"></script>
+  <script defer src="../js/servizio-actions.js?v=20261016-1"></script>
   <style>
     :root {
       --service-accent: #ff7f00;
@@ -190,6 +190,7 @@
 
     .service-text-input:focus,
     .service-default-input:focus,
+    .service-font-size-input:focus,
     .service-file-input:focus-visible {
       outline: 2px solid var(--service-accent-soft);
       outline-offset: 2px;
@@ -244,6 +245,47 @@
 
     .service-actions .btn-danger:hover {
       background: #a83329;
+    }
+
+    .service-text-actions,
+    .service-text-size-options {
+      align-items: center;
+    }
+
+    .service-text-size-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+    }
+
+    .service-text-size-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #e9e0d7;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .service-text-size-option input {
+      margin: 0;
+      accent-color: var(--service-accent);
+    }
+
+    .service-font-size-input {
+      width: 86px;
+      min-height: 40px;
+      padding: 6px 8px;
+      border: 1px solid #5b5045;
+      border-radius: 4px;
+      background: #171615;
+      color: var(--service-text);
+      font: inherit;
+      text-align: center;
+    }
+
+    .service-font-size-input:disabled {
+      opacity: 0.5;
     }
 
     .service-stop-row {
@@ -604,6 +646,8 @@
       width: 100%;
       height: 100%;
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
       place-items: center;
       padding: clamp(24px, 5vw, 80px);
       overflow: hidden;
@@ -615,7 +659,11 @@
     .service-presentation-content {
       width: 100%;
       height: 100%;
+      min-width: 0;
+      min-height: 0;
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
       place-items: center;
       overflow: hidden;
       border: 4px solid var(--service-accent);
@@ -626,13 +674,15 @@
     }
 
     .published-message {
-      width: min(90%, 1500px);
+      width: 90%;
+      min-width: 0;
       margin: 0;
       color: #fff;
       font-size: clamp(32px, 8vw, 150px);
       font-weight: 850;
       line-height: 1.08;
       text-align: center;
+      white-space: pre-wrap;
       overflow-wrap: anywhere;
       text-shadow: 0 0 24px rgba(255, 167, 55, 0.3);
     }
@@ -755,8 +805,19 @@
           <label class="service-label" for="service-default-message">Testo predefinito (salvato automaticamente)</label>
           <input id="service-default-message" class="service-default-input" type="text" maxlength="240" autocomplete="off" />
         </div>
-        <div class="service-actions">
+        <div class="service-actions service-text-actions">
           <button id="publish-text-btn" class="btn" type="button">Pubblica testo</button>
+          <div class="service-text-size-options" role="group" aria-label="Dimensione del testo a monitor">
+            <label class="service-text-size-option" for="service-text-size-auto">
+              <input id="service-text-size-auto" type="radio" name="service-text-size-mode" value="auto" checked />
+              Adatta automaticamente
+            </label>
+            <label class="service-text-size-option" for="service-text-size-manual">
+              <input id="service-text-size-manual" type="radio" name="service-text-size-mode" value="manual" />
+              Font (pt)
+            </label>
+            <input id="service-font-size" class="service-font-size-input" type="number" min="1" step="1" value="72" aria-label="Dimensione font in punti" required disabled />
+          </div>
         </div>
       </section>
 

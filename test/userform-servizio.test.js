@@ -98,6 +98,11 @@ async function run() {
   assert.equal(operator.document.getElementById('service-presentation').hidden, true);
   assert.equal(operator.document.getElementById('prev-form').getAttribute('href'), 'QRCODE.html');
   assert.equal(operator.document.getElementById('next-form').getAttribute('href'), 'PAGINA03.html');
+  const autoTextSize = operator.document.getElementById('service-text-size-auto');
+  const manualTextSize = operator.document.getElementById('service-text-size-manual');
+  const fontSizeInput = operator.document.getElementById('service-font-size');
+  assert.equal(autoTextSize.checked, true);
+  assert.equal(fontSizeInput.disabled, true);
 
   const defaultMessageInput = operator.document.getElementById('service-default-message');
   defaultMessageInput.value = 'Messaggio predefinito personalizzato';
@@ -112,20 +117,44 @@ async function run() {
   assert.equal(textRoute.searchParams.get('mode'), 'display');
   assert.equal(textRoute.searchParams.get('output'), 'text');
   assert.equal(textRoute.searchParams.get('text'), 'Messaggio predefinito personalizzato');
+  assert.equal(textRoute.searchParams.get('textSizeMode'), 'auto');
   assert.equal(operator.localStorage.getItem('userform-servizio-input'), '', 'A default publication must not replace the one-time message value.');
   assert.equal(operator.document.getElementById('stop-text-btn').classList.contains('is-publishing'), true);
 
   operator.document.getElementById('service-message-input').value = 'Messaggio valido solo questa volta';
-  operator.document.getElementById('publish-text-btn').click();
+  manualTextSize.click();
+  assert.equal(autoTextSize.checked, false);
+  assert.equal(fontSizeInput.disabled, false);
+  fontSizeInput.value = '96';
+  fontSizeInput.dispatchEvent(new operator.Event('input'));
+  operator.document.getElementById('service-message-input').dispatchEvent(new operator.KeyboardEvent('keydown', {
+    key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true,
+  }));
   await settle();
   const overrideRoute = new URL(routes[1], 'http://localhost:5500');
   assert.equal(overrideRoute.searchParams.get('text'), 'Messaggio valido solo questa volta');
+  assert.equal(overrideRoute.searchParams.get('textSizeMode'), 'manual');
+  assert.equal(overrideRoute.searchParams.get('fontSizePt'), '96');
+  for (const invalidSize of ['', '0', '-5', '1.5']) {
+    fontSizeInput.value = invalidSize;
+    operator.document.getElementById('publish-text-btn').click();
+    await settle();
+    assert.equal(routes.length, 2, 'Invalid manual font sizes must not open a publication.');
+    assert.equal(operator.document.getElementById('service-status').dataset.state, 'error');
+  }
+  fontSizeInput.value = '96';
 
   const reloadedDom = createPage('http://localhost:5500/USERFORM/pages/SERVIZIO.html');
   reloadedDom.window.localStorage.setItem('userform-servizio-default-text', operator.localStorage.getItem('userform-servizio-default-text'));
+  reloadedDom.window.localStorage.setItem('userform-servizio-text-size', operator.localStorage.getItem('userform-servizio-text-size'));
   reloadedDom.window.eval(actions);
   assert.equal(reloadedDom.window.document.getElementById('service-default-message').value, 'Messaggio predefinito personalizzato');
+  assert.equal(reloadedDom.window.document.getElementById('service-text-size-manual').checked, true);
+  assert.equal(reloadedDom.window.document.getElementById('service-font-size').value, '96');
+  assert.equal(reloadedDom.window.document.getElementById('service-font-size').disabled, false);
   reloadedDom.window.close();
+  autoTextSize.click();
+  assert.equal(fontSizeInput.disabled, true);
 
   const imageInput = operator.document.getElementById('service-image-input');
   const imageFile = new operator.File(['test-image'], 'logo.png', { type: 'image/png' });
@@ -211,6 +240,14 @@ async function run() {
   assert.equal(output.document.getElementById('service-operator').hidden, true);
   assert.equal(output.document.getElementById('service-presentation').hidden, false);
   assert.equal(output.document.getElementById('published-message').textContent, 'Prossimo ballo');
+
+  const manualDom = createPage(overrideRoute.href);
+  manualDom.window.eval(actions);
+  const manualMessage = manualDom.window.document.getElementById('published-message');
+  assert.equal(manualMessage.style.fontSize, '96pt');
+  manualDom.window.dispatchEvent(new manualDom.window.Event('resize'));
+  assert.equal(manualMessage.style.fontSize, '96pt', 'Resizing the monitor must preserve the chosen point size.');
+  manualDom.window.close();
 
   const logoDom = createPage('http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=logo&id=logo-1');
   const logoWindow = logoDom.window;
