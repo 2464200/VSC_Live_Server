@@ -441,6 +441,11 @@
   page-break-inside: avoid;
 }
 
+.print-document .letter-section {
+  box-sizing: border-box;
+  padding: 8mm 6mm 10mm;
+}
+
 .letter-heading {
   display: flex;
   align-items: baseline;
@@ -479,7 +484,7 @@
 .coreography-column-headings,
 .coreography-entry {
   display: grid;
-  grid-template-columns: var(--coreography-columns, 13mm minmax(0, 1fr) minmax(45mm, 1.35fr));
+  grid-template-columns: var(--coreography-columns, 10mm minmax(52mm, 3fr) minmax(9mm, .45fr));
   gap: 0;
 }
 
@@ -502,17 +507,13 @@
 
 .print-document.level-enabled .coreography-column-headings > span:nth-child(3),
 .coreography-level {
-  width: 22mm;
-  min-width: 22mm;
-  max-width: 22mm;
+  min-width: 0;
   box-sizing: border-box;
   padding: 1mm 2mm;
   border-left: 1px solid #bfc5ca;
   text-align: center;
   overflow-wrap: anywhere;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
+  white-space: normal;
 }
 
 .print-document.level-enabled .coreography-column-headings > span:nth-child(3) {
@@ -528,6 +529,7 @@
 .event-column-heading {
   min-width: 0;
   width: 100%;
+  box-sizing: border-box;
   padding: 1mm 1.5mm;
   border-right: 1px solid #bfc5ca;
   text-align: center;
@@ -535,7 +537,6 @@
 }
 
 .coreography-entry {
-  height: 6.5mm;
   min-height: 6.5mm;
   padding: 0.5mm 0;
   border-bottom: 1px solid #d9dde1;
@@ -568,7 +569,7 @@
   justify-content: center;
   color: #38434d;
   font-size: 7pt;
-  height: 6.5mm;
+  line-height: 1.15;
 }
 
 .coreography-week {
@@ -580,25 +581,23 @@
   border-left: 1px solid #bfc5ca;
   color: #38434d;
   font-size: 7pt;
-  white-space: nowrap;
-  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
 }
 
 .coreography-info-coreo {
   display: flex;
   align-items: center;
-  width: 30mm;
-  min-width: 30mm;
-  max-width: 30mm;
+  min-width: 0;
   box-sizing: border-box;
   padding: 1mm 2mm;
   border-left: 1px solid #bfc5ca;
   color: #38434d;
   font-size: 7pt;
   overflow-wrap: anywhere;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
+  white-space: normal;
+  line-height: 1.15;
 }
 
 .coreography-column-headings > span:nth-child(n+3) {
@@ -606,9 +605,8 @@
   padding: 1mm 2mm;
   border-left: 1px solid #bfc5ca;
   overflow-wrap: anywhere;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
+  min-width: 0;
+  white-space: normal;
 }
 
 .coreography-column-headings > span.coreography-week-heading {
@@ -660,14 +658,13 @@
 
 .coreography-title {
   margin: 0;
-  padding: 0 3mm;
+  padding: 0 1.5mm;
   color: #1f2933;
   font-size: 10pt;
   font-weight: 600;
   line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .coreography-entry .event-columns {
@@ -815,8 +812,7 @@
     overflow-x: auto;
   }
 
-  .print-document .cover,
-  .print-document .letter-section {
+  .print-document .cover {
     width: min(210mm, calc(100vw - 24px));
     min-height: auto;
     margin: 12px;
@@ -842,19 +838,9 @@
     grid-template-columns: 1fr;
   }
 
-  .coreography-column-headings,
-  .coreography-entry {
-    grid-template-columns: var(--coreography-mobile-columns, 13mm minmax(0, 1fr));
-  }
-
   .letter-section {
     break-inside: avoid;
     page-break-inside: avoid;
-  }
-
-  .coreography-column-headings .event-columns,
-  .coreography-entry .event-columns {
-    grid-column: 2 / -1;
   }
 }
 
