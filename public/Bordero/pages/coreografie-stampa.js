@@ -47,8 +47,8 @@ class CoreografieStampaPage {
 
   populateSettings() {
     const saved = this.persistedSettings;
-    const currentDate = saved?.date || this.serata.data || new Date().toISOString().split('T')[0];
-    document.getElementById('event-name').value = saved?.eventName || this.serata.evento || '';
+    const currentDate = saved?.date ?? this.serata.data ?? new Date().toISOString().split('T')[0];
+    document.getElementById('event-name').value = saved?.eventName ?? this.serata.evento ?? '';
     const djList = document.getElementById('event-djs');
     const currentDjs = Array.isArray(saved?.djs)
       ? saved.djs
@@ -64,7 +64,7 @@ class CoreografieStampaPage {
         <span>${this.escape(dj)}</span>
       </label>
     `).join('');
-    document.getElementById('event-place').value = saved?.place || this.serata.luogo || '';
+    document.getElementById('event-place').value = saved?.place ?? this.serata.luogo ?? '';
     document.getElementById('event-date').value = currentDate;
     const mode = String(saved?.eventMode || '1');
     const modeInput = document.querySelector(`input[name="eventMode"][value="${this.escape(mode)}"]`);
@@ -84,7 +84,7 @@ class CoreografieStampaPage {
     const labels = ['Evento singolo', 'Mattina', 'Pomeriggio', 'Sera', 'DJ SET'];
     document.getElementById('column-settings').innerHTML = Array.from({ length: count }, (_, index) => `
       <label class="field-label column-label" for="column-${index}">Colonna ${index + 1}
-        <input id="column-${index}" name="column-${index}" type="text" value="${this.escape(this.persistedSettings?.columnLabels?.[index] || labels[count === 1 ? 0 : index + 1])}" />
+        <input id="column-${index}" name="column-${index}" type="text" value="${this.escape(this.persistedSettings?.columnLabels?.[index] ?? labels[count === 1 ? 0 : index + 1])}" />
       </label>
     `).join('');
   }
@@ -251,18 +251,18 @@ class CoreografieStampaPage {
     documentNode.classList.toggle('info-coreo-1-enabled', this.settings.includeInfoCoreo1);
     documentNode.classList.toggle('info-coreo-2-enabled', this.settings.includeInfoCoreo2);
     const optionalColumns = [];
-    if (this.settings.includeLevel) optionalColumns.push('22mm');
-    if (this.settings.includeWeek) optionalColumns.push('14mm');
-    if (this.settings.includeInfoCoreo1) optionalColumns.push('30mm');
-    if (this.settings.includeInfoCoreo2) optionalColumns.push('30mm');
-    const columns = ['13mm', 'minmax(0, 1fr)', ...optionalColumns];
-    documentNode.style.setProperty('--coreography-columns', [...columns, 'minmax(45mm, 1.35fr)'].join(' '));
-    documentNode.style.setProperty('--coreography-mobile-columns', columns.join(' '));
+    if (this.settings.includeLevel) optionalColumns.push('minmax(17mm, .85fr)');
+    if (this.settings.includeWeek) optionalColumns.push('minmax(12mm, .55fr)');
+    if (this.settings.includeInfoCoreo1) optionalColumns.push('minmax(18mm, 1fr)');
+    if (this.settings.includeInfoCoreo2) optionalColumns.push('minmax(18mm, 1fr)');
+    const eventCount = this.getEventColumnCount(this.settings.eventMode);
+    const columns = ['10mm', 'minmax(52mm, 3fr)', ...optionalColumns];
+    documentNode.style.setProperty('--coreography-columns', [...columns, `minmax(${eventCount * 9}mm, ${eventCount * .45}fr)`].join(' '));
     documentNode.innerHTML = `
       ${cover}
       ${selectedGroups.filter(([, entries]) => entries.length).map(([initial, entries]) => this.renderGroup(initial, entries)).join('')}
     `;
-    this.fitLevelText();
+    this.paginatePrintRows();
 
     const duplexMessage = this.settings.duplex ? ' · fronte/retro selezionato nel documento' : '';
     const selectedLabel = settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`;
@@ -490,17 +490,64 @@ class CoreografieStampaPage {
     document.querySelector('.settings-layout').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  fitLevelText() {
-    if (!this.settings.includeLevel) return;
-
-    document.querySelectorAll('.coreography-level').forEach((cell) => {
-      let fontSize = 7;
-      cell.style.fontSize = `${fontSize}pt`;
-      while (cell.scrollWidth > cell.clientWidth && fontSize > 3) {
-        fontSize -= 0.25;
-        cell.style.fontSize = `${fontSize}pt`;
+  paginatePrintRows() {
+    const documentNode = document.getElementById('print-document');
+    const sections = [...documentNode.querySelectorAll('.letter-section')];
+    const groups = [];
+    for (const section of sections) {
+      if (!section.classList.contains('continuation-page')) {
+        groups.push({ template: section, rows: [] });
       }
-    });
+      groups[groups.length - 1].rows.push(...section.querySelectorAll('.coreography-entry:not(.empty-entry)'));
+    }
+
+    // Measure the same A4 geometry in preview and print, including wrapped cells.
+    const ruler = document.createElement('div');
+    ruler.style.height = '297mm';
+    documentNode.appendChild(ruler);
+    const pageHeight = ruler.getBoundingClientRect().height;
+    ruler.remove();
+    sections.forEach((section) => section.remove());
+    let printPage = this.settings.includeCover ? 2 : 1;
+
+    for (const { template, rows } of groups) {
+      let offset = 0;
+      let groupPage = 0;
+      while (offset < rows.length) {
+        const section = template.cloneNode(true);
+        const list = section.querySelector('.coreography-list');
+        list.replaceChildren();
+        section.querySelector('.page-number')?.remove();
+        section.classList.toggle('continuation-page', groupPage > 0);
+        const title = section.querySelector('.letter-heading h2');
+        title.querySelector('.continuation-label')?.remove();
+        if (groupPage > 0) {
+          title.insertAdjacentHTML('beforeend', `<small class="continuation-label">${this.pageWord(groupPage + 1)} pagina</small>`);
+        }
+        documentNode.appendChild(section);
+        let count = 0;
+        while (offset < rows.length && count < this.standardRowsPerPage) {
+          const row = rows[offset];
+          list.appendChild(row);
+          if (section.getBoundingClientRect().height > pageHeight - 1 && count > 0) {
+            row.remove();
+            break;
+          }
+          offset++;
+          count++;
+        }
+        section.querySelector('.letter-heading > span').textContent = `${count} di ${rows.length} coreografie`;
+        for (let filler = count; filler < this.standardRowsPerPage; filler++) {
+          list.insertAdjacentHTML('beforeend', this.renderEmptyEntry());
+          if (section.getBoundingClientRect().height > pageHeight - 1) {
+            list.lastElementChild.remove();
+            break;
+          }
+        }
+        section.insertAdjacentHTML('beforeend', this.pageNumberMarkup(printPage++));
+        groupPage++;
+      }
+    }
   }
 }
 
