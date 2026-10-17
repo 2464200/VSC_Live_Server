@@ -17,6 +17,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Sync Bordero and CSVs to public folder
+        run: npm run sync:public
       - name: Validate Firebase Hosting configuration and checkout
         run: node scripts/validate-firebase-hosting.js
         env:
