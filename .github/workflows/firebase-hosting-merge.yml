@@ -17,6 +17,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      # public-display/ è generata e ignorata da Git: deve esistere prima del preflight.
+      # sync:public sincronizza public/ e costruisce l'output hosting.public di firebase.json.
+      - name: Prepare Firebase Hosting output (public-display)
+        run: npm run sync:public
+        env:
+          DEPLOY_COMPARE_REF: origin/develop
       - name: Validate Firebase Hosting configuration and checkout
         run: node scripts/validate-firebase-hosting.js
         env:
