@@ -17,6 +17,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate Firebase Hosting output (sync:public)
+        run: npm run sync:public
+        env:
+          DEPLOY_COMPARE_REF: origin/develop
       - name: Validate Firebase Hosting configuration and checkout
         run: node scripts/validate-firebase-hosting.js
         env:
