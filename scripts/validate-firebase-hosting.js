@@ -60,7 +60,13 @@ function validateHosting() {
     publicDir.startsWith(`${repoRoot}${path.sep}`),
     'La directory Hosting è esterna alla repository.',
   );
-  requireValue(fs.existsSync(publicDir) && fs.statSync(publicDir).isDirectory(), 'La directory Hosting non esiste.');
+
+  // `sync:public` genera `public/` e poi `build-public-display` crea l'output finale.
+  // Il preflight deve verificare la directory realmente pubblicata dal workflow.
+  requireValue(
+    fs.existsSync(publicDir) && fs.statSync(publicDir).isDirectory(),
+    'La directory Hosting non esiste.',
+  );
   requireValue(fs.existsSync(path.join(publicDir, 'index.html')), 'Manca index.html nella directory Hosting.');
 
   const nodeEngine = packageJson.engines?.node || '';
