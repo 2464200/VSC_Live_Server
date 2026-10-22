@@ -237,6 +237,10 @@ function loadBraniFromSources() {
   };
 }
 
+function loadExtraBrani() {
+  return parseCsvRows(EXTRA_CSV_PATH, 'extra', { optional: true, skipLines: 1 }).rows;
+}
+
 function saveBraniJson(brani, jsonPath = BRANI_JSON_PATH) {
   const dataDir = path.dirname(jsonPath);
   if (!fs.existsSync(dataDir)) {
@@ -469,6 +473,7 @@ module.exports = {
   appendExtraBrano,
   updateExtraBrano,
   deleteExtraBrano,
+  loadExtraBrani,
   loadBraniFromSources,
   saveBraniJson,
   syncBraniJson,

@@ -27,7 +27,7 @@ const { getLocalConfigPath } = require('./config/local-config');
 const { createMachineUiPreferencesStore } = require('./config/machine-ui-preferences');
 const { createUiPreferencesRouter } = require('./Bordero/server/ui-preferences-routes');
 const { forwardVdjRequest, ensureVirtualDjRunning } = require('./vdj-proxy');
-const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
+const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, loadExtraBrani, EXTRA_CSV_NAME, ensureExtraCsvFile } = require('./Eventi/brani-utils');
 const { resolveDjAction } = require('./Eventi/dj-association');
 const { createActionPermissionsStore } = require('./Eventi/action-permissions');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
@@ -5055,6 +5055,14 @@ router.get('/brani', (req, res) => {
         res.json(brani);
     } catch (e) {
         res.status(500).json({ error: 'Impossibile leggere brani.json' });
+    }
+});
+
+router.get('/aggiuntive', (_req, res) => {
+    try {
+        res.json(loadExtraBrani());
+    } catch (error) {
+        res.status(500).json({ error: 'Impossibile leggere le coreografie aggiuntive' });
     }
 });
 

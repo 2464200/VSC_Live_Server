@@ -2,7 +2,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { syncBraniJson, syncBraniFromGoogle, appendExtraBrano, updateExtraBrano, deleteExtraBrano, EXTRA_CSV_NAME } = require('./brani-utils');
+const { syncBraniJson, syncBraniFromGoogle, appendExtraBrano, updateExtraBrano, deleteExtraBrano, loadExtraBrani, EXTRA_CSV_NAME } = require('./brani-utils');
 const { projectConfig } = require('../config/config');
 const { resolveDjAction } = require('./dj-association');
 const { createActionPermissionsStore } = require('./action-permissions');
@@ -81,6 +81,14 @@ router.get('/brani', (req, res) => {
     res.json(brani);
   } catch (e) {
     res.status(500).json({ error: 'Impossibile leggere brani.json' });
+  }
+});
+
+router.get('/aggiuntive', (_req, res) => {
+  try {
+    res.json(loadExtraBrani());
+  } catch (e) {
+    res.status(500).json({ error: 'Impossibile leggere le coreografie aggiuntive' });
   }
 });
 

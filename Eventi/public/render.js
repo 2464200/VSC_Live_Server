@@ -73,6 +73,13 @@ function updateStatusInfo() {
 function renderRows(container, brani, opts = {}) {
   container.innerHTML = '';
 
+  const djColors = new Map();
+  if (opts.filtro === 'prenotati') {
+    const djNames = [...new Set((renderState.allBrani || []).map(item => String(item.dj || '').trim()).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+    djNames.forEach((dj, index) => djColors.set(dj, `hsl(${(index * 137.508) % 360} 62% 94%)`));
+  }
+
   if (!brani || brani.length === 0) {
     showListaMessage(container, renderState.query ? 'Nessun risultato per la ricerca corrente.' : 'Nessuna coreografia da visualizzare in questa vista.');
     return;
@@ -82,6 +89,11 @@ function renderRows(container, brani, opts = {}) {
     const row = document.createElement('div');
     row.className = `riga-brano ${item.stato}`.trim();
     row.dataset.branoId = item.id;
+    const djColor = djColors.get(String(item.dj || '').trim());
+    if (djColor) {
+      row.classList.add('dj-colored-row');
+      row.style.setProperty('--dj-row-background', djColor);
+    }
 
     let checkboxHtml = '';
     if (item.stato === 'prenotato') {

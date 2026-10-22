@@ -157,6 +157,7 @@ function getDJLocal() {
 const pageState = {
   allBrani: [],
   summaryBrani: [],
+  extraBrani: [],
   visibleBrani: [],
   log: [],
   eventName: '',
@@ -443,11 +444,16 @@ function renderSummaryCards(summary) {
   const container = document.getElementById('summary-cards');
   if (!container) return;
 
+  const richiesti = pageState.summaryBrani.filter(brano => EventiState.isRequested(brano.richieste)).length;
+  const aggiuntive = pageState.extraBrani.length;
+
   container.innerHTML = `
     <div class="summary-card is-primary"><div class="summary-label">Totale</div><div class="summary-value">${summary.totale}</div></div>
     <div class="summary-card"><div class="summary-label">Disponibili</div><div class="summary-value">${summary.disponibile}</div></div>
     <div class="summary-card is-accent"><div class="summary-label">Prenotati</div><div class="summary-value">${summary.prenotato}</div></div>
     <div class="summary-card is-success"><div class="summary-label">Eseguiti</div><div class="summary-value">${summary.eseguito}</div></div>
+    <div class="summary-card is-requested"><div class="summary-label">Richiesti</div><div class="summary-value">${richiesti}</div></div>
+    <div class="summary-card is-extra"><div class="summary-label">Aggiuntive</div><div class="summary-value">${aggiuntive}</div></div>
   `;
 }
 
@@ -456,7 +462,68 @@ function updateStatusInfo() {
   if (lastUpdate) {
     lastUpdate.textContent = `Ultimo aggiornamento: ${EventiState.getLastUpdateLabel(pageState.log)}`;
   }
+  const requestedButton = document.querySelector('.requested-nav-button');
+  if (requestedButton) {
+    const hasRequests = pageState.summaryBrani.some(brano => EventiState.isRequested(brano.richieste));
+    requestedButton.classList.toggle('has-requests', hasRequests);
+    requestedButton.setAttribute('aria-disabled', String(!hasRequests));
+    requestedButton.tabIndex = hasRequests ? 0 : -1;
+  }
   renderSummaryCards(EventiState.summarizeBrani(pageState.summaryBrani));
+}
+
+function parseExtraBraniCsv(csvText) {
+  const lines = String(csvText || '').replace(/^\uFEFF/, '').split(/\r?\n/).slice(1);
+  const sample = lines.find(line => line.trim()) || '';
+  const delimiter = sample.includes(';') && !sample.includes(',') ? ';' : ',';
+
+  return lines.map((line) => {
+    const columns = [];
+    let value = '';
+    let insideQuotes = false;
+    for (let index = 0; index < line.length; index += 1) {
+      const character = line[index];
+      if (character === '"') {
+        if (insideQuotes && line[index + 1] === '"') {
+          value += '"';
+          index += 1;
+        } else {
+          insideQuotes = !insideQuotes;
+        }
+      } else if (character === delimiter && !insideQuotes) {
+        columns.push(value.trim());
+        value = '';
+      } else {
+        value += character;
+      }
+    }
+    columns.push(value.trim());
+    return { id: columns[2] || '', titolo: columns[3] || '' };
+  }).filter(item => item.id && item.titolo);
+}
+
+async function loadEventExtraBrani() {
+  const apiUrl = `${window.location.origin}/eventi/api/aggiuntive?ts=${Date.now()}`;
+  try {
+    const response = await fetch(apiUrl, { cache: 'no-store' });
+    if (response.ok) {
+      const extraBrani = await response.json();
+      if (Array.isArray(extraBrani)) return extraBrani;
+    }
+  } catch (error) {
+    console.warn('API delle coreografie aggiuntive non raggiungibile; uso il CSV pubblicato.', error.message);
+  }
+
+  const csvPaths = ['/Eventi/Coreografie_Aggiuntive.csv', '/eventi/Coreografie_Aggiuntive.csv'];
+  for (const path of csvPaths) {
+    try {
+      const response = await fetch(`${window.location.origin}${path}?ts=${Date.now()}`, { cache: 'no-store' });
+      if (response.ok) return parseExtraBraniCsv(await response.text());
+    } catch (error) {
+      console.warn('CSV delle coreografie aggiuntive non raggiungibile su', path, error.message);
+    }
+  }
+  throw new Error('Impossibile caricare le coreografie aggiuntive');
 }
 
 function prepareNextBranoSearch() {
@@ -491,7 +558,7 @@ function renderRows(brani) {
     row.className = 'riga-brano';
     row.dataset.branoId = brano.id;
     const requestedBadge = EventiState.isRequested(brano.richieste)
-      ? `<span class="requested-pill" title="${brano.richieste} richieste dalla lista canonica">📌 PRENOTATO</span>`
+      ? `<span class="requested-pill" title="${brano.richieste} richieste dalla lista canonica">📌 RICHIESTO</span>`
       : '';
     row.innerHTML = `
       <span class="stato-stack"><span class="stato-pill">disponibile</span>${requestedBadge}</span>
@@ -568,17 +635,19 @@ async function caricaDJList() {
 }
 
 async function refreshPageData() {
-  const [brani, log, eventMeta] = await Promise.all([
+  const [brani, log, eventMeta, extraBrani] = await Promise.all([
     fetchJSON(`/brani?ts=${Date.now()}`),
     fetchJSON(`/log?ts=${Date.now()}`),
-    fetchEventMetaSafe()
+    fetchEventMetaSafe(),
+    loadEventExtraBrani()
   ]);
 
-  if (!Array.isArray(brani) || !Array.isArray(log)) {
+  if (!Array.isArray(brani) || !Array.isArray(log) || !Array.isArray(extraBrani)) {
     throw new Error('Dati API non validi');
   }
 
   pageState.log = log;
+  pageState.extraBrani = extraBrani;
   const decorated = EventiState.decorateBrani(brani, EventiState.buildLastStateMap(log));
   pageState.summaryBrani = decorated;
   pageState.allBrani = EventiState.filterBrani(decorated, 'disponibili');
