@@ -66,6 +66,9 @@ class CoreografieStampaPage {
     `).join('');
     document.getElementById('event-place').value = saved?.place || this.serata.luogo || '';
     document.getElementById('event-date').value = currentDate;
+    const printOrder = String(saved?.printOrder || 'alphabetical');
+    const printOrderInput = document.querySelector(`input[name="printOrder"][value="${this.escape(printOrder)}"]`);
+    if (printOrderInput) printOrderInput.checked = true;
     const mode = String(saved?.eventMode || '1');
     const modeInput = document.querySelector(`input[name="eventMode"][value="${this.escape(mode)}"]`);
     if (modeInput) modeInput.checked = true;
@@ -160,6 +163,7 @@ class CoreografieStampaPage {
       djs: selectedDjs.join(', '),
       place: String(formData.get('place') || '').trim(),
       date: String(formData.get('date') || ''),
+      printOrder: String(formData.get('printOrder') || 'alphabetical'),
       columnLabels: Array.from({ length: count }, (_, index) => String(formData.get(`column-${index}`) || '').trim()),
       letterFilter: String(formData.get('letterFilter') || 'ALL'),
       levelFilters: document.getElementById('level-filter-all').checked
@@ -214,9 +218,12 @@ class CoreografieStampaPage {
   render() {
     const documentNode = document.getElementById('print-document');
     const settings = this.settings;
-    const groups = this.groupByInitial(this.filterBraniByLevel(this.brani, settings.levelFilters));
+    const filteredBrani = this.filterBraniByLevel(this.brani, settings.levelFilters);
+    const groups = settings.printOrder === 'level'
+      ? this.groupByLevel(filteredBrani)
+      : this.groupByInitial(filteredBrani);
     const selectedGroups = Object.entries(groups)
-      .filter(([initial]) => settings.letterFilter === 'ALL' || initial === settings.letterFilter);
+      .filter(([initial]) => settings.printOrder === 'level' || settings.letterFilter === 'ALL' || initial === settings.letterFilter);
     const groupCount = Object.values(groups).filter((entries) => entries.length).length;
     const selectedCount = selectedGroups.reduce((total, [, entries]) => total + entries.length, 0);
     const eventName = this.escape(settings.eventName || 'Evento Monster Country Group');
@@ -226,7 +233,7 @@ class CoreografieStampaPage {
       <section class="cover" aria-label="Copertina">
         <img class="cover-logo" src="../../MonsterCountryGroup_grey.png" alt="Monster Country Group" />
         <div class="cover-event">
-          <div class="cover-event-label">Elenco Alfabetico Coreografie dell'Evento</div>
+          <div class="cover-event-label">${settings.printOrder === 'level' ? 'Elenco per Livello' : 'Elenco Alfabetico'} Coreografie dell'Evento</div>
           <h1 class="cover-event-name">${eventName}</h1>
           <div class="cover-event-date"><span>${eventDate}</span><span class="cover-event-time">dalle ore&nbsp;&nbsp; ___ : ___ &nbsp;&nbsp;alle ore&nbsp;&nbsp; ___ : ___</span></div>
           <div class="cover-event-detail">DJ: ${this.escape(settings.djs || 'Nessun DJ selezionato')}</div>
@@ -251,12 +258,12 @@ class CoreografieStampaPage {
     documentNode.classList.toggle('info-coreo-1-enabled', this.settings.includeInfoCoreo1);
     documentNode.classList.toggle('info-coreo-2-enabled', this.settings.includeInfoCoreo2);
     const optionalColumns = [];
-    if (this.settings.includeLevel) optionalColumns.push('22mm');
-    if (this.settings.includeWeek) optionalColumns.push('14mm');
-    if (this.settings.includeInfoCoreo1) optionalColumns.push('30mm');
-    if (this.settings.includeInfoCoreo2) optionalColumns.push('30mm');
-    const columns = ['13mm', 'minmax(0, 1fr)', ...optionalColumns];
-    documentNode.style.setProperty('--coreography-columns', [...columns, 'minmax(45mm, 1.35fr)'].join(' '));
+    if (this.settings.includeLevel) optionalColumns.push('16mm');
+    if (this.settings.includeWeek) optionalColumns.push('12mm');
+    if (this.settings.includeInfoCoreo1) optionalColumns.push('18mm');
+    if (this.settings.includeInfoCoreo2) optionalColumns.push('18mm');
+    const columns = ['11mm', 'minmax(0, 2.5fr)', ...optionalColumns];
+    documentNode.style.setProperty('--coreography-columns', [...columns, 'minmax(28mm, .6fr)'].join(' '));
     documentNode.style.setProperty('--coreography-mobile-columns', columns.join(' '));
     documentNode.innerHTML = `
       ${cover}
@@ -265,7 +272,9 @@ class CoreografieStampaPage {
     this.fitLevelText();
 
     const duplexMessage = this.settings.duplex ? ' · fronte/retro selezionato nel documento' : '';
-    const selectedLabel = settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`;
+    const selectedLabel = settings.printOrder === 'level'
+      ? `${groupCount} livelli`
+      : (settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`);
     document.getElementById('print-status').textContent = `${selectedCount} coreografie in ${selectedLabel}${duplexMessage}`;
   }
 
@@ -314,6 +323,31 @@ class CoreografieStampaPage {
 
     Object.values(groups).forEach(entries => entries.sort((a, b) => this.titleOf(a).localeCompare(this.titleOf(b), 'it', { sensitivity: 'base', numeric: true })));
     return groups;
+  }
+
+  groupByLevel(brani) {
+    const groups = {};
+    const seenTitles = new Set();
+    brani.filter(brano => brano && (brano.titolo || brano.coreografia)).forEach((brano) => {
+      if (this.isExcludedFromPrint(brano)) return;
+      const titleKey = String(brano.titolo || brano.coreografia).trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .toLocaleLowerCase('it-IT');
+      if (seenTitles.has(titleKey)) return;
+      seenTitles.add(titleKey);
+      const level = String(brano.info_livello || '').trim() || 'Senza livello';
+      if (!groups[level]) groups[level] = [];
+      groups[level].push(brano);
+    });
+    return Object.fromEntries(Object.entries(groups)
+      .sort(([first], [second]) => {
+        if (first === 'Senza livello') return 1;
+        if (second === 'Senza livello') return -1;
+        return first.localeCompare(second, 'it', { sensitivity: 'base', numeric: true });
+      })
+      .map(([level, entries]) => [level, entries.sort((a, b) => this.titleOf(a).localeCompare(this.titleOf(b), 'it', { sensitivity: 'base', numeric: true }))]));
   }
 
   isExcludedFromPrint(brano) {
