@@ -36,6 +36,14 @@
           <p>Compila i dati dell'evento e scegli come organizzare le colonne sul lato destro del foglio.</p>
         </div>
         <form id="print-settings-form">
+          <fieldset class="mode-fieldset">
+            <legend>Ordine di stampa</legend>
+            <div class="mode-options print-order-options">
+              <label><input type="radio" name="printOrder" value="alphabetical" checked /> Ordine alfabetico<span>Una sezione per iniziale</span></label>
+              <label><input type="radio" name="printOrder" value="level" /> Ordine di livello<span>Una sezione per livello</span></label>
+            </div>
+          </fieldset>
+
           <div class="settings-grid">
             <label class="field-label" for="event-name">Nome dell'evento<input id="event-name" name="eventName" type="text" required /></label>
             <fieldset class="dj-fieldset">
