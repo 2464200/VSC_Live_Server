@@ -8,6 +8,10 @@ param(
 )
 
 $PidFile = Join-Path $PSScriptRoot 'pids\startup-pids.json'
+$SupervisorStopFile = Join-Path $PSScriptRoot 'pids\stop-supervisor.flag'
+
+New-Item -ItemType Directory -Path (Split-Path -Parent $SupervisorStopFile) -Force | Out-Null
+Set-Content -LiteralPath $SupervisorStopFile -Value (Get-Date -Format o) -Encoding UTF8
 
 Write-Host ""
 Write-Host "========================================================"

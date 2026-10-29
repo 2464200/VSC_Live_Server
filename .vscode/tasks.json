@@ -2,31 +2,44 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Auto-startup all servers",
+      "label": "Auto-startup and supervise project",
       "type": "shell",
       "command": "powershell",
       "args": [
         "-NoProfile",
+        "-STA",
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\startup-retry.ps1",
-        "-NoMonitor"
+        "${workspaceFolder}\\scripts\\project-supervisor.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "isBackground": true,
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
-        "focus": true,
+        "focus": false,
         "clear": false,
         "showReuseMessage": false,
         "group": "startup"
       },
-      "problemMatcher": [],
+      "problemMatcher": {
+        "owner": "project-supervisor",
+        "pattern": {
+          "regexp": "^(NEVER_MATCH_PROJECT_SUPERVISOR_TASK_PATTERN)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": false,
+          "beginsPattern": "^\\[supervisor\\] Avvio verificato dei servizi del progetto\\.\\.\\.$",
+          "endsPattern": "^\\[supervisor\\] Servizi pronti; monitoraggio attivo\\.$"
+        }
+      },
       "runOptions": {
-        "runOn": "folderOpen"
+        "runOn": "folderOpen",
+        "instanceLimit": 1
       },
       "group": {
         "kind": "build",
