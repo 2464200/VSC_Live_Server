@@ -1,29 +1,80 @@
 {
-    "task.allowAutomaticTasks": "on",
-    "task.autoDetect": "off",
-    "task.problemMatchers.neverPrompt": true,
-    "task.quickOpen.showAll": true,
-    "liveServer.settings.port": 5503,
-    "liveServer.settings.host": "localhost",
-    "files.exclude": {
-        "**/.startup-pids.json": true,
-        "**/node_modules": true,
-        "**/.git": true,
-        "**/.vscode": false
+  "task.allowAutomaticTasks": "on",
+  "task.autoDetect": "off",
+  "task.problemMatchers.neverPrompt": true,
+  "task.quickOpen.showAll": true,
+  "liveServer.settings.port": 5503,
+  "liveServer.settings.host": "localhost",
+  "files.exclude": {
+    "**/.startup-pids.json": true,
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/.vscode": false
+  },
+  "chat.tools.terminal.autoApprove": {
+    "/^node --test --test-name-pattern=\"mantiene l’ordine dei livelli in ogni ciclo\" test/scaletta-generator\\.test\\.js$/": {
+      "approve": true,
+      "matchCommandLine": true
     },
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/.git": true,
-        "**/logs": true
-    },
-    "chat.tools.terminal.autoApprove": {
-        "/^node --test --test-name-pattern=\"mantiene l’ordine dei livelli in ogni ciclo\" test/scaletta-generator\\.test\\.js$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^node --test test/scaletta-generator\\.test\\.js$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
+    "/^node --test test/scaletta-generator\\.test\\.js$/": {
+      "approve": true,
+      "matchCommandLine": true
     }
+  },
+
+  "files.encoding": "utf8",
+  "files.autoSave": "off",
+
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "editor.wordWrap": "on",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.linkedEditing": true,
+  "editor.minimap.enabled": false,
+
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": false,
+
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+
+  "prettier.requireConfig": true,
+  "eslint.validate": ["javascript"],
+  "eslint.format.enable": false,
+
+  "html.validate.scripts": true,
+  "html.validate.styles": true,
+  "css.validate": true,
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/logs": true,
+    "**/.firebase": true,
+    "**/coverage": true
+  }
 }
