@@ -1,3 +1,10 @@
 {
-  "recommendations": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.powershell",
+    "ms-python.python",
+    "ritwickdey.liveserver",
+    "redhat.vscode-yaml"
+  ]
 }

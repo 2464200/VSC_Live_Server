@@ -73,7 +73,10 @@ function Start-ProcessSafe {
     $splat = @{ FilePath = $FilePath }
     if ($quotedArguments) { $splat['ArgumentList'] = $quotedArguments }
     if ($WorkingDirectory) { $splat['WorkingDirectory'] = $WorkingDirectory }
-    if ($WindowStyle) { $splat['WindowStyle'] = $WindowStyle }
+    # Start-Process rejects -WindowStyle when -NoNewWindow is also supplied.
+    # The project supervisor runs its startup child in the existing VS Code
+    # terminal, so preserve that console instead of silently failing startup.
+    if ($WindowStyle -and -not $NoNewWindow) { $splat['WindowStyle'] = $WindowStyle }
     if ($PassThru) { $splat['PassThru'] = $true }
     if ($Verb) { $splat['Verb'] = $Verb }
     if ($NoNewWindow) { $splat['NoNewWindow'] = $true }

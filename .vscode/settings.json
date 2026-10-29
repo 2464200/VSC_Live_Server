@@ -3,6 +3,8 @@
   "task.autoDetect": "off",
   "task.problemMatchers.neverPrompt": true,
   "task.quickOpen.showAll": true,
+  "git.enabled": true,
+  "git.autoRepositoryDetection": true,
   "liveServer.settings.port": 5503,
   "liveServer.settings.host": "localhost",
   "files.exclude": {
