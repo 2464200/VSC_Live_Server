@@ -38,10 +38,10 @@ Il sistema PDF Ã¨ integrato nel **unified-server.js** (porta 5500) avviato aut
 
 ## Viewer
 
-- **/pdf/pages/script-pdf-gestione.html**: pagina principale per gestione PDF, ricerca, filtri, cronologia e anteprima.
-- Il form `SCRIPT-PDF` nella griglia USERFORM apre direttamente la pagina canonica; non esiste una pagina launcher intermedia.
+- **/USERFORM/pages/SCRIPT-PDF.html**: pagina USERFORM principale per gestione PDF, ricerca, filtri, cronologia e anteprima.
+- Il vecchio URL `/pdf/pages/script-pdf-gestione.html` reindirizza alla pagina USERFORM.
 - I vecchi URL `/ScriptPDF1.html`, `/Prova/ScriptPDF1.html` e `/pdf/viewers/ScriptPDF1.html` restano compatibili.
-- La pagina canonica usa `pdf/assets/scriptpdf-workbench.css` e `pdf/assets/scriptpdf-workbench.js`.
+- La pagina usa gli asset condivisi `pdf/assets/scriptpdf-workbench.css` e `pdf/assets/scriptpdf-workbench.js`.
 - **pdf/viewers/pdf-viewer.html**: componente embed per visualizzazione.
 
 La pagina canonica gestisce selezione, ricerca, filtri, anteprima e cronologia locale. In Electron il pulsante apre il PDF in una finestra temporanea always-on-top sul monitor secondario, sopra DISPLAY; il pulsante Chiudi o ESC ripristina DISPLAY. Nei browser normali resta disponibile l'apertura tramite Acrobat/Chrome. La chiusura remota riguarda solo le sessioni esterne registrate come avviate da ScriptPDF.

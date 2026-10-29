@@ -16,7 +16,8 @@
     serverReady: false,
     loading: false,
     opening: false,
-    previewOpen: false
+    previewOpen: false,
+    secondaryPdfDisplayed: false
   };
 
   const nodes = {
@@ -110,6 +111,11 @@
     } else {
       delete nodes.message.dataset.state;
     }
+  }
+
+  function setSecondaryPdfDisplayed(displayed) {
+    state.secondaryPdfDisplayed = displayed;
+    body.dataset.pdfVisibleOnSecondary = String(displayed);
   }
 
   function normalizePath(filePath) {
@@ -420,6 +426,7 @@
       if (!result.success) {
         throw new Error(result.error || "Il sistema non ha confermato l'apertura del PDF.");
       }
+      setSecondaryPdfDisplayed(true);
       recordOpenedFile(file);
       setStatus(`${useElectronPdfOverlay ? "PDF mostrato su DISPLAY" : "PDF inviato al viewer"} · ${file.name}`, "ready");
       setMessage(
@@ -476,6 +483,7 @@
     }
     const activeViewers = viewers.filter((viewer) => viewer.alive);
     if (!activeViewers.length) {
+      setSecondaryPdfDisplayed(false);
       setMessage("Non risultano sessioni PDF gestite attive.", "info");
       return;
     }
@@ -490,6 +498,7 @@
       if (!result.success) {
         throw new Error(result.error || "Il server non ha confermato la chiusura.");
       }
+      setSecondaryPdfDisplayed(false);
       setMessage(`${activeViewers.length} sessioni PDF gestite chiuse.`, "success");
       await refreshOpenedViewers(false);
     } catch (error) {
@@ -508,6 +517,7 @@
       if (!result?.success) {
         throw new Error(result?.error || "Il DISPLAY non è stato ripristinato.");
       }
+      setSecondaryPdfDisplayed(false);
       setMessage("Viewer PDF chiuso. DISPLAY ripristinato.", "success");
     } catch (error) {
       setMessage(`Impossibile chiudere il viewer PDF: ${error.message}`, "error");

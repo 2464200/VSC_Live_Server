@@ -198,9 +198,8 @@ withTempRuntime(
     const userFormCollegamentiPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/COLLEGAMENTI.html')", sandbox);
     const legacyUserFormPagina06Entry = policyMap.get('/userform/pages/pagina06.html');
     const legacyUserFormPagina08Entry = policyMap.get('/userform/pages/pagina08.html');
-    const scriptPdfManagementPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/pages/script-pdf-gestione.html')", sandbox);
+    const scriptPdfManagementPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html')", sandbox);
     const removedScriptPdfPageEntry = policyMap.get('/pdf/pages/script-pdf-prova.html');
-    const removedUserFormScriptPdfEntry = policyMap.get('/userform/pages/script-pdf.html');
     const scriptPdfViewerPagePolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/pdf/viewers/pdf-viewer.html')", sandbox);
     const scriptPdfPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/ScriptPDF1.html')", sandbox);
     const scriptPdfTestPolicy = vm.runInContext("getMonitorPolicyForUrl('http://localhost:5500/Prova/ScriptPDF1.html')", sandbox);
@@ -230,13 +229,11 @@ withTempRuntime(
     assert(!legacyUserFormPagina06Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
     assert(!legacyUserFormPagina08Entry, 'The renamed USERFORM page must not retain its previous Electron route.');
     assert(!removedScriptPdfPageEntry, 'The deleted ScriptPDF test route must not remain in Electron policy.');
-    assert(!removedUserFormScriptPdfEntry, 'The deleted USERFORM ScriptPDF launcher route must not remain in Electron policy.');
     assert(scriptPdfManagementPolicy.primary === true && scriptPdfManagementPolicy.secondary === false, 'Canonical ScriptPDF management page must be routed to the primary monitor.');
-    assert(committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.primary === true && committedPagePolicy['/pdf/pages/script-pdf-gestione.html']?.secondary === false, 'Persisted policy must keep canonical ScriptPDF management on the primary monitor.');
+    assert(committedPagePolicy['/userform/pages/script-pdf.html']?.primary === true && committedPagePolicy['/userform/pages/script-pdf.html']?.secondary === false, 'Persisted policy must route USERFORM ScriptPDF management to the primary monitor.');
     assert(committedPagePolicy['/eventi/visualizer.html']?.primary === false && committedPagePolicy['/eventi/visualizer.html']?.secondary === true, 'Persisted policy must route Eventi visualizer to the secondary monitor.');
     assert(committedPagePolicy['/eventi/public/visualizer.html']?.primary === false && committedPagePolicy['/eventi/public/visualizer.html']?.secondary === true, 'Persisted policy must route the direct Eventi visualizer path to the secondary monitor.');
     assert(!Object.hasOwn(committedPagePolicy, '/pdf/pages/script-pdf-prova.html'), 'Persisted policy must not retain the deleted ScriptPDF test route.');
-    assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/script-pdf.html'), 'Persisted policy must not retain the deleted USERFORM launcher route.');
     assert(committedPagePolicy['/userform/pages/servizio.html']?.primary === true && committedPagePolicy['/userform/pages/servizio.html']?.secondary === false, 'Persisted policy must keep the SERVIZIO operator on the primary monitor.');
     assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/servizio-logo.html'), 'Persisted policy must not retain the separate logo page.');
     assert(!Object.hasOwn(committedPagePolicy, '/userform/pages/servizio-pubblica.html'), 'Persisted policy must not retain the separate publication page.');

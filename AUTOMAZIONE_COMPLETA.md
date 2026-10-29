@@ -27,7 +27,7 @@ Quando chiudi il progetto:
 ## URL principali
 - `http://localhost:5500/index.html`
 - `http://localhost:5500/diagnostica.html`
-- `http://localhost:5500/pdf/pages/script-pdf-gestione.html`
+- `http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html`
 - `http://localhost:5500/eventi/eventi.html`
 - `http://localhost:5500/eventi/visualizer.html`
 
@@ -91,5 +91,4 @@ Nel flusso standard serve solo:
 - `5500`
 
 Le vecchie porte `3000`, `3010` e `8765` sono legacy e non necessarie per l'uso normale del progetto.
-
 

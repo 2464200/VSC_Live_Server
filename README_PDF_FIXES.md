@@ -96,7 +96,7 @@ curl http://127.0.0.1:8765/api/pdf-list
 ```
 
 ### 3. Test Pagina
-- Apertura: `http://localhost:5500/pdf/pages/script-pdf-gestione.html`
+- Apertura: `http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html`
 - Dovrebbe mostare: "Server pronto - X PDF disponibili"
 - Se fallisce: Controlla console browser (F12 > Console)
 
@@ -151,6 +151,5 @@ curl http://127.0.0.1:8765/api/pdf-list
 
 **Data**: 9 Aprile 2026
 **Status**: âœ… STABILE E TESTATO
-
 
 

@@ -6,10 +6,12 @@ const { JSDOM } = require('jsdom');
 const root = path.join(__dirname, '..');
 const clientScript = fs.readFileSync(path.join(root, 'pdf', 'assets', 'scriptpdf-workbench.js'), 'utf8');
 const publicClientScript = fs.readFileSync(path.join(root, 'public', 'pdf', 'assets', 'scriptpdf-workbench.js'), 'utf8');
+const workbenchStyles = fs.readFileSync(path.join(root, 'pdf', 'assets', 'scriptpdf-workbench.css'), 'utf8');
+const publicWorkbenchStyles = fs.readFileSync(path.join(root, 'public', 'pdf', 'assets', 'scriptpdf-workbench.css'), 'utf8');
 const routes = [
   {
-    source: 'pdf/pages/script-pdf-gestione.html',
-    public: 'public/pdf/pages/script-pdf-gestione.html',
+    source: 'USERFORM/pages/SCRIPT-PDF.html',
+    public: 'public/USERFORM/pages/SCRIPT-PDF.html',
     mode: 'principale',
     retryCount: 1,
   },
@@ -112,6 +114,7 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
   await waitFor(() => window.document.getElementById('pdf-status').dataset.state !== 'loading', `${mode} server check`);
 
   const document = window.document;
+  assert.equal(document.body.dataset.pdfVisibleOnSecondary, undefined, 'CHIUDI should not blink before a PDF is opened on the secondary display.');
   assert.equal(document.body.dataset.scriptpdfMode, mode);
   assert.equal(document.getElementById('pdf-status').dataset.state, 'ready');
   assert.equal(document.getElementById('pdf-select').options.length, 2);
@@ -172,6 +175,7 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
     });
   }
   assert.equal(document.getElementById('pdf-message').dataset.state, 'success');
+  assert.equal(document.body.dataset.pdfVisibleOnSecondary, 'true', 'CHIUDI should enter its blinking state after a PDF is shown on the secondary display.');
   const history = JSON.parse(window.localStorage.getItem('scriptpdf.openHistory'));
   assert.equal(history.length, 1);
   assert.equal(history[0].path, 'C:\\VSC_SCRIPT_PDF\\02-secondo.pdf');
@@ -187,6 +191,7 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
     await settle();
     assert.equal(confirmCalls, 1, 'CHIUDI should request closure of browser-managed PDF viewers.');
     assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 0, 'Cancel leaves the PDF viewer open.');
+    assert.equal(document.body.dataset.pdfVisibleOnSecondary, 'true', 'Cancelling viewer closure should keep the attention state active.');
 
     document.getElementById('close-viewers').click();
     await settle();
@@ -199,11 +204,13 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
     assert.equal(confirmCalls, 3);
     assert.equal(requests.filter((item) => item.pathname === '/api/close-chrome').length, 1);
     assert.match(document.getElementById('pdf-message').textContent, /sessioni PDF gestite chiuse/i);
+    assert.equal(document.body.dataset.pdfVisibleOnSecondary, 'false', 'Closing browser-managed viewers should stop the attention state.');
   } else {
     document.getElementById('close-scriptpdf').click();
     await settle();
     assert.equal(restoreCalls, 1, 'CHIUDI should restore DISPLAY after closing the Electron PDF viewer.');
     assert.match(document.getElementById('pdf-message').textContent, /DISPLAY ripristinato/i);
+    assert.equal(document.body.dataset.pdfVisibleOnSecondary, 'false', 'Restoring DISPLAY should stop the attention state.');
   }
 
   pdfFiles = [];
@@ -221,6 +228,11 @@ async function runPage({ source, mode, retryCount }, electronMode = false) {
 
 async function run() {
   assert.equal(publicClientScript, clientScript, 'source and public workbench scripts should stay in sync.');
+  assert.equal(publicWorkbenchStyles, workbenchStyles, 'source and public workbench styles should stay in sync.');
+  assert.match(workbenchStyles, /body\[data-pdf-visible-on-secondary="true"\] \.pdf-scriptpdf-close:not\(:hover\):not\(:focus-visible\):not\(:active\)/);
+  assert.match(workbenchStyles, /pdf-close-attention 900ms ease-in-out infinite/);
+  assert.match(workbenchStyles, /prefers-reduced-motion:\s*reduce/);
+  assert.match(workbenchStyles, /\.pdf-scriptpdf-close\s*\{[^}]*background:\s*#dc2626/s);
   for (const route of routes) {
     const sourceHtml = fs.readFileSync(path.join(root, route.source), 'utf8');
     const publicHtml = fs.readFileSync(path.join(root, route.public), 'utf8');
@@ -233,15 +245,22 @@ async function run() {
     console.log('PASS: canonical page preserves PDF browsing and uses Electron overlay with browser fallback.');
   }
   const legacyAliases = [
-    ['pdf/viewers/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
-    ['Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
-    ['public/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
-    ['public/Prova/ScriptPDF1.html', '/pdf/pages/script-pdf-gestione.html'],
+    ['pdf/pages/script-pdf-gestione.html', '/USERFORM/pages/SCRIPT-PDF.html'],
+    ['public/pdf/pages/script-pdf-gestione.html', '/USERFORM/pages/SCRIPT-PDF.html'],
+    ['pdf/viewers/ScriptPDF1.html', '/USERFORM/pages/SCRIPT-PDF.html'],
+    ['Prova/ScriptPDF1.html', '/USERFORM/pages/SCRIPT-PDF.html'],
+    ['public/ScriptPDF1.html', '/USERFORM/pages/SCRIPT-PDF.html'],
+    ['public/Prova/ScriptPDF1.html', '/USERFORM/pages/SCRIPT-PDF.html'],
   ];
   for (const [aliasPath, canonicalRoute] of legacyAliases) {
     const alias = fs.readFileSync(path.join(root, aliasPath), 'utf8');
     assert.match(alias, new RegExp(canonicalRoute.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+  assert.equal(
+    fs.readFileSync(path.join(root, 'pdf/pages/script-pdf-gestione.html'), 'utf8'),
+    fs.readFileSync(path.join(root, 'public/pdf/pages/script-pdf-gestione.html'), 'utf8'),
+    'The PDF compatibility redirect should stay in sync with public/.',
+  );
   assert.equal(fs.existsSync(path.join(root, 'pdf/pages/script-pdf-prova.html')), false, 'The unused ScriptPDF test page should be removed.');
   assert.equal(fs.existsSync(path.join(root, 'public/pdf/pages/script-pdf-prova.html')), false, 'The unused public ScriptPDF test page should be removed.');
 
@@ -261,7 +280,13 @@ async function run() {
     },
   });
   let restoreCalls = 0;
-  viewerDom.window.document.getElementById('close-btn').click();
+  const viewerCloseButton = viewerDom.window.document.getElementById('close-btn');
+  const viewerStyles = [...viewerDom.window.document.querySelectorAll('style')]
+    .map((style) => style.textContent)
+    .join('\n');
+  assert.doesNotMatch(viewerStyles, /pdf-close-attention|animation:/, 'The PDF viewer close button should remain static.');
+  assert.match(viewerStyles, /background:\s*#dc2626/, 'The PDF viewer close button should keep its red color.');
+  viewerCloseButton.click();
   await settle();
   assert.equal(restoreCalls, 1, 'Closing the Electron PDF viewer should restore DISPLAY through the window manager.');
   viewerDom.window.close();

@@ -5,8 +5,9 @@ La documentazione operativa aggiornata è mantenuta in [pdf/README.md](pdf/READM
 
 ## Pagine canoniche
 
-- `/pdf/pages/script-pdf-gestione.html` — gestione principale di `C:\VSC_SCRIPT_PDF`, con ricerca, filtri, anteprima e cronologia.
-- La griglia di `USERFORM/index.html` apre direttamente `/pdf/pages/script-pdf-gestione.html` per il form `SCRIPT-PDF`; non c'è una pagina intermedia.
+- `/USERFORM/pages/SCRIPT-PDF.html` — gestione principale di `C:\VSC_SCRIPT_PDF`, con ricerca, filtri, anteprima e cronologia.
+- La griglia di `USERFORM/index.html` apre direttamente la pagina `SCRIPT-PDF` dentro `USERFORM/pages`.
+- Il vecchio percorso `/pdf/pages/script-pdf-gestione.html` resta disponibile come redirect compatibile.
 - La pagina di gestione resta sul monitor principale; il viewer del documento si apre temporaneamente sul monitor secondario, sopra DISPLAY.
 
 Gli URL storici `/ScriptPDF1.html`, `/Prova/ScriptPDF1.html` e

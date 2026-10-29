@@ -27,7 +27,7 @@ Oppure apri la cartella in VS Code e lascia partire il task automatico.
 ## URL corretti
 - Home: `http://localhost:5500/index.html`
 - Diagnostica: `http://localhost:5500/diagnostica.html`
-- PDF: `http://localhost:5500/pdf/pages/script-pdf-gestione.html`
+- PDF: `http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html`
 - Eventi: `http://localhost:5500/eventi/eventi.html`
 - Visualizer: `http://localhost:5500/eventi/visualizer.html`
 
@@ -45,6 +45,5 @@ node test-system.js
 1. verifica `http://localhost:5500/diagnostica.html`
 2. verifica `http://localhost:5500/eventi/api/ping`
 3. chiudi eventuali tab aperti su porte diverse da `5500`
-
 
 

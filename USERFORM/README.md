@@ -21,7 +21,7 @@ Development status:
 - COLLEGAMENTI: Google Forms/Sheets/Drive link hub with image previews.
 - PAGINA07: converted (webcam preview, rec timer, open last video flow).
 - SERVIZIO: one operator page for text and image publication; Electron renders the same page in `mode=display` on the secondary monitor.
-- SCRIPT-PDF: the USERFORM index opens the canonical `/pdf/pages/script-pdf-gestione.html` workbench directly; there is no intermediate page. The workbench stays on the primary monitor, while Electron opens PDFs in a temporary always-on-top viewer over DISPLAY and restores DISPLAY when it closes.
+- SCRIPT-PDF: the USERFORM index opens `/USERFORM/pages/SCRIPT-PDF.html` directly. The workbench stays on the primary monitor, while Electron opens PDFs in a temporary always-on-top viewer over DISPLAY and restores DISPLAY when it closes. `/pdf/pages/script-pdf-gestione.html` remains a compatibility redirect.
 - PAGINA09: converted (Bordero/Eventi bridge launchers).
 - PAGINA10: converted (DASH + UI timer controls with auto-start behavior).
 - PAGINA11: delegata alla pagina gia completa Bordero/pages/location.html (link bridge).

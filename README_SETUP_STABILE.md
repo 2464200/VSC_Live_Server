@@ -24,7 +24,7 @@ cd C:\VSC_Live_Server
 ## URL di riferimento
 - `http://localhost:5500/index.html`
 - `http://localhost:5500/diagnostica.html`
-- `http://localhost:5500/pdf/pages/script-pdf-gestione.html`
+- `http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html`
 - `http://localhost:5500/eventi/eventi.html`
 - `http://localhost:5500/eventi/visualizer.html`
 
@@ -65,6 +65,5 @@ Controlli attesi:
 
 ## Note
 Live Server puo' esistere come strumento editoriale, ma non rappresenta l'esecuzione corretta del progetto.
-
 
 

@@ -10,7 +10,7 @@ param(
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $serverScript = Join-Path $scriptPath "unified-server.js"
-$htmlUrl = "http://localhost:5500/pdf/pages/script-pdf-gestione.html"
+$htmlUrl = "http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html"
 
 # Verifica che Node.js sia installato
 try {

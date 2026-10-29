@@ -183,6 +183,10 @@
     "primary": true,
     "secondary": false
   },
+  "/userform/pages/script-pdf.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/pdf/pages/script-pdf-gestione.html": {
     "primary": true,
     "secondary": false

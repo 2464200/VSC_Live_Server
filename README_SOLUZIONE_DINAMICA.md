@@ -79,7 +79,7 @@ Default: Ascolta sulla **porta 8765**
 
 Tramite VSCode Live Server:
 ```
-http://localhost:5500/pdf/pages/script-pdf-gestione.html
+http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html
 ```
 
 Il sistema automaticamente:
@@ -250,6 +250,5 @@ e piÃ¹ facile da capire per chiunque dovrÃ  intervenire in futuro.
 **Data**: 20 Febbraio 2026  
 **Versione**: 2.0.0-dynamic  
 **Status**: âœ… LIVE
-
 
 

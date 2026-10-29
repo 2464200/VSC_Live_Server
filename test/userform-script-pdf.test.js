@@ -21,8 +21,8 @@ async function run() {
 
   const scriptPdfCard = [...window.document.querySelectorAll('.form-card')]
     .find((card) => card.querySelector('h3')?.textContent === 'SCRIPT-PDF');
-  assert.equal(scriptPdfCard?.querySelector('a')?.getAttribute('href'), '/pdf/pages/script-pdf-gestione.html');
-  assert.equal(fs.existsSync(path.join(root, 'USERFORM', 'pages', 'SCRIPT-PDF.html')), false, 'The intermediate USERFORM launcher page should be removed.');
+  assert.equal(scriptPdfCard?.querySelector('a')?.getAttribute('href'), '/USERFORM/pages/SCRIPT-PDF.html');
+  assert.equal(fs.existsSync(path.join(root, 'USERFORM', 'pages', 'SCRIPT-PDF.html')), true, 'SCRIPT-PDF should be a USERFORM page.');
 
   for (const [pageId, selector] of [['PAGINA07', '#next-form'], ['PAGINA09', '#prev-form']]) {
     const navDom = new JSDOM('<a id="prev-form"></a><a id="next-form"></a>', {
@@ -33,15 +33,15 @@ async function run() {
     navDom.window.eval(pageScript);
     assert.equal(
       navDom.window.document.querySelector(selector).getAttribute('href'),
-      '/pdf/pages/script-pdf-gestione.html',
-      `${pageId} navigation should point directly to canonical ScriptPDF management.`,
+      '/USERFORM/pages/SCRIPT-PDF.html',
+      `${pageId} navigation should point directly to the USERFORM ScriptPDF page.`,
     );
     navDom.window.close();
   }
 
   window.close();
-  console.log('PASS: USERFORM opens canonical ScriptPDF management directly from the form grid.');
-  console.log('PASS: Previous/next USERFORM links resolve SCRIPT-PDF directly to the canonical page.');
+  console.log('PASS: USERFORM opens its ScriptPDF page directly from the form grid.');
+  console.log('PASS: Previous/next USERFORM links resolve SCRIPT-PDF directly to its page.');
 }
 
 run().catch((error) => {

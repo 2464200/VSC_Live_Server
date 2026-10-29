@@ -20,9 +20,9 @@ Purpose: concise, actionable guidance so an AI helper can be productive immediat
 - `NextCoreo.csv` (root & `public/`) â€” used to show a single label (cell A1). Code strips BOMs and uses cache-busting query strings.
 
 **ScriptPDF routing**
-- USERFORM's `SCRIPT-PDF` entry opens `/pdf/pages/script-pdf-gestione.html` directly; there is no intermediate USERFORM launcher or separate trial page.
-- Keep the canonical management page on the primary monitor and `/pdf/viewers/pdf-viewer.html` on the secondary monitor in Electron's default policy, persisted policy, and both Bordero ADMIN copies.
-- Keep `pdf/pages/script-pdf-gestione.html` and its assets synchronized with `public/`; compatibility aliases should redirect only to the canonical page.
+- USERFORM's `SCRIPT-PDF` entry opens `/USERFORM/pages/SCRIPT-PDF.html` directly; do not add an intermediate launcher.
+- Keep the management page on the primary monitor and `/pdf/viewers/pdf-viewer.html` on the secondary monitor in Electron's default policy, persisted policy, and both Bordero ADMIN copies.
+- Keep `USERFORM/pages/SCRIPT-PDF.html`, the `/pdf/pages/script-pdf-gestione.html` compatibility redirect, and shared PDF assets synchronized with `public/`.
 
 **Project-specific conventions to preserve**
 - CSV parsing always skips the first 3 lines: do NOT remove `.slice(3)` unless you update every consumer.

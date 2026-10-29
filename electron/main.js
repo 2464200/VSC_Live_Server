@@ -89,6 +89,7 @@ const PAGE_POLICY = new Map([
   ['/eventi/tutti.html', { primary: true, secondary: false }],
   ['/eventi/visualizer.html', { primary: false, secondary: true }],
   ['/diagnostica.html', { primary: true, secondary: false }],
+  ['/USERFORM/pages/SCRIPT-PDF.html', { primary: true, secondary: false }],
   ['/pdf/pages/script-pdf-gestione.html', { primary: true, secondary: false }],
   ['/pdf/viewers/pdf-viewer.html', { primary: false, secondary: true }],
   ['/pdf/viewers/scriptpdf1.html', { primary: true, secondary: false }],
@@ -846,6 +847,15 @@ function closeTemporarySecondaryWindow() {
   applyWindowLayout();
 }
 
+function closeSecondaryPageOverlays() {
+  if (temporarySecondaryWindow) {
+    closeTemporarySecondaryWindow();
+  }
+  if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+    closeVideoPlayerWindow();
+  }
+}
+
 function isPersistentSecondaryPageUrl(candidateUrl) {
   return isDisplayPageUrl(candidateUrl);
 }
@@ -926,6 +936,7 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
 
   const absoluteTargetUrl = toAbsoluteAppUrl(targetUrl);
   const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
+  closeSecondaryPageOverlays();
 
   const result = {
     url: absoluteTargetUrl,
@@ -1037,6 +1048,7 @@ function enforceSecondaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.secondary && !policy.primary && isPersistentSecondaryPageUrl(url)) {
+      closeSecondaryPageOverlays();
       return;
     }
 
@@ -1081,6 +1093,7 @@ function enforcePrimaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.primary && !policy.secondary) {
+      closeSecondaryPageOverlays();
       ensureSecondaryDisplayPage().catch((error) => {
         console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
       });
@@ -1173,6 +1186,9 @@ function createVideoPlayerWindow() {
 
 async function ensureVideoPlayerWindow(payload = {}) {
   await ensureUnifiedServer();
+  if (temporarySecondaryWindow) {
+    closeTemporarySecondaryWindow();
+  }
   await ensureSecondaryDisplayPage();
 
   if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {

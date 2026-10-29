@@ -70,8 +70,10 @@ function loadElectronMainFor(tempDir) {
               this.fullScreen = Boolean(options.fullscreen);
               let currentUrl = options.url || '';
               this.zoomCalls = [];
+              const webContentsEvents = {};
               this.webContents = {
-                on() {},
+                events: webContentsEvents,
+                on(event, callback) { webContentsEvents[event] = callback; },
                 send() {},
                 getURL() { return currentUrl; },
                 loadURL(url) { currentUrl = url; return Promise.resolve(); },
@@ -456,6 +458,34 @@ test('QRCODE keeps operator navigation primary and opens a clean presentation on
     assert.equal(result.secondaryUpdated, true, 'A separate QRCODE presentation should open on the secondary monitor.');
     assert.equal(new URL(state.primary).searchParams.has('display'), false, 'The operator page should retain its navigation controls.');
     assert.equal(secondaryUrl.searchParams.get('display'), 'secondary', 'The secondary presentation should be explicitly marked.');
+
+    const primary = vm.runInContext('primaryWindow', sandbox);
+    let navigationPrevented = false;
+    primary.webContents.events['will-navigate'](
+      { preventDefault() { navigationPrevented = true; } },
+      'http://localhost:5500/USERFORM/pages/PAGINA04.html',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const afterNavigation = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow })', sandbox);
+    assert.equal(navigationPrevented, false, 'Primary-only navigation should continue in the primary window.');
+    assert.equal(afterNavigation.temporary, null, 'Navigating to another project page should close the QRCODE secondary page.');
+    assert.match(afterNavigation.secondary, /Bordero\/pages\/display\.html/i, 'The persistent DISPLAY page should remain loaded on the secondary monitor.');
+
+    await vm.runInContext("routeUrlByPolicy('http://localhost:5500/USERFORM/pages/QRCODE.html', 'test-qrcode-reopen');", sandbox);
+    const qrcodeWindow = vm.runInContext('temporarySecondaryWindow', sandbox);
+    await vm.runInContext('ensureVideoPlayerWindow({ url: "https://example.test/video.mp4" });', sandbox);
+    assert.equal(qrcodeWindow.isDestroyed(), true, 'Opening the video player should close the previous QRCODE secondary page.');
+    assert.equal(vm.runInContext('temporarySecondaryWindow', sandbox), null, 'The previous temporary page should not remain open behind video.');
+    const beforeVideoClose = vm.runInContext('videoPlayerWindow', sandbox);
+    assert.ok(beforeVideoClose && !beforeVideoClose.isDestroyed(), 'The video player should open on the secondary monitor.');
+    primary.webContents.events['will-navigate'](
+      { preventDefault() {} },
+      'http://localhost:5500/USERFORM/pages/PAGINA09.html',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const afterVideoNavigation = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), video: videoPlayerWindow })', sandbox);
+    assert.equal(afterVideoNavigation.video, null, 'Navigating to another project page should close the secondary video player.');
+    assert.match(afterVideoNavigation.secondary, /Bordero\/pages\/display\.html/i, 'Closing a secondary page must preserve DISPLAY.');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -475,19 +505,19 @@ test('ScriptPDF management stays primary while its PDF viewer overlays the persi
       dpiAutoScale: true,
     });
 
-    const result = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/pdf/pages/script-pdf-gestione.html', 'test-scriptpdf-route');", sandbox);
+    const result = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/USERFORM/pages/SCRIPT-PDF.html', 'test-scriptpdf-route');", sandbox);
     const state = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow?.webContents.getURL() || null, options: temporarySecondaryWindow?.options || null })', sandbox);
 
     assert.equal(result.primaryUpdated, true, 'ScriptPDF management should open on the primary monitor.');
     assert.equal(result.secondaryUpdated, true, 'The persistent Display should stay available on the secondary monitor.');
-    assert.match(state.primary, /pdf\/pages\/script-pdf-gestione\.html/i, 'The canonical ScriptPDF page should be primary.');
+    assert.match(state.primary, /USERFORM\/pages\/SCRIPT-PDF\.html/i, 'The ScriptPDF USERFORM page should be primary.');
     assert.match(state.secondary, /Bordero\/pages\/display\.html/i, 'Persistent Display should remain underneath the temporary page.');
     assert.equal(state.temporary, null, 'Opening ScriptPDF management should not create a temporary secondary window.');
 
     const pdfResult = await vm.runInContext("routeUrlByPolicy('http://localhost:5500/pdf/viewers/pdf-viewer.html?file=C%3A%5CVSC_SCRIPT_PDF%5Ctest.pdf&name=test.pdf', 'test-pdf-overlay');", sandbox);
     const pdfState = vm.runInContext('({ primary: primaryWindow.webContents.getURL(), secondary: secondaryWindow.webContents.getURL(), temporary: temporarySecondaryWindow.webContents.getURL(), options: temporarySecondaryWindow.options })', sandbox);
     assert.equal(pdfResult.secondaryUpdated, true, 'The PDF viewer should route to the managed secondary display.');
-    assert.match(pdfState.primary, /pdf\/pages\/script-pdf-gestione\.html/i, 'ScriptPDF management should remain open on the primary monitor.');
+    assert.match(pdfState.primary, /USERFORM\/pages\/SCRIPT-PDF\.html/i, 'ScriptPDF management should remain open on the primary monitor.');
     assert.match(pdfState.secondary, /Bordero\/pages\/display\.html/i, 'DISPLAY should remain underneath the PDF viewer.');
     assert.match(pdfState.temporary, /pdf\/viewers\/pdf-viewer\.html\?file=/i, 'The selected PDF should load in the temporary window.');
     assert.equal(pdfState.options.alwaysOnTop, true, 'The PDF viewer should remain above DISPLAY.');

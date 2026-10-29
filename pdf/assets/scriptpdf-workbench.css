@@ -570,6 +570,51 @@ select {
   background: #432927;
 }
 
+body[data-pdf-visible-on-secondary="true"] .pdf-scriptpdf-close:not(:hover):not(:focus-visible):not(:active) {
+  animation: pdf-close-attention 900ms ease-in-out infinite;
+}
+
+.pdf-scriptpdf-close {
+  border-color: #ff6b6b;
+  background: #dc2626;
+  color: #fff;
+}
+
+.pdf-scriptpdf-close:hover {
+  border-color: #ffd1d1;
+  background: #ef4444;
+  color: #fff;
+}
+
+.pdf-scriptpdf-close:active {
+  background: #b91c1c;
+}
+
+.pdf-scriptpdf-close:focus-visible {
+  outline: 3px solid #ffd1d1;
+  outline-offset: 3px;
+}
+
+@keyframes pdf-close-attention {
+  0%, 100% {
+    background: #dc2626;
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 0 rgba(255, 56, 56, 0.62);
+  }
+  50% {
+    background: #ff3030;
+    border-color: #ffd1d1;
+    box-shadow: 0 0 0 6px rgba(255, 56, 56, 0.34), 0 0 20px rgba(255, 56, 56, 0.72);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-pdf-visible-on-secondary="true"] .pdf-scriptpdf-close {
+    animation: none;
+    background: #dc2626;
+  }
+}
+
 .pdf-folder-path {
   display: flex;
   flex-wrap: wrap;
