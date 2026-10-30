@@ -51,6 +51,12 @@ async function harness(page = false) {
       }))
     };
     window.confirm = () => true;
+    window.eval(read('Bordero/js/course-archives.js'));
+    const archiveDialog = window.document.getElementById('archive-confirm-dialog');
+    if (archiveDialog) archiveDialog.showModal = function () {
+      this.open = true;
+      window.setTimeout(() => { this.returnValue = 'confirm'; this.dispatchEvent(new window.Event('close')); }, 0);
+    };
     window.eval(read('Bordero/pages/coreografie-corsi.js'));
     window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
     await tick();
@@ -410,6 +416,13 @@ test('CSV import creates and selects the correct season with leading-zero IDs; e
   h.window.choreoCoursePage.exportSeason();
   await importText(h, exported);
   assert.equal(h.store.getState().seasons[year].records.length, 2);
+  assert.equal(h.window.courseArchives.read().manualBackups.length, 1);
+  await h.store.saveSeason({ ...h.store.getState().seasons[year], records: [] });
+  h.window.choreoCoursePage.state = h.store.getState();
+  h.window.choreoCoursePage.renderArchiveMetadata();
+  h.window.document.getElementById('manual-backup-select').value = '0';
+  await h.window.choreoCoursePage.restoreManualBackup();
+  assert.equal(h.store.getState().seasons[year].records.length, 2, 'manual backup restores the pre-replacement program');
 });
 
 test('manual entries and CSV accept five choreographies per level/week and reject the sixth', async (t) => {
@@ -562,6 +575,56 @@ test('weekly choreography input accepts ID, full name and suggestions while savi
   assert.equal(h.store.getState().seasons[year].records[0].week, 2);
 });
 
+test('program page resolves ambiguous A+B fields explicitly, previews, and persists an independent archive', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  const manual = record('001');
+  await h.store.saveSeason(season([manual]));
+  await h.store.setActiveSeason(year);
+  page.state = h.store.getState();
+  page.render(year);
+  h.window.courseArchives.persistExternal({
+    valid: [{ id: 'external-1', sourceId: 'external-1', source: 'external', branoId: '001', title: 'Coreografia 001', course: 'Giovedì · ALZANO', level: 'BASE', week: 1, season: '2026/2027', instructor: 'Anna', raw: { registration: 'external' } }],
+    rejected: [], ambiguous: [], total: 1
+  });
+  page.compareArchives();
+  assert.equal(page.archiveComparisonRows.length, 1);
+  assert.equal(page.archiveComparisonRows[0].status, 'ambiguous');
+  const key = page.archiveComparisonRows[0].key;
+  h.window.document.querySelector(`[data-archive-resolution="${key}"]`).value = 'fields';
+  h.window.document.querySelectorAll(`[data-archive-field-choice="${key}"]`).forEach((select) => { select.value = 'external'; });
+  await page.buildUnifiedArchive();
+  const saveButton = h.window.document.querySelector('#archive-preview button.btn-primary');
+  assert.ok(saveButton, 'field decisions produce a reviewable save preview');
+  saveButton.click();
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  const unified = h.window.courseArchives.read().unified;
+  assert.equal(unified.records.length, 1);
+  assert.equal(unified.records[0].course, 'Giovedì · ALZANO');
+  assert.deepEqual(Array.from(unified.records[0].provenance), ['manual', 'external']);
+  assert.equal(h.store.getState().seasons[year].records[0].course, undefined, 'manual source remains unchanged');
+  assert.equal(h.window.courseArchives.read().external.records[0].course, 'Giovedì · ALZANO', 'external source remains unchanged');
+});
+
+test('Google import preview resolves unique choreography titles to catalog IDs and flags only duplicates', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  page.brani[1].titolo = 'Coreografia 001';
+  page.previewExternalCsv([
+    'Data registrazione,Insegnante,Settimana,Sede corso,Livello corso,Tipo attività,Livello coreografia,Coreografia',
+    '30/10/2026,Teacher,44 - Lun 26/10 – Dom 01/11/2026,Giovedì — 21:30 — ALZANO LOMBARDO,BASE,Coreografia spiegata,BASE,Coreografia 003',
+    '30/10/2026,Teacher,43 - Lun 19/10 – Dom 25/10/2026,Giovedì — 21:30 — ALZANO LOMBARDO,BASE,Coreografia spiegata,BASE,Coreografia 001'
+  ].join('\n'), 'test Google');
+  assert.equal(page.externalImportPreview.valid[0].branoId, '003');
+  assert.equal(page.externalImportPreview.valid[0].branoIdMatch, 'exact-title');
+  assert.equal(page.externalImportPreview.ambiguous.length, 1, JSON.stringify(page.externalImportPreview.ambiguous));
+  assert.match(page.externalImportPreview.ambiguous[0].reason, /associato a 2 ID/);
+  assert.match(h.window.document.getElementById('archive-preview').textContent, /003 · titolo univoco/);
+  assert.match(h.window.document.getElementById('archive-preview').textContent, /titolo ambiguo/);
+});
+
 test('unknown and ambiguous choreography text cannot be saved; choosing a suggestion resolves ambiguity', async (t) => {
   const h = await harness(true);
   t.after(() => h.dom.window.close());
@@ -688,7 +751,7 @@ test('switching seasons cancels editing so a record cannot be moved accidentally
 test('Bordero combines curriculum level/week with existing filters and resets when season changes', async (t) => {
   const h = await harness();
   t.after(() => h.dom.window.close());
-  h.window.document.body.innerHTML = '<select id="course-board-level"></select><select id="course-board-week"></select><span id="course-board-season"></span><p id="course-board-status"></p>';
+  h.window.document.body.innerHTML = '<select id="course-board-level"></select><select id="course-board-course"></select><select id="course-board-week"></select><span id="course-board-season"></span><p id="course-board-status"></p>';
   h.window.BORDERO_CONFIG = { LIVELLI: ['BASE', 'INTERMEDIO'], CACHE_KEY_CHOREO_LEVEL_SELECTION: 'selection' };
   const values = new Map();
   h.window.Storage = { get: (key, fallback) => values.get(key) || fallback, set: (key, value) => values.set(key, value) };

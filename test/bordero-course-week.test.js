@@ -46,7 +46,7 @@ async function harness(t) {
   window.eval([
     read('Bordero/js/config.js'), read('Bordero/js/utils.js'),
     'Toast.show = () => {};',
-    read('Bordero/js/title-visibility-utils.js'), read('Bordero/js/video-only-brani.js'),
+    read('Bordero/js/title-visibility-utils.js'), read('Bordero/js/video-only-brani.js'), read('Bordero/js/course-archives.js'),
     read('Bordero/pages/bordero.js')
   ].join('\n'));
   window.BorderoTableManager.prototype.init = () => {};
@@ -86,6 +86,116 @@ test('SETTIMANA is placed between INFO LIVELLO and INFO COREO 1 and derives only
   assert.equal(h.window.document.querySelector('[data-brano-id="001"] .col-settimana').textContent, '10');
   assert.deepEqual(h.visibleIds(), ['001', '002']);
   assert.deepEqual(Array.from(h.manager.getUniqueFieldValues('course_week')), ['10']);
+});
+
+test('SETTIMANA reads the selected external archive by exact ID, level and season without writing catalog records', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  window.courseArchives.persistExternal(window.courseArchives.validateCsv([
+    'brano_id,titolo,corso,livello,settimana,anno_accademico',
+    '001,Alpha,Salsa,BASE,38,2026/2027',
+    '001,Alpha,Salsa,BASE,41,2026/2027',
+    '001,Alpha,Salsa,INTERMEDIO,45,2026/2027',
+    '001,Alpha,Salsa,BASE,49,2025/2026'
+  ].join('\n')));
+  window.courseArchives.setActive('external');
+  manager.courseSelection = { seasonId: activeSeason, level: 'BASE', week: 53 };
+  const original = manager.allBrani.find((row) => row.id === '001');
+  manager.applyCourseWeeksToBrani();
+  assert.equal(original.course_week, '38, 41');
+  assert.equal(manager.allBrani.find((row) => row.id === '002').course_week, '');
+  assert.equal(manager.allBrani.find((row) => row.id === '001').info_livello, 'BASE');
+  manager.courseSelection.level = '';
+  manager.applyCourseWeeksToBrani();
+  assert.equal(original.course_week, '38, 41, 45');
+  assert.match(original.course_week_details, /Archivio esterno/);
+});
+
+test('external records without choreography IDs match only a unique exact catalog title', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  manager.courseSelection = { seasonId: activeSeason, level: 'BASE', week: 53 };
+  window.courseArchives.persistExternal({
+    valid: [{ id: 'ext-test', branoId: '', title: 'alpha', course: 'Salsa', level: 'BASE', week: 39, season: '2026/2027', source: 'external' }],
+    rejected: [], ambiguous: [], total: 1
+  });
+  window.courseArchives.setActive('external');
+  manager.applyCourseWeeksToBrani();
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '39');
+  assert.match(manager.allBrani.find((row) => row.id === '001').course_week_details, /titolo univoco/);
+  manager.allBrani.find((row) => row.id === '002').titolo = 'Alpha';
+  manager.applyCourseWeeksToBrani();
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '?');
+  assert.match(manager.allBrani.find((row) => row.id === '001').course_week_details, /più volte nel catalogo/);
+});
+
+test('external SETTIMANA stays within the selected course or venue', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  window.courseArchives.persistExternal({ valid: [
+    { id: 'external-a', branoId: '001', title: 'Alpha', course: 'Salsa · Bergamo', level: 'BASE', week: 38, season: '2026/2027', source: 'external' },
+    { id: 'external-b', branoId: '001', title: 'Alpha', course: 'Salsa · Alzano', level: 'BASE', week: 41, season: '2026/2027', source: 'external' }
+  ], rejected: [], ambiguous: [], total: 2 });
+  window.courseArchives.setActive('external');
+  manager.courseSelection = { seasonId: activeSeason, level: 'BASE', course: 'Salsa · Bergamo', week: 53 };
+  manager.applyCourseWeeksToBrani();
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '38');
+  manager.courseSelection.course = 'Salsa · Alzano';
+  manager.applyCourseWeeksToBrani();
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '41');
+  manager.courseSelection.course = '';
+  manager.applyCourseWeeksToBrani();
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '?');
+  assert.match(manager.allBrani.find((row) => row.id === '001').course_week_details, /seleziona corso \/ sede/i);
+});
+
+test('external archive uses its academic season when the manual program is on another season', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  h.setState({ activeSeason: '2025-2026', seasons: {
+    '2025-2026': { id: '2025-2026', label: '2025/2026', records: [] }
+  } });
+  window.courseArchives.persistExternal({ valid: [
+    { id: 'external-season', branoId: '001', title: 'Alpha', course: 'Salsa', level: 'BASE', week: 44, season: '2026/2027', source: 'external' }
+  ], rejected: [], ambiguous: [], total: 1 });
+  window.courseArchives.setActive('external');
+  manager.refreshCourseProgramFilter();
+  assert.equal(window.document.getElementById('course-board-season').textContent.includes('2026/2027'), true);
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '44');
+});
+
+test('activating an imported archive clears stale local level filters and shows its weeks', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  manager.courseSelection = { seasonId: activeSeason, archiveId: 'manual', level: 'BASE', course: '', week: 53 };
+  window.courseArchives.persistExternal({ valid: [
+    { id: 'week-43', branoId: '001', title: 'Alpha', course: 'Salsa · Bergamo', level: 'BASE', week: 43, season: '2026/2027', source: 'external' },
+    { id: 'week-44', branoId: '002', title: 'Bravo', course: 'Salsa · Alzano', level: 'INTERMEDIO', week: 44, season: '2026/2027', source: 'external' }
+  ], rejected: [], ambiguous: [], total: 2 });
+  manager.refreshCourseProgramFilter();
+  assert.equal(manager.courseSelection.archiveId, 'external');
+  assert.equal(manager.courseSelection.level, '');
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '43');
+  assert.equal(manager.allBrani.find((row) => row.id === '002').course_week, '44');
+});
+
+test('Registro Coreografie week values map through the confirmed academic season and unique title', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  manager.courseSelection = { seasonId: activeSeason, level: 'BASE', week: 53 };
+  const imported = window.courseArchives.validateCsv([
+    'Data registrazione,Insegnante,Settimana,Sede corso,Livello corso,Tipo attività,Livello coreografia,Coreografia',
+    '30/10/2026,Anna Beretta,44 - Lun 26/10 – Dom 01/11/2026,Giovedì — 21:30 — ALZANO LOMBARDO,BASE,Coreografia spiegata,BASE,Alpha'
+  ].join('\n'));
+  window.courseArchives.persistExternal(imported);
+  window.courseArchives.setActive('external');
+  manager.applyCourseWeeksToBrani();
+  const alpha = manager.allBrani.find((row) => row.id === '001');
+  assert.equal(alpha.course_week, '44');
+  assert.equal(alpha.course_weeks[0], 44);
+  assert.match(alpha.course_week_details, /Corrispondenza per titolo univoco/);
+  assert.match(alpha.course_week_details, /2026\/2027/);
+  assert.equal(alpha.info_livello, 'BASE');
 });
 
 test('week 53 is shown and included in curriculum level/week filters', async (t) => {

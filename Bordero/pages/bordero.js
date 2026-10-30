@@ -134,7 +134,9 @@ class BorderoTableManager {
     const store = window.choreoProgramStore;
     const level = document.getElementById('course-board-level');
     const week = document.getElementById('course-board-week');
-    if (!store || !level || !week || this.courseProgramFilterReady) return;
+    const course = document.getElementById('course-board-course');
+    const archiveSelect = document.getElementById('course-board-archive');
+    if (!store || !level || !week || !course || this.courseProgramFilterReady) return;
     this.courseProgramFilterReady = true;
     week.replaceChildren(...Array.from({ length: 53 }, (_, index) =>
       new Option(index === 52 ? '53 · Tutte le settimane' : String(index + 1), String(index + 1))));
@@ -145,12 +147,22 @@ class BorderoTableManager {
         week.reportValidity();
         return;
       }
-      this.courseSelection = { seasonId: store.getState().activeSeason, level: level.value, week: selectedWeek };
+      this.courseSelection = { seasonId: store.getState().activeSeason, archiveId: window.courseArchives?.getActive() || 'manual', level: level.value, course: course.value, week: selectedWeek };
       Storage.set(BORDERO_CONFIG.CACHE_KEY_CHOREO_LEVEL_SELECTION, this.courseSelection);
       this.refreshCourseProgramFilter();
     };
     level.addEventListener('change', updateSelection);
+    course.addEventListener('change', updateSelection);
     week.addEventListener('change', updateSelection);
+    if (archiveSelect && window.courseArchives) {
+      archiveSelect.value = window.courseArchives.getActive();
+      archiveSelect.addEventListener('change', () => {
+        window.courseArchives.setActive(archiveSelect.value);
+        this.refreshCourseProgramFilter();
+      });
+      window.addEventListener('bordero:course-archive-changed', () => this.refreshCourseProgramFilter());
+      window.addEventListener('bordero:course-archive-updated', () => this.refreshCourseProgramFilter());
+    }
     window.addEventListener('bordero:choreo-program-updated', () => this.refreshCourseProgramFilter());
     this.refreshCourseProgramFilter();
     store.load({ force: true }).then(() => this.refreshCourseProgramFilter());
@@ -159,26 +171,63 @@ class BorderoTableManager {
 
   refreshCourseProgramFilter() {
     const state = window.choreoProgramStore?.getState();
+    const archive = window.courseArchives?.getActive() || 'manual';
+    const archiveSelect = document.getElementById('course-board-archive');
+    if (archiveSelect) archiveSelect.value = archive;
     const level = document.getElementById('course-board-level');
+    const course = document.getElementById('course-board-course');
     const week = document.getElementById('course-board-week');
-    if (!state || !level || !week) return;
+    if (!state || !level || !week || !course) return;
     const season = state.seasons[state.activeSeason];
     if (!this.courseSelection || this.courseSelection.seasonId !== state.activeSeason) {
-      this.courseSelection = { seasonId: state.activeSeason, level: '', week: 53 };
+      this.courseSelection = { seasonId: state.activeSeason, archiveId: archive, level: '', course: '', week: 53 };
+    }
+    if (this.courseSelection.archiveId !== archive) {
+      this.courseSelection.archiveId = archive;
+      this.courseSelection.level = '';
+      this.courseSelection.course = '';
     }
     level.replaceChildren(new Option('Tutto il catalogo', ''));
     BORDERO_CONFIG.LIVELLI.forEach((value) => level.add(new Option(value, value)));
     level.value = this.courseSelection.level || '';
     this.courseSelection.level = level.value;
+    const isExternal = archive !== 'manual';
+    const currentRecords = isExternal ? window.courseArchives?.getRecords(archive, state) || [] : [];
+    const normalizeSeason = (value) => String(value || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+    const activeSeason = normalizeSeason(season?.label || state.activeSeason);
+    const archiveSeasons = [...new Set(currentRecords.map((record) => String(record.season || '').trim()).filter(Boolean))];
+    const rememberedArchiveSeason = this.courseSelection.archiveSeason;
+    const archiveSeason = isExternal
+      ? archiveSeasons.find((value) => normalizeSeason(value) === activeSeason)
+        || archiveSeasons.find((value) => normalizeSeason(value) === normalizeSeason(rememberedArchiveSeason))
+        || archiveSeasons.sort((a, b) => Number((b.match(/\d{4}/) || [0])[0]) - Number((a.match(/\d{4}/) || [0])[0]))[0]
+        || ''
+      : '';
+    if (isExternal) this.courseSelection.archiveSeason = archiveSeason;
+    const selectedSeason = normalizeSeason(archiveSeason);
+    const courseNames = [...new Set(currentRecords.filter((record) => record.course && record.level === level.value && normalizeSeason(record.season) === selectedSeason).map((record) => String(record.course).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
+    course.replaceChildren(new Option(isExternal ? 'Seleziona corso / sede' : 'Non applicabile all’archivio manuale', ''));
+    courseNames.forEach((value) => course.add(new Option(value, value)));
+    if (this.courseSelection.course && !courseNames.includes(this.courseSelection.course)) this.courseSelection.course = '';
+    if (isExternal && !this.courseSelection.course && courseNames.length === 1) this.courseSelection.course = courseNames[0];
+    course.value = this.courseSelection.course || '';
+    course.disabled = !isExternal || !level.value || courseNames.length === 0;
     week.value = Number.isInteger(this.courseSelection.week) && this.courseSelection.week >= 1 && this.courseSelection.week <= 53 ? this.courseSelection.week : 53;
     this.courseSelection.week = Number(week.value);
-    level.disabled = !season;
-    week.disabled = !season || !level.value;
-    document.getElementById('course-board-season').textContent = season ? `· ${season.label || season.id}` : '· Nessuna stagione attiva';
+    level.disabled = !season && !isExternal;
+    week.disabled = !(isExternal ? archiveSeason : season) || (!level.value && !isExternal) || (isExternal && level.value && courseNames.length > 1 && !course.value);
+    document.getElementById('course-board-season').textContent = isExternal
+      ? archiveSeason ? `· ${archiveSeason} · archivio ${archive}` : '· Nessuna stagione acquisita'
+      : season ? `· ${season.label || season.id}` : '· Nessuna stagione attiva';
     const ids = this.courseProgramTrackIds();
-    document.getElementById('course-board-status').textContent = !season
+    const externalRecords = archive === 'manual' ? null : window.courseArchives?.getRecords(archive, state) || [];
+    document.getElementById('course-board-status').textContent = archive !== 'manual' && !externalRecords?.length
+      ? `L’archivio ${archive === 'external' ? 'esterno' : 'unificato'} non contiene dati acquisiti.`
+      : !season && archive === 'manual'
       ? 'Crea un programma e imposta la stagione attiva dalla pagina Programma corsi.'
-      : ids ? `${ids.size} coreografie per ${level.value}, fino alla settimana ${week.value}. Gli altri filtri e la ricerca si applicano a questo elenco.`
+      : isExternal && level.value && courseNames.length > 1 && !course.value ? 'Seleziona il corso / la sede per distinguere le settimane.'
+      : isExternal && !level.value ? `Archivio ${archiveSeason}: le settimane sono visibili nella colonna SETTIMANA; seleziona un livello o corso per restringere il contesto.`
+      : ids ? `${ids.size} coreografie per ${level.value}, ${course.value || 'tutti i corsi'}, fino alla settimana ${week.value}. Gli altri filtri e la ricerca si applicano a questo elenco.`
         : 'Seleziona un livello per mostrare le coreografie insegnate fino alla settimana scelta.';
     Storage.set(BORDERO_CONFIG.CACHE_KEY_CHOREO_LEVEL_SELECTION, this.courseSelection);
     this.applyFilters();
@@ -187,6 +236,26 @@ class BorderoTableManager {
   courseProgramTrackIds() {
     if (!this.courseSelection?.level) return null;
     const state = window.choreoProgramStore?.getState();
+    if (window.courseArchives && window.courseArchives.getActive() !== 'manual') {
+      const archive = window.courseArchives.getActive();
+      const records = window.courseArchives.getRecords(archive, state);
+      const activeSeason = state?.seasons?.[state.activeSeason];
+      const expectedSeason = String(this.courseSelection.archiveSeason || activeSeason?.label || state?.activeSeason || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+      const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
+      const courses = new Set(records.filter((record) => record.course && record.level === this.courseSelection.level && String(record.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-') === expectedSeason).map((record) => String(record.course).trim()));
+      if (!this.courseSelection.course && courses.size > 1) return new Set();
+      const ids = new Set();
+      records.filter((record) => {
+        const recordSeason = String(record.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+        return Boolean(record.course && record.level === this.courseSelection.level && expectedSeason && recordSeason === expectedSeason && (!this.courseSelection.course || String(record.course).trim() === this.courseSelection.course)) && Number(record.week) <= this.courseSelection.week;
+      }).forEach((record) => {
+        if (record.branoId) { ids.add(String(record.branoId)); return; }
+        const title = normalizeTitle(record.title);
+        const matches = (this.allBrani || []).filter((brano) => normalizeTitle(brano.titolo || brano.coreografia || brano.brano) === title);
+        if (title && matches.length === 1) ids.add(String(matches[0].id));
+      });
+      return ids;
+    }
     const season = state?.seasons[state.activeSeason];
     if (!season) return null;
     return new Set(season.records
@@ -196,6 +265,64 @@ class BorderoTableManager {
 
   applyCourseWeeksToBrani() {
     const state = window.choreoProgramStore?.getState();
+    const archive = window.courseArchives?.getActive() || 'manual';
+    if (archive !== 'manual') {
+      const records = window.courseArchives.getRecords(archive, state);
+      const season = state?.seasons?.[state.activeSeason];
+      const expectedSeason = String(this.courseSelection?.archiveSeason || season?.label || state?.activeSeason || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+      const level = this.courseSelection?.level || '';
+      const byId = new Map();
+      const byTitle = new Map();
+      const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
+      const catalogTitleCounts = new Map();
+      for (const item of this.allBrani || []) {
+        const catalogTitle = normalizeTitle(item.titolo || item.coreografia || item.brano);
+        if (catalogTitle) catalogTitleCounts.set(catalogTitle, (catalogTitleCounts.get(catalogTitle) || 0) + 1);
+      }
+      for (const record of records) {
+        const id = String(record.branoId || '').trim();
+        if (id) {
+          if (!byId.has(id)) byId.set(id, []);
+          byId.get(id).push(record);
+        } else {
+          const recordTitle = normalizeTitle(record.title);
+          if (!recordTitle) continue;
+          if (!byTitle.has(recordTitle)) byTitle.set(recordTitle, []);
+          byTitle.get(recordTitle).push(record);
+        }
+      }
+      for (const brano of new Set([...(this.allBrani || []), ...(this.filteredBrani || [])])) {
+        const catalogTitle = normalizeTitle(brano.titolo || brano.coreografia || brano.brano);
+        const titleCandidates = byTitle.get(catalogTitle) || [];
+        const titleAmbiguous = titleCandidates.length > 0 && (catalogTitleCounts.get(catalogTitle) || 0) > 1;
+        const matches = [...(byId.get(String(brano.id)) || []), ...(titleAmbiguous ? [] : titleCandidates)];
+        const sameSeason = matches.filter((r) => {
+          const gotSeason = String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+          return Boolean(expectedSeason && gotSeason === expectedSeason);
+        });
+        const contextual = matches.filter((r) => {
+          const gotSeason = String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+          return Boolean(expectedSeason && gotSeason === expectedSeason && r.course && (!level || String(r.level || '') === level) && (!this.courseSelection?.course || String(r.course).trim() === this.courseSelection.course));
+        });
+        const matchingCourses = new Set(matches.filter((r) => String(r.level || '') === level && String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-') === expectedSeason && r.course).map((r) => String(r.course).trim()));
+        const courseAmbiguous = Boolean(level && !this.courseSelection?.course && matchingCourses.size > 1);
+        const missingContext = matches.some((r) => !r.season || !r.course || !r.level);
+        const weeks = courseAmbiguous ? [] : [...new Set(contextual.map((r) => Number(r.week)).filter((v) => Number.isInteger(v) && v >= 1 && v <= 53))].sort((a, b) => a - b);
+        brano.course_weeks = weeks;
+        brano.course_week = weeks.join(', ');
+        brano.course_week_details = weeks.length
+          ? `${archive === 'external' ? 'Archivio esterno' : 'Archivio unificato'} · ${level || 'tutti i livelli'}: ${contextual.map((r) => `${r.course || 'corso non specificato'} · ${r.level || 'livello mancante'} · settimana ${r.week}${r.season ? ` · ${r.season}` : ' · periodo mancante'}`).join('; ')}`
+          : matches.length && !level ? 'Seleziona il livello del corso per risolvere il contesto dell’archivio.'
+          : courseAmbiguous ? 'La coreografia risulta in più corsi o sedi: seleziona corso / sede per vedere le settimane.'
+          : titleAmbiguous ? 'Titolo presente più volte nel catalogo: nessuna settimana assegnata senza associazione manuale.'
+          : matches.length && missingContext ? 'Dati presenti ma incompleti: manca corso, livello o periodo.'
+            : matches.length ? 'Coreografia presente in altri periodi o contesti, ma non in quello selezionato.'
+              : records.length ? 'Coreografia non trovata nell’archivio e nel periodo selezionati.' : 'Archivio non acquisito o non disponibile.';
+        if (weeks.length && contextual.some((r) => !r.branoId)) brano.course_week_details = `Corrispondenza per titolo univoco · ${brano.course_week_details}`;
+        if (titleAmbiguous || courseAmbiguous || (matches.length && missingContext)) brano.course_week = '?';
+      }
+      return;
+    }
     const season = state?.seasons[state.activeSeason];
     const selectedLevel = this.courseSelection?.level || '';
     const assignments = new Map();

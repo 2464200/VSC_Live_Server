@@ -17,6 +17,7 @@
       this.recordsSeasonId = '';
       this.recordsFilter = { level: '', week: 53 };
       this.selectedCsv = null;
+      this.externalImportPreview = null;
       this.init();
     }
 
@@ -102,6 +103,7 @@
         });
       }
       document.getElementById('btn-sync-course-program').addEventListener('click', () => this.syncAll());
+      this.bindArchiveControls();
       document.getElementById('btn-pick-course-csv').addEventListener('click', () => this.pickCsv());
       document.getElementById('course-csv-file').addEventListener('change', (event) => {
         this.selectedCsv = null;
@@ -123,6 +125,312 @@
           this.renderSelectedSeason();
         });
       });
+    }
+
+    bindArchiveControls() {
+      const archives = window.courseArchives;
+      if (!archives) return;
+      const select = document.getElementById('course-archive-select');
+      select.value = archives.getActive();
+      select.addEventListener('change', () => {
+        archives.setActive(select.value);
+        this.renderArchiveMetadata();
+        this.renderSelectedSeason();
+      });
+      document.getElementById('btn-pick-external-csv').addEventListener('click', () => document.getElementById('external-csv-file').click());
+      document.getElementById('external-csv-file').addEventListener('change', async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const revision = this.externalRequestRevision = (this.externalRequestRevision || 0) + 1;
+        try {
+          const csv = await file.text();
+          if (revision !== this.externalRequestRevision) return;
+          this.previewExternalCsv(csv, `CSV: ${file.name}`);
+        }
+        catch (error) { this.setArchiveMessage(error.message, true); }
+        event.target.value = '';
+      });
+      document.getElementById('btn-read-external').addEventListener('click', async (event) => {
+        const button = event.currentTarget; button.disabled = true;
+        const revision = this.externalRequestRevision = (this.externalRequestRevision || 0) + 1;
+        this.setArchiveMessage('Lettura della fonte esterna in corso…');
+        try {
+          const csv = archives.externalPayloadToCsv(await archives.readExternal());
+          if (revision !== this.externalRequestRevision) return;
+          this.previewExternalCsv(csv, 'Foglio Google · Registrazioni');
+        }
+        catch (error) { this.setArchiveMessage(`${error.message} Puoi consultare la copia locale precedente o caricare un CSV esportato dal proprietario.`, true); }
+        finally { button.disabled = false; }
+      });
+      document.getElementById('btn-compare-archives').addEventListener('click', () => this.compareArchives());
+      document.getElementById('btn-build-unified').addEventListener('click', () => this.buildUnifiedArchive());
+      document.getElementById('btn-restore-archive').addEventListener('click', () => this.restoreArchiveVersion());
+      document.getElementById('btn-restore-manual-backup').addEventListener('click', () => this.restoreManualBackup());
+      document.querySelectorAll('[data-archive-filter-field]').forEach((input) => input.addEventListener('input', () => {
+        if (this.archiveComparisonRows) this.renderArchiveComparison(this.archiveComparisonRows);
+      }));
+      window.addEventListener('bordero:course-archive-updated', () => this.renderArchiveMetadata());
+      this.renderArchiveMetadata();
+    }
+
+    setArchiveMessage(message, isError = false) {
+      const node = document.getElementById('archive-result');
+      node.textContent = message;
+      node.classList.toggle('is-error', isError);
+    }
+
+    renderArchiveMetadata() {
+      const data = window.courseArchives.read();
+      const active = window.courseArchives.getActive();
+      const external = data.external;
+      const unified = data.unified;
+      document.getElementById('archive-status').textContent = `Attivo: ${{ manual: 'Manuale', external: 'Esterno', unified: 'A+B' }[active] || 'Manuale'} · ${{ manual: this.store.getState().seasons[this.store.getState().activeSeason]?.records?.length || 0, external: external?.records?.length || 0, unified: unified?.records?.length || 0 }[active] || 0} record`;
+      document.getElementById('archive-metadata').textContent = [
+        `Esterno: ${external ? `${external.records.length} record · acquisito ${new Date(external.acquiredAt).toLocaleString('it-IT')} · ${external.origin}` : 'nessuna copia locale acquisita'}`,
+        `A+B: ${unified ? `${unified.records.length} record · salvato ${new Date(unified.acquiredAt).toLocaleString('it-IT')}` : 'non creato'}`,
+        `Recupero disponibile: ${(data.history || []).length} versioni esterno/A+B e ${(data.manualBackups || []).length} backup manuali.`,
+        `Ultima operazione: ${data.operations?.length ? `${data.operations.at(-1).action} · ${new Date(data.operations.at(-1).at).toLocaleString('it-IT')}` : 'nessuna'}.`
+      ].join(' ');
+      const historySelect = document.getElementById('archive-history-select');
+      const previous = historySelect.value;
+      historySelect.replaceChildren(new Option(data.history?.length ? 'Seleziona versione precedente' : 'Nessuna versione precedente', ''));
+      (data.history || []).slice().reverse().forEach((item, offset) => {
+        const originalIndex = data.history.length - 1 - offset;
+        const stamp = item.savedAt ? new Date(item.savedAt).toLocaleString('it-IT') : 'data non disponibile';
+        historySelect.add(new Option(`${stamp} · esterno ${item.external?.records?.length || 0} · A+B ${item.unified?.records?.length || 0}`, String(originalIndex)));
+      });
+      historySelect.value = [...historySelect.options].some((option) => option.value === previous) ? previous : '';
+      document.getElementById('btn-restore-archive').disabled = !historySelect.value;
+      historySelect.onchange = () => { document.getElementById('btn-restore-archive').disabled = !historySelect.value; };
+      const manualSelect = document.getElementById('manual-backup-select');
+      const previousManual = manualSelect.value;
+      manualSelect.replaceChildren(new Option(data.manualBackups?.length ? 'Seleziona backup' : 'Nessun backup', ''));
+      (data.manualBackups || []).slice().reverse().forEach((backup, offset) => {
+        const originalIndex = data.manualBackups.length - 1 - offset;
+        manualSelect.add(new Option(`${backup.season?.label || backup.season?.id || 'Stagione'} · ${new Date(backup.savedAt).toLocaleString('it-IT')} · ${backup.season?.records?.length || 0} record`, String(originalIndex)));
+      });
+      manualSelect.value = [...manualSelect.options].some((option) => option.value === previousManual) ? previousManual : '';
+      document.getElementById('btn-restore-manual-backup').disabled = !manualSelect.value;
+      manualSelect.onchange = () => { document.getElementById('btn-restore-manual-backup').disabled = !manualSelect.value; };
+      document.getElementById('btn-compare-archives').disabled = !external;
+      document.getElementById('btn-build-unified').disabled = !external;
+    }
+
+    previewExternalCsv(csv, origin) {
+      document.getElementById('archive-compare-filters').hidden = true;
+      const preview = window.courseArchives.validateCsv(csv);
+      const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
+      const idWarning = 'ID coreografia assente; possibile associazione solo per titolo esatto e univoco';
+      for (const record of preview.valid) {
+        if (record.branoId) continue;
+        const titleKey = normalizeTitle(record.title);
+        const matches = (this.brani || []).filter((song) => titleKey && normalizeTitle(this.trackTitle(song)) === titleKey);
+        record.catalogTitleMatchCount = matches.length;
+        const warning = preview.ambiguous.find((item) => item.id === record.id);
+        if (matches.length === 1) {
+          record.branoId = String(matches[0].id);
+          record.branoIdMatch = 'exact-title';
+          if (warning) {
+            const remaining = warning.reason.replace(idWarning, '').replace(/^;\s*/, '').trim();
+            if (remaining) warning.reason = remaining;
+            else preview.ambiguous = preview.ambiguous.filter((item) => item !== warning);
+          }
+        } else if (warning) {
+          const remaining = warning.reason.replace(idWarning, '').replace(/^;\s*/, '').trim();
+          warning.reason = [remaining, matches.length ? `titolo associato a ${matches.length} ID nel catalogo` : 'titolo non trovato nel catalogo'].filter(Boolean).join('; ');
+        } else {
+          preview.ambiguous.push({ id: record.id, title: record.title, branoId: '', reason: matches.length ? `titolo associato a ${matches.length} ID nel catalogo` : 'titolo non trovato nel catalogo' });
+        }
+      }
+      const baseExternal = JSON.stringify(window.courseArchives.read().external || null);
+      preview.origin = origin;
+      preview.baseExternal = baseExternal;
+      preview.delta = window.courseArchives.compareExternalSnapshot(window.courseArchives.read().external?.records || [], preview.valid);
+      this.externalImportPreview = preview;
+      const lines = [`Anteprima ${origin}: ${preview.valid.length} validi, ${preview.rejected.length} scartati/duplicati, ${preview.ambiguous.length} corrispondenze dubbie.`, `Rispetto alla copia precedente: ${preview.delta.added.length} aggiunti, ${preview.delta.removed.length} non più presenti nella fonte, ${preview.delta.changed.length} modificati.`];
+      if (!preview.valid.length) lines.push('Nessun record acquisibile; i dati precedenti sono intatti.');
+      const detail = [...preview.rejected.map((r) => `Riga ${r.row}: ${r.reason}`), ...preview.ambiguous.map((r) => `${r.title} [${r.branoId}]: ${r.reason}`)];
+      const table = `<table class="course-records-table"><thead><tr><th>ID coreografia</th><th>Coreografia</th><th>Corso / sede</th><th>Livello corso</th><th>Settimana</th><th>Periodo</th></tr></thead><tbody>${preview.valid.slice(0, 100).map((r) => `<tr><td>${this.escapeText(r.branoId ? `${r.branoId}${r.branoIdMatch === 'exact-title' ? ' · titolo univoco' : ''}` : r.catalogTitleMatchCount ? 'titolo ambiguo' : 'titolo assente dal catalogo')}</td><td>${this.escapeText(r.title)}</td><td>${this.escapeText(r.course)}</td><td>${this.escapeText(r.level)}</td><td>${r.week}${r.weekLabel && r.weekLabel !== String(r.week) ? ` · ${this.escapeText(r.weekLabel)}` : ''}</td><td>${this.escapeText(r.season ? `${r.season}${r.seasonSource === 'derived-september-august' ? ' · derivata dalle date' : ''}` : r.periodYear ? `${r.periodYear} · stagione da confermare` : 'mancante')}</td></tr>`).join('')}</tbody></table>${preview.valid.length > 100 ? '<p>Anteprima limitata ai primi 100 record.</p>' : ''}${detail.length ? `<details><summary>Motivazioni (${detail.length})</summary><ul>${detail.map((x) => `<li>${this.escapeText(x)}</li>`).join('')}</ul></details>` : ''}`;
+      document.getElementById('archive-preview').innerHTML = table;
+      if (preview.valid.length) {
+        const button = document.createElement('button'); button.type = 'button'; button.className = 'btn btn-primary'; button.textContent = 'Conferma acquisizione locale';
+        let removalAcknowledgement = null;
+        if (preview.delta.removed.length) {
+          const label = document.createElement('label'); label.className = 'archive-removal-acknowledgement';
+          removalAcknowledgement = document.createElement('input'); removalAcknowledgement.type = 'checkbox';
+          label.append(removalAcknowledgement, document.createTextNode(` Confermo che ${preview.delta.removed.length} record non più presenti nella fonte vanno rimossi dalla copia locale. La versione precedente resterà recuperabile.`));
+          document.getElementById('archive-preview').append(label);
+          button.disabled = true;
+          removalAcknowledgement.addEventListener('change', () => { button.disabled = !removalAcknowledgement.checked; });
+        }
+        button.addEventListener('click', async () => {
+          if (this.externalImportPreview !== preview) return;
+          button.disabled = true;
+          try {
+            if (window.courseArchives.read().external && !await this.confirmArchiveChange(`Sostituire la copia esterna con ${preview.valid.length} record (${preview.delta.removed.length} assenti dalla nuova acquisizione)? La versione attuale sarà conservata nel recupero.`)) { button.disabled = false; return; }
+            if (JSON.stringify(window.courseArchives.read().external || null) !== preview.baseExternal) throw new Error('La copia esterna è cambiata dopo l’anteprima. Rileggi e confronta i dati prima di acquisirli.');
+            const snapshot = window.courseArchives.persistExternal({ ...preview, origin });
+            this.externalImportPreview = null;
+            this.setArchiveMessage(`Copia locale acquisita da ${origin}: ${snapshot.records.length} record. Google Sheet originale non modificato.`);
+            button.remove();
+          } catch (error) { this.setArchiveMessage(error.message, true); button.disabled = false; }
+        });
+        document.getElementById('archive-preview').append(button);
+      }
+      this.setArchiveMessage(lines.join(' '), !preview.valid.length);
+    }
+
+    async confirmArchiveChange(message) {
+      const dialog = document.getElementById('archive-confirm-dialog');
+      document.getElementById('archive-confirm-message').textContent = message;
+      const code = document.getElementById('archive-confirm-code');
+      while (true) {
+        code.value = '';
+        dialog.showModal();
+        const result = await new Promise((resolve) => dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true }));
+        if (!result) return false;
+        if (String(code.value).trim() === String(window.BORDERO_CONFIG?.APP_CLOSE_SECRET_CODE || '')) return true;
+        document.getElementById('archive-confirm-message').textContent = 'Codice non corretto. ' + message;
+      }
+    }
+
+    compareArchives() {
+      const manual = window.courseArchives.manualRecords(this.store.getState());
+      const external = window.courseArchives.read().external?.records || [];
+      this.archiveComparisonSnapshots = { manual: JSON.stringify(manual), external: JSON.stringify(external) };
+      this.archiveComparisonRows = window.courseArchives.compare(manual, external);
+      this.archiveComparisonResolutions ||= window.courseArchives.read().unified?.picks || {};
+      this.renderArchiveComparison(this.archiveComparisonRows);
+    }
+
+    renderArchiveComparison(rows) {
+      document.getElementById('archive-compare-filters').hidden = false;
+      const counts = rows.reduce((out, row) => { out[row.status] = (out[row.status] || 0) + 1; return out; }, {});
+      const labels = { same: 'Coincidenti', 'manual-only': 'Solo manuale', 'external-only': 'Solo esterno', different: 'Differenze da risolvere', duplicate: 'Duplicati da risolvere', ambiguous: 'Corrispondenza dubbia' };
+      const filters = Object.fromEntries([...document.querySelectorAll('[data-archive-filter-field]')].map((input) => [input.dataset.archiveFilterField, input.value.trim().toLocaleLowerCase('it')]));
+      const filtered = rows.filter((row) => Object.entries(filters).every(([field, value]) => !value || [...row.manual, ...row.external].some((record) => String(record[field] ?? '').toLocaleLowerCase('it').includes(value))));
+      const fieldLabels = { branoId: 'ID coreografia', title: 'Coreografia', course: 'Corso / sede', level: 'Livello corso', week: 'Settimana', season: 'Periodo', instructor: 'Insegnante', date: 'Data lezione', registeredAt: 'Data registrazione', activity: 'Tipo attività', choreoLevel: 'Livello coreografia' };
+      const conflictStatus = (row) => ['different', 'duplicate', 'ambiguous'].includes(row.status);
+      const fieldControls = (row) => {
+        if (row.manual.length !== 1 || row.external.length !== 1 || !row.differences?.length) return '';
+        const resolution = this.archiveComparisonResolutions?.[row.key] || {};
+        return `<details class="archive-field-resolution"><summary>Scelta per campo (${row.differences.length})</summary>${row.differences.map((field) => {
+          const choice = resolution.fields?.[field] || '';
+          const manualValue = row.manual[0][field] ?? '';
+          const externalValue = row.external[0][field] ?? '';
+          return `<div class="archive-field-choice"><strong>${fieldLabels[field] || this.escapeText(field)}</strong><span>Manuale: ${this.escapeText(manualValue || '∅ (vuoto)')}</span><span>Esterno: ${this.escapeText(externalValue || '∅ (vuoto)')}</span><label>Valore da usare<select data-archive-field-choice="${row.key}" data-field="${field}" class="select-input"><option value="">Scegli</option><option value="manual"${choice === 'manual' ? ' selected' : ''}>Manuale</option><option value="external"${choice === 'external' ? ' selected' : ''}>Esterno</option><option value="custom"${choice === 'custom' ? ' selected' : ''}>Valore corretto</option></select></label><input class="input-text" aria-label="Valore corretto per ${fieldLabels[field] || field}" data-archive-custom="${row.key}" data-field="${field}" type="${field === 'week' ? 'number' : 'text'}"${field === 'week' ? ' min="1" max="53"' : ''} value="${this.escape(resolution.custom?.[field] ?? '')}" /></div>`;
+        }).join('')}</details>`;
+      };
+      const choiceControls = (row) => {
+        if (!conflictStatus(row)) return '—';
+        const mode = this.archiveComparisonResolutions?.[row.key]?.mode || '';
+        const canPickFields = row.manual.length === 1 && row.external.length === 1 && row.differences?.length;
+        return `<label>Risoluzione<select data-archive-resolution="${row.key}" class="select-input"><option value="">Da risolvere</option>${row.manual.length ? `<option value="manual"${mode === 'manual' ? ' selected' : ''}>Usa record manuale</option>` : ''}${row.external.length ? `<option value="external"${mode === 'external' ? ' selected' : ''}>Usa record esterno</option>` : ''}${row.manual.length && row.external.length ? `<option value="both"${mode === 'both' ? ' selected' : ''}>Mantieni entrambi</option>` : ''}${canPickFields ? `<option value="fields"${mode === 'fields' ? ' selected' : ''}>Scegli per campo</option>` : ''}</select></label>${fieldControls(row)}`;
+      };
+      const desc = (records) => records.length ? records.map((v) => `${v.title || 'Titolo mancante'} · ID ${v.branoId || 'assente'} · ${v.course || 'corso mancante'} · ${v.level || 'livello mancante'} · ${v.season || 'periodo mancante'} · settimana ${v.week ?? '?'} · ${v.instructor || 'insegnante non specificato'}`).join('\n') : '—';
+      const table = `<table class="course-records-table"><thead><tr><th>Esito / differenze</th><th>Manuale</th><th>Esterno</th><th>Corso · livello · periodo · settimana</th><th>Risoluzione</th></tr></thead><tbody>${filtered.map((row) => {
+        const r = row.manual[0] || row.external[0];
+        const context = `${r?.course || 'corso non specificato'} · ${r?.level || 'livello non specificato'} · ${r?.season || (r?.periodYear ? `anno ${r.periodYear}` : 'periodo non specificato')} · settimana ${r?.week ?? '?'}`;
+        return `<tr><td>${labels[row.status]}${row.reason ? `<br>${this.escapeText(row.reason)}` : ''}${row.differences?.length ? `<br>Campi: ${this.escapeText(row.differences.map((field) => fieldLabels[field] || field).join(', '))}` : ''}</td><td>${this.escapeText(desc(row.manual)).replace(/\n/g, '<br>')}</td><td>${this.escapeText(desc(row.external)).replace(/\n/g, '<br>')}</td><td>${this.escapeText(context)}</td><td>${choiceControls(row)}</td></tr>`;
+      }).join('') || '<tr><td colspan="5">Nessun record corrisponde ai filtri.</td></tr>'}</tbody></table>`;
+      document.getElementById('archive-preview').innerHTML = table;
+      document.getElementById('archive-result').textContent = `Confronto: ${filtered.length}/${rows.length} righe mostrate. ${Object.entries(counts).map(([k, v]) => `${labels[k]} ${v}`).join(' · ') || 'nessun record'}. Risolvi le righe dubbie prima di creare A+B.`;
+    }
+
+    collectArchiveResolutions() {
+      const result = JSON.parse(JSON.stringify(this.archiveComparisonResolutions || {}));
+      document.querySelectorAll('[data-archive-resolution]').forEach((select) => {
+        const key = select.dataset.archiveResolution;
+        if (!select.value) { delete result[key]; return; }
+        result[key] = { ...(result[key] || {}), mode: select.value };
+        if (select.value !== 'fields') return;
+        result[key].fields ||= {}; result[key].custom ||= {};
+        document.querySelectorAll(`[data-archive-field-choice="${key}"]`).forEach((fieldSelect) => { if (fieldSelect.value) result[key].fields[fieldSelect.dataset.field] = fieldSelect.value; else delete result[key].fields[fieldSelect.dataset.field]; });
+        document.querySelectorAll(`[data-archive-custom="${key}"]`).forEach((input) => { if (result[key].fields[input.dataset.field] === 'custom') result[key].custom[input.dataset.field] = input.value; });
+      });
+      return result;
+    }
+
+    async buildUnifiedArchive() {
+      const manual = window.courseArchives.manualRecords(this.store.getState());
+      const external = window.courseArchives.read().external?.records || [];
+      const manualSnapshot = JSON.stringify(manual);
+      const externalSnapshot = JSON.stringify(external);
+      const unifiedSnapshot = JSON.stringify(window.courseArchives.read().unified || null);
+      const comparedManual = this.archiveComparisonSnapshots?.manual;
+      const comparedExternal = this.archiveComparisonSnapshots?.external;
+      if (comparedManual !== manualSnapshot || comparedExternal !== externalSnapshot) {
+        this.archiveComparisonResolutions = {};
+        this.compareArchives();
+        this.setArchiveMessage('Le fonti sono cambiate o non sono ancora state confrontate. Verifica la tabella aggiornata prima di creare A+B.', true);
+        return;
+      }
+      const resolutions = this.collectArchiveResolutions();
+      this.archiveComparisonResolutions = resolutions;
+      const previousUnified = window.courseArchives.read().unified;
+      const result = window.courseArchives.merge(manual, external, previousUnified, resolutions);
+      if (!result.ok) {
+        this.renderArchiveComparison(result.rows);
+        this.setArchiveMessage(`Fusione sospesa: ${result.conflicts.length} righe richiedono una risoluzione. Scegli il record, mantieni entrambi o seleziona i valori campo per campo.`, true); return;
+      }
+      document.getElementById('archive-compare-filters').hidden = true;
+      const table = `<table class="course-records-table"><thead><tr><th>ID</th><th>Coreografia</th><th>Corso</th><th>Livello</th><th>Settimana</th><th>Periodo</th><th>Provenienza e scelta</th></tr></thead><tbody>${result.records.slice(0, 100).map((r) => `<tr><td>${this.escapeText(r.branoId || 'ID non disponibile')}</td><td>${this.escapeText(r.title)}</td><td>${this.escapeText(r.course)}</td><td>${this.escapeText(r.level)}</td><td>${r.week}</td><td>${this.escapeText(r.season)}</td><td>${this.escapeText((r.provenance || []).join(' + '))}${result.picks && Object.keys(result.picks).length ? ' · scelta salvata' : ''}</td></tr>`).join('')}</tbody></table>${result.records.length > 100 ? '<p>Anteprima limitata ai primi 100 record.</p>' : ''}`;
+      const preview = document.getElementById('archive-preview'); preview.innerHTML = table;
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'btn btn-primary'; button.textContent = `Conferma salvataggio (${result.records.length} record)`;
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          if (window.courseArchives.read().unified && !await this.confirmArchiveChange(`Sostituire l’archivio A+B con l’unione di ${result.records.length} record? La versione precedente sarà conservata.`)) { button.disabled = false; return; }
+          const latestManual = window.courseArchives.manualRecords(this.store.getState());
+          const latestArchives = window.courseArchives.read();
+          const latestExternal = latestArchives.external?.records || [];
+          if (JSON.stringify(latestManual) !== manualSnapshot || JSON.stringify(latestExternal) !== externalSnapshot || JSON.stringify(latestArchives.unified || null) !== unifiedSnapshot) throw new Error('Un archivio è cambiato dopo l’anteprima. Aggiorna il confronto prima di salvare la fusione.');
+          window.courseArchives.persistUnified(result.records, result.picks);
+          window.courseArchives.setActive('unified');
+          document.getElementById('course-archive-select').value = 'unified';
+          this.renderArchiveMetadata(); this.renderSelectedSeason();
+          this.setArchiveMessage(`Archivio A+B salvato: ${result.records.length} record. Le fonti originali non sono state modificate.`);
+          button.remove();
+        } catch (error) { this.setArchiveMessage(error.message, true); button.disabled = false; }
+      });
+      preview.append(button);
+      this.setArchiveMessage(`Anteprima fusione pronta: ${result.records.length} record, nessun conflitto irrisolto. Verifica e conferma il salvataggio.`);
+    }
+
+    async restoreArchiveVersion() {
+      const select = document.getElementById('archive-history-select');
+      if (!select.value) return;
+      const snapshot = window.courseArchives.read().history[Number(select.value)];
+      const count = (snapshot?.external?.records?.length || 0) + (snapshot?.unified?.records?.length || 0);
+      if (!await this.confirmArchiveChange(`Recuperare la versione selezionata (${count} record esterni e/o unificati)? Lo stato corrente sarà conservato come nuova versione recuperabile.`)) return;
+      try {
+        window.courseArchives.restoreHistory(select.value);
+        this.renderArchiveMetadata(); this.renderSelectedSeason();
+        this.setArchiveMessage('Versione precedente recuperata.');
+      } catch (error) { this.setArchiveMessage(error.message, true); }
+    }
+
+    async restoreManualBackup() {
+      const select = document.getElementById('manual-backup-select');
+      if (!select.value) return;
+      const backup = window.courseArchives.read().manualBackups?.[Number(select.value)];
+      if (!backup?.season) return this.setArchiveMessage('Backup manuale non disponibile.', true);
+      const seasonId = backup.season.id;
+      const expectedCurrent = this.store.getState().seasons[seasonId] || null;
+      if (!await this.confirmArchiveChange(`Ripristinare il programma manuale ${backup.season.label || seasonId} (${backup.season.records?.length || 0} record)? Lo stato corrente sarà conservato nel backup precedente.`)) return;
+      const latestCurrent = this.store.getState().seasons[seasonId] || null;
+      if (JSON.stringify(latestCurrent) !== JSON.stringify(expectedCurrent)) return this.setArchiveMessage('Il programma manuale è cambiato durante la conferma. Ripeti il confronto prima di recuperare.', true);
+      try {
+        const result = await this.store.saveSeason(backup.season);
+        this.state = this.store.getState();
+        this.render(seasonId);
+        this.reportSave(result.synced, result.error);
+        this.setArchiveMessage(result.synced ? 'Backup manuale ripristinato e sincronizzato.' : 'Backup manuale ripristinato nella copia locale; sincronizzazione cloud non riuscita.', !result.synced);
+      } catch (error) { this.setArchiveMessage(error.message, true); }
+    }
+
+    escapeText(value) {
+      const node = document.createElement('span'); node.textContent = String(value ?? ''); return node.innerHTML;
     }
 
     updateRecordsSortButtons() {
@@ -547,7 +855,44 @@
     }
 
     renderSelectedSeason() {
+      const activeArchive = window.courseArchives?.getActive() || 'manual';
       const season = this.currentSeason();
+      if (activeArchive !== 'manual') {
+        const archiveName = activeArchive === 'external' ? 'Esterno · copia locale' : 'Unificato A+B';
+        const snapshot = window.courseArchives.read()[activeArchive];
+        const records = snapshot?.records || [];
+        this.updateRecordsSortButtons();
+        document.getElementById('course-season-status').textContent = archiveName;
+        document.getElementById('course-season-status').classList.remove('is-active');
+        document.getElementById('btn-activate-season').disabled = true;
+        document.getElementById('course-season-select').disabled = true;
+        document.getElementById('new-season-label').disabled = true;
+        document.querySelector('#create-season-form button[type="submit"]').disabled = true;
+        ['course-record-week', 'course-record-level', 'course-record-song', 'btn-save-course-record', 'btn-import-course-csv'].forEach((id) => { document.getElementById(id).disabled = true; });
+        document.getElementById('btn-export-course-csv').disabled = true;
+        const levelFilter = document.getElementById('course-records-level-filter');
+        const weekFilter = document.getElementById('course-records-week-filter');
+        levelFilter.value = this.recordsFilter.level;
+        weekFilter.value = String(this.recordsFilter.week);
+        levelFilter.disabled = weekFilter.disabled = false;
+        const rows = this.sortSeasonRecords(records.filter((record) =>
+          (!this.recordsFilter.level || record.level === this.recordsFilter.level)
+          && Number(record.week) <= this.recordsFilter.week));
+        document.getElementById('course-record-count').textContent = `${archiveName} · ${records.length} record${snapshot?.acquiredAt ? ` · acquisito ${new Date(snapshot.acquiredAt).toLocaleString('it-IT')}` : ''} · sola lettura`;
+        document.getElementById('course-records-body').innerHTML = rows.length ? rows.map((record) => `<tr>
+          <td><span class="course-week-pill">SETT. ${Number(record.week)}</span></td>
+          <td>${this.escape(this.formatLevel(record.level || 'Livello non specificato'))}</td>
+          <td>${this.escape(record.branoId || 'ID mancante')}</td>
+          <td>${this.escape(record.title || record.trackTitle || 'Titolo non specificato')}</td>
+          <td>${this.escape(record.instructor || '—')}</td>
+          <td>Origine: ${this.escape(record.source || (activeArchive === 'external' ? 'external' : 'manual'))}</td>
+        </tr>`).join('') : '<tr><td colspan="6">Archivio vuoto o nessun record corrispondente ai filtri.</td></tr>';
+        return;
+      }
+      document.getElementById('course-season-select').disabled = false;
+      document.getElementById('new-season-label').disabled = false;
+      document.querySelector('#create-season-form button[type="submit"]').disabled = false;
+      ['course-record-week', 'course-record-level', 'course-record-song', 'btn-save-course-record', 'btn-import-course-csv'].forEach((id) => { document.getElementById(id).disabled = !season; });
       const seasonId = season?.id || '';
       if (this.recordsSeasonId !== seasonId) {
         this.recordsSeasonId = seasonId;
@@ -637,6 +982,18 @@
     }
 
     async saveRecord(event) {
+      if (this.savingCourseRecord) return;
+      this.savingCourseRecord = true;
+      const submit = document.getElementById('btn-save-course-record');
+      submit.disabled = true;
+      try { return await this.saveRecordInternal(event); }
+      finally {
+        this.savingCourseRecord = false;
+        submit.disabled = !this.currentSeason() || (window.courseArchives?.getActive() || 'manual') !== 'manual';
+      }
+    }
+
+    async saveRecordInternal(event) {
       event.preventDefault();
       const season = this.currentSeason();
       if (!season) return this.setStatus('course-record-status', 'Crea o seleziona prima una stagione.', true);
@@ -672,6 +1029,10 @@
         week, level, branoId: String(branoId), trackTitle: song ? this.trackTitle(song) : existing.trackTitle, author: song?.autore || existing?.author || '',
         updatedAt: new Date().toISOString()
       };
+      if (editingId) {
+        const previous = records.find((item) => item.id === editingId);
+        if (!await this.confirmArchiveChange(`Modificare la coreografia ${previous.trackTitle || previous.branoId}: settimana ${previous.week} → ${week}, livello ${previous.level} → ${level}?`)) return;
+      }
       const nextRecords = records.filter((item) => item.id !== editingId).concat(record);
       const result = await this.store.saveSeason({ ...season, records: nextRecords });
       this.state = this.store.getState();
@@ -680,7 +1041,7 @@
       this.reportSave(result.synced, result.error);
     }
 
-    handleRecordAction(event) {
+    async handleRecordAction(event) {
       const button = event.target.closest('button[data-action]');
       if (!button) return;
       const season = this.currentSeason();
@@ -696,7 +1057,7 @@
         document.getElementById('btn-cancel-course-edit').hidden = false;
         document.getElementById('course-record-week').focus();
         this.setStatus('course-record-status', 'Modifica settimana, livello o brano e salva.');
-      } else if (button.dataset.action === 'delete' && window.confirm(`Rimuovere “${record.trackTitle || record.branoId}” dalla settimana ${record.week} (${this.formatLevel(record.level)})?`)) {
+      } else if (button.dataset.action === 'delete' && await this.confirmArchiveChange(`Rimuovere ${record.trackTitle || record.branoId} [ID ${record.branoId}] dalla settimana ${record.week} (${this.formatLevel(record.level)})?`)) {
         this.store.saveSeason({ ...season, records: season.records.filter((item) => item.id !== record.id) }).then((result) => {
           this.state = this.store.getState();
           if (this.editingRecordId === record.id) this.resetRecordForm();
@@ -758,8 +1119,9 @@
             trackTitle: this.trackTitle(row.song), author: row.song.autore || '', updatedAt: new Date().toISOString()
           };
         });
-        if (this.state.seasons[seasonId] && !window.confirm(`Il programma ${label} verrà sostituito con ${rows.length} coreografie. Continuare?`)) return;
+        if (this.state.seasons[seasonId] && !await this.confirmArchiveChange(`Sostituire il programma ${label} con ${rows.length} coreografie? Prima del salvataggio verrà creato un backup locale recuperabile.`)) return;
         const season = this.state.seasons[seasonId] || { id: seasonId, label, createdAt: new Date().toISOString() };
+        if (this.state.seasons[seasonId] && window.courseArchives) window.courseArchives.backupManualSeason(season);
         const result = await this.store.saveSeason({ ...season, id: seasonId, label, records });
         this.state = this.store.getState();
         if (!this.state.activeSeason) {

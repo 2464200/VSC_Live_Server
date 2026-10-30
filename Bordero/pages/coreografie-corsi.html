@@ -6,7 +6,7 @@
   <title>BORDERÒ - Programma Coreografie Corsi</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="stylesheet" href="../assets/css/bordero.css" />
-  <link rel="stylesheet" href="coreografie-corsi.css?v=20261015-3" />
+  <link rel="stylesheet" href="coreografie-corsi.css?v=20261030-1" />
   <script src="../assets/lib/xlsx.min.js"></script>
   <script defer src="../js/config.js"></script>
   <script defer src="../js/utils.js"></script>
@@ -18,7 +18,8 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script defer src="../js/firebase-cloud-client.js"></script>
   <script defer src="../js/choreo-program-store.js"></script>
-  <script defer src="coreografie-corsi.js?v=20261015-3"></script>
+  <script defer src="../js/course-archives.js?v=20261030-1"></script>
+  <script defer src="coreografie-corsi.js?v=20261030-1"></script>
 </head>
 <body>
   <div class="container choreo-course-page">
@@ -48,6 +49,33 @@
     </section>
 
     <main class="course-program-layout">
+      <section class="course-panel course-archives-panel" aria-labelledby="archives-title">
+        <div class="course-panel-heading"><div><h2 id="archives-title">Archivi delle coreografie</h2><p>Seleziona la fonte da consultare. La copia esterna e l’archivio unificato restano separati dal programma manuale.</p></div><span id="archive-status" class="course-status-badge" role="status" aria-live="polite">Caricamento archivi…</span></div>
+        <div class="course-season-controls">
+          <label for="course-archive-select">Archivio attivo
+            <select id="course-archive-select" class="select-input"><option value="manual">A · Manuale — qui in Borderò</option><option value="external">B · Esterno — copia locale da Registro Coreografie</option><option value="unified">Manuale + Esterno (A+B)</option></select>
+          </label>
+          <button id="btn-read-external" class="btn btn-secondary" type="button">Leggi fonte Google</button>
+          <button id="btn-pick-external-csv" class="btn btn-secondary" type="button">Importa CSV esterno</button>
+          <input id="external-csv-file" type="file" accept=".csv,text/csv" hidden />
+          <button id="btn-compare-archives" class="btn btn-secondary" type="button">Confronta archivi</button>
+          <button id="btn-build-unified" class="btn btn-primary" type="button">Crea / aggiorna A+B</button>
+        </div>
+        <p class="course-help">Per il Registro Coreografie importa un CSV del foglio <strong>Registrazioni</strong>. Sono riconosciute le colonne Data registrazione, Insegnante, Settimana, Sede corso, Livello corso, Tipo attività, Livello coreografia e Coreografia. Le colonne password vengono scartate.</p>
+        <p id="archive-metadata" class="course-help"></p>
+        <div class="course-season-controls"><label for="archive-history-select">Versione precedente da recuperare<select id="archive-history-select" class="select-input"><option value="">Nessuna versione precedente</option></select></label><button id="btn-restore-archive" class="btn btn-secondary" type="button" disabled>Recupera versione</button></div>
+        <div class="course-season-controls"><label for="manual-backup-select">Backup programma manuale<select id="manual-backup-select" class="select-input"><option value="">Nessun backup</option></select></label><button id="btn-restore-manual-backup" class="btn btn-secondary" type="button" disabled>Recupera programma manuale</button></div>
+        <div id="archive-compare-filters" class="course-records-filters" role="group" aria-label="Filtri confronto archivi" hidden>
+          <label>Coreografia<input class="input-text" type="search" data-archive-filter-field="title" /></label>
+          <label>Corso / sede<input class="input-text" type="search" data-archive-filter-field="course" /></label>
+          <label>Livello<input class="input-text" type="search" data-archive-filter-field="level" /></label>
+          <label>Insegnante<input class="input-text" type="search" data-archive-filter-field="instructor" /></label>
+          <label>Periodo<input class="input-text" type="search" data-archive-filter-field="season" /></label>
+          <label>Settimana<input class="input-text" type="search" data-archive-filter-field="week" /></label>
+        </div>
+        <p id="archive-result" class="course-inline-status" role="status" aria-live="polite"></p>
+        <div id="archive-preview" class="course-table-wrap" aria-live="polite"></div>
+      </section>
       <section class="course-panel" aria-labelledby="season-title">
         <div class="course-panel-heading">
           <div>
@@ -183,6 +211,16 @@
       <p class="course-page-footer"><a class="btn btn-secondary" href="bordero.html">← Torna a Bordero'</a></p>
     </main>
   </div>
+  <dialog id="archive-confirm-dialog" aria-labelledby="archive-confirm-title">
+    <form method="dialog" class="archive-confirm-form">
+      <h2 id="archive-confirm-title">Conferma modifica archivio</h2>
+      <p id="archive-confirm-message"></p>
+      <label for="archive-confirm-code">Codice di sicurezza
+        <input id="archive-confirm-code" class="input-text" type="password" autocomplete="current-password" required />
+      </label>
+      <div><button id="archive-confirm-cancel" class="btn btn-secondary" value="cancel">Annulla</button><button id="archive-confirm-accept" class="btn btn-primary" value="confirm">Conferma</button></div>
+    </form>
+  </dialog>
   <script src="/nav.js"></script>
 </body>
 </html>
