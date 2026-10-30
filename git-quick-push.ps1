@@ -28,11 +28,38 @@ function Get-GitValue {
         [string[]]$GitArgs
     )
 
-    $value = (& git @GitArgs 2>$null)
-    if ($LASTEXITCODE -ne 0) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $value = (& git @GitArgs 2>&1)
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($exitCode -ne 0) {
         return ''
     }
     return (($value | ForEach-Object { [string]$_ }) -join "`n").Trim()
+}
+
+function Get-StashReference {
+    param([Parameter(Mandatory = $true)][string]$StashCommit)
+
+    $entries = & git stash list '--format=%gd %H' 2>&1
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "Impossibile trovare il riferimento Git stash (codice $exitCode)."
+    }
+
+    foreach ($entry in $entries) {
+        $parts = ([string]$entry).Trim() -split '\s+', 2
+        if ($parts.Count -eq 2 -and $parts[1] -eq $StashCommit) {
+            return $parts[0]
+        }
+    }
+
+    return ''
 }
 
 function Remove-StaleGitLock {
@@ -46,7 +73,7 @@ function Remove-StaleGitLock {
 
     $gitProcesses = @(Get-Process git -ErrorAction SilentlyContinue)
     if ($gitProcesses.Count -gt 0) {
-        throw 'Esiste index.lock e risulta attivo git.exe: attendo la fine dell’operazione Git per evitare corruzioni.'
+        throw "Esiste index.lock e risulta attivo git.exe: attendo la fine dell'operazione Git per evitare corruzioni."
     }
 
     $lock = Get-Item -LiteralPath $lockPath -ErrorAction Stop
@@ -126,6 +153,10 @@ try {
                 }
                 if (-not $stashRef) {
                     throw 'Git non ha creato lo stash atteso; interrompo il riallineamento per proteggere le modifiche locali.'
+                }
+                $stashRef = Get-StashReference -StashCommit $stashRef
+                if (-not $stashRef) {
+                    throw 'Creato lo stash, ma non è stato possibile risolverne il riferimento.'
                 }
             }
 

@@ -9,6 +9,38 @@ param(
 
 $PidFile = Join-Path $PSScriptRoot 'pids\startup-pids.json'
 $SupervisorStopFile = Join-Path $PSScriptRoot 'pids\stop-supervisor.flag'
+$AutoCommitFailed = $false
+
+function Test-ProjectProcess {
+    param([Parameter(Mandatory = $true)][int]$ProcessId)
+
+    try {
+        $processInfo = Get-CimInstance Win32_Process -Filter "ProcessId = $ProcessId" -ErrorAction Stop
+    } catch {
+        Write-Warning "Impossibile verificare il proprietario del PID $ProcessId; non lo termino."
+        return $false
+    }
+
+    if (-not $processInfo -or -not $processInfo.CommandLine) {
+        return $false
+    }
+
+    $commandLine = ([string]$processInfo.CommandLine).Replace('/', '\')
+    $projectEntries = @(
+        (Join-Path $PSScriptRoot 'electron\main.js'),
+        (Join-Path $PSScriptRoot 'unified-server.js'),
+        (Join-Path $PSScriptRoot 'run-unified-server.ps1')
+    )
+
+    foreach ($entry in $projectEntries) {
+        $normalizedEntry = [System.IO.Path]::GetFullPath($entry).Replace('/', '\')
+        if ($commandLine.IndexOf($normalizedEntry, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            return $true
+        }
+    }
+
+    return $false
+}
 
 New-Item -ItemType Directory -Path (Split-Path -Parent $SupervisorStopFile) -Force | Out-Null
 Set-Content -LiteralPath $SupervisorStopFile -Value (Get-Date -Format o) -Encoding UTF8
@@ -55,9 +87,13 @@ if ($startedPids -and $startedPids.Count -gt 0) {
         try {
             $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
             if ($proc) {
-                Write-Host "  Termino PID $processId ($($proc.Name))"
-                Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
-                $terminatedCount++
+                if (Test-ProjectProcess -ProcessId ([int]$processId)) {
+                    Write-Host "  Termino PID $processId ($($proc.Name))"
+                    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+                    $terminatedCount++
+                } else {
+                    Write-Warning "  PID $processId non appartiene a questo progetto; non lo termino."
+                }
             } else {
                 Write-Host "  PID $processId già terminato"
             }
@@ -81,7 +117,7 @@ foreach ($port in $portsToCheck) {
             foreach ($conn in $connections) {
                 try {
                     $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
-                    if ($proc -and $proc.Name -eq 'node') {
+                    if ($proc -and $proc.Name -eq 'node' -and (Test-ProjectProcess -ProcessId ([int]$proc.Id))) {
                         Write-Host "  Termino processo Node.js PID $($proc.Id) (porta $port)"
                         Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
                         $nodeProcessesTerminated++
@@ -100,7 +136,7 @@ foreach ($port in $portsToCheck) {
                 if ($pidMatch) {
                     try {
                         $proc = Get-Process -Id $pidMatch -ErrorAction SilentlyContinue
-                        if ($proc -and $proc.Name -eq 'node') {
+                        if ($proc -and $proc.Name -eq 'node' -and (Test-ProjectProcess -ProcessId ([int]$proc.Id))) {
                             Write-Host "  Termino processo Node.js PID $($proc.Id) (porta $port)"
                             Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
                             $nodeProcessesTerminated++
@@ -142,12 +178,28 @@ if (Test-Path $syncScript) {
 # Git commit automatico (opt-in)
 if ($AutoCommit) {
     try {
-        & git add . 2>$null
-        $commitMessage = "Auto save on exit $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-        & git commit -m $commitMessage 2>$null
-        Write-Host "OK Commit automatico eseguito: $commitMessage"
+        & git add -A
+        if ($LASTEXITCODE -ne 0) {
+            throw "git add -A non riuscito (codice $LASTEXITCODE)."
+        }
+
+        & git diff --cached --quiet
+        $diffExitCode = $LASTEXITCODE
+        if ($diffExitCode -eq 0) {
+            Write-Host "Nessuna modifica da committare."
+        } elseif ($diffExitCode -eq 1) {
+            $commitMessage = "Auto save on exit $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+            & git commit -m $commitMessage
+            if ($LASTEXITCODE -ne 0) {
+                throw "git commit non riuscito (codice $LASTEXITCODE)."
+            }
+            Write-Host "OK Commit automatico eseguito: $commitMessage"
+        } else {
+            throw "Impossibile verificare le modifiche in stage (codice $diffExitCode)."
+        }
     } catch {
-        Write-Host "Nessun cambiamento da committare o errore git: $_"
+        $AutoCommitFailed = $true
+        Write-Error "Commit automatico non riuscito: $($_.Exception.Message)"
     }
 } else {
     Write-Host "Auto-commit disattivato (usa -AutoCommit per abilitarlo)."
@@ -163,3 +215,7 @@ Write-Host "  - Gestiti: $terminatedCount"
 Write-Host "  - Selettivi: $nodeProcessesTerminated"
 Write-Host "  - Totale: $($terminatedCount + $nodeProcessesTerminated)"
 Write-Host ""
+
+if ($AutoCommitFailed) {
+    exit 1
+}

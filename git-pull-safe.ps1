@@ -10,8 +10,15 @@ Set-Location -LiteralPath $PSScriptRoot
 function Invoke-GitChecked {
     param([Parameter(Mandatory = $true)][string[]]$GitArgs)
 
-    $output = & git @GitArgs 2>&1
-    $exitCode = $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = & git @GitArgs 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
     foreach ($line in $output) {
         Write-Host ([string]$line)
     }
@@ -23,11 +30,38 @@ function Invoke-GitChecked {
 function Get-GitValue {
     param([Parameter(Mandatory = $true)][string[]]$GitArgs)
 
-    $output = & git @GitArgs 2>$null
-    if ($LASTEXITCODE -ne 0) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = & git @GitArgs 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    if ($exitCode -ne 0) {
         return ''
     }
     return (($output | ForEach-Object { [string]$_ }) -join "`n").Trim()
+}
+
+function Get-StashReference {
+    param([Parameter(Mandatory = $true)][string]$StashCommit)
+
+    $entries = & git stash list '--format=%gd %H' 2>&1
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "Impossibile trovare il riferimento Git stash (codice $exitCode)."
+    }
+
+    foreach ($entry in $entries) {
+        $parts = ([string]$entry).Trim() -split '\s+', 2
+        if ($parts.Count -eq 2 -and $parts[1] -eq $StashCommit) {
+            return $parts[0]
+        }
+    }
+
+    return ''
 }
 
 $stashRef = ''
@@ -69,7 +103,10 @@ try {
         if (-not $stashAfter -or $stashAfter -eq $stashBefore) {
             throw 'Git non ha creato lo stash atteso; interrompo il pull per proteggere le modifiche locali.'
         }
-        $stashRef = $stashAfter
+        $stashRef = Get-StashReference -StashCommit $stashAfter
+        if (-not $stashRef) {
+            throw "Creato lo stash $stashAfter, ma non è stato possibile risolverne il riferimento."
+        }
     } else {
         Write-Host 'Working tree pulito: non serve creare uno stash.' -ForegroundColor Green
     }
