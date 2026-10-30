@@ -847,11 +847,11 @@ function closeTemporarySecondaryWindow() {
   applyWindowLayout();
 }
 
-function closeSecondaryPageOverlays() {
+function closeSecondaryPageOverlays({ preserveVideoPlayer = false } = {}) {
   if (temporarySecondaryWindow) {
     closeTemporarySecondaryWindow();
   }
-  if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+  if (!preserveVideoPlayer && videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
     closeVideoPlayerWindow();
   }
 }
@@ -1093,7 +1093,9 @@ function enforcePrimaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.primary && !policy.secondary) {
-      closeSecondaryPageOverlays();
+      closeSecondaryPageOverlays({
+        preserveVideoPlayer: normalizePathname(url) === '/bordero/pages/bordero.html'
+      });
       ensureSecondaryDisplayPage().catch((error) => {
         console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
       });

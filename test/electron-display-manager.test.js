@@ -250,6 +250,47 @@ test('buildDisplayLayoutConfig uses the actual monitor size and DPI-aware zoom',
   assert.equal(layout.scaleFactor, 1.25);
 });
 
+test('primary navigation to Bordero preserves the active video player', () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-video-navigation');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox } = loadElectronMainFor(tempDir);
+    let navigate;
+    sandbox.testPrimaryWindow = {
+      isDestroyed: () => false,
+      webContents: {
+        setWindowOpenHandler() {},
+        on(event, handler) {
+          if (event === 'will-navigate') navigate = handler;
+        },
+      },
+    };
+    vm.runInContext('primaryWindow = testPrimaryWindow; ensureSecondaryDisplayPage = async () => true; enforcePrimaryNavigationPolicy();', sandbox);
+
+    let playerClosed = false;
+    sandbox.testVideoPlayerWindow = {
+      isDestroyed: () => playerClosed,
+      close() { playerClosed = true; },
+    };
+    vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
+    navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/bordero.html');
+    assert.equal(playerClosed, false, 'Returning to Bordero should leave the video player open.');
+
+    playerClosed = false;
+    sandbox.testVideoPlayerWindow = {
+      isDestroyed: () => playerClosed,
+      close() { playerClosed = true; },
+    };
+    vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
+    navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/videoclip.html');
+    assert.equal(playerClosed, true, 'Other primary-page navigations should keep the existing close behavior.');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('ensureWindows recreates a missing secondary window when primary already exists', async () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-window-repair');
   fs.rmSync(tempDir, { recursive: true, force: true });
