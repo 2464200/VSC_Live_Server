@@ -191,3 +191,9 @@
 .archive-confirm-form { display: grid; gap: 1rem; }
 .archive-confirm-form h2, .archive-confirm-form p { margin: 0; }
 .archive-confirm-form > div { display: flex; justify-content: flex-end; gap: .5rem; }
+.archive-field-resolution { min-width: 300px; }
+.archive-field-resolution summary { cursor: pointer; font-weight: 600; }
+.archive-field-choice { display: grid; gap: 5px; padding: 9px 0; border-top: 1px solid rgba(255,255,255,.15); }
+.archive-field-choice > span { font-size: .82rem; overflow-wrap: anywhere; }
+.archive-field-choice .input-text { min-width: 0; }
+#archive-compare-filters[hidden] { display: none; }

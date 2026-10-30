@@ -64,6 +64,15 @@
         <p class="course-help">Per il Registro Coreografie importa un CSV del foglio <strong>Registrazioni</strong>. Sono riconosciute le colonne Data registrazione, Insegnante, Settimana, Sede corso, Livello corso, Tipo attività, Livello coreografia e Coreografia. Le colonne password vengono scartate.</p>
         <p id="archive-metadata" class="course-help"></p>
         <div class="course-season-controls"><label for="archive-history-select">Versione precedente da recuperare<select id="archive-history-select" class="select-input"><option value="">Nessuna versione precedente</option></select></label><button id="btn-restore-archive" class="btn btn-secondary" type="button" disabled>Recupera versione</button></div>
+        <div class="course-season-controls"><label for="manual-backup-select">Backup programma manuale<select id="manual-backup-select" class="select-input"><option value="">Nessun backup</option></select></label><button id="btn-restore-manual-backup" class="btn btn-secondary" type="button" disabled>Recupera programma manuale</button></div>
+        <div id="archive-compare-filters" class="course-records-filters" role="group" aria-label="Filtri confronto archivi" hidden>
+          <label>Coreografia<input class="input-text" type="search" data-archive-filter-field="title" /></label>
+          <label>Corso / sede<input class="input-text" type="search" data-archive-filter-field="course" /></label>
+          <label>Livello<input class="input-text" type="search" data-archive-filter-field="level" /></label>
+          <label>Insegnante<input class="input-text" type="search" data-archive-filter-field="instructor" /></label>
+          <label>Periodo<input class="input-text" type="search" data-archive-filter-field="season" /></label>
+          <label>Settimana<input class="input-text" type="search" data-archive-filter-field="week" /></label>
+        </div>
         <p id="archive-result" class="course-inline-status" role="status" aria-live="polite"></p>
         <div id="archive-preview" class="course-table-wrap" aria-live="polite"></div>
       </section>
