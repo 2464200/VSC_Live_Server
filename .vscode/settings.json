@@ -78,5 +78,6 @@
     "**/logs": true,
     "**/.firebase": true,
     "**/coverage": true
-  }
+  },
+  "python.terminal.useEnvFile": true
 }
