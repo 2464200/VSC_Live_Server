@@ -29,7 +29,7 @@ test('Eventi main rows and requested page expose the requested indicators and na
   const renderJs = fs.readFileSync('Eventi/public/render.js', 'utf8');
   assert.match(eventiHtml, /href="richiesti\.html"/);
   assert.match(eventiJs, /EventiState\.isRequested\(brano\.richieste\)/);
-  assert.match(eventiJs, /📌 PRENOTATO/);
+  assert.match(eventiJs, /📌 RICHIESTO/);
   assert.match(richiestiHtml, /renderLista\('richiesti'\)/);
   assert.match(richiestiHtml, /goEventiPage\('eventi\.html'\)/);
   assert.match(renderJs, /renderState\.filtro === 'richiesti'[\s\S]*EventiState\.filterBrani\(renderState\.summaryBrani, 'richiesti'\)/);

@@ -42,6 +42,35 @@ function Test-ProjectProcess {
     return $false
 }
 
+function Test-ProjectRunnerProcess {
+    param([Parameter(Mandatory = $true)][int]$ProcessId)
+
+    try {
+        $processInfo = Get-CimInstance Win32_Process -Filter "ProcessId = $ProcessId" -ErrorAction Stop
+    } catch {
+        return $false
+    }
+
+    if (-not $processInfo -or -not $processInfo.CommandLine) { return $false }
+    $runnerScript = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'run-unified-server.ps1')).Replace('/', '\')
+    $commandLine = ([string]$processInfo.CommandLine).Replace('/', '\')
+    return $commandLine.IndexOf($runnerScript, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+}
+
+function Test-ProjectServerPort {
+    param([Parameter(Mandatory = $true)][int]$Port)
+
+    try {
+        $health = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/api/health" -TimeoutSec 3
+        $eventi = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/eventi/api/ping" -TimeoutSec 3
+        return $health.status -eq 'ok' -and
+            $health.server -eq 'unified-server' -and
+            $eventi.ok -eq $true
+    } catch {
+        return $false
+    }
+}
+
 New-Item -ItemType Directory -Path (Split-Path -Parent $SupervisorStopFile) -Force | Out-Null
 Set-Content -LiteralPath $SupervisorStopFile -Value (Get-Date -Format o) -Encoding UTF8
 
@@ -51,21 +80,20 @@ Write-Host "           Arresto Automatico Server"
 Write-Host "========================================================"
 Write-Host ""
 
-# Disattiva e annulla il deploy prima di terminare il server unificato.
-try {
-    $deployStop = Invoke-RestMethod -Uri 'http://127.0.0.1:5500/api/admin/deploy/project-shutdown' `
-        -Method Post -ContentType 'application/json' -Body '{}' -TimeoutSec 5
-    if ($deployStop.ok) {
-        Write-Host "Deploy Firebase arrestato per la chiusura del progetto"
-    }
-} catch {
-    Write-Host "Server deploy non raggiungibile; continuo con l'arresto dei processi"
-}
-
 $startedPids = @()
+$activePort = 0
 if (Test-Path $PidFile) {
     try {
-        $startedPids = Get-Content $PidFile | ConvertFrom-Json
+        $pidState = Get-Content -LiteralPath $PidFile -Raw | ConvertFrom-Json
+        if ($pidState -is [array]) {
+            $startedPids = @($pidState)
+        } elseif ($pidState -is [System.Management.Automation.PSCustomObject] -and
+            $pidState.PSObject.Properties['ProcessIds']) {
+            $startedPids = @($pidState.ProcessIds)
+            [void][int]::TryParse([string]$pidState.Port, [ref]$activePort)
+        } else {
+            $startedPids = @($pidState)
+        }
         Write-Host "OK File PID trovato: $($startedPids.Count) processi da terminare"
     } catch {
         Write-Host "ERRORE: File PID corrotto - $_"
@@ -79,6 +107,52 @@ if (Test-Path $PidFile) {
     $startedPids = @()
 }
 
+# Use the port recorded by startup. For legacy PID arrays, discover the configured
+# unified-server port only through the project's health and Eventi API responses.
+$portsToCheck = @()
+$verifiedActivePort = 0
+if ($activePort -ge 1 -and $activePort -le 65535) {
+    $portsToCheck = @($activePort)
+    if (Test-ProjectServerPort -Port $activePort) { $verifiedActivePort = $activePort }
+} else {
+    $basePort = 5500
+    $envFile = Join-Path $PSScriptRoot '.env'
+    if (Test-Path -LiteralPath $envFile -PathType Leaf) {
+        foreach ($line in Get-Content -LiteralPath $envFile) {
+            if ($line -match '^\s*UNIFIED_PORT\s*=\s*["'']?(\d+)["'']?\s*(?:#.*)?$') {
+                $configuredPort = 0
+                if ([int]::TryParse($Matches[1], [ref]$configuredPort) -and $configuredPort -ge 1 -and $configuredPort -le 65515) {
+                    $basePort = $configuredPort
+                }
+                break
+            }
+        }
+    }
+    $portsToCheck = @($basePort..($basePort + 19))
+    foreach ($candidatePort in $portsToCheck) {
+        if (Test-ProjectServerPort -Port ([int]$candidatePort)) {
+            $verifiedActivePort = [int]$candidatePort
+            break
+        }
+    }
+    if ($verifiedActivePort -gt 0) { $portsToCheck = @($verifiedActivePort) }
+}
+
+# Stop an optional deploy only after the project identity is verified on its actual port.
+if ($verifiedActivePort -gt 0) {
+    try {
+        $deployStop = Invoke-RestMethod -Uri "http://127.0.0.1:$verifiedActivePort/api/admin/deploy/project-shutdown" `
+            -Method Post -ContentType 'application/json' -Body '{}' -TimeoutSec 5
+        if ($deployStop.ok) {
+            Write-Host "Deploy Firebase arrestato per la chiusura del progetto"
+        }
+    } catch {
+        Write-Host "Server deploy non raggiungibile; continuo con l'arresto dei processi"
+    }
+} else {
+    Write-Host "Server unificato non verificato; salto la richiesta di arresto deploy."
+}
+
 # Arresto processi per PID
 $terminatedCount = 0
 if ($startedPids -and $startedPids.Count -gt 0) {
@@ -88,9 +162,19 @@ if ($startedPids -and $startedPids.Count -gt 0) {
             $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
             if ($proc) {
                 if (Test-ProjectProcess -ProcessId ([int]$processId)) {
-                    Write-Host "  Termino PID $processId ($($proc.Name))"
-                    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
-                    $terminatedCount++
+                    if (Test-ProjectRunnerProcess -ProcessId ([int]$processId)) {
+                        Write-Host "  Termino runner e processi figli PID $processId ($($proc.Name))"
+                        & taskkill.exe /PID ([string]$processId) /T /F 2>&1 | Out-Null
+                        if ($LASTEXITCODE -eq 0 -or -not (Get-Process -Id $processId -ErrorAction SilentlyContinue)) {
+                            $terminatedCount++
+                        } else {
+                            Write-Warning "  Impossibile arrestare l'albero del runner PID $processId"
+                        }
+                    } else {
+                        Write-Host "  Termino PID $processId ($($proc.Name))"
+                        Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+                        $terminatedCount++
+                    }
                 } else {
                     Write-Warning "  PID $processId non appartiene a questo progetto; non lo termino."
                 }
@@ -103,10 +187,9 @@ if ($startedPids -and $startedPids.Count -gt 0) {
     }
 }
 
-# Arresto selettivo per sicurezza (cerca processi Node.js sulle porte note)
+# Arresto selettivo solo sulla porta attiva registrata o verificata
 Write-Host ""
-Write-Host "Arresto selettivo processi Node.js sulle porte note..."
-$portsToCheck = @(5500)
+Write-Host "Arresto selettivo processi Node.js sulla porta del progetto..."
 $nodeProcessesTerminated = 0
 
 foreach ($port in $portsToCheck) {

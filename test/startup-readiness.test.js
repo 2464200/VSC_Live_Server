@@ -33,14 +33,15 @@ async function fixture(t, mode) {
     const saved = path.join(directory, 'pids/startup-pids.json');
     if (fs.existsSync(saved)) {
       const values = JSON.parse(fs.readFileSync(saved, 'utf8').replace(/^\uFEFF/, ''));
-      for (const pid of [].concat(values)) pids.add(Number(pid));
+      const processIds = Array.isArray(values) ? values : values.ProcessIds || values.processIds || [values];
+      for (const pid of processIds) pids.add(Number(pid));
     }
     for (const pid of pids) if (Number.isInteger(pid) && running(pid)) {
       await new Promise((resolve) => execFile('taskkill.exe', ['/PID', String(pid), '/T', '/F'], { windowsHide: true }, resolve));
     }
     fs.rmSync(directory, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
-  for (const file of ['startup.ps1', 'startup-retry.ps1', 'run-unified-server.ps1', 'scripts/ps_helpers.ps1']) {
+  for (const file of ['startup.ps1', 'startup-retry.ps1', 'shutdown.ps1', 'run-unified-server.ps1', 'scripts/ps_helpers.ps1']) {
     fs.mkdirSync(path.dirname(path.join(directory, file)), { recursive: true });
     fs.copyFileSync(path.join(root, file), path.join(directory, file));
   }
@@ -127,6 +128,35 @@ test('an unrelated service is preserved and an already healthy project server is
   assert.match(reused.stdout, /Nessuna azione necessaria/);
   assert.equal(fs.readFileSync(marker, 'utf8'), pid);
   assert.equal((await (await fetch(`http://127.0.0.1:${sample.port}/api/health`)).json()).server, 'another-app');
+});
+
+test('shutdown uses the recorded fallback port and stops the server child without touching the occupied port', windowsOnly, async (t) => {
+  const sample = await fixture(t, 'normal');
+  const unrelated = http.createServer((_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.end('{"status":"ok","server":"another-app"}');
+  });
+  await new Promise((resolve) => unrelated.listen(sample.port, '127.0.0.1', resolve));
+  t.after(() => new Promise((resolve) => unrelated.close(resolve)));
+
+  const started = await execute(sample.script, ['-NoWait', '-PortOverride', String(sample.port)]);
+  assert.equal(started.code, 0, started.stdout + started.stderr);
+  const statePath = path.join(sample.directory, 'pids/startup-pids.json');
+  const state = JSON.parse(fs.readFileSync(statePath, 'utf8').replace(/^\uFEFF/, ''));
+  assert.equal(state.Port, sample.port + 1);
+  const nodePid = Number(fs.readFileSync(path.join(sample.directory, 'fixture.pid'), 'utf8'));
+
+  const stopped = await execute(path.join(sample.directory, 'shutdown.ps1'));
+  assert.equal(stopped.code, 0, stopped.stdout + stopped.stderr);
+  assert.equal(running(nodePid), false, 'Shutdown must stop the runner tree including its Node child');
+  assert.equal((await (await fetch(`http://127.0.0.1:${sample.port}/api/health`)).json()).server, 'another-app');
+});
+
+test('supervisor reads and probes the active server port instead of hard-coding 5500', () => {
+  const source = fs.readFileSync(path.join(root, 'scripts/project-supervisor.ps1'), 'utf8');
+  assert.match(source, /Port = \[int\]\$script:serverPort/);
+  assert.match(source, /Test-UnifiedServerPort -Port \$script:serverPort/);
+  assert.doesNotMatch(source, /127\.0\.0\.1:5500\/api\/health/);
 });
 
 test('the standard VS Code startup flags also complete on their first attempt', windowsOnly, async (t) => {

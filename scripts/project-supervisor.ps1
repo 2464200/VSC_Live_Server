@@ -13,6 +13,7 @@ $electronCommand = Join-Path $rootPath 'node_modules\.bin\electron.cmd'
 $pidFile = Join-Path $rootPath 'pids\startup-pids.json'
 $stopFile = Join-Path $rootPath 'pids\stop-supervisor.flag'
 $helpers = Join-Path $rootPath 'scripts\ps_helpers.ps1'
+$script:serverPort = 0
 
 if (Test-Path -LiteralPath $helpers) {
     . $helpers
@@ -40,13 +41,79 @@ function Get-ProjectElectronProcesses {
     })
 }
 
+function Test-UnifiedServerPort {
+    param([int]$Port)
+
+    try {
+        $health = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/api/health" -TimeoutSec 3
+        $eventi = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/eventi/api/ping" -TimeoutSec 3
+        return $health.status -eq 'ok' -and
+            $health.server -eq 'unified-server' -and
+            $eventi.ok -eq $true
+    } catch {
+        return $false
+    }
+}
+
+function Get-StartupServerPort {
+    $candidatePorts = @()
+    if (Test-Path -LiteralPath $pidFile -PathType Leaf) {
+        try {
+            $savedState = Get-Content -LiteralPath $pidFile -Raw | ConvertFrom-Json
+            $savedPort = 0
+            if ($savedState -and [int]::TryParse([string]$savedState.Port, [ref]$savedPort) -and
+                $savedPort -ge 1 -and $savedPort -le 65535) {
+                if (Test-UnifiedServerPort -Port $savedPort) {
+                    return $savedPort
+                }
+                $candidatePorts += $savedPort
+            }
+        } catch {
+            throw "Impossibile leggere la porta del server dal file PID '$pidFile': $($_.Exception.Message)"
+        }
+    }
+
+    $basePort = 5500
+    $envFile = Join-Path $rootPath '.env'
+    if (Test-Path -LiteralPath $envFile -PathType Leaf) {
+        foreach ($line in Get-Content -LiteralPath $envFile) {
+            if ($line -match '^\s*UNIFIED_PORT\s*=\s*["'']?(\d+)["'']?\s*(?:#.*)?$') {
+                $configuredPort = 0
+                if ([int]::TryParse($Matches[1], [ref]$configuredPort) -and $configuredPort -ge 1 -and $configuredPort -le 65515) {
+                    $basePort = $configuredPort
+                }
+                break
+            }
+        }
+    }
+    $candidatePorts += @($basePort..($basePort + 19))
+
+    foreach ($port in ($candidatePorts | Sort-Object -Unique)) {
+        if (Test-UnifiedServerPort -Port ([int]$port)) {
+            return [int]$port
+        }
+    }
+
+    throw 'Impossibile determinare la porta attiva del server unificato.'
+}
+
 function Update-StartupProcessIds {
     param([int[]]$ElectronProcessIds = @())
 
     $processIds = @()
+    $savedPort = 0
     if (Test-Path -LiteralPath $pidFile -PathType Leaf) {
         try {
-            $storedIds = @(Get-Content -LiteralPath $pidFile -Raw | ConvertFrom-Json)
+            $savedState = Get-Content -LiteralPath $pidFile -Raw | ConvertFrom-Json
+            if ($savedState -is [array]) {
+                $storedIds = @($savedState)
+            } elseif ($savedState -is [System.Management.Automation.PSCustomObject] -and
+                $savedState.PSObject.Properties['ProcessIds']) {
+                $storedIds = @($savedState.ProcessIds)
+                [void][int]::TryParse([string]$savedState.Port, [ref]$savedPort)
+            } else {
+                $storedIds = @($savedState)
+            }
             foreach ($storedId in $storedIds) {
                 $id = 0
                 if ([int]::TryParse([string]$storedId, [ref]$id) -and (Get-Process -Id $id -ErrorAction SilentlyContinue)) {
@@ -61,7 +128,13 @@ function Update-StartupProcessIds {
     $processIds += $ElectronProcessIds
     $processIds = @($processIds | Sort-Object -Unique)
     if ($processIds.Count -gt 0) {
-        $processIds | ConvertTo-Json | Set-Content -LiteralPath $pidFile -Encoding UTF8
+        if ($script:serverPort -lt 1 -or $script:serverPort -gt 65535) {
+            $script:serverPort = $savedPort
+        }
+        [pscustomobject]@{
+            ProcessIds = $processIds
+            Port = [int]$script:serverPort
+        } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $pidFile -Encoding UTF8
     }
 }
 
@@ -127,6 +200,7 @@ $startupProcess.Refresh()
 if ($startupProcess.ExitCode -ne 0) {
     throw "Avvio dei servizi non riuscito (codice $($startupProcess.ExitCode))."
 }
+$script:serverPort = Get-StartupServerPort
 
 $electronProcesses = Get-ProjectElectronProcesses
 if ($electronProcesses.Count -eq 0) {
@@ -175,16 +249,7 @@ while ($true) {
         }
     }
 
-    $serverReady = $false
-    try {
-        $health = Invoke-RestMethod -Uri 'http://127.0.0.1:5500/api/health' -TimeoutSec 3
-        $eventi = Invoke-RestMethod -Uri 'http://127.0.0.1:5500/eventi/api/ping' -TimeoutSec 3
-        $serverReady = $health.status -eq 'ok'
-            -and $health.server -eq 'unified-server'
-            -and $eventi.ok -eq $true
-    } catch {
-        $serverReady = $false
-    }
+    $serverReady = Test-UnifiedServerPort -Port $script:serverPort
 
     if ($serverReady -ne $serverWasReady) {
         if ($serverReady) {

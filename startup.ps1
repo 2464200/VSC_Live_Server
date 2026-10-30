@@ -169,7 +169,10 @@ function Save-Pids {
         if (-not (Test-Path $PidDir)) {
             New-Item -ItemType Directory -Path $PidDir -Force | Out-Null
         }
-        $Pids | ConvertTo-Json | Set-Content -Path $PidFile -Encoding UTF8
+        [pscustomobject]@{
+            ProcessIds = @($Pids | Sort-Object -Unique)
+            Port = [int]$UnifiedPort
+        } | ConvertTo-Json -Depth 3 | Set-Content -Path $PidFile -Encoding UTF8
         Write-Host "OK PID salvati: $($Pids -join ', ')"
     } elseif (Test-Path $PidFile) {
         Remove-Item -Path $PidFile -Force -ErrorAction SilentlyContinue

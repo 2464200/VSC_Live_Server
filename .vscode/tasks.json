@@ -190,7 +190,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "$ErrorActionPreference = 'Stop'; $electronMain = [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path 'electron\\main.js')); $electronMainPattern = [Regex]::Escape($electronMain); $processes = @(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object { $_.Name -ieq 'electron.exe' -and $_.CommandLine -and $_.CommandLine -match $electronMainPattern }); foreach ($process in $processes) { Stop-Process -Id ([int]$process.ProcessId) -Force -ErrorAction Stop }; Start-Sleep -Seconds 1; npm run electron"
+        "$ErrorActionPreference = 'Stop'; $electronMain = [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path 'electron\\main.js')); $electronMainPattern = [Regex]::Escape($electronMain); $relativeElectronMainPattern = '(?i)(?:^|\\s)[\"'']?electron[\\\\/]main\\.js(?:[\"'']|\\s|$)'; $electronExecutable = [System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path 'node_modules\\electron\\dist\\electron.exe')); $processes = @(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object { $_.Name -ieq 'electron.exe' -and $_.ExecutablePath -and [System.StringComparer]::OrdinalIgnoreCase.Equals($_.ExecutablePath, $electronExecutable) -and $_.CommandLine -and ($_.CommandLine -match $electronMainPattern -or $_.CommandLine -match $relativeElectronMainPattern) }); foreach ($process in $processes) { Stop-Process -Id ([int]$process.ProcessId) -Force -ErrorAction Stop }; Start-Sleep -Seconds 1; npm run electron"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
