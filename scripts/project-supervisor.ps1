@@ -45,8 +45,8 @@ function Test-UnifiedServerPort {
     param([int]$Port)
 
     try {
-        $health = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/api/health" -TimeoutSec 3
-        $eventi = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/eventi/api/ping" -TimeoutSec 3
+        $health = Get-LocalJsonResponse -Uri "http://127.0.0.1:$Port/api/health" -TimeoutSeconds 3
+        $eventi = Get-LocalJsonResponse -Uri "http://127.0.0.1:$Port/eventi/api/ping" -TimeoutSeconds 3
         return $health.status -eq 'ok' -and
             $health.server -eq 'unified-server' -and
             $eventi.ok -eq $true

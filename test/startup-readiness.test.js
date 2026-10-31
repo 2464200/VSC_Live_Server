@@ -159,6 +159,14 @@ test('supervisor reads and probes the active server port instead of hard-coding 
   assert.doesNotMatch(source, /127\.0\.0\.1:5500\/api\/health/);
 });
 
+test('supervisor readiness probes use direct loopback requests instead of the system proxy', () => {
+  const supervisor = fs.readFileSync(path.join(root, 'scripts/project-supervisor.ps1'), 'utf8');
+  const helpers = fs.readFileSync(path.join(root, 'scripts/ps_helpers.ps1'), 'utf8');
+  assert.match(supervisor, /Get-LocalJsonResponse -Uri "http:\/\/127\.0\.0\.1:\$Port\/api\/health" -TimeoutSeconds 3/);
+  assert.match(supervisor, /Get-LocalJsonResponse -Uri "http:\/\/127\.0\.0\.1:\$Port\/eventi\/api\/ping" -TimeoutSeconds 3/);
+  assert.match(helpers, /\$request\.Proxy = \$null/);
+});
+
 test('the standard VS Code startup flags also complete on their first attempt', windowsOnly, async (t) => {
   const sample = await fixture(t, 'normal');
   fs.writeFileSync(path.join(sample.directory, 'generate_report_data.py'), 'print("Fixture report ready")\n');

@@ -90,3 +90,19 @@ function Start-ProcessSafe {
         return $null
     }
 }
+
+function Get-LocalJsonResponse {
+    param(
+        [Parameter(Mandatory = $true)] [string]$Uri,
+        [int]$TimeoutSeconds = 2
+    )
+    $request = [System.Net.HttpWebRequest]::Create($Uri)
+    $request.Proxy = $null
+    $request.Timeout = $TimeoutSeconds * 1000
+    $request.ReadWriteTimeout = $TimeoutSeconds * 1000
+    $response = $request.GetResponse()
+    try {
+        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+        try { return ($reader.ReadToEnd() | ConvertFrom-Json) } finally { $reader.Dispose() }
+    } finally { $response.Close() }
+}

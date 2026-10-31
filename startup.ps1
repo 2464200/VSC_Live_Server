@@ -134,19 +134,6 @@ function Wait-ForPort {
     return $false
 }
 
-function Get-LocalJsonResponse {
-    param([Parameter(Mandatory = $true)] [string]$Uri)
-    $request = [System.Net.HttpWebRequest]::Create($Uri)
-    $request.Proxy = $null
-    $request.Timeout = 2000
-    $request.ReadWriteTimeout = 2000
-    $response = $request.GetResponse()
-    try {
-        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
-        try { return ($reader.ReadToEnd() | ConvertFrom-Json) } finally { $reader.Dispose() }
-    } finally { $response.Close() }
-}
-
 function Wait-ForHttpEndpoint {
     param(
         [Parameter(Mandatory = $true)] [string] $Uri,
