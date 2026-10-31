@@ -5,6 +5,7 @@ const renderState = {
   visibleBrani: [],
   log: [],
   query: '',
+  showOnlySelectedDj: false,
   refreshTimer: null,
   isUpdating: false
 };
@@ -81,7 +82,12 @@ function renderRows(container, brani, opts = {}) {
   }
 
   if (!brani || brani.length === 0) {
-    showListaMessage(container, renderState.query ? 'Nessun risultato per la ricerca corrente.' : 'Nessuna coreografia da visualizzare in questa vista.');
+    const message = renderState.query
+      ? 'Nessun risultato per la ricerca corrente.'
+      : renderState.showOnlySelectedDj
+        ? 'Nessuna coreografia prenotata da questo DJ.'
+        : 'Nessuna coreografia da visualizzare in questa vista.';
+    showListaMessage(container, message);
     return;
   }
 
@@ -217,6 +223,32 @@ function bindSearch() {
   });
 }
 
+function updateSelectedDjFilterButton() {
+  const button = document.getElementById('btn-filter-selected-dj');
+  if (!button) return;
+
+  const selectedDj = String(getDJLocal() || '').trim();
+  button.textContent = `Mostra solo per ${selectedDj || 'DJ selezionato'}`;
+  button.disabled = !selectedDj;
+  button.setAttribute('aria-pressed', String(renderState.showOnlySelectedDj));
+  button.classList.toggle('is-active', renderState.showOnlySelectedDj);
+}
+
+function bindSelectedDjFilter() {
+  const button = document.getElementById('btn-filter-selected-dj');
+  if (!button || button.dataset.bound === '1') return;
+
+  button.dataset.bound = '1';
+  updateSelectedDjFilterButton();
+  button.addEventListener('click', () => {
+    if (!getDJLocal()) return;
+
+    renderState.showOnlySelectedDj = !renderState.showOnlySelectedDj;
+    updateSelectedDjFilterButton();
+    applySearchAndRender();
+  });
+}
+
 function startPolling() {
   if (renderState.refreshTimer) clearInterval(renderState.refreshTimer);
   renderState.refreshTimer = setInterval(async () => {
@@ -231,6 +263,7 @@ function startPolling() {
 
 async function renderLista(filtro) {
   renderState.filtro = filtro;
+  bindSelectedDjFilter();
   const serverOnline = await checkServerOnline();
   if (!serverOnline) {
     const container = document.getElementById('lista-render');
@@ -303,7 +336,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // Override rendering per filtro
 const _oldApplySearchAndRender = applySearchAndRender;
 applySearchAndRender = function() {
-  let brani = EventiState.searchBrani(renderState.allBrani, renderState.query);
+  const selectedDj = renderState.showOnlySelectedDj ? String(getDJLocal() || '').trim() : '';
+  const sourceBrani = renderState.showOnlySelectedDj
+    ? renderState.allBrani.filter(item => String(item.dj || '').trim().localeCompare(selectedDj, 'it', { sensitivity: 'base' }) === 0)
+    : renderState.allBrani;
+  let brani = EventiState.searchBrani(sourceBrani, renderState.query);
   if (renderState.alfabetoFilter && renderState.alfabetoFilter !== 'ALL') {
     if (renderState.alfabetoFilter === 'NUM') {
       brani = brani.filter(b => /^[0-9]/.test(b.titolo));

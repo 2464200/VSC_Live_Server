@@ -276,6 +276,24 @@ button:hover {
   transform: translateY(-1px);
 }
 
+.nav .dj-filter-button {
+  background: #28a745;
+  color: #fff;
+  border-color: #218838;
+}
+
+.nav .dj-filter-button:hover,
+.nav .dj-filter-button.is-active {
+  background: #218838;
+  border-color: #1e7e34;
+}
+
+.nav .dj-filter-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .nav .attention-pulse-button {
   background: linear-gradient(180deg, #ff9d33 0%, #ff7f00 100%);
   color: #122131;
