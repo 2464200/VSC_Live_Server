@@ -4316,6 +4316,20 @@ app.post('/api/userform/pagina05/electron/player/pause', async (_req, res) => {
     }
 });
 
+app.post('/api/userform/pagina05/electron/player/stop', async (_req, res) => {
+    try {
+        const state = await callElectronControl('/video-player/state');
+        if (!state?.hasVideoPlayerWindow || state?.playerState?.mode !== 'video') {
+            return res.status(409).json({ ok: false, error: 'Nessun videoclip Electron da fermare.' });
+        }
+
+        const result = await callElectronControl('/video-player/stop', {});
+        return res.json({ ok: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ ok: false, error: error?.message || String(error) });
+    }
+});
+
 app.get('/api/userform/pagina05/electron/player/state', async (_req, res) => {
     try {
         const result = await callElectronControl('/video-player/state');

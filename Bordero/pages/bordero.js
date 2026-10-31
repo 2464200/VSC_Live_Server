@@ -29,6 +29,7 @@ class BorderoTableManager {
     this.searchButtonsResizeScheduled = false;
     this.webcamSignalPollTimer = null;
     this.webcamSignalWarningReason = '';
+    this.secondaryVideoPlayerState = null;
     this.virtualDjConsolePollTimer = null;
     this.virtualDjConsolePollInProgress = false;
     this.virtualDjCompletionTracker = null;
@@ -1080,6 +1081,12 @@ class BorderoTableManager {
     document.getElementById('btn-stop-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('stop'));
     document.getElementById('btn-resume-rolling-remote')?.addEventListener('click', () => this.sendDisplayRollingCommand('resume'));
     document.getElementById('btn-enable-led-remote')?.addEventListener('click', () => this.sendLedDisplayCommand('enable'));
+    document.getElementById('btn-stop-videoclip-remote')?.addEventListener('click', () => {
+      this.stopSecondaryVideoClip().catch((error) => {
+        console.error('Errore arrestando il videoclip secondario:', error);
+        Toast.error(`Errore arresto videoclip: ${error?.message || error}`);
+      });
+    });
     document.getElementById('btn-disable-led-remote')?.addEventListener('click', () => this.sendLedDisplayCommand('disable'));
 
     // Pagination
@@ -1253,6 +1260,14 @@ class BorderoTableManager {
       }
 
       const playerState = out?.playerState || {};
+      this.secondaryVideoPlayerState = {
+        ...playerState,
+        hasWindow: Boolean(out?.hasVideoPlayerWindow)
+      };
+      this.updateSecondaryVideoStopButton(
+        playerState.mode === 'video' &&
+        (typeof playerState.isPlaying === 'boolean' ? playerState.isPlaying : Boolean(playerState.active))
+      );
       if (playerState.active) {
         const isLive = playerState.mode === 'webcam-live';
         this.refreshWebcamSignal({ warningReason: '', vlcRunning: isLive });
@@ -1262,12 +1277,56 @@ class BorderoTableManager {
         this.updateWebcamLiveToggleState(false);
       }
     } catch (error) {
+      this.secondaryVideoPlayerState = null;
+      this.updateSecondaryVideoStopButton(false);
       this.refreshWebcamSignal({
         warningReason: error?.message || 'Player Electron non raggiungibile',
         vlcRunning: false
       });
       this.updateWebcamLiveToggleState(false);
     }
+  }
+
+  updateSecondaryVideoStopButton(isPlaying) {
+    const button = document.getElementById('btn-stop-videoclip-remote');
+    if (!button) return;
+
+    const playing = Boolean(isPlaying);
+    button.classList.toggle('videoclip-playing', playing);
+    button.setAttribute('aria-pressed', String(playing));
+    button.setAttribute(
+      'aria-label',
+      playing ? 'Ferma il videoclip in riproduzione sul monitor secondario' : 'Ferma e chiude il videoclip sul monitor secondario'
+    );
+  }
+
+  async stopSecondaryVideoClip() {
+    const currentPlayer = this.secondaryVideoPlayerState;
+    if (currentPlayer?.mode !== 'video' || !currentPlayer.hasWindow) {
+      return;
+    }
+
+    if (typeof window.electronAPI?.videoPlayer?.stop === 'function') {
+      const result = await window.electronAPI.videoPlayer.stop();
+      if (result?.success === false) {
+        throw new Error(result.error || 'Comando FERMA non riuscito.');
+      }
+    } else {
+      const response = await fetch('/api/userform/pagina05/electron/player/stop', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result?.ok === false || result?.success === false) {
+        throw new Error(result?.error || `HTTP ${response.status}`);
+      }
+    }
+
+    this.secondaryVideoPlayerState = { ...currentPlayer, active: false, isPlaying: false, hasWindow: false };
+    this.updateSecondaryVideoStopButton(false);
+    Toast.success('Videoclip fermato sul monitor secondario.');
   }
 
   setupWebcamSignalBox() {

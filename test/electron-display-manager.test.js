@@ -9,6 +9,7 @@ function loadElectronMainFor(tempDir) {
   const mainSource = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.js'), 'utf8');
 
   const createdWindows = [];
+  const ipcListeners = {};
   let displayProfiles = [
     { id: 1, isPrimary: true, bounds: { x: 0, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
     { id: 2, isPrimary: false, bounds: { x: 1920, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
@@ -100,7 +101,11 @@ function loadElectronMainFor(tempDir) {
             close() { this.closed = true; this.onClosed?.(); }
             destroy() { this.closed = true; }
           },
-          ipcMain: { handle() {}, on() {}, once() {} },
+          ipcMain: {
+            handle() {},
+            on(event, handler) { ipcListeners[event] = handler; },
+            once() {}
+          },
           screen: {
             getAllDisplays() { return displayProfiles; },
             on() {}
@@ -193,7 +198,7 @@ function loadElectronMainFor(tempDir) {
   };
 
   vm.runInNewContext(mainSource, sandbox, { filename: 'electron-main.js' });
-  return { sandbox, createdWindows, setDisplays: (value) => { displayProfiles = value; } };
+  return { sandbox, createdWindows, ipcListeners, setDisplays: (value) => { displayProfiles = value; } };
 }
 
 test('pickDisplayTargets chooses the primary display and a secondary one', () => {
@@ -285,7 +290,59 @@ test('primary navigation to Bordero preserves the active video player', () => {
     };
     vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
     navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/videoclip.html');
-    assert.equal(playerClosed, true, 'Other primary-page navigations should keep the existing close behavior.');
+    assert.equal(playerClosed, false, 'Navigating to another primary page must not interrupt the video player.');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('natural video completion keeps the Electron player open above DISPLAY', () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-video-completion');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, ipcListeners } = loadElectronMainFor(tempDir);
+    let playerClosed = false;
+    let displayRestored = false;
+    const playerWindow = {
+      isDestroyed: () => playerClosed,
+      close() { playerClosed = true; },
+      webContents: { send() {} },
+    };
+    sandbox.testVideoPlayerWindow = playerWindow;
+    sandbox.videoPlayerWindow = playerWindow;
+    sandbox.ensureSecondaryDisplayPage = async () => { displayRestored = true; };
+
+    ipcListeners['bordero-video-player:ended']({}, { url: 'https://example.test/clip.mp4' });
+
+    assert.equal(playerClosed, false, 'Natural completion must leave the video player window open.');
+    assert.equal(displayRestored, false, 'DISPLAY must remain behind the video player.');
+    assert.equal(
+      vm.runInContext('electronVideoPlayerState.lastEvent', sandbox),
+      'ended',
+      'The completion event must still update Electron player state.'
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('Electron player playback events update the secondary player playing state', () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-video-playing-state');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, ipcListeners } = loadElectronMainFor(tempDir);
+    sandbox.testVideoPlayerWindow = { isDestroyed: () => false };
+    vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
+
+    ipcListeners['bordero-video-player:playback-state']({}, { isPlaying: true });
+    assert.equal(vm.runInContext('electronVideoPlayerState.isPlaying', sandbox), true);
+
+    ipcListeners['bordero-video-player:playback-state']({}, { isPlaying: false });
+    assert.equal(vm.runInContext('electronVideoPlayerState.isPlaying', sandbox), false);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -525,8 +582,8 @@ test('QRCODE keeps operator navigation primary and opens a clean presentation on
     );
     await new Promise((resolve) => setTimeout(resolve, 0));
     const afterVideoNavigation = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), video: videoPlayerWindow })', sandbox);
-    assert.equal(afterVideoNavigation.video, null, 'Navigating to another project page should close the secondary video player.');
-    assert.match(afterVideoNavigation.secondary, /Bordero\/pages\/display\.html/i, 'Closing a secondary page must preserve DISPLAY.');
+    assert.equal(afterVideoNavigation.video, beforeVideoClose, 'Navigating to another project page must preserve the secondary video player.');
+    assert.match(afterVideoNavigation.secondary, /Bordero\/pages\/display\.html/i, 'DISPLAY must remain loaded underneath the video player.');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

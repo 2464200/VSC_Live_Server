@@ -148,6 +148,7 @@ function bindElectronCommands() {
       videoElement.currentTime = 0;
       videoElement.srcObject = null;
     }
+    window.electronAPI.videoPlayerWindow.reportPlaybackState?.({ isPlaying: false });
     stopLiveTracks();
     setWebcamLiveMode(false);
     setStatus('Video fermato.');
@@ -173,21 +174,29 @@ async function startPlayback() {
   }
 
   setWebcamLiveMode(false);
+  videoElement.addEventListener('playing', () => {
+    window.electronAPI?.videoPlayerWindow?.reportPlaybackState?.({ isPlaying: true });
+  });
+  videoElement.addEventListener('pause', () => {
+    window.electronAPI?.videoPlayerWindow?.reportPlaybackState?.({ isPlaying: false });
+  });
   videoElement.src = sourceUrl;
   videoElement.srcObject = null;
   videoElement.load();
   setStatus('Caricamento video...');
 
   videoElement.addEventListener('ended', () => {
+    window.electronAPI?.videoPlayerWindow?.reportPlaybackState?.({ isPlaying: false });
     try {
       window.electronAPI?.videoPlayerWindow?.complete({
         url: sourceUrl,
         fileName: decodeURIComponent(sourceUrl.split('/').pop() || '')
       });
-    } catch (error) {
-      // Ignored: the window will close anyway.
+    } catch {
+      setStatus('Riproduzione terminata; notifica di completamento non inviata.');
+      return;
     }
-    window.close();
+    setStatus('Riproduzione terminata.');
   }, { once: true });
 
   videoElement.addEventListener('error', () => {

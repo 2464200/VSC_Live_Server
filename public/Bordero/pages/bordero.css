@@ -607,15 +607,18 @@
 }
 
 .remote-rolling-controls {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 150px));
+  width: min(100%, 308px);
   gap: 8px;
   margin-top: 2px;
   align-items: flex-start;
 }
 
 .remote-rolling-btn {
-  width: 150px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 30px;
   padding: 6px 10px;
   font-size: 0.8em;
@@ -623,9 +626,40 @@
   white-space: nowrap;
 }
 
+#btn-stop-rolling-remote {
+  grid-area: 1 / 1;
+}
+
+#btn-resume-rolling-remote {
+  grid-area: 1 / 2;
+}
+
+#btn-enable-led-remote {
+  grid-area: 2 / 1;
+}
+
+#btn-disable-led-remote {
+  grid-area: 2 / 2;
+}
+
+#btn-stop-videoclip-remote {
+  grid-area: 3 / 1;
+}
+
+#console-status-signal {
+  grid-area: 4 / 1;
+}
+
 .remote-rolling-btn.remote-action-pending {
   border-color: #22c55e;
   animation: remote-action-pending-blink 0.9s step-end infinite;
+}
+
+.remote-rolling-btn.videoclip-playing {
+  border-color: #ef5350;
+  background-color: #7f1d1d;
+  color: #fff;
+  animation: videoclip-playing-blink 0.9s step-end infinite;
 }
 
 @keyframes remote-action-pending-blink {
@@ -635,12 +669,28 @@
   }
 }
 
+@keyframes videoclip-playing-blink {
+  50% {
+    border-color: #ffcdd2;
+    background-color: #c62828;
+    box-shadow: 0 0 0 2px rgba(239, 83, 80, 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .remote-rolling-btn.videoclip-playing {
+    animation: none;
+    border-color: #ef5350;
+    background-color: #7f1d1d;
+  }
+}
+
 .console-status-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-width: 128px;
+  min-width: 0;
   min-height: 34px;
   padding: 6px 10px;
   font-size: 0.8em;

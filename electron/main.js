@@ -39,6 +39,7 @@ let secondaryPageBeforeLedDisplay = '';
 let lastMonitorRouteEvent = null;
 let electronVideoPlayerState = {
   active: false,
+  isPlaying: false,
   mode: '',
   url: '',
   cameraName: '',
@@ -847,7 +848,7 @@ function closeTemporarySecondaryWindow() {
   applyWindowLayout();
 }
 
-function closeSecondaryPageOverlays({ preserveVideoPlayer = false } = {}) {
+function closeSecondaryPageOverlays({ preserveVideoPlayer = true } = {}) {
   if (temporarySecondaryWindow) {
     closeTemporarySecondaryWindow();
   }
@@ -936,7 +937,7 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
 
   const absoluteTargetUrl = toAbsoluteAppUrl(targetUrl);
   const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
-  closeSecondaryPageOverlays();
+  closeSecondaryPageOverlays({ preserveVideoPlayer: true });
 
   const result = {
     url: absoluteTargetUrl,
@@ -1048,7 +1049,7 @@ function enforceSecondaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.secondary && !policy.primary && isPersistentSecondaryPageUrl(url)) {
-      closeSecondaryPageOverlays();
+      closeSecondaryPageOverlays({ preserveVideoPlayer: true });
       return;
     }
 
@@ -1093,9 +1094,7 @@ function enforcePrimaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.primary && !policy.secondary) {
-      closeSecondaryPageOverlays({
-        preserveVideoPlayer: normalizePathname(url) === '/bordero/pages/bordero.html'
-      });
+      closeSecondaryPageOverlays({ preserveVideoPlayer: true });
       ensureSecondaryDisplayPage().catch((error) => {
         console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
       });
@@ -1208,6 +1207,7 @@ async function ensureVideoPlayerWindow(payload = {}) {
   electronVideoPlayerState = {
     ...electronVideoPlayerState,
     active: true,
+    isPlaying: false,
     mode,
     url: typeof payload === 'string' ? payload : (payload?.url || ''),
     cameraName: payload?.cameraName || '',
@@ -1222,6 +1222,7 @@ function closeVideoPlayerWindow() {
   electronVideoPlayerState = {
     ...electronVideoPlayerState,
     active: false,
+    isPlaying: false,
     lastStoppedAt: new Date().toISOString(),
     lastEvent: 'window-closed'
   };
@@ -1361,6 +1362,7 @@ function startElectronControlServer() {
         electronVideoPlayerState = {
           ...electronVideoPlayerState,
           active: false,
+          isPlaying: false,
           lastStoppedAt: new Date().toISOString(),
           lastEvent: 'stop-requested'
         };
@@ -1425,6 +1427,7 @@ ipcMain.handle('bordero-video-player:stop', async () => {
   electronVideoPlayerState = {
     ...electronVideoPlayerState,
     active: false,
+    isPlaying: false,
     lastStoppedAt: new Date().toISOString(),
     lastEvent: 'stop-requested'
   };
@@ -1508,6 +1511,7 @@ ipcMain.on('bordero-video-player:ended', (_event, payload) => {
   electronVideoPlayerState = {
     ...electronVideoPlayerState,
     active: false,
+    isPlaying: false,
     lastCompletedAt: new Date().toISOString(),
     lastEvent: 'ended',
     url: payload?.url || electronVideoPlayerState.url
@@ -1517,11 +1521,19 @@ ipcMain.on('bordero-video-player:ended', (_event, payload) => {
       win.webContents.send('bordero-video-player:ended', payload);
     }
   });
+});
 
-  closeVideoPlayerWindow();
-  ensureSecondaryDisplayPage().catch((error) => {
-    console.warn('Unable to restore display page after video ended:', error?.message || error);
-  });
+ipcMain.on('bordero-video-player:playback-state', (_event, payload) => {
+  if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
+    return;
+  }
+
+  const isPlaying = payload?.isPlaying === true;
+  electronVideoPlayerState = {
+    ...electronVideoPlayerState,
+    isPlaying,
+    lastEvent: isPlaying ? 'playing' : 'paused'
+  };
 });
 
 ipcMain.handle('bordero-monitor-policy:last-event', async () => {

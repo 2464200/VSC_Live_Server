@@ -217,6 +217,68 @@ for (const scriptPath of videoclipScripts) {
   });
 }
 
+for (const playerPath of ['Bordero/pages/video-player.js', 'public/Bordero/pages/video-player.js']) {
+  test(`${playerPath}: natural completion keeps the player open until STOP`, async () => {
+    const sourcePath = path.join(__dirname, '..', ...playerPath.split('/'));
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    const windowListeners = {};
+    const videoListeners = {};
+    let stopListener;
+    let completed = 0;
+    let closeCount = 0;
+    const video = {
+      srcObject: null,
+      currentTime: 9,
+      addEventListener(event, handler) { videoListeners[event] = handler; },
+      load() {},
+      play() { return Promise.resolve(); },
+      pause() {},
+    };
+    const elements = new Map([
+      ['electron-video', video],
+      ['player-status', { textContent: '' }],
+      ['live-disclaimer', { hidden: true }],
+    ]);
+    const context = {
+      window: {
+        location: { search: '?src=https%3A%2F%2Fexample.test%2Fclip.mp4' },
+        addEventListener(event, handler) { windowListeners[event] = handler; },
+        close() { closeCount += 1; },
+        electronAPI: {
+          videoPlayerWindow: {
+            onPause() {},
+            onStop(handler) { stopListener = handler; },
+            complete() { completed += 1; },
+          },
+        },
+      },
+      document: {
+        body: { classList: { toggle() {} } },
+        getElementById(id) { return elements.get(id); },
+      },
+      navigator: {},
+      URLSearchParams,
+      Promise,
+      String,
+      Number,
+      Math,
+    };
+
+    vm.runInNewContext(source, context, { filename: sourcePath });
+    windowListeners.DOMContentLoaded();
+    await new Promise((resolve) => setImmediate(resolve));
+    videoListeners.ended();
+
+    assert.equal(completed, 1, 'Natural completion should still notify Electron.');
+    assert.equal(closeCount, 0, 'Natural completion must not close the player window.');
+    assert.equal(elements.get('player-status').textContent, 'Riproduzione terminata.');
+
+    stopListener();
+    assert.equal(video.currentTime, 0, 'STOP should rewind the video.');
+    assert.equal(closeCount, 1, 'STOP should close the player window.');
+  });
+}
+
 for (const displayPath of ['Bordero/pages/display.js', 'public/Bordero/pages/display.js']) {
   test(`${displayPath}: refresh retains executed tracks omitted from a partial session snapshot`, () => {
     const DisplayMonitor = loadDisplayMonitor(displayPath);

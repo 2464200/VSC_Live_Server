@@ -52,6 +52,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   videoPlayerWindow: {
     onPause: (callback) => createSubscription('bordero-video-player:pause', callback),
     onStop: (callback) => createSubscription('bordero-video-player:stop', callback),
+    reportPlaybackState: (payload) => ipcRenderer.send('bordero-video-player:playback-state', payload),
     complete: (payload) => ipcRenderer.send('bordero-video-player:ended', payload)
   },
   filePicker: {

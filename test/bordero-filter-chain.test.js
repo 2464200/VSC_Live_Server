@@ -206,6 +206,35 @@ test('a UI filter chain survives sorts, individual changes and removals, NEXT an
   assert.equal(manager.currentFilters.course_week.value, '20');
 });
 
+test('remote videoclip STOP blinks only while playing and closes the Electron player on click', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  const stopButton = window.document.getElementById('btn-stop-videoclip-remote');
+  let stopCalls = 0;
+  window.electronAPI = {
+    videoPlayer: {
+      async stop() {
+        stopCalls += 1;
+        return { success: true };
+      }
+    }
+  };
+  window.Toast = { success() {} };
+  manager.secondaryVideoPlayerState = { mode: 'video', hasWindow: true, active: true };
+
+  manager.updateSecondaryVideoStopButton(true);
+  assert.equal(stopButton.classList.contains('videoclip-playing'), true);
+  assert.equal(stopButton.getAttribute('aria-pressed'), 'true');
+
+  stopButton.click();
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(stopCalls, 1);
+  assert.equal(stopButton.classList.contains('videoclip-playing'), false);
+  assert.equal(stopButton.getAttribute('aria-pressed'), 'false');
+  assert.equal(manager.secondaryVideoPlayerState.hasWindow, false);
+});
+
 test('search modes and RESET RICERCA preserve filters; RESET FILTRI + ID removes the entire chain', async (t) => {
   const h = await harness(t);
   const { manager, window } = h;
