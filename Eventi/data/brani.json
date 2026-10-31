@@ -267,7 +267,7 @@
     "autore": "brady seals",
     "compositore": "",
     "durata": "03:22",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "031",
@@ -303,7 +303,7 @@
     "autore": "pat green",
     "compositore": "",
     "durata": "03:51",
-    "richieste": "2"
+    "richieste": "1"
   },
   {
     "id": "035",
@@ -1077,7 +1077,7 @@
     "autore": "sheryl crow",
     "compositore": "",
     "durata": "03:26",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "121",
@@ -1086,7 +1086,7 @@
     "autore": "carrie underwood",
     "compositore": "",
     "durata": "03:57",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "122",
@@ -1095,7 +1095,7 @@
     "autore": "gord bamford",
     "compositore": "",
     "durata": "03:35",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "123",
@@ -1104,7 +1104,7 @@
     "autore": "madonna",
     "compositore": "",
     "durata": "04:03",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "124",
@@ -1194,7 +1194,7 @@
     "autore": "the clark family experience",
     "compositore": "",
     "durata": "03:24",
-    "richieste": "2"
+    "richieste": "1"
   },
   {
     "id": "134",
@@ -1203,7 +1203,7 @@
     "autore": "ronan hardiman",
     "compositore": "",
     "durata": "03:44",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "135",
@@ -1797,7 +1797,7 @@
     "autore": "stephen kellog & the sixers",
     "compositore": "",
     "durata": "03:06",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "201",
@@ -2391,7 +2391,7 @@
     "autore": "aaron goodvin",
     "compositore": "",
     "durata": "03:43",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "267",
@@ -4848,7 +4848,7 @@
     "autore": "onerepublic",
     "compositore": "",
     "durata": "03:45",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "540",
@@ -4911,7 +4911,7 @@
     "autore": "shania twain",
     "compositore": "",
     "durata": "03:53",
-    "richieste": "1"
+    "richieste": ""
   },
   {
     "id": "547",
@@ -5114,10 +5114,10 @@
   {
     "id": "569",
     "titolo": "PIM PAM",
-    "brano": "sixteen tons",
-    "autore": "tennessee ernie ford",
+    "brano": "suit and tie",
+    "autore": "cooper alan",
     "compositore": "",
-    "durata": "02:39",
+    "durata": "02:09",
     "richieste": ""
   },
   {
