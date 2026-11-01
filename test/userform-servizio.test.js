@@ -143,6 +143,27 @@ async function run() {
   assert.ok(logoId);
   assert.equal(JSON.parse(operator.localStorage.getItem('userform-servizio-logo:last')).name, 'logo.png');
 
+  assert.equal(imageInput.accept, 'image/*');
+  operator.UTIF = {
+    decode: () => [{ width: 1, height: 1 }],
+    decodeImage() {},
+    toRGBA8: () => new Uint8Array([0, 0, 0, 255]),
+  };
+  operator.HTMLCanvasElement.prototype.getContext = () => ({
+    createImageData: () => ({ data: new Uint8ClampedArray(4) }),
+    putImageData() {},
+  });
+  operator.HTMLCanvasElement.prototype.toBlob = (callback) => {
+    callback(new operator.Blob(['converted-image'], { type: 'image/png' }));
+  };
+  const tiffFile = new operator.File(['test-tiff'], 'logo.tiff', { type: 'image/tiff' });
+  Object.defineProperty(imageInput, 'files', { configurable: true, value: [tiffFile] });
+  imageInput.dispatchEvent(new operator.Event('change'));
+  await waitFor(() => !operator.document.getElementById('publish-logo-btn').disabled, 'TIFF conversion');
+  assert.equal(operator.document.getElementById('service-file-name').textContent, 'logo.png');
+  assert.match(operator.document.getElementById('service-image-preview').src, /^data:image\/png;base64,/);
+  operator.document.getElementById('clear-logo-btn').click();
+
   const slideshowInput = operator.document.getElementById('service-slideshow-input');
   const slideFiles = [
     new operator.File(['slide-one'], 'slide-one.png', { type: 'image/png' }),

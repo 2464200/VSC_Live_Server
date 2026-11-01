@@ -268,7 +268,6 @@
       showPublishedText("Immagine non disponibile");
       return;
     }
-
     message.hidden = true;
     image.src = payload.dataUrl;
     image.alt = payload.name || "Immagine pubblicata";
@@ -636,6 +635,7 @@
     const slides = [];
     let draftSaveQueue = Promise.resolve();
     let selectedLogo = null;
+    let imageSelectionVersion = 0;
 
     const currentPublication = getPublicationState();
     reflectPublicationState(currentPublication?.active === true);
@@ -885,6 +885,7 @@
     }
 
     function clearLogo() {
+      imageSelectionVersion += 1;
       selectedLogo = null;
       imageInput.value = "";
       preview.removeAttribute("src");
@@ -894,9 +895,11 @@
       clearLogoButton.disabled = true;
     }
 
-    function readImage(file) {
+    async function readImage(file) {
       setStatus("");
-      if (!file || !file.type.startsWith("image/")) {
+      clearLogo();
+      const selectionVersion = imageSelectionVersion;
+      if (!file || (!file.type.startsWith("image/") && !isTiffFile(file))) {
         setStatus("Seleziona un file immagine valido.", "error");
         return;
       }
@@ -905,22 +908,42 @@
         return;
       }
 
+      let imageBlob = file;
+      let imageName = file.name;
+      try {
+        if (isTiffFile(file)) {
+          const converted = await convertTiffToPng(file);
+          imageBlob = converted.blob;
+          imageName = converted.name;
+        }
+      } catch (error) {
+        if (selectionVersion !== imageSelectionVersion) return;
+        setStatus(error.message, "error");
+        return;
+      }
+
+      if (selectionVersion !== imageSelectionVersion) return;
       const reader = new FileReader();
       reader.addEventListener("load", () => {
+        if (selectionVersion !== imageSelectionVersion) return;
         if (typeof reader.result !== "string") {
           setStatus("Impossibile leggere il file immagine.", "error");
           return;
         }
-        selectedLogo = { name: file.name, dataUrl: reader.result };
+        selectedLogo = { name: imageName, dataUrl: reader.result };
         preview.src = reader.result;
-        preview.alt = `Anteprima di ${file.name}`;
+        preview.alt = `Anteprima di ${imageName}`;
         previewWrap.hidden = false;
-        fileName.textContent = file.name;
+        fileName.textContent = imageName;
         publishLogoButton.disabled = false;
         clearLogoButton.disabled = false;
       });
-      reader.addEventListener("error", () => setStatus("Impossibile leggere il file immagine.", "error"));
-      reader.readAsDataURL(file);
+      reader.addEventListener("error", () => {
+        if (selectionVersion === imageSelectionVersion) {
+          setStatus("Impossibile leggere il file immagine.", "error");
+        }
+      });
+      reader.readAsDataURL(imageBlob);
     }
 
     async function publishLogo() {
@@ -942,7 +965,7 @@
     document.getElementById("stop-text-btn").addEventListener("click", () => void stopAllServiceActivities());
     publishLogoButton.addEventListener("click", () => void publishLogo());
     clearLogoButton.addEventListener("click", clearLogo);
-    imageInput.addEventListener("change", () => readImage(imageInput.files?.[0]));
+    imageInput.addEventListener("change", () => void readImage(imageInput.files?.[0]));
     slideshowInput.addEventListener("change", () => void addSlideshowFiles(slideshowInput.files));
     slideshowDropzone.addEventListener("dragover", (event) => {
       event.preventDefault();
@@ -976,7 +999,7 @@
     dropzone.addEventListener("drop", (event) => {
       event.preventDefault();
       dropzone.classList.remove("is-dragging");
-      readImage(event.dataTransfer?.files?.[0]);
+      void readImage(event.dataTransfer?.files?.[0]);
     });
     messageInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
