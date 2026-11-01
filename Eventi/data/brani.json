@@ -99,12 +99,30 @@
     "richieste": ""
   },
   {
+    "id": "507",
+    "titolo": "4 COWBOY",
+    "brano": "rough ride for a cowboy",
+    "autore": "mackenzie porter",
+    "compositore": "",
+    "durata": "02:23",
+    "richieste": ""
+  },
+  {
     "id": "012",
     "titolo": "50 SHOTS",
     "brano": "shoulda",
     "autore": "kylie morgan",
     "compositore": "",
     "durata": "02:47",
+    "richieste": ""
+  },
+  {
+    "id": "504",
+    "titolo": "6 SHOTS",
+    "brano": "bad decisions",
+    "autore": "dylan schneider",
+    "compositore": "",
+    "durata": "03:01",
     "richieste": ""
   },
   {
@@ -162,6 +180,15 @@
     "richieste": ""
   },
   {
+    "id": "517",
+    "titolo": "AARIN'S SPIRIT",
+    "brano": "spirit in the sky",
+    "autore": "kentucky headhunters",
+    "compositore": "",
+    "durata": "04:22",
+    "richieste": ""
+  },
+  {
     "id": "019",
     "titolo": "AFTER MIDNIGHT",
     "brano": "walkin' after midnight",
@@ -177,6 +204,15 @@
     "autore": "thomas rhett",
     "compositore": "",
     "durata": "03:09",
+    "richieste": ""
+  },
+  {
+    "id": "506",
+    "titolo": "ALL DAY",
+    "brano": "all day",
+    "autore": "locash",
+    "compositore": "",
+    "durata": "03:15",
     "richieste": ""
   },
   {
@@ -270,6 +306,15 @@
     "richieste": ""
   },
   {
+    "id": "606",
+    "titolo": "AUDIO VIDEO TESTER",
+    "brano": "tsunami",
+    "autore": "dvbbs & borgeus",
+    "compositore": "",
+    "durata": "02:22",
+    "richieste": ""
+  },
+  {
     "id": "031",
     "titolo": "AUSTIN",
     "brano": "austin",
@@ -306,12 +351,30 @@
     "richieste": "1"
   },
   {
+    "id": "502",
+    "titolo": "BACK TO THE START",
+    "brano": "back to the start",
+    "autore": "michael schulte",
+    "compositore": "",
+    "durata": "03:14",
+    "richieste": "1"
+  },
+  {
     "id": "035",
     "titolo": "BAD",
     "brano": "bad bad leroy brown",
     "autore": "jim croce",
     "compositore": "",
     "durata": "02:50",
+    "richieste": ""
+  },
+  {
+    "id": "565",
+    "titolo": "BANJO",
+    "brano": "banjo",
+    "autore": "rascal flatts",
+    "compositore": "",
+    "durata": "04:18",
     "richieste": ""
   },
   {
@@ -351,6 +414,15 @@
     "richieste": "1"
   },
   {
+    "id": "578",
+    "titolo": "BEST DAY EVER",
+    "brano": "best day ever",
+    "autore": "sly & the family stallone",
+    "compositore": "",
+    "durata": "02:30",
+    "richieste": ""
+  },
+  {
     "id": "040",
     "titolo": "BETTER COUNTRY",
     "brano": "better country",
@@ -358,6 +430,33 @@
     "compositore": "",
     "durata": "03:28",
     "richieste": "1"
+  },
+  {
+    "id": "491",
+    "titolo": "BETTER THAN THIS",
+    "brano": "better than this",
+    "autore": "hunter hayes",
+    "compositore": "",
+    "durata": "03:33",
+    "richieste": ""
+  },
+  {
+    "id": "483",
+    "titolo": "BEYOND TIME",
+    "brano": "forever and ever amen",
+    "autore": "randy travis",
+    "compositore": "",
+    "durata": "03:43",
+    "richieste": ""
+  },
+  {
+    "id": "540",
+    "titolo": "BIG BULL FIDDLE",
+    "brano": "big butch bass bull fiddle",
+    "autore": "corb lund",
+    "compositore": "",
+    "durata": "02:14",
+    "richieste": ""
   },
   {
     "id": "041",
@@ -477,12 +576,39 @@
     "richieste": ""
   },
   {
+    "id": "552",
+    "titolo": "BLUE CHAIRS",
+    "brano": "two blue chairs & you",
+    "autore": "zac brown band",
+    "compositore": "",
+    "durata": "02:49",
+    "richieste": ""
+  },
+  {
+    "id": "580",
+    "titolo": "BOMSHEL STOMP",
+    "brano": "bomshel stomp",
+    "autore": "bomshel",
+    "compositore": "",
+    "durata": "03:36",
+    "richieste": ""
+  },
+  {
     "id": "054",
     "titolo": "BOOMERANG",
     "brano": "i'm still falling",
     "autore": "slow horses",
     "compositore": "",
     "durata": "03:34",
+    "richieste": ""
+  },
+  {
+    "id": "559",
+    "titolo": "BOOTS BACK",
+    "brano": "boots back",
+    "autore": "jeorgia rose",
+    "compositore": "",
+    "durata": "02:38",
     "richieste": ""
   },
   {
@@ -576,6 +702,15 @@
     "richieste": ""
   },
   {
+    "id": "575",
+    "titolo": "BUMP THAT BASS",
+    "brano": "drop your tailgate",
+    "autore": "chase mcdaniel",
+    "compositore": "",
+    "durata": "03:08",
+    "richieste": ""
+  },
+  {
     "id": "065",
     "titolo": "BURNIN' UP",
     "brano": "i hope it's me",
@@ -618,6 +753,15 @@
     "autore": "the olson band",
     "compositore": "",
     "durata": "04:39",
+    "richieste": ""
+  },
+  {
+    "id": "547",
+    "titolo": "C A R E",
+    "brano": "the last shanty",
+    "autore": "derina harvey band",
+    "compositore": "",
+    "durata": "03:47",
     "richieste": ""
   },
   {
@@ -666,6 +810,69 @@
     "richieste": ""
   },
   {
+    "id": "515",
+    "titolo": "CARRY YOU",
+    "brano": "carry you home",
+    "autore": "tim hicks & dyana reid",
+    "compositore": "",
+    "durata": "02:51",
+    "richieste": ""
+  },
+  {
+    "id": "120",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "blue christmas",
+    "autore": "sheryl crow",
+    "compositore": "",
+    "durata": "03:26",
+    "richieste": ""
+  },
+  {
+    "id": "121",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "cowboy casanova",
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "03:57",
+    "richieste": ""
+  },
+  {
+    "id": "122",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "must be a woman",
+    "autore": "gord bamford",
+    "compositore": "",
+    "durata": "03:35",
+    "richieste": ""
+  },
+  {
+    "id": "123",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "true blue",
+    "autore": "madonna",
+    "compositore": "",
+    "durata": "04:03",
+    "richieste": ""
+  },
+  {
+    "id": "539",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "love runs out",
+    "autore": "onerepublic",
+    "compositore": "",
+    "durata": "03:45",
+    "richieste": ""
+  },
+  {
+    "id": "546",
+    "titolo": "CASANOVA COWBOY",
+    "brano": "man i feel like a woman",
+    "autore": "shania twain",
+    "compositore": "",
+    "durata": "03:53",
+    "richieste": ""
+  },
+  {
     "id": "075",
     "titolo": "CASTAWAY",
     "brano": "castaway",
@@ -681,6 +888,15 @@
     "autore": "dean miller",
     "compositore": "",
     "durata": "02:41",
+    "richieste": ""
+  },
+  {
+    "id": "476",
+    "titolo": "CHA CHA COUNTRY",
+    "brano": "your man",
+    "autore": "josh turner",
+    "compositore": "",
+    "durata": "03:32",
     "richieste": ""
   },
   {
@@ -708,6 +924,24 @@
     "autore": "the mavericks",
     "compositore": "",
     "durata": "04:23",
+    "richieste": ""
+  },
+  {
+    "id": "478",
+    "titolo": "CHANGING DANCE BARN DANCE",
+    "brano": "feliz navidad",
+    "autore": "josè feliciano",
+    "compositore": "",
+    "durata": "03:10",
+    "richieste": ""
+  },
+  {
+    "id": "518",
+    "titolo": "CHANGING DANCE BARN DANCE",
+    "brano": "all you ever do is bring me down",
+    "autore": "the mavericks",
+    "compositore": "",
+    "durata": "03:47",
     "richieste": ""
   },
   {
@@ -762,6 +996,15 @@
     "autore": "sugarland",
     "compositore": "",
     "durata": "04:07",
+    "richieste": "1"
+  },
+  {
+    "id": "568",
+    "titolo": "CHEEK TO CHEEK",
+    "brano": "cheek to cheek",
+    "autore": "frank sinatra",
+    "compositore": "",
+    "durata": "03:06",
     "richieste": "1"
   },
   {
@@ -855,6 +1098,33 @@
     "richieste": ""
   },
   {
+    "id": "511",
+    "titolo": "CHEYENNE",
+    "brano": "tutta l'italia",
+    "autore": "gabry ponte",
+    "compositore": "",
+    "durata": "02:57",
+    "richieste": ""
+  },
+  {
+    "id": "512",
+    "titolo": "CHEYENNE",
+    "brano": "old town road",
+    "autore": "lil nas x feat billy ray cyrus",
+    "compositore": "",
+    "durata": "02:38",
+    "richieste": ""
+  },
+  {
+    "id": "549",
+    "titolo": "CHEYENNE",
+    "brano": "drunken sailor",
+    "autore": "malinda feat. bobby waters",
+    "compositore": "",
+    "durata": "02:43",
+    "richieste": ""
+  },
+  {
     "id": "096",
     "titolo": "CHEYENNE'S ROCK",
     "brano": "it's late",
@@ -906,6 +1176,24 @@
     "autore": "hunter",
     "compositore": "",
     "durata": "04:24",
+    "richieste": ""
+  },
+  {
+    "id": "519",
+    "titolo": "CHILL FACTOR",
+    "brano": "i play chicken with the train",
+    "autore": "cowboy troy with big & ritch",
+    "compositore": "",
+    "durata": "03:19",
+    "richieste": ""
+  },
+  {
+    "id": "520",
+    "titolo": "CHILL FACTOR",
+    "brano": "turn on the radio",
+    "autore": "reba mcentire",
+    "compositore": "",
+    "durata": "04:03",
     "richieste": ""
   },
   {
@@ -981,12 +1269,30 @@
     "richieste": ""
   },
   {
+    "id": "603",
+    "titolo": "COME COMPILARE MODULO DI GOOGLE",
+    "brano": "",
+    "autore": "dj daniel west",
+    "compositore": "",
+    "durata": "00:38",
+    "richieste": ""
+  },
+  {
     "id": "110",
     "titolo": "COME MY WAY",
     "brano": "come my way",
     "autore": "raynes",
     "compositore": "",
     "durata": "03:19",
+    "richieste": ""
+  },
+  {
+    "id": "609",
+    "titolo": "COME SEGUIRE IN DIRETTA LIVE",
+    "brano": "",
+    "autore": "dj daniel west",
+    "compositore": "",
+    "durata": "",
     "richieste": ""
   },
   {
@@ -1044,6 +1350,15 @@
     "richieste": ""
   },
   {
+    "id": "480",
+    "titolo": "COUNTRY FRIENDS CRUISE",
+    "brano": "long live the cowboy",
+    "autore": "clay walker",
+    "compositore": "",
+    "durata": "02:56",
+    "richieste": ""
+  },
+  {
     "id": "117",
     "titolo": "COUNTRY GIRL SHAKE",
     "brano": "country girl (shake it for me)",
@@ -1062,48 +1377,30 @@
     "richieste": ""
   },
   {
+    "id": "484",
+    "titolo": "COUNTRY STYLE",
+    "brano": "until the money's gone",
+    "autore": "the bellamy brothers",
+    "compositore": "",
+    "durata": "02:26",
+    "richieste": ""
+  },
+  {
+    "id": "495",
+    "titolo": "COWBOY",
+    "brano": "i wanna be your cowboy",
+    "autore": "coffey anderson",
+    "compositore": "",
+    "durata": "02:52",
+    "richieste": ""
+  },
+  {
     "id": "119",
     "titolo": "COWBOY BIG UP",
     "brano": "cowboy up",
     "autore": "jill johnson",
     "compositore": "",
     "durata": "03:32",
-    "richieste": ""
-  },
-  {
-    "id": "120",
-    "titolo": "CASANOVA COWBOY",
-    "brano": "blue christmas",
-    "autore": "sheryl crow",
-    "compositore": "",
-    "durata": "03:26",
-    "richieste": ""
-  },
-  {
-    "id": "121",
-    "titolo": "CASANOVA COWBOY",
-    "brano": "cowboy casanova",
-    "autore": "carrie underwood",
-    "compositore": "",
-    "durata": "03:57",
-    "richieste": ""
-  },
-  {
-    "id": "122",
-    "titolo": "CASANOVA COWBOY",
-    "brano": "must be a woman",
-    "autore": "gord bamford",
-    "compositore": "",
-    "durata": "03:35",
-    "richieste": ""
-  },
-  {
-    "id": "123",
-    "titolo": "CASANOVA COWBOY",
-    "brano": "true blue",
-    "autore": "madonna",
-    "compositore": "",
-    "durata": "04:03",
     "richieste": ""
   },
   {
@@ -1197,6 +1494,15 @@
     "richieste": "1"
   },
   {
+    "id": "529",
+    "titolo": "DANCE WITH EVERYBODY",
+    "brano": "dance with everybody",
+    "autore": "drew holcomb & the neighbors and the national park",
+    "compositore": "",
+    "durata": "03:31",
+    "richieste": ""
+  },
+  {
     "id": "134",
     "titolo": "DANCING VIOLINS",
     "brano": "duelling violins",
@@ -1233,6 +1539,24 @@
     "richieste": ""
   },
   {
+    "id": "497",
+    "titolo": "DAY OF VICTORY",
+    "brano": "listen to your senses",
+    "autore": "slim attraction",
+    "compositore": "",
+    "durata": "03:02",
+    "richieste": ""
+  },
+  {
+    "id": "528",
+    "titolo": "DEAD MAN WALKING",
+    "brano": "the hangman",
+    "autore": "war hippies",
+    "compositore": "",
+    "durata": "04:05",
+    "richieste": ""
+  },
+  {
     "id": "138",
     "titolo": "DEAR LIFE",
     "brano": "dear life",
@@ -1242,12 +1566,30 @@
     "richieste": ""
   },
   {
+    "id": "498",
+    "titolo": "DELICIOUS",
+    "brano": "didn't I",
+    "autore": "dasha",
+    "compositore": "",
+    "durata": "02:51",
+    "richieste": ""
+  },
+  {
     "id": "139",
     "titolo": "DEVIL'S SIDE",
     "brano": "bad side",
     "autore": "moonlight social",
     "compositore": "",
     "durata": "03:32",
+    "richieste": ""
+  },
+  {
+    "id": "577",
+    "titolo": "DIANA",
+    "brano": "diana",
+    "autore": "one direction",
+    "compositore": "",
+    "durata": "03:05",
     "richieste": ""
   },
   {
@@ -1311,6 +1653,24 @@
     "autore": "steve holy",
     "compositore": "",
     "durata": "03:27",
+    "richieste": ""
+  },
+  {
+    "id": "554",
+    "titolo": "DOODLES",
+    "brano": "doodles",
+    "autore": "rose betts",
+    "compositore": "",
+    "durata": "02:42",
+    "richieste": ""
+  },
+  {
+    "id": "482",
+    "titolo": "DOUBLE D (DUCK DYNASTY)",
+    "brano": "cut 'em all",
+    "autore": "colt ford ft. willie robertson",
+    "compositore": "",
+    "durata": "02:41",
     "richieste": ""
   },
   {
@@ -1404,12 +1764,39 @@
     "richieste": ""
   },
   {
+    "id": "532",
+    "titolo": "ELECTRIC SLIDE",
+    "brano": "rumor has it",
+    "autore": "clay walker",
+    "compositore": "",
+    "durata": "03:10",
+    "richieste": ""
+  },
+  {
+    "id": "536",
+    "titolo": "ELECTRIC SLIDE",
+    "brano": "no rompas mi corazon",
+    "autore": "caballo dorado",
+    "compositore": "",
+    "durata": "03:41",
+    "richieste": ""
+  },
+  {
     "id": "157",
     "titolo": "ELECTRIC STOMP",
     "brano": "long road to nashville",
     "autore": "the woolpackers",
     "compositore": "",
     "durata": "03:31",
+    "richieste": ""
+  },
+  {
+    "id": "543",
+    "titolo": "ELECTRIC STOMP",
+    "brano": "fast as you",
+    "autore": "dwight yoakam",
+    "compositore": "",
+    "durata": "04:49",
     "richieste": ""
   },
   {
@@ -1422,6 +1809,51 @@
     "richieste": ""
   },
   {
+    "id": "600",
+    "titolo": "ESIBIZIONE DUE TORRI - Black Coffee",
+    "brano": "black coffee",
+    "autore": "lacy j dalton",
+    "compositore": "",
+    "durata": "04:14",
+    "richieste": ""
+  },
+  {
+    "id": "602",
+    "titolo": "ESIBIZIONE DUE TORRI - Dancing Violins",
+    "brano": "duelling violins",
+    "autore": "ronan hardiman",
+    "compositore": "",
+    "durata": "03:17",
+    "richieste": ""
+  },
+  {
+    "id": "601",
+    "titolo": "ESIBIZIONE DUE TORRI - Doctor Doctor",
+    "brano": "bad case of loving you",
+    "autore": "robert palmer",
+    "compositore": "",
+    "durata": "03:13",
+    "richieste": ""
+  },
+  {
+    "id": "607",
+    "titolo": "ESIBIZIONE DUE TORRI - Love Potion 666",
+    "brano": "love potion 666",
+    "autore": "djtexx",
+    "compositore": "",
+    "durata": "02:46",
+    "richieste": ""
+  },
+  {
+    "id": "608",
+    "titolo": "ESIBIZIONE DUE TORRI - Stomp 2,3,4",
+    "brano": "stomp 2,3,4",
+    "autore": "2341studios",
+    "compositore": "",
+    "durata": "02:44",
+    "richieste": ""
+  },
+  {
     "id": "159",
     "titolo": "EVERY STAR",
     "brano": "even the stars fall for you",
@@ -1431,12 +1863,39 @@
     "richieste": ""
   },
   {
+    "id": "561",
+    "titolo": "EYE OF THE STORM",
+    "brano": "eye of the storm",
+    "autore": "melanie ryan & jop dorris",
+    "compositore": "",
+    "durata": "03:46",
+    "richieste": ""
+  },
+  {
+    "id": "521",
+    "titolo": "EYES ON YOU",
+    "brano": "eyes on you",
+    "autore": "trent tomlisson",
+    "compositore": "",
+    "durata": "02:49",
+    "richieste": ""
+  },
+  {
     "id": "160",
     "titolo": "FAKE ID",
     "brano": "fake id",
     "autore": "big & rich",
     "compositore": "",
     "durata": "03:24",
+    "richieste": ""
+  },
+  {
+    "id": "563",
+    "titolo": "FEEL GOOD FEELIN'",
+    "brano": "feel good feelin'",
+    "autore": "me and mae",
+    "compositore": "",
+    "durata": "03:15",
     "richieste": ""
   },
   {
@@ -1620,6 +2079,15 @@
     "richieste": ""
   },
   {
+    "id": "533",
+    "titolo": "FRESH DELAY",
+    "brano": "work for it",
+    "autore": "daphne willis & lonis",
+    "compositore": "",
+    "durata": "02:43",
+    "richieste": ""
+  },
+  {
     "id": "181",
     "titolo": "FRIENDS",
     "brano": "you've been a friend to me",
@@ -1701,6 +2169,15 @@
     "richieste": ""
   },
   {
+    "id": "562",
+    "titolo": "GIVE ME FIVE",
+    "brano": "psalm 119 (back to you)",
+    "autore": "lost & found",
+    "compositore": "",
+    "durata": "03:46",
+    "richieste": ""
+  },
+  {
     "id": "190",
     "titolo": "GIVES ME SHIVERS",
     "brano": "shivers",
@@ -1773,6 +2250,15 @@
     "richieste": ""
   },
   {
+    "id": "557",
+    "titolo": "GOOD GIRL",
+    "brano": "good girl",
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "03:26",
+    "richieste": ""
+  },
+  {
     "id": "198",
     "titolo": "GOOD THINGS",
     "brano": "good things",
@@ -1827,12 +2313,30 @@
     "richieste": ""
   },
   {
-    "id": "204",
-    "titolo": "WALKIN' THE LINE",
-    "brano": "blown away",
-    "autore": "carrie underwood",
+    "id": "489",
+    "titolo": "GUTS",
+    "brano": "authority song",
+    "autore": "chancey williams",
     "compositore": "",
     "durata": "04:01",
+    "richieste": ""
+  },
+  {
+    "id": "513",
+    "titolo": "GYPSY WOMAN",
+    "brano": "gypsy woman",
+    "autore": "eamonn jackson",
+    "compositore": "",
+    "durata": "03:05",
+    "richieste": ""
+  },
+  {
+    "id": "206",
+    "titolo": "HALLELUJAH",
+    "brano": "joy's gonna come",
+    "autore": "the kingsmen",
+    "compositore": "",
+    "durata": "03:16",
     "richieste": ""
   },
   {
@@ -1845,15 +2349,6 @@
     "richieste": "1"
   },
   {
-    "id": "206",
-    "titolo": "HALLELUJAH",
-    "brano": "joy's gonna come",
-    "autore": "the kingsmen",
-    "compositore": "",
-    "durata": "03:16",
-    "richieste": ""
-  },
-  {
     "id": "207",
     "titolo": "HAND SHAKE",
     "brano": "do you wanna?",
@@ -1863,21 +2358,21 @@
     "richieste": ""
   },
   {
-    "id": "208",
-    "titolo": "HEADS OR TAILS",
-    "brano": "she had me (at heads carolina)",
-    "autore": "cole swindell",
-    "compositore": "",
-    "durata": "03:27",
-    "richieste": ""
-  },
-  {
     "id": "209",
     "titolo": "HEADIN WEST",
     "brano": "headin' west",
     "autore": "daly stephenson",
     "compositore": "",
     "durata": "02:45",
+    "richieste": ""
+  },
+  {
+    "id": "208",
+    "titolo": "HEADS OR TAILS",
+    "brano": "she had me (at heads carolina)",
+    "autore": "cole swindell",
+    "compositore": "",
+    "durata": "03:27",
     "richieste": ""
   },
   {
@@ -1962,6 +2457,15 @@
     "richieste": ""
   },
   {
+    "id": "485",
+    "titolo": "HOLY MOLY",
+    "brano": "footloose",
+    "autore": "blake shelton",
+    "compositore": "",
+    "durata": "03:39",
+    "richieste": ""
+  },
+  {
     "id": "219",
     "titolo": "HONEY SWEET HONEY",
     "brano": "honey honey",
@@ -1977,6 +2481,24 @@
     "autore": "ian munsick",
     "compositore": "",
     "durata": "04:05",
+    "richieste": ""
+  },
+  {
+    "id": "551",
+    "titolo": "HOT CHOCOLATE",
+    "brano": "bad dreams",
+    "autore": "teddy swims",
+    "compositore": "",
+    "durata": "03:05",
+    "richieste": ""
+  },
+  {
+    "id": "503",
+    "titolo": "HOUSE OF BAMBOO",
+    "brano": "house of mamboo",
+    "autore": "andy williams",
+    "compositore": "",
+    "durata": "02:08",
     "richieste": ""
   },
   {
@@ -1996,6 +2518,15 @@
     "compositore": "",
     "durata": "03:02",
     "richieste": ""
+  },
+  {
+    "id": "548",
+    "titolo": "I SHOWED YOU THE DOOR",
+    "brano": "the door",
+    "autore": "teddy swims",
+    "compositore": "",
+    "durata": "03:33",
+    "richieste": "1"
   },
   {
     "id": "223",
@@ -2178,6 +2709,15 @@
     "richieste": ""
   },
   {
+    "id": "560",
+    "titolo": "JUST MARRIED",
+    "brano": "for a boat",
+    "autore": "luke bryan",
+    "compositore": "",
+    "durata": "03:30",
+    "richieste": ""
+  },
+  {
     "id": "243",
     "titolo": "KENTUCKY CLOVER",
     "brano": "billy the kid",
@@ -2196,6 +2736,15 @@
     "richieste": ""
   },
   {
+    "id": "494",
+    "titolo": "KICK IT UP",
+    "brano": "kick it up",
+    "autore": "the mc clymons",
+    "compositore": "",
+    "durata": "03:46",
+    "richieste": ""
+  },
+  {
     "id": "245",
     "titolo": "KILL THE SPIDERS",
     "brano": "kill the spider",
@@ -2211,6 +2760,24 @@
     "autore": "aaron scherz",
     "compositore": "",
     "durata": "03:13",
+    "richieste": ""
+  },
+  {
+    "id": "567",
+    "titolo": "KINGDOM OF FEAR",
+    "brano": "kingdom of fear",
+    "autore": "cameron whitcomb",
+    "compositore": "",
+    "durata": "02:42",
+    "richieste": "1"
+  },
+  {
+    "id": "544",
+    "titolo": "LAKE DARBONNE",
+    "brano": "lake darbonne",
+    "autore": "katie knight",
+    "compositore": "",
+    "durata": "02:29",
     "richieste": ""
   },
   {
@@ -2286,12 +2853,12 @@
     "richieste": ""
   },
   {
-    "id": "255",
-    "titolo": "TIPSY",
-    "brano": "a bar song (tipsy)",
-    "autore": "shaboozey",
+    "id": "509",
+    "titolo": "LEAVE IT UP",
+    "brano": "something in your mouth",
+    "autore": "nickelback",
     "compositore": "",
-    "durata": "02:52",
+    "durata": "03:39",
     "richieste": ""
   },
   {
@@ -2347,6 +2914,15 @@
     "compositore": "",
     "durata": "03:28",
     "richieste": "1"
+  },
+  {
+    "id": "501",
+    "titolo": "LIQUOR TALKING",
+    "brano": "liquor talkin'",
+    "autore": "don luis",
+    "compositore": "",
+    "durata": "02:53",
+    "richieste": ""
   },
   {
     "id": "262",
@@ -2412,6 +2988,15 @@
     "richieste": ""
   },
   {
+    "id": "525",
+    "titolo": "LOOP",
+    "brano": "over all over again",
+    "autore": "james barker band",
+    "compositore": "",
+    "durata": "03:22",
+    "richieste": ""
+  },
+  {
     "id": "269",
     "titolo": "LORDY",
     "brano": "lordy lordy",
@@ -2448,6 +3033,24 @@
     "richieste": ""
   },
   {
+    "id": "555",
+    "titolo": "LOVE POTION 666",
+    "brano": "love potion 666",
+    "autore": "djtexx",
+    "compositore": "",
+    "durata": "02:46",
+    "richieste": "1"
+  },
+  {
+    "id": "479",
+    "titolo": "LOVE SOMEBODY",
+    "brano": "love somebody",
+    "autore": "morgan wallen",
+    "compositore": "",
+    "durata": "03:25",
+    "richieste": ""
+  },
+  {
     "id": "273",
     "titolo": "LOVE SOMEONE",
     "brano": "love someone",
@@ -2475,10 +3078,28 @@
     "richieste": ""
   },
   {
+    "id": "534",
+    "titolo": "MAGIC MOMENT",
+    "brano": "just like magic",
+    "autore": "casey barnes",
+    "compositore": "",
+    "durata": "03:01",
+    "richieste": ""
+  },
+  {
     "id": "276",
     "titolo": "MAKE YOU MINE",
     "brano": "make you mine",
     "autore": "high valley",
+    "compositore": "",
+    "durata": "03:32",
+    "richieste": ""
+  },
+  {
+    "id": "545",
+    "titolo": "MAN ON A MISSION",
+    "brano": "man on a mission",
+    "autore": "oh the lacerny",
     "compositore": "",
     "durata": "03:32",
     "richieste": ""
@@ -2490,6 +3111,15 @@
     "autore": "rainey qualley",
     "compositore": "",
     "durata": "03:23",
+    "richieste": ""
+  },
+  {
+    "id": "493",
+    "titolo": "MEMORY (Ghinolfi Piromalli)",
+    "brano": "every other memory",
+    "autore": "ryan hurd",
+    "compositore": "",
+    "durata": "03:40",
     "richieste": ""
   },
   {
@@ -2511,12 +3141,48 @@
     "richieste": ""
   },
   {
+    "id": "558",
+    "titolo": "MILES ON IT",
+    "brano": "miles on it",
+    "autore": "marshmello & kane brown",
+    "compositore": "",
+    "durata": "02:49",
+    "richieste": "1"
+  },
+  {
+    "id": "488",
+    "titolo": "MILESTONE",
+    "brano": "your love is a miracle",
+    "autore": "mark chesnutt",
+    "compositore": "",
+    "durata": "02:50",
+    "richieste": ""
+  },
+  {
     "id": "280",
     "titolo": "MILKY WAY",
     "brano": "anywhere you wanna go",
     "autore": "alan doyle",
     "compositore": "",
     "durata": "03:23",
+    "richieste": ""
+  },
+  {
+    "id": "499",
+    "titolo": "MINDSET",
+    "brano": "you'll always find your way back home",
+    "autore": "miley cyrus",
+    "compositore": "",
+    "durata": "03:46",
+    "richieste": ""
+  },
+  {
+    "id": "474",
+    "titolo": "MIRACLE",
+    "brano": "miracle",
+    "autore": "tors",
+    "compositore": "",
+    "durata": "03:03",
     "richieste": ""
   },
   {
@@ -2538,6 +3204,24 @@
     "richieste": ""
   },
   {
+    "id": "553",
+    "titolo": "MONSTER HOLIDAY",
+    "brano": "(it's a) monsters holiday",
+    "autore": "buck owens and the buckaroos",
+    "compositore": "",
+    "durata": "02:39",
+    "richieste": ""
+  },
+  {
+    "id": "285",
+    "titolo": "MR POLICEMAN",
+    "brano": "mr. policeman",
+    "autore": "brad paisley",
+    "compositore": "",
+    "durata": "04:16",
+    "richieste": ""
+  },
+  {
     "id": "283",
     "titolo": "MR. FUNKY",
     "brano": "hillibillies",
@@ -2556,21 +3240,21 @@
     "richieste": ""
   },
   {
-    "id": "285",
-    "titolo": "MR POLICEMAN",
-    "brano": "mr. policeman",
-    "autore": "brad paisley",
-    "compositore": "",
-    "durata": "04:16",
-    "richieste": ""
-  },
-  {
     "id": "286",
     "titolo": "MY BLUE JEANS",
     "brano": "if you love somebody",
     "autore": "kevin sharp",
     "compositore": "",
     "durata": "02:30",
+    "richieste": ""
+  },
+  {
+    "id": "510",
+    "titolo": "MY CINDERELLA",
+    "brano": "cinderella",
+    "autore": "dan davidson",
+    "compositore": "",
+    "durata": "03:01",
     "richieste": ""
   },
   {
@@ -2646,6 +3330,60 @@
     "richieste": "1"
   },
   {
+    "id": "522",
+    "titolo": "MY MARIA",
+    "brano": "that girl's got a cowboy heart",
+    "autore": "todd fritsch",
+    "compositore": "",
+    "durata": "03:52",
+    "richieste": "1"
+  },
+  {
+    "id": "523",
+    "titolo": "MY MARIA",
+    "brano": "two black cadillacs",
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "04:59",
+    "richieste": "1"
+  },
+  {
+    "id": "530",
+    "titolo": "MY MARIA",
+    "brano": "what the heart want",
+    "autore": "collin raye",
+    "compositore": "",
+    "durata": "03:44",
+    "richieste": "1"
+  },
+  {
+    "id": "537",
+    "titolo": "MY MARIA",
+    "brano": "choosin' texas",
+    "autore": "ella langley",
+    "compositore": "",
+    "durata": "03:52",
+    "richieste": "1"
+  },
+  {
+    "id": "570",
+    "titolo": "MY MARIA",
+    "brano": "but for the grace of god",
+    "autore": "keith urban",
+    "compositore": "",
+    "durata": "04:34",
+    "richieste": "1"
+  },
+  {
+    "id": "573",
+    "titolo": "MY MARIA",
+    "brano": "everytime we touch",
+    "autore": "maggie reilly",
+    "compositore": "",
+    "durata": "04:04",
+    "richieste": "1"
+  },
+  {
     "id": "295",
     "titolo": "MYSTERIOUS GIRL",
     "brano": "99.9% sure",
@@ -2661,6 +3399,15 @@
     "autore": "ed sheeran",
     "compositore": "",
     "durata": "03:00",
+    "richieste": ""
+  },
+  {
+    "id": "481",
+    "titolo": "NEVERLAND",
+    "brano": "beautiful rose",
+    "autore": "sean mc connell",
+    "compositore": "",
+    "durata": "03:47",
     "richieste": ""
   },
   {
@@ -2688,6 +3435,15 @@
     "autore": "dylan scott",
     "compositore": "",
     "durata": "02:55",
+    "richieste": ""
+  },
+  {
+    "id": "531",
+    "titolo": "NICE TO MEET YOU",
+    "brano": "nice to meet you",
+    "autore": "myles smith feat lainey wilson",
+    "compositore": "",
+    "durata": "02:56",
     "richieste": ""
   },
   {
@@ -2736,6 +3492,33 @@
     "richieste": ""
   },
   {
+    "id": "571",
+    "titolo": "NUMBER 7",
+    "brano": "number 7's gone",
+    "autore": "blake whiten",
+    "compositore": "",
+    "durata": "02:50",
+    "richieste": ""
+  },
+  {
+    "id": "524",
+    "titolo": "OH LOVE",
+    "brano": "oh love",
+    "autore": "thorstein einarsson",
+    "compositore": "",
+    "durata": "02:43",
+    "richieste": ""
+  },
+  {
+    "id": "490",
+    "titolo": "OLD BOOTS",
+    "brano": "this old boots have roots",
+    "autore": "aaron watson",
+    "compositore": "",
+    "durata": "03:31",
+    "richieste": ""
+  },
+  {
     "id": "305",
     "titolo": "OLD STUFF",
     "brano": "the old stuff",
@@ -2754,6 +3537,15 @@
     "richieste": ""
   },
   {
+    "id": "556",
+    "titolo": "ONE MORE",
+    "brano": "one more for the road",
+    "autore": "ceol",
+    "compositore": "",
+    "durata": "03:36",
+    "richieste": ""
+  },
+  {
     "id": "307",
     "titolo": "ONLY IN AMERICA",
     "brano": "only in america",
@@ -2769,6 +3561,15 @@
     "autore": "dean brody",
     "compositore": "",
     "durata": "03:00",
+    "richieste": ""
+  },
+  {
+    "id": "542",
+    "titolo": "OPHELIA",
+    "brano": "ophelia",
+    "autore": "taylor swift",
+    "compositore": "",
+    "durata": "03:47",
     "richieste": ""
   },
   {
@@ -2871,6 +3672,15 @@
     "richieste": ""
   },
   {
+    "id": "569",
+    "titolo": "PIM PAM",
+    "brano": "suit and tie",
+    "autore": "cooper alan",
+    "compositore": "",
+    "durata": "02:09",
+    "richieste": ""
+  },
+  {
     "id": "320",
     "titolo": "PIZZA AND BEER",
     "brano": "dreaming enough to get me by",
@@ -2886,6 +3696,15 @@
     "autore": "blake shelton",
     "compositore": "",
     "durata": "03:00",
+    "richieste": ""
+  },
+  {
+    "id": "566",
+    "titolo": "POT OF GOLD",
+    "brano": "dance above the rainbow",
+    "autore": "ronan hardiman",
+    "compositore": "",
+    "durata": "03:06",
     "richieste": ""
   },
   {
@@ -3060,6 +3879,15 @@
     "richieste": "1"
   },
   {
+    "id": "492",
+    "titolo": "RENEGADES",
+    "brano": "renegades",
+    "autore": "x ambassador",
+    "compositore": "",
+    "durata": "03:15",
+    "richieste": ""
+  },
+  {
     "id": "341",
     "titolo": "RESPECT GIRL",
     "brano": "don't wanna love him",
@@ -3067,6 +3895,15 @@
     "compositore": "",
     "durata": "03:22",
     "richieste": ""
+  },
+  {
+    "id": "526",
+    "titolo": "RETRO",
+    "brano": "i feel it in the wind",
+    "autore": "smith & thell",
+    "compositore": "",
+    "durata": "03:34",
+    "richieste": "2"
   },
   {
     "id": "342",
@@ -3138,6 +3975,15 @@
     "autore": "ryan griffin",
     "compositore": "",
     "durata": "02:56",
+    "richieste": ""
+  },
+  {
+    "id": "508",
+    "titolo": "SCOOBY DOO",
+    "brano": "scooby doo",
+    "autore": "redneck rockus 2",
+    "compositore": "",
+    "durata": "02:51",
     "richieste": ""
   },
   {
@@ -3339,6 +4185,15 @@
     "richieste": ""
   },
   {
+    "id": "535",
+    "titolo": "SOMEWHERE IN SEDONA",
+    "brano": "so far so good",
+    "autore": "dalton davis",
+    "compositore": "",
+    "durata": "02:59",
+    "richieste": ""
+  },
+  {
     "id": "372",
     "titolo": "SOUTH OF SANTA FE",
     "brano": "south of santa fe",
@@ -3402,6 +4257,15 @@
     "richieste": ""
   },
   {
+    "id": "500",
+    "titolo": "STILL GONE",
+    "brano": "still gonna be",
+    "autore": "brandon davies",
+    "compositore": "",
+    "durata": "02:46",
+    "richieste": ""
+  },
+  {
     "id": "379",
     "titolo": "STITCH IT UP",
     "brano": "elvis medley",
@@ -3418,6 +4282,15 @@
     "compositore": "",
     "durata": "02:44",
     "richieste": ""
+  },
+  {
+    "id": "574",
+    "titolo": "STOMP 2,3,4",
+    "brano": "stomp 2,3,4",
+    "autore": "2341studios",
+    "compositore": "",
+    "durata": "02:44",
+    "richieste": "1"
   },
   {
     "id": "381",
@@ -3492,6 +4365,15 @@
     "richieste": ""
   },
   {
+    "id": "487",
+    "titolo": "SWEET BOY",
+    "brano": "yeah boy",
+    "autore": "kelsea ballerini",
+    "compositore": "",
+    "durata": "03:21",
+    "richieste": ""
+  },
+  {
     "id": "389",
     "titolo": "SWEET ERIKA",
     "brano": "small town big time",
@@ -3528,6 +4410,15 @@
     "richieste": ""
   },
   {
+    "id": "538",
+    "titolo": "SWISS GUY",
+    "brano": "swiss guy",
+    "autore": "florian fox",
+    "compositore": "",
+    "durata": "03:41",
+    "richieste": ""
+  },
+  {
     "id": "393",
     "titolo": "T-M",
     "brano": "praise of the lord",
@@ -3552,6 +4443,24 @@
     "autore": "the reklaws",
     "compositore": "",
     "durata": "03:26",
+    "richieste": ""
+  },
+  {
+    "id": "564",
+    "titolo": "TAKE OFF",
+    "brano": "1 (800) dump him",
+    "autore": "kylie morgan",
+    "compositore": "",
+    "durata": "03:07",
+    "richieste": ""
+  },
+  {
+    "id": "541",
+    "titolo": "TEXAS HOLD'EM",
+    "brano": "texas hold'em",
+    "autore": "beyoncè",
+    "compositore": "",
+    "durata": "03:56",
     "richieste": ""
   },
   {
@@ -3607,6 +4516,15 @@
     "compositore": "",
     "durata": "04:26",
     "richieste": ""
+  },
+  {
+    "id": "550",
+    "titolo": "THE THING I LOVE",
+    "brano": "the thing i love",
+    "autore": "max & andy grammer",
+    "compositore": "",
+    "durata": "02:53",
+    "richieste": "1"
   },
   {
     "id": "402",
@@ -3687,6 +4605,33 @@
     "autore": "brooks & dunn",
     "compositore": "",
     "durata": "03:01",
+    "richieste": ""
+  },
+  {
+    "id": "579",
+    "titolo": "TIGER",
+    "brano": "i've got a tiger by the tail",
+    "autore": "buck owens",
+    "compositore": "",
+    "durata": "02:14",
+    "richieste": ""
+  },
+  {
+    "id": "475",
+    "titolo": "TIPPIN' IT UP",
+    "brano": "tippin’ it up to nancy",
+    "autore": "sean magee",
+    "compositore": "",
+    "durata": "03:28",
+    "richieste": ""
+  },
+  {
+    "id": "255",
+    "titolo": "TIPSY",
+    "brano": "a bar song (tipsy)",
+    "autore": "shaboozey",
+    "compositore": "",
+    "durata": "02:52",
     "richieste": ""
   },
   {
@@ -3870,6 +4815,24 @@
     "richieste": ""
   },
   {
+    "id": "486",
+    "titolo": "TUSH PUSH",
+    "brano": "be my baby tonight",
+    "autore": "jhon michael montgomery",
+    "compositore": "",
+    "durata": "02:53",
+    "richieste": ""
+  },
+  {
+    "id": "516",
+    "titolo": "TUSH PUSH",
+    "brano": "i like it i love it",
+    "autore": "tim mc graw",
+    "compositore": "",
+    "durata": "03:27",
+    "richieste": ""
+  },
+  {
     "id": "431",
     "titolo": "TWO WAYS",
     "brano": "we didn't have much",
@@ -3915,6 +4878,24 @@
     "richieste": ""
   },
   {
+    "id": "604",
+    "titolo": "VIDEO PROMO CORSI 2026",
+    "brano": "billy the kid",
+    "autore": "chris ledoux",
+    "compositore": "",
+    "durata": "00:49",
+    "richieste": ""
+  },
+  {
+    "id": "605",
+    "titolo": "VIDEO PROMO MONSTER 2023",
+    "brano": "ain't nobody like you (feat emmi)",
+    "autore": "wildflowers",
+    "compositore": "",
+    "durata": "01:55",
+    "richieste": ""
+  },
+  {
     "id": "436",
     "titolo": "VODKA TIME",
     "brano": "vodka time",
@@ -3939,6 +4920,15 @@
     "autore": "jaida dreyer",
     "compositore": "",
     "durata": "03:22",
+    "richieste": ""
+  },
+  {
+    "id": "204",
+    "titolo": "WALKIN' THE LINE",
+    "brano": "blown away",
+    "autore": "carrie underwood",
+    "compositore": "",
+    "durata": "04:01",
     "richieste": ""
   },
   {
@@ -3987,6 +4977,15 @@
     "richieste": ""
   },
   {
+    "id": "477",
+    "titolo": "WANDERLUST",
+    "brano": "buzzkill",
+    "autore": "lanie gardner",
+    "compositore": "",
+    "durata": "02:14",
+    "richieste": ""
+  },
+  {
     "id": "444",
     "titolo": "WANNA GETCHA",
     "brano": "getcha",
@@ -4002,6 +5001,15 @@
     "autore": "dallas smith",
     "compositore": "",
     "durata": "03:37",
+    "richieste": ""
+  },
+  {
+    "id": "505",
+    "titolo": "WAVE ON WAVE",
+    "brano": "wave on wave",
+    "autore": "pat green",
+    "compositore": "",
+    "durata": "04:05",
     "richieste": ""
   },
   {
@@ -4122,6 +5130,15 @@
     "richieste": ""
   },
   {
+    "id": "514",
+    "titolo": "WILD",
+    "brano": "where the wild things are",
+    "autore": "luke combs",
+    "compositore": "",
+    "durata": "04:00",
+    "richieste": ""
+  },
+  {
     "id": "459",
     "titolo": "WILD AT HEART",
     "brano": "wild at heart",
@@ -4138,6 +5155,15 @@
     "compositore": "",
     "durata": "03:07",
     "richieste": ""
+  },
+  {
+    "id": "572",
+    "titolo": "WILD WEST & WICKED",
+    "brano": "wild west & wicked (remix)",
+    "autore": "djtexx",
+    "compositore": "",
+    "durata": "02:55",
+    "richieste": "1"
   },
   {
     "id": "461",
@@ -4158,6 +5184,15 @@
     "richieste": ""
   },
   {
+    "id": "576",
+    "titolo": "WOHOO",
+    "brano": "i forgot the steps",
+    "autore": "scandorable",
+    "compositore": "",
+    "durata": "02:33",
+    "richieste": ""
+  },
+  {
     "id": "463",
     "titolo": "WOMAN AMEN",
     "brano": "woman amen",
@@ -4173,6 +5208,15 @@
     "autore": "old dominion",
     "compositore": "",
     "durata": "02:53",
+    "richieste": ""
+  },
+  {
+    "id": "527",
+    "titolo": "WONT' LET GO",
+    "brano": "ex's and oh's",
+    "autore": "saddle up",
+    "compositore": "",
+    "durata": "02:50",
     "richieste": ""
   },
   {
@@ -4221,6 +5265,15 @@
     "richieste": ""
   },
   {
+    "id": "496",
+    "titolo": "YOU ARE",
+    "brano": "you are",
+    "autore": "aaron goodvin",
+    "compositore": "",
+    "durata": "03:05",
+    "richieste": ""
+  },
+  {
     "id": "470",
     "titolo": "YOU GET IT",
     "brano": "ready to go",
@@ -4254,1059 +5307,6 @@
     "autore": "lcd",
     "compositore": "",
     "durata": "03:38",
-    "richieste": ""
-  },
-  {
-    "id": "474",
-    "titolo": "MIRACLE",
-    "brano": "miracle",
-    "autore": "tors",
-    "compositore": "",
-    "durata": "03:03",
-    "richieste": ""
-  },
-  {
-    "id": "475",
-    "titolo": "TIPPIN' IT UP",
-    "brano": "tippin’ it up to nancy",
-    "autore": "sean magee",
-    "compositore": "",
-    "durata": "03:28",
-    "richieste": ""
-  },
-  {
-    "id": "476",
-    "titolo": "CHA CHA COUNTRY",
-    "brano": "your man",
-    "autore": "josh turner",
-    "compositore": "",
-    "durata": "03:32",
-    "richieste": ""
-  },
-  {
-    "id": "477",
-    "titolo": "WANDERLUST",
-    "brano": "buzzkill",
-    "autore": "lanie gardner",
-    "compositore": "",
-    "durata": "02:14",
-    "richieste": ""
-  },
-  {
-    "id": "478",
-    "titolo": "CHANGING DANCE BARN DANCE",
-    "brano": "feliz navidad",
-    "autore": "josè feliciano",
-    "compositore": "",
-    "durata": "03:10",
-    "richieste": ""
-  },
-  {
-    "id": "479",
-    "titolo": "LOVE SOMEBODY",
-    "brano": "love somebody",
-    "autore": "morgan wallen",
-    "compositore": "",
-    "durata": "03:25",
-    "richieste": ""
-  },
-  {
-    "id": "480",
-    "titolo": "COUNTRY FRIENDS CRUISE",
-    "brano": "long live the cowboy",
-    "autore": "clay walker",
-    "compositore": "",
-    "durata": "02:56",
-    "richieste": ""
-  },
-  {
-    "id": "481",
-    "titolo": "NEVERLAND",
-    "brano": "beautiful rose",
-    "autore": "sean mc connell",
-    "compositore": "",
-    "durata": "03:47",
-    "richieste": ""
-  },
-  {
-    "id": "482",
-    "titolo": "DOUBLE D (DUCK DYNASTY)",
-    "brano": "cut 'em all",
-    "autore": "colt ford ft. willie robertson",
-    "compositore": "",
-    "durata": "02:41",
-    "richieste": ""
-  },
-  {
-    "id": "483",
-    "titolo": "BEYOND TIME",
-    "brano": "forever and ever amen",
-    "autore": "randy travis",
-    "compositore": "",
-    "durata": "03:43",
-    "richieste": ""
-  },
-  {
-    "id": "484",
-    "titolo": "COUNTRY STYLE",
-    "brano": "until the money's gone",
-    "autore": "the bellamy brothers",
-    "compositore": "",
-    "durata": "02:26",
-    "richieste": ""
-  },
-  {
-    "id": "485",
-    "titolo": "HOLY MOLY",
-    "brano": "footloose",
-    "autore": "blake shelton",
-    "compositore": "",
-    "durata": "03:39",
-    "richieste": ""
-  },
-  {
-    "id": "486",
-    "titolo": "TUSH PUSH",
-    "brano": "be my baby tonight",
-    "autore": "jhon michael montgomery",
-    "compositore": "",
-    "durata": "02:53",
-    "richieste": ""
-  },
-  {
-    "id": "487",
-    "titolo": "SWEET BOY",
-    "brano": "yeah boy",
-    "autore": "kelsea ballerini",
-    "compositore": "",
-    "durata": "03:21",
-    "richieste": ""
-  },
-  {
-    "id": "488",
-    "titolo": "MILESTONE",
-    "brano": "your love is a miracle",
-    "autore": "mark chesnutt",
-    "compositore": "",
-    "durata": "02:50",
-    "richieste": ""
-  },
-  {
-    "id": "489",
-    "titolo": "GUTS",
-    "brano": "authority song",
-    "autore": "chancey williams",
-    "compositore": "",
-    "durata": "04:01",
-    "richieste": ""
-  },
-  {
-    "id": "490",
-    "titolo": "OLD BOOTS",
-    "brano": "this old boots have roots",
-    "autore": "aaron watson",
-    "compositore": "",
-    "durata": "03:31",
-    "richieste": ""
-  },
-  {
-    "id": "491",
-    "titolo": "BETTER THAN THIS",
-    "brano": "better than this",
-    "autore": "hunter hayes",
-    "compositore": "",
-    "durata": "03:33",
-    "richieste": ""
-  },
-  {
-    "id": "492",
-    "titolo": "RENEGADES",
-    "brano": "renegades",
-    "autore": "x ambassador",
-    "compositore": "",
-    "durata": "03:15",
-    "richieste": ""
-  },
-  {
-    "id": "493",
-    "titolo": "MEMORY (Ghinolfi Piromalli)",
-    "brano": "every other memory",
-    "autore": "ryan hurd",
-    "compositore": "",
-    "durata": "03:40",
-    "richieste": ""
-  },
-  {
-    "id": "494",
-    "titolo": "KICK IT UP",
-    "brano": "kick it up",
-    "autore": "the mc clymons",
-    "compositore": "",
-    "durata": "03:46",
-    "richieste": ""
-  },
-  {
-    "id": "495",
-    "titolo": "COWBOY",
-    "brano": "i wanna be your cowboy",
-    "autore": "coffey anderson",
-    "compositore": "",
-    "durata": "02:52",
-    "richieste": ""
-  },
-  {
-    "id": "496",
-    "titolo": "YOU ARE",
-    "brano": "you are",
-    "autore": "aaron goodvin",
-    "compositore": "",
-    "durata": "03:05",
-    "richieste": ""
-  },
-  {
-    "id": "497",
-    "titolo": "DAY OF VICTORY",
-    "brano": "listen to your senses",
-    "autore": "slim attraction",
-    "compositore": "",
-    "durata": "03:02",
-    "richieste": ""
-  },
-  {
-    "id": "498",
-    "titolo": "DELICIOUS",
-    "brano": "didn't I",
-    "autore": "dasha",
-    "compositore": "",
-    "durata": "02:51",
-    "richieste": ""
-  },
-  {
-    "id": "499",
-    "titolo": "MINDSET",
-    "brano": "you'll always find your way back home",
-    "autore": "miley cyrus",
-    "compositore": "",
-    "durata": "03:46",
-    "richieste": ""
-  },
-  {
-    "id": "500",
-    "titolo": "STILL GONE",
-    "brano": "still gonna be",
-    "autore": "brandon davies",
-    "compositore": "",
-    "durata": "02:46",
-    "richieste": ""
-  },
-  {
-    "id": "501",
-    "titolo": "LIQUOR TALKING",
-    "brano": "liquor talkin'",
-    "autore": "don luis",
-    "compositore": "",
-    "durata": "02:53",
-    "richieste": ""
-  },
-  {
-    "id": "502",
-    "titolo": "BACK TO THE START",
-    "brano": "back to the start",
-    "autore": "michael schulte",
-    "compositore": "",
-    "durata": "03:14",
-    "richieste": "1"
-  },
-  {
-    "id": "503",
-    "titolo": "HOUSE OF BAMBOO",
-    "brano": "house of mamboo",
-    "autore": "andy williams",
-    "compositore": "",
-    "durata": "02:08",
-    "richieste": ""
-  },
-  {
-    "id": "504",
-    "titolo": "6 SHOTS",
-    "brano": "bad decisions",
-    "autore": "dylan schneider",
-    "compositore": "",
-    "durata": "03:01",
-    "richieste": ""
-  },
-  {
-    "id": "505",
-    "titolo": "WAVE ON WAVE",
-    "brano": "wave on wave",
-    "autore": "pat green",
-    "compositore": "",
-    "durata": "04:05",
-    "richieste": ""
-  },
-  {
-    "id": "506",
-    "titolo": "ALL DAY",
-    "brano": "all day",
-    "autore": "locash",
-    "compositore": "",
-    "durata": "03:15",
-    "richieste": ""
-  },
-  {
-    "id": "507",
-    "titolo": "4 COWBOY",
-    "brano": "rough ride for a cowboy",
-    "autore": "mackenzie porter",
-    "compositore": "",
-    "durata": "02:23",
-    "richieste": ""
-  },
-  {
-    "id": "508",
-    "titolo": "SCOOBY DOO",
-    "brano": "scooby doo",
-    "autore": "redneck rockus 2",
-    "compositore": "",
-    "durata": "02:51",
-    "richieste": ""
-  },
-  {
-    "id": "509",
-    "titolo": "LEAVE IT UP",
-    "brano": "something in your mouth",
-    "autore": "nickelback",
-    "compositore": "",
-    "durata": "03:39",
-    "richieste": ""
-  },
-  {
-    "id": "510",
-    "titolo": "MY CINDERELLA",
-    "brano": "cinderella",
-    "autore": "dan davidson",
-    "compositore": "",
-    "durata": "03:01",
-    "richieste": ""
-  },
-  {
-    "id": "511",
-    "titolo": "CHEYENNE",
-    "brano": "tutta l'italia",
-    "autore": "gabry ponte",
-    "compositore": "",
-    "durata": "02:57",
-    "richieste": ""
-  },
-  {
-    "id": "512",
-    "titolo": "CHEYENNE",
-    "brano": "old town road",
-    "autore": "lil nas x feat billy ray cyrus",
-    "compositore": "",
-    "durata": "02:38",
-    "richieste": ""
-  },
-  {
-    "id": "513",
-    "titolo": "GYPSY WOMAN",
-    "brano": "gypsy woman",
-    "autore": "eamonn jackson",
-    "compositore": "",
-    "durata": "03:05",
-    "richieste": ""
-  },
-  {
-    "id": "514",
-    "titolo": "WILD",
-    "brano": "where the wild things are",
-    "autore": "luke combs",
-    "compositore": "",
-    "durata": "04:00",
-    "richieste": ""
-  },
-  {
-    "id": "515",
-    "titolo": "CARRY YOU",
-    "brano": "carry you home",
-    "autore": "tim hicks & dyana reid",
-    "compositore": "",
-    "durata": "02:51",
-    "richieste": ""
-  },
-  {
-    "id": "516",
-    "titolo": "TUSH PUSH",
-    "brano": "i like it i love it",
-    "autore": "tim mc graw",
-    "compositore": "",
-    "durata": "03:27",
-    "richieste": ""
-  },
-  {
-    "id": "517",
-    "titolo": "AARIN'S SPIRIT",
-    "brano": "spirit in the sky",
-    "autore": "kentucky headhunters",
-    "compositore": "",
-    "durata": "04:22",
-    "richieste": ""
-  },
-  {
-    "id": "518",
-    "titolo": "CHANGING DANCE BARN DANCE",
-    "brano": "all you ever do is bring me down",
-    "autore": "the mavericks",
-    "compositore": "",
-    "durata": "03:47",
-    "richieste": ""
-  },
-  {
-    "id": "519",
-    "titolo": "CHILL FACTOR",
-    "brano": "i play chicken with the train",
-    "autore": "cowboy troy with big & ritch",
-    "compositore": "",
-    "durata": "03:19",
-    "richieste": ""
-  },
-  {
-    "id": "520",
-    "titolo": "CHILL FACTOR",
-    "brano": "turn on the radio",
-    "autore": "reba mcentire",
-    "compositore": "",
-    "durata": "04:03",
-    "richieste": ""
-  },
-  {
-    "id": "521",
-    "titolo": "EYES ON YOU",
-    "brano": "eyes on you",
-    "autore": "trent tomlisson",
-    "compositore": "",
-    "durata": "02:49",
-    "richieste": ""
-  },
-  {
-    "id": "522",
-    "titolo": "MY MARIA",
-    "brano": "that girl's got a cowboy heart",
-    "autore": "todd fritsch",
-    "compositore": "",
-    "durata": "03:52",
-    "richieste": "1"
-  },
-  {
-    "id": "523",
-    "titolo": "MY MARIA",
-    "brano": "two black cadillacs",
-    "autore": "carrie underwood",
-    "compositore": "",
-    "durata": "04:59",
-    "richieste": "1"
-  },
-  {
-    "id": "524",
-    "titolo": "OH LOVE",
-    "brano": "oh love",
-    "autore": "thorstein einarsson",
-    "compositore": "",
-    "durata": "02:43",
-    "richieste": ""
-  },
-  {
-    "id": "525",
-    "titolo": "LOOP",
-    "brano": "over all over again",
-    "autore": "james barker band",
-    "compositore": "",
-    "durata": "03:22",
-    "richieste": ""
-  },
-  {
-    "id": "526",
-    "titolo": "RETRO",
-    "brano": "i feel it in the wind",
-    "autore": "smith & thell",
-    "compositore": "",
-    "durata": "03:34",
-    "richieste": "2"
-  },
-  {
-    "id": "527",
-    "titolo": "WONT' LET GO",
-    "brano": "ex's and oh's",
-    "autore": "saddle up",
-    "compositore": "",
-    "durata": "02:50",
-    "richieste": ""
-  },
-  {
-    "id": "528",
-    "titolo": "DEAD MAN WALKING",
-    "brano": "the hangman",
-    "autore": "war hippies",
-    "compositore": "",
-    "durata": "04:05",
-    "richieste": ""
-  },
-  {
-    "id": "529",
-    "titolo": "DANCE WITH EVERYBODY",
-    "brano": "dance with everybody",
-    "autore": "drew holcomb & the neighbors and the national park",
-    "compositore": "",
-    "durata": "03:31",
-    "richieste": ""
-  },
-  {
-    "id": "530",
-    "titolo": "MY MARIA",
-    "brano": "what the heart want",
-    "autore": "collin raye",
-    "compositore": "",
-    "durata": "03:44",
-    "richieste": "1"
-  },
-  {
-    "id": "531",
-    "titolo": "NICE TO MEET YOU",
-    "brano": "nice to meet you",
-    "autore": "myles smith feat lainey wilson",
-    "compositore": "",
-    "durata": "02:56",
-    "richieste": ""
-  },
-  {
-    "id": "532",
-    "titolo": "ELECTRIC SLIDE",
-    "brano": "rumor has it",
-    "autore": "clay walker",
-    "compositore": "",
-    "durata": "03:10",
-    "richieste": ""
-  },
-  {
-    "id": "533",
-    "titolo": "FRESH DELAY",
-    "brano": "work for it",
-    "autore": "daphne willis & lonis",
-    "compositore": "",
-    "durata": "02:43",
-    "richieste": ""
-  },
-  {
-    "id": "534",
-    "titolo": "MAGIC MOMENT",
-    "brano": "just like magic",
-    "autore": "casey barnes",
-    "compositore": "",
-    "durata": "03:01",
-    "richieste": ""
-  },
-  {
-    "id": "535",
-    "titolo": "SOMEWHERE IN SEDONA",
-    "brano": "so far so good",
-    "autore": "dalton davis",
-    "compositore": "",
-    "durata": "02:59",
-    "richieste": ""
-  },
-  {
-    "id": "536",
-    "titolo": "ELECTRIC SLIDE",
-    "brano": "no rompas mi corazon",
-    "autore": "caballo dorado",
-    "compositore": "",
-    "durata": "03:41",
-    "richieste": ""
-  },
-  {
-    "id": "537",
-    "titolo": "MY MARIA",
-    "brano": "choosin' texas",
-    "autore": "ella langley",
-    "compositore": "",
-    "durata": "03:52",
-    "richieste": "1"
-  },
-  {
-    "id": "538",
-    "titolo": "SWISS GUY",
-    "brano": "swiss guy",
-    "autore": "florian fox",
-    "compositore": "",
-    "durata": "03:41",
-    "richieste": ""
-  },
-  {
-    "id": "539",
-    "titolo": "CASANOVA COWBOY",
-    "brano": "love runs out",
-    "autore": "onerepublic",
-    "compositore": "",
-    "durata": "03:45",
-    "richieste": ""
-  },
-  {
-    "id": "540",
-    "titolo": "BIG BULL FIDDLE",
-    "brano": "big butch bass bull fiddle",
-    "autore": "corb lund",
-    "compositore": "",
-    "durata": "02:14",
-    "richieste": ""
-  },
-  {
-    "id": "541",
-    "titolo": "TEXAS HOLD'EM",
-    "brano": "texas hold'em",
-    "autore": "beyoncè",
-    "compositore": "",
-    "durata": "03:56",
-    "richieste": ""
-  },
-  {
-    "id": "542",
-    "titolo": "OPHELIA",
-    "brano": "ophelia",
-    "autore": "taylor swift",
-    "compositore": "",
-    "durata": "03:47",
-    "richieste": ""
-  },
-  {
-    "id": "543",
-    "titolo": "ELECTRIC STOMP",
-    "brano": "fast as you",
-    "autore": "dwight yoakam",
-    "compositore": "",
-    "durata": "04:49",
-    "richieste": ""
-  },
-  {
-    "id": "544",
-    "titolo": "LAKE DARBONNE",
-    "brano": "lake darbonne",
-    "autore": "katie knight",
-    "compositore": "",
-    "durata": "02:29",
-    "richieste": ""
-  },
-  {
-    "id": "545",
-    "titolo": "MAN ON A MISSION",
-    "brano": "man on a mission",
-    "autore": "oh the lacerny",
-    "compositore": "",
-    "durata": "03:32",
-    "richieste": ""
-  },
-  {
-    "id": "546",
-    "titolo": "CASANOVA COWBOY",
-    "brano": "man i feel like a woman",
-    "autore": "shania twain",
-    "compositore": "",
-    "durata": "03:53",
-    "richieste": ""
-  },
-  {
-    "id": "547",
-    "titolo": "C A R E",
-    "brano": "the last shanty",
-    "autore": "derina harvey band",
-    "compositore": "",
-    "durata": "03:47",
-    "richieste": ""
-  },
-  {
-    "id": "548",
-    "titolo": "I SHOWED YOU THE DOOR",
-    "brano": "the door",
-    "autore": "teddy swims",
-    "compositore": "",
-    "durata": "03:33",
-    "richieste": "1"
-  },
-  {
-    "id": "549",
-    "titolo": "CHEYENNE",
-    "brano": "drunken sailor",
-    "autore": "malinda feat. bobby waters",
-    "compositore": "",
-    "durata": "02:43",
-    "richieste": ""
-  },
-  {
-    "id": "550",
-    "titolo": "THE THING I LOVE",
-    "brano": "the thing i love",
-    "autore": "max & andy grammer",
-    "compositore": "",
-    "durata": "02:53",
-    "richieste": "1"
-  },
-  {
-    "id": "551",
-    "titolo": "HOT CHOCOLATE",
-    "brano": "bad dreams",
-    "autore": "teddy swims",
-    "compositore": "",
-    "durata": "03:05",
-    "richieste": ""
-  },
-  {
-    "id": "552",
-    "titolo": "BLUE CHAIRS",
-    "brano": "two blue chairs & you",
-    "autore": "zac brown band",
-    "compositore": "",
-    "durata": "02:49",
-    "richieste": ""
-  },
-  {
-    "id": "553",
-    "titolo": "MONSTER HOLIDAY",
-    "brano": "(it's a) monsters holiday",
-    "autore": "buck owens and the buckaroos",
-    "compositore": "",
-    "durata": "02:39",
-    "richieste": ""
-  },
-  {
-    "id": "554",
-    "titolo": "DOODLES",
-    "brano": "doodles",
-    "autore": "rose betts",
-    "compositore": "",
-    "durata": "02:42",
-    "richieste": ""
-  },
-  {
-    "id": "555",
-    "titolo": "LOVE POTION 666",
-    "brano": "love potion 666",
-    "autore": "djtexx",
-    "compositore": "",
-    "durata": "02:46",
-    "richieste": "1"
-  },
-  {
-    "id": "556",
-    "titolo": "ONE MORE",
-    "brano": "one more for the road",
-    "autore": "ceol",
-    "compositore": "",
-    "durata": "03:36",
-    "richieste": ""
-  },
-  {
-    "id": "557",
-    "titolo": "GOOD GIRL",
-    "brano": "good girl",
-    "autore": "carrie underwood",
-    "compositore": "",
-    "durata": "03:26",
-    "richieste": ""
-  },
-  {
-    "id": "558",
-    "titolo": "MILES ON IT",
-    "brano": "miles on it",
-    "autore": "marshmello & kane brown",
-    "compositore": "",
-    "durata": "02:49",
-    "richieste": "1"
-  },
-  {
-    "id": "559",
-    "titolo": "BOOTS BACK",
-    "brano": "boots back",
-    "autore": "jeorgia rose",
-    "compositore": "",
-    "durata": "02:38",
-    "richieste": ""
-  },
-  {
-    "id": "560",
-    "titolo": "JUST MARRIED",
-    "brano": "for a boat",
-    "autore": "luke bryan",
-    "compositore": "",
-    "durata": "03:30",
-    "richieste": ""
-  },
-  {
-    "id": "561",
-    "titolo": "EYE OF THE STORM",
-    "brano": "eye of the storm",
-    "autore": "melanie ryan & jop dorris",
-    "compositore": "",
-    "durata": "03:46",
-    "richieste": ""
-  },
-  {
-    "id": "562",
-    "titolo": "GIVE ME FIVE",
-    "brano": "psalm 119 (back to you)",
-    "autore": "lost & found",
-    "compositore": "",
-    "durata": "03:46",
-    "richieste": ""
-  },
-  {
-    "id": "563",
-    "titolo": "FEEL GOOD FEELIN'",
-    "brano": "feel good feelin'",
-    "autore": "me and mae",
-    "compositore": "",
-    "durata": "03:15",
-    "richieste": ""
-  },
-  {
-    "id": "564",
-    "titolo": "TAKE OFF",
-    "brano": "1 (800) dump him",
-    "autore": "kylie morgan",
-    "compositore": "",
-    "durata": "03:07",
-    "richieste": ""
-  },
-  {
-    "id": "565",
-    "titolo": "BANJO",
-    "brano": "banjo",
-    "autore": "rascal flatts",
-    "compositore": "",
-    "durata": "04:18",
-    "richieste": ""
-  },
-  {
-    "id": "566",
-    "titolo": "POT OF GOLD",
-    "brano": "dance above the rainbow",
-    "autore": "ronan hardiman",
-    "compositore": "",
-    "durata": "03:06",
-    "richieste": ""
-  },
-  {
-    "id": "567",
-    "titolo": "KINGDOM OF FEAR",
-    "brano": "kingdom of fear",
-    "autore": "cameron whitcomb",
-    "compositore": "",
-    "durata": "02:42",
-    "richieste": "1"
-  },
-  {
-    "id": "568",
-    "titolo": "CHEEK TO CHEEK",
-    "brano": "cheek to cheek",
-    "autore": "frank sinatra",
-    "compositore": "",
-    "durata": "03:06",
-    "richieste": "1"
-  },
-  {
-    "id": "569",
-    "titolo": "PIM PAM",
-    "brano": "suit and tie",
-    "autore": "cooper alan",
-    "compositore": "",
-    "durata": "02:09",
-    "richieste": ""
-  },
-  {
-    "id": "570",
-    "titolo": "MY MARIA",
-    "brano": "but for the grace of god",
-    "autore": "keith urban",
-    "compositore": "",
-    "durata": "04:34",
-    "richieste": "1"
-  },
-  {
-    "id": "571",
-    "titolo": "NUMBER 7",
-    "brano": "number 7's gone",
-    "autore": "blake whiten",
-    "compositore": "",
-    "durata": "02:50",
-    "richieste": ""
-  },
-  {
-    "id": "572",
-    "titolo": "WILD WEST & WICKED",
-    "brano": "wild west & wicked (remix)",
-    "autore": "djtexx",
-    "compositore": "",
-    "durata": "02:55",
-    "richieste": "1"
-  },
-  {
-    "id": "573",
-    "titolo": "MY MARIA",
-    "brano": "everytime we touch",
-    "autore": "maggie reilly",
-    "compositore": "",
-    "durata": "04:04",
-    "richieste": "1"
-  },
-  {
-    "id": "574",
-    "titolo": "STOMP 2,3,4",
-    "brano": "stomp 2,3,4",
-    "autore": "2341studios",
-    "compositore": "",
-    "durata": "02:44",
-    "richieste": "1"
-  },
-  {
-    "id": "575",
-    "titolo": "BUMP THAT BASS",
-    "brano": "drop your tailgate",
-    "autore": "chase mcdaniel",
-    "compositore": "",
-    "durata": "03:08",
-    "richieste": ""
-  },
-  {
-    "id": "576",
-    "titolo": "WOHOO",
-    "brano": "i forgot the steps",
-    "autore": "scandorable",
-    "compositore": "",
-    "durata": "02:33",
-    "richieste": ""
-  },
-  {
-    "id": "577",
-    "titolo": "DIANA",
-    "brano": "diana",
-    "autore": "one direction",
-    "compositore": "",
-    "durata": "03:05",
-    "richieste": ""
-  },
-  {
-    "id": "578",
-    "titolo": "BEST DAY EVER",
-    "brano": "best day ever",
-    "autore": "sly & the family stallone",
-    "compositore": "",
-    "durata": "02:30",
-    "richieste": ""
-  },
-  {
-    "id": "579",
-    "titolo": "TIGER",
-    "brano": "i've got a tiger by the tail",
-    "autore": "buck owens",
-    "compositore": "",
-    "durata": "02:14",
-    "richieste": ""
-  },
-  {
-    "id": "580",
-    "titolo": "BOMSHEL STOMP",
-    "brano": "bomshel stomp",
-    "autore": "bomshel",
-    "compositore": "",
-    "durata": "03:36",
-    "richieste": ""
-  },
-  {
-    "id": "600",
-    "titolo": "ESIBIZIONE DUE TORRI - Black Coffee",
-    "brano": "black coffee",
-    "autore": "lacy j dalton",
-    "compositore": "",
-    "durata": "04:14",
-    "richieste": ""
-  },
-  {
-    "id": "601",
-    "titolo": "ESIBIZIONE DUE TORRI - Doctor Doctor",
-    "brano": "bad case of loving you",
-    "autore": "robert palmer",
-    "compositore": "",
-    "durata": "03:13",
-    "richieste": ""
-  },
-  {
-    "id": "602",
-    "titolo": "ESIBIZIONE DUE TORRI - Dancing Violins",
-    "brano": "duelling violins",
-    "autore": "ronan hardiman",
-    "compositore": "",
-    "durata": "03:17",
-    "richieste": ""
-  },
-  {
-    "id": "603",
-    "titolo": "COME COMPILARE MODULO DI GOOGLE",
-    "brano": "",
-    "autore": "dj daniel west",
-    "compositore": "",
-    "durata": "00:38",
-    "richieste": ""
-  },
-  {
-    "id": "604",
-    "titolo": "VIDEO PROMO CORSI 2026",
-    "brano": "billy the kid",
-    "autore": "chris ledoux",
-    "compositore": "",
-    "durata": "00:49",
-    "richieste": ""
-  },
-  {
-    "id": "605",
-    "titolo": "VIDEO PROMO MONSTER 2023",
-    "brano": "ain't nobody like you (feat emmi)",
-    "autore": "wildflowers",
-    "compositore": "",
-    "durata": "01:55",
-    "richieste": ""
-  },
-  {
-    "id": "606",
-    "titolo": "AUDIO VIDEO TESTER",
-    "brano": "tsunami",
-    "autore": "dvbbs & borgeus",
-    "compositore": "",
-    "durata": "02:22",
-    "richieste": ""
-  },
-  {
-    "id": "607",
-    "titolo": "ESIBIZIONE DUE TORRI - Love Potion 666",
-    "brano": "love potion 666",
-    "autore": "djtexx",
-    "compositore": "",
-    "durata": "02:46",
-    "richieste": ""
-  },
-  {
-    "id": "608",
-    "titolo": "ESIBIZIONE DUE TORRI - Stomp 2,3,4",
-    "brano": "stomp 2,3,4",
-    "autore": "2341studios",
-    "compositore": "",
-    "durata": "02:44",
-    "richieste": ""
-  },
-  {
-    "id": "609",
-    "titolo": "COME SEGUIRE IN DIRETTA LIVE",
-    "brano": "",
-    "autore": "dj daniel west",
-    "compositore": "",
-    "durata": "",
     "richieste": ""
   }
 ]
