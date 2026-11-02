@@ -1,7 +1,11 @@
 const videoElement = document.getElementById('electron-video');
 const statusElement = document.getElementById('player-status');
+const diagnosticsElement = document.getElementById('player-diagnostics');
 const liveDisclaimerElement = document.getElementById('live-disclaimer');
 let liveStream = null;
+let diagnosticsTimer = null;
+let bufferingCount = 0;
+let stalledCount = 0;
 
 function setStatus(text) {
   if (statusElement) {
@@ -24,7 +28,8 @@ function getPlayerParams() {
       src: params.get('src') || '',
       camera: params.get('camera') || '',
       fps: params.get('fps') || '',
-      size: params.get('size') || ''
+      size: params.get('size') || '',
+      diagnostics: params.get('diagnostics') === '1'
     };
   } catch (error) {
     return {
@@ -32,7 +37,8 @@ function getPlayerParams() {
       src: '',
       camera: '',
       fps: '',
-      size: ''
+      size: '',
+      diagnostics: false
     };
   }
 }
@@ -143,6 +149,7 @@ function bindElectronCommands() {
   });
 
   window.electronAPI.videoPlayerWindow.onStop(() => {
+    stopDiagnosticsSampling();
     if (videoElement) {
       videoElement.pause();
       videoElement.currentTime = 0;
@@ -153,6 +160,94 @@ function bindElectronCommands() {
     setWebcamLiveMode(false);
     setStatus('Video fermato.');
     window.close();
+  });
+}
+
+function getPlaybackDiagnostics() {
+  const quality = typeof videoElement?.getVideoPlaybackQuality === 'function'
+    ? videoElement.getVideoPlaybackQuality()
+    : null;
+  const totalFrames = Number(quality?.totalVideoFrames ?? videoElement?.webkitDecodedFrameCount ?? 0);
+  const droppedFrames = Number(quality?.droppedVideoFrames ?? videoElement?.webkitDroppedFrameCount ?? 0);
+  const bufferedEnd = videoElement?.buffered?.length
+    ? videoElement.buffered.end(videoElement.buffered.length - 1)
+    : 0;
+  const currentTime = Number(videoElement?.currentTime || 0);
+
+  return {
+    bufferingCount,
+    stalledCount,
+    totalFrames,
+    droppedFrames,
+    readyState: Number(videoElement?.readyState || 0),
+    networkState: Number(videoElement?.networkState || 0),
+    bufferedAheadSeconds: Math.max(0, Number((bufferedEnd - currentTime).toFixed(1))),
+    errorCode: Number(videoElement?.error?.code || 0)
+  };
+}
+
+function reportPlaybackState(isPlaying, event) {
+  const payload = { isPlaying, event };
+  if (event === 'error') {
+    payload.errorCode = Number(videoElement?.error?.code || 0);
+  }
+  if (getPlayerParams().diagnostics) {
+    payload.diagnostics = getPlaybackDiagnostics();
+    if (diagnosticsElement) {
+      const { bufferingCount: waits, stalledCount: stalls, totalFrames, droppedFrames, bufferedAheadSeconds } = payload.diagnostics;
+      diagnosticsElement.textContent = `Buffer: ${waits} | stall: ${stalls} | frame persi: ${droppedFrames}/${totalFrames} | buffer: ${bufferedAheadSeconds}s`;
+    }
+  }
+  window.electronAPI?.videoPlayerWindow?.reportPlaybackState?.(payload);
+}
+
+function stopDiagnosticsSampling() {
+  if (diagnosticsTimer) {
+    clearInterval(diagnosticsTimer);
+    diagnosticsTimer = null;
+  }
+}
+
+function startDiagnosticsSampling() {
+  if (!getPlayerParams().diagnostics || diagnosticsTimer) return;
+  diagnosticsTimer = setInterval(() => {
+    reportPlaybackState(!videoElement.paused, 'diagnostics');
+  }, 5000);
+}
+
+function bindPlaybackEvents(params) {
+  if (!videoElement) return;
+  if (diagnosticsElement) {
+    diagnosticsElement.hidden = !params.diagnostics;
+  }
+
+  videoElement.addEventListener('playing', () => {
+    setStatus(params.mode === 'webcam-live' ? 'Webcam live attiva.' : 'Riproduzione attiva.');
+    reportPlaybackState(true, 'playing');
+    startDiagnosticsSampling();
+  });
+  videoElement.addEventListener('pause', () => {
+    stopDiagnosticsSampling();
+    reportPlaybackState(false, 'paused');
+  });
+  videoElement.addEventListener('waiting', () => {
+    bufferingCount += 1;
+    setStatus('Buffering: in attesa dei dati video...');
+    reportPlaybackState(false, 'waiting');
+  });
+  videoElement.addEventListener('stalled', () => {
+    stalledCount += 1;
+    setStatus('Trasferimento video interrotto; attendo la connessione...');
+    reportPlaybackState(false, 'stalled');
+  });
+  videoElement.addEventListener('error', () => {
+    stopDiagnosticsSampling();
+    setStatus(`Errore video (codice ${videoElement.error?.code || 0}).`);
+    reportPlaybackState(false, 'error');
+  });
+  videoElement.addEventListener('ended', () => {
+    stopDiagnosticsSampling();
+    reportPlaybackState(false, 'ended');
   });
 }
 
@@ -167,6 +262,7 @@ async function startPlayback() {
   }
 
   bindElectronCommands();
+  bindPlaybackEvents(params);
 
   if (isWebcamMode) {
     await startWebcamLivePlayback(params);
@@ -174,19 +270,12 @@ async function startPlayback() {
   }
 
   setWebcamLiveMode(false);
-  videoElement.addEventListener('playing', () => {
-    window.electronAPI?.videoPlayerWindow?.reportPlaybackState?.({ isPlaying: true });
-  });
-  videoElement.addEventListener('pause', () => {
-    window.electronAPI?.videoPlayerWindow?.reportPlaybackState?.({ isPlaying: false });
-  });
   videoElement.src = sourceUrl;
   videoElement.srcObject = null;
   videoElement.load();
   setStatus('Caricamento video...');
 
   videoElement.addEventListener('ended', () => {
-    window.electronAPI?.videoPlayerWindow?.reportPlaybackState?.({ isPlaying: false });
     try {
       window.electronAPI?.videoPlayerWindow?.complete({
         url: sourceUrl,
@@ -197,10 +286,6 @@ async function startPlayback() {
       return;
     }
     setStatus('Riproduzione terminata.');
-  }, { once: true });
-
-  videoElement.addEventListener('error', () => {
-    setStatus('Errore nel caricamento del video.');
   }, { once: true });
 
   try {
@@ -214,10 +299,12 @@ async function startPlayback() {
 window.addEventListener('DOMContentLoaded', () => {
   startPlayback().catch((error) => {
     setStatus(`Errore player: ${error?.message || error}`);
+    reportPlaybackState(false, 'error');
   });
 });
 
 window.addEventListener('beforeunload', () => {
+  stopDiagnosticsSampling();
   setWebcamLiveMode(false);
   stopLiveTracks();
 });

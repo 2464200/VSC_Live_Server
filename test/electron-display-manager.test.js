@@ -349,6 +349,55 @@ test('Electron player playback events update the secondary player playing state'
   }
 });
 
+test('Electron player exposes opt-in decode diagnostics and marks media errors inactive', () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-video-diagnostics');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows, ipcListeners } = loadElectronMainFor(tempDir);
+    const playerUrl = vm.runInContext(
+      "getVideoPlayerUrl({ url: 'http://localhost:5500/videos/sample.mp4', diagnostics: true })",
+      sandbox
+    );
+    assert.equal(new URL(playerUrl).searchParams.get('diagnostics'), '1');
+
+    const notifications = [];
+    createdWindows.push({
+      isDestroyed: () => false,
+      webContents: {
+        send(channel, payload) {
+          notifications.push({ channel, payload });
+        }
+      }
+    });
+    sandbox.testVideoPlayerWindow = createdWindows.at(-1);
+    vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
+    vm.runInContext('electronVideoPlayerState.active = true;', sandbox);
+
+    ipcListeners['bordero-video-player:playback-state']({}, {
+      isPlaying: false,
+      event: 'waiting',
+      diagnostics: { bufferingCount: 2, droppedFrames: 5, totalFrames: 120, bufferedAheadSeconds: 0.4 }
+    });
+    assert.equal(vm.runInContext('electronVideoPlayerState.active', sandbox), true, 'buffering must not be treated as completion');
+    assert.equal(vm.runInContext('electronVideoPlayerState.diagnostics.bufferingCount', sandbox), 2);
+
+    ipcListeners['bordero-video-player:playback-state']({}, {
+      isPlaying: false,
+      event: 'error',
+      errorCode: 3,
+      diagnostics: { errorCode: 3 }
+    });
+    assert.equal(vm.runInContext('electronVideoPlayerState.active', sandbox), false);
+    assert.equal(vm.runInContext('electronVideoPlayerState.lastEvent', sandbox), 'error');
+    assert.equal(notifications.at(-1).channel, 'bordero-video-player:error');
+    assert.equal(notifications.at(-1).payload.errorCode, 3);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
 test('ensureWindows recreates a missing secondary window when primary already exists', async () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-window-repair');
   fs.rmSync(tempDir, { recursive: true, force: true });

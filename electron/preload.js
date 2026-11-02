@@ -48,7 +48,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     play: (payload) => ipcRenderer.invoke('bordero-video-player:play', payload),
     pause: () => ipcRenderer.invoke('bordero-video-player:pause'),
     stop: () => ipcRenderer.invoke('bordero-video-player:stop'),
-    onEnded: (callback) => createSubscription('bordero-video-player:ended', callback)
+    onEnded: (callback) => createSubscription('bordero-video-player:ended', callback),
+    onError: (callback) => createSubscription('bordero-video-player:error', callback)
   },
   videoPlayerWindow: {
     onPause: (callback) => createSubscription('bordero-video-player:pause', callback),

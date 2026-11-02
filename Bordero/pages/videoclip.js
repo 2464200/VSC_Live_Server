@@ -22,11 +22,17 @@ class VideoClipManager {
     this.vlcPath = '';
     this.vlcFallbackActive = false;
     this.playbackBackendPreference = this.loadPlaybackBackendPreference();
+    this.playerDiagnosticsEnabled = this.loadPlayerDiagnosticsPreference();
     this.activeSecondaryBackend = null;
     this.electronCompletionUnsubscribe = null;
+    this.electronErrorUnsubscribe = null;
     this.pendingBranoId = this.getRequestedBranoIdFromUrl();
     this.lastVlcCompletionEventId = 0;
     this.vlcCompletionWatcherTimer = null;
+    this.vlcCompletionPollInFlight = false;
+    this.vlcCompletionPollGeneration = null;
+    this.vlcCompletionWatcherGeneration = 0;
+    this.isStartingSecondaryPlayback = false;
     this.vlcWasAlive = false;
     this.manualStopPending = false;
     this.pendingMainVideoPlay = false;
@@ -79,7 +85,8 @@ class VideoClipManager {
       vlcRcPort: 4212,
       vlcLaunchDelayMs: 100,
       html5Attributes: 'controls playsinline preload=metadata',
-      html5StartsBeforeVlc: true
+      html5PreviewPausedDuringSecondaryPlayback: true,
+      videoDiagnosticsEnabled: this.playerDiagnosticsEnabled
     };
   }
 
@@ -109,6 +116,41 @@ class VideoClipManager {
       logger.debug('Errore lettura preferenza playback backend', error);
       return 'auto';
     }
+  }
+
+  loadPlayerDiagnosticsPreference() {
+    try {
+      return localStorage.getItem('bordero_videoclip_player_diagnostics') === '1';
+    } catch (error) {
+      logger.debug('Errore lettura preferenza diagnostica player', error);
+      return false;
+    }
+  }
+
+  savePlayerDiagnosticsPreference() {
+    try {
+      localStorage.setItem('bordero_videoclip_player_diagnostics', this.playerDiagnosticsEnabled ? '1' : '0');
+    } catch (error) {
+      logger.debug('Errore salvataggio preferenza diagnostica player', error);
+    }
+  }
+
+  setupPlayerDiagnosticsToggle() {
+    const button = document.getElementById('btn-player-diagnostics');
+    if (!button) return;
+
+    const renderButton = () => {
+      button.textContent = `DIAGNOSTICA VIDEO: ${this.playerDiagnosticsEnabled ? 'ON' : 'OFF'}`;
+      button.setAttribute('aria-pressed', String(this.playerDiagnosticsEnabled));
+    };
+
+    button.addEventListener('click', () => {
+      this.playerDiagnosticsEnabled = !this.playerDiagnosticsEnabled;
+      this.savePlayerDiagnosticsPreference();
+      renderButton();
+    });
+
+    renderButton();
   }
 
   savePlaybackBackendPreference(value) {
@@ -172,6 +214,40 @@ class VideoClipManager {
   }
 
   syncSecondaryCompletionTracking() {
+    this.unsubscribeElectronPlaybackListeners();
+
+    this.stopVlcCompletionWatcher();
+
+    if (this.activeSecondaryBackend === 'vlc') {
+      this.startVlcCompletionWatcher();
+      return;
+    }
+
+    if (this.playbackBackendPreference === 'electron' && !this.isElectronVideoPlayerAvailable()) {
+      this.appendPersistentLog('warn', 'electron-backend-unavailable', { backend: 'electron' });
+      return;
+    }
+
+    if (
+      this.isElectronVideoPlayerAvailable() &&
+      (this.activeSecondaryBackend === 'electron' ||
+        (!this.activeSecondaryBackend && this.resolvePlaybackBackend() === 'electron'))
+    ) {
+      this.electronCompletionUnsubscribe = window.electronAPI.videoPlayer.onEnded((payload) => {
+        this.handleSecondaryPlaybackCompletion('electron', payload || {});
+      });
+      this.electronErrorUnsubscribe = window.electronAPI.videoPlayer.onError?.((payload) => {
+        this.appendPersistentLog('error', 'electron-playback-error', payload || {});
+        const status = document.getElementById('secondary-playback-status');
+        if (status) {
+          status.textContent = `Errore player Electron (codice ${payload?.errorCode || 0}). Verifica il file video e riprova.`;
+        }
+      }) || null;
+      this.appendPersistentLog('info', 'electron-completion-listener-ready', { backend: 'electron' });
+    }
+  }
+
+  unsubscribeElectronPlaybackListeners() {
     if (this.electronCompletionUnsubscribe) {
       try {
         this.electronCompletionUnsubscribe();
@@ -180,26 +256,14 @@ class VideoClipManager {
       }
       this.electronCompletionUnsubscribe = null;
     }
-
-    if (this.vlcCompletionWatcherTimer) {
-      clearInterval(this.vlcCompletionWatcherTimer);
-      this.vlcCompletionWatcherTimer = null;
+    if (this.electronErrorUnsubscribe) {
+      try {
+        this.electronErrorUnsubscribe();
+      } catch (error) {
+        logger.debug('Errore disattivazione listener Electron error', error);
+      }
+      this.electronErrorUnsubscribe = null;
     }
-
-    if (this.playbackBackendPreference === 'electron' && !this.isElectronVideoPlayerAvailable()) {
-      this.appendPersistentLog('warn', 'electron-backend-unavailable', { backend: 'electron' });
-      return;
-    }
-
-    if (this.resolvePlaybackBackend() === 'electron' && this.isElectronVideoPlayerAvailable()) {
-      this.electronCompletionUnsubscribe = window.electronAPI.videoPlayer.onEnded((payload) => {
-        this.handleSecondaryPlaybackCompletion('electron', payload || {});
-      });
-      this.appendPersistentLog('info', 'electron-completion-listener-ready', { backend: 'electron' });
-      return;
-    }
-
-    this.startVlcCompletionWatcher();
   }
 
   getVideoApiCandidates(pathname) {
@@ -674,8 +738,12 @@ class VideoClipManager {
           const requestUrl = `${endpoint}?url=${encodeURIComponent(url)}`;
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), 3000);
-          const response = await fetch(requestUrl, { cache: 'no-store', signal: controller.signal });
-          clearTimeout(timer);
+          let response;
+          try {
+            response = await fetch(requestUrl, { cache: 'no-store', signal: controller.signal });
+          } finally {
+            clearTimeout(timer);
+          }
 
           const payload = await response.json().catch(() => ({}));
           if (response.ok && payload?.success) {
@@ -746,7 +814,12 @@ class VideoClipManager {
 
     await new Promise((resolve, reject) => {
       let settled = false;
+      let timer = null;
       const cleanup = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
         video.removeEventListener('playing', handleSuccess);
         video.removeEventListener('timeupdate', handleSuccess);
       };
@@ -761,7 +834,7 @@ class VideoClipManager {
       video.addEventListener('playing', handleSuccess, { once: true });
       video.addEventListener('timeupdate', handleSuccess, { once: true });
 
-      setTimeout(() => {
+      timer = setTimeout(() => {
         if (settled) return;
         cleanup();
         if (video.paused && video.currentTime <= 0) {
@@ -812,7 +885,7 @@ class VideoClipManager {
       this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
       this.markBranoExecutedFromVideoEnd(this.currentBrano);
       if (playbackStatus) {
-        playbackStatus.textContent = `Video pronto: monitor principale HTML5 attivo, monitor secondario via ${this.getSecondaryBackendLabel()}.`;
+        playbackStatus.textContent = `Anteprima HTML5 in pausa. Player secondario: ${this.getSecondaryBackendLabel()}.`;
       }
       this.updatePlayButtonIdleState(true);
       this.appendPersistentLog('info', 'html5-playing', {
@@ -848,7 +921,7 @@ class VideoClipManager {
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         this.markBranoExecutedFromVideoEnd(this.currentBrano);
         if (playbackStatus) {
-          playbackStatus.textContent = `Video pronto: monitor principale HTML5 attivo, monitor secondario via ${this.getSecondaryBackendLabel()}.`;
+          playbackStatus.textContent = `Anteprima HTML5 in pausa. Player secondario: ${this.getSecondaryBackendLabel()}.`;
         }
         this.updatePlayButtonIdleState(true);
         this.appendPersistentLog('info', 'html5-playing-muted-fallback', {
@@ -917,7 +990,7 @@ class VideoClipManager {
       if (playbackStatus) {
         playbackStatus.textContent = 'Nessun video selezionato per il monitor secondario.';
       }
-      return;
+      return false;
     }
 
     const preferElectron = this.playbackBackendPreference === 'electron';
@@ -931,7 +1004,7 @@ class VideoClipManager {
           playbackStatus.textContent = 'Player Electron non disponibile: VLC non avviato.';
         }
         this.appendPersistentLog('error', 'electron-backend-unavailable', { url });
-        return;
+        return false;
       }
 
       return this.playSecondaryVideoElectron(url, playbackStatus, { allowVlcFallback: false });
@@ -975,7 +1048,11 @@ class VideoClipManager {
 
     try {
       logger.debug('Launching Electron video player for secondary display');
-      const payload = await window.electronAPI.videoPlayer.play({ url, branoId: this.currentBrano?.id ?? null });
+      const payload = await window.electronAPI.videoPlayer.play({
+        url,
+        branoId: this.currentBrano?.id ?? null,
+        diagnostics: this.playerDiagnosticsEnabled
+      });
       const success = Boolean(payload?.success);
       if (success) {
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
@@ -989,6 +1066,7 @@ class VideoClipManager {
         if (playbackStatus) {
           playbackStatus.textContent = 'Monitor secondario: Electron in riproduzione.';
         }
+        return true;
       } else {
         logger.warn('Impossibile avviare Electron player sul monitor secondario', payload);
         this.appendPersistentLog('error', 'electron-start-error', { url, payload });
@@ -996,21 +1074,14 @@ class VideoClipManager {
           if (playbackStatus) {
             playbackStatus.textContent = 'Errore avvio Electron sul monitor secondario. Passo a VLC.';
           }
-          if (this.electronCompletionUnsubscribe) {
-            try {
-              this.electronCompletionUnsubscribe();
-            } catch (error) {
-              logger.debug('Errore disattivazione listener Electron durante fallback', error);
-            }
-            this.electronCompletionUnsubscribe = null;
-          }
-          this.startVlcCompletionWatcher();
+          this.unsubscribeElectronPlaybackListeners();
           return this.playSecondaryVideoVlc(url, playbackStatus);
         }
 
         if (playbackStatus) {
           playbackStatus.textContent = 'Errore avvio Electron sul monitor secondario.';
         }
+        return false;
       }
     } catch (err) {
       logger.warn('Errore avviando Electron per monitor secondario', err);
@@ -1019,21 +1090,14 @@ class VideoClipManager {
         if (playbackStatus) {
           playbackStatus.textContent = 'Errore durante l\'avvio Electron sul monitor secondario. Passo a VLC.';
         }
-        if (this.electronCompletionUnsubscribe) {
-          try {
-            this.electronCompletionUnsubscribe();
-          } catch (error) {
-            logger.debug('Errore disattivazione listener Electron durante fallback', error);
-          }
-          this.electronCompletionUnsubscribe = null;
-        }
-        this.startVlcCompletionWatcher();
+        this.unsubscribeElectronPlaybackListeners();
         return this.playSecondaryVideoVlc(url, playbackStatus);
       }
 
       if (playbackStatus) {
         playbackStatus.textContent = 'Errore durante l\'avvio Electron sul monitor secondario.';
       }
+      return false;
     }
   }
 
@@ -1051,6 +1115,7 @@ class VideoClipManager {
         this.videoApiOrigin = origin;
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         this.activeSecondaryBackend = 'vlc';
+        this.startVlcCompletionWatcher();
         logger.info('✓ VLC avviato sul monitor secondario');
         this.appendPersistentLog('info', 'vlc-playing', {
           url,
@@ -1063,6 +1128,7 @@ class VideoClipManager {
             ? 'Monitor secondario: VLC in riproduzione (resume).'
             : 'Monitor secondario: VLC in riproduzione.';
         }
+        return true;
       } else {
         const fallback = await this.launchVlcFallback(url);
         if (!fallback) {
@@ -1072,18 +1138,24 @@ class VideoClipManager {
             playbackStatus.textContent = 'Errore avvio VLC sul monitor secondario. Verifica server porta 5500 e installazione VLC.';
           }
         } else {
+          this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+          this.activeSecondaryBackend = 'vlc';
+          this.startVlcCompletionWatcher();
           this.appendPersistentLog('warn', 'vlc-playing-fallback', { url, apiOrigin: window.location.origin, rcPort: 4212 });
           if (playbackStatus) {
             playbackStatus.textContent = 'Monitor secondario: VLC in riproduzione (fallback).';
           }
+          return true;
         }
       }
+      return false;
     } catch (err) {
       logger.warn('Errore avviando VLC per monitor secondario', err);
       this.appendPersistentLog('error', 'vlc-request-error', { url, message: err?.message || String(err) });
       if (playbackStatus) {
         playbackStatus.textContent = 'Errore durante l\'avvio VLC sul monitor secondario.';
       }
+      return false;
     }
   }
 
@@ -1155,6 +1227,7 @@ class VideoClipManager {
 
   async stopSecondaryVideo() {
     const playbackStatus = document.getElementById('secondary-playback-status');
+    this.stopVlcCompletionWatcher();
     if (this.activeSecondaryBackend === 'electron' && this.isElectronVideoPlayerAvailable()) {
       await this.stopSecondaryVideoElectron(playbackStatus);
       this.manualStopPending = false;
@@ -1271,14 +1344,22 @@ class VideoClipManager {
     }
 
     await new Promise((resolve) => {
+      let settled = false;
+      let timer = null;
       const handleReady = () => {
+        if (settled) return;
+        settled = true;
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
         video.removeEventListener('canplay', handleReady);
         video.removeEventListener('loadedmetadata', handleReady);
         resolve();
       };
       video.addEventListener('canplay', handleReady, { once: true });
       video.addEventListener('loadedmetadata', handleReady, { once: true });
-      setTimeout(handleReady, 700);
+      timer = setTimeout(handleReady, 700);
     });
   }
 
@@ -1322,7 +1403,7 @@ class VideoClipManager {
         }
         noVideo?.classList.add('hidden');
         if (playbackStatus) {
-          playbackStatus.textContent = 'Video pronto: monitor principale HTML5, monitor secondario via VLC.';
+          playbackStatus.textContent = `Anteprima HTML5 in pausa. Player secondario: ${this.getSecondaryBackendLabel()}.`;
         }
         this.loadSecondaryVideo(url);
         this.updatePlayButtonIdleState(false);
@@ -1612,6 +1693,18 @@ class VideoClipManager {
     return null;
   }
 
+  pauseMainVideoForSecondaryPlayback() {
+    const mainVideo = document.getElementById('main-video');
+    if (!mainVideo) return;
+
+    mainVideo.pause();
+    mainVideo.currentTime = 0;
+    mainVideo.volume = 0;
+    mainVideo.muted = true;
+    this.updatePlayButtonIdleState(false);
+    this.updateMainVideoDebugIndicator('paused-for-secondary-playback');
+  }
+
   setupListeners() {
     window.addEventListener('storage', (event) => {
       if (!event.key || event.key !== BORDERO_CONFIG.CACHE_KEY_CURRENT_SERATA) return;
@@ -1644,11 +1737,13 @@ class VideoClipManager {
     });
 
     window.addEventListener('beforeunload', () => {
-      if (this.vlcCompletionWatcherTimer) {
-        clearInterval(this.vlcCompletionWatcherTimer);
-        this.vlcCompletionWatcherTimer = null;
-      }
+      this.stopVlcCompletionWatcher();
+      this.electronCompletionUnsubscribe?.();
+      this.electronErrorUnsubscribe?.();
+      this.electronCompletionUnsubscribe = null;
+      this.electronErrorUnsubscribe = null;
     });
+    this.setupPlayerDiagnosticsToggle();
 
     const searchInput = document.getElementById('video-search');
     if (searchInput) {
@@ -1682,6 +1777,7 @@ class VideoClipManager {
     const playButton = document.getElementById('btn-play');
     if (playButton) {
       playButton.onclick = async (event) => {
+        if (this.isStartingSecondaryPlayback) return;
         if (!this.currentBrano) {
           logger.warn('[PLAY] No currentBrano selected');
           return;
@@ -1695,6 +1791,8 @@ class VideoClipManager {
         try {
           event.preventDefault();
           event.stopPropagation();
+          this.isStartingSecondaryPlayback = true;
+          playButton.disabled = true;
           this.appendPersistentLog('info', 'play-click', {
             branoId: this.currentBrano?.id ?? null,
             titolo: this.currentBrano?.titolo || '',
@@ -1702,26 +1800,25 @@ class VideoClipManager {
             hidden: document.hidden,
             focus: document.hasFocus()
           });
-          logger.debug('[PLAY] Starting main playback via playMainVideo()');
-          const mainPlaybackPromise = this.playMainVideo();
-          mainPlaybackPromise.catch((playErr) => {
-            logger.warn('[PLAY] Main playback error', playErr?.message || playErr);
-          });
-          logger.debug('[PLAY] Main playback requested');
+          this.manualStopPending = false;
+          this.pauseMainVideoForSecondaryPlayback();
+          logger.debug('[PLAY] Starting secondary playback without duplicating HTML5 decoding');
+          const secondaryStarted = await this.playSecondaryVideo();
+          if (secondaryStarted) {
+            this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
+            this.markBranoExecutedFromVideoEnd(this.currentBrano);
+            return;
+          }
 
-          const secondaryDelayMs = 100;
-          this.waitMs(secondaryDelayMs)
-            .then(() => {
-              if (this.pendingMainVideoPlay) {
-                logger.debug('[PLAY] Secondary playback postponed because main HTML5 video is pending foreground playback');
-                return;
-              }
-              return this.playSecondaryVideo();
-            })
-            .catch(err => logger.warn('[PLAY] Secondary video error', err));
+          logger.warn('[PLAY] Secondary player unavailable; using the local HTML5 player as fallback');
+          this.appendPersistentLog('warn', 'secondary-start-fallback-html5', { url });
+          await this.playMainVideo();
         } catch (playErr) {
           this.appendPersistentLog('error', 'play-click-error', { message: playErr?.message || String(playErr) });
           logger.warn('[PLAY] Error:', playErr.message || playErr);
+        } finally {
+          this.isStartingSecondaryPlayback = false;
+          playButton.disabled = false;
         }
       };
     }
@@ -1777,26 +1874,41 @@ class VideoClipManager {
   }
 
   startVlcCompletionWatcher() {
-    if (this.resolvePlaybackBackend() !== 'vlc') {
+    if (this.vlcCompletionWatcherTimer) {
       return;
     }
 
-    if (this.vlcCompletionWatcherTimer) {
-      clearInterval(this.vlcCompletionWatcherTimer);
-    }
-
+    const generation = ++this.vlcCompletionWatcherGeneration;
     this.vlcCompletionWatcherTimer = setInterval(() => {
-      this.pollVlcCompletion().catch((error) => {
+      if (this.vlcCompletionPollInFlight) return;
+      this.vlcCompletionPollInFlight = true;
+      this.vlcCompletionPollGeneration = generation;
+      this.pollVlcCompletion(generation).catch((error) => {
         logger.debug('VLC completion poll failed', error?.message || error);
+      }).finally(() => {
+        if (this.vlcCompletionPollGeneration === generation) {
+          this.vlcCompletionPollInFlight = false;
+          this.vlcCompletionPollGeneration = null;
+        }
       });
     }, 1500);
   }
 
-  async pollVlcCompletion() {
+  stopVlcCompletionWatcher() {
+    this.vlcCompletionWatcherGeneration += 1;
+    if (this.vlcCompletionWatcherTimer) {
+      clearInterval(this.vlcCompletionWatcherTimer);
+      this.vlcCompletionWatcherTimer = null;
+    }
+  }
+
+  async pollVlcCompletion(generation = this.vlcCompletionWatcherGeneration) {
     const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/state');
+    if (generation !== this.vlcCompletionWatcherGeneration) return;
     if (!response.ok) return;
 
     const payload = await response.json().catch(() => null);
+    if (generation !== this.vlcCompletionWatcherGeneration) return;
     if (!payload || !payload.success) return;
     this.videoApiOrigin = origin;
 
@@ -1825,10 +1937,14 @@ class VideoClipManager {
   }
 
   handleVlcCompletionEvent(completion) {
+    this.stopVlcCompletionWatcher();
     this.handleSecondaryPlaybackCompletion('vlc', completion || {});
   }
 
   handleSecondaryPlaybackCompletion(source, completion) {
+    if (source === 'vlc') {
+      this.stopVlcCompletionWatcher();
+    }
     const fileName = String(completion?.fileName || '').trim();
     const filePath = String(completion?.filePath || '').trim();
     const normalizedFileName = this.normalizeCompletionFileName(fileName || filePath);
@@ -1848,6 +1964,9 @@ class VideoClipManager {
       filePath
     });
 
+    if (this.activeSecondaryBackend === source) {
+      this.activeSecondaryBackend = null;
+    }
     this.markBranoExecutedFromVideoEnd(brano);
   }
 
@@ -2053,19 +2172,19 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         event.preventDefault();
         event.stopPropagation();
-        mainVideo.pause();
-        mainVideo.currentTime = 0;
-        mainVideo.volume = 0;
-        mainVideo.muted = false;
-        mainVideo.src = url;
-        mainVideo.load();
-        await new Promise(resolve => setTimeout(resolve, 1200));
-        await mainVideo.play();
-        window.videoClipManager.currentPlaybackBranoId = window.videoClipManager.currentBrano?.id ?? null;
+        const manager = window.videoClipManager;
+        manager.pauseMainVideoForSecondaryPlayback();
+        manager.manualStopPending = false;
+        const secondaryStarted = await manager.playSecondaryVideo();
+        if (secondaryStarted) {
+          manager.currentPlaybackBranoId = manager.currentBrano?.id ?? null;
+          manager.markBranoExecutedFromVideoEnd(manager.currentBrano);
+        } else {
+          await manager.playMainVideo();
+        }
       } catch (playErr) {
         logger.warn('PLAY button play failed', playErr);
       }
-      await window.videoClipManager.playSecondaryVideo();
     };
   }
 });

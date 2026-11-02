@@ -139,7 +139,7 @@ for (const scriptPath of videoclipScripts) {
     );
   });
 
-  test(`${scriptPath}: clicking PLAY marks the choreography executed when playback starts`, async () => {
+  test(`${scriptPath}: clicking PLAY uses the secondary player without starting a duplicate HTML5 decode`, async () => {
     const { VideoClipManager, context, storageValues } = loadVideoClipManager(scriptPath);
     const manager = Object.create(VideoClipManager.prototype);
     const selected = { id: '005', titolo: '16 TONS' };
@@ -160,17 +160,12 @@ for (const scriptPath of videoclipScripts) {
     manager.appendPersistentLog = () => {};
     manager.filterVideos = () => {};
     manager.updatePlayerInfo = () => {};
-    manager.playMainVideo = () => {
-      manager.markBranoExecutedFromVideoEnd(manager.currentBrano);
-      assert.equal(manager.brani[0].flag, 'X');
-      calls.push('main');
-      return Promise.resolve();
-    };
+    manager.pauseMainVideoForSecondaryPlayback = () => calls.push('preview-paused');
     manager.playSecondaryVideo = () => {
+      manager.currentPlaybackBranoId = manager.currentBrano.id;
       calls.push('secondary');
-      return Promise.resolve();
+      return Promise.resolve(true);
     };
-    manager.waitMs = () => Promise.resolve();
     context.dataLoader.saveCurrentSerata = (_metadata, brani) => {
       savedBrani = brani;
       calls.push('saved');
@@ -191,7 +186,7 @@ for (const scriptPath of videoclipScripts) {
       assert.equal(cachedBrani.find((brano) => brano.id === '006')?.flag, undefined);
     }
     assert.equal(context.dataLoader.brani.find((brano) => brano.id === '005')?.flag, 'X');
-    assert.deepEqual(calls, ['saved', 'main', 'secondary']);
+    assert.deepEqual(calls, ['preview-paused', 'secondary', 'saved']);
 
     for (const displayPath of ['Bordero/pages/display.js', 'public/Bordero/pages/display.js']) {
       const DisplayMonitor = loadDisplayMonitor(displayPath);
@@ -214,6 +209,70 @@ for (const scriptPath of videoclipScripts) {
         `${displayPath}: executed video brano receives the completed orange-row class`
       );
     }
+  });
+
+  test(`${scriptPath}: failed secondary startup falls back to the local HTML5 player`, async () => {
+    const { VideoClipManager, context } = loadVideoClipManager(scriptPath);
+    const manager = Object.create(VideoClipManager.prototype);
+    const calls = [];
+    manager.currentBrano = { id: '005', titolo: '16 TONS' };
+    manager.currentVideoUrl = 'http://localhost:5500/videos/005%2016%20TONS.mp4';
+    manager.appendPersistentLog = () => {};
+    manager.pauseMainVideoForSecondaryPlayback = () => calls.push('preview-paused');
+    manager.playSecondaryVideo = async () => {
+      calls.push('secondary');
+      return false;
+    };
+    manager.playMainVideo = async () => calls.push('html5-fallback');
+
+    manager.setupListeners();
+    const playButton = context.document.getElementById('btn-play');
+    await playButton.onclick({ preventDefault() {}, stopPropagation() {} });
+
+    assert.deepEqual(calls, ['preview-paused', 'secondary', 'html5-fallback']);
+    assert.equal(manager.isStartingSecondaryPlayback, false);
+    assert.equal(playButton.disabled, false);
+  });
+
+  test(`${scriptPath}: VLC completion polling is single-flight and stops cleanly`, async () => {
+    const { VideoClipManager, context } = loadVideoClipManager(scriptPath);
+    const manager = Object.create(VideoClipManager.prototype);
+    let tick;
+    let intervalDelay = 0;
+    let clearedTimer = null;
+    let pollCount = 0;
+    let finishPoll;
+    context.setInterval = (callback, delay) => {
+      tick = callback;
+      intervalDelay = delay;
+      return 42;
+    };
+    context.clearInterval = (timer) => {
+      clearedTimer = timer;
+    };
+    manager.vlcCompletionWatcherTimer = null;
+    manager.vlcCompletionWatcherGeneration = 0;
+    manager.vlcCompletionPollInFlight = false;
+    manager.vlcCompletionPollGeneration = null;
+    manager.pollVlcCompletion = () => {
+      pollCount += 1;
+      return new Promise((resolve) => {
+        finishPoll = resolve;
+      });
+    };
+
+    manager.startVlcCompletionWatcher();
+    assert.equal(intervalDelay, 1500);
+    tick();
+    tick();
+    assert.equal(pollCount, 1, 'overlapping interval ticks must not start concurrent requests');
+
+    manager.stopVlcCompletionWatcher();
+    assert.equal(manager.vlcCompletionWatcherTimer, null);
+    assert.equal(clearedTimer, 42);
+    finishPoll();
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(manager.vlcCompletionPollInFlight, false);
   });
 }
 
@@ -276,6 +335,85 @@ for (const playerPath of ['Bordero/pages/video-player.js', 'public/Bordero/pages
     stopListener();
     assert.equal(video.currentTime, 0, 'STOP should rewind the video.');
     assert.equal(closeCount, 1, 'STOP should close the player window.');
+  });
+
+  test(`${playerPath}: buffering and decoding diagnostics are opt-in and report errors`, async () => {
+    const sourcePath = path.join(__dirname, '..', ...playerPath.split('/'));
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    const windowListeners = {};
+    const videoListeners = {};
+    const reports = [];
+    const video = {
+      srcObject: null,
+      currentTime: 3,
+      paused: true,
+      readyState: 2,
+      networkState: 2,
+      error: { code: 3 },
+      buffered: { length: 1, end: () => 5 },
+      addEventListener(event, handler) { videoListeners[event] = handler; },
+      getVideoPlaybackQuality() { return { totalVideoFrames: 100, droppedVideoFrames: 4 }; },
+      load() {},
+      play() { return Promise.resolve(); },
+      pause() {},
+    };
+    const elements = new Map([
+      ['electron-video', video],
+      ['player-status', { textContent: '' }],
+      ['player-diagnostics', { hidden: true, textContent: '' }],
+      ['live-disclaimer', { hidden: true }],
+    ]);
+    let activeTimer = null;
+    let clearedTimer = null;
+    const context = {
+      window: {
+        location: { search: '?src=https%3A%2F%2Fexample.test%2Fclip.mp4&diagnostics=1' },
+        addEventListener(event, handler) { windowListeners[event] = handler; },
+        electronAPI: {
+          videoPlayerWindow: {
+            onPause() {},
+            onStop() {},
+            reportPlaybackState(payload) { reports.push(payload); },
+          },
+        },
+      },
+      document: {
+        body: { classList: { toggle() {} } },
+        getElementById(id) { return elements.get(id); },
+      },
+      navigator: {},
+      URLSearchParams,
+      Promise,
+      String,
+      Number,
+      Math,
+      setInterval(callback, delay) {
+        activeTimer = { callback, delay };
+        return activeTimer;
+      },
+      clearInterval(timer) {
+        clearedTimer = timer;
+      },
+    };
+
+    vm.runInNewContext(source, context, { filename: sourcePath });
+    windowListeners.DOMContentLoaded();
+    await new Promise((resolve) => setImmediate(resolve));
+    video.paused = false;
+    videoListeners.playing();
+    videoListeners.waiting();
+    videoListeners.stalled();
+    videoListeners.error();
+
+    assert.equal(elements.get('player-diagnostics').hidden, false);
+    assert.equal(activeTimer.delay, 5000, 'diagnostic frame sampling should be limited to one sample every five seconds');
+    assert.equal(clearedTimer, activeTimer, 'sampling must stop on playback error');
+    assert.equal(reports.at(-1).event, 'error');
+    assert.equal(reports.at(-1).errorCode, 3);
+    assert.equal(reports.at(-1).diagnostics.bufferingCount, 1);
+    assert.equal(reports.at(-1).diagnostics.stalledCount, 1);
+    assert.equal(reports.at(-1).diagnostics.droppedFrames, 4);
+    assert.match(elements.get('player-status').textContent, /Errore video/);
   });
 }
 

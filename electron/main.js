@@ -44,6 +44,17 @@ let electronVideoPlayerState = {
   mode: '',
   url: '',
   cameraName: '',
+  diagnostics: {
+    enabled: false,
+    bufferingCount: 0,
+    stalledCount: 0,
+    totalFrames: 0,
+    droppedFrames: 0,
+    readyState: 0,
+    networkState: 0,
+    bufferedAheadSeconds: 0,
+    errorCode: 0
+  },
   lastPlayRequestedAt: '',
   lastStoppedAt: '',
   lastCompletedAt: '',
@@ -1135,6 +1146,9 @@ function getVideoPlayerUrl(payload = {}) {
   } else {
     playerUrl.searchParams.set('src', videoUrl);
   }
+  if (payload?.diagnostics === true) {
+    playerUrl.searchParams.set('diagnostics', '1');
+  }
   playerUrl.searchParams.set('ts', String(Date.now()));
   return playerUrl.toString();
 }
@@ -1220,6 +1234,17 @@ async function ensureVideoPlayerWindow(payload = {}) {
     mode,
     url: typeof payload === 'string' ? payload : (payload?.url || ''),
     cameraName: payload?.cameraName || '',
+    diagnostics: {
+      enabled: payload?.diagnostics === true,
+      bufferingCount: 0,
+      stalledCount: 0,
+      totalFrames: 0,
+      droppedFrames: 0,
+      readyState: 0,
+      networkState: 0,
+      bufferedAheadSeconds: 0,
+      errorCode: 0
+    },
     lastPlayRequestedAt: new Date().toISOString(),
     lastEvent: 'play-requested'
   };
@@ -1553,11 +1578,47 @@ ipcMain.on('bordero-video-player:playback-state', (_event, payload) => {
   }
 
   const isPlaying = payload?.isPlaying === true;
+  const event = typeof payload?.event === 'string' ? payload.event : '';
+  const diagnostics = payload?.diagnostics;
   electronVideoPlayerState = {
     ...electronVideoPlayerState,
+    active: event === 'error' ? false : electronVideoPlayerState.active,
     isPlaying,
-    lastEvent: isPlaying ? 'playing' : 'paused'
+    lastEvent: event || (isPlaying ? 'playing' : 'paused'),
+    ...(diagnostics && typeof diagnostics === 'object' ? {
+      diagnostics: {
+        ...electronVideoPlayerState.diagnostics,
+        bufferingCount: Number.isFinite(diagnostics.bufferingCount) ? diagnostics.bufferingCount : 0,
+        stalledCount: Number.isFinite(diagnostics.stalledCount) ? diagnostics.stalledCount : 0,
+        totalFrames: Number.isFinite(diagnostics.totalFrames) ? diagnostics.totalFrames : 0,
+        droppedFrames: Number.isFinite(diagnostics.droppedFrames) ? diagnostics.droppedFrames : 0,
+        readyState: Number.isFinite(diagnostics.readyState) ? diagnostics.readyState : 0,
+        networkState: Number.isFinite(diagnostics.networkState) ? diagnostics.networkState : 0,
+        bufferedAheadSeconds: Number.isFinite(diagnostics.bufferedAheadSeconds) ? diagnostics.bufferedAheadSeconds : 0,
+        errorCode: Number.isFinite(diagnostics.errorCode) ? diagnostics.errorCode : 0,
+        updatedAt: new Date().toISOString()
+      }
+    } : {}),
+    ...(event === 'error' ? {
+      diagnostics: {
+        ...electronVideoPlayerState.diagnostics,
+        errorCode: Number(payload?.errorCode || diagnostics?.errorCode || 0),
+        updatedAt: new Date().toISOString()
+      }
+    } : {})
   };
+
+  if (event === 'error') {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      if (!win.isDestroyed()) {
+        win.webContents.send('bordero-video-player:error', {
+          errorCode: Number(payload?.errorCode || payload?.diagnostics?.errorCode || 0),
+          url: electronVideoPlayerState.url,
+          diagnostics: electronVideoPlayerState.diagnostics
+        });
+      }
+    });
+  }
 });
 
 ipcMain.handle('bordero-monitor-policy:last-event', async () => {

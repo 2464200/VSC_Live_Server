@@ -88,6 +88,18 @@
       pointer-events: none;
     }
 
+    .diagnostics {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      padding: 6px 9px;
+      border-radius: 6px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.65);
+      font: 12px/1.4 Consolas, monospace;
+      pointer-events: none;
+    }
+
     .live-disclaimer {
       position: absolute;
       left: 50%;
@@ -154,7 +166,7 @@
 
   </style>
   <script defer src="../js/home-nav-guard.js"></script>
-  <script defer src="video-player.js?v=20261031-1"></script>
+  <script defer src="video-player.js?v=20261102-1"></script>
 </head>
 <body>
   <nav class="nav-breadcrumb" aria-label="Navigazione pagine Bordero">
@@ -167,6 +179,7 @@
 
   <div class="player-shell">
     <video id="electron-video" playsinline preload="auto"></video>
+    <div id="player-diagnostics" class="diagnostics" hidden></div>
     <div id="live-disclaimer" class="live-disclaimer">Avviso informativa privacy: questa ripresa video è trasmessa solo in diretta e non viene nè registrata nè salvata.</div>
     <div id="live-corner-badge" class="live-corner-badge" aria-hidden="true">LIVE</div>
     <div id="player-status" class="status">In attesa del video...</div>
