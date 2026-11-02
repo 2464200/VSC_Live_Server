@@ -34,7 +34,8 @@ function loadVideoClipManager(scriptPath) {
         elements.set(id, {
           addEventListener() {},
           classList: { add() {}, remove() {}, toggle() {} },
-          setAttribute() {},
+          attributes: {},
+          setAttribute(name, value) { this.attributes[name] = value; },
           getAttribute() { return ''; },
           removeAttribute() {},
           pause() {},
@@ -234,6 +235,58 @@ for (const scriptPath of videoclipScripts) {
     assert.equal(playButton.disabled, false);
   });
 
+  test(`${scriptPath}: PAUSA toggles the active secondary player and blinks only while paused`, async () => {
+    const { VideoClipManager, context } = loadVideoClipManager(scriptPath);
+    const manager = Object.create(VideoClipManager.prototype);
+    const commands = [];
+    const pauseButton = context.document.getElementById('btn-pause');
+    const playbackStatus = context.document.getElementById('secondary-playback-status');
+    const classChanges = [];
+    pauseButton.classList.toggle = (name, enabled) => classChanges.push([name, enabled]);
+    manager.activeSecondaryBackend = 'electron';
+    manager.isSecondaryVideoPaused = false;
+    manager.isTogglingSecondaryPause = false;
+    context.window.electronAPI = {
+      videoPlayer: {
+        async pause() { commands.push('pause'); return { success: true }; },
+        async resume() { commands.push('resume'); return { success: true }; }
+      }
+    };
+
+    await manager.pauseSecondaryVideo();
+    assert.deepEqual(commands, ['pause']);
+    assert.equal(manager.isSecondaryVideoPaused, true);
+    assert.equal(playbackStatus.textContent, 'Monitor secondario: Electron in pausa.');
+    assert.deepEqual(classChanges.at(-1), ['is-paused', true]);
+    assert.equal(pauseButton.attributes['aria-pressed'], 'true');
+
+    await manager.pauseSecondaryVideo();
+    assert.deepEqual(commands, ['pause', 'resume']);
+    assert.equal(manager.isSecondaryVideoPaused, false);
+    assert.equal(playbackStatus.textContent, 'Monitor secondario: Electron in riproduzione.');
+    assert.deepEqual(classChanges.at(-1), ['is-paused', false]);
+    assert.equal(pauseButton.attributes['aria-pressed'], 'false');
+  });
+
+  test(`${scriptPath}: VLC PAUSA resumes the current player without a new video URL`, async () => {
+    const { VideoClipManager, context } = loadVideoClipManager(scriptPath);
+    const manager = Object.create(VideoClipManager.prototype);
+    const actions = [];
+    manager.activeSecondaryBackend = 'vlc';
+    manager.isSecondaryVideoPaused = false;
+    manager.isTogglingSecondaryPause = false;
+    manager.fetchVideoApi = async (_path, options) => {
+      actions.push(JSON.parse(options.body));
+      return { response: { ok: true, json: async () => ({ success: true }) }, origin: 'http://localhost:5500' };
+    };
+
+    await manager.pauseSecondaryVideo();
+    await manager.pauseSecondaryVideo();
+    assert.deepEqual(actions, [{ action: 'pause' }, { action: 'play' }]);
+    assert.equal(manager.isSecondaryVideoPaused, false);
+    assert.equal(context.document.getElementById('btn-pause').attributes['aria-pressed'], 'false');
+  });
+
   test(`${scriptPath}: VLC completion polling is single-flight and stops cleanly`, async () => {
     const { VideoClipManager, context } = loadVideoClipManager(scriptPath);
     const manager = Object.create(VideoClipManager.prototype);
@@ -282,16 +335,20 @@ for (const playerPath of ['Bordero/pages/video-player.js', 'public/Bordero/pages
     const source = fs.readFileSync(sourcePath, 'utf8');
     const windowListeners = {};
     const videoListeners = {};
+    let pauseListener;
     let stopListener;
+    let resumeListener;
+    let playCalls = 0;
     let completed = 0;
     let closeCount = 0;
     const video = {
       srcObject: null,
       currentTime: 9,
+      paused: false,
       addEventListener(event, handler) { videoListeners[event] = handler; },
       load() {},
-      play() { return Promise.resolve(); },
-      pause() {},
+      play() { playCalls += 1; this.paused = false; return Promise.resolve(); },
+      pause() { this.paused = true; },
     };
     const elements = new Map([
       ['electron-video', video],
@@ -305,7 +362,8 @@ for (const playerPath of ['Bordero/pages/video-player.js', 'public/Bordero/pages
         close() { closeCount += 1; },
         electronAPI: {
           videoPlayerWindow: {
-            onPause() {},
+            onPause(handler) { pauseListener = handler; },
+            onResume(handler) { resumeListener = handler; },
             onStop(handler) { stopListener = handler; },
             complete() { completed += 1; },
           },
@@ -326,8 +384,15 @@ for (const playerPath of ['Bordero/pages/video-player.js', 'public/Bordero/pages
     vm.runInNewContext(source, context, { filename: sourcePath });
     windowListeners.DOMContentLoaded();
     await new Promise((resolve) => setImmediate(resolve));
-    videoListeners.ended();
+    video.currentTime = 27;
+    pauseListener();
+    assert.equal(video.paused, true);
+    resumeListener();
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(video.currentTime, 27, 'resume must preserve the paused playback position');
+    assert.equal(playCalls, 2, 'resume reuses play() on the same loaded media');
 
+    videoListeners.ended();
     assert.equal(completed, 1, 'Natural completion should still notify Electron.');
     assert.equal(closeCount, 0, 'Natural completion must not close the player window.');
     assert.equal(elements.get('player-status').textContent, 'Riproduzione terminata.');
@@ -372,6 +437,7 @@ for (const playerPath of ['Bordero/pages/video-player.js', 'public/Bordero/pages
         electronAPI: {
           videoPlayerWindow: {
             onPause() {},
+            onResume() {},
             onStop() {},
             reportPlaybackState(payload) { reports.push(payload); },
           },

@@ -80,7 +80,10 @@ function loadElectronMainFor(tempDir) {
                 getURL() { return currentUrl; },
                 loadURL(url) { currentUrl = url; return Promise.resolve(); },
                 setZoomFactor: (value) => { this.zoomCalls.push(value); },
-                setWindowOpenHandler() { return { action: 'allow' }; },
+                setWindowOpenHandler(handler) {
+                  this.windowOpenHandler = handler;
+                  return { action: 'allow' };
+                },
               };
               this.closed = false;
               this.visible = false;
@@ -256,7 +259,7 @@ test('buildDisplayLayoutConfig uses the actual monitor size and DPI-aware zoom',
   assert.equal(layout.scaleFactor, 1.25);
 });
 
-test('primary navigation to Bordero preserves the active video player', () => {
+test('primary navigation closes the active video player from the secondary monitor', () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-video-navigation');
   fs.rmSync(tempDir, { recursive: true, force: true });
   fs.mkdirSync(tempDir, { recursive: true });
@@ -282,7 +285,7 @@ test('primary navigation to Bordero preserves the active video player', () => {
     };
     vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
     navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/bordero.html');
-    assert.equal(playerClosed, false, 'Returning to Bordero should leave the video player open.');
+    assert.equal(playerClosed, true, 'Opening a new page should close the video player window.');
 
     playerClosed = false;
     sandbox.testVideoPlayerWindow = {
@@ -291,7 +294,7 @@ test('primary navigation to Bordero preserves the active video player', () => {
     };
     vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
     navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/videoclip.html');
-    assert.equal(playerClosed, false, 'Navigating to another primary page must not interrupt the video player.');
+    assert.equal(playerClosed, true, 'Opening another primary page should not leave a secondary HTML window open.');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -344,6 +347,33 @@ test('Electron player playback events update the secondary player playing state'
 
     ipcListeners['bordero-video-player:playback-state']({}, { isPlaying: false });
     assert.equal(vm.runInContext('electronVideoPlayerState.isPlaying', sandbox), false);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('Electron player resume command reaches the existing secondary player window', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-video-resume');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows, ipcHandlers } = loadElectronMainFor(tempDir);
+    const messages = [];
+    createdWindows.push({
+      isDestroyed: () => false,
+      webContents: {
+        send(channel) {
+          messages.push(channel);
+        }
+      }
+    });
+    sandbox.testVideoPlayerWindow = createdWindows.at(-1);
+    vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
+
+    const result = await ipcHandlers['bordero-video-player:resume']();
+    assert.equal(result.success, true);
+    assert.deepEqual(messages, ['bordero-video-player:resume']);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -559,7 +589,7 @@ test('secondary display remains loaded while a temporary secondary page is foreg
   fs.mkdirSync(tempDir, { recursive: true });
 
   try {
-    const { sandbox } = loadElectronMainFor(tempDir);
+    const { sandbox, createdWindows } = loadElectronMainFor(tempDir);
     sandbox.ensureUnifiedServer = async () => {};
     sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
       swapPrimarySecondary: false,
@@ -578,6 +608,199 @@ test('secondary display remains loaded while a temporary secondary page is foreg
     vm.runInContext('closeTemporarySecondaryWindow();', sandbox);
     assert.equal(vm.runInContext('Boolean(!temporarySecondaryWindow)', sandbox), true, 'temporary secondary page should close and reveal the persistent Display window');
     assert.equal(vm.runInContext('Boolean(secondaryWindow && secondaryWindow.focused)', sandbox), true, 'persistent Display window should be restored to the foreground');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('opening a new page closes any unmanaged local HTML window but keeps DISPLAY', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-close-unmanaged-pages');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+    await vm.runInContext('ensureWindows();', sandbox);
+
+    let childClosed = false;
+    createdWindows.push({
+      isDestroyed: () => childClosed,
+      webContents: {
+        getURL: () => 'http://localhost:5500/Bordero/pages/lista-serata.html',
+        send() {},
+      },
+      close() { childClosed = true; },
+    });
+
+    await vm.runInContext(
+      "routeUrlByPolicy('http://localhost:5500/Bordero/pages/bordero.html', 'test-new-primary-page');",
+      sandbox,
+    );
+
+    assert.equal(childClosed, true, 'a secondary HTML child window should be explicitly closed');
+    assert.match(
+      vm.runInContext('secondaryWindow.webContents.getURL()', sandbox),
+      /Bordero\/pages\/display\.html/i,
+      'the persistent DISPLAY page should remain available on monitor 2',
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('temporary secondary pages route new links instead of leaving child windows open', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-secondary-overlay-navigation');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    await vm.runInContext(
+      "routeUrlByPolicy('http://localhost:5500/pdf/viewers/pdf-viewer.html?file=first.pdf', 'test-first-overlay');",
+      sandbox,
+    );
+    const firstOverlay = vm.runInContext('temporarySecondaryWindow', sandbox);
+    assert.equal(typeof firstOverlay.webContents.windowOpenHandler, 'function');
+
+    const result = firstOverlay.webContents.windowOpenHandler({
+      url: 'http://localhost:5500/Bordero/pages/lista-serata.html',
+    });
+    assert.equal(result.action, 'deny', 'an app link must not create an unmanaged child window');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const currentOverlay = vm.runInContext('temporarySecondaryWindow', sandbox);
+    assert.notEqual(currentOverlay, firstOverlay, 'the selected page should replace the previous overlay');
+    assert.equal(firstOverlay.isDestroyed(), true, 'the previous secondary page should be closed');
+    assert.match(currentOverlay.webContents.getURL(), /Bordero\/pages\/lista-serata\.html/i);
+    assert.equal(
+      createdWindows.filter((win) => win.options.alwaysOnTop && !win.isDestroyed()).length,
+      1,
+      'only one temporary fullscreen HTML page should remain on monitor 2',
+    );
+
+    let navigationPrevented = false;
+    currentOverlay.webContents.events['will-navigate'](
+      { preventDefault() { navigationPrevented = true; } },
+      'http://localhost:5500/Bordero/pages/bordero.html',
+    );
+    assert.equal(navigationPrevented, true, 'same-window app navigation must be routed through the close policy');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(
+      vm.runInContext('temporarySecondaryWindow', sandbox),
+      null,
+      'the previous secondary page should close after navigating to a primary-only page',
+    );
+    assert.match(
+      vm.runInContext('secondaryWindow.webContents.getURL()', sandbox),
+      /Bordero\/pages\/display\.html/i,
+      'DISPLAY should be restored behind the primary-only page',
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('a late close event cannot lose the reference to the newly opened secondary page', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-secondary-overlay-close-race');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    await vm.runInContext(
+      "routeUrlByPolicy('http://localhost:5500/pdf/viewers/pdf-viewer.html?file=first.pdf', 'test-first-overlay');",
+      sandbox,
+    );
+    const firstOverlay = vm.runInContext('temporarySecondaryWindow', sandbox);
+    firstOverlay.close = function delayCloseEvent() {
+      this.closeRequested = true;
+    };
+
+    await vm.runInContext(
+      "routeUrlByPolicy('http://localhost:5500/Bordero/pages/lista-serata.html', 'test-second-overlay');",
+      sandbox,
+    );
+    const secondOverlay = vm.runInContext('temporarySecondaryWindow', sandbox);
+    assert.notEqual(secondOverlay, firstOverlay);
+
+    firstOverlay.closed = true;
+    firstOverlay.onClosed();
+    assert.equal(
+      vm.runInContext('temporarySecondaryWindow', sandbox),
+      secondOverlay,
+      'closing an old window must not clear the active window reference',
+    );
+
+    await vm.runInContext(
+      "routeUrlByPolicy('http://localhost:5500/pdf/viewers/pdf-viewer.html?file=third.pdf', 'test-third-overlay');",
+      sandbox,
+    );
+    const thirdOverlay = vm.runInContext('temporarySecondaryWindow', sandbox);
+    assert.notEqual(thirdOverlay, secondOverlay);
+    assert.equal(secondOverlay.isDestroyed(), true, 'the prior active page should close before opening the next one');
+    assert.match(thirdOverlay.webContents.getURL(), /pdf\/viewers\/pdf-viewer\.html\?file=third\.pdf/i);
+    assert.equal(
+      createdWindows.filter((win) => win.options.alwaysOnTop && !win.isDestroyed()).length,
+      1,
+      'only the latest temporary page should remain open',
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('explicit Display closure closes the persistent page behind a temporary secondary page', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-display-close-behind-overlay');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows, ipcHandlers } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    await vm.runInContext('ensureWindows();', sandbox);
+    await vm.runInContext("loadInTemporarySecondaryWindow('http://localhost:5500/userform/pages/servizio.html?mode=display');", sandbox);
+    const closeResult = await ipcHandlers['bordero-window:close-display']();
+
+    assert.equal(closeResult.success, true);
+    assert.equal(closeResult.closed, true);
+    assert.equal(vm.runInContext('secondaryWindow', sandbox), null, 'the persistent Display should close');
+    assert.equal(
+      vm.runInContext('Boolean(temporarySecondaryWindow && !temporarySecondaryWindow.isDestroyed())', sandbox),
+      true,
+      'the foreground temporary page should remain open'
+    );
+    assert.equal(
+      vm.runInContext('displayManuallyClosed', sandbox),
+      true,
+      'ordinary navigation must not recreate the manually closed Display'
+    );
+    assert.equal(createdWindows.filter((window) => window.options.kiosk).length, 2);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -667,8 +890,9 @@ test('QRCODE keeps operator navigation primary and opens a clean presentation on
     );
     await new Promise((resolve) => setTimeout(resolve, 0));
     const afterVideoNavigation = vm.runInContext('({ secondary: secondaryWindow.webContents.getURL(), video: videoPlayerWindow })', sandbox);
-    assert.equal(afterVideoNavigation.video, beforeVideoClose, 'Navigating to another project page must preserve the secondary video player.');
-    assert.match(afterVideoNavigation.secondary, /Bordero\/pages\/display\.html/i, 'DISPLAY must remain loaded underneath the video player.');
+    assert.equal(afterVideoNavigation.video, null, 'Navigating to another project page should close the video player.');
+    assert.equal(beforeVideoClose.isDestroyed(), true, 'the previous secondary HTML page should be closed');
+    assert.match(afterVideoNavigation.secondary, /Bordero\/pages\/display\.html/i, 'DISPLAY must remain loaded beneath the new page.');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

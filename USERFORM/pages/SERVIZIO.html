@@ -236,6 +236,28 @@
       font-weight: 800;
     }
 
+    .service-actions #publish-text-btn,
+    .service-actions .service-text-option {
+      flex: 1 1 0;
+      min-width: 128px;
+      height: 46px;
+    }
+
+    .service-text-option {
+      padding: 10px 12px;
+      border: 1px solid #5b5045;
+      border-radius: 5px;
+      background: #171615;
+      color: var(--service-text);
+      font: inherit;
+      font-size: 0.88rem;
+    }
+
+    .service-text-option:focus {
+      outline: 2px solid var(--service-accent-soft);
+      outline-offset: 2px;
+    }
+
     .service-actions .btn-danger {
       border: 1px solid #a83329;
       background: #7f2923;
@@ -626,14 +648,20 @@
     }
 
     .published-message {
-      width: min(90%, 1500px);
+      display: grid;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
       margin: 0;
+      padding: clamp(14px, 2.5vw, 36px);
       color: #fff;
-      font-size: clamp(32px, 8vw, 150px);
       font-weight: 850;
       line-height: 1.08;
       text-align: center;
+      white-space: pre-wrap;
       overflow-wrap: anywhere;
+      place-items: center;
       text-shadow: 0 0 24px rgba(255, 167, 55, 0.3);
     }
 
@@ -757,6 +785,36 @@
         </div>
         <div class="service-actions">
           <button id="publish-text-btn" class="btn" type="button">Pubblica testo</button>
+          <input id="service-font-family" class="service-text-option" type="text" list="service-font-options" value="Segoe UI" aria-label="Tipo di carattere" title="Scegli un font suggerito o digita il nome di un font installato sul PC" autocomplete="off" />
+          <datalist id="service-font-options">
+            <option value="Segoe UI"></option>
+            <option value="Arial"></option>
+            <option value="Aptos"></option>
+            <option value="Calibri"></option>
+            <option value="Cambria"></option>
+            <option value="Cascadia Mono"></option>
+            <option value="Comic Sans MS"></option>
+            <option value="Consolas"></option>
+            <option value="Courier New"></option>
+            <option value="Georgia"></option>
+            <option value="Tahoma"></option>
+            <option value="Times New Roman"></option>
+            <option value="Trebuchet MS"></option>
+            <option value="Verdana"></option>
+          </datalist>
+          <select id="service-font-size" class="service-text-option" aria-label="Dimensione massima dei caratteri" title="Dimensione massima: il testo si riduce se necessario per entrare nello schermo">
+            <option value="auto" selected>Auto</option>
+            <option value="24">24 px</option>
+            <option value="32">32 px</option>
+            <option value="40">40 px</option>
+            <option value="48">48 px</option>
+            <option value="56">56 px</option>
+            <option value="64">64 px</option>
+            <option value="72">72 px</option>
+            <option value="84">84 px</option>
+            <option value="96">96 px</option>
+            <option value="120">120 px</option>
+          </select>
         </div>
       </section>
 

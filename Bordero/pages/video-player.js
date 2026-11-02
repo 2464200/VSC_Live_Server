@@ -148,6 +148,18 @@ function bindElectronCommands() {
     setStatus('Video in pausa.');
   });
 
+  window.electronAPI.videoPlayerWindow.onResume(() => {
+    if (!videoElement || videoElement.srcObject) {
+      return;
+    }
+    videoElement.play().then(() => {
+      setStatus('Riproduzione attiva.');
+    }).catch((error) => {
+      setStatus(`Errore ripresa video: ${error?.message || error}`);
+      reportPlaybackState(false, 'error');
+    });
+  });
+
   window.electronAPI.videoPlayerWindow.onStop(() => {
     stopDiagnosticsSampling();
     if (videoElement) {

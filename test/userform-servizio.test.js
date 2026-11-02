@@ -112,14 +112,20 @@ async function run() {
   assert.equal(textRoute.searchParams.get('mode'), 'display');
   assert.equal(textRoute.searchParams.get('output'), 'text');
   assert.equal(textRoute.searchParams.get('text'), 'Messaggio predefinito personalizzato');
+  assert.equal(textRoute.searchParams.get('font'), 'Segoe UI');
+  assert.equal(textRoute.searchParams.get('fontSize'), 'auto');
   assert.equal(operator.localStorage.getItem('userform-servizio-input'), '', 'A default publication must not replace the one-time message value.');
   assert.equal(operator.document.getElementById('stop-text-btn').classList.contains('is-publishing'), true);
 
+  operator.document.getElementById('service-font-family').value = 'Georgia';
+  operator.document.getElementById('service-font-size').value = '48';
   operator.document.getElementById('service-message-input').value = 'Messaggio valido solo questa volta';
   operator.document.getElementById('publish-text-btn').click();
   await settle();
   const overrideRoute = new URL(routes[1], 'http://localhost:5500');
   assert.equal(overrideRoute.searchParams.get('text'), 'Messaggio valido solo questa volta');
+  assert.equal(overrideRoute.searchParams.get('font'), 'Georgia');
+  assert.equal(overrideRoute.searchParams.get('fontSize'), '48');
 
   const reloadedDom = createPage('http://localhost:5500/USERFORM/pages/SERVIZIO.html');
   reloadedDom.window.localStorage.setItem('userform-servizio-default-text', operator.localStorage.getItem('userform-servizio-default-text'));

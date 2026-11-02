@@ -11,7 +11,7 @@
   <!-- Style Borderò personalizzato -->
   <link rel="stylesheet" href="../assets/css/bordero.css" />
   <link rel="stylesheet" href="../assets/css/responsive.css" />
-  <link rel="stylesheet" href="bordero.css?v=20261031-1" />
+  <link rel="stylesheet" href="bordero.css?v=20261102-1" />
   <link rel="stylesheet" href="coreografie-corsi.css?v=20261013-1" />
   
   <!-- XLSX Library locale per lettura file Excel -->
@@ -41,7 +41,7 @@
   <script defer src="../js/course-archives.js?v=20261030-1"></script>
   <script defer src="../js/title-visibility-utils.js?v=20260731-1"></script>
   <script defer src="../js/video-only-brani.js"></script>
-  <script defer src="bordero.js?v=20261031-1"></script>
+  <script defer src="bordero.js?v=20261102-1"></script>
 </head>
 
 <body>
@@ -457,6 +457,20 @@
         <div class="music-match-actions">
           <button type="button" id="music-match-cancel" class="music-match-btn is-cancel">Annulla</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="close-display-code-modal" class="close-display-code-overlay" role="dialog" aria-modal="true" aria-labelledby="close-display-code-title" aria-hidden="true" hidden>
+    <div class="close-display-code-box">
+      <h3 id="close-display-code-title">Conferma chiusura DISPLAY</h3>
+      <p>Per chiudere la pagina DISPLAY inserisci il codice segreto.</p>
+      <label for="close-display-code-input">Codice segreto</label>
+      <input id="close-display-code-input" type="password" placeholder="Codice segreto" autocomplete="off" />
+      <p id="close-display-code-error" class="close-display-code-error" role="alert" hidden>Codice non corretto. Riprova.</p>
+      <div class="close-display-code-actions">
+        <button id="close-display-code-cancel" type="button" class="btn btn-secondary">Annulla</button>
+        <button id="close-display-code-confirm" type="button" class="btn btn-danger">Conferma e chiudi</button>
       </div>
     </div>
   </div>

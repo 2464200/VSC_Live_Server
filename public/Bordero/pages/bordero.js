@@ -33,6 +33,7 @@ class BorderoTableManager {
     this.virtualDjConsolePollTimer = null;
     this.virtualDjConsolePollInProgress = false;
     this.virtualDjCompletionTracker = null;
+    this.isClosingDisplayWindow = false;
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
@@ -1336,24 +1337,91 @@ class BorderoTableManager {
   }
 
   async closeDisplayWindow() {
-    if (typeof window.electronAPI?.windowManager?.closeDisplayPage === 'function') {
-      const result = await window.electronAPI.windowManager.closeDisplayPage();
+    if (this.isClosingDisplayWindow) {
+      return;
+    }
+
+    const closeDisplayPage = window.electronAPI?.windowManager?.closeDisplayPage;
+    if (typeof closeDisplayPage !== 'function') {
+      Toast.warning('La chiusura forzata del Display è disponibile solo nell’app Electron.');
+      return;
+    }
+
+    this.isClosingDisplayWindow = true;
+    try {
+      const confirmed = await this.askCloseDisplaySecretCode();
+      if (!confirmed) {
+        return;
+      }
+
+      const result = await closeDisplayPage();
       if (result?.success === false) {
         throw new Error(result.reason === 'display-not-active'
           ? 'Il Display non è attualmente la pagina aperta sul monitor secondario.'
           : result.error || 'Comando di chiusura non riuscito.');
       }
       Toast.success(result?.closed ? 'Display chiuso.' : 'Il Display è già chiuso.');
-      return;
+    } finally {
+      this.isClosingDisplayWindow = false;
     }
+  }
 
-    const displayWindow = window.open('', 'bordero-display-secondary');
-    if (!displayWindow) {
-      Toast.warning('Il browser non consente di accedere alla finestra Display.');
-      return;
-    }
-    displayWindow.close();
-    Toast.success('Comando di chiusura Display inviato.');
+  askCloseDisplaySecretCode() {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('close-display-code-modal');
+      const input = document.getElementById('close-display-code-input');
+      const error = document.getElementById('close-display-code-error');
+      const cancel = document.getElementById('close-display-code-cancel');
+      const confirm = document.getElementById('close-display-code-confirm');
+
+      if (!overlay || !input || !error || !cancel || !confirm) {
+        Toast.error('Impossibile chiedere il codice: finestra di conferma non disponibile.');
+        resolve(false);
+        return;
+      }
+
+      input.value = '';
+      error.hidden = true;
+      overlay.hidden = false;
+      overlay.setAttribute('aria-hidden', 'false');
+      const focusTimer = setTimeout(() => input.focus(), 0);
+
+      const cleanup = () => {
+        clearTimeout(focusTimer);
+        overlay.hidden = true;
+        overlay.setAttribute('aria-hidden', 'true');
+        cancel.removeEventListener('click', onCancel);
+        confirm.removeEventListener('click', onConfirm);
+        input.removeEventListener('keydown', onKeydown);
+      };
+      const onCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+      const onConfirm = () => {
+        const expectedCode = BORDERO_CONFIG?.APP_CLOSE_SECRET_CODE;
+        if (!expectedCode || input.value.trim() !== String(expectedCode)) {
+          error.hidden = false;
+          input.focus();
+          input.select();
+          return;
+        }
+        cleanup();
+        resolve(true);
+      };
+      const onKeydown = (event) => {
+        if (event.key === 'Escape') {
+          onCancel();
+        } else if (event.key === 'Enter') {
+          event.preventDefault();
+          onConfirm();
+        }
+      };
+
+      cancel.addEventListener('click', onCancel);
+      confirm.addEventListener('click', onConfirm);
+      input.addEventListener('keydown', onKeydown);
+    });
   }
 
   setupWebcamSignalBox() {

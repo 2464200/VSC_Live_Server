@@ -36,6 +36,7 @@ let currentDpiAutoScale = true;
 let monitorPreferenceWatcher = null;
 let isProgrammaticPrimaryLoad = false;
 let isProgrammaticSecondaryLoad = false;
+const programmaticSecondaryLoads = new WeakSet();
 let secondaryPageBeforeLedDisplay = '';
 let lastMonitorRouteEvent = null;
 let electronVideoPlayerState = {
@@ -812,20 +813,22 @@ async function loadInSecondaryWindow(url) {
     return false;
   }
 
+  const targetWindow = secondaryWindow;
   try {
     const targetUrl = url || `http://localhost:5500${DISPLAY_PAGE_PATH}`;
-    const currentUrl = secondaryWindow.webContents.getURL();
+    const currentUrl = targetWindow.webContents.getURL();
     if (isLedDisplayPageUrl(targetUrl) && currentUrl && !isLedDisplayPageUrl(currentUrl)) {
       secondaryPageBeforeLedDisplay = currentUrl;
     }
     isProgrammaticSecondaryLoad = true;
-    const loaded = await loadUrlInWindow(secondaryWindow, targetUrl);
+    programmaticSecondaryLoads.add(targetWindow.webContents);
+    const loaded = await loadUrlInWindow(targetWindow, targetUrl);
     if (!loaded) {
       return false;
     }
-    secondaryWindow.setFullScreen(true);
-    secondaryWindow.show();
-    secondaryWindow.focus();
+    targetWindow.setFullScreen(true);
+    targetWindow.show();
+    targetWindow.focus();
     applyWindowLayout();
     return true;
   } catch (error) {
@@ -833,6 +836,7 @@ async function loadInSecondaryWindow(url) {
     return false;
   } finally {
     isProgrammaticSecondaryLoad = false;
+    programmaticSecondaryLoads.delete(targetWindow.webContents);
   }
 }
 
@@ -860,13 +864,31 @@ function closeTemporarySecondaryWindow() {
   applyWindowLayout();
 }
 
-function closeSecondaryPageOverlays({ preserveVideoPlayer = true } = {}) {
+function closeSecondaryPageOverlays() {
+  const protectedWindows = new Set(
+    [primaryWindow, secondaryWindow, temporarySecondaryWindow, videoPlayerWindow].filter(Boolean),
+  );
   if (temporarySecondaryWindow) {
     closeTemporarySecondaryWindow();
   }
-  if (!preserveVideoPlayer && videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
-    closeVideoPlayerWindow();
+  if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+    closeVideoPlayerWindow({ restoreDisplay: false });
   }
+
+  BrowserWindow.getAllWindows().forEach((win) => {
+    if (
+      protectedWindows.has(win)
+      || win.isDestroyed()
+      || !win.webContents
+      || typeof win.webContents.getURL !== 'function'
+    ) {
+      return;
+    }
+
+    if (isManagedHtmlAppUrl(win.webContents.getURL())) {
+      win.close();
+    }
+  });
 }
 
 function isPersistentSecondaryPageUrl(candidateUrl) {
@@ -882,7 +904,7 @@ async function loadInTemporarySecondaryWindow(url) {
     });
     const layout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
 
-    temporarySecondaryWindow = createWindow(url, {
+    const overlayWindow = createWindow(url, {
       width: layout.width,
       height: layout.height,
       x: layout.x,
@@ -893,14 +915,24 @@ async function loadInTemporarySecondaryWindow(url) {
       autoHideMenuBar: true,
       alwaysOnTop: true
     });
-    keepSecondaryWindowFullscreen(temporarySecondaryWindow);
-    temporarySecondaryWindow.setMenuBarVisibility(false);
-    temporarySecondaryWindow.setFullScreen(true);
-    temporarySecondaryWindow.once('closed', () => {
-      temporarySecondaryWindow = null;
+    temporarySecondaryWindow = overlayWindow;
+    keepSecondaryWindowFullscreen(overlayWindow);
+    overlayWindow.setMenuBarVisibility(false);
+    overlayWindow.setFullScreen(true);
+    overlayWindow.once('closed', () => {
+      if (temporarySecondaryWindow === overlayWindow) {
+        temporarySecondaryWindow = null;
+      }
     });
+    enforceSecondaryNavigationPolicy(overlayWindow);
   } else {
-    await loadUrlInWindow(temporarySecondaryWindow, url);
+    const overlayWindow = temporarySecondaryWindow;
+    programmaticSecondaryLoads.add(overlayWindow.webContents);
+    try {
+      await loadUrlInWindow(overlayWindow, url);
+    } finally {
+      programmaticSecondaryLoads.delete(overlayWindow.webContents);
+    }
   }
 
   temporarySecondaryWindow.show();
@@ -957,7 +989,7 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   await ensureWindows();
 
   const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
-  closeSecondaryPageOverlays({ preserveVideoPlayer: true });
+  closeSecondaryPageOverlays();
 
   const result = {
     url: absoluteTargetUrl,
@@ -1035,12 +1067,12 @@ function attachFirebaseAuthPopupFocus(ownerWindow) {
   });
 }
 
-function enforceSecondaryNavigationPolicy() {
-  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+function enforceSecondaryNavigationPolicy(ownerWindow = secondaryWindow) {
+  if (!ownerWindow || ownerWindow.isDestroyed()) {
     return;
   }
 
-  secondaryWindow.webContents.setWindowOpenHandler(({ url }) => {
+  ownerWindow.webContents.setWindowOpenHandler(({ url }) => {
     const authPopupOptions = buildFirebaseGoogleAuthPopupOptions(url, primaryWindow);
     if (authPopupOptions) {
       return { action: 'allow', overrideBrowserWindowOptions: authPopupOptions };
@@ -1056,10 +1088,13 @@ function enforceSecondaryNavigationPolicy() {
     return { action: 'deny' };
   });
 
-  attachFirebaseAuthPopupFocus(secondaryWindow);
+  attachFirebaseAuthPopupFocus(ownerWindow);
 
-  secondaryWindow.webContents.on('will-navigate', (event, url) => {
-    if (isProgrammaticSecondaryLoad) {
+  ownerWindow.webContents.on('will-navigate', (event, url) => {
+    if (
+      (ownerWindow === secondaryWindow && isProgrammaticSecondaryLoad)
+      || programmaticSecondaryLoads.has(ownerWindow.webContents)
+    ) {
       return;
     }
 
@@ -1069,7 +1104,7 @@ function enforceSecondaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.secondary && !policy.primary && isPersistentSecondaryPageUrl(url)) {
-      closeSecondaryPageOverlays({ preserveVideoPlayer: true });
+      closeSecondaryPageOverlays();
       return;
     }
 
@@ -1114,7 +1149,7 @@ function enforcePrimaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.primary && !policy.secondary) {
-      closeSecondaryPageOverlays({ preserveVideoPlayer: true });
+      closeSecondaryPageOverlays();
       ensureSecondaryDisplayPage().catch((error) => {
         console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
       });
@@ -1190,7 +1225,7 @@ function createVideoPlayerWindow() {
       videoPlayerWindow = null;
     }
 
-    if (!app.isQuitting) {
+    if (!app.isQuitting && win.restoreDisplayOnClose !== false) {
       ensureSecondaryDisplayPage().catch((error) => {
         console.warn('Unable to restore display page after video player closed:', error?.message || error);
       });
@@ -1252,7 +1287,7 @@ async function ensureVideoPlayerWindow(payload = {}) {
   return videoPlayerWindow;
 }
 
-function closeVideoPlayerWindow() {
+function closeVideoPlayerWindow({ restoreDisplay = true } = {}) {
   electronVideoPlayerState = {
     ...electronVideoPlayerState,
     active: false,
@@ -1261,6 +1296,7 @@ function closeVideoPlayerWindow() {
     lastEvent: 'window-closed'
   };
   if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+    videoPlayerWindow.restoreDisplayOnClose = restoreDisplay;
     videoPlayerWindow.close();
   }
 }
@@ -1453,6 +1489,15 @@ ipcMain.handle('bordero-video-player:pause', async () => {
   return { success: true };
 });
 
+ipcMain.handle('bordero-video-player:resume', async () => {
+  if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
+    return { success: false, error: 'Video player window not available' };
+  }
+
+  videoPlayerWindow.webContents.send('bordero-video-player:resume');
+  return { success: true };
+});
+
 ipcMain.handle('bordero-video-player:stop', async () => {
   if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
     return { success: true, stopped: false };
@@ -1508,8 +1553,7 @@ ipcMain.handle('bordero-window:close-display', async () => {
     return { success: true, closed: false };
   }
 
-  const currentPath = normalizePathname(secondaryWindow.webContents.getURL());
-  if (currentPath !== DISPLAY_PAGE_PATH.toLowerCase()) {
+  if (!isDisplayPageUrl(secondaryWindow.webContents.getURL())) {
     return { success: false, reason: 'display-not-active' };
   }
 

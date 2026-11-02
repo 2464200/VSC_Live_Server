@@ -11,6 +11,8 @@
   const params = new URLSearchParams(window.location.search);
   const isDisplayMode = params.get("mode") === "display";
   let stopDisplayHandler = null;
+  let publishedTextFitObserver = null;
+  let publishedTextResizeBound = false;
   let activeServiceVideoBackend = null;
   let serviceVideoStatePollTimer = null;
   const serviceStopHandlers = new Map();
@@ -229,14 +231,41 @@
     }
   }
 
-  function fitPublishedText(text) {
+  function fitPublishedText() {
     const node = document.getElementById("published-message");
     if (!node) return;
-    const availableWidth = Math.max(320, window.innerWidth * 0.88);
-    const availableHeight = Math.max(240, window.innerHeight * 0.72);
-    const widthSize = availableWidth / Math.max(6, text.length * 0.58);
-    const heightSize = availableHeight / 1.2;
-    node.style.fontSize = `${Math.max(32, Math.min(150, widthSize, heightSize))}px`;
+    const availableWidth = node.clientWidth;
+    const availableHeight = node.clientHeight;
+    if (!availableWidth || !availableHeight) return;
+
+    let minimum = 1;
+    let maximum = Math.ceil(Math.max(availableWidth, availableHeight) * 2);
+    const requestedFontSize = Number(params.get("fontSize"));
+    if (Number.isFinite(requestedFontSize) && requestedFontSize > 0) {
+      maximum = Math.min(maximum, requestedFontSize);
+    }
+    let bestFit = minimum;
+    while (maximum - minimum > 0.5) {
+      const fontSize = (minimum + maximum) / 2;
+      node.style.fontSize = `${fontSize}px`;
+      if (node.scrollWidth <= availableWidth + 1 && node.scrollHeight <= availableHeight + 1) {
+        bestFit = fontSize;
+        minimum = fontSize;
+      } else {
+        maximum = fontSize;
+      }
+    }
+
+    node.style.fontSize = `${bestFit}px`;
+    if (!publishedTextResizeBound) {
+      window.addEventListener("resize", fitPublishedText);
+      window.visualViewport?.addEventListener("resize", fitPublishedText);
+      publishedTextResizeBound = true;
+    }
+    if (!publishedTextFitObserver && typeof window.ResizeObserver === "function") {
+      publishedTextFitObserver = new window.ResizeObserver(fitPublishedText);
+      publishedTextFitObserver.observe(node.parentElement);
+    }
   }
 
   function showPublishedText(text) {
@@ -247,8 +276,14 @@
     image.removeAttribute("src");
     message.hidden = false;
     message.textContent = text || defaultBannerText;
-    fitPublishedText(message.textContent);
-    window.addEventListener("resize", () => fitPublishedText(message.textContent));
+    const requestedFontFamily = params.get("font");
+    if (requestedFontFamily) {
+      const fontFamily = requestedFontFamily.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 100);
+      if (fontFamily) {
+        message.style.fontFamily = `"${fontFamily.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}", Tahoma, sans-serif`;
+      }
+    }
+    fitPublishedText();
   }
 
   function showPublishedLogo(id) {
@@ -614,6 +649,8 @@
   function initializeOperator() {
     const messageInput = document.getElementById("service-message-input");
     const defaultMessageInput = document.getElementById("service-default-message");
+    const fontFamilyInput = document.getElementById("service-font-family");
+    const fontSizeInput = document.getElementById("service-font-size");
     const imageInput = document.getElementById("service-image-input");
     const dropzone = document.getElementById("service-dropzone");
     const previewWrap = document.getElementById("service-preview-wrap");
@@ -876,7 +913,9 @@
         || defaultBannerText;
       writeStorage(textStorageKey, oneTimeText);
       try {
-        const session = await openPublication("text", { text });
+        const font = fontFamilyInput.value.trim().slice(0, 100) || "Segoe UI";
+        const fontSize = fontSizeInput.value;
+        const session = await openPublication("text", { text, font, fontSize });
         setPublicationActive(true, { output: "text", session });
         setStatus("Messaggio pubblicato sul monitor secondario.", "success");
       } catch (error) {

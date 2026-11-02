@@ -834,6 +834,29 @@ async function startEventiStream() {
 }
 
 function bindProtectedActionButtons() {
+  const borderoSingleDjBtn = document.getElementById('btn-bordero-single-dj');
+  if (borderoSingleDjBtn && borderoSingleDjBtn.dataset.bound !== '1') {
+    borderoSingleDjBtn.dataset.bound = '1';
+    let navigationPending = false;
+    borderoSingleDjBtn.addEventListener('click', async event => {
+      event.preventDefault();
+      if (navigationPending) return;
+
+      navigationPending = true;
+      try {
+        if (!(await verifyPassword('Accesso Borderò single DJ'))) {
+          return;
+        }
+        goEventiPage(borderoSingleDjBtn.getAttribute('href'));
+      } catch (error) {
+        console.error('Errore verifica password accesso Borderò single DJ:', error);
+        alert('Impossibile verificare la password. Accesso a Borderò annullato.');
+      } finally {
+        navigationPending = false;
+      }
+    });
+  }
+
   const exportBtn = document.getElementById('btn-export');
   if (exportBtn && exportBtn.dataset.bound !== '1') {
     exportBtn.dataset.bound = '1';

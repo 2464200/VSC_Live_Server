@@ -24,6 +24,8 @@ class VideoClipManager {
     this.playbackBackendPreference = this.loadPlaybackBackendPreference();
     this.playerDiagnosticsEnabled = this.loadPlayerDiagnosticsPreference();
     this.activeSecondaryBackend = null;
+    this.isSecondaryVideoPaused = false;
+    this.isTogglingSecondaryPause = false;
     this.electronCompletionUnsubscribe = null;
     this.electronErrorUnsubscribe = null;
     this.pendingBranoId = this.getRequestedBranoIdFromUrl();
@@ -238,6 +240,7 @@ class VideoClipManager {
       });
       this.electronErrorUnsubscribe = window.electronAPI.videoPlayer.onError?.((payload) => {
         this.appendPersistentLog('error', 'electron-playback-error', payload || {});
+        this.setSecondaryVideoPaused(false);
         const status = document.getElementById('secondary-playback-status');
         if (status) {
           status.textContent = `Errore player Electron (codice ${payload?.errorCode || 0}). Verifica il file video e riprova.`;
@@ -1057,6 +1060,7 @@ class VideoClipManager {
       if (success) {
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         this.activeSecondaryBackend = 'electron';
+        this.setSecondaryVideoPaused(false);
         logger.info('✓ Electron player avviato sul monitor secondario');
         this.appendPersistentLog('info', 'electron-playing', {
           url,
@@ -1115,6 +1119,7 @@ class VideoClipManager {
         this.videoApiOrigin = origin;
         this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
         this.activeSecondaryBackend = 'vlc';
+        this.setSecondaryVideoPaused(false);
         this.startVlcCompletionWatcher();
         logger.info('✓ VLC avviato sul monitor secondario');
         this.appendPersistentLog('info', 'vlc-playing', {
@@ -1140,6 +1145,7 @@ class VideoClipManager {
         } else {
           this.currentPlaybackBranoId = this.currentBrano?.id ?? null;
           this.activeSecondaryBackend = 'vlc';
+          this.setSecondaryVideoPaused(false);
           this.startVlcCompletionWatcher();
           this.appendPersistentLog('warn', 'vlc-playing-fallback', { url, apiOrigin: window.location.origin, rcPort: 4212 });
           if (playbackStatus) {
@@ -1161,73 +1167,89 @@ class VideoClipManager {
 
   async pauseSecondaryVideo() {
     const playbackStatus = document.getElementById('secondary-playback-status');
-    if (this.activeSecondaryBackend === 'electron' && this.isElectronVideoPlayerAvailable()) {
-      try {
-        const payload = await window.electronAPI.videoPlayer.pause();
-        if (payload?.success !== false && playbackStatus) {
-          playbackStatus.textContent = 'Monitor secondario: Electron in pausa/ripresa.';
-        }
-      } catch (err) {
-        logger.warn('Errore pausa Electron secondario', err);
-        if (playbackStatus) {
-          playbackStatus.textContent = 'Errore durante la pausa Electron sul monitor secondario.';
-        }
-      }
+    if (this.isTogglingSecondaryPause) {
       return;
     }
 
-    if (this.activeSecondaryBackend === 'vlc') {
-      return this.pauseSecondaryVideoVlc(playbackStatus);
+    if (this.activeSecondaryBackend !== 'electron' && this.activeSecondaryBackend !== 'vlc') {
+      return;
     }
 
-    if (this.resolvePlaybackBackend() === 'electron' && this.isElectronVideoPlayerAvailable()) {
-      return this.pauseSecondaryVideoElectron(playbackStatus);
-    }
-
-    return this.pauseSecondaryVideoVlc(playbackStatus);
-  }
-
-  async pauseSecondaryVideoElectron(playbackStatus) {
+    this.isTogglingSecondaryPause = true;
+    const shouldPause = !this.isSecondaryVideoPaused;
     try {
-      const payload = await window.electronAPI.videoPlayer.pause();
-      if (payload?.success !== false && playbackStatus) {
-        playbackStatus.textContent = 'Monitor secondario: Electron in pausa/ripresa.';
+      const succeeded = this.activeSecondaryBackend === 'electron'
+        ? await this.pauseSecondaryVideoElectron(playbackStatus, shouldPause)
+        : await this.pauseSecondaryVideoVlc(playbackStatus, shouldPause);
+      if (succeeded) {
+        this.setSecondaryVideoPaused(shouldPause);
+        if (playbackStatus) {
+          playbackStatus.textContent = shouldPause
+            ? `Monitor secondario: ${this.activeSecondaryBackend === 'electron' ? 'Electron' : 'VLC'} in pausa.`
+            : `Monitor secondario: ${this.activeSecondaryBackend === 'electron' ? 'Electron' : 'VLC'} in riproduzione.`;
+        }
       }
-    } catch (err) {
-      logger.warn('Errore pausa Electron secondario', err);
-      if (playbackStatus) {
-        playbackStatus.textContent = 'Errore durante la pausa Electron sul monitor secondario.';
-      }
+    } finally {
+      this.isTogglingSecondaryPause = false;
     }
   }
 
-  async pauseSecondaryVideoVlc(playbackStatus) {
+  setSecondaryVideoPaused(paused) {
+    this.isSecondaryVideoPaused = Boolean(paused);
+    const pauseButton = document.getElementById('btn-pause');
+    pauseButton?.classList.toggle('is-paused', this.isSecondaryVideoPaused);
+    pauseButton?.setAttribute('aria-pressed', String(this.isSecondaryVideoPaused));
+  }
+
+  async pauseSecondaryVideoElectron(playbackStatus, shouldPause) {
+    try {
+      const command = shouldPause ? 'pause' : 'resume';
+      const control = window.electronAPI.videoPlayer[command];
+      if (typeof control !== 'function') {
+        throw new Error(`Comando ${command} Electron non disponibile.`);
+      }
+      const payload = await control();
+      if (payload?.success === false) {
+        throw new Error(payload.error || `Comando ${command} Electron non riuscito.`);
+      }
+      return true;
+    } catch (err) {
+      logger.warn('Errore controllo pausa Electron secondario', err);
+      if (playbackStatus) {
+        playbackStatus.textContent = `Errore ${shouldPause ? 'pausa' : 'ripresa'} Electron sul monitor secondario.`;
+      }
+      return false;
+    }
+  }
+
+  async pauseSecondaryVideoVlc(playbackStatus, shouldPause) {
     try {
       const { response, origin } = await this.fetchVideoApi('/api/videoclip/vlc/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'pause' })
+        body: JSON.stringify({ action: shouldPause ? 'pause' : 'play' })
       });
       const payload = await response.json().catch(() => ({}));
       if (response.ok && payload?.success) {
         this.videoApiOrigin = origin;
-        if (playbackStatus) {
-          playbackStatus.textContent = 'Monitor secondario: VLC in pausa/ripresa.';
-        }
+        return true;
       } else if (playbackStatus) {
-        playbackStatus.textContent = 'Monitor secondario: pausa VLC non riuscita.';
+        playbackStatus.textContent = `Monitor secondario: ${shouldPause ? 'pausa' : 'ripresa'} VLC non riuscita.`;
       }
+      return false;
     } catch (err) {
-      logger.warn('Errore pausa VLC secondario', err);
+      logger.warn('Errore controllo pausa VLC secondario', err);
       if (playbackStatus) {
-        playbackStatus.textContent = 'Errore durante la pausa VLC sul monitor secondario.';
+        playbackStatus.textContent = `Errore ${shouldPause ? 'pausa' : 'ripresa'} VLC sul monitor secondario.`;
       }
+      return false;
     }
   }
 
   async stopSecondaryVideo() {
     const playbackStatus = document.getElementById('secondary-playback-status');
     this.stopVlcCompletionWatcher();
+    this.setSecondaryVideoPaused(false);
     if (this.activeSecondaryBackend === 'electron' && this.isElectronVideoPlayerAvailable()) {
       await this.stopSecondaryVideoElectron(playbackStatus);
       this.manualStopPending = false;
@@ -1833,7 +1855,6 @@ class VideoClipManager {
     });
 
     document.getElementById('btn-pause').addEventListener('click', () => {
-      this.pauseMainVideo();
       this.pauseSecondaryVideo();
     });
 
@@ -1942,6 +1963,7 @@ class VideoClipManager {
   }
 
   handleSecondaryPlaybackCompletion(source, completion) {
+    this.setSecondaryVideoPaused(false);
     if (source === 'vlc') {
       this.stopVlcCompletionWatcher();
     }

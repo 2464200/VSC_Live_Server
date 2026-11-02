@@ -26,7 +26,8 @@
         "PAGINA09",
         "PAGINA10",
         "PAGINA11",
-        "SCALETTA"
+        "SCALETTA",
+        "REGISTRO-COREOGRAFIE"
       ]);
       const badge = implemented.has(form.id) ? "MVP pronto" : "Placeholder";
       const route = form.route || `pages/${form.id}.html`;

@@ -10,5 +10,6 @@ window.USERFORM_REGISTRY = [
   { id: "PAGINA09", caption: "frmPAGINA09", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA10", caption: "frmPAGINA10", clientWidth: 16770, clientHeight: 12420 },
   { id: "PAGINA11", caption: "frmPAGINA11", clientWidth: 16770, clientHeight: 12420 },
-  { id: "SCALETTA", caption: "SCALETTA COUNTRY", clientWidth: 16770, clientHeight: 12420 }
+  { id: "SCALETTA", caption: "SCALETTA COUNTRY", clientWidth: 16770, clientHeight: 12420 },
+  { id: "REGISTRO-COREOGRAFIE", displayName: "REGISTRO COREOGRAFIE", caption: "REGISTRO COREOGRAFIE", route: "/USERFORM/pages/REGISTRO-COREOGRAFIE.html", clientWidth: 16770, clientHeight: 12420 }
 ];

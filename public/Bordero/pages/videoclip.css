@@ -361,6 +361,20 @@
   color: #241707;
 }
 
+.video-transport-controls #btn-pause.is-paused,
+.video-transport-controls #btn-pause.is-paused:hover,
+.video-transport-controls #btn-pause.is-paused:focus-visible {
+  animation: pause-alert-blink 0.9s steps(2, start) infinite;
+}
+
+@keyframes pause-alert-blink {
+  to {
+    border-color: #8b0000;
+    background: #e53935;
+    color: #fff;
+  }
+}
+
 .video-transport-controls #btn-stop,
 .video-transport-controls #btn-stop:hover,
 .video-transport-controls #btn-stop:focus-visible {

@@ -127,9 +127,11 @@ function syncPublic() {
     }
   }
 
-  // Publish the USERFORM ScriptPDF page, PDF aliases, shared assets, and compatibility aliases.
+  // Publish selected USERFORM pages and their shared assets, plus PDF aliases.
   for (const [sourceRelative, destinationRelative] of [
     ['USERFORM/pages/SCRIPT-PDF.html', 'public/USERFORM/pages/SCRIPT-PDF.html'],
+    ['USERFORM/pages/REGISTRO-COREOGRAFIE.html', 'public/USERFORM/pages/REGISTRO-COREOGRAFIE.html'],
+    ['USERFORM/assets/css/userform.css', 'public/USERFORM/assets/css/userform.css'],
     ['pdf/pages/script-pdf-gestione.html', 'public/pdf/pages/script-pdf-gestione.html'],
     ['pdf/viewers/ScriptPDF1.html', 'public/ScriptPDF1.html'],
     ['Prova/ScriptPDF1.html', 'public/Prova/ScriptPDF1.html'],
