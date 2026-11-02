@@ -41,9 +41,17 @@ Oppure apri la cartella in VS Code e lascia partire il task automatico.
 node test-system.js
 ```
 
+## Funzioni operative recenti
+
+- Con Electron, DISPLAY resta in background sul monitor 2; quando viene aperta un'altra pagina gestita, gli overlay e il player VideoClip precedenti vengono chiusi. `CHIUDI DISPLAY` è una chiusura manuale con richiesta del codice configurato.
+- In VideoClip, `PAUSA` riprende dal punto corrente al click successivo; `FERMA VIDEO` in Borderò arresta il video sul monitor 2.
+- SERVIZIO permette di impostare font e dimensione massima del testo; `Segoe UI` e `Auto` sono i valori iniziali.
+- Il pulsante Eventi `Borderò single DJ` richiede la password di sistema.
+
+Per procedure e verifiche: [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md).
+
 ## Se qualcosa non funziona
 1. verifica `http://localhost:5500/diagnostica.html`
 2. verifica `http://localhost:5500/eventi/api/ping`
 3. chiudi eventuali tab aperti su porte diverse da `5500`
-
 

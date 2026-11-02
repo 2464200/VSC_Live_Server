@@ -3,6 +3,8 @@
 **Data creazione:** 2026-08-18  
 **Stato:** ✅ Portabile e testato su clone
 
+> Il launcher unattended è una modalità portabile; il percorso standard del progetto resta `unified-server.js` su `http://localhost:5500`. Per il flusso Electron a doppio monitor usare la porta standard, perché i link e le integrazioni dell'app si basano su quell'URL.
+
 ---
 
 ## Avvio Rapido (30 secondi)
@@ -57,9 +59,8 @@ Questo mostrerà:
 6. **Opzionale:** Apre browser
 
 ### Comportamento Porte
-- Porta predefinita: `5500` (configurabile in `.env`)
-- Se occupata: prova 5501, 5502, 5503... fino a 5519
-- Fallback garantito su una porta libera
+- Porta standard del progetto: `5500`, tramite `unified-server.js`.
+- Il fallback su porte alternative appartiene al launcher portabile e non modifica il percorso standard dell'app Electron e dei suoi link.
 
 ### Comportamento Cartelle
 - **Relative al progetto** (non dipende da `C:\VSC_*`)
@@ -165,6 +166,10 @@ Per pacchetto standalone Electron o installer:
 1. Creare `.app` o `.exe` wrapper
 2. Includere Node.js embedded (opzionale)
 3. Auto-update e self-healing
+
+## Electron e monitor secondario
+
+Avvia il server sulla porta standard e l'app con `npm run electron`. Durante l'uso, DISPLAY resta persistente sul monitor 2 e in background; l'apertura di una nuova pagina gestita chiude le altre pagine temporanee e il player VideoClip. Per chiudere DISPLAY manualmente, usa `CHIUDI DISPLAY` in Borderò e inserisci il codice segreto. Le procedure aggiornate sono nella [guida operativa completa](GUIDA_USO_PROGETTO.md).
 
 ---
 

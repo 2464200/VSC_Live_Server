@@ -13,6 +13,44 @@ Per setup portabili o avvio automatico, i metodi supportati sono:
 
 VS Code Live Server può essere usato solo facoltativamente per anteprime statiche; non fa parte del runtime del progetto e non deve essere avviato insieme al server unificato.
 
+## Regole correnti per Electron e il monitor secondario
+
+Quando Electron è in esecuzione:
+
+- `Bordero/pages/display.html` è la pagina persistente prevista sul monitor 2.
+- Una nuova navigazione a una pagina dell'app chiude le pagine HTML temporanee precedenti e il player VideoClip, quindi apre la nuova pagina secondo la policy di monitor. Non devono accumularsi overlay secondari.
+- DISPLAY rimane sotto la pagina secondaria attiva. Le pagine primarie (ad esempio Borderò, Eventi e USERFORM) non la sostituiscono.
+- `CHIUDI DISPLAY` in Borderò è un'eccezione manuale: richiede il codice segreto configurato e chiude la finestra persistente. La navigazione ordinaria non riapre DISPLAY dopo questa chiusura; aprire esplicitamente la pagina DISPLAY per ripristinarla.
+- Popup Google OAuth e siti esterni non sono pagine HTML dell'app e seguono il proprio flusso.
+
+Se una modifica di routing non sembra attiva, chiudi e riavvia Electron. I test automatizzati controllano le policy, ma la disposizione finale va provata anche sul notebook con entrambi i monitor collegati.
+
+## Operazioni Borderò e VideoClip
+
+- In `Bordero/pages/videoclip.html`, PLAY avvia il video sul monitor 2; PAUSA mette in pausa e al click successivo riprende lo stesso video dal punto corrente. Il pulsante lampeggia soltanto durante la pausa.
+- `FERMA VIDEO` in Borderò ferma il player secondario. La navigazione a una nuova pagina chiude quel player per evitare che resti davanti o dietro alla pagina appena aperta.
+- `CHIUDI DISPLAY` chiede il codice segreto prima di chiudere la pagina persistente.
+- La diagnostica VideoClip si attiva dal relativo controllo in `videoclip.html`; i valori di buffering/frame sono quelli esposti dal player e non misurano temperatura, utilizzo GPU o prestazioni complessive del PC.
+
+## SERVIZIO e REGISTRO COREOGRAFIE
+
+- In SERVIZIO, inserisci il messaggio, scegli eventualmente font e dimensione massima a destra di `Pubblica testo`, poi pubblicalo. `Segoe UI` è il font predefinito; `Auto` lascia al sistema la scelta della dimensione massima che entra nell'area. Se si imposta una dimensione, è un limite massimo e il testo può ridursi per rientrare.
+- Il font scelto deve essere installato sul computer che visualizza il messaggio sul monitor secondario; altrimenti il browser usa il fallback.
+- REGISTRO COREOGRAFIE apre sia il progetto sia la base dati in una nuova scheda del browser predefinito. Il progetto non usa una finestra Electron fullscreen.
+
+## Operazioni Eventi
+
+- Per aprire Borderò da Eventi, usare `Borderò single DJ` e confermare la password richiesta.
+- La richiesta è una protezione dell'interfaccia client: non sostituisce autorizzazione server-side e non impedisce l'accesso diretto all'URL Borderò.
+
+## Verifiche mirate delle funzionalità recenti
+
+```powershell
+node --test test/electron-display-manager.test.js test/navigation-window-routing.test.js test/scriptpdf-workbench.test.js test/userform-servizio.test.js
+```
+
+Il test automatizzato non sostituisce la verifica dal vivo: apri più pagine secondarie in sequenza e controlla che resti una sola pagina temporanea e che DISPLAY rimanga in background, a meno che sia stata chiusa dall'utente.
+
 ## Server e porte
 
 ### Schema delle porte attive
@@ -166,4 +204,3 @@ Get-NetTCPConnection -LocalPort 5500 | Select-Object -ExpandProperty OwningProce
 
 - Se il browser mostra `Cannot GET /eventi/eventi.html`, significa che il server unificato non sta girando su `5500` o che un altro processo occupa la porta.
 - Se ti serve un percorso diretto per il modulo Eventi, usa sempre `http://localhost:5500/eventi/eventi.html`.
-

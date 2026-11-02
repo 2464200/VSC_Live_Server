@@ -14,6 +14,12 @@ Flusso attivo supportato:
 
 Le procedure su porta `8000` restano utili solo per anteprime statiche locali, non come runtime ufficiale del progetto.
 
+## Monitor secondario e finestre
+
+Per applicare la gestione automatica delle finestre occorre usare l'app Electron. DISPLAY rimane la pagina persistente sul monitor 2; una nuova pagina dell'app chiude l'overlay secondario precedente e il player VideoClip. Non aprire manualmente nuove finestre HTML dal browser se si vuole applicare questa regola. La chiusura manuale di DISPLAY si esegue da Borderò con `CHIUDI DISPLAY` e codice segreto.
+
+Per i dettagli operativi, inclusi pausa video e controlli SERVIZIO, consulta [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md).
+
 ## Prima di iniziare: aggiornamento Git
 
 ```powershell
@@ -216,15 +222,17 @@ Una volta aperto **bordero.html**:
    ↓
 4. Click su brano per marcare come "Eseguito"
    ↓
-5. Apri http://localhost:5500/Bordero/pages/next-coreo.html su SECONDO MONITOR
-   (mostra prossimo brano in tempo reale)
+5. Se usi Electron, naviga alle pagine con i link dell'app: la policy posiziona la pagina
+   sul monitor previsto e chiude le precedenti pagine secondarie temporanee
    ↓
-6. Apri http://localhost:5500/Bordero/pages/display.html su MONITOR SECONDARIO
-   (tabella live per DJ)
+6. DISPLAY resta in background sul monitor 2; per chiuderla volontariamente usa
+   CHIUDI DISPLAY in Borderò e inserisci il codice segreto
    ↓
-7. Quando finito: click "FINISCI SERATA" → vai a lista-serata.html per report
+7. VideoClip: PLAY sul monitor 2; PAUSA alterna pausa/ripresa dal punto raggiunto;
+   FERMA VIDEO in Borderò arresta il player
    ↓
-8. Vedi statistiche su risultati.html
+8. Quando finito: click "FINISCI SERATA" → vai a lista-serata.html per report;
+   consulta risultati.html per le statistiche
 ```
 
 ---
@@ -272,4 +280,3 @@ Bordero/
 Se qualcosa non funziona, controlla la console (F12) per errori specifici.
 
 **Buon lavoro! 🚀**
-

@@ -20,6 +20,7 @@ Indice della Documentazione:
 
 ## Gestione DJ e Sicurezza
 - [Documentazione Amministrativa](DOCUMENTATION_ADMIN.md)
+- Il pulsante `Borderò single DJ` richiede la password di sistema prima di navigare a Borderò; è una protezione client-side dell'interfaccia, non un'autorizzazione server-side.
 
 ## Architettura e API
 - [Documentazione Tecnica](DOCUMENTATION_DEVELOPMENT.md)
@@ -43,4 +44,3 @@ File archiviati:
 ---
 
 Per tornare all'indice del progetto o ad altri documenti, apri `Eventi/DOCUMENTATION.md`.
-

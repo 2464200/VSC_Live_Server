@@ -7,6 +7,7 @@ Questa è la guida principale per il progetto **VSC Live Server**, che include l
 - [Overview](#overview)
 - [Architettura progetto](#architettura-progetto)
 - [Server e pagine principali](#server-e-pagine-principali)
+- [Funzionalità recenti e regole operative (2026-11)](#aggiornamenti-recenti-2026-11)
 - [Bordero e sincronizzazione CSV](#bordero-e-sincronizzazione-csv)
 - [Eventi e pagine collegate](#eventi-e-pagine-collegate)
 - [Documentazione completa](#documentazione-completa)
@@ -43,7 +44,7 @@ Sono da considerarsi legacy e non di default:
 
 ## Server e pagine principali
 
-Il flusso standard utilizza ora un singolo server unificato o, in caso di test locali, un server statico semplice.
+Il runtime standard utilizza `unified-server.js` su `5500`. Un server statico può servire soltanto per anteprime locali limitate e non sostituisce le API né il flusso Electron.
 
 ### Schema delle porte attive
 
@@ -103,6 +104,8 @@ La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
 ### Documenti principali della radice
 
 - [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md)
+- [Guida operativa completa](GUIDA_USO_PROGETTO.md)
+- [CHANGELOG.md](CHANGELOG.md)
 - [GUIDA_SELEZIONE_EXCEL.md](GUIDA_SELEZIONE_EXCEL.md)
 - [GUIDA_GIT_MAIN_DEVELOP.md](GUIDA_GIT_MAIN_DEVELOP.md)
 - [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)
@@ -182,6 +185,38 @@ La cartella `Eventi/` contiene la documentazione e i file per il modulo Eventi.
 - Home: `http://localhost:5500/index.html`
 - Borderò: `http://localhost:5500/Bordero/pages/bordero.html`
 - Eventi: `http://localhost:5500/eventi/eventi.html`
+
+## Aggiornamenti recenti (2026-11)
+
+Queste sono le regole operative attuali per le funzionalità aggiunte o corrette di recente. I documenti datati e quelli in `Eventi/archive/` restano consultabili come storico e non prevalgono sulle note correnti.
+
+### Monitor secondario e navigazione Electron
+
+- Electron mantiene `Bordero/pages/display.html` come pagina persistente sul monitor 2. Quando un'altra pagina dell'app viene aperta sul monitor secondario, DISPLAY resta sotto in background.
+- L'apertura di una nuova pagina sostituisce e chiude le precedenti finestre HTML secondarie dell'app, inclusi overlay temporanei e player VideoClip; gli eventi di chiusura tardivi non devono perdere il riferimento alla finestra attiva.
+- La chiusura manuale di DISPLAY è l'eccezione intenzionale: `CHIUDI DISPLAY` in Borderò chiede il codice segreto configurato prima di chiudere la finestra persistente. Se l'utente l'ha chiusa manualmente, la normale navigazione non la riapre; va riaperta esplicitamente.
+- Queste regole si applicano al routing dell'app Electron e alle pagine gestite dall'app. Popup Google OAuth e link a siti esterni hanno i propri flussi e non sono finestre di pagina dell'app.
+
+### VideoClip sul monitor secondario
+
+- PLAY apre il player sul monitor 2. PAUSA alterna pausa/ripresa dello stesso video dal punto corrente; lampeggia solo mentre il video è in pausa.
+- `FERMA VIDEO` in Borderò arresta il player secondario. La navigazione a una nuova pagina chiude il player invece di lasciarlo aperto sopra la nuova pagina.
+- La diagnostica è facoltativa e mostra solo i dati esposti dal browser/player (ad esempio buffering ed eventuali frame persi); non certifica le prestazioni dell'hardware durante una serata.
+
+### Protezioni e contenuti USERFORM
+
+- `CHIUDI DISPLAY` richiede il codice segreto configurato; il tasto è disponibile nel runtime Electron.
+- In Eventi, `Borderò single DJ` chiede la password di sistema prima di navigare a Borderò. È una verifica lato interfaccia client, non una barriera server-side.
+- SERVIZIO centra il testo pubblicato e adatta automaticamente il font all'area. Accanto a `Pubblica testo` si possono scegliere il font (Segoe UI di default, o un font installato sul PC del display) e la dimensione massima; `Auto` mantiene il fitting automatico.
+- La pagina REGISTRO COREOGRAFIE apre entrambi i link in una nuova scheda del browser predefinito, come `Apri Base Dati`; non usa una finestra Electron dedicata.
+
+### Verifica e riavvio
+
+- Dopo modifiche a `electron/main.js` riavvia l'app Electron per caricare le nuove regole di routing.
+- Test di riferimento: `node --test test/electron-display-manager.test.js test/navigation-window-routing.test.js test/scriptpdf-workbench.test.js test/userform-servizio.test.js`.
+- Dopo l'avvio, verificare sul setup reale a due monitor: una nuova pagina sostituisce l'overlay precedente, DISPLAY resta sottostante e CHIUDI DISPLAY la chiude solo dopo il codice.
+
+Documentazione operativa dettagliata: [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md), [Bordero/README.md](Bordero/README.md), [Eventi/DOCUMENTATION_OPERATIONS.md](Eventi/DOCUMENTATION_OPERATIONS.md) e [USERFORM/README.md](USERFORM/README.md).
 
 ## Aggiornamenti recenti (2026-08)
 

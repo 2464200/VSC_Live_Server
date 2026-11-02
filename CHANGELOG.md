@@ -2,6 +2,29 @@
 
 **⚠️ Nota importante:** a partire dal 13 Apr 2026 il flusso standard del progetto usa un unico unified-server.js su http://localhost:5500. Le architetture con server-manager.js, pdf-server.js, simple-server.js, static-server.js, pdf-server-simple.js e le porte 3000, 3010, 8765 sono ora legacy/historiche e non fanno parte del percorso standard.
 
+## Aggiornamenti funzionali — 2 novembre 2026
+
+### Routing delle finestre sul monitor secondario
+
+- Alla navigazione verso una nuova pagina dell'app, chiude le precedenti pagine HTML temporanee sul monitor 2 e il player VideoClip, evitando finestre residue o sovrapposte.
+- La pagina persistente `Bordero/pages/display.html` resta aperta in background sotto la pagina corrente, salvo chiusura manuale esplicita.
+- Corretto il riferimento alla finestra secondaria temporanea per ignorare gli eventi `closed` tardivi di finestre già sostituite.
+- Le finestre secondarie temporanee applicano la stessa policy di routing dei link e delle navigazioni della finestra persistente.
+
+### Controlli Borderò e VideoClip
+
+- Il comando `CHIUDI DISPLAY` richiede il codice segreto configurato e chiude la finestra DISPLAY persistente tramite Electron.
+- `FERMA VIDEO` arresta il video sul monitor 2; `PAUSA` alterna pausa e ripresa dal punto raggiunto e lampeggia solo durante la pausa.
+- La diagnostica di riproduzione è opt-in e riporta i dati disponibili del player; non sostituisce la prova sul notebook e sul display reali.
+
+### USERFORM ed Eventi
+
+- SERVIZIO pubblica testo centrato con adattamento automatico e consente di scegliere il font e la dimensione massima; valori predefiniti: Segoe UI e Auto.
+- REGISTRO COREOGRAFIE mantiene i link al progetto e alla base dati aperti in nuove schede del browser predefinito.
+- Il pulsante Eventi `Borderò single DJ` richiede conferma della password di sistema prima della navigazione. La verifica resta lato client.
+
+Le note operative correnti sono in [README.md](README.md) e [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md); questa voce non sostituisce la verifica pratica sul sistema dual-monitor.
+
 ## Data: 1 Agosto 2026
 ## Stato: STABILE - Electron dual monitor + UX Admin/Display + Task terminale visibile
 
@@ -498,6 +521,5 @@ Pronto per il deploy! ðŸš€
 **Data**: 20 Febbraio 2026
 **Versione**: 1.0.0-stable
 **Status**: âœ… LIVE
-
 
 

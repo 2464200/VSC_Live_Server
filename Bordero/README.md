@@ -68,10 +68,10 @@ L'applicazione consente ai DJ di:
 - Validazione dati
 
 ### 5. **Video Player** (videoclip.html)
-- Riproduzione video coreografia
-- Controls: Play/Pause/Stop
-- Fullscreen
-- Progress bar
+- Riproduzione del videoclip sul monitor 2 con player Electron/VLC secondo il backend disponibile.
+- `PAUSA` alterna pausa e ripresa dello stesso video dal punto corrente; lampeggia solo quando la riproduzione è in pausa.
+- `FERMA VIDEO` in Borderò arresta il player secondario.
+- Diagnostica facoltativa per buffering, errori e fotogrammi persi quando esposti dal player.
 
 ### 6. **Monitor Secondario** (display.html)
 - Proiezione lista su monitor esterno
@@ -120,6 +120,26 @@ In breve:
 - Sync globale da Excel
 - Log live di sincronizzazione
 - Data Viewer e gestione cache
+
+## Regole operative recenti: finestre del monitor 2
+
+Nel runtime Electron:
+
+- DISPLAY è la pagina persistente del monitor secondario e rimane aperta in background mentre viene mostrata un'altra pagina dell'app.
+- L'apertura o la navigazione a una nuova pagina chiude gli overlay HTML precedenti e il player VideoClip, poi mostra la destinazione secondo la policy di monitor. Non devono rimanere pagine secondarie residue.
+- `CHIUDI DISPLAY` chiude eccezionalmente la pagina persistente solo dopo l'inserimento del codice segreto configurato. Dopo la chiusura, la normale navigazione non ricrea DISPLAY; occorre aprire esplicitamente la pagina DISPLAY.
+- Google OAuth e i collegamenti a siti esterni sono popup/link esterni e non fanno parte della regola di sostituzione delle pagine gestite dall'app.
+
+Se queste regole non sono attive dopo un aggiornamento, riavvia Electron. Per la verifica pratica, apri due pagine secondarie in sequenza, controlla la chiusura della prima e verifica che DISPLAY resti sotto la seconda.
+
+### Riproduzione videoclip
+
+1. Seleziona un videoclip nella pagina VideoClip e premi `PLAY`.
+2. Premi `PAUSA` per sospendere il video secondario; premi di nuovo per riprendere dallo stesso punto.
+3. Usa `FERMA VIDEO` per arrestarlo. L'apertura di un'altra pagina chiude il player secondario.
+4. Attiva `DIAGNOSTICA VIDEO` solo quando vuoi osservare gli indicatori disponibili. I test software non garantiscono la fluidità sul notebook durante una serata.
+
+Per l'uso dettagliato dei monitor e i test di regressione, vedi [GUIDA_USO_PROGETTO.md](../GUIDA_USO_PROGETTO.md).
 
 ---
 

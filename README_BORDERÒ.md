@@ -10,6 +10,16 @@
 
 ---
 
+## Regole correnti del runtime (2 novembre 2026)
+
+Le note successive includono anche istruzioni e descrizioni storiche. Per avvio, flussi e comportamento aggiornati, prevalgono [README.md](README.md), [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md) e [Bordero/README.md](Bordero/README.md).
+
+- Avvio standard: `unified-server.js` su `http://localhost:5500`; le anteprime statiche non sono il runtime operativo.
+- Con Electron, DISPLAY resta sul monitor 2 in background; una nuova pagina dell'app chiude le pagine HTML temporanee secondarie precedenti e il player VideoClip.
+- `CHIUDI DISPLAY` richiede il codice segreto ed è la modalità prevista per la chiusura volontaria del DISPLAY.
+- PAUSA VideoClip riprende dallo stesso punto e lampeggia durante la pausa; `FERMA VIDEO` in Borderò arresta il player.
+- La navigazione secondaria è gestita dal router Electron: per il flusso standard non aprire manualmente altre finestre o schede HTML.
+
 ## Novita 2026-08
 
 ### Electron dual monitor
@@ -22,8 +32,7 @@
 
 ### Display manual close
 
-- In `display.html` aggiunto un piccolo tasto `X` in alto a destra per chiudere manualmente la finestra.
-- Se il browser blocca la chiusura diretta, compare un messaggio guida in footer.
+- Le note sul vecchio tasto `X` e sulla chiusura dal browser sono storiche. Usare `CHIUDI DISPLAY` da Borderò e confermare con il codice segreto.
 
 ### Navigazione pagine Bordero
 
@@ -54,7 +63,7 @@ BORDERÃ’ Ã¨ una web application completa per la gestione di brani e coreogr
 
 ## ðŸš€ Quick Start
 
-### **Opzione 1: PowerShell Script (Consigliato)**
+### **Runtime standard: server unificato**
 
 ```powershell
 cd C:\VSC_Live_Server
@@ -65,20 +74,16 @@ Questo:
 - âœ… Avvia il runtime completo del progetto su porta 5500
 - âœ… Espone Bordero ed Eventi con URL coerenti
 
-### **Opzione 2: Manuale con Python**
+Per applicare la gestione delle finestre e dei due monitor, avvia anche Electron (`npm run electron`) e usa i collegamenti dell'app.
+
+### **Anteprima statica (non usare per il runtime operativo)**
 
 ```powershell
 cd C:\VSC_Live_Server
 python -m http.server 8000
 ```
 
-Poi apri: `http://localhost:5500/Bordero/`
-
-### **Opzione 3: VS Code Live Server**
-
-1. Installa estensione "Live Server"
-2. Click destro su `Bordero/index.html`
-3. Seleziona "Open with Live Server"
+Questo metodo e Live Server servono solo per anteprime statiche: non forniscono le API e non implementano il routing Electron o la gestione del monitor secondario.
 
 ---
 
@@ -489,6 +494,4 @@ BORDERÃ’ Ã¨ una web application completa, fully functional, pronta per la p
 **Version:** 1.0.0  
 **Status:** âœ… Production Ready  
 **Date:** 2026-06-18
-
-
 

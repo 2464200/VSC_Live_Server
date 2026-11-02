@@ -36,9 +36,12 @@ Avvio consigliato:
 
 ## Operazioni quotidiane
 - Seleziona il DJ dall'elenco in `eventi.html`.
+- Per tornare in Borderò dall'home Eventi, usa `Borderò single DJ` e inserisci la password di sistema. Annullando o inserendo un codice errato la navigazione da quel pulsante viene annullata.
 - Prenota un brano in `eventi.html` spuntando la checkbox; lo stato diventa `prenotato`.
 - Marcia come eseguito in `prenotati.html` cliccando `Eseguito`.
 - Usare `tutti.html`, `spuntati.html` e `non-spuntati.html` per filtri alternativi.
+
+La password protegge questo passaggio dell'interfaccia client e non sostituisce controlli di accesso lato server. L'URL Borderò rimane raggiungibile direttamente se noto.
 
 ## Troubleshooting rapido
 - Verifica API: `http://localhost:5500/eventi/api/ping`
@@ -69,4 +72,3 @@ Promozione release consigliata: `develop` verso `main` via Pull Request.
 ## Sezioni correlate
 - [Gestione DJ e Sicurezza](DOCUMENTATION_ADMIN.md)
 - [Architettura e API](DOCUMENTATION_DEVELOPMENT.md)
-

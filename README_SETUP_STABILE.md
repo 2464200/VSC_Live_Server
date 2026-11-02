@@ -28,6 +28,12 @@ cd C:\VSC_Live_Server
 - `http://localhost:5500/eventi/eventi.html`
 - `http://localhost:5500/eventi/visualizer.html`
 
+## Electron e monitor secondario
+
+Quando si usa Electron, DISPLAY resta persistente sul monitor 2 e rimane in background sotto gli overlay. L'apertura di una nuova pagina chiude gli overlay secondari precedenti e il player VideoClip; la chiusura manuale di DISPLAY richiede il codice segreto dal pulsante `CHIUDI DISPLAY` in Borderò.
+
+Per i dettagli e le verifiche di VideoClip, SERVIZIO, Eventi e USERFORM consulta [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md).
+
 ## Cosa evitare
 - non usare `Go Live` per avviare il progetto
 - non considerare `5502`, `3010`, `3000` o `8765` come percorso standard
@@ -65,5 +71,4 @@ Controlli attesi:
 
 ## Note
 Live Server puo' esistere come strumento editoriale, ma non rappresenta l'esecuzione corretta del progetto.
-
 

@@ -21,6 +21,7 @@ Il server standalone `Eventi/server-eventi.js` e' solo legacy e non serve nel fl
 ## Funzioni principali
 - selezione DJ
 - selezione DJ: cambio protetto da password; la nuova selezione richiede conferma tramite la password di sistema (centralizzata in `public/config.js`)
+- accesso da Eventi a `Borderò single DJ` protetto dalla stessa richiesta della password di sistema; annullamento o codice errato bloccano la navigazione
 - stati `disponibile`, `prenotato`, `eseguito`
 - viste filtrate
 - annulla prenotazione direttamente dalla vista `Prenotati`
@@ -117,6 +118,7 @@ Endpoint:
 - In tutte le pagine HTML del modulo `Eventi`, dopo 60 secondi senza interazioni utente si torna automaticamente a `eventi.html`.
 - Nella home `eventi.html` e' presente il pulsante `Reset date e orari`, che azzera la cronologia corrente del modulo per iniziare un nuovo evento e resetta anche il conteggio delle prenotazioni DJ attive.
  - Selezione DJ: quando l'operatore sceglie un nuovo DJ dal menu a tendina, viene richiesto di inserire la password di sistema per confermare. Se la password è errata o si annulla, la selezione viene annullata e resta in uso il DJ precedentemente salvato.
+ - `Borderò single DJ` richiede la password prima di aprire Borderò. La verifica è implementata nell'interfaccia client Eventi: non è un controllo di autorizzazione server-side e non impedisce di raggiungere direttamente l'URL.
 - Il reset salva prima una copia del log precedente in `Eventi/data/archive/`.
 - Nella vista `prenotati.html` e' disponibile un checkbox `Annulla` che riporta il brano a stato `disponibile`, come avviene nella vista `spuntati.html`.
 - Il conteggio del limite di prenotazione DJ considera solo i brani attualmente in stato `prenotato`; i brani già `eseguito` non influiscono sul conteggio. Quando il numero di prenotati diminuisce (esecuzione o annullamento), il DJ può prenotare nuovamente fino al limite assegnato.
@@ -130,9 +132,9 @@ Endpoint:
 - verifica `http://localhost:5500/eventi/api/ping`
 - apri `http://localhost:5500/diagnostica.html`
 - esegui `node Eventi/sync-brani.js` se i brani non sono allineati
+- se `Borderò single DJ` non apre Borderò, verifica la password e controlla che il server unificato risponda sulla porta 5500
 
 ## Nota
 I riferimenti a `3010` nella documentazione storica sono da considerare legacy.
-
 
 

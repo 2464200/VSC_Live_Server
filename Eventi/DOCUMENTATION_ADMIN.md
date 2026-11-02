@@ -17,6 +17,7 @@ Indice:
 - La selezione del DJ in `eventi.html` ora richiede conferma tramite password di sistema.
 - Se la password non viene confermata o è errata, la selezione viene annullata e resta attivo il DJ precedente.
 - Questa protezione evita che un operatore possa cambiare DJ senza autorizzazione.
+- Il pulsante `Borderò single DJ` richiede la password di sistema prima della navigazione a `/Bordero/pages/bordero.html`. Se l'utente annulla o il codice è errato, l'accesso tramite quel pulsante viene bloccato.
 
 ## Amministrazione e CSV
 - File dati principali:
@@ -28,8 +29,8 @@ Indice:
 
 ## Note sulla password di sistema
 - La password di sistema è centralizzata in `Eventi/public/config.js`.
-- Valore attuale: `window.SYSTEM_PASSWORD = '0000'`.
 - Questa impostazione garantisce che tutte le pagine del modulo Eventi usino la stessa password condivisa.
+- La verifica è client-side e protegge il flusso dell'interfaccia; non è un'autorizzazione server-side e non impedisce l'accesso diretto alle pagine o alle API.
 
 ## Nota runtime e Git
 
@@ -40,4 +41,3 @@ Indice:
 ## Sezioni correlate
 - [Operazioni quotidiane](DOCUMENTATION_OPERATIONS.md)
 - [Architettura e API](DOCUMENTATION_DEVELOPMENT.md)
-
