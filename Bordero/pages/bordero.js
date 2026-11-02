@@ -1087,6 +1087,12 @@ class BorderoTableManager {
         Toast.error(`Errore arresto videoclip: ${error?.message || error}`);
       });
     });
+    document.getElementById('btn-close-display-remote')?.addEventListener('click', () => {
+      this.closeDisplayWindow().catch((error) => {
+        console.error('Errore chiudendo il Display:', error);
+        Toast.error(`Errore chiusura Display: ${error?.message || error}`);
+      });
+    });
     document.getElementById('btn-disable-led-remote')?.addEventListener('click', () => this.sendLedDisplayCommand('disable'));
 
     // Pagination
@@ -1327,6 +1333,27 @@ class BorderoTableManager {
     this.secondaryVideoPlayerState = { ...currentPlayer, active: false, isPlaying: false, hasWindow: false };
     this.updateSecondaryVideoStopButton(false);
     Toast.success('Videoclip fermato sul monitor secondario.');
+  }
+
+  async closeDisplayWindow() {
+    if (typeof window.electronAPI?.windowManager?.closeDisplayPage === 'function') {
+      const result = await window.electronAPI.windowManager.closeDisplayPage();
+      if (result?.success === false) {
+        throw new Error(result.reason === 'display-not-active'
+          ? 'Il Display non è attualmente la pagina aperta sul monitor secondario.'
+          : result.error || 'Comando di chiusura non riuscito.');
+      }
+      Toast.success(result?.closed ? 'Display chiuso.' : 'Il Display è già chiuso.');
+      return;
+    }
+
+    const displayWindow = window.open('', 'bordero-display-secondary');
+    if (!displayWindow) {
+      Toast.warning('Il browser non consente di accedere alla finestra Display.');
+      return;
+    }
+    displayWindow.close();
+    Toast.success('Comando di chiusura Display inviato.');
   }
 
   setupWebcamSignalBox() {

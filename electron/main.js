@@ -24,6 +24,7 @@ const PAGE_POLICY_FILE = getLocalConfigPath('electron/page-policy.json', [path.j
 
 let primaryWindow;
 let secondaryWindow;
+let displayManuallyClosed = false;
 let temporarySecondaryWindow;
 let videoPlayerWindow;
 let serverProcess;
@@ -898,6 +899,10 @@ async function loadInTemporarySecondaryWindow(url) {
 }
 
 async function ensureSecondaryDisplayPage() {
+  if (displayManuallyClosed) {
+    return false;
+  }
+
   if (!secondaryWindow || secondaryWindow.isDestroyed()) {
     await ensureWindows();
   }
@@ -933,9 +938,13 @@ async function restoreSecondaryPageBeforeLedDisplay() {
 }
 
 async function routeUrlByPolicy(targetUrl, source = 'unknown') {
+  const absoluteTargetUrl = toAbsoluteAppUrl(targetUrl);
+  if (isDisplayPageUrl(absoluteTargetUrl)) {
+    displayManuallyClosed = false;
+  }
+
   await ensureWindows();
 
-  const absoluteTargetUrl = toAbsoluteAppUrl(targetUrl);
   const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
   closeSecondaryPageOverlays({ preserveVideoPlayer: true });
 
@@ -1469,6 +1478,21 @@ ipcMain.handle('bordero-window:open-primary', async (_event, payload) => {
   }
 });
 
+ipcMain.handle('bordero-window:close-display', async () => {
+  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return { success: true, closed: false };
+  }
+
+  const currentPath = normalizePathname(secondaryWindow.webContents.getURL());
+  if (currentPath !== DISPLAY_PAGE_PATH.toLowerCase()) {
+    return { success: false, reason: 'display-not-active' };
+  }
+
+  displayManuallyClosed = true;
+  secondaryWindow.close();
+  return { success: true, closed: true };
+});
+
 ipcMain.handle('bordero-window:stop-service-publication', async () => {
   if (!temporarySecondaryWindow || temporarySecondaryWindow.isDestroyed()) {
     return { success: false, reason: 'secondary-window-unavailable' };
@@ -1734,7 +1758,7 @@ async function ensureWindows() {
     });
   }
 
-  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+  if ((!secondaryWindow || secondaryWindow.isDestroyed()) && !displayManuallyClosed) {
     const secondaryLayout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
 
     secondaryWindow = createWindow(config.secondaryUrl, {

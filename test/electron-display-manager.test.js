@@ -10,6 +10,7 @@ function loadElectronMainFor(tempDir) {
 
   const createdWindows = [];
   const ipcListeners = {};
+  const ipcHandlers = {};
   let displayProfiles = [
     { id: 1, isPrimary: true, bounds: { x: 0, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
     { id: 2, isPrimary: false, bounds: { x: 1920, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
@@ -102,7 +103,7 @@ function loadElectronMainFor(tempDir) {
             destroy() { this.closed = true; }
           },
           ipcMain: {
-            handle() {},
+            handle(event, handler) { ipcHandlers[event] = handler; },
             on(event, handler) { ipcListeners[event] = handler; },
             once() {}
           },
@@ -198,7 +199,7 @@ function loadElectronMainFor(tempDir) {
   };
 
   vm.runInNewContext(mainSource, sandbox, { filename: 'electron-main.js' });
-  return { sandbox, createdWindows, ipcListeners, setDisplays: (value) => { displayProfiles = value; } };
+  return { sandbox, createdWindows, ipcListeners, ipcHandlers, setDisplays: (value) => { displayProfiles = value; } };
 }
 
 test('pickDisplayTargets chooses the primary display and a secondary one', () => {
@@ -390,6 +391,41 @@ test('ensureWindows recreates a missing secondary window when primary already ex
     secondary.setFullScreen(false);
     secondary.events['leave-full-screen']();
     assert.equal(secondary.fullScreen, true, 'secondary monitor window should return to fullscreen after leaving it');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('manual Display closure persists across navigation until Display is explicitly reopened', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-manual-display-close');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows, ipcHandlers } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    await vm.runInContext('ensureWindows();', sandbox);
+    const closeResult = await ipcHandlers['bordero-window:close-display']();
+    assert.equal(closeResult.success, true);
+    assert.equal(closeResult.closed, true);
+    assert.equal(vm.runInContext('secondaryWindow', sandbox), null, 'the persistent Display window should close');
+
+    await vm.runInContext("routeUrlByPolicy('http://localhost:5500/Bordero/pages/bordero.html', 'test-after-manual-display-close');", sandbox);
+    assert.equal(vm.runInContext('secondaryWindow', sandbox), null, 'ordinary navigation must not recreate the manually closed Display');
+
+    await vm.runInContext("routeUrlByPolicy('http://localhost:5500/Bordero/pages/display.html', 'test-reopen-display');", sandbox);
+    assert.match(
+      vm.runInContext('secondaryWindow.webContents.getURL()', sandbox),
+      /Bordero\/pages\/display\.html/i,
+      'explicitly opening Display should recreate the secondary window'
+    );
+    assert.equal(createdWindows.filter((window) => window.options.kiosk).length, 2, 'Display should only be recreated on explicit request');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
