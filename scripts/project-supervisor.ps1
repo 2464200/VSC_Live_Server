@@ -165,18 +165,6 @@ function Start-ProjectElectron {
     throw "Electron non è diventato operativo entro $ElectronStartupTimeoutSeconds secondi."
 }
 
-function Confirm-ElectronRestart {
-    Add-Type -AssemblyName System.Windows.Forms
-    $answer = [System.Windows.Forms.MessageBox]::Show(
-        'Electron dual monitor è stato chiuso. Vuoi riaprirlo?',
-        'Bordero - Riavvio Electron',
-        [System.Windows.Forms.MessageBoxButtons]::YesNo,
-        [System.Windows.Forms.MessageBoxIcon]::Question,
-        [System.Windows.Forms.MessageBoxDefaultButton]::Button2
-    )
-    return $answer -eq [System.Windows.Forms.DialogResult]::Yes
-}
-
 Write-Host '[supervisor] Avvio verificato dei servizi del progetto...'
 Push-Location $rootPath
 try {
@@ -202,7 +190,7 @@ if ($electronProcesses.Count -eq 0) {
 
 Write-Host '[supervisor] Servizi pronti; monitoraggio attivo.'
 $electronWasRunning = $true
-$electronRestartDeclined = $false
+$electronRestartSuppressed = $false
 $serverWasReady = $true
 
 while ($true) {
@@ -214,28 +202,14 @@ while ($true) {
     $electronProcesses = Get-ProjectElectronProcesses
     if ($electronProcesses.Count -gt 0) {
         $electronWasRunning = $true
-        $electronRestartDeclined = $false
+        $electronRestartSuppressed = $false
         $electronIds = @($electronProcesses | ForEach-Object { [int]$_.ProcessId })
         Update-StartupProcessIds -ElectronProcessIds $electronIds
-    } elseif ($electronWasRunning -and -not $electronRestartDeclined) {
+    } elseif ($electronWasRunning -and -not $electronRestartSuppressed) {
         $electronWasRunning = $false
-        try {
-            if (Confirm-ElectronRestart) {
-                if (Test-Path -LiteralPath $stopFile -PathType Leaf) {
-                    Write-Host '[supervisor] Arresto del progetto richiesto durante la conferma.'
-                    break
-                }
-                $electronProcesses = Start-ProjectElectron
-                $electronWasRunning = $electronProcesses.Count -gt 0
-            } else {
-                $electronRestartDeclined = $true
-                Update-StartupProcessIds
-                Write-Host '[supervisor] Riavvio Electron rifiutato; continuo a monitorare i servizi.'
-            }
-        } catch {
-            $electronRestartDeclined = $true
-            Write-Warning "Riavvio Electron non riuscito: $($_.Exception.Message)"
-        }
+        $electronRestartSuppressed = $true
+        Update-StartupProcessIds
+        Write-Host '[supervisor] Electron chiuso; nessun prompt né riavvio automatico. Il monitoraggio dei servizi continua.'
     }
 
     $serverReady = Test-UnifiedServerPort -Port $script:serverPort

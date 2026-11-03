@@ -197,6 +197,13 @@ test('supervisor preserves the startup process exit code while forwarding its ou
   assert.doesNotMatch(source, /Start-ProcessSafe\s+-FilePath\s+'powershell\.exe'/);
 });
 
+test('closing Electron never opens a prompt or interrupts server monitoring', () => {
+  const source = fs.readFileSync(path.join(root, 'scripts/project-supervisor.ps1'), 'utf8');
+  assert.doesNotMatch(source, /Confirm-ElectronRestart|System\.Windows\.Forms|MessageBox/);
+  assert.match(source, /Electron chiuso; nessun prompt né riavvio automatico\. Il monitoraggio dei servizi continua\./);
+  assert.match(source, /\$serverReady = Test-UnifiedServerPort -Port \$script:serverPort/);
+});
+
 test('supervisor readiness probes use direct loopback requests instead of the system proxy', () => {
   const supervisor = fs.readFileSync(path.join(root, 'scripts/project-supervisor.ps1'), 'utf8');
   const helpers = fs.readFileSync(path.join(root, 'scripts/ps_helpers.ps1'), 'utf8');

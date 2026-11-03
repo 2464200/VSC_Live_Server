@@ -13,6 +13,8 @@ Per setup portabili o avvio automatico, i metodi supportati sono:
 
 VS Code Live Server può essere usato solo facoltativamente per anteprime statiche; non fa parte del runtime del progetto e non deve essere avviato insieme al server unificato.
 
+Il task VS Code `Auto-startup and supervise project` non mostra finestre di conferma durante il monitoraggio. Se Electron viene chiuso, il supervisore lascia chiusa l'interfaccia, mantiene attivi e controllati i servizi del progetto e consente di riaprire Electron manualmente; la normale chiusura del progetto tramite `shutdown.ps1` arresta anche il supervisore.
+
 ## Regole correnti per Electron e il monitor secondario
 
 Quando Electron è in esecuzione:
