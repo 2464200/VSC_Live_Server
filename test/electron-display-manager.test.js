@@ -490,9 +490,12 @@ test('manual Display closure persists across navigation until Display is explici
     });
 
     await vm.runInContext('ensureWindows();', sandbox);
+    const initialDisplayStatus = await ipcHandlers['bordero-window:display-status']();
+    assert.equal(initialDisplayStatus.closed, false);
     const closeResult = await ipcHandlers['bordero-window:close-display']();
     assert.equal(closeResult.success, true);
     assert.equal(closeResult.closed, true);
+    assert.equal((await ipcHandlers['bordero-window:display-status']()).closed, true);
     assert.equal(vm.runInContext('secondaryWindow', sandbox), null, 'the persistent Display window should close');
 
     await vm.runInContext("routeUrlByPolicy('http://localhost:5500/Bordero/pages/bordero.html', 'test-after-manual-display-close');", sandbox);
@@ -504,6 +507,7 @@ test('manual Display closure persists across navigation until Display is explici
       /Bordero\/pages\/display\.html/i,
       'explicitly opening Display should recreate the secondary window'
     );
+    assert.equal((await ipcHandlers['bordero-window:display-status']()).closed, false);
     assert.equal(createdWindows.filter((window) => window.options.kiosk).length, 2, 'Display should only be recreated on explicit request');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });

@@ -34,6 +34,7 @@ class BorderoTableManager {
     this.virtualDjConsolePollInProgress = false;
     this.virtualDjCompletionTracker = null;
     this.isClosingDisplayWindow = false;
+    this.displayWindowManuallyClosed = false;
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
@@ -111,6 +112,7 @@ class BorderoTableManager {
       this.lastHeaderSortField = null;
 
       // Setup UI
+      await this.syncDisplayWindowButtonState();
       this.setupEventListeners();
       this.setupCourseProgramFilter();
       this.setupSerataMeta();
@@ -1341,14 +1343,21 @@ class BorderoTableManager {
       return;
     }
 
-    const closeDisplayPage = window.electronAPI?.windowManager?.closeDisplayPage;
-    if (typeof closeDisplayPage !== 'function') {
+    const windowManager = window.electronAPI?.windowManager;
+    const closeDisplayPage = windowManager?.closeDisplayPage;
+    const openSecondaryPage = windowManager?.openSecondaryPage;
+    if (typeof closeDisplayPage !== 'function' || typeof openSecondaryPage !== 'function') {
       Toast.warning('La chiusura forzata del Display è disponibile solo nell’app Electron.');
       return;
     }
 
     this.isClosingDisplayWindow = true;
     try {
+      if (this.displayWindowManuallyClosed) {
+        await this.restoreDisplayWindow(openSecondaryPage);
+        return;
+      }
+
       const confirmed = await this.askCloseDisplaySecretCode();
       if (!confirmed) {
         return;
@@ -1360,9 +1369,60 @@ class BorderoTableManager {
           ? 'Il Display non è attualmente la pagina aperta sul monitor secondario.'
           : result.error || 'Comando di chiusura non riuscito.');
       }
-      Toast.success(result?.closed ? 'Display chiuso.' : 'Il Display è già chiuso.');
+
+      if (!result?.closed) {
+        await this.restoreDisplayWindow(openSecondaryPage);
+        return;
+      }
+
+      this.displayWindowManuallyClosed = true;
+      this.updateDisplayWindowButton();
+      Toast.success('Display chiuso. Clicca di nuovo per ripristinarlo.');
     } finally {
       this.isClosingDisplayWindow = false;
+    }
+  }
+
+  async restoreDisplayWindow(openSecondaryPage) {
+    const result = await openSecondaryPage({ path: '/Bordero/pages/display.html' });
+    if (!result?.success || !result.secondaryUpdated) {
+      throw new Error(result?.error || 'Ripristino del Display sul monitor secondario non riuscito.');
+    }
+
+    this.displayWindowManuallyClosed = false;
+    this.updateDisplayWindowButton();
+    Toast.success('Display ripristinato sul monitor secondario.');
+  }
+
+  updateDisplayWindowButton() {
+    const button = document.getElementById('btn-close-display-remote');
+    if (!button) return;
+
+    const isClosed = this.displayWindowManuallyClosed;
+    button.textContent = isClosed ? 'RIPRISTINA DISPLAY' : 'CHIUDI DISPLAY';
+    button.title = isClosed
+      ? 'Ripristina Display sul monitor secondario'
+      : 'Chiude il Display; al clic successivo lo ripristina sul monitor secondario';
+    button.setAttribute('aria-label', button.title);
+    button.setAttribute('aria-pressed', String(isClosed));
+    button.classList.toggle('remote-action-pending', isClosed);
+  }
+
+  async syncDisplayWindowButtonState() {
+    const getDisplayStatus = window.electronAPI?.windowManager?.getDisplayStatus;
+    if (typeof getDisplayStatus !== 'function') return;
+
+    try {
+      const result = await getDisplayStatus();
+      if (!result?.success) {
+        throw new Error(result?.error || 'Stato Display non disponibile.');
+      }
+
+      this.displayWindowManuallyClosed = Boolean(result.closed);
+      this.updateDisplayWindowButton();
+    } catch (error) {
+      console.error('Errore verificando lo stato del Display:', error);
+      Toast.warning(`Stato del Display non verificabile: ${error?.message || error}`);
     }
   }
 
@@ -1490,12 +1550,19 @@ class BorderoTableManager {
   setupLedDisplayMonitorSync() {
     const applyRoute = (route) => {
       if (!route?.secondaryUpdated) return;
-      const isLedDisplay = String(route.path || '').toLowerCase() === '/leddisplay/server/static/index.html';
+      const routePath = String(route.path || '').toLowerCase();
+      const isLedDisplay = routePath === '/leddisplay/server/static/index.html';
       localStorage.setItem(this.ledDisplayActiveStorageKey, String(isLedDisplay));
       this.updateRemoteDisplayIndicators();
     };
 
-    window.electronAPI?.monitorPolicy?.onRouted?.(applyRoute);
+    window.electronAPI?.monitorPolicy?.onRouted?.((route) => {
+      applyRoute(route);
+      if (route?.secondaryUpdated && String(route.path || '').toLowerCase() === '/bordero/pages/display.html') {
+        this.displayWindowManuallyClosed = false;
+        this.updateDisplayWindowButton();
+      }
+    });
     window.electronAPI?.monitorPolicy?.getLastRoute?.().then((result) => applyRoute(result?.event));
   }
 

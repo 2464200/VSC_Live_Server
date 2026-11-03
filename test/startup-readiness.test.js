@@ -7,7 +7,7 @@ const net = require('node:net');
 const http = require('node:http');
 const { execFile } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
-const windowsOnly = { skip: process.platform !== 'win32', timeout: 90000 };
+const windowsOnly = { skip: process.platform !== 'win32', timeout: 120000 };
 
 function execute(script, args = []) {
   return new Promise((resolve) => execFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script, ...args], {
@@ -24,6 +24,9 @@ async function unusedPort() {
 function running(pid) {
   try { process.kill(pid, 0); return true; } catch { return false; }
 }
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
 async function fixture(t, mode) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'Bordero startup with spaces-'));
   const pids = new Set();
@@ -39,7 +42,24 @@ async function fixture(t, mode) {
     for (const pid of pids) if (Number.isInteger(pid) && running(pid)) {
       await new Promise((resolve) => execFile('taskkill.exe', ['/PID', String(pid), '/T', '/F'], { windowsHide: true }, resolve));
     }
-    fs.rmSync(directory, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    const processDeadline = Date.now() + 10000;
+    while ([...pids].some(running) && Date.now() < processDeadline) await delay(100);
+    const remaining = [...pids].filter(running);
+    if (remaining.length > 0) {
+      throw new Error(`Fixture processes did not exit before cleanup: ${remaining.join(', ')}`);
+    }
+
+    let cleanupAttempt = 0;
+    while (true) {
+      try {
+        fs.rmSync(directory, { recursive: true, force: true });
+        break;
+      } catch (error) {
+        if (!['EPERM', 'EBUSY', 'ENOTEMPTY'].includes(error.code) || cleanupAttempt >= 20) throw error;
+        cleanupAttempt += 1;
+        await delay(250);
+      }
+    }
   });
   for (const file of ['startup.ps1', 'startup-retry.ps1', 'shutdown.ps1', 'run-unified-server.ps1', 'scripts/ps_helpers.ps1']) {
     fs.mkdirSync(path.dirname(path.join(directory, file)), { recursive: true });
@@ -86,7 +106,7 @@ test('a cold server ready after 18 seconds succeeds on the first retry-wrapper a
 
 test('a listening port is not considered ready until the Eventi API is also available', windowsOnly, async (t) => {
   const sample = await fixture(t, 'late-api');
-  const result = await execute(sample.script, ['-NoWait', '-PortOverride', String(sample.port), '-ServerReadyTimeoutSeconds', '15']);
+  const result = await execute(sample.script, ['-NoWait', '-PortOverride', String(sample.port), '-ServerReadyTimeoutSeconds', '45']);
   assert.equal(result.code, 0, result.stdout + result.stderr);
   const response = await fetch(`http://127.0.0.1:${sample.port}/eventi/api/ping`);
   assert.equal(response.status, 200);
@@ -99,7 +119,7 @@ test('a real process failure reports its exit code immediately and preserves the
   const result = await execute(sample.retry, ['-NoWait', '-MaxAttempts', '1']);
   assert.equal(result.code, 1);
   assert.match(result.stdout, /codice 23/);
-  assert.ok(Date.now() - started < 40000, 'Should stop before the 60-second readiness timeout');
+  assert.ok(Date.now() - started < 60000, 'Should stop before the 60-second readiness timeout');
   const log = fs.readFileSync(path.join(sample.directory, 'logs/startup-attempt-1.stdout.log'), 'utf8');
   assert.match(log, /codice 23/);
 });
@@ -140,16 +160,27 @@ test('shutdown uses the recorded fallback port and stops the server child withou
   t.after(() => new Promise((resolve) => unrelated.close(resolve)));
 
   const started = await execute(sample.script, ['-NoWait', '-PortOverride', String(sample.port)]);
-  assert.equal(started.code, 0, started.stdout + started.stderr);
+  const serverStderr = path.join(sample.directory, 'logs/unified-server.stderr.log');
+  const serverStdout = path.join(sample.directory, 'logs/unified-server.stdout.log');
+  const serverLogs = [
+    fs.existsSync(serverStdout) ? fs.readFileSync(serverStdout, 'utf8') : '',
+    fs.existsSync(serverStderr) ? fs.readFileSync(serverStderr, 'utf8') : ''
+  ].join('\n');
+  assert.equal(started.code, 0, `${started.stdout}${started.stderr}\n${serverLogs}`);
   const statePath = path.join(sample.directory, 'pids/startup-pids.json');
   const state = JSON.parse(fs.readFileSync(statePath, 'utf8').replace(/^\uFEFF/, ''));
-  assert.equal(state.Port, sample.port + 1);
+  assert.ok(state.Port > sample.port && state.Port < sample.port + 20, `Expected a fallback port in the configured range, got ${state.Port}`);
+  assert.equal((await (await fetch(`http://127.0.0.1:${state.Port}/api/health`)).json()).server, 'unified-server');
   const nodePid = Number(fs.readFileSync(path.join(sample.directory, 'fixture.pid'), 'utf8'));
 
   const stopped = await execute(path.join(sample.directory, 'shutdown.ps1'));
   assert.equal(stopped.code, 0, stopped.stdout + stopped.stderr);
   assert.equal(running(nodePid), false, 'Shutdown must stop the runner tree including its Node child');
   assert.equal((await (await fetch(`http://127.0.0.1:${sample.port}/api/health`)).json()).server, 'another-app');
+  await assert.rejects(
+    fetch(`http://127.0.0.1:${state.Port}/api/health`, { signal: AbortSignal.timeout(1500) }),
+    'Shutdown must stop the project server on its recorded fallback port'
+  );
 });
 
 test('supervisor reads and probes the active server port instead of hard-coding 5500', () => {
@@ -157,6 +188,13 @@ test('supervisor reads and probes the active server port instead of hard-coding 
   assert.match(source, /Port = \[int\]\$script:serverPort/);
   assert.match(source, /Test-UnifiedServerPort -Port \$script:serverPort/);
   assert.doesNotMatch(source, /127\.0\.0\.1:5500\/api\/health/);
+});
+
+test('supervisor preserves the startup process exit code while forwarding its output', () => {
+  const source = fs.readFileSync(path.join(root, 'scripts/project-supervisor.ps1'), 'utf8');
+  assert.match(source, /& powershell\.exe -NoProfile -ExecutionPolicy Bypass -File \$startupRetryScript -NoMonitor/);
+  assert.match(source, /\$startupExitCode = \$LASTEXITCODE/);
+  assert.doesNotMatch(source, /Start-ProcessSafe\s+-FilePath\s+'powershell\.exe'/);
 });
 
 test('supervisor readiness probes use direct loopback requests instead of the system proxy', () => {

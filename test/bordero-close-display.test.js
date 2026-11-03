@@ -30,6 +30,9 @@ test('closing DISPLAY requires the configured secret before invoking Electron', 
   let closeCalls = 0;
   window.electronAPI = {
     windowManager: {
+      async openSecondaryPage() {
+        return { success: true, secondaryUpdated: true };
+      },
       async closeDisplayPage() {
         closeCalls += 1;
         return { success: true, closed: true };
@@ -63,6 +66,9 @@ test('cancelling DISPLAY closure leaves the page open', async (t) => {
   let closeCalls = 0;
   window.electronAPI = {
     windowManager: {
+      async openSecondaryPage() {
+        return { success: true, secondaryUpdated: true };
+      },
       async closeDisplayPage() {
         closeCalls += 1;
         return { success: true, closed: true };
@@ -85,6 +91,58 @@ test('DISPLAY closure reports that it requires the Electron app when the bridge 
   await manager.closeDisplayWindow();
   assert.equal(window.document.getElementById('close-display-code-modal').hidden, true);
   assert.match(window.document.querySelector('.toast-warning').textContent, /solo nell’app Electron/);
+});
+
+test('a manually closed DISPLAY restores its blinking button state after Bordero reload', async (t) => {
+  const { dom, window, manager } = await createHarness();
+  t.after(() => dom.window.close());
+  window.electronAPI = {
+    windowManager: {
+      async getDisplayStatus() {
+        return { success: true, closed: true };
+      }
+    }
+  };
+
+  await manager.syncDisplayWindowButtonState();
+  const button = window.document.getElementById('btn-close-display-remote');
+  assert.equal(manager.displayWindowManuallyClosed, true);
+  assert.equal(button.textContent, 'RIPRISTINA DISPLAY');
+  assert.equal(button.classList.contains('remote-action-pending'), true);
+});
+
+test('the next CHIUDI DISPLAY click restores DISPLAY on the secondary monitor', async (t) => {
+  const { dom, window, manager } = await createHarness();
+  t.after(() => dom.window.close());
+  const openedPaths = [];
+  window.electronAPI = {
+    windowManager: {
+      async closeDisplayPage() {
+        return { success: true, closed: true };
+      },
+      async openSecondaryPage(payload) {
+        openedPaths.push(payload.path);
+        return { success: true, secondaryUpdated: true };
+      }
+    }
+  };
+
+  const closePromise = manager.closeDisplayWindow();
+  window.document.getElementById('close-display-code-input').value = window.testSecretCode;
+  window.document.getElementById('close-display-code-confirm').click();
+  await closePromise;
+  assert.equal(manager.displayWindowManuallyClosed, true);
+  const displayButton = window.document.getElementById('btn-close-display-remote');
+  assert.equal(displayButton.textContent, 'RIPRISTINA DISPLAY');
+  assert.equal(displayButton.classList.contains('remote-action-pending'), true);
+
+  await manager.closeDisplayWindow();
+  assert.deepEqual(openedPaths, ['/Bordero/pages/display.html']);
+  assert.equal(manager.displayWindowManuallyClosed, false);
+  assert.equal(displayButton.textContent, 'CHIUDI DISPLAY');
+  assert.equal(displayButton.classList.contains('remote-action-pending'), false);
+  const successMessages = [...window.document.querySelectorAll('.toast-success')].map((toast) => toast.textContent);
+  assert.match(successMessages.at(-1), /ripristinato sul monitor secondario/i);
 });
 
 test('CHIUDI DISPLAY button invokes its guarded closure flow', async (t) => {

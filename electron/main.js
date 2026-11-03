@@ -1562,6 +1562,11 @@ ipcMain.handle('bordero-window:close-display', async () => {
   return { success: true, closed: true };
 });
 
+ipcMain.handle('bordero-window:display-status', () => ({
+  success: true,
+  closed: displayManuallyClosed
+}));
+
 ipcMain.handle('bordero-window:stop-service-publication', async () => {
   if (!temporarySecondaryWindow || temporarySecondaryWindow.isDestroyed()) {
     return { success: false, reason: 'secondary-window-unavailable' };

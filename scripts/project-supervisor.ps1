@@ -35,9 +35,9 @@ Remove-Item -LiteralPath $stopFile -Force -ErrorAction SilentlyContinue
 function Get-ProjectElectronProcesses {
     $electronMainPattern = [Regex]::Escape($electronMain)
     return @(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {
-        $_.Name -match '^electron(\.exe)?$'
-        -and $_.CommandLine
-        -and $_.CommandLine -match $electronMainPattern
+        $_.Name -match '^electron(\.exe)?$' -and
+        $_.CommandLine -and
+        $_.CommandLine -match $electronMainPattern
     })
 }
 
@@ -178,27 +178,16 @@ function Confirm-ElectronRestart {
 }
 
 Write-Host '[supervisor] Avvio verificato dei servizi del progetto...'
-$startupProcess = Start-ProcessSafe -FilePath 'powershell.exe' `
-    -ArgumentList @(
-        '-NoProfile',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-File',
-        $startupRetryScript,
-        '-NoMonitor'
-    ) `
-    -WorkingDirectory $rootPath `
-    -NoNewWindow `
-    -PassThru
-
-if (-not $startupProcess) {
-    throw 'Impossibile avviare startup-retry.ps1.'
+Push-Location $rootPath
+try {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $startupRetryScript -NoMonitor
+    $startupExitCode = $LASTEXITCODE
+} finally {
+    Pop-Location
 }
 
-$startupProcess.WaitForExit()
-$startupProcess.Refresh()
-if ($startupProcess.ExitCode -ne 0) {
-    throw "Avvio dei servizi non riuscito (codice $($startupProcess.ExitCode))."
+if ($startupExitCode -ne 0) {
+    throw "Avvio dei servizi non riuscito (codice $startupExitCode)."
 }
 $script:serverPort = Get-StartupServerPort
 

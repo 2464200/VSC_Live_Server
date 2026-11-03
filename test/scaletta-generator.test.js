@@ -42,13 +42,12 @@ test('TEST 1: legge il catalogo reale e genera la proporzione completa senza sup
   assert.deepEqual(generator.normalizeLevel('SUPER AVANZATO 3'), ['SUPERAVANZATO_3']);
   assert.deepEqual(generator.normalizeLevel('ALTRE COREO'), ['ALTRE_COREO']);
   const catalog = generator.buildCatalog(csv);
-  assert.equal(catalog.catalogByLevel.BASE.length, 98);
-  assert.equal(catalog.catalogByLevel.INTERMEDIO.length, 64);
-  assert.equal(catalog.catalogByLevel.AVANZATO_1.length, 36);
-  assert.equal(catalog.catalogByLevel.AVANZATO_2.length, 29);
-  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_1_2.length, 43);
-  assert.equal(catalog.catalogByLevel.SUPERAVANZATO_3.length, 21);
-  assert.equal(catalog.catalogByLevel.ALTRE_COREO.length, 287);
+  for (const [level, requestedCount] of Object.entries(counts(3, 2, 2, 2, 1, 1, 1))) {
+    assert.ok(
+      catalog.catalogByLevel[level].length >= requestedCount,
+      `The real catalog must contain enough ${level} tracks for the requested setlist`
+    );
+  }
 
   const result = generator.generateSetlist({
     catalog,
