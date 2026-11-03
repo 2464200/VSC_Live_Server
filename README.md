@@ -284,6 +284,7 @@ Questa sezione riassume le modifiche funzionali principali applicate nelle ultim
 - Inserito box rapido `RESET FILTRI + ID ↑` nella barra statistiche.
 - Aggiunto indicatore stato `Eseguiti in fondo: ON/OFF`.
 - Modalità `SPOSTA IN FONDO GLI ESEGUITI` mantenuta anche con riordino: gli eseguiti restano in fondo ma vengono ordinati internamente quando si applica un sort.
+- Dopo la selezione NEXT, spuntare FLAG (verde) registra subito il brano come eseguito nella serata, nel DISPLAY (giallo) e in Brani eseguiti, mantenendo le regole esistenti. Solo FLAG conferma l'esecuzione: VirtualDJ non marca automaticamente a fine riproduzione. La marcatura non cerca o carica file audio: per VirtualDJ usare i comandi DECK 1 / DECK 2. Test del flusso: `node --test test/bordero-flag-flow.test.js`.
 
 ### Comandi filtri e popup selezione valori (`Bordero/pages/bordero.html`, `Bordero/pages/bordero.js`, `Bordero/pages/bordero.css`)
 

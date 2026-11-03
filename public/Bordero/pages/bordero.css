@@ -1390,6 +1390,13 @@
   text-align: center;
 }
 
+.flag-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #28a745;
+}
+
 .col-next-coreo {
   width: 70px;
   min-width: 70px;

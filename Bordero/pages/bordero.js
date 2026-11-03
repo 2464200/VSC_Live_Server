@@ -2478,19 +2478,13 @@ class BorderoTableManager {
         }
 
         if (clickedFlagCell) {
+          if (e.target.matches('.flag-checkbox')) {
+            e.target.checked = this.isExecutedBrano(brano);
+          }
           if (this.isVideoOnlyBrano(brano)) {
             Toast.warning('Questa voce si esegue solo dall’icona VideoClip e non puo essere marcata come eseguita.');
             return;
           }
-          if (!brano || !brano.next_selected) {
-            Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
-            return;
-          }
-
-          if (activeNextSelectionId && String(branoId) !== String(activeNextSelectionId)) {
-            return;
-          }
-
           if (brano && String(brano.flag || '').toUpperCase() === 'X') {
             const confirmed = await this.showDeselectionConfirm({
               title: 'Conferma deselezione FLAG',
@@ -2506,11 +2500,17 @@ class BorderoTableManager {
             return;
           }
 
-          if (!brano || String(brano.flag || '').toUpperCase() === 'X') {
+          if (!brano || !brano.next_selected || (activeNextSelectionId && String(branoId) !== String(activeNextSelectionId))) {
+            Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
             return;
           }
 
-          await this.markAsCompleted(branoId);
+          try {
+            await this.markAsCompleted(branoId);
+          } catch (error) {
+            logger.error('Errore marcatura brano eseguito', error);
+            Toast.error(`Impossibile segnare il brano come eseguito: ${error.message}`);
+          }
           return;
         }
 
@@ -2643,7 +2643,7 @@ class BorderoTableManager {
   createBranoRow(brano) {
     const isCompleted = this.isExecutedBrano(brano);
     const completedClass = isCompleted ? 'completed' : '';
-    const flagIcon = isCompleted ? '✅' : '';
+    const flagLabel = isCompleted ? 'Ripristina disponibilita' : 'Segna come eseguito (seleziona prima NEXT)';
     const timestamp = brano.timestamp || '';
     const richiesteHighlightClass = !isCompleted && !this.isRichiesteZeroValue(brano.richieste)
       ? ' richieste-nonzero'
@@ -2664,7 +2664,7 @@ class BorderoTableManager {
     return `
       <tr class="brani-row ${completedClass} ${consoleStatusClass}" data-brano-id="${brano.id}">
         <td class="col-flag">
-          <span class="flag-icon">${flagIcon}</span>
+          <input type="checkbox" class="flag-checkbox" aria-label="${flagLabel}" title="${flagLabel}"${isCompleted ? ' checked' : ''}${this.isVideoOnlyBrano(brano) ? ' disabled' : ''} />
         </td>
         <td class="col-next-coreo">${brano.next_selected ? nextSelectionMarker : nextCellValue}</td>
         <td class="col-id">${brano.id}</td>
@@ -3116,59 +3116,6 @@ class BorderoTableManager {
     this.virtualDjCompletionTracker = null;
   }
 
-  async maybeFinalizeTrackedVirtualDjBrano(trackedBrano, deckState) {
-    if (!trackedBrano || !deckState || deckState.unavailable) {
-      return false;
-    }
-
-    const tracker = this.ensureVirtualDjCompletionTracker(trackedBrano.id, trackedBrano.consoleDeck);
-
-    if (deckState.isPlaying) {
-      tracker.hasSeenPlaying = true;
-      logger.debug('VirtualDJ deck still playing, completion deferred', {
-        branoId: trackedBrano.id,
-        deckState,
-        tracker
-      });
-      return false;
-    }
-
-    const remainingSeconds = Number(deckState.timeRemainSeconds);
-    const hasValidRemaining = Number.isFinite(remainingSeconds);
-    const reachedNaturalEnd = hasValidRemaining && remainingSeconds <= 0.75;
-    const endedByNotPlaying = !deckState.isPlaying && !deckState.isPaused && deckState.hasTrack;
-
-    logger.debug('VirtualDJ completion check', {
-      branoId: trackedBrano.id,
-      deckState,
-      tracker,
-      hasValidRemaining,
-      reachedNaturalEnd,
-      endedByNotPlaying
-    });
-
-    // Considera completata la riproduzione quando:
-    // 1) il deck si svuota dopo essere andato in PLAY, oppure
-    // 2) il deck non e in PLAY/PAUSE e il tempo residuo e sostanzialmente a zero, oppure
-    // 3) il deck resta caricato ma smette di suonare (VirtualDJ potrebbe lasciare il file caricato dopo la fine).
-    if (tracker.hasSeenPlaying && (deckState.isEmpty || reachedNaturalEnd || endedByNotPlaying)) {
-      logger.debug('VirtualDJ brano riconosciuto come completato', {
-        branoId: trackedBrano.id,
-        deckState,
-        reachedNaturalEnd,
-        endedByNotPlaying
-      });
-      this.clearVirtualDjCompletionTracker();
-      this.finalizeBranoAsCompleted(trackedBrano, {
-        source: 'virtualdj',
-        toastMessage: `✓ "${trackedBrano.titolo}" completato (fine riproduzione VirtualDJ)`
-      });
-      return true;
-    }
-
-    return false;
-  }
-
   finalizeBranoAsCompleted(brano, options = {}) {
     if (!brano) return false;
     if (this.isVideoOnlyBrano(brano)) return false;
@@ -3235,14 +3182,6 @@ class BorderoTableManager {
         ? deckStates
         : await Promise.all([1, 2].map((deck) => this.queryVirtualDjDeckState(deck)));
       const trackedDeckState = trackedDeckNumber ? currentDeckStates[trackedDeckNumber - 1] : null;
-
-      if (trackedBrano) {
-        const finalizedByCompletion = await this.maybeFinalizeTrackedVirtualDjBrano(trackedBrano, trackedDeckState);
-        if (finalizedByCompletion) {
-          this.updateConsoleStatus('idle', null, 'STATO CONSOLE');
-          return;
-        }
-      }
 
       const rowChanged = trackedBrano && !trackedDeckState?.unavailable
         ? this.applyTrackedBranoPlaybackState(
@@ -3581,23 +3520,6 @@ class BorderoTableManager {
     if (!brano.next_selected) {
       Toast.warning('FLAG non consentito: seleziona prima questo brano in NEXT.');
       return;
-    }
-
-    if (this.isVirtualDjBridgeEnabled()) {
-      try {
-        const selectedFile = await this.resolveMusicArchiveMatch(brano);
-        if (!selectedFile?.fullPath) {
-          Toast.warning('Nessun file selezionato: FLAG non applicato.');
-          return;
-        }
-
-        await this.sendFileToVirtualDj(selectedFile.fullPath);
-        Toast.success(`✓ Caricato in VirtualDJ: ${selectedFile.fileName || selectedFile.relativePath || selectedFile.fullPath}`);
-      } catch (error) {
-        logger.error('Errore invio brano a VirtualDJ', error);
-        Toast.error(`Errore VirtualDJ: ${error?.message || error}`);
-        return;
-      }
     }
 
     this.finalizeBranoAsCompleted(brano, { source: 'manual' });

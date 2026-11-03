@@ -106,6 +106,8 @@ class BraniEseguitiPage {
     if (!brano) return;
 
     brano.flag = '';
+    brano.eseguito = '';
+    brano.executed = false;
     brano.timestamp = '';
 
     dataLoader.saveCurrentSerata(this.serata, this.brani, { allowUnmarkIds: [String(branoId)] });
