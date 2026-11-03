@@ -118,7 +118,7 @@
 .course-delete-btn { border-color: #923e36; color: #ffb2aa; }
 .course-page-footer { margin: 0 0 24px; }
 @media (min-width: 1100px) and (min-height: 700px) {
-  .choreo-course-page { height: 100dvh; display: flex; flex-direction: column; padding: 6px 12px; font-size: .9rem; line-height: 1.4; }
+  .choreo-course-page { min-height: 100dvh; display: flex; flex-direction: column; padding: 6px 12px; font-size: .9rem; line-height: 1.4; }
   .choreo-course-page > .header,
   .choreo-course-page > .nav-breadcrumb,
   .choreo-course-page > .course-cloud-section { flex-shrink: 0; }
@@ -135,7 +135,7 @@
   .course-cloud-section strong { flex-shrink: 0; }
   .course-cloud-section p { font-size: .8rem; }
   .course-cloud-actions { max-width: 48%; gap: 6px; }
-  .course-program-layout { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto minmax(150px, 1fr) auto; gap: 8px; }
+  .course-program-layout { flex: none; min-height: auto; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: none; gap: 8px; }
   .course-program-layout > :nth-child(n+3) { grid-column: 1 / -1; }
   .course-panel { padding: 8px; min-width: 0; }
   .course-panel-heading { margin-bottom: 6px; }
@@ -157,10 +157,10 @@
   .course-records-heading p { margin: 0; }
   .course-inline-status { margin-top: 4px; font-size: .82rem; }
   .course-records-heading { margin-bottom: 8px; }
-  .course-records-panel { min-height: 0; display: flex; flex-direction: column; }
+  .course-records-panel { min-height: auto; display: flex; flex-direction: column; }
   .course-records-heading,
   .course-records-filters { flex-shrink: 0; }
-  .course-table-wrap { flex: 1; min-height: 0; overflow: auto; }
+  .course-table-wrap { flex: 0 0 auto; min-height: auto; overflow: visible; }
   .course-records-table { margin: 0; }
   .course-records-filters { margin-bottom: 8px; }
   .course-records-filters label { display: flex; align-items: center; flex: initial; font-size: .82rem; }
