@@ -864,14 +864,14 @@ function closeTemporarySecondaryWindow() {
   applyWindowLayout();
 }
 
-function closeSecondaryPageOverlays() {
+function closeSecondaryPageOverlays({ preserveVideoPlayer = false } = {}) {
   const protectedWindows = new Set(
     [primaryWindow, secondaryWindow, temporarySecondaryWindow, videoPlayerWindow].filter(Boolean),
   );
   if (temporarySecondaryWindow) {
     closeTemporarySecondaryWindow();
   }
-  if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
+  if (!preserveVideoPlayer && videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
     closeVideoPlayerWindow({ restoreDisplay: false });
   }
 
@@ -989,7 +989,9 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   await ensureWindows();
 
   const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
-  closeSecondaryPageOverlays();
+  closeSecondaryPageOverlays({
+    preserveVideoPlayer: normalizePathname(absoluteTargetUrl) === '/bordero/pages/bordero.html'
+  });
 
   const result = {
     url: absoluteTargetUrl,
@@ -1149,7 +1151,9 @@ function enforcePrimaryNavigationPolicy() {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.primary && !policy.secondary) {
-      closeSecondaryPageOverlays();
+      closeSecondaryPageOverlays({
+        preserveVideoPlayer: normalizePathname(url) === '/bordero/pages/bordero.html'
+      });
       ensureSecondaryDisplayPage().catch((error) => {
         console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
       });

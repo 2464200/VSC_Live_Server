@@ -259,7 +259,7 @@ test('buildDisplayLayoutConfig uses the actual monitor size and DPI-aware zoom',
   assert.equal(layout.scaleFactor, 1.25);
 });
 
-test('primary navigation closes the active video player from the secondary monitor', () => {
+test('returning to Bordero preserves active video playback, while other primary pages close it', () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-video-navigation');
   fs.rmSync(tempDir, { recursive: true, force: true });
   fs.mkdirSync(tempDir, { recursive: true });
@@ -285,7 +285,7 @@ test('primary navigation closes the active video player from the secondary monit
     };
     vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
     navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/bordero.html');
-    assert.equal(playerClosed, true, 'Opening a new page should close the video player window.');
+    assert.equal(playerClosed, false, 'Returning to Bordero must preserve the active video player.');
 
     playerClosed = false;
     sandbox.testVideoPlayerWindow = {
@@ -294,7 +294,7 @@ test('primary navigation closes the active video player from the secondary monit
     };
     vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
     navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/videoclip.html');
-    assert.equal(playerClosed, true, 'Opening another primary page should not leave a secondary HTML window open.');
+    assert.equal(playerClosed, true, 'Navigating to a different primary page must close the video player.');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
@@ -888,6 +888,16 @@ test('QRCODE keeps operator navigation primary and opens a clean presentation on
     assert.equal(vm.runInContext('temporarySecondaryWindow', sandbox), null, 'The previous temporary page should not remain open behind video.');
     const beforeVideoClose = vm.runInContext('videoPlayerWindow', sandbox);
     assert.ok(beforeVideoClose && !beforeVideoClose.isDestroyed(), 'The video player should open on the secondary monitor.');
+    primary.webContents.events['will-navigate'](
+      { preventDefault() {} },
+      'http://localhost:5500/Bordero/pages/bordero.html',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(
+      vm.runInContext('videoPlayerWindow', sandbox),
+      beforeVideoClose,
+      'Returning to Bordero should preserve the player above the persistent DISPLAY page.',
+    );
     primary.webContents.events['will-navigate'](
       { preventDefault() {} },
       'http://localhost:5500/USERFORM/pages/PAGINA09.html',

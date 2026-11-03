@@ -126,7 +126,7 @@ In breve:
 Nel runtime Electron:
 
 - DISPLAY è la pagina persistente del monitor secondario e rimane aperta in background mentre viene mostrata un'altra pagina dell'app.
-- L'apertura o la navigazione a una nuova pagina chiude gli overlay HTML precedenti e il player VideoClip, poi mostra la destinazione secondo la policy di monitor. Non devono rimanere pagine secondarie residue.
+- L'apertura o la navigazione a una nuova pagina chiude gli overlay HTML precedenti, poi mostra la destinazione secondo la policy di monitor. Il player VideoClip si chiude passando a un'altra pagina, ma continua sul monitor 2 quando si torna alla pagina Borderò; per fermarlo usare `FERMA VIDEO`.
 - `CHIUDI DISPLAY` chiude eccezionalmente la pagina persistente solo dopo l'inserimento del codice segreto configurato. Dopo la chiusura, la normale navigazione non ricrea DISPLAY; occorre aprire esplicitamente la pagina DISPLAY.
 - Google OAuth e i collegamenti a siti esterni sono popup/link esterni e non fanno parte della regola di sostituzione delle pagine gestite dall'app.
 
@@ -136,7 +136,7 @@ Se queste regole non sono attive dopo un aggiornamento, riavvia Electron. Per la
 
 1. Seleziona un videoclip nella pagina VideoClip e premi `PLAY`.
 2. Premi `PAUSA` per sospendere il video secondario; premi di nuovo per riprendere dallo stesso punto.
-3. Usa `FERMA VIDEO` per arrestarlo. L'apertura di un'altra pagina chiude il player secondario.
+3. Usa `FERMA VIDEO` per arrestarlo. Tornare a Borderò non interrompe la riproduzione; navigare verso un'altra pagina dell'app chiude il player secondario.
 4. Attiva `DIAGNOSTICA VIDEO` solo quando vuoi osservare gli indicatori disponibili. I test software non garantiscono la fluidità sul notebook durante una serata.
 
 Per l'uso dettagliato dei monitor e i test di regressione, vedi [GUIDA_USO_PROGETTO.md](../GUIDA_USO_PROGETTO.md).

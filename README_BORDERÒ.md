@@ -15,7 +15,7 @@
 Le note successive includono anche istruzioni e descrizioni storiche. Per avvio, flussi e comportamento aggiornati, prevalgono [README.md](README.md), [GUIDA_USO_PROGETTO.md](GUIDA_USO_PROGETTO.md) e [Bordero/README.md](Bordero/README.md).
 
 - Avvio standard: `unified-server.js` su `http://localhost:5500`; le anteprime statiche non sono il runtime operativo.
-- Con Electron, DISPLAY resta sul monitor 2 in background; una nuova pagina dell'app chiude le pagine HTML temporanee secondarie precedenti e il player VideoClip.
+- Con Electron, DISPLAY resta sul monitor 2 in background; una nuova pagina dell'app chiude le pagine HTML temporanee secondarie precedenti. Il player VideoClip continua quando si torna a Borderò e si ferma solo con `FERMA VIDEO`; un'altra pagina lo chiude.
 - `CHIUDI DISPLAY` richiede il codice segreto ed è la modalità prevista per la chiusura volontaria del DISPLAY.
 - PAUSA VideoClip riprende dallo stesso punto e lampeggia durante la pausa; `FERMA VIDEO` in Borderò arresta il player.
 - La navigazione secondaria è gestita dal router Electron: per il flusso standard non aprire manualmente altre finestre o schede HTML.
@@ -494,4 +494,3 @@ BORDERÃ’ Ã¨ una web application completa, fully functional, pronta per la p
 **Version:** 1.0.0  
 **Status:** âœ… Production Ready  
 **Date:** 2026-06-18
-

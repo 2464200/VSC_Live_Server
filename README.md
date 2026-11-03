@@ -193,14 +193,14 @@ Queste sono le regole operative attuali per le funzionalità aggiunte o corrette
 ### Monitor secondario e navigazione Electron
 
 - Electron mantiene `Bordero/pages/display.html` come pagina persistente sul monitor 2. Quando un'altra pagina dell'app viene aperta sul monitor secondario, DISPLAY resta sotto in background.
-- L'apertura di una nuova pagina sostituisce e chiude le precedenti finestre HTML secondarie dell'app, inclusi overlay temporanei e player VideoClip; gli eventi di chiusura tardivi non devono perdere il riferimento alla finestra attiva.
+- L'apertura di una nuova pagina sostituisce e chiude le precedenti finestre HTML secondarie dell'app e gli overlay temporanei. Il player VideoClip viene chiuso quando si passa a un'altra pagina, ma resta in riproduzione tornando alla pagina Borderò; si arresta solo con `FERMA VIDEO` (o a fine video). Gli eventi di chiusura tardivi non devono perdere il riferimento alla finestra attiva.
 - La chiusura manuale di DISPLAY è l'eccezione intenzionale: `CHIUDI DISPLAY` in Borderò chiede il codice segreto configurato prima di chiudere la finestra persistente. Se l'utente l'ha chiusa manualmente, la normale navigazione non la riapre; va riaperta esplicitamente.
 - Queste regole si applicano al routing dell'app Electron e alle pagine gestite dall'app. Popup Google OAuth e link a siti esterni hanno i propri flussi e non sono finestre di pagina dell'app.
 
 ### VideoClip sul monitor secondario
 
 - PLAY apre il player sul monitor 2. PAUSA alterna pausa/ripresa dello stesso video dal punto corrente; lampeggia solo mentre il video è in pausa.
-- `FERMA VIDEO` in Borderò arresta il player secondario. La navigazione a una nuova pagina chiude il player invece di lasciarlo aperto sopra la nuova pagina.
+- `FERMA VIDEO` in Borderò arresta il player secondario. Tornando a Borderò dalla pagina VideoClip il player continua sul monitor 2; la navigazione a un'altra pagina dell'app lo chiude.
 - La diagnostica è facoltativa e mostra solo i dati esposti dal browser/player (ad esempio buffering ed eventuali frame persi); non certifica le prestazioni dell'hardware durante una serata.
 
 ### Protezioni e contenuti USERFORM

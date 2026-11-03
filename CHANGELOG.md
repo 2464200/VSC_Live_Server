@@ -6,7 +6,7 @@
 
 ### Routing delle finestre sul monitor secondario
 
-- Alla navigazione verso una nuova pagina dell'app, chiude le precedenti pagine HTML temporanee sul monitor 2 e il player VideoClip, evitando finestre residue o sovrapposte.
+- Alla navigazione verso una nuova pagina dell'app, chiude le precedenti pagine HTML temporanee sul monitor 2. Il player VideoClip resta attivo tornando a Borderò e si chiude con `FERMA VIDEO` oppure navigando verso un'altra pagina.
 - La pagina persistente `Bordero/pages/display.html` resta aperta in background sotto la pagina corrente, salvo chiusura manuale esplicita.
 - Corretto il riferimento alla finestra secondaria temporanea per ignorare gli eventi `closed` tardivi di finestre già sostituite.
 - Le finestre secondarie temporanee applicano la stessa policy di routing dei link e delle navigazioni della finestra persistente.
@@ -521,5 +521,4 @@ Pronto per il deploy! ðŸš€
 **Data**: 20 Febbraio 2026
 **Versione**: 1.0.0-stable
 **Status**: âœ… LIVE
-
 
