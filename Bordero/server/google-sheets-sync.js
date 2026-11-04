@@ -59,7 +59,7 @@ const SHEETS = [
       {
         name: 'Modulo 8',
         id: process.env.GOOGLE_SHEET_MODULO8 || process.env.GOOGLE_SHEET_BRANI,
-        range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AI",
+        range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AQ",
         gid: process.env.GOOGLE_SHEET_MODULO8_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
         publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
         expectedHeaders: ['informazioni cronologiche']
@@ -67,7 +67,7 @@ const SHEETS = [
       {
         name: 'Modulo 12',
         id: process.env.GOOGLE_SHEET_MODULO12 || process.env.GOOGLE_SHEET_BRANI,
-        range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AI",
+        range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AQ",
         gid: process.env.GOOGLE_SHEET_MODULO12_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
         publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
         expectedHeaders: ['informazioni cronologiche']
@@ -474,30 +474,37 @@ function mergeSourceTables(sourceTables) {
     const headerMap = new Map();
     sourceHeader.forEach((name, index) => {
       const normalized = normalizeHeaderValue(name);
-      if (normalized && !headerMap.has(normalized)) {
-        headerMap.set(normalized, index);
-      }
+      if (!normalized) return;
+      const indexes = headerMap.get(normalized) || [];
+      indexes.push(index);
+      headerMap.set(normalized, indexes);
     });
 
     const dataRows = rows.slice(1);
     dataRows.forEach((row) => {
+      const headerOccurrences = new Map();
       const aligned = masterHeader.map((columnName, columnIndex) => {
-        const sourceIndex = headerMap.get(normalizeHeaderValue(columnName));
+        const normalized = normalizeHeaderValue(columnName);
+        const occurrence = headerOccurrences.get(normalized) || 0;
+        headerOccurrences.set(normalized, occurrence + 1);
+        const sourceIndexes = headerMap.get(normalized);
+        const sourceIndex = sourceIndexes?.[occurrence];
         if (Number.isInteger(sourceIndex)) {
           return row[sourceIndex] ?? '';
+        }
+        if (sourceIndexes) {
+          return '';
         }
         return row[columnIndex] ?? '';
       });
 
-      const lookup = new Map();
-      masterHeader.forEach((name, idx) => {
-        lookup.set(normalizeHeaderValue(name), String(aligned[idx] ?? '').trim());
+      const hasBusinessValue = masterHeader.some((name, index) => {
+        const normalized = normalizeHeaderValue(name);
+        if (['informazioni cronologiche', 'se vuoi, dimmi il tuo nome', 'se vuoi, scrivi il tuo nome'].includes(normalized)) {
+          return false;
+        }
+        return String(aligned[index] || '').trim().length > 0;
       });
-
-      const normalizedEntries = [...lookup.entries()];
-      const hasBusinessValue = normalizedEntries
-        .filter(([key]) => !['informazioni cronologiche', 'se vuoi, dimmi il tuo nome', 'se vuoi, scrivi il tuo nome'].includes(key))
-        .some(([, value]) => String(value || '').trim().length > 0);
 
       if (hasBusinessValue) {
         mergedRows.push(aligned);
@@ -543,7 +550,7 @@ function canonicalizeLookupValue(rawValue, aliasMap) {
   return aliasMap?.get(key) || key;
 }
 
-function getColumnRangeBounds(columnRange = 'D:AI') {
+function getColumnRangeBounds(columnRange = 'D:AQ') {
   const match = String(columnRange || '').trim().toUpperCase().match(/^([A-Z]+):([A-Z]+)$/);
   if (!match) {
     return {
@@ -567,7 +574,7 @@ function getColumnRangeBounds(columnRange = 'D:AI') {
   };
 }
 
-function buildRichiesteCounterFromResponses(responseValues, columnRange = 'D:AI', options = {}) {
+function buildRichiesteCounterFromResponses(responseValues, columnRange = 'D:AQ', options = {}) {
   if (!Array.isArray(responseValues) || responseValues.length < 2) {
     return new Map();
   }
@@ -705,7 +712,7 @@ async function syncSheet(sheet) {
       // Accoda 8+12 deve restare merge grezzo; RICHIESTE viene applicata separatamente su brani.csv.
       if (sheet.baseSource && sheet.richiesteOutput) {
         try {
-          const richiesteRange = process.env.RICHIESTE_MATCH_RANGE || 'D:AI';
+          const richiesteRange = process.env.RICHIESTE_MATCH_RANGE || 'D:AQ';
           const richiesteAliases = process.env.RICHIESTE_MATCH_ALIASES || '';
           const dedupePerRow = String(process.env.RICHIESTE_DEDUPE_PER_ROW || 'false').toLowerCase() === 'true';
           const baseValues = await fetchSheetValuesFromSource(sheet.baseSource);
@@ -740,7 +747,7 @@ async function syncSheet(sheet) {
       }
 
       const mergedRows = Math.max(0, outputValues.length - 1);
-      console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AI]`);
+      console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AQ]`);
       return { success: true, rows: mergedRows, file: filePath, richiesteDiagnostics };
     }
 
@@ -859,6 +866,7 @@ async function syncAll(options = {}) {
 module.exports = {
   syncAll,
   syncSheet,
+  mergeSourceTables,
   SHEETS,
   OUTPUT_DIR
 };
