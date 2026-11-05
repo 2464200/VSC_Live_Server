@@ -689,6 +689,34 @@ test('season list defaults to descending weeks and every sort button toggles asc
   assert.equal(document.getElementById('btn-sort-course-title').getAttribute('aria-pressed'), 'false');
 });
 
+test('external course program resolves the first duplicate title and omits non-choreography activities', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  const page = h.window.choreoCoursePage;
+  const document = h.window.document;
+  page.brani = [
+    { id: '020', titolo: 'Stesso nome' },
+    { id: '010', titolo: 'Stesso nome' }
+  ];
+  h.window.courseArchives.persistExternal({
+    valid: [
+      { id: 'choreo', branoId: '', title: 'Stesso nome', week: 10, level: 'BASE', activity: 'Coreografia', source: 'external' },
+      { id: 'review', branoId: '', title: 'Ripasso', week: 9, level: 'BASE', activity: ' Ripasso ', source: 'external' },
+      { id: 'none', branoId: '', title: 'Nessuna coreografia inserita', week: 8, level: 'BASE', activity: 'nessuna coreografia inserita', source: 'external' }
+    ],
+    rejected: [], ambiguous: [], total: 3
+  });
+  h.window.courseArchives.setActive('external');
+
+  page.renderSelectedSeason();
+
+  const rows = Array.from(document.querySelectorAll('#course-records-body tr'));
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].children[2].textContent, '020');
+  assert.match(document.getElementById('course-record-count').textContent, /1 record/);
+  assert.doesNotMatch(document.getElementById('course-records-body').textContent, /Ripasso|Nessuna coreografia inserita|ID mancante/);
+});
+
 test('season view combines level and inclusive week filters without limiting CSV export', async (t) => {
   const h = await harness(true);
   t.after(() => h.dom.window.close());

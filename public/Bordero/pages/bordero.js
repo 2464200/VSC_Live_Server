@@ -348,8 +348,9 @@ class BorderoTableManager {
       for (const brano of new Set([...(this.allBrani || []), ...(this.filteredBrani || [])])) {
         const catalogTitle = normalizeTitle(brano.titolo || brano.coreografia || brano.brano);
         const titleCandidates = byTitle.get(catalogTitle) || [];
-        const titleAmbiguous = titleCandidates.length > 0 && (catalogTitleCounts.get(catalogTitle) || 0) > 1;
-        const matches = [...(byId.get(String(brano.id)) || []), ...(titleAmbiguous ? [] : titleCandidates)];
+        const idMatches = byId.get(String(brano.id)) || [];
+        const titleAmbiguous = !idMatches.length && titleCandidates.length > 0 && (catalogTitleCounts.get(catalogTitle) || 0) > 1;
+        const matches = idMatches.length ? idMatches : (titleAmbiguous ? [] : titleCandidates);
         const sameSeason = matches.filter((r) => {
           const gotSeason = String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
           return Boolean(expectedSeason && gotSeason === expectedSeason);
@@ -360,7 +361,16 @@ class BorderoTableManager {
         });
         const matchingCourses = new Set(matches.filter((r) => String(r.level || '') === level && String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-') === expectedSeason && r.course).map((r) => String(r.course).trim()));
         const courseAmbiguous = Boolean(level && !this.courseSelection?.course && matchingCourses.size > 1);
-        const missingContext = matches.some((r) => !r.season || !r.course || !r.level);
+        const selectedCourse = this.courseSelection?.course || '';
+        const possibleContext = matches.filter((r) => {
+          const recordSeason = String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+          const recordLevel = String(r.level || '');
+          const recordCourse = String(r.course || '').trim();
+          return (!r.season || recordSeason === expectedSeason)
+            && (!level || !recordLevel || recordLevel === level)
+            && (!selectedCourse || !recordCourse || recordCourse === selectedCourse);
+        });
+        const missingContext = possibleContext.some((r) => !r.season || !r.course || !r.level);
         const weeks = courseAmbiguous ? [] : [...new Set(contextual.map((r) => Number(r.week)).filter((v) => Number.isInteger(v) && v >= 1 && v <= 53))].sort((a, b) => a - b);
         brano.course_weeks = weeks;
         brano.course_week = weeks.join(', ');
@@ -372,6 +382,9 @@ class BorderoTableManager {
           : matches.length && missingContext ? 'Dati presenti ma incompleti: manca corso, livello o periodo.'
             : matches.length ? 'Coreografia presente in altri periodi o contesti, ma non in quello selezionato.'
               : records.length ? 'Coreografia non trovata nell’archivio e nel periodo selezionati.' : 'Archivio non acquisito o non disponibile.';
+        if (matches.length && missingContext && weeks.length) {
+          brano.course_week_details += ' · Altri record compatibili hanno dati incompleti: settimana non attribuibile con certezza.';
+        }
         if (weeks.length && contextual.some((r) => !r.branoId)) brano.course_week_details = `Corrispondenza per titolo univoco · ${brano.course_week_details}`;
         if (titleAmbiguous || courseAmbiguous || (matches.length && missingContext)) brano.course_week = '?';
       }

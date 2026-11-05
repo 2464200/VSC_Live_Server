@@ -129,6 +129,42 @@ test('external records without choreography IDs match only a unique exact catalo
   assert.match(manager.allBrani.find((row) => row.id === '001').course_week_details, /più volte nel catalogo/);
 });
 
+test('external exact ID wins over duplicated-title fallback and unrelated incomplete history', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  manager.allBrani.find((row) => row.id === '002').titolo = 'Alpha';
+  manager.courseSelection = { seasonId: activeSeason, level: 'BASE', course: 'Salsa', week: 53 };
+  window.courseArchives.persistExternal({ valid: [
+    { id: 'exact-id', branoId: '001', title: 'Alpha', course: 'Salsa', level: 'BASE', week: 38, season: '2026/2027', source: 'external' },
+    { id: 'title-fallback', branoId: '', title: 'Alpha', course: 'Salsa', level: 'BASE', week: 39, season: '2026/2027', source: 'external' },
+    { id: 'old-incomplete', branoId: '001', title: 'Alpha', course: '', level: 'BASE', week: 49, season: '2025/2026', source: 'external' }
+  ], rejected: [], ambiguous: [], total: 3 });
+  window.courseArchives.setActive('external');
+
+  manager.applyCourseWeeksToBrani();
+
+  const alpha = manager.allBrani.find((row) => row.id === '001');
+  assert.equal(alpha.course_week, '38');
+  assert.deepEqual(Array.from(alpha.course_weeks), [38]);
+});
+
+test('external question mark remains for a potentially relevant record with incomplete context', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  manager.courseSelection = { seasonId: activeSeason, level: 'BASE', course: 'Salsa', week: 53 };
+  window.courseArchives.persistExternal({ valid: [
+    { id: 'known-context', branoId: '001', title: 'Alpha', course: 'Salsa', level: 'BASE', week: 38, season: '2026/2027', source: 'external' },
+    { id: 'unknown-course', branoId: '001', title: 'Alpha', course: '', level: 'BASE', week: 41, season: '2026/2027', source: 'external' }
+  ], rejected: [], ambiguous: [], total: 2 });
+  window.courseArchives.setActive('external');
+
+  manager.applyCourseWeeksToBrani();
+
+  const alpha = manager.allBrani.find((row) => row.id === '001');
+  assert.equal(alpha.course_week, '?');
+  assert.match(alpha.course_week_details, /dati incompleti.*settimana non attribuibile/i);
+});
+
 test('external SETTIMANA stays within the selected course or venue', async (t) => {
   const h = await harness(t);
   const { window, manager } = h;

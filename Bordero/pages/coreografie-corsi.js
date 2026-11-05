@@ -536,15 +536,15 @@
     sortSeasonRecords(records) {
       const compareText = (a, b) => String(a || '').localeCompare(String(b || ''), 'it', { numeric: true, sensitivity: 'base' });
       const title = (record) => {
-        const song = this.findSong(record.branoId);
-        return song ? this.trackTitle(song) : record.trackTitle || `Brano ${record.branoId}`;
+        const song = this.resolveCatalogSong(record);
+        return song ? this.trackTitle(song) : record.title || record.trackTitle || `Brano ${record.branoId}`;
       };
       const { field, direction } = this.recordsSort;
       return [...records].sort((a, b) => {
         let comparison;
         if (field === 'week') comparison = Number(a.week) - Number(b.week);
         else if (field === 'level') comparison = compareText(this.formatLevel(a.level), this.formatLevel(b.level));
-        else if (field === 'id') comparison = compareText(a.branoId, b.branoId);
+        else if (field === 'id') comparison = compareText(this.resolveCatalogSong(a)?.id || a.branoId, this.resolveCatalogSong(b)?.id || b.branoId);
         else comparison = compareText(title(a), title(b));
         return (direction === 'desc' ? -comparison : comparison)
           || Number(b.week) - Number(a.week)
@@ -874,14 +874,15 @@
         levelFilter.value = this.recordsFilter.level;
         weekFilter.value = String(this.recordsFilter.week);
         levelFilter.disabled = weekFilter.disabled = false;
-        const rows = this.sortSeasonRecords(records.filter((record) =>
+        const programRecords = records.filter((record) => !this.isNonChoreographyActivity(record));
+        const rows = this.sortSeasonRecords(programRecords.filter((record) =>
           (!this.recordsFilter.level || record.level === this.recordsFilter.level)
           && Number(record.week) <= this.recordsFilter.week));
-        document.getElementById('course-record-count').textContent = `${archiveName} · ${records.length} record${snapshot?.acquiredAt ? ` · acquisito ${new Date(snapshot.acquiredAt).toLocaleString('it-IT')}` : ''} · sola lettura`;
+        document.getElementById('course-record-count').textContent = `${archiveName} · ${programRecords.length} record${snapshot?.acquiredAt ? ` · acquisito ${new Date(snapshot.acquiredAt).toLocaleString('it-IT')}` : ''} · sola lettura`;
         document.getElementById('course-records-body').innerHTML = rows.length ? rows.map((record) => `<tr>
           <td><span class="course-week-pill">SETT. ${Number(record.week)}</span></td>
           <td>${this.escape(this.formatLevel(record.level || 'Livello non specificato'))}</td>
-          <td>${this.escape(record.branoId || 'ID mancante')}</td>
+          <td>${this.escape(record.branoId || this.resolveCatalogSong(record)?.id || 'ID mancante')}</td>
           <td>${this.escape(record.title || record.trackTitle || 'Titolo non specificato')}</td>
           <td>${this.escape(record.instructor || '—')}</td>
           <td>Origine: ${this.escape(record.source || (activeArchive === 'external' ? 'external' : 'manual'))}</td>
@@ -1239,6 +1240,15 @@
 
     findSong(id) { return this.brani.find((song) => String(song.id) === String(id)); }
     trackTitle(song) { return String(song?.titolo || song?.coreografia || song?.brano || song?.id || 'Brano senza titolo'); }
+    resolveCatalogSong(record) {
+      if (record.branoId) return this.findSong(record.branoId);
+      const title = String(record.title || record.trackTitle || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
+      return title ? this.brani.find((song) => this.trackTitle(song).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it') === title) || null : null;
+    }
+    isNonChoreographyActivity(record) {
+      const activity = String(record.activity || record.raw?.activity || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
+      return activity === 'ripasso' || activity === 'nessuna coreografia inserita';
+    }
     trackLabel(song) { return `${song.id ? `${song.id} · ` : ''}${this.trackTitle(song)}${song.autore ? ` — ${song.autore}` : ''}`; }
     formatLevel(level) { return String(level || '').trim().replace(/\s+/g, ' ').replace(/–/g, '-').toLocaleUpperCase('it'); }
     csv(value) { const text = String(value ?? ''); return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; }
