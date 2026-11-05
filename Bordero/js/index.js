@@ -348,7 +348,7 @@ function populatePreviewTable() {
       <td>${brano.id || ''}</td>
       <td>${brano.titolo || ''}</td>
       <td>${brano.autore || ''}</td>
-      <td>${brano.genere || ''}</td>
+      <td>${brano.brano || brano.song || brano.canzone || ''}</td>
       <td>${brano.info_livello || ''}</td>
       <td>${brano.coreografo || ''}</td>
     </tr>
