@@ -648,12 +648,24 @@ function createWindow(url, options = {}) {
   });
 
   if (win && typeof win.loadURL === 'function') {
-    win.loadURL(url);
+    win.loadURL(url).catch((error) => {
+      if (!isNavigationAborted(error)) {
+        console.warn('Unable to load initial window URL:', error?.message || error);
+      }
+    });
   } else if (win && win.webContents && typeof win.webContents.loadURL === 'function') {
-    win.webContents.loadURL(url);
+    win.webContents.loadURL(url).catch((error) => {
+      if (!isNavigationAborted(error)) {
+        console.warn('Unable to load initial window URL:', error?.message || error);
+      }
+    });
   }
 
   return win;
+}
+
+function isNavigationAborted(error) {
+  return error?.code === 'ERR_ABORTED' || /\bERR_ABORTED\b/.test(String(error?.message || error));
 }
 
 async function loadUrlInWindow(targetWindow, url) {
@@ -669,8 +681,15 @@ async function loadUrlInWindow(targetWindow, url) {
     return false;
   }
 
-  await loader.loadURL(url);
-  return true;
+  try {
+    await loader.loadURL(url);
+    return true;
+  } catch (error) {
+    if (isNavigationAborted(error)) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 function toAbsoluteAppUrl(pagePath) {
@@ -840,7 +859,7 @@ async function loadInSecondaryWindow(url) {
   }
 }
 
-function closeTemporarySecondaryWindow() {
+async function closeTemporarySecondaryWindow() {
   if (temporarySecondaryWindow && !temporarySecondaryWindow.isDestroyed()) {
     temporarySecondaryWindow.close();
   }
@@ -852,7 +871,7 @@ function closeTemporarySecondaryWindow() {
 
   const currentUrl = secondaryWindow.webContents.getURL();
   if (!isDisplayPageUrl(currentUrl)) {
-    const loaded = loadUrlInWindow(secondaryWindow, `http://localhost:5500${DISPLAY_PAGE_PATH}`);
+    const loaded = await loadUrlInWindow(secondaryWindow, `http://localhost:5500${DISPLAY_PAGE_PATH}`);
     if (!loaded) {
       return;
     }
@@ -864,12 +883,12 @@ function closeTemporarySecondaryWindow() {
   applyWindowLayout();
 }
 
-function closeSecondaryPageOverlays({ preserveVideoPlayer = false } = {}) {
+async function closeSecondaryPageOverlays({ preserveVideoPlayer = false } = {}) {
   const protectedWindows = new Set(
     [primaryWindow, secondaryWindow, temporarySecondaryWindow, videoPlayerWindow].filter(Boolean),
   );
   if (temporarySecondaryWindow) {
-    closeTemporarySecondaryWindow();
+    await closeTemporarySecondaryWindow();
   }
   if (!preserveVideoPlayer && videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
     closeVideoPlayerWindow({ restoreDisplay: false });
@@ -970,7 +989,7 @@ async function ensureSecondaryDisplayPage() {
 
 async function restoreSecondaryPageBeforeLedDisplay() {
   if (temporarySecondaryWindow && !temporarySecondaryWindow.isDestroyed()) {
-    closeTemporarySecondaryWindow();
+    await closeTemporarySecondaryWindow();
     secondaryPageBeforeLedDisplay = '';
     return true;
   }
@@ -989,7 +1008,7 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   await ensureWindows();
 
   const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
-  closeSecondaryPageOverlays({
+  await closeSecondaryPageOverlays({
     preserveVideoPlayer: normalizePathname(absoluteTargetUrl) === '/bordero/pages/bordero.html'
   });
 
@@ -1002,7 +1021,7 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
   };
 
   if (policy.primary) {
-    closeTemporarySecondaryWindow();
+    await closeTemporarySecondaryWindow();
     result.primaryUpdated = await loadInPrimaryWindow(absoluteTargetUrl);
   }
 
@@ -1013,7 +1032,7 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
         ? `${absoluteTargetUrl}?mode=display&output=text`
       : absoluteTargetUrl;
     if (isPersistentSecondaryPageUrl(absoluteTargetUrl)) {
-      closeTemporarySecondaryWindow();
+      await closeTemporarySecondaryWindow();
       result.secondaryUpdated = await loadInSecondaryWindow(absoluteTargetUrl);
     } else {
       result.secondaryUpdated = await loadInTemporarySecondaryWindow(secondaryTargetUrl);
@@ -1106,7 +1125,9 @@ function enforceSecondaryNavigationPolicy(ownerWindow = secondaryWindow) {
 
     const policy = getMonitorPolicyForUrl(url);
     if (policy.secondary && !policy.primary && isPersistentSecondaryPageUrl(url)) {
-      closeSecondaryPageOverlays();
+      closeSecondaryPageOverlays().catch((error) => {
+        console.warn('Unable to close secondary page overlays:', error?.message || error);
+      });
       return;
     }
 
@@ -1153,8 +1174,7 @@ function enforcePrimaryNavigationPolicy() {
     if (policy.primary && !policy.secondary) {
       closeSecondaryPageOverlays({
         preserveVideoPlayer: normalizePathname(url) === '/bordero/pages/bordero.html'
-      });
-      ensureSecondaryDisplayPage().catch((error) => {
+      }).then(() => ensureSecondaryDisplayPage()).catch((error) => {
         console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
       });
       return;
@@ -1250,7 +1270,7 @@ function createVideoPlayerWindow() {
 async function ensureVideoPlayerWindow(payload = {}) {
   await ensureUnifiedServer();
   if (temporarySecondaryWindow) {
-    closeTemporarySecondaryWindow();
+    await closeTemporarySecondaryWindow();
   }
   await ensureSecondaryDisplayPage();
 
@@ -1585,7 +1605,7 @@ ipcMain.handle('bordero-window:stop-service-publication', async () => {
     return { success: false, reason: 'service-publication-not-active' };
   }
 
-  closeTemporarySecondaryWindow();
+  await closeTemporarySecondaryWindow();
   return { success: true };
 });
 
