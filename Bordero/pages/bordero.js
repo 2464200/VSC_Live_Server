@@ -3,6 +3,56 @@
  * Core functionality per la gestione brani, filtri, sort, marking
  */
 
+const BORDERO_GENERAL_SEARCH_FIELDS = [
+  'flag',
+  'next_coreo',
+  'id',
+  'timestamp',
+  'coreografia',
+  'brano',
+  'autore',
+  'richieste',
+  'info_livello',
+  'course_week',
+  'info_coreo_1',
+  'info_coreo_2',
+  'coreografo',
+  'collaboratori',
+  'videoclip',
+  'durata',
+  'nome',
+  'genere',
+  'studiate',
+  'descrizione coreo',
+  'Colonna 1',
+  'Colonna 2'
+];
+
+const BORDERO_SEARCH_FIELD_LABELS = {
+  flag: 'Flag',
+  next_coreo: 'NEXT',
+  id: 'ID',
+  timestamp: 'Timestamp',
+  coreografia: 'Coreografia',
+  brano: 'Titolo brano',
+  autore: 'Autore',
+  richieste: 'Richieste',
+  info_livello: 'Info Livello',
+  course_week: 'Settimana',
+  info_coreo_1: 'Info Coreo 1',
+  info_coreo_2: 'Info Coreo 2',
+  coreografo: 'Coreografo',
+  collaboratori: 'Collaboratori',
+  videoclip: 'VideoClip',
+  durata: 'Durata',
+  nome: 'Nome',
+  genere: 'Genere',
+  studiate: 'Studiate',
+  'descrizione coreo': 'Descrizione Coreo',
+  'Colonna 1': 'Colonna 1',
+  'Colonna 2': 'Colonna 2'
+};
+
 class BorderoTableManager {
   constructor() {
     this.allBrani = [];
@@ -1046,6 +1096,13 @@ class BorderoTableManager {
       this.applyFilters();
     });
 
+    document.getElementById('btn-search-song-title')?.addEventListener('click', () => {
+      this.searchMode = 'songTitle';
+      this.updateSearchButtons();
+      this.updateSearchPlaceholder();
+      this.applyFilters();
+    });
+
     window.addEventListener('resize', () => {
       this.scheduleSearchButtonsResize();
     });
@@ -1121,7 +1178,8 @@ class BorderoTableManager {
     const buttons = [
       document.getElementById('btn-search-general'),
       document.getElementById('btn-search-title'),
-      document.getElementById('btn-search-id')
+      document.getElementById('btn-search-id'),
+      document.getElementById('btn-search-song-title')
     ].filter(Boolean);
 
     if (!buttons.length) return;
@@ -1626,7 +1684,7 @@ class BorderoTableManager {
 
       const timer = setTimeout(() => {
         this.filterButtonClickTimers.delete(buttonId);
-        if (field === 'course_week') {
+        if (field === 'course_week' || field === 'richieste') {
           this.lastHeaderSortField = null;
           this.sortBy(field, 'desc');
         }
@@ -1661,6 +1719,10 @@ class BorderoTableManager {
 
       const timer = setTimeout(() => {
         this.sortButtonClickTimers.delete(buttonId);
+        if (field === 'richieste' && this.currentSort !== field) {
+          this.sortBy(field, 'desc');
+          return;
+        }
         this.sortBy(field);
       }, 220);
 
@@ -2306,17 +2368,21 @@ class BorderoTableManager {
     // Applica ricerca
     const query = String(this.currentSearch ?? '').trim().toLowerCase();
     if (query) {
-      // Include `id` in the general search fields per request
-      let searchFields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'course_week', 'info_coreo_1', 'info_coreo_2'];
+      let searchFields = BORDERO_GENERAL_SEARCH_FIELDS;
 
-      if (this.searchMode === 'title') {
-        searchFields = ['titolo'];
+      if (this.searchMode === 'songTitle') {
+        searchFields = ['brano'];
+      } else if (this.searchMode === 'title') {
+        searchFields = ['coreografia'];
       } else if (this.searchMode === 'id') {
         searchFields = ['id'];
       }
 
       this.filteredBrani = this.filteredBrani.filter(item =>
-        searchFields.some(field => String(item[field] ?? '').toLowerCase().includes(query))
+        searchFields.some((field) => {
+          const value = this.getSearchFieldValue(item, field);
+          return String(value ?? '').toLowerCase().includes(query);
+        })
       );
     }
 
@@ -2339,6 +2405,18 @@ class BorderoTableManager {
     this.updateFilterButtons();
     this.updateColumnHeaderSortState();
     this.updateResetButtonIndicators();
+  }
+
+  getSearchFieldValue(item, field) {
+    if (field === 'flag') return item.flag || item.eseguito;
+    if (field === 'next_coreo') {
+      return item.next_coreo || item.nextCoreo || item['next coreo'] || (item.next_selected ? 'NEXT selezionato' : '');
+    }
+    if (field === 'coreografia') return item.titolo || item.coreografia;
+    if (field === 'brano') return item.brano || item.song || item.canzone;
+    if (field === 'info_coreo_1') return item.info_coreo_1 || item.info_coreo;
+    if (field === 'videoclip') return item.videoclip ? `🎬 ${item.videoclip}` : '';
+    return item[field];
   }
 
   updateResetButtonIndicators() {
@@ -2669,15 +2747,16 @@ class BorderoTableManager {
         <td class="col-next-coreo">${brano.next_selected ? nextSelectionMarker : nextCellValue}</td>
         <td class="col-id">${brano.id}</td>
         <td class="col-timestamp">${timestamp}</td>
-        <td class="col-titolo">${brano.titolo || brano.coreografia || brano.brano || '-'}</td>
+        <td class="col-coreografia">${brano.titolo || brano.coreografia || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
+        <td class="col-titolo-brano">${brano.brano || brano.song || brano.canzone || ''}</td>
         <td class="col-richieste${richiesteHighlightClass}">${brano.richieste || '-'}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
         <td class="col-settimana" title="${this.escapeHtml(brano.course_week_details || 'Coreografia non prevista nel programma della stagione attiva').replace(/"/g, '&quot;')}">${brano.course_week || '-'}</td>
         <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
         <td class="col-coreo-2">${brano.info_coreo_2 || '-'}</td>
         <td class="col-coreografo">${brano.coreografo || '-'}</td>
-        <td class="col-collaboratori">${brano.collaboratori || '-'}</td>
+        <td class="col-collaboratori" title="${this.escapeHtml(brano.collaboratori || '')}">${brano.collaboratori || '-'}</td>
         <td class="col-videoclip">${videoClipMarker}</td>
       </tr>
     `;
@@ -3614,6 +3693,7 @@ class BorderoTableManager {
       { id: 'btn-search-general', mode: 'general' },
       { id: 'btn-search-title', mode: 'title' },
       { id: 'btn-search-id', mode: 'id' },
+      { id: 'btn-search-song-title', mode: 'songTitle' },
     ];
 
     buttons.forEach(({ id, mode }) => {
@@ -3633,13 +3713,15 @@ class BorderoTableManager {
 
     const labels = {
       general: 'RICERCA GENERALE',
-      title: 'RICERCA PER TITOLO',
+      title: 'RICERCA PER COREOGRAFIA',
+      songTitle: 'RICERCA PER TITOLO BRANO',
       id: 'RICERCA PER ID'
     };
 
     const placeholders = {
-      general: '🔍 Cerca ID, titolo, autore, richieste, next, genere, livello, settimana, info coreo 1, info coreo 2 o coreografo...',
-      title: '🔍 Cerca per titolo...',
+      general: '🔍 Cerca in tutti i campi del tabellone e del database...',
+      title: '🔍 Cerca per coreografia...',
+      songTitle: '🔍 Cerca per titolo brano...',
       id: '🔍 Cerca per ID...'
     };
 
@@ -3656,33 +3738,18 @@ class BorderoTableManager {
     const container = document.getElementById('search-fields-info');
     if (!container) return;
 
-    const mapping = {
-      id: 'ID',
-      titolo: 'Titolo',
-      autore: 'Autore',
-      richieste: 'Richieste',
-      coreografo: 'Coreografo',
-      collaboratori: 'Collaboratori',
-      genere: 'Genere',
-      next_coreo: 'Next',
-      info_livello: 'Livello',
-      course_week: 'Settimana',
-      info_coreo_1: 'Info Coreo 1',
-      info_coreo_2: 'Info Coreo 2',
-      compositore: 'Compositore',
-      durata: 'Durata'
-    };
-
     let fields = [];
     if (this.searchMode === 'title') {
-      fields = ['titolo'];
+      fields = ['coreografia'];
+    } else if (this.searchMode === 'songTitle') {
+      fields = ['brano'];
     } else if (this.searchMode === 'id') {
       fields = ['id'];
     } else {
-      fields = ['id', 'titolo', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'next_coreo', 'info_livello', 'course_week', 'info_coreo_1', 'info_coreo_2'];
+      fields = BORDERO_GENERAL_SEARCH_FIELDS;
     }
 
-    const readable = fields.map(f => mapping[f] || f).join(', ');
+    const readable = fields.map((field) => BORDERO_SEARCH_FIELD_LABELS[field] || field).join(', ');
     container.textContent = `Campi cercati: ${readable}`;
   }
 

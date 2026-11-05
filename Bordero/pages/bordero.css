@@ -323,6 +323,11 @@
   gap: 8px;
 }
 
+.search-actions-break {
+  flex-basis: 100%;
+  height: 0;
+}
+
 .search-actions-row {
   display: flex;
   align-items: flex-start;
@@ -1262,7 +1267,7 @@
 }
 
 .table-wrapper {
-  overflow-x: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1270,6 +1275,18 @@
   width: 100%;
   border-collapse: collapse;
   background-color: #222;
+}
+
+.bordero-table-page .brani-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.bordero-table-page .brani-table th,
+.bordero-table-page .brani-table td {
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 .table-header-row {
@@ -1434,7 +1451,7 @@
   color: #888;
 }
 
-.col-titolo {
+.col-coreografia {
   width: 180px;
   min-width: 150px;
 }
@@ -1442,6 +1459,11 @@
 .col-autore {
   width: 120px;
   min-width: 100px;
+}
+
+.col-titolo-brano {
+  width: 180px;
+  min-width: 150px;
 }
 
 .col-richieste {
@@ -1488,8 +1510,10 @@
 }
 
 .col-collaboratori {
-  width: 150px;
+  width: 5.5%;
   font-size: 0.85em;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .col-videoclip {
@@ -1678,14 +1702,9 @@
 }
 
 @media (min-width: 769px) {
-  .bordero-table-page .brani-table {
-    table-layout: fixed;
-  }
-
   .bordero-table-page .brani-table th,
   .bordero-table-page .brani-table td {
     min-width: 0;
-    overflow-wrap: anywhere;
   }
 
   .bordero-table-page .brani-table th {
@@ -1693,7 +1712,6 @@
     font-size: clamp(0.7rem, 0.75vw, 0.85rem);
     line-height: 1.25;
     letter-spacing: 0.1px;
-    white-space: normal;
     overflow-wrap: normal;
   }
 
@@ -1701,20 +1719,21 @@
     padding-inline: clamp(3px, 0.4vw, 8px);
   }
 
-  .bordero-table-page .brani-table .col-flag { width: 3%; }
-  .bordero-table-page .brani-table .col-next-coreo { width: 4.5%; }
-  .bordero-table-page .brani-table .col-id { width: 3.5%; }
-  .bordero-table-page .brani-table .col-timestamp { width: 8%; }
-  .bordero-table-page .brani-table .col-titolo { width: 16%; }
-  .bordero-table-page .brani-table .col-autore { width: 10%; }
-  .bordero-table-page .brani-table .col-richieste { width: 7%; }
-  .bordero-table-page .brani-table .col-livello { width: 7%; }
-  .bordero-table-page .brani-table .col-settimana { width: 6%; }
-  .bordero-table-page .brani-table .col-coreo-1 { width: 6.5%; }
-  .bordero-table-page .brani-table .col-coreo-2 { width: 6.5%; }
-  .bordero-table-page .brani-table .col-coreografo { width: 8%; }
-  .bordero-table-page .brani-table .col-collaboratori { width: 8%; }
-  .bordero-table-page .brani-table .col-videoclip { width: 6%; }
+  .bordero-table-page .brani-table .col-flag { width: 2.5%; }
+  .bordero-table-page .brani-table .col-next-coreo { width: 4%; }
+  .bordero-table-page .brani-table .col-id { width: 3%; }
+  .bordero-table-page .brani-table .col-timestamp { width: 7.5%; }
+  .bordero-table-page .brani-table .col-coreografia { width: 14%; }
+  .bordero-table-page .brani-table .col-autore { width: 9%; }
+  .bordero-table-page .brani-table .col-titolo-brano { width: 10%; }
+  .bordero-table-page .brani-table .col-richieste { width: 6%; }
+  .bordero-table-page .brani-table .col-livello { width: 6.5%; }
+  .bordero-table-page .brani-table .col-settimana { width: 5.5%; }
+  .bordero-table-page .brani-table .col-coreo-1 { width: 6%; }
+  .bordero-table-page .brani-table .col-coreo-2 { width: 6%; }
+  .bordero-table-page .brani-table .col-coreografo { width: 7.5%; }
+  .bordero-table-page .brani-table .col-collaboratori { width: 5.5%; }
+  .bordero-table-page .brani-table .col-videoclip { width: 7%; }
 }
 
 @media (max-width: 1200px) {

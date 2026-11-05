@@ -81,6 +81,8 @@ test('NEXT then FLAG persists execution, updates yellow DISPLAY and Brani Esegui
     tableManager.setupStorageSync();
     tableManager.renderTable();
   `);
+  assert.equal(main.document.querySelector('#brani-table thead th[data-col="coreografia"]').textContent.trim(), 'Coreografia');
+  assert.equal(main.document.querySelector('#brani-tbody tr .col-coreografia').textContent, '101');
   display.eval(`
     window.monitor = Object.create(DisplayMonitor.prototype);
     monitor.allBrani = [];

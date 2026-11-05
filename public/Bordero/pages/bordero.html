@@ -209,20 +209,24 @@
             type="text" 
             id="search-box" 
             class="search-input" 
-            placeholder="🔍 Cerca ID, titolo, autore, coreografo..."
+            placeholder="🔍 Cerca in tutti i campi del tabellone e del database..."
           />
-          <div id="search-fields-info" class="search-fields-info" style="margin-top:6px; color:#666; font-size:0.9em;">Campi cercati: ID, Titolo, Autore, Richieste, Coreografo, Genere, Info Coreo 1, Info Coreo 2</div>
+          <div id="search-fields-info" class="search-fields-info" style="margin-top:6px; color:#666; font-size:0.9em;">Campi cercati: Flag, NEXT, ID, Timestamp, Coreografia, Titolo brano, Autore, Richieste, Info Livello, Settimana, Info Coreo 1, Info Coreo 2, Coreografo, Collaboratori, VideoClip, Durata, Nome, Genere, Studiate, Descrizione Coreo, Colonna 1, Colonna 2</div>
         </div>
         <div class="search-actions-row">
           <div class="search-actions">
-            <button id="btn-search-general" class="btn btn-secondary search-mode-btn" title="Ricerca generale su titolo, autore, genere, livello e coreografia">
+            <button id="btn-search-general" class="btn btn-secondary search-mode-btn" title="Ricerca generale su ID, coreografia, titolo brano e altri campi">
             🔎 RICERCA GENERALE
             </button>
-            <button id="btn-search-title" class="btn btn-secondary search-mode-btn" title="Ricerca solo per titolo">
-            🔎 RICERCA PER TITOLO
+            <button id="btn-search-title" class="btn btn-secondary search-mode-btn" title="Ricerca solo per coreografia">
+            🔎 RICERCA PER COREOGRAFIA
             </button>
             <button id="btn-search-id" class="btn btn-secondary search-mode-btn" title="Ricerca solo per ID">
             🔎 RICERCA PER ID
+            </button>
+            <div class="search-actions-break" aria-hidden="true"></div>
+            <button id="btn-search-song-title" class="btn btn-secondary search-mode-btn" title="Ricerca solo per titolo del brano">
+            🔎 RICERCA PER TITOLO BRANO
             </button>
           </div>
 
@@ -368,8 +372,9 @@
               <th class="col-next-coreo" data-col="next_coreo">NEXT</th>
               <th class="col-id" data-col="id">ID</th>
               <th class="col-timestamp" data-col="timestamp">Timestamp</th>
-              <th class="col-titolo" data-col="titolo">Titolo</th>
+              <th class="col-coreografia" data-col="coreografia">Coreografia</th>
               <th class="col-autore" data-col="autore">Autore</th>
+              <th class="col-titolo-brano" data-col="brano">Titolo brano</th>
               <th class="col-richieste" data-col="richieste">Richieste</th>
               <th class="col-livello" data-col="info_livello">Info Livello</th>
               <th class="col-settimana" data-col="course_week">Settimana</th>

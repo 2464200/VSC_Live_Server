@@ -187,5 +187,40 @@
     "timestamp": "2026-10-31T10:37:07.376Z",
     "dj": "Mr. Pino Piromalli",
     "actorDj": "Mr. Pino Piromalli"
+  },
+  {
+    "id": "580",
+    "stato": "disponibile",
+    "timestamp": "2026-11-05T01:13:24.102Z",
+    "dj": null,
+    "actorDj": "DJ Lucas Berry"
+  },
+  {
+    "id": "040",
+    "stato": "disponibile",
+    "timestamp": "2026-11-05T01:13:25.766Z",
+    "dj": null,
+    "actorDj": "DJ Lucas Berry"
+  },
+  {
+    "id": "025",
+    "stato": "disponibile",
+    "timestamp": "2026-11-05T01:14:05.889Z",
+    "dj": null,
+    "actorDj": "DJ Lucas Berry"
+  },
+  {
+    "id": "020",
+    "stato": "disponibile",
+    "timestamp": "2026-11-05T01:14:07.021Z",
+    "dj": null,
+    "actorDj": "DJ Lucas Berry"
+  },
+  {
+    "id": "555",
+    "stato": "disponibile",
+    "timestamp": "2026-11-05T01:14:10.213Z",
+    "dj": null,
+    "actorDj": "DJ Lucas Berry"
   }
 ]
