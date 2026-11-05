@@ -338,7 +338,7 @@
 }
 
 .brani-table tbody tr.completed {
-  background-color: #ffff00;
+  background-color: #ff7f00;
   font-weight: 700;
 }
 
@@ -347,7 +347,7 @@
 }
 
 .brani-table tbody tr.completed:hover {
-  background-color: #ffff00;
+  background-color: #ff9933;
 }
 
 .brani-table tbody tr.blocked {
