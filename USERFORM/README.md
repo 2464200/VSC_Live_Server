@@ -9,7 +9,7 @@ Goals for this first step:
 
 Current scope:
 - Indice USERFORM e moduli operativi convertiti in pagine HTML.
-- SCALETTA reads the Bordero catalogue without modifying it and saves playlists to the project-relative `VSC_PRESELEZIONE/` folder.
+- SCALETTA reads the Bordero catalogue without modifying it and saves playlists to the project-relative `Preselezione/` folder.
 
 Development status:
 - INDICE: first-pass web porting completed with grouped action hub.
@@ -26,7 +26,7 @@ Development status:
 - PAGINA09: converted (Bordero/Eventi bridge launchers).
 - PAGINA10: converted (DASH + UI timer controls with auto-start behavior).
 - PAGINA11: delegata alla pagina gia completa Bordero/pages/location.html (link bridge).
-- SCALETTA: generatore scaletta country with JSON files saved to `VSC_PRESELEZIONE/` and imported directly by Preselezione DJ.
+- SCALETTA: generatore scaletta country with JSON files saved to `Preselezione/` and imported directly by Preselezione DJ.
 
 Canonical SCALETTA catalogue levels: BASE, INTERMEDIO, AVANZATO 1, AVANZATO 2, SUPER AVANZATO 1+2, SUPER AVANZATO 3, ALTRE COREO.
 

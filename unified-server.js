@@ -3104,7 +3104,7 @@ app.use('/api/local-ui/preferences', createUiPreferencesRouter(createMachineUiPr
 app.use('/api/bordero/course-program/files', createChoreoProgramFileRouter(createChoreoProgramFileStore(projectConfig.choreoProgramDir)));
 
 const DJ_PRESELECTION_FILE = path.join(BORDERO_DATA_DIR, 'dj-preselezione-state.json');
-const DJ_PRESELECTION_EXPORT_DIR = path.join(__dirname, 'VSC_PRESELEZIONE');
+const DJ_PRESELECTION_EXPORT_DIR = path.join(__dirname, 'Preselezione');
 app.get('/api/dj-preselezione/state', (req, res) => {
     res.set('Cache-Control', 'no-store');
     try {
@@ -3146,7 +3146,7 @@ app.get('/api/dj-preselezione/files', (_req, res) => {
             })
             .filter(Boolean)
             .sort((left, right) => left.name.localeCompare(right.name, 'it', { sensitivity: 'base' }));
-        res.json({ ok: true, folder: 'VSC_PRESELEZIONE', files });
+        res.json({ ok: true, folder: 'Preselezione', files });
     } catch (error) {
         res.status(500).json({ ok: false, error: error.message });
     }
@@ -3165,7 +3165,7 @@ app.get('/api/dj-preselezione/files/:fileName', (req, res) => {
         res.json({ ok: true, payload });
     } catch (error) {
         const status = error.code === 'ENOENT' ? 404 : 400;
-        res.status(status).json({ ok: false, error: status === 404 ? 'File non trovato in VSC_PRESELEZIONE.' : 'File scaletta non valido.' });
+        res.status(status).json({ ok: false, error: status === 404 ? 'File non trovato in Preselezione.' : 'File scaletta non valido.' });
     }
 });
 
@@ -3183,7 +3183,7 @@ app.post('/api/dj-preselezione/files', (req, res) => {
         fs.mkdirSync(DJ_PRESELECTION_EXPORT_DIR, { recursive: true });
         fs.writeFileSync(temporaryPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
         fs.renameSync(temporaryPath, filePath);
-        res.json({ ok: true, folder: 'VSC_PRESELEZIONE', fileName: payload.fileName, trackCount: payload.tracks.length });
+        res.json({ ok: true, folder: 'Preselezione', fileName: payload.fileName, trackCount: payload.tracks.length });
     } catch (error) {
         fs.rmSync(temporaryPath, { force: true });
         res.status(500).json({ ok: false, error: error.message });

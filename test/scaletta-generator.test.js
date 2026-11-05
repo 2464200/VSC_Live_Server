@@ -310,7 +310,7 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
       status: 200,
       json: async () => ({
         ok: true,
-        folder: 'VSC_PRESELEZIONE',
+        folder: 'Preselezione',
         fileName: 'Luca_Rossi_2026-10-06_Country_Night.json',
         trackCount: savedPayload.tracks.length
       })
@@ -403,7 +403,7 @@ test('SCALETTA: carica il CSV, mostra tutti i livelli, salva il risultato e puli
   assert.equal(savedPayload.dj, 'Luca Rossi');
   assert.equal(savedPayload.evento, 'Country Night');
   assert.ok(savedPayload.tracks.length > 0);
-  assert.match(window.document.getElementById('scaletta-status').textContent, /VSC_PRESELEZIONE\/Luca_Rossi_2026-10-06_Country_Night\.json/);
+  assert.match(window.document.getElementById('scaletta-status').textContent, /Preselezione\/Luca_Rossi_2026-10-06_Country_Night\.json/);
 
   window.document.getElementById('btn-clear-setlist').click();
   assert.equal(window.SCALETTA_SETLIST.length, 0);

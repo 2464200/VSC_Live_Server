@@ -643,10 +643,10 @@
       elements.savedPlaylistSelect.replaceChildren();
       const option = document.createElement('option');
       option.value = '';
-      option.textContent = 'Cartella VSC_PRESELEZIONE non disponibile';
+      option.textContent = 'Cartella Preselezione non disponibile';
       elements.savedPlaylistSelect.append(option);
       elements.loadSavedPlaylistButton.disabled = true;
-      setActionStatus(`Lettura VSC_PRESELEZIONE non riuscita: ${error.message}`, 'error');
+      setActionStatus(`Lettura Preselezione non riuscita: ${error.message}`, 'error');
     }
   }
 
@@ -661,7 +661,7 @@
       if (!response.ok || !body.ok) throw new Error(body.error || `Errore HTTP ${response.status}`);
       applyImportedPlaylist(window.DjPreselectionFile.parseImport(body.payload));
     } catch (error) {
-      setActionStatus(`Importazione da VSC_PRESELEZIONE non riuscita: ${error.message}`, 'error');
+      setActionStatus(`Importazione da Preselezione non riuscita: ${error.message}`, 'error');
       await refreshSavedPlaylistFiles();
     } finally {
       setButtonBusy(elements.loadSavedPlaylistButton, false);
