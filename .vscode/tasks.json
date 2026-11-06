@@ -4,9 +4,9 @@
     {
       "label": "Aggiorna CSV Registro da Google Sheets",
       "type": "process",
-      "command": "python",
+      "command": "node",
       "args": [
-        "${workspaceFolder}${pathSeparator}scripts${pathSeparator}sync-registro-sheets.py"
+        "${workspaceFolder}${pathSeparator}scripts${pathSeparator}sync-registro-sheets.js"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

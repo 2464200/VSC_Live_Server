@@ -105,3 +105,6 @@ Bordero/data/video-clip-local-config.json
 /firebase/service-account.json
 Bordero/data/dj-preselezione-state.json
 /Preselezione/
+
+# Contains instructor passwords; keep this local file out of the public repository.
+/Registro/Insegnanti.csv
