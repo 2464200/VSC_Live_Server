@@ -330,5 +330,6 @@
         }
     },
     "editor.suggest.snippetsPreventQuickSuggestions": false,
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }

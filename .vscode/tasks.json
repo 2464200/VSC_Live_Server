@@ -2,6 +2,28 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Aggiorna CSV Registro da Google Sheets",
+      "type": "process",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}${pathSeparator}scripts${pathSeparator}sync-registro-sheets.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "clear": false,
+        "showReuseMessage": false
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen",
+        "instanceLimit": 1
+      }
+    },
+    {
       "label": "Auto-startup and supervise project",
       "type": "shell",
       "command": "powershell",
