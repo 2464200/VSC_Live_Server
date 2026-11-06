@@ -13,6 +13,18 @@
         "**/.git": true,
         "**/.vscode": false
     },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/.venv/**": true,
+        "**/__pycache__/**": true,
+        "**/*.pyc": true,
+        "**/.firebase/**": true,
+        "**/public-display/**": true,
+        "**/logs/**": true,
+        "**/_tmp_vbexport_*/**": true
+    },
     "chat.tools.terminal.autoApprove": {
         "/^node --test --test-name-pattern=\"mantiene l’ordine dei livelli in ogni ciclo\" test/scaletta-generator\\.test\\.js$/": {
             "approve": true,
@@ -72,8 +84,22 @@
         "**/.git": true,
         "**/logs": true,
         "**/.firebase": true,
-        "**/coverage": true
+        "**/coverage": true,
+        "**/.venv": true,
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/public-display": true,
+        "**/_tmp_vbexport_*": true
     },
+    "python.analysis.indexing": false,
+    "python.analysis.exclude": [
+        "**/.venv/**",
+        "**/__pycache__/**",
+        "**/*.pyc",
+        "**/node_modules/**",
+        "**/_tmp_vbexport_*/**",
+        "**/public-display/**"
+    ],
     "python.terminal.useEnvFile": true,
     "editor.tokenColorCustomizations": {
         "[*Light*]": {
