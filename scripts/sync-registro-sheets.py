@@ -124,15 +124,18 @@ def rows_for_csv(values):
     headers = [str(value) if value is not None else "" for value in values[0]]
     width = max((len(row) for row in values), default=0)
     headers.extend([""] * (width - len(headers)))
-    keep_columns = [
+    secret_columns = {
         index for index, header in enumerate(headers)
-        if not re.search(r"password|passcode|parola|secret", header, re.IGNORECASE)
-    ]
+        if re.search(r"password|passcode|parola|secret", header, re.IGNORECASE)
+    }
     rows = []
-    for row in values:
+    for row_number, row in enumerate(values):
         normalized = ["" if value is None else str(value) for value in row]
         normalized.extend([""] * (width - len(normalized)))
-        rows.append([normalized[index] if index < len(normalized) else "" for index in keep_columns])
+        if row_number > 0:
+            for index in secret_columns:
+                normalized[index] = ""
+        rows.append(normalized)
     return rows
 
 
