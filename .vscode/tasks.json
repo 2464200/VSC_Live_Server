@@ -12,8 +12,9 @@
         "cwd": "${workspaceFolder}"
       },
       "presentation": {
-        "reveal": "silent",
+        "reveal": "always",
         "panel": "shared",
+        "focus": false,
         "clear": false,
         "showReuseMessage": false
       },
