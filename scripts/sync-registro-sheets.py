@@ -79,8 +79,6 @@ def workbook_sheets(archive):
     sheets = []
     for sheet in workbook.findall("main:sheets/main:sheet", NS):
         name = sheet.attrib["name"]
-        if name.casefold() == "foglio1":
-            continue
         relation_id = sheet.attrib[f"{{{NS['rel']}}}id"]
         target = targets[relation_id].lstrip("/")
         if not target.startswith("xl/"):
@@ -165,7 +163,7 @@ def main():
         styles = date_style_ids(archive)
         sheets = workbook_sheets(archive)
         if not sheets:
-            raise RuntimeError("Non sono state trovate schede da esportare dopo l’esclusione di Foglio1.")
+            raise RuntimeError("Non sono state trovate schede da esportare.")
         files = {}
         for name, path in sheets:
             filename = safe_filename(name)
