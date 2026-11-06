@@ -1,0 +1,657 @@
+{
+  "format": "bordero-dj-preselezione",
+  "version": 1,
+  "name": "LUCAS_BERRY_2026-09-27_74ᵃ_Mostra_Zootecnica",
+  "fileName": "LUCAS_BERRY_2026-09-27_74ᵃ_Mostra_Zootecnica.json",
+  "dj": "LUCAS BERRY",
+  "data": "2026-09-27",
+  "evento": "74ᵃ Mostra Zootecnica",
+  "totalDurationSeconds": 10798,
+  "tracks": [
+    {
+      "id": "046",
+      "branoId": "046",
+      "position": 1,
+      "deck": 1,
+      "brano": {
+        "id": "046",
+        "titolo": "BLACK COFFEE",
+        "coreografia": "BLACK COFFEE",
+        "brano": "all i want for christmas is you",
+        "autore": "mariah carey",
+        "durata": "04:02",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "053",
+      "branoId": "053",
+      "position": 2,
+      "deck": 1,
+      "brano": {
+        "id": "053",
+        "titolo": "BLACK COFFEE",
+        "coreografia": "BLACK COFFEE",
+        "brano": "why couldn't be christmas everyday?",
+        "autore": "bianca ryan",
+        "durata": "04:06",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "074",
+      "branoId": "074",
+      "position": 3,
+      "deck": 1,
+      "brano": {
+        "id": "074",
+        "titolo": "CANDY KISSES",
+        "coreografia": "CANDY KISSES",
+        "brano": "sweet home alabama",
+        "autore": "lynyrd skynyrd",
+        "durata": "05:01",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "079",
+      "branoId": "079",
+      "position": 4,
+      "deck": 1,
+      "brano": {
+        "id": "079",
+        "titolo": "CHANGING DANCE BARN DANCE",
+        "coreografia": "CHANGING DANCE BARN DANCE",
+        "brano": "dance the night away",
+        "autore": "the mavericks",
+        "durata": "04:23",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "089",
+      "branoId": "089",
+      "position": 5,
+      "deck": 1,
+      "brano": {
+        "id": "089",
+        "titolo": "CHEYENNE",
+        "coreografia": "CHEYENNE",
+        "brano": "i'm gonna getcha good",
+        "autore": "shania twain",
+        "durata": "04:05",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "091",
+      "branoId": "091",
+      "position": 6,
+      "deck": 1,
+      "brano": {
+        "id": "091",
+        "titolo": "CHEYENNE",
+        "coreografia": "CHEYENNE",
+        "brano": "original ghostbusters theme song",
+        "autore": "ray parker jr",
+        "durata": "04:04",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "112",
+      "branoId": "112",
+      "position": 7,
+      "deck": 1,
+      "brano": {
+        "id": "112",
+        "titolo": "COPPERHEAD ROAD",
+        "coreografia": "COPPERHEAD ROAD",
+        "brano": "copperhead road",
+        "autore": "steve earle",
+        "durata": "04:31",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "225",
+      "branoId": "225",
+      "position": 8,
+      "deck": 1,
+      "brano": {
+        "id": "225",
+        "titolo": "IRISH CHANGE",
+        "coreografia": "IRISH CHANGE",
+        "brano": "tell me ma",
+        "autore": "sham rock",
+        "durata": "04:00",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "227",
+      "branoId": "227",
+      "position": 9,
+      "deck": 1,
+      "brano": {
+        "id": "227",
+        "titolo": "IRISH STEW",
+        "coreografia": "IRISH STEW",
+        "brano": "american land",
+        "autore": "bruce springsteen",
+        "durata": "04:23",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "339",
+      "branoId": "339",
+      "position": 10,
+      "deck": 1,
+      "brano": {
+        "id": "339",
+        "titolo": "REDNECK ANGEL",
+        "coreografia": "REDNECK ANGEL",
+        "brano": "if today was your last day",
+        "autore": "nickelback",
+        "durata": "04:09",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "377",
+      "branoId": "377",
+      "position": 11,
+      "deck": 1,
+      "brano": {
+        "id": "377",
+        "titolo": "START THE CAR",
+        "coreografia": "START THE CAR",
+        "brano": "limes",
+        "autore": "brad paisley",
+        "durata": "03:57",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "378",
+      "branoId": "378",
+      "position": 12,
+      "deck": 1,
+      "brano": {
+        "id": "378",
+        "titolo": "START THE CAR",
+        "coreografia": "START THE CAR",
+        "brano": "start the car",
+        "autore": "travis tritt",
+        "durata": "04:09",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "428",
+      "branoId": "428",
+      "position": 13,
+      "deck": 1,
+      "brano": {
+        "id": "428",
+        "titolo": "TUSH PUSH",
+        "coreografia": "TUSH PUSH",
+        "brano": "santa looked a lot like daddy",
+        "autore": "brad paisley",
+        "durata": "04:15",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "433",
+      "branoId": "433",
+      "position": 14,
+      "deck": 1,
+      "brano": {
+        "id": "433",
+        "titolo": "URBAN LIFE",
+        "coreografia": "URBAN LIFE",
+        "brano": "better life",
+        "autore": "keith urban",
+        "durata": "04:44",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "434",
+      "branoId": "434",
+      "position": 15,
+      "deck": 1,
+      "brano": {
+        "id": "434",
+        "titolo": "URBAN LIFE",
+        "coreografia": "URBAN LIFE",
+        "brano": "gotta be somebody",
+        "autore": "nickelback",
+        "durata": "04:14",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "439",
+      "branoId": "439",
+      "position": 16,
+      "deck": 1,
+      "brano": {
+        "id": "439",
+        "titolo": "WALKIN' THE LINE",
+        "coreografia": "WALKIN' THE LINE",
+        "brano": "4th of july",
+        "autore": "shooter jennings",
+        "durata": "04:27",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "441",
+      "branoId": "441",
+      "position": 17,
+      "deck": 1,
+      "brano": {
+        "id": "441",
+        "titolo": "WALKIN' THE LINE",
+        "coreografia": "WALKIN' THE LINE",
+        "brano": "crazy",
+        "autore": "alee",
+        "durata": "04:07",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "443",
+      "branoId": "443",
+      "position": 18,
+      "deck": 1,
+      "brano": {
+        "id": "443",
+        "titolo": "WALKIN' THE LINE",
+        "coreografia": "WALKIN' THE LINE",
+        "brano": "wild angels",
+        "autore": "martina mcbride",
+        "durata": "03:46",
+        "info_livello": "BASE"
+      }
+    },
+    {
+      "id": "070",
+      "branoId": "070",
+      "position": 19,
+      "deck": 1,
+      "brano": {
+        "id": "070",
+        "titolo": "CABO SAN LUCAS",
+        "coreografia": "CABO SAN LUCAS",
+        "brano": "all i want for christmas is a real good than",
+        "autore": "kenny chesney",
+        "durata": "04:39",
+        "info_livello": "INTERMEDIO"
+      }
+    },
+    {
+      "id": "101",
+      "branoId": "101",
+      "position": 20,
+      "deck": 1,
+      "brano": {
+        "id": "101",
+        "titolo": "CHILL FACTOR",
+        "coreografia": "CHILL FACTOR",
+        "brano": "rock on",
+        "autore": "hunter",
+        "durata": "04:24",
+        "info_livello": "INTERMEDIO"
+      }
+    },
+    {
+      "id": "293",
+      "branoId": "293",
+      "position": 21,
+      "deck": 1,
+      "brano": {
+        "id": "293",
+        "titolo": "MY MARIA",
+        "coreografia": "MY MARIA",
+        "brano": "tougher than the rest",
+        "autore": "chris ledoux",
+        "durata": "04:57",
+        "info_livello": "INTERMEDIO"
+      }
+    },
+    {
+      "id": "523",
+      "branoId": "523",
+      "position": 22,
+      "deck": 1,
+      "brano": {
+        "id": "523",
+        "titolo": "MY MARIA",
+        "coreografia": "MY MARIA",
+        "brano": "two black cadillacs",
+        "autore": "carrie underwood",
+        "durata": "04:59",
+        "info_livello": "INTERMEDIO"
+      }
+    },
+    {
+      "id": "570",
+      "branoId": "570",
+      "position": 23,
+      "deck": 1,
+      "brano": {
+        "id": "570",
+        "titolo": "MY MARIA",
+        "coreografia": "MY MARIA",
+        "brano": "but for the grace of god",
+        "autore": "keith urban",
+        "durata": "04:34",
+        "info_livello": "INTERMEDIO"
+      }
+    },
+    {
+      "id": "084",
+      "branoId": "084",
+      "position": 24,
+      "deck": 1,
+      "brano": {
+        "id": "084",
+        "titolo": "CHEEK TO CHEEK",
+        "coreografia": "CHEEK TO CHEEK",
+        "brano": "bailando",
+        "autore": "enrique iglesias",
+        "durata": "04:01",
+        "info_livello": "AVANZATO 1"
+      }
+    },
+    {
+      "id": "107",
+      "branoId": "107",
+      "position": 25,
+      "deck": 1,
+      "brano": {
+        "id": "107",
+        "titolo": "CLICKETY CLACK",
+        "coreografia": "CLICKETY CLACK",
+        "brano": "southbound train",
+        "autore": "travis tritt",
+        "durata": "04:01",
+        "info_livello": "AVANZATO 1"
+      }
+    },
+    {
+      "id": "285",
+      "branoId": "285",
+      "position": 26,
+      "deck": 1,
+      "brano": {
+        "id": "285",
+        "titolo": "MR POLICEMAN",
+        "coreografia": "MR POLICEMAN",
+        "brano": "mr. policeman",
+        "autore": "brad paisley",
+        "durata": "04:16",
+        "info_livello": "AVANZATO 1"
+      }
+    },
+    {
+      "id": "388",
+      "branoId": "388",
+      "position": 27,
+      "deck": 1,
+      "brano": {
+        "id": "388",
+        "titolo": "SUNSET",
+        "coreografia": "SUNSET",
+        "brano": "you belong with me",
+        "autore": "taylor swift",
+        "durata": "03:53",
+        "info_livello": "AVANZATO 1"
+      }
+    },
+    {
+      "id": "415",
+      "branoId": "415",
+      "position": 28,
+      "deck": 1,
+      "brano": {
+        "id": "415",
+        "titolo": "TOMORROW NEVER COMES",
+        "coreografia": "TOMORROW NEVER COMES",
+        "brano": "tomorrow never comes",
+        "autore": "zac brown band",
+        "durata": "03:59",
+        "info_livello": "AVANZATO 1"
+      }
+    },
+    {
+      "id": "027",
+      "branoId": "027",
+      "position": 29,
+      "deck": 1,
+      "brano": {
+        "id": "027",
+        "titolo": "ANTHEM",
+        "coreografia": "ANTHEM",
+        "brano": "anthem",
+        "autore": "brett kissel",
+        "durata": "04:00",
+        "info_livello": "AVANZATO 2"
+      }
+    },
+    {
+      "id": "061",
+      "branoId": "061",
+      "position": 30,
+      "deck": 1,
+      "brano": {
+        "id": "061",
+        "titolo": "BROKEN HEELS",
+        "coreografia": "BROKEN HEELS",
+        "brano": "broken heels",
+        "autore": "alexandra burke",
+        "durata": "04:10",
+        "info_livello": "AVANZATO 2"
+      }
+    },
+    {
+      "id": "218",
+      "branoId": "218",
+      "position": 31,
+      "deck": 1,
+      "brano": {
+        "id": "218",
+        "titolo": "HOLLY'S CHURCH",
+        "coreografia": "HOLLY'S CHURCH",
+        "brano": "my church",
+        "autore": "maren morris",
+        "durata": "04:04",
+        "info_livello": "AVANZATO 2"
+      }
+    },
+    {
+      "id": "316",
+      "branoId": "316",
+      "position": 32,
+      "deck": 1,
+      "brano": {
+        "id": "316",
+        "titolo": "PAY ME MY MONEY DOWN",
+        "coreografia": "PAY ME MY MONEY DOWN",
+        "brano": "pay me my money down",
+        "autore": "bruce springsteen",
+        "durata": "04:33",
+        "info_livello": "AVANZATO 2"
+      }
+    },
+    {
+      "id": "345",
+      "branoId": "345",
+      "position": 33,
+      "deck": 1,
+      "brano": {
+        "id": "345",
+        "titolo": "ROOTS",
+        "coreografia": "ROOTS",
+        "brano": "roots",
+        "autore": "zac brown band",
+        "durata": "03:52",
+        "info_livello": "AVANZATO 2"
+      }
+    },
+    {
+      "id": "014",
+      "branoId": "014",
+      "position": 34,
+      "deck": 1,
+      "brano": {
+        "id": "014",
+        "titolo": "99 BOTTLES",
+        "coreografia": "99 BOTTLES",
+        "brano": "99 bottles",
+        "autore": "zane williams",
+        "durata": "04:07",
+        "info_livello": "SUPER AVANZATO 1+2"
+      }
+    },
+    {
+      "id": "268",
+      "branoId": "268",
+      "position": 35,
+      "deck": 1,
+      "brano": {
+        "id": "268",
+        "titolo": "LOOKIN' FOR ME",
+        "coreografia": "LOOKIN' FOR ME",
+        "brano": "no stone unterned",
+        "autore": "randy houser",
+        "durata": "04:22",
+        "info_livello": "SUPER AVANZATO 1+2"
+      }
+    },
+    {
+      "id": "281",
+      "branoId": "281",
+      "position": 36,
+      "deck": 1,
+      "brano": {
+        "id": "281",
+        "titolo": "MISS OUR DAYS",
+        "coreografia": "MISS OUR DAYS",
+        "brano": "miss our days",
+        "autore": "aalwoods",
+        "durata": "04:17",
+        "info_livello": "SUPER AVANZATO 1+2"
+      }
+    },
+    {
+      "id": "397",
+      "branoId": "397",
+      "position": 37,
+      "deck": 1,
+      "brano": {
+        "id": "397",
+        "titolo": "THE BEAST",
+        "coreografia": "THE BEAST",
+        "brano": "somethin' in the water",
+        "autore": "the cheap seats",
+        "durata": "04:52",
+        "info_livello": "SUPER AVANZATO 1+2"
+      }
+    },
+    {
+      "id": "436",
+      "branoId": "436",
+      "position": 38,
+      "deck": 1,
+      "brano": {
+        "id": "436",
+        "titolo": "VODKA TIME",
+        "coreografia": "VODKA TIME",
+        "brano": "vodka time",
+        "autore": "urban trad",
+        "durata": "03:52",
+        "info_livello": "SUPER AVANZATO 1+2"
+      }
+    },
+    {
+      "id": "525",
+      "branoId": "525",
+      "position": 39,
+      "deck": 1,
+      "brano": {
+        "id": "525",
+        "titolo": "LOOP",
+        "coreografia": "LOOP",
+        "brano": "over all over again",
+        "autore": "james barker band",
+        "durata": "03:22",
+        "info_livello": "SUPER AVANZATO 3"
+      }
+    },
+    {
+      "id": "320",
+      "branoId": "320",
+      "position": 40,
+      "deck": 1,
+      "brano": {
+        "id": "320",
+        "titolo": "PIZZA AND BEER",
+        "coreografia": "PIZZA AND BEER",
+        "brano": "dreaming enough to get me by",
+        "autore": "tony ramey",
+        "durata": "03:36",
+        "info_livello": "SUPER AVANZATO 3"
+      }
+    },
+    {
+      "id": "526",
+      "branoId": "526",
+      "position": 41,
+      "deck": 1,
+      "brano": {
+        "id": "526",
+        "titolo": "RETRO",
+        "coreografia": "RETRO",
+        "brano": "i feel it in the wind",
+        "autore": "smith & thell",
+        "durata": "03:34",
+        "info_livello": "SUPER AVANZATO 3"
+      }
+    },
+    {
+      "id": "386",
+      "branoId": "386",
+      "position": 42,
+      "deck": 1,
+      "brano": {
+        "id": "386",
+        "titolo": "SUNBEAM",
+        "coreografia": "SUNBEAM",
+        "brano": "sunbeam",
+        "autore": "jack county",
+        "durata": "03:11",
+        "info_livello": "SUPER AVANZATO 3"
+      }
+    },
+    {
+      "id": "514",
+      "branoId": "514",
+      "position": 43,
+      "deck": 1,
+      "brano": {
+        "id": "514",
+        "titolo": "WILD",
+        "coreografia": "WILD",
+        "brano": "where the wild things are",
+        "autore": "luke combs",
+        "durata": "04:00",
+        "info_livello": "SUPER AVANZATO 3"
+      }
+    }
+  ]
+}
