@@ -55,14 +55,21 @@ async function harness(page = false) {
     const archiveDialog = window.document.getElementById('archive-confirm-dialog');
     if (archiveDialog) archiveDialog.showModal = function () {
       this.open = true;
+      window.document.getElementById('archive-confirm-code').value = '0000';
       window.setTimeout(() => { this.returnValue = 'confirm'; this.dispatchEvent(new window.Event('close')); }, 0);
     };
-    window.eval(read('Bordero/pages/coreografie-corsi.js'));
+    window.eval(`${read('Bordero/js/config.js')}\n${read('Bordero/pages/coreografie-corsi.js')}`);
     window.document.dispatchEvent(new window.Event('DOMContentLoaded'));
     await tick();
   }
   return { dom, window, store, writes, authorize, setRemote: (value) => { remote = copy(value); }, setFetch: (fn) => { fetchImpl = fn; } };
 }
+
+test('archive confirmation accepts the configured security code', async (t) => {
+  const h = await harness(true);
+  t.after(() => h.dom.window.close());
+  assert.equal(await h.window.choreoCoursePage.confirmArchiveChange('Confermare la modifica?'), true);
+});
 
 test('offline edits and active season survive polling and browser reload, then sync atomically', async (t) => {
   const h = await harness();

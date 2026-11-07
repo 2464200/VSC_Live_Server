@@ -288,7 +288,7 @@
         dialog.showModal();
         const result = await new Promise((resolve) => dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true }));
         if (!result) return false;
-        if (String(code.value).trim() === String(window.BORDERO_CONFIG?.APP_CLOSE_SECRET_CODE || '')) return true;
+        if (String(code.value).trim() === String(BORDERO_CONFIG.APP_CLOSE_SECRET_CODE)) return true;
         document.getElementById('archive-confirm-message').textContent = 'Codice non corretto. ' + message;
       }
     }
