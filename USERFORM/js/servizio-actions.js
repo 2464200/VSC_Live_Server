@@ -7,7 +7,6 @@
   const slideshowDraftId = "draft";
   const stopStorageKey = "userform-servizio-stop";
   const publicationStateKey = "userform-servizio-publication-active";
-  const lastLogoStorageKey = "userform-servizio-logo:last";
   const params = new URLSearchParams(window.location.search);
   const isDisplayMode = params.get("mode") === "display";
   let stopDisplayHandler = null;
@@ -286,26 +285,25 @@
     fitPublishedText();
   }
 
-  function showPublishedLogo(id) {
+  async function showPublishedLogo(id) {
     const message = document.getElementById("published-message");
     const image = document.getElementById("published-image");
     if (!message || !image) return;
 
-    let payload = null;
+    let record = null;
     try {
-      const stored = readStorage(lastLogoStorageKey);
-      payload = stored ? JSON.parse(stored) : null;
+      record = id ? await readSlideshowRecord(id) : null;
     } catch {
-      payload = null;
+      record = null;
     }
 
-    if (!payload || (id && payload.id !== id) || typeof payload.dataUrl !== "string" || !payload.dataUrl) {
+    if (!record?.blob) {
       showPublishedText("Immagine non disponibile");
       return;
     }
     message.hidden = true;
-    image.src = payload.dataUrl;
-    image.alt = payload.name || "Immagine pubblicata";
+    image.src = URL.createObjectURL(record.blob);
+    image.alt = record.name || "Immagine pubblicata";
     image.hidden = false;
   }
 
@@ -413,7 +411,7 @@
         setPublicationActive(false);
       }
 
-      if (params.get("output") === "slideshow" && params.get("id")) {
+      if (["slideshow", "logo"].includes(params.get("output")) && params.get("id")) {
         void deleteSlideshowRecord(params.get("id")).catch(() => null);
       }
 
@@ -434,7 +432,7 @@
     if (params.get("output") === "slideshow") {
       void showSlideshow(params.get("id"));
     } else if (params.get("output") === "logo") {
-      showPublishedLogo(params.get("id"));
+      void showPublishedLogo(params.get("id"));
     } else {
       showPublishedText(params.get("text") || defaultBannerText);
     }
@@ -925,6 +923,7 @@
 
     function clearLogo() {
       imageSelectionVersion += 1;
+      if (selectedLogo?.previewUrl) URL.revokeObjectURL(selectedLogo.previewUrl);
       selectedLogo = null;
       imageInput.value = "";
       preview.removeAttribute("src");
@@ -940,10 +939,6 @@
       const selectionVersion = imageSelectionVersion;
       if (!file || (!file.type.startsWith("image/") && !isTiffFile(file))) {
         setStatus("Seleziona un file immagine valido.", "error");
-        return;
-      }
-      if (file.size > 1.5 * 1024 * 1024) {
-        setStatus("L’immagine supera il limite di 1,5 MB.", "error");
         return;
       }
 
@@ -962,40 +957,26 @@
       }
 
       if (selectionVersion !== imageSelectionVersion) return;
-      const reader = new FileReader();
-      reader.addEventListener("load", () => {
-        if (selectionVersion !== imageSelectionVersion) return;
-        if (typeof reader.result !== "string") {
-          setStatus("Impossibile leggere il file immagine.", "error");
-          return;
-        }
-        selectedLogo = { name: imageName, dataUrl: reader.result };
-        preview.src = reader.result;
-        preview.alt = `Anteprima di ${imageName}`;
-        previewWrap.hidden = false;
-        fileName.textContent = imageName;
-        publishLogoButton.disabled = false;
-        clearLogoButton.disabled = false;
-      });
-      reader.addEventListener("error", () => {
-        if (selectionVersion === imageSelectionVersion) {
-          setStatus("Impossibile leggere il file immagine.", "error");
-        }
-      });
-      reader.readAsDataURL(imageBlob);
+      const previewUrl = URL.createObjectURL(imageBlob);
+      selectedLogo = { name: imageName, blob: imageBlob, previewUrl };
+      preview.src = previewUrl;
+      preview.alt = `Anteprima di ${imageName}`;
+      previewWrap.hidden = false;
+      fileName.textContent = imageName;
+      publishLogoButton.disabled = false;
+      clearLogoButton.disabled = false;
     }
 
     async function publishLogo() {
       if (!selectedLogo) return;
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const payload = { id, ...selectedLogo, publishedAt: Date.now() };
-      if (!writeStorage(lastLogoStorageKey, JSON.stringify(payload))) return;
-
+      const id = `logo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       try {
+        await saveSlideshowRecord({ id, name: selectedLogo.name, blob: selectedLogo.blob, createdAt: Date.now() });
         const session = await openPublication("logo", { id });
         setPublicationActive(true, { output: "logo", session });
         setStatus("Immagine pubblicata sul monitor secondario.", "success");
       } catch (error) {
+        try { await deleteSlideshowRecord(id); } catch { /* Keep the original error. */ }
         setStatus(error.message, "error");
       }
     }

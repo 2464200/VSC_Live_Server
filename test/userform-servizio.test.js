@@ -137,17 +137,19 @@ async function run() {
   const imageFile = new operator.File(['test-image'], 'logo.png', { type: 'image/png' });
   Object.defineProperty(imageInput, 'files', { configurable: true, value: [imageFile] });
   imageInput.dispatchEvent(new operator.Event('change'));
-  await waitFor(() => !operator.document.getElementById('publish-logo-btn').disabled, 'image FileReader');
+  await waitFor(() => !operator.document.getElementById('publish-logo-btn').disabled, 'image selection');
   assert.equal(operator.document.getElementById('publish-logo-btn').disabled, false);
   operator.document.getElementById('publish-logo-btn').click();
-  await settle();
+  await waitFor(() => routes.length === 3, 'logo secondary route');
   const logoRoute = new URL(routes[2], 'http://localhost:5500');
   const logoId = logoRoute.searchParams.get('id');
   assert.equal(logoRoute.pathname, '/USERFORM/pages/SERVIZIO.html');
   assert.equal(logoRoute.searchParams.get('mode'), 'display');
   assert.equal(logoRoute.searchParams.get('output'), 'logo');
   assert.ok(logoId);
-  assert.equal(JSON.parse(operator.localStorage.getItem('userform-servizio-logo:last')).name, 'logo.png');
+  const savedLogo = await readIndexedPresentation(logoId);
+  assert.equal(savedLogo.name, 'logo.png');
+  assert.ok(savedLogo.blob, 'The published logo stores its image blob in IndexedDB.');
 
   assert.equal(imageInput.accept, 'image/*');
   operator.UTIF = {
@@ -167,7 +169,7 @@ async function run() {
   imageInput.dispatchEvent(new operator.Event('change'));
   await waitFor(() => !operator.document.getElementById('publish-logo-btn').disabled, 'TIFF conversion');
   assert.equal(operator.document.getElementById('service-file-name').textContent, 'logo.png');
-  assert.match(operator.document.getElementById('service-image-preview').src, /^data:image\/png;base64,/);
+  assert.match(operator.document.getElementById('service-image-preview').src, /^blob:/);
   operator.document.getElementById('clear-logo-btn').click();
 
   const slideshowInput = operator.document.getElementById('service-slideshow-input');
@@ -228,30 +230,21 @@ async function run() {
   const outputDom = createPage('http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=text&text=Prossimo%20ballo');
   const output = outputDom.window;
   output.BroadcastChannel = TestBroadcastChannel;
-  output.localStorage.setItem('userform-servizio-logo:last', JSON.stringify({
-    id: 'logo-1',
-    name: 'logo.png',
-    dataUrl: 'data:image/png;base64,ZmFrZQ==',
-  }));
   output.eval(actions);
   assert.equal(output.document.body.classList.contains('service-display-mode'), true);
   assert.equal(output.document.getElementById('service-operator').hidden, true);
   assert.equal(output.document.getElementById('service-presentation').hidden, false);
   assert.equal(output.document.getElementById('published-message').textContent, 'Prossimo ballo');
 
-  const logoDom = createPage('http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=logo&id=logo-1');
+  const logoDom = createPage(`http://localhost:5500/USERFORM/pages/SERVIZIO.html?mode=display&output=logo&id=${encodeURIComponent(logoId)}`);
   const logoWindow = logoDom.window;
   logoWindow.BroadcastChannel = TestBroadcastChannel;
-  logoWindow.localStorage.setItem('userform-servizio-logo:last', JSON.stringify({
-    id: 'logo-1',
-    name: 'logo.png',
-    dataUrl: 'data:image/png;base64,ZmFrZQ==',
-  }));
   let closed = false;
   logoWindow.close = () => { closed = true; };
   logoWindow.eval(actions);
-  assert.equal(logoWindow.document.getElementById('published-image').hidden, false);
+  await waitFor(() => !logoWindow.document.getElementById('published-image').hidden, 'logo image from IndexedDB');
   assert.equal(logoWindow.document.getElementById('published-image').alt, 'logo.png');
+  assert.match(logoWindow.document.getElementById('published-image').src, /^blob:/);
   channels[0].postMessage({ type: 'stop' });
   assert.equal(closed, true, 'The display mode listens for stop messages.');
 
