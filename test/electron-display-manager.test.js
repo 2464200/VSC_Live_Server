@@ -259,7 +259,7 @@ test('buildDisplayLayoutConfig uses the actual monitor size and DPI-aware zoom',
   assert.equal(layout.scaleFactor, 1.25);
 });
 
-test('returning to Bordero preserves active video playback, while other primary pages close it', () => {
+test('primary-only navigation preserves active video playback on the secondary monitor', () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-video-navigation');
   fs.rmSync(tempDir, { recursive: true, force: true });
   fs.mkdirSync(tempDir, { recursive: true });
@@ -294,13 +294,13 @@ test('returning to Bordero preserves active video playback, while other primary 
     };
     vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
     navigate({ preventDefault() {} }, 'http://localhost:5500/Bordero/pages/videoclip.html');
-    assert.equal(playerClosed, true, 'Navigating to a different primary page must close the video player.');
+    assert.equal(playerClosed, false, 'Navigating to another primary-only page must preserve the active video player.');
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
 
-test('natural video completion keeps the Electron player open above DISPLAY', () => {
+test('natural video completion closes the Electron player and restores DISPLAY', () => {
   const tempDir = path.join(__dirname, '..', '.tmp-electron-video-completion');
   fs.rmSync(tempDir, { recursive: true, force: true });
   fs.mkdirSync(tempDir, { recursive: true });
@@ -308,24 +308,27 @@ test('natural video completion keeps the Electron player open above DISPLAY', ()
   try {
     const { sandbox, ipcListeners } = loadElectronMainFor(tempDir);
     let playerClosed = false;
-    let displayRestored = false;
     const playerWindow = {
       isDestroyed: () => playerClosed,
       close() { playerClosed = true; },
       webContents: { send() {} },
     };
     sandbox.testVideoPlayerWindow = playerWindow;
-    sandbox.videoPlayerWindow = playerWindow;
-    sandbox.ensureSecondaryDisplayPage = async () => { displayRestored = true; };
+    vm.runInContext('videoPlayerWindow = testVideoPlayerWindow;', sandbox);
+    sandbox.ensureSecondaryDisplayPage = async () => true;
 
     ipcListeners['bordero-video-player:ended']({}, { url: 'https://example.test/clip.mp4' });
 
-    assert.equal(playerClosed, false, 'Natural completion must leave the video player window open.');
-    assert.equal(displayRestored, false, 'DISPLAY must remain behind the video player.');
+    assert.equal(playerClosed, true, 'Natural completion must close the video player window.');
+    assert.equal(playerWindow.restoreDisplayOnClose, true, 'Closing after completion must restore the DISPLAY page.');
     assert.equal(
       vm.runInContext('electronVideoPlayerState.lastEvent', sandbox),
-      'ended',
-      'The completion event must still update Electron player state.'
+      'window-closed',
+      'The completion flow must end with the player window closed.'
+    );
+    assert.ok(
+      vm.runInContext('electronVideoPlayerState.lastCompletedAt', sandbox),
+      'The completion event must still record the completion timestamp.'
     );
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });

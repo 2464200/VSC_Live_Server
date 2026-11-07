@@ -1009,7 +1009,14 @@ async function routeUrlByPolicy(targetUrl, source = 'unknown') {
 
   const policy = getMonitorPolicyForUrl(absoluteTargetUrl);
   await closeSecondaryPageOverlays({
-    preserveVideoPlayer: normalizePathname(absoluteTargetUrl) === '/bordero/pages/bordero.html'
+    // Il player video vive sul monitor secondario: le pagine Bordero che
+    // occupano solo il monitor principale (tabella, elenco richieste, ecc.)
+    // non devono interrompere la riproduzione in corso.
+    preserveVideoPlayer: Boolean(
+      policy.primary
+      && !policy.secondary
+      && normalizePathname(absoluteTargetUrl).startsWith('/bordero/')
+    )
   });
 
   const result = {
@@ -1173,7 +1180,9 @@ function enforcePrimaryNavigationPolicy() {
     const policy = getMonitorPolicyForUrl(url);
     if (policy.primary && !policy.secondary) {
       closeSecondaryPageOverlays({
-        preserveVideoPlayer: normalizePathname(url) === '/bordero/pages/bordero.html'
+        // Navigazione tra pagine Bordero solo-primarie: il player video sul
+        // monitor secondario continua la riproduzione senza interruzioni.
+        preserveVideoPlayer: normalizePathname(url).startsWith('/bordero/')
       }).then(() => ensureSecondaryDisplayPage()).catch((error) => {
         console.warn('Unable to keep secondary monitor in display state:', error?.message || error);
       });
@@ -1280,12 +1289,9 @@ async function ensureVideoPlayerWindow(payload = {}) {
 
   const playerUrl = getVideoPlayerUrl(payload);
   const mode = typeof payload === 'object' && payload?.mode === 'webcam-live' ? 'webcam-live' : 'video';
-  await videoPlayerWindow.loadURL(playerUrl);
-  if (!videoPlayerWindow.isDestroyed()) {
-    videoPlayerWindow.setAlwaysOnTop(true, 'screen-saver');
-    videoPlayerWindow.show();
-    videoPlayerWindow.focus();
-  }
+  // Stato impostato PRIMA di loadURL: la pagina player può segnalare "playing"
+  // già durante il caricamento (DOMContentLoaded precede did-finish-load) e il
+  // report non deve essere sovrascritto da questo baseline.
   electronVideoPlayerState = {
     ...electronVideoPlayerState,
     active: true,
@@ -1307,6 +1313,12 @@ async function ensureVideoPlayerWindow(payload = {}) {
     lastPlayRequestedAt: new Date().toISOString(),
     lastEvent: 'play-requested'
   };
+  await videoPlayerWindow.loadURL(playerUrl);
+  if (!videoPlayerWindow.isDestroyed()) {
+    videoPlayerWindow.setAlwaysOnTop(true, 'screen-saver');
+    videoPlayerWindow.show();
+    videoPlayerWindow.focus();
+  }
   applyWindowLayout();
   return videoPlayerWindow;
 }
@@ -1643,6 +1655,9 @@ ipcMain.on('bordero-video-player:ended', (_event, payload) => {
       win.webContents.send('bordero-video-player:ended', payload);
     }
   });
+  // A fine riproduzione naturale chiude il player e ripristina il DISPLAY
+  // delle coreografie sul monitor secondario.
+  closeVideoPlayerWindow({ restoreDisplay: true });
 });
 
 ipcMain.on('bordero-video-player:playback-state', (_event, payload) => {
