@@ -429,11 +429,12 @@ class BorderoTableManager {
       return;
     }
 
+    // Selezione esclusiva: un solo brano può risultare NEXT, anche con ID che si normalizzano uguali.
     this.allBrani.forEach((item) => {
-      item.next_selected = this.nextCoreoIdsMatch(item.id, targetId);
+      item.next_selected = item === selectedBrano;
     });
     this.filteredBrani.forEach((item) => {
-      item.next_selected = this.nextCoreoIdsMatch(item.id, targetId);
+      item.next_selected = item === selectedBrano;
     });
   }
 
@@ -2591,7 +2592,7 @@ class BorderoTableManager {
             return;
           }
 
-          if (!brano || !brano.next_selected || (activeNextSelectionId && String(branoId) !== String(activeNextSelectionId))) {
+          if (!brano || !brano.next_selected || (activeNextSelectionId && !this.nextCoreoIdsMatch(branoId, activeNextSelectionId))) {
             Toast.warning('Per impostare FLAG devi prima selezionare lo stesso brano in NEXT.');
             return;
           }
@@ -2627,8 +2628,15 @@ class BorderoTableManager {
   }
 
   getActiveNextSelectionId() {
-    const activeBrano = this.allBrani.find((item) => Boolean(item.next_selected));
-    return activeBrano ? String(activeBrano.id) : null;
+    const selected = this.allBrani.filter((item) => Boolean(item.next_selected));
+    if (selected.length > 1) {
+      // Stato incoerente (selezioni NEXT multiple): mantieni la selezione salvata o la prima e ripulisci le altre.
+      const stored = Storage.get('bordero_next_coreo_selection', null);
+      const target = selected.find((item) => stored && this.nextCoreoIdsMatch(item.id, stored.id)) || selected[0];
+      this.allBrani.forEach((item) => { item.next_selected = item === target; });
+      return String(target.id);
+    }
+    return selected[0] ? String(selected[0].id) : null;
   }
 
   applyNextSelectionPriority(collection) {
