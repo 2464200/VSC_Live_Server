@@ -10,23 +10,28 @@ const { GoogleAuth } = require('google-auth-library');
 
 const ROOT = path.resolve(__dirname, '..');
 const SHEET_ID = '1SNiw3qc6bZ76duNSxIzxZ2GKHKO8XUpIcl_jZbXs5wY';
-const CONFIG_PATH = path.join(ROOT, '.env');
+const CONFIG_PATHS = [
+  path.join(ROOT, 'Bordero', 'config', '.env'),
+  path.join(ROOT, '.env')
+];
 const OUTPUT_DIR = path.join(ROOT, 'Registro');
 const MANIFEST = '.registro-sync-manifest.json';
 const API_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
 
-let localEnvironment = {};
-try {
-  localEnvironment = dotenv.parse(fs.readFileSync(CONFIG_PATH));
-} catch {
-  // A clear, credential-safe error is raised before any output files are changed.
+const localEnvironment = {};
+for (const configPath of CONFIG_PATHS) {
+  if (!fs.existsSync(configPath)) continue;
+  Object.assign(localEnvironment, dotenv.parse(fs.readFileSync(configPath)));
 }
+Object.assign(localEnvironment, process.env);
+
 if (localEnvironment.GOOGLE_APPLICATION_CREDENTIALS) {
   const configuredPath = localEnvironment.GOOGLE_APPLICATION_CREDENTIALS;
   process.env.GOOGLE_APPLICATION_CREDENTIALS = path.isAbsolute(configuredPath)
     ? configuredPath
     : path.resolve(ROOT, configuredPath);
 }
+const apiKey = localEnvironment.GOOGLE_API_KEY || localEnvironment.GOOGLE_SHEETS_API_KEY;
 
 function columnName(number) {
   let result = '';
@@ -69,31 +74,37 @@ function valuesToCsv(values) {
   return `\uFEFF${lines.join('\r\n')}\r\n`;
 }
 
-async function getApiHeaders() {
+async function getApiAuth() {
   const credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (!credentialPath) {
-    throw new Error('GOOGLE_APPLICATION_CREDENTIALS non configurato nel file .env locale.');
-  }
-  const resolvedCredentialPath = path.isAbsolute(credentialPath)
-    ? credentialPath
-    : path.resolve(ROOT, credentialPath);
-  if (!fs.existsSync(resolvedCredentialPath)) {
-    throw new Error('Il file indicato da GOOGLE_APPLICATION_CREDENTIALS non è disponibile.');
+  if (credentialPath) {
+    if (!fs.existsSync(credentialPath)) {
+      throw new Error('Il file indicato da GOOGLE_APPLICATION_CREDENTIALS non è disponibile.');
+    }
+
+    try {
+      const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'] });
+      const client = await auth.getClient();
+      return { headers: await client.getRequestHeaders() };
+    } catch {
+      throw new Error('Autenticazione Google non riuscita con il service account configurato.');
+    }
   }
 
-  try {
-    const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'] });
-    const client = await auth.getClient();
-    return await client.getRequestHeaders();
-  } catch {
-    throw new Error('Autenticazione Google non riuscita con il service account configurato.');
-  }
+  if (apiKey && apiKey !== 'YOUR_API_KEY_HERE') return { apiKey };
+
+  throw new Error('Credenziali Google mancanti: configura GOOGLE_API_KEY in Bordero/config/.env oppure GOOGLE_APPLICATION_CREDENTIALS nel file .env.');
 }
 
-async function getJson(url, headers, description) {
+async function getJson(url, auth, description) {
+  const requestUrl = new URL(url);
+  if (auth.apiKey) requestUrl.searchParams.set('key', auth.apiKey);
+
   let response;
   try {
-    response = await fetch(url, { headers, signal: AbortSignal.timeout(45000) });
+    response = await fetch(requestUrl, {
+      headers: auth.headers,
+      signal: AbortSignal.timeout(45000)
+    });
   } catch {
     throw new Error(`Connessione a Google Sheets non riuscita durante ${description}.`);
   }
@@ -111,10 +122,10 @@ async function getJson(url, headers, description) {
   }
 }
 
-async function listSheets(headers) {
+async function listSheets(auth) {
   const fields = 'sheets(properties(title,index,gridProperties(rowCount,columnCount)))';
   const url = `${API_URL}?${new URLSearchParams({ fields })}`;
-  const workbook = await getJson(url, headers, 'la lettura dell’elenco delle schede');
+  const workbook = await getJson(url, auth, 'la lettura dell’elenco delle schede');
   const sheets = (workbook.sheets || []).map((item) => item.properties || {})
     .sort((a, b) => (a.index || 0) - (b.index || 0));
   if (!sheets.length) throw new Error('Google Sheets non ha restituito alcuna scheda.');
@@ -129,10 +140,10 @@ function rangeForSheet(sheet) {
   return `'${title}'!A1:${columnName(columns)}${rows}`;
 }
 
-async function fetchSheetValues(sheet, headers) {
+async function fetchSheetValues(sheet, auth) {
   const range = encodeURIComponent(rangeForSheet(sheet));
   const query = new URLSearchParams({ valueRenderOption: 'FORMATTED_VALUE' });
-  const result = await getJson(`${API_URL}/values/${range}?${query}`, headers, `la scheda ${JSON.stringify(sheet.title)}`);
+  const result = await getJson(`${API_URL}/values/${range}?${query}`, auth, `la scheda ${JSON.stringify(sheet.title)}`);
   return result.values || [];
 }
 
@@ -145,8 +156,8 @@ function previousManifest() {
 }
 
 async function syncRegistro() {
-  const headers = await getApiHeaders();
-  const sheets = await listSheets(headers);
+  const auth = await getApiAuth();
+  const sheets = await listSheets(auth);
 
   // Download and prepare every tab before replacing the last valid export.
   const usedNames = new Set();
@@ -154,7 +165,7 @@ async function syncRegistro() {
   for (const sheet of sheets) {
     if (!sheet.title) throw new Error('Google Sheets ha restituito una scheda senza nome.');
     const filename = safeFilename(sheet.title, usedNames);
-    const values = await fetchSheetValues(sheet, headers);
+    const values = await fetchSheetValues(sheet, auth);
     files.set(filename, { contents: valuesToCsv(values), rowCount: Math.max(0, values.length - 1) });
   }
 
