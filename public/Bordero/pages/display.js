@@ -36,6 +36,7 @@ class DisplayMonitor {
     this.lastRenderedSignature = '';
     this.lastDisplayCsvLoadAt = 0;
     this.lastDisplayCsvLoadResult = null;
+    this.hasRequestedBrani = false;
     this.footerRollingHint = 'Parametri rolling: configura da ADMIN';
     this.scrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
     this.lastHandledScrollCommandTs = 0;
@@ -191,6 +192,7 @@ class DisplayMonitor {
 
     const brani = this.buildDisplaySourceBrani(currentSerata);
     this.executedIds = this.buildExecutedIdSet(currentSerata, brani);
+    this.hasRequestedBrani = false;
 
     if (!Array.isArray(brani) || brani.length === 0) {
       this.lastRenderedSignature = '';
@@ -204,6 +206,8 @@ class DisplayMonitor {
       this.showEmptyState('Nessun brano richiesto da visualizzare');
       return;
     }
+
+    this.hasRequestedBrani = true;
 
     const orderedBrani = this.orderRequestedBrani(requestedBrani);
     const annotatedBrani = annotateBraniByTitleVisibility(orderedBrani, {
@@ -891,6 +895,11 @@ class DisplayMonitor {
     const target = document.getElementById('next-coreo');
     if (!target) return;
 
+    if (!this.hasRequestedBrani) {
+      this.clearNextCoreo();
+      return;
+    }
+
     const cloudClient = window.firebaseCloudClient;
     if (cloudClient?.isCloudHost && cloudClient.hasFreshCloudState) {
       const cloudTitle = cloudClient.latestNextCoreo || '--';
@@ -1188,6 +1197,7 @@ class DisplayMonitor {
     const emptyState = document.getElementById('empty-state');
     const emptyMessage = emptyState?.querySelector('p');
 
+    this.clearNextCoreo();
     tbody.innerHTML = '';
     emptyState?.classList.add('show');
     DOMUtils.show(emptyState);
@@ -1202,6 +1212,12 @@ class DisplayMonitor {
     document.getElementById('header-completed').textContent = '0/0';
 
     logger.debug('Nessuna serata in corso');
+  }
+
+  clearNextCoreo() {
+    const target = document.getElementById('next-coreo');
+    if (target) target.textContent = '';
+    this.hideNextCoreoAnnouncement();
   }
 
   /**
