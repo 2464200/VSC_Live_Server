@@ -58,19 +58,23 @@ const SHEETS = [
     mergeSources: [
       {
         name: 'Modulo 8',
-        id: process.env.GOOGLE_SHEET_MODULO8 || process.env.GOOGLE_SHEET_BRANI,
-        range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AQ",
-        gid: process.env.GOOGLE_SHEET_MODULO8_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
-        publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
+        id: process.env.GOOGLE_SHEET_MODULO8?.trim() || '',
+        range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AI",
+        gid: process.env.GOOGLE_SHEET_MODULO8_GID || '1561978718',
+        publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() ||
+          'https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pub?gid=1561978718&single=true&output=csv',
+        preferPublicUrl: true,
         expectedHeaders: ['informazioni cronologiche'],
         allowEmpty: true
       },
       {
         name: 'Modulo 12',
-        id: process.env.GOOGLE_SHEET_MODULO12 || process.env.GOOGLE_SHEET_BRANI,
-        range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AQ",
-        gid: process.env.GOOGLE_SHEET_MODULO12_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
-        publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
+        id: process.env.GOOGLE_SHEET_MODULO12?.trim() || '',
+        range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AI",
+        gid: process.env.GOOGLE_SHEET_MODULO12_GID || '1644446046',
+        publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() ||
+          'https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pub?gid=1644446046&single=true&output=csv',
+        preferPublicUrl: true,
         expectedHeaders: ['informazioni cronologiche'],
         allowEmpty: true
       }
@@ -734,8 +738,18 @@ async function fetchSheetValuesFromSource(source) {
   const sourceGid = source?.gid || '0';
   const sourcePublicUrl = source?.publicUrl;
 
-  if (!sourceId) {
-    throw new Error(`ID mancante per sorgente ${source?.name || 'unknown'}`);
+  if (!sourceId || source?.preferPublicUrl) {
+    if (sourcePublicUrl) {
+      const csvContent = await fetchPublicUrl(sourcePublicUrl);
+      const values = trimValuesToRange(csvToValues(csvContent), sourceRange);
+      if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
+        throw new Error(`Sorgente ${source?.name || 'Google Sheets'}: header inatteso via public URL`);
+      }
+      return values;
+    }
+    if (!sourceId) {
+      throw new Error(`ID mancante per sorgente ${source?.name || 'unknown'}`);
+    }
   }
 
   try {
@@ -839,7 +853,7 @@ async function syncSheet(sheet, dependencies = {}) {
       if (sheet.baseSource && sheet.richiesteOutput) {
         console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteDiagnostics.matchRange})`);
       }
-      console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AQ]`);
+      console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AI]`);
       return { success: true, rows: mergedRows, file: filePath, richiesteDiagnostics };
     }
 

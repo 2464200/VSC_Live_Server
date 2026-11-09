@@ -5,6 +5,21 @@ const os = require('node:os');
 const path = require('node:path');
 const { mergeSourceTables, syncSheet, SHEETS } = require('../Bordero/server/google-sheets-sync');
 
+test('Modulo 8+12 reads the published Modulo 8 and the separate Modulo 12 sheet ranges', () => {
+  const sheet = SHEETS.find((item) => item.name === 'Accoda 8+12');
+  const modulo8 = sheet.mergeSources.find((source) => source.name === 'Modulo 8');
+  const modulo12 = sheet.mergeSources.find((source) => source.name === 'Modulo 12');
+
+  assert.equal(modulo8.range, "'Risposte del modulo 8'!A:AI");
+  assert.equal(modulo8.gid, '1561978718');
+  assert.equal(modulo8.preferPublicUrl, true);
+  assert.match(modulo8.publicUrl, /2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/);
+  assert.equal(modulo12.range, "'Risposte del modulo 12'!A:AI");
+  assert.equal(modulo12.gid, '1644446046');
+  assert.equal(modulo12.preferPublicUrl, true);
+  assert.match(modulo12.publicUrl, /2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG\/pub\?gid=1644446046/);
+});
+
 test('merge keeps values under later duplicate response headers', () => {
   const header = Array(43).fill('');
   header[0] = 'Informazioni cronologiche';

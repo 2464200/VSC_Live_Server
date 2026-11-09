@@ -102,6 +102,17 @@ L'applicazione consente ai DJ di:
 - Offline mode con fallback su CSV/cache
 - Percorso consigliato file Excel: `C:\VSC_Live_Server\Excel\`
 
+#### Sorgenti del CSV “Modulo 8+12”
+
+Il file `Bordero/data/Accoda 8+12.csv` combina due schede dello stesso foglio pubblicato, leggendo le colonne `A:AI`:
+
+- **Modulo 8:** [foglio risposte pubblicato](https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pubhtml?gid=1561978718&single=true), `gid=1561978718`.
+- **Modulo 12:** [stesso foglio pubblicato](https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pubhtml?gid=1644446046&single=true), `gid=1644446046`.
+
+Per entrambe le schede il sync usa l'export CSV pubblico, non l'ID del link privato `/edit`.
+
+Il merge mantiene le regole esistenti: intestazione comune scelta tra quelle più lunghe, allineamento per nome colonna e occorrenza per intestazioni duplicate, righe del Modulo 8 prima di quelle del Modulo 12, senza ordinamento o deduplicazione. Le righe vuote e quelle con solo timestamp/nome vengono escluse. Entrambe le sorgenti devono avere l'intestazione `Informazioni cronologiche`; schede con la sola intestazione sono ammesse, mentre sorgenti senza intestazioni valide non sovrascrivono gli ultimi CSV validi. La copia pubblica è `public/Bordero/data/Accoda 8+12.csv` e si aggiorna con `npm run sync:public`.
+
 ### Pubblicazione live su Firebase
 
 La configurazione degli account, l'accesso Google e il deploy Hosting sono descritti in [FIREBASE_DEPLOYMENT.md](FIREBASE_DEPLOYMENT.md).
