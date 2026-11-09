@@ -114,5 +114,8 @@ Risultato:
 - [Google Sheets API Docs](https://developers.google.com/sheets/api/guides/values/read)
 - [API Key Setup](https://cloud.google.com/docs/authentication/api-keys)
 
+## Verifica esito import
 
+La sincronizzazione Bordero considera riuscita una sorgente solo se contiene almeno una riga di dati oltre alle intestazioni. Se Google restituisce un foglio vuoto o con sole intestazioni, l'import viene segnalato come fallito e gli ultimi CSV validi vengono mantenuti. Verificare che le schede "Risposte del modulo 8" e "Risposte del modulo 12" contengano le risposte attese; il pannello Admin mostra il dettaglio della sorgente senza righe.
 
+Anche l'esportazione del Registro (`scripts/sync-registro-sheets.js`) annulla l'intero aggiornamento se una scheda non contiene righe dati, così gli ultimi CSV esportati restano disponibili invece di essere sostituiti da file vuoti.

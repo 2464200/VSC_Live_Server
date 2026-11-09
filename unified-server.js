@@ -642,9 +642,14 @@ async function runBorderoGoogleSync(trigger = 'manual') {
             const doneAt = new Date().toISOString();
             borderoGoogleSyncState.lastCompletedAt = doneAt;
             borderoGoogleSyncState.lastSummary = summary;
-            borderoGoogleSyncState.lastError = '';
             if (summary?.success) {
+                borderoGoogleSyncState.lastError = '';
                 borderoGoogleSyncState.lastSuccessAt = doneAt;
+            } else {
+                const failures = (summary?.results || [])
+                    .filter((result) => !result.success)
+                    .map((result) => `${result.sheet || 'Google Sheets'}: ${result.error || 'sync non completato'}`);
+                borderoGoogleSyncState.lastError = failures.join('; ') || 'Google Sheets sync non completato';
             }
             return summary;
         })
@@ -3721,7 +3726,12 @@ async function handleBorderoSyncGoogle(req, res) {
         if (summary?.success) {
             return res.json({ ok: true, summary, state: borderoGoogleSyncState });
         }
-        return res.status(500).json({ ok: false, summary, state: borderoGoogleSyncState });
+        return res.status(500).json({
+            ok: false,
+            error: borderoGoogleSyncState.lastError,
+            summary,
+            state: borderoGoogleSyncState
+        });
     } catch (error) {
         return res.status(500).json({ ok: false, error: error?.message || String(error), state: borderoGoogleSyncState });
     }

@@ -147,17 +147,27 @@ async function fetchSheetValues(sheet, auth) {
   return result.values || [];
 }
 
-function previousManifest() {
+function previousManifest(outputDir = OUTPUT_DIR) {
   try {
-    return JSON.parse(fs.readFileSync(path.join(OUTPUT_DIR, MANIFEST), 'utf8')).files || [];
+    return JSON.parse(fs.readFileSync(path.join(outputDir, MANIFEST), 'utf8')).files || [];
   } catch {
     return [];
   }
 }
 
-async function syncRegistro() {
-  const auth = await getApiAuth();
-  const sheets = await listSheets(auth);
+function hasDataRows(values) {
+  return Array.isArray(values) && values.slice(1).some((row) =>
+    Array.isArray(row) && row.some((cell) => String(cell ?? '').trim() !== '')
+  );
+}
+
+async function syncRegistro(dependencies = {}) {
+  const outputDir = dependencies.outputDir || OUTPUT_DIR;
+  const resolveAuth = dependencies.getApiAuth || getApiAuth;
+  const resolveSheets = dependencies.listSheets || listSheets;
+  const resolveValues = dependencies.fetchSheetValues || fetchSheetValues;
+  const auth = await resolveAuth();
+  const sheets = await resolveSheets(auth);
 
   // Download and prepare every tab before replacing the last valid export.
   const usedNames = new Set();
@@ -165,13 +175,16 @@ async function syncRegistro() {
   for (const sheet of sheets) {
     if (!sheet.title) throw new Error('Google Sheets ha restituito una scheda senza nome.');
     const filename = safeFilename(sheet.title, usedNames);
-    const values = await fetchSheetValues(sheet, auth);
+    const values = await resolveValues(sheet, auth);
+    if (!hasDataRows(values)) {
+      throw new Error(`La scheda "${sheet.title}" non contiene righe dati; sincronizzazione annullata e snapshot precedenti mantenuti.`);
+    }
     files.set(filename, { contents: valuesToCsv(values), rowCount: Math.max(0, values.length - 1) });
   }
 
-  const oldFiles = previousManifest();
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  const staging = fs.mkdtempSync(path.join(OUTPUT_DIR, '.registro-sync-'));
+  const oldFiles = previousManifest(outputDir);
+  fs.mkdirSync(outputDir, { recursive: true });
+  const staging = fs.mkdtempSync(path.join(outputDir, '.registro-sync-'));
   try {
     for (const [filename, file] of files) {
       fs.writeFileSync(path.join(staging, filename), file.contents, 'utf8');
@@ -179,16 +192,16 @@ async function syncRegistro() {
     fs.writeFileSync(path.join(staging, MANIFEST), `${JSON.stringify({ source: SHEET_ID, files: [...files.keys()].sort() }, null, 2)}\n`, 'utf8');
 
     for (const filename of files.keys()) {
-      fs.renameSync(path.join(staging, filename), path.join(OUTPUT_DIR, filename));
+      fs.renameSync(path.join(staging, filename), path.join(outputDir, filename));
     }
-    fs.renameSync(path.join(staging, MANIFEST), path.join(OUTPUT_DIR, MANIFEST));
+    fs.renameSync(path.join(staging, MANIFEST), path.join(outputDir, MANIFEST));
   } finally {
     fs.rmSync(staging, { recursive: true, force: true });
   }
 
   for (const filename of oldFiles) {
     if (!files.has(filename) && path.basename(filename) === filename && filename.toLowerCase().endsWith('.csv')) {
-      fs.rmSync(path.join(OUTPUT_DIR, filename), { force: true });
+      fs.rmSync(path.join(outputDir, filename), { force: true });
     }
   }
 
@@ -205,4 +218,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { safeFilename, valuesToCsv, syncRegistro };
+module.exports = { safeFilename, valuesToCsv, hasDataRows, syncRegistro };

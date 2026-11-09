@@ -111,6 +111,79 @@ function valuesToCSV(values) {
   return values.map(row => row.map(escapeCSV).join(',')).join('\n');
 }
 
+function hasDataRows(values) {
+  return Array.isArray(values) && values.slice(1).some((row) =>
+    Array.isArray(row) && row.some((cell) => String(cell ?? '').trim() !== '')
+  );
+}
+
+function writeCsvFilesSafely(files) {
+  const token = `${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const prepared = files.map(({ filePath, csvContent }) => {
+    const normalized = String(csvContent || '').trim();
+    if (!normalized) {
+      throw new Error(`CSV vuoto per ${path.basename(filePath)}`);
+    }
+
+    return {
+      filePath,
+      temporaryPath: `${filePath}.${token}.tmp`,
+      backupPath: `${filePath}.${token}.bak`,
+      contents: `${normalized}\n`,
+      backedUp: false,
+      installed: false
+    };
+  });
+
+  try {
+    for (const file of prepared) {
+      fs.writeFileSync(file.temporaryPath, file.contents, 'utf8');
+    }
+    for (const file of prepared) {
+      if (fs.existsSync(file.filePath)) {
+        fs.renameSync(file.filePath, file.backupPath);
+        file.backedUp = true;
+      }
+    }
+    for (const file of prepared) {
+      fs.renameSync(file.temporaryPath, file.filePath);
+      file.installed = true;
+    }
+  } catch (error) {
+    const rollbackErrors = [];
+    for (const file of [...prepared].reverse()) {
+      try {
+        if (file.installed) fs.rmSync(file.filePath, { force: true });
+        if (file.backedUp && fs.existsSync(file.backupPath)) {
+          fs.renameSync(file.backupPath, file.filePath);
+        }
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+      try {
+        fs.rmSync(file.temporaryPath, { force: true });
+      } catch (cleanupError) {
+        rollbackErrors.push(cleanupError);
+      }
+    }
+    if (rollbackErrors.length) {
+      throw new AggregateError([error, ...rollbackErrors], 'Scrittura CSV fallita e rollback incompleto.');
+    }
+    throw error;
+  }
+
+  for (const file of prepared) {
+    if (!file.backedUp) continue;
+    try {
+      fs.rmSync(file.backupPath, { force: true });
+    } catch (error) {
+      console.warn(`   ⚠️ Backup CSV non eliminato (${path.basename(file.backupPath)}): ${error.message}`);
+    }
+  }
+
+  return { success: true };
+}
+
 function writeCsvSafely(filePath, csvContent) {
   const normalized = String(csvContent || '').trim();
   if (!normalized) {
@@ -121,7 +194,7 @@ function writeCsvSafely(filePath, csvContent) {
     throw new Error(`CSV vuoto per ${path.basename(filePath)}`);
   }
 
-  fs.writeFileSync(filePath, normalized + '\n', 'utf8');
+  writeCsvFilesSafely([{ filePath, csvContent: normalized }]);
   return { success: true, preserved: false, filePath };
 }
 
@@ -437,6 +510,13 @@ function sourceMatchesExpectedHeaders(values, expectedHeaders = []) {
   return expectedHeaders.every((token) => normalizedHeader.includes(normalizeHeaderValue(token)));
 }
 
+function requireDataRows(values, sourceName) {
+  if (!hasDataRows(values)) {
+    throw new Error(`Sorgente ${sourceName} senza righe dati: mantengo l’ultima sincronizzazione valida.`);
+  }
+  return values;
+}
+
 function countTestResponseRows(responseValues) {
   if (!Array.isArray(responseValues) || responseValues.length < 2) {
     return 0;
@@ -657,7 +737,7 @@ async function fetchSheetValuesFromSource(source) {
     if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
       throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via API (possibile foglio errato)`);
     }
-    return trimValuesToRange(values, sourceRange);
+    return requireDataRows(trimValuesToRange(values, sourceRange), source?.name || sourceId);
   } catch (apiError) {
     try {
       const csvContent = await fetchCSVExport(sourceId, sourceGid);
@@ -665,7 +745,7 @@ async function fetchSheetValuesFromSource(source) {
       if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
         throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via CSV export (gid/range non coerenti)`);
       }
-      return values;
+      return requireDataRows(values, source?.name || sourceId);
     } catch (fallbackError) {
       if (sourcePublicUrl) {
         const csvContent = await fetchPublicUrl(sourcePublicUrl);
@@ -673,14 +753,18 @@ async function fetchSheetValuesFromSource(source) {
         if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
           throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via public URL`);
         }
-        return values;
+        return requireDataRows(values, source?.name || sourceId);
       }
-      throw new Error(`Sorgente ${source?.name || sourceId} non raggiungibile: ${fallbackError.message || apiError.message}`);
+      throw new Error(`Sorgente ${source?.name || sourceId} non valida o non raggiungibile: ${fallbackError.message || apiError.message}`);
     }
   }
 }
 
-async function syncSheet(sheet) {
+async function syncSheet(sheet, dependencies = {}) {
+  const fetchSource = dependencies.fetchSheetValuesFromSource || fetchSheetValuesFromSource;
+  const fetchById = dependencies.fetchSheetData || fetchSheetData;
+  const outputDirectory = dependencies.outputDir || OUTPUT_DIR;
+  const writeFiles = dependencies.writeCsvFilesSafely || writeCsvFilesSafely;
   console.log(`\n📋 Scaricando ${sheet.name}...`);
 
   try {
@@ -689,76 +773,69 @@ async function syncSheet(sheet) {
       const sourceTables = [];
 
       for (const source of sheet.mergeSources) {
-        const values = await fetchSheetValuesFromSource(source);
+        const values = await fetchSource(source);
         sourceTables.push({ source, values });
       }
 
       const mergedValues = mergeSourceTables(sourceTables);
-      if (!mergedValues || mergedValues.length === 0) {
-        console.log('   ⚠️  Merge vuoto');
-        return { success: false, error: 'Merge vuoto' };
+      if (!hasDataRows(mergedValues)) {
+        return {
+          success: false,
+          rows: 0,
+          error: 'Le sorgenti Google non contengono righe dati; i CSV precedenti sono stati mantenuti.'
+        };
       }
 
       const outputValues = mergedValues;
-
       const csv = valuesToCSV(outputValues);
-      const filePath = path.join(OUTPUT_DIR, sheet.output);
-      const writeResult = writeCsvSafely(filePath, csv);
-      if (!writeResult.success) {
-        console.warn(`   ⚠️ Non ho scritto ${sheet.output}; mantengo il file esistente se presente.`);
-        return { success: false, error: 'CSV vuoto o non valido', file: filePath };
-      }
+      const filePath = path.join(outputDirectory, sheet.output);
+      const pendingWrites = [{ filePath, csvContent: csv }];
 
       // Accoda 8+12 deve restare merge grezzo; RICHIESTE viene applicata separatamente su brani.csv.
       if (sheet.baseSource && sheet.richiesteOutput) {
-        try {
-          const richiesteRange = process.env.RICHIESTE_MATCH_RANGE || 'D:AQ';
-          const richiesteAliases = process.env.RICHIESTE_MATCH_ALIASES || '';
-          const dedupePerRow = String(process.env.RICHIESTE_DEDUPE_PER_ROW || 'false').toLowerCase() === 'true';
-          const baseValues = await fetchSheetValuesFromSource(sheet.baseSource);
-          const richiesteCounter = buildRichiesteCounterFromResponses(mergedValues, richiesteRange, {
-            aliases: richiesteAliases,
-            dedupePerRow
-          });
-          const totalResponseRows = Math.max(0, mergedValues.length - 1);
-          const skippedTestRows = countTestResponseRows(mergedValues);
-          const effectiveResponseRows = Math.max(0, totalResponseRows - skippedTestRows);
-          richiesteDiagnostics = {
-            matchRange: richiesteRange,
-            totalResponseRows,
-            skippedTestRows,
-            effectiveResponseRows,
-          };
-          const enrichedBaseValues = enrichBaseWithRichieste(baseValues, richiesteCounter, {
-            aliases: richiesteAliases
-          });
-          const baseCsv = valuesToCSV(enrichedBaseValues);
-          const baseFilePath = path.join(OUTPUT_DIR, sheet.richiesteOutput);
-          const baseWriteResult = writeCsvSafely(baseFilePath, baseCsv);
-          if (!baseWriteResult.success) {
-            console.warn(`   ⚠️ Non ho scritto ${sheet.richiesteOutput}; mantengo il file esistente se presente.`);
-          } else {
-            console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteRange})`);
-          }
-          console.log(`      ℹ️ Righe risposte: ${totalResponseRows}, test escluse: ${skippedTestRows}, effettive: ${effectiveResponseRows}`);
-        } catch (enrichError) {
-          console.warn(`   ⚠️ Impossibile aggiornare ${sheet.richiesteOutput}: ${enrichError.message}`);
+        const richiesteRange = process.env.RICHIESTE_MATCH_RANGE || 'D:AQ';
+        const richiesteAliases = process.env.RICHIESTE_MATCH_ALIASES || '';
+        const dedupePerRow = String(process.env.RICHIESTE_DEDUPE_PER_ROW || 'false').toLowerCase() === 'true';
+        const baseValues = requireDataRows(await fetchSource(sheet.baseSource), sheet.baseSource.name || sheet.richiesteOutput);
+        const baseHeader = baseValues[0].map((name) => normalizeHeaderValue(name));
+        if (!baseHeader.includes('coreografia') || !baseHeader.includes('richieste')) {
+          throw new Error(`Sorgente ${sheet.baseSource.name || sheet.richiesteOutput}: mancano le colonne Coreografia o Richieste.`);
         }
+
+        const richiesteCounter = buildRichiesteCounterFromResponses(mergedValues, richiesteRange, {
+          aliases: richiesteAliases,
+          dedupePerRow
+        });
+        const totalResponseRows = Math.max(0, mergedValues.length - 1);
+        const skippedTestRows = countTestResponseRows(mergedValues);
+        const effectiveResponseRows = Math.max(0, totalResponseRows - skippedTestRows);
+        richiesteDiagnostics = {
+          matchRange: richiesteRange,
+          totalResponseRows,
+          skippedTestRows,
+          effectiveResponseRows,
+        };
+        const enrichedBaseValues = enrichBaseWithRichieste(baseValues, richiesteCounter, {
+          aliases: richiesteAliases
+        });
+        const baseFilePath = path.join(outputDirectory, sheet.richiesteOutput);
+        pendingWrites.push({ filePath: baseFilePath, csvContent: valuesToCSV(enrichedBaseValues) });
+        console.log(`      ℹ️ Righe risposte: ${totalResponseRows}, test escluse: ${skippedTestRows}, effettive: ${effectiveResponseRows}`);
       }
 
+      writeFiles(pendingWrites);
       const mergedRows = Math.max(0, outputValues.length - 1);
+      if (sheet.baseSource && sheet.richiesteOutput) {
+        console.log(`   ✅ ${sheet.richiesteOutput} aggiornato con RICHIESTE (match ${richiesteDiagnostics.matchRange})`);
+      }
       console.log(`   ✅ ${sheet.output} (${mergedRows} righe) [Merge Modulo 8+12 A:AQ]`);
       return { success: true, rows: mergedRows, file: filePath, richiesteDiagnostics };
     }
 
-    const values = await fetchSheetData(sheet.id, sheet.range);
-    if (!values || values.length === 0) {
-      console.log('   ⚠️  Foglio vuoto');
-      return { success: false, error: 'Foglio vuoto' };
-    }
+    const values = requireDataRows(await fetchById(sheet.id, sheet.range), sheet.name);
 
     const csv = valuesToCSV(values);
-    const filePath = path.join(OUTPUT_DIR, sheet.output);
+    const filePath = path.join(outputDirectory, sheet.output);
     const writeResult = writeCsvSafely(filePath, csv);
     if (!writeResult.success) {
       return { success: false, error: 'CSV vuoto o non valido', file: filePath };
@@ -767,10 +844,15 @@ async function syncSheet(sheet) {
     console.log(`   ✅ ${sheet.output} (${values.length} righe) [Google Sheets API]`);
     return { success: true, rows: values.length, file: filePath };
   } catch (apiError) {
+    if (Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0) {
+      console.warn(`   ❌ Sync ${sheet.name} non completato: ${apiError.message}`);
+      return { success: false, error: apiError.message };
+    }
     console.warn(`   ⚠️ API error: ${apiError.message}. Provo fallback CSV export...`);
 
     try {
       const csvContent = await fetchCSVExport(sheet.id, sheet.gid);
+      requireDataRows(csvToValues(csvContent), sheet.name);
       const filePath = path.join(OUTPUT_DIR, sheet.output);
       const writeResult = writeCsvSafely(filePath, csvContent);
       if (!writeResult.success) {
@@ -784,6 +866,7 @@ async function syncSheet(sheet) {
         try {
           console.warn(`   ⚠️ Fallback da URL pubblico: ${sheet.publicUrl}`);
           const csvContent = await fetchPublicUrl(sheet.publicUrl);
+          requireDataRows(csvToValues(csvContent), sheet.name);
           const filePath = path.join(OUTPUT_DIR, sheet.output);
           const writeResult = writeCsvSafely(filePath, csvContent);
           if (!writeResult.success) {

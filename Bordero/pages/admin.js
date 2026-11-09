@@ -1694,8 +1694,12 @@ class AdminPanel {
           }
         }
 
-        if (!response.ok) {
-          throw new Error(result.error || `HTTP ${response.status}`);
+        if (!response.ok || result?.ok === false) {
+          const failedSheets = (result?.summary?.results || [])
+            .filter((sheet) => !sheet.success)
+            .map((sheet) => `${sheet.sheet || 'Google Sheets'}: ${sheet.error || 'sync non completato'}`)
+            .join('; ');
+          throw new Error(result.error || failedSheets || `HTTP ${response.status}`);
         }
 
         const successMessage = result?.summary?.successCount != null
