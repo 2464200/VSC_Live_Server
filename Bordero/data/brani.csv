@@ -3,7 +3,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,002,1540,what the heaven,kyle park,03:29,,ALTRE COREO
 ,,003,16 BARS,16 bars,the southern gothic,03:43,,ALTRE COREO
 ,,004,16 STEPS,crime of the century,shania twain,06:05,,ALTRE COREO,COPPIA,CERCHIO
-,,005,16 TONS,sixteen tons,tennessee ernie ford,02:39,,ALTRE COREO
+,,005,16 TONS,sixteen tons,tennessee ernie ford,02:39,1,ALTRE COREO
 ,,006,19 FOREVER,19 forever,granger smith,03:24,,ALTRE COREO
 ,,007,1929,1929,tara oram,02:58,,ALTRE COREO,,,,Sonia Hemmes,,64 conteggi 4 muri
 ,,008,3 FLICKS,1 2 3,ann tayler,03:04,,AVANZATO 2,,,,David Villelas,Pol F. Ryan David Prestor,64 conteggi 4 muri 3 tag 1 restart
@@ -455,7 +455,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,454,WHAT DO I KNOW,what do i know,ricochet,03:35,,ALTRE COREO,,,,Gianni Hook Valassi
 ,,455,WHEN YOU SMILE,when you smile,rune rudberg,03:24,,ALTRE COREO
 ,,456,WHISKEY WHISKEY,1 2 3 4,alan doyle,03:04,,ALTRE COREO,STAGE
-,,457,WHISKEY WIGGLE,every little thing,carlene carter,03:15,,INTERMEDIO,COPPIA,CERCHIO,,Joyce Warren,,48 conteggi [coppia cerchio]
+,,457,WHISKEY WIGGLE,every little thing,carlene carter,03:15,1,INTERMEDIO,COPPIA,CERCHIO,,Joyce Warren,,48 conteggi [coppia cerchio]
 ,,458,WHITE SOLDIER,when i'm gone,the wild horses,03:08,,INTERMEDIO,,,,Pol F. Ryan,Johnny Rossato,32 conteggi 2 muri (1°tag di 16 counts alla fine del 3 muro) (2°tag di 8 counts alla fine del 7 muro)
 ,,459,WILD AT HEART,wild at heart,gloriana,03:43,,ALTRE COREO
 ,,460,WILD NIGHTS,wild night,martina mcbride,03:07,,INTERMEDIO,,,,Dan Albro,,64 conteggi 4 muri
