@@ -68,6 +68,12 @@ function loadElectronMainFor(tempDir) {
               this.options = options;
               this.events = {};
               this.boundsCalls = [];
+              this.bounds = {
+                x: options.x || 0,
+                y: options.y || 0,
+                width: options.width || 0,
+                height: options.height || 0
+              };
               this.fullscreenCalls = [];
               this.fullScreen = Boolean(options.fullscreen);
               let currentUrl = options.url || '';
@@ -97,8 +103,10 @@ function loadElectronMainFor(tempDir) {
             setAlwaysOnTop() {}
             setFullScreen(value) { this.fullScreen = value; this.fullscreenCalls.push(value); }
             isFullScreen() { return this.fullScreen; }
-            setBounds(bounds) { this.boundsCalls.push(bounds); }
+            getBounds() { return this.bounds; }
+            setBounds(bounds) { this.bounds = bounds; this.boundsCalls.push(bounds); }
             show() { this.visible = true; }
+            hide() { this.visible = false; }
             focus() { this.focused = true; }
             on(event, callback) { this.events[event] = callback; }
             once(_event, callback) { if (_event === 'closed') this.onClosed = callback; }
@@ -473,6 +481,73 @@ test('ensureWindows recreates a missing secondary window when primary already ex
     secondary.setFullScreen(false);
     secondary.events['leave-full-screen']();
     assert.equal(secondary.fullScreen, true, 'secondary monitor window should return to fullscreen after leaving it');
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('fullscreen windows move when their current bounds do not match the assigned monitor', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-fullscreen-monitor-bounds');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows } = loadElectronMainFor(tempDir);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    await vm.runInContext('ensureWindows();', sandbox);
+
+    const secondary = createdWindows.find((window) => window.options.kiosk);
+    assert.ok(secondary, 'secondary monitor window should exist');
+    secondary.bounds = { x: 0, y: 0, width: 1920, height: 1080 };
+    const fullscreenCallsBefore = secondary.fullscreenCalls.length;
+
+    vm.runInContext('applyWindowLayout();', sandbox);
+
+    assert.deepEqual(secondary.fullscreenCalls.slice(fullscreenCallsBefore), [false, true, true]);
+    assert.equal(secondary.bounds.x, 1920);
+    assert.equal(secondary.bounds.width, 1920);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('a missing secondary display does not cover the primary and is restored when detected', async () => {
+  const tempDir = path.join(__dirname, '..', '.tmp-electron-missing-secondary-display');
+  fs.rmSync(tempDir, { recursive: true, force: true });
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    const { sandbox, createdWindows, setDisplays } = loadElectronMainFor(tempDir);
+    setDisplays([
+      { id: 1, isPrimary: true, bounds: { x: 0, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 }
+    ]);
+    sandbox.ensureUnifiedServer = async () => {};
+    sandbox.ensurePrimaryMonitorSelectionPreference = async () => ({
+      swapPrimarySecondary: false,
+      autoConfigureDisplay: true,
+      dpiAutoScale: true,
+    });
+
+    await vm.runInContext('ensureWindows();', sandbox);
+    assert.equal(createdWindows.filter((window) => window.options.kiosk).length, 0);
+    assert.equal(await vm.runInContext('ensureSecondaryDisplayPage();', sandbox), false);
+    assert.equal(await vm.runInContext('loadInTemporarySecondaryWindow("http://localhost:5500/Bordero/pages/display.html");', sandbox), false);
+
+    setDisplays([
+      { id: 1, isPrimary: true, bounds: { x: 0, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
+      { id: 2, isPrimary: false, bounds: { x: 1920, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 }
+    ]);
+    await vm.runInContext('ensureWindows();', sandbox);
+
+    const secondary = createdWindows.find((window) => window.options.kiosk);
+    assert.ok(secondary, 'secondary window should be created when a second display appears');
+    assert.equal(secondary.bounds.x, 1920);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }

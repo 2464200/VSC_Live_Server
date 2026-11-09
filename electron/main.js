@@ -33,6 +33,7 @@ let ensureUnifiedServerPromise = null;
 let currentSwapMonitors = false;
 let currentAutoConfigureDisplay = true;
 let currentDpiAutoScale = true;
+let lastSecondaryDisplayAvailability = null;
 let monitorPreferenceWatcher = null;
 let isProgrammaticPrimaryLoad = false;
 let isProgrammaticSecondaryLoad = false;
@@ -391,6 +392,12 @@ function applyWindowLayout({ relocateFullscreenWindows = false } = {}) {
   const targets = resolveDisplayTargetsForWindows(displays, {
     swapPrimarySecondary: currentSwapMonitors
   });
+  const hasSecondaryDisplay = Boolean(
+    targets.mainDisplay
+    && targets.monitorDisplay
+    && targets.mainDisplay.id !== targets.monitorDisplay.id
+  );
+  const secondaryDisplayBecameAvailable = hasSecondaryDisplay && lastSecondaryDisplayAvailability === false;
 
   const primaryLayout = currentAutoConfigureDisplay
     ? buildDisplayLayoutConfig(targets.mainDisplay, { width: 1400, height: 900, fullscreen: true })
@@ -405,22 +412,29 @@ function applyWindowLayout({ relocateFullscreenWindows = false } = {}) {
     }
 
     try {
-      // Electron ignores bounds changes for windows that are already fullscreen.
-      // Leave fullscreen briefly when the monitor assignment changes, then enter
-      // fullscreen again on the newly selected display.
       const wasFullscreen = win.isFullScreen();
-      if (relocateFullscreenWindows && wasFullscreen) {
-        win.setFullScreen(false);
-      }
-
-      win.setBounds({
+      const bounds = {
         x: layout.x,
         y: layout.y,
         width: layout.width,
         height: layout.height
-      });
+      };
+      const currentBounds = typeof win.getBounds === 'function' ? win.getBounds() : null;
+      const boundsChanged = currentBounds && (
+        currentBounds.x !== bounds.x
+        || currentBounds.y !== bounds.y
+        || currentBounds.width !== bounds.width
+        || currentBounds.height !== bounds.height
+      );
+      const restoreFullscreen = wasFullscreen && (relocateFullscreenWindows || boundsChanged);
 
-      if (relocateFullscreenWindows && wasFullscreen) {
+      if (restoreFullscreen) {
+        win.setFullScreen(false);
+      }
+
+      win.setBounds(bounds);
+
+      if (restoreFullscreen) {
         win.setFullScreen(true);
       }
     } catch (error) {
@@ -444,17 +458,26 @@ function applyWindowLayout({ relocateFullscreenWindows = false } = {}) {
     applyLayout(primaryWindow, primaryLayout);
   }
 
-  if (secondaryWindow && !secondaryWindow.isDestroyed()) {
-    applyLayout(secondaryWindow, secondaryLayout);
+  const secondaryWindows = [secondaryWindow, videoPlayerWindow, temporarySecondaryWindow]
+    .filter((win) => win && !win.isDestroyed());
+  if (hasSecondaryDisplay) {
+    secondaryWindows.forEach((win) => applyLayout(win, secondaryLayout));
+    if (secondaryDisplayBecameAvailable) {
+      if (!displayManuallyClosed && secondaryWindow && !secondaryWindow.isDestroyed()) {
+        secondaryWindow.show();
+      }
+      [videoPlayerWindow, temporarySecondaryWindow]
+        .filter((win) => win && !win.isDestroyed())
+        .forEach((win) => win.show());
+    }
+  } else {
+    if (lastSecondaryDisplayAvailability !== false) {
+      console.warn('Electron did not detect a secondary display; keeping secondary windows hidden.');
+    }
+    secondaryWindows.forEach((win) => win.hide());
   }
 
-  if (videoPlayerWindow && !videoPlayerWindow.isDestroyed()) {
-    applyLayout(videoPlayerWindow, secondaryLayout);
-  }
-
-  if (temporarySecondaryWindow && !temporarySecondaryWindow.isDestroyed()) {
-    applyLayout(temporarySecondaryWindow, secondaryLayout);
-  }
+  lastSecondaryDisplayAvailability = hasSecondaryDisplay;
 }
 
 function buildMonitorPreferencesPayload(preferences = {}, defaults = {}) {
@@ -795,6 +818,17 @@ function getPrimaryDefaultUrl() {
   return `http://localhost:5500${PRIMARY_DEFAULT_PAGE_PATH}`;
 }
 
+function hasDistinctSecondaryDisplay() {
+  const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
+    swapPrimarySecondary: currentSwapMonitors
+  });
+  return Boolean(
+    targets.mainDisplay
+    && targets.monitorDisplay
+    && targets.mainDisplay.id !== targets.monitorDisplay.id
+  );
+}
+
 async function loadInPrimaryWindow(url) {
   if (!primaryWindow || primaryWindow.isDestroyed()) {
     await ensureWindows();
@@ -828,7 +862,11 @@ async function loadInSecondaryWindow(url) {
     await ensureWindows();
   }
 
-  if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+  if (
+    !secondaryWindow
+    || secondaryWindow.isDestroyed()
+    || !hasDistinctSecondaryDisplay()
+  ) {
     return false;
   }
 
@@ -866,6 +904,11 @@ async function closeTemporarySecondaryWindow() {
   temporarySecondaryWindow = null;
 
   if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return;
+  }
+
+  if (!hasDistinctSecondaryDisplay()) {
+    secondaryWindow.hide();
     return;
   }
 
@@ -916,6 +959,9 @@ function isPersistentSecondaryPageUrl(candidateUrl) {
 
 async function loadInTemporarySecondaryWindow(url) {
   await ensureSecondaryDisplayPage();
+  if (!hasDistinctSecondaryDisplay()) {
+    return false;
+  }
 
   if (!temporarySecondaryWindow || temporarySecondaryWindow.isDestroyed()) {
     const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
@@ -970,6 +1016,11 @@ async function ensureSecondaryDisplayPage() {
   }
 
   if (!secondaryWindow || secondaryWindow.isDestroyed()) {
+    return false;
+  }
+
+  if (!hasDistinctSecondaryDisplay()) {
+    secondaryWindow.hide();
     return false;
   }
 
@@ -1282,6 +1333,9 @@ async function ensureVideoPlayerWindow(payload = {}) {
     await closeTemporarySecondaryWindow();
   }
   await ensureSecondaryDisplayPage();
+  if (!hasDistinctSecondaryDisplay()) {
+    throw new Error('Second monitor not available');
+  }
 
   if (!videoPlayerWindow || videoPlayerWindow.isDestroyed()) {
     videoPlayerWindow = createVideoPlayerWindow();
@@ -1880,6 +1934,11 @@ async function ensureWindows() {
   const targets = resolveDisplayTargetsForWindows(displays, {
     swapPrimarySecondary: currentSwapMonitors
   });
+  const hasSecondaryDisplay = Boolean(
+    targets.mainDisplay
+    && targets.monitorDisplay
+    && targets.mainDisplay.id !== targets.monitorDisplay.id
+  );
 
   if (!primaryWindow || primaryWindow.isDestroyed()) {
     const primaryLayout = buildDisplayLayoutConfig(targets.mainDisplay, { width: 1400, height: 900, fullscreen: true });
@@ -1907,7 +1966,7 @@ async function ensureWindows() {
     });
   }
 
-  if ((!secondaryWindow || secondaryWindow.isDestroyed()) && !displayManuallyClosed) {
+  if (hasSecondaryDisplay && (!secondaryWindow || secondaryWindow.isDestroyed()) && !displayManuallyClosed) {
     const secondaryLayout = buildDisplayLayoutConfig(targets.monitorDisplay, { width: 1280, height: 720, fullscreen: true });
 
     secondaryWindow = createWindow(config.secondaryUrl, {
@@ -1943,6 +2002,25 @@ function handleDisplayChange(_event, _display, changedMetrics) {
       && !changedMetrics.some((metric) => ['bounds', 'scaleFactor', 'rotation'].includes(metric))) {
     return;
   }
+
+  const targets = resolveDisplayTargetsForWindows(screen.getAllDisplays(), {
+    swapPrimarySecondary: currentSwapMonitors
+  });
+  const hasSecondaryDisplay = Boolean(
+    targets.mainDisplay
+    && targets.monitorDisplay
+    && targets.mainDisplay.id !== targets.monitorDisplay.id
+  );
+  const needsWindowCreation = !primaryWindow
+    || primaryWindow.isDestroyed()
+    || (hasSecondaryDisplay && (!secondaryWindow || secondaryWindow.isDestroyed()) && !displayManuallyClosed);
+
+  if (needsWindowCreation) {
+    return ensureWindows().catch((error) => {
+      console.error('Failed to update windows after a display change:', error);
+    });
+  }
+
   applyWindowLayout({ relocateFullscreenWindows: true });
 }
 
