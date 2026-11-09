@@ -9,14 +9,12 @@ const dotenv = require('dotenv');
 const { GoogleAuth } = require('google-auth-library');
 
 const ROOT = path.resolve(__dirname, '..');
-const SHEET_ID = '1SNiw3qc6bZ76duNSxIzxZ2GKHKO8XUpIcl_jZbXs5wY';
 const CONFIG_PATHS = [
   path.join(ROOT, 'Bordero', 'config', '.env'),
   path.join(ROOT, '.env')
 ];
 const OUTPUT_DIR = path.join(ROOT, 'Registro');
 const MANIFEST = '.registro-sync-manifest.json';
-const API_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
 
 const localEnvironment = {};
 for (const configPath of CONFIG_PATHS) {
@@ -24,6 +22,9 @@ for (const configPath of CONFIG_PATHS) {
   Object.assign(localEnvironment, dotenv.parse(fs.readFileSync(configPath)));
 }
 Object.assign(localEnvironment, process.env);
+
+const SHEET_ID = localEnvironment.REGISTRO_GOOGLE_SHEET_ID || '1SNiw3qc6bZ76duNSxIzxZ2GKHKO8XUpIcl_jZbXs5wY';
+const API_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
 
 if (localEnvironment.GOOGLE_APPLICATION_CREDENTIALS) {
   const configuredPath = localEnvironment.GOOGLE_APPLICATION_CREDENTIALS;
@@ -209,6 +210,13 @@ async function syncRegistro(dependencies = {}) {
   for (const [filename, file] of files) {
     console.log(`  ${filename}: ${file.rowCount} righe`);
   }
+  return {
+    success: true,
+    source: SHEET_ID,
+    files: [...files].map(([filename, file]) => ({ filename, rows: file.rowCount })),
+    fileCount: files.size,
+    totalRows: [...files.values()].reduce((total, file) => total + file.rowCount, 0)
+  };
 }
 
 if (require.main === module) {

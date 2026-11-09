@@ -116,6 +116,12 @@ Risultato:
 
 ## Verifica esito import
 
-La sincronizzazione Bordero considera riuscita una sorgente solo se contiene almeno una riga di dati oltre alle intestazioni. Se Google restituisce un foglio vuoto o con sole intestazioni, l'import viene segnalato come fallito e gli ultimi CSV validi vengono mantenuti. Verificare che le schede "Risposte del modulo 8" e "Risposte del modulo 12" contengano le risposte attese; il pannello Admin mostra il dettaglio della sorgente senza righe.
+Le schede "Risposte del modulo 8" e "Risposte del modulo 12" possono anche contenere solo le intestazioni. In questo caso il sync è valido: il CSV Accoda contiene le sole intestazioni e il conteggio delle richieste in `brani.csv` viene azzerato secondo le regole esistenti. Se mancano le intestazioni o non corrispondono a quelle attese, l'import fallisce e gli ultimi CSV validi vengono mantenuti.
 
 Anche l'esportazione del Registro (`scripts/sync-registro-sheets.js`) annulla l'intero aggiornamento se una scheda non contiene righe dati, così gli ultimi CSV esportati restano disponibili invece di essere sostituiti da file vuoti.
+
+## Sync automatico nel server unificato
+
+Il server unificato aggiorna Bordero all'avvio e ogni minuto; importa inoltre tutte le schede del Registro Coreografie all'avvio e ogni ora. Entrambi gli aggiornamenti sono disponibili con un solo comando dal pannello Admin o tramite `POST /api/google-sheets/sync`; lo stato e gli eventuali errori sono esposti da `GET /api/google-sheets/sync/status`.
+
+L'ID del Registro predefinito è `1SNiw3qc6bZ76duNSxIzxZ2GKHKO8XUpIcl_jZbXs5wY` e può essere sostituito con `REGISTRO_GOOGLE_SHEET_ID` in `Bordero/config/.env`. Per disabilitare uno scheduler impostare `BORDERO_GOOGLE_SYNC_ENABLED=false` o `REGISTRO_GOOGLE_SYNC_ENABLED=false`. I CSV del Registro sono salvati nella cartella locale `Registro/`; non viene eseguito alcun deploy Firebase automatico.

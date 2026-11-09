@@ -62,7 +62,8 @@ const SHEETS = [
         range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AQ",
         gid: process.env.GOOGLE_SHEET_MODULO8_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
         publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
-        expectedHeaders: ['informazioni cronologiche']
+        expectedHeaders: ['informazioni cronologiche'],
+        allowEmpty: true
       },
       {
         name: 'Modulo 12',
@@ -70,7 +71,8 @@ const SHEETS = [
         range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AQ",
         gid: process.env.GOOGLE_SHEET_MODULO12_GID || process.env.GOOGLE_SHEET_BRANI_GID || '0',
         publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() || process.env.GOOGLE_SHEET_BRANI_PUBLIC_URL?.trim(),
-        expectedHeaders: ['informazioni cronologiche']
+        expectedHeaders: ['informazioni cronologiche'],
+        allowEmpty: true
       }
     ]
   },
@@ -510,8 +512,12 @@ function sourceMatchesExpectedHeaders(values, expectedHeaders = []) {
   return expectedHeaders.every((token) => normalizedHeader.includes(normalizeHeaderValue(token)));
 }
 
-function requireDataRows(values, sourceName) {
+function requireDataRows(values, sourceName, allowEmpty = false) {
   if (!hasDataRows(values)) {
+    if (allowEmpty && Array.isArray(values) && Array.isArray(values[0]) &&
+        values[0].some((cell) => String(cell ?? '').trim() !== '')) {
+      return values;
+    }
     throw new Error(`Sorgente ${sourceName} senza righe dati: mantengo l’ultima sincronizzazione valida.`);
   }
   return values;
@@ -737,7 +743,7 @@ async function fetchSheetValuesFromSource(source) {
     if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
       throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via API (possibile foglio errato)`);
     }
-    return requireDataRows(trimValuesToRange(values, sourceRange), source?.name || sourceId);
+    return trimValuesToRange(values, sourceRange);
   } catch (apiError) {
     try {
       const csvContent = await fetchCSVExport(sourceId, sourceGid);
@@ -745,7 +751,7 @@ async function fetchSheetValuesFromSource(source) {
       if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
         throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via CSV export (gid/range non coerenti)`);
       }
-      return requireDataRows(values, source?.name || sourceId);
+      return values;
     } catch (fallbackError) {
       if (sourcePublicUrl) {
         const csvContent = await fetchPublicUrl(sourcePublicUrl);
@@ -753,7 +759,7 @@ async function fetchSheetValuesFromSource(source) {
         if (!sourceMatchesExpectedHeaders(values, source.expectedHeaders)) {
           throw new Error(`Sorgente ${source?.name || sourceId}: header inatteso via public URL`);
         }
-        return requireDataRows(values, source?.name || sourceId);
+        return values;
       }
       throw new Error(`Sorgente ${source?.name || sourceId} non valida o non raggiungibile: ${fallbackError.message || apiError.message}`);
     }
@@ -773,16 +779,21 @@ async function syncSheet(sheet, dependencies = {}) {
       const sourceTables = [];
 
       for (const source of sheet.mergeSources) {
-        const values = await fetchSource(source);
+        const values = requireDataRows(
+          await fetchSource(source),
+          source.name || 'Google Sheets',
+          source.allowEmpty
+        );
         sourceTables.push({ source, values });
       }
 
       const mergedValues = mergeSourceTables(sourceTables);
-      if (!hasDataRows(mergedValues)) {
+      if (!Array.isArray(mergedValues[0]) ||
+          !mergedValues[0].some((cell) => String(cell ?? '').trim() !== '')) {
         return {
           success: false,
           rows: 0,
-          error: 'Le sorgenti Google non contengono righe dati; i CSV precedenti sono stati mantenuti.'
+          error: 'Le sorgenti Google non contengono intestazioni valide; i CSV precedenti sono stati mantenuti.'
         };
       }
 
@@ -846,7 +857,7 @@ async function syncSheet(sheet, dependencies = {}) {
   } catch (apiError) {
     if (Array.isArray(sheet.mergeSources) && sheet.mergeSources.length > 0) {
       console.warn(`   ❌ Sync ${sheet.name} non completato: ${apiError.message}`);
-      return { success: false, error: apiError.message };
+      return { success: false, rows: 0, error: apiError.message };
     }
     console.warn(`   ⚠️ API error: ${apiError.message}. Provo fallback CSV export...`);
 

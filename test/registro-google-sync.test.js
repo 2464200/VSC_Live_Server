@@ -44,3 +44,31 @@ test('Registro row validation requires at least one populated data row', () => {
   assert.equal(hasDataRows([['header'], ['', '  ']]), false);
   assert.equal(hasDataRows([['header'], ['', 'value']]), true);
 });
+
+test('Registro import exports all Google tabs and returns a sync summary', async () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'registro-google-sync-'));
+
+  try {
+    const result = await syncRegistro({
+      outputDir,
+      getApiAuth: async () => ({}),
+      listSheets: async () => [
+        { title: 'Registrazioni' },
+        { title: 'Insegnanti' }
+      ],
+      fetchSheetValues: async (sheet) => [
+        ['header'],
+        [`${sheet.title} row`]
+      ]
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.fileCount, 2);
+    assert.equal(result.totalRows, 2);
+    assert.deepEqual(result.files.map((file) => file.filename), ['Registrazioni.csv', 'Insegnanti.csv']);
+    assert.equal(fs.readFileSync(path.join(outputDir, 'Registrazioni.csv'), 'utf8').includes('Registrazioni row'), true);
+    assert.equal(fs.readFileSync(path.join(outputDir, 'Insegnanti.csv'), 'utf8').includes('Insegnanti row'), true);
+  } finally {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+  }
+});

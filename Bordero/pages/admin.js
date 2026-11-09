@@ -1670,7 +1670,7 @@ class AdminPanel {
       this.log('🌐 Avvio sync da Google Sheets...', 'warn');
       this.addSyncLog('Avvio sync da Google Sheets...', 'info');
       try {
-        const endpoint = this.resolveApiUrl('/api/bordero/sync-google');
+        const endpoint = this.resolveApiUrl('/api/google-sheets/sync');
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -1703,7 +1703,7 @@ class AdminPanel {
         }
 
         const successMessage = result?.summary?.successCount != null
-          ? `${result.summary.successCount}/${result.summary.totalSheets} fogli sincronizzati`
+          ? `${result.summary.successCount}/${result.summary.totalSheets} sorgenti sincronizzate${result.summary.registro?.fileCount != null ? `; Registro: ${result.summary.registro.fileCount} CSV` : ''}`
           : (result.message || 'sincronizzazione completata');
 
         try {

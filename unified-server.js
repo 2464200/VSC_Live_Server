@@ -31,6 +31,7 @@ const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, loa
 const { resolveDjAction } = require('./Eventi/dj-association');
 const { createActionPermissionsStore } = require('./Eventi/action-permissions');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
+const { syncRegistro: syncRegistroGoogleSheetsData } = require('./scripts/sync-registro-sheets');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
 const DjPreselectionFile = require('./Bordero/pages/dj-preselezione-file');
@@ -71,6 +72,8 @@ const USERFORM_FFMPEG_CANDIDATES = [
 ].filter(Boolean);
 const BORDERO_GOOGLE_SYNC_ENABLED = String(process.env.BORDERO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
 const BORDERO_GOOGLE_SYNC_INTERVAL_MS = 60 * 1000;
+const REGISTRO_GOOGLE_SYNC_ENABLED = String(process.env.REGISTRO_GOOGLE_SYNC_ENABLED || 'true').toLowerCase() !== 'false';
+const REGISTRO_GOOGLE_SYNC_INTERVAL_MS = 60 * 60 * 1000;
 const MUSIC_ARCHIVE_CONFIG_FILE = path.join(__dirname, 'Bordero', 'data', 'music-archive-config.json');
 const MUSIC_ARCHIVE_LOCAL_CONFIG_FILE = getLocalConfigPath('bordero/music-archive-local-config.json', [path.join(__dirname, 'Bordero', 'data', 'music-archive-local-config.json')]);
 const VIDEOCLIP_LOCAL_CONFIG_FILE = getLocalConfigPath('bordero/video-clip-local-config.json', [path.join(__dirname, 'Bordero', 'data', 'video-clip-local-config.json')]);
@@ -186,6 +189,9 @@ let vlcLastCompletionEvent = {
 let borderoGoogleSyncTimer = null;
 let borderoGoogleSyncPromise = null;
 let borderoGoogleSyncSchedulerStarted = false;
+let registroGoogleSyncTimer = null;
+let registroGoogleSyncPromise = null;
+let registroGoogleSyncSchedulerStarted = false;
 let userformRecordingProcess = null;
 let userformRecordingFilePath = '';
 let userformRecordingPlan = null;
@@ -195,6 +201,17 @@ let userformLiveVlcProcess = null;
 const borderoGoogleSyncState = {
     enabled: BORDERO_GOOGLE_SYNC_ENABLED,
     intervalMs: BORDERO_GOOGLE_SYNC_INTERVAL_MS,
+    inProgress: false,
+    lastTrigger: 'never',
+    lastStartedAt: null,
+    lastCompletedAt: null,
+    lastSuccessAt: null,
+    lastError: '',
+    lastSummary: null
+};
+const registroGoogleSyncState = {
+    enabled: REGISTRO_GOOGLE_SYNC_ENABLED,
+    intervalMs: REGISTRO_GOOGLE_SYNC_INTERVAL_MS,
     inProgress: false,
     lastTrigger: 'never',
     lastStartedAt: null,
@@ -700,6 +717,118 @@ function startBorderoGoogleSyncScheduler() {
     }, BORDERO_GOOGLE_SYNC_INTERVAL_MS);
 
     console.log(`⏱️ Bordero Google sync scheduler attivo ogni ${BORDERO_GOOGLE_SYNC_INTERVAL_MS} ms`);
+}
+
+async function runRegistroGoogleSync(trigger = 'manual') {
+    if (!REGISTRO_GOOGLE_SYNC_ENABLED) {
+        return {
+            success: false,
+            skipped: true,
+            reason: 'REGISTRO_GOOGLE_SYNC_ENABLED=false'
+        };
+    }
+
+    if (registroGoogleSyncPromise) {
+        return registroGoogleSyncPromise;
+    }
+
+    registroGoogleSyncState.inProgress = true;
+    registroGoogleSyncState.lastTrigger = trigger;
+    registroGoogleSyncState.lastStartedAt = new Date().toISOString();
+
+    registroGoogleSyncPromise = syncRegistroGoogleSheetsData()
+        .then((summary) => {
+            const doneAt = new Date().toISOString();
+            registroGoogleSyncState.lastCompletedAt = doneAt;
+            registroGoogleSyncState.lastSummary = summary;
+            registroGoogleSyncState.lastError = '';
+            registroGoogleSyncState.lastSuccessAt = doneAt;
+            return summary;
+        })
+        .catch((error) => {
+            const doneAt = new Date().toISOString();
+            registroGoogleSyncState.lastCompletedAt = doneAt;
+            registroGoogleSyncState.lastError = error?.message || String(error);
+            registroGoogleSyncState.lastSummary = {
+                success: false,
+                error: registroGoogleSyncState.lastError,
+                syncedAt: doneAt
+            };
+            console.warn(`⚠️ Registro Google sync ${trigger} fallito: ${registroGoogleSyncState.lastError}`);
+            return registroGoogleSyncState.lastSummary;
+        })
+        .finally(() => {
+            registroGoogleSyncState.inProgress = false;
+            registroGoogleSyncPromise = null;
+        });
+
+    return registroGoogleSyncPromise;
+}
+
+function startRegistroGoogleSyncScheduler() {
+    if (registroGoogleSyncSchedulerStarted) {
+        return;
+    }
+
+    if (!REGISTRO_GOOGLE_SYNC_ENABLED) {
+        console.log('ℹ️ Google sync Registro disabilitato (REGISTRO_GOOGLE_SYNC_ENABLED=false)');
+        return;
+    }
+
+    registroGoogleSyncSchedulerStarted = true;
+
+    runRegistroGoogleSync('startup').then((summary) => {
+        if (summary?.success) {
+            console.log(`✅ Registro Google sync startup completato (${summary.fileCount} CSV)`);
+        } else {
+            console.warn('⚠️ Registro Google sync startup incompleto o fallito');
+        }
+    }).catch((error) => {
+        console.warn('⚠️ Registro Google sync startup error:', error?.message || error);
+    });
+
+    registroGoogleSyncTimer = setInterval(() => {
+        runRegistroGoogleSync('interval').catch((error) => {
+            console.warn('⚠️ Registro Google sync interval error:', error?.message || error);
+        });
+    }, REGISTRO_GOOGLE_SYNC_INTERVAL_MS);
+
+    console.log(`⏱️ Registro Google sync scheduler attivo ogni ${REGISTRO_GOOGLE_SYNC_INTERVAL_MS} ms`);
+}
+
+async function runAllGoogleSheetsSync(trigger = 'manual') {
+    const [borderoSummary, registroSummary] = await Promise.all([
+        runBorderoGoogleSync(trigger),
+        runRegistroGoogleSync(trigger)
+    ]);
+    const borderoEnabled = BORDERO_GOOGLE_SYNC_ENABLED;
+    const registroEnabled = REGISTRO_GOOGLE_SYNC_ENABLED;
+    const results = [
+        ...(borderoSummary?.results || []).map((result) => ({ ...result, source: 'Bordero' })),
+        {
+            source: 'Registro Coreografie',
+            sheet: 'Registro Coreografie',
+            success: registroEnabled ? Boolean(registroSummary?.success) : true,
+            skipped: Boolean(registroSummary?.skipped),
+            error: registroSummary?.error || registroSummary?.reason || '',
+            fileCount: registroSummary?.fileCount || 0,
+            totalRows: registroSummary?.totalRows || 0
+        }
+    ];
+    const enabledResults = results.filter((result) =>
+        result.source !== 'Registro Coreografie' || !result.skipped
+    );
+    const summary = {
+        success: (!borderoEnabled || Boolean(borderoSummary?.success)) &&
+            (!registroEnabled || Boolean(registroSummary?.success)),
+        successCount: enabledResults.filter((result) => result.success).length,
+        totalSheets: enabledResults.length,
+        results,
+        bordero: borderoSummary,
+        registro: registroSummary,
+        syncedAt: new Date().toISOString()
+    };
+    return summary;
 }
 
 function trackVlcStopRequestForCurrentProcess() {
@@ -3744,6 +3873,44 @@ app.get('/api/bordero/sync-google/status', (req, res) => {
     res.json({ ok: true, state: borderoGoogleSyncState });
 });
 
+app.post('/api/google-sheets/sync', async (_req, res) => {
+    try {
+        const summary = await runAllGoogleSheetsSync('manual');
+        const state = {
+            bordero: borderoGoogleSyncState,
+            registro: registroGoogleSyncState
+        };
+        if (summary.success) {
+            return res.json({ ok: true, summary, state });
+        }
+
+        const errors = summary.results
+            .filter((result) => !result.success)
+            .map((result) => `${result.sheet}: ${result.error || 'sync non completato'}`)
+            .join('; ');
+        return res.status(500).json({ ok: false, error: errors || 'Sincronizzazione Google non completata', summary, state });
+    } catch (error) {
+        return res.status(500).json({
+            ok: false,
+            error: error?.message || String(error),
+            state: {
+                bordero: borderoGoogleSyncState,
+                registro: registroGoogleSyncState
+            }
+        });
+    }
+});
+
+app.get('/api/google-sheets/sync/status', (_req, res) => {
+    res.json({
+        ok: true,
+        state: {
+            bordero: borderoGoogleSyncState,
+            registro: registroGoogleSyncState
+        }
+    });
+});
+
 // Firebase Realtime Cloud Sync endpoints
 app.post('/api/bordero/cloud-sync-state', async (req, res) => {
     try {
@@ -5761,6 +5928,7 @@ loadOpenedViewersFromFile();
 syncBraniOnStartupV2();
 refreshMusicArchiveIndex(true);
 startBorderoGoogleSyncScheduler();
+startRegistroGoogleSyncScheduler();
 
 // ===== AVVIO SERVER =====
 function getLocalIP() {
@@ -5844,6 +6012,10 @@ process.on('SIGINT', () => {
     if (borderoGoogleSyncTimer) {
         clearInterval(borderoGoogleSyncTimer);
         borderoGoogleSyncTimer = null;
+    }
+    if (registroGoogleSyncTimer) {
+        clearInterval(registroGoogleSyncTimer);
+        registroGoogleSyncTimer = null;
     }
     console.log('\n[STOP] Unified Server fermato');
     process.exit(0);

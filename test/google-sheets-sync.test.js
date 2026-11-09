@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { mergeSourceTables, syncSheet } = require('../Bordero/server/google-sheets-sync');
+const { mergeSourceTables, syncSheet, SHEETS } = require('../Bordero/server/google-sheets-sync');
 
 test('merge keeps values under later duplicate response headers', () => {
   const header = Array(43).fill('');
@@ -36,15 +36,9 @@ test('merge retains business values in each occurrence of a duplicate header', (
   assert.deepEqual(merged[1], row);
 });
 
-test('empty Google response tabs fail without replacing the last valid CSVs', async () => {
+test('response tabs without headers fail without replacing the last valid CSVs', async () => {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'google-sheets-sync-'));
-  const sheet = {
-    name: 'Accoda 8+12',
-    output: 'Accoda 8+12.csv',
-    richiesteOutput: 'brani.csv',
-    baseSource: { name: 'Elenco Brani' },
-    mergeSources: [{ name: 'Modulo 8' }, { name: 'Modulo 12' }]
-  };
+  const sheet = SHEETS.find((item) => item.name === 'Accoda 8+12');
   const mergedPath = path.join(outputDir, sheet.output);
   const basePath = path.join(outputDir, sheet.richiesteOutput);
   const previousMerged = 'last valid response rows';
@@ -55,18 +49,58 @@ test('empty Google response tabs fail without replacing the last valid CSVs', as
   try {
     const result = await syncSheet(sheet, {
       outputDir,
-      fetchSheetValuesFromSource: async () => [[
-        'Informazioni cronologistiche',
-        'TIPOLOGIA',
-        'Coreo A - F'
-      ]]
+      fetchSheetValuesFromSource: async () => []
     });
 
     assert.equal(result.success, false);
     assert.equal(result.rows, 0);
-    assert.match(result.error, /non contengono righe dati/i);
+    assert.match(result.error, /Modulo 8 senza righe dati/i);
     assert.equal(fs.readFileSync(mergedPath, 'utf8'), previousMerged);
     assert.equal(fs.readFileSync(basePath, 'utf8'), previousBase);
+  } finally {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+  }
+});
+
+test('both response tabs may be empty and clear all requested-song counts', async () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'google-sheets-sync-'));
+  const sheet = SHEETS.find((item) => item.name === 'Accoda 8+12');
+  assert.equal(sheet.mergeSources.find((source) => source.name === 'Modulo 8').allowEmpty, true);
+  assert.equal(sheet.mergeSources.find((source) => source.name === 'Modulo 12').allowEmpty, true);
+  const responseHeader = [
+    'Informazioni cronologiche',
+    'TIPOLOGIA',
+    'Nome',
+    'Coreo A - F'
+  ];
+  const responses = {
+    'Modulo 8': [responseHeader],
+    'Modulo 12': [responseHeader],
+    'Elenco Brani (statico)': [
+      ['Coreografia', 'Richieste'],
+      ['PIM PAM', '7'],
+      ['LONG ROAD', '2']
+    ]
+  };
+
+  try {
+    const result = await syncSheet(sheet, {
+      outputDir,
+      fetchSheetValuesFromSource: async (source) => responses[source.name]
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.rows, 0);
+    assert.equal(result.richiesteDiagnostics.totalResponseRows, 0);
+    assert.equal(result.richiesteDiagnostics.effectiveResponseRows, 0);
+    assert.equal(
+      fs.readFileSync(path.join(outputDir, sheet.output), 'utf8'),
+      `${responseHeader.join(',')}\n`
+    );
+    assert.equal(
+      fs.readFileSync(path.join(outputDir, sheet.richiesteOutput), 'utf8'),
+      'Coreografia,Richieste\nPIM PAM,\nLONG ROAD,\n'
+    );
   } finally {
     fs.rmSync(outputDir, { recursive: true, force: true });
   }
