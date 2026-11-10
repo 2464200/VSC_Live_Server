@@ -513,6 +513,7 @@ displayMonitor.nextCoreoSelectionStorageKey = 'bordero_next_coreo_selection';
 displayMonitor.lastNextCoreoAnnouncementId = null;
 displayMonitor.nextCoreoAnnouncementTimer = null;
 displayMonitor.lastCloudNextCoreo = null;
+displayMonitor.hasRequestedBrani = true;
 const displayExecutedIds = displayMonitor.buildExecutedIdSet({
   brani: [
     { id: '599', titolo: 'AUDIO VIDEO TESTER', flag: 'X' },
