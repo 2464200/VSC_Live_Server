@@ -114,6 +114,21 @@
 .quick-board-state { font-weight: 700; white-space: nowrap; }
 .quick-board-state.is-executed { color: #ffaaaa; }
 .quick-board-state.is-pending { color: #ffe09b; }
+.quick-remove-button {
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid #d45a5a;
+  border-radius: 5px;
+  background: rgba(198, 40, 40, .18);
+  color: #ffb3b3;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.quick-remove-button:hover:not(:disabled) { background: #8e2929; color: #fff; }
+.quick-remove-button:focus-visible { outline: 2px solid #ffb347; outline-offset: 2px; }
+.quick-remove-button:disabled { opacity: .48; cursor: not-allowed; }
 .quick-board-empty { margin: 14px 0 0; color: #aaa; }
 .quick-board-empty[hidden] { display: none; }
 .quick-source-label { display: inline-block; margin: 2px; padding: 2px 6px; border-radius: 999px; background: rgba(143, 105, 0, .78); color: #fff1b8; font-size: .72rem; white-space: nowrap; }

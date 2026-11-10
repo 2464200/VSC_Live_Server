@@ -221,6 +221,93 @@ test('quick request reservations are atomic, unique per song and serata', async 
   assert.equal(repeated.reason, 'gia-prenotata');
 });
 
+test('quick request removal is atomic, synchronized and idempotent', async () => {
+  const harness = createHarness(createState());
+  const serataKey = harness.client.getSerataKey(harness.getState().serata);
+  const reservation = await harness.client.reserveQuickRequest({
+    branoId: '101',
+    title: 'Coreografia Libera',
+    serataKey
+  });
+  const stateBeforeRemoval = harness.getState();
+  stateBeforeRemoval.quickRequestsBySerata[serataKey]['102'] = {
+    id: '102',
+    title: 'Coreografia Eseguita',
+    source: 'richiesta-veloce',
+    createdAt: '2026-11-10T20:00:00.000Z',
+    reservationId: 'other-reservation',
+    serataKey
+  };
+  harness.setState(stateBeforeRemoval);
+  const braniBeforeRemoval = harness.getState().brani;
+
+  const result = await harness.client.removeQuickRequest({
+    branoId: '101',
+    serataKey,
+    expectedCreatedAt: reservation.request.createdAt,
+    expectedReservationId: reservation.request.reservationId
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.removed, true);
+  assert.equal(harness.getState().quickRequestsBySerata?.[serataKey]?.['101'], undefined);
+  assert.equal(harness.getState().quickRequestsBySerata[serataKey]['102'].reservationId, 'other-reservation');
+  assert.deepEqual(harness.getState().brani, braniBeforeRemoval);
+  assert.equal(harness.events.at(-1)?.detail?.quickRequestsBySerata?.[serataKey]?.['101'], undefined);
+  assert.equal(harness.events.at(-1)?.detail?.quickRequestsBySerata?.[serataKey]?.['102'].reservationId, 'other-reservation');
+
+  const repeated = await harness.client.removeQuickRequest({ branoId: '101', serataKey });
+  assert.equal(repeated.ok, true);
+  assert.equal(repeated.removed, false);
+});
+
+test('quick request removal retries ETag conflicts without losing concurrent Bordero changes', async () => {
+  const harness = createHarness(createState(), { etagConflicts: 1 });
+  const serataKey = harness.client.getSerataKey(harness.getState().serata);
+  const reservation = await harness.client.reserveQuickRequest({
+    branoId: '101',
+    title: 'Coreografia Libera',
+    serataKey
+  });
+
+  const result = await harness.client.removeQuickRequest({
+    branoId: '101',
+    serataKey,
+    expectedCreatedAt: reservation.request.createdAt,
+    expectedReservationId: reservation.request.reservationId
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.removed, true);
+  assert.equal(harness.getState().nextCoreo, 'Concurrent NEXT update');
+  assert.equal(harness.getState().quickRequestsBySerata?.[serataKey]?.['101'], undefined);
+});
+
+test('quick request removal does not delete a newer reservation for the same song', async () => {
+  const harness = createHarness(createState());
+  const serataKey = harness.client.getSerataKey(harness.getState().serata);
+  const reservation = await harness.client.reserveQuickRequest({
+    branoId: '101',
+    title: 'Coreografia Libera',
+    serataKey
+  });
+  const state = harness.getState();
+  state.quickRequestsBySerata[serataKey]['101'] = {
+    ...reservation.request,
+    createdAt: new Date(Date.now() + 1000).toISOString(),
+    reservationId: 'newer-reservation'
+  };
+  harness.setState(state);
+
+  const result = await harness.client.removeQuickRequest({
+    branoId: '101',
+    serataKey,
+    expectedCreatedAt: reservation.request.createdAt,
+    expectedReservationId: reservation.request.reservationId
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'richiesta-modificata');
+  assert.equal(harness.getState().quickRequestsBySerata[serataKey]['101'].reservationId, 'newer-reservation');
+});
+
 test('quick request reservation rejects executed, online-requested and stale songs', async () => {
   const harness = createHarness(createState());
   const serataKey = harness.client.getSerataKey(harness.getState().serata);

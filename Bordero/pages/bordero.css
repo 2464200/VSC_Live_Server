@@ -594,7 +594,8 @@
 }
 
 #btn-richieste-veloci.quick-requests-pending-blink {
-  animation: bordero-reset-active-blink 1.2s ease-in-out infinite;
+  border-color: #22c55e;
+  animation: remote-action-pending-blink 0.9s step-end infinite;
 }
 
 @keyframes richiesteGreenPulse {
@@ -693,6 +694,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  #btn-richieste-veloci.quick-requests-pending-blink {
+    animation: none;
+    border-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45);
+  }
+
   .remote-rolling-btn.videoclip-playing {
     animation: none;
     border-color: #ef5350;

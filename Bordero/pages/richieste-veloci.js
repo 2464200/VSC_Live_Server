@@ -11,6 +11,7 @@
       this.suggestions = [];
       this.activeSuggestion = -1;
       this.isSaving = false;
+      this.removingRequestIds = new Set();
       this.isLoadingCatalog = true;
       this.init();
     }
@@ -51,11 +52,15 @@
         if (option) this.selectSuggestion(Number(option.dataset.suggestionIndex));
       });
       document.getElementById('quick-request-form').addEventListener('submit', (event) => this.bookRequest(event));
+      document.getElementById('quick-requests-body').addEventListener('click', (event) => {
+        const button = event.target.closest('[data-action="remove-quick-request"]');
+        if (button) this.removeRequest(button.dataset.branoId, button.dataset.createdAt);
+      });
       document.getElementById('firebase-cloud-auth').addEventListener('click', async () => {
         await window.firebaseCloudClient?.togglePublisherAuth();
-        this.renderAvailability();
+        this.render();
       });
-      window.addEventListener('bordero:publisher-auth-updated', () => this.renderAvailability());
+      window.addEventListener('bordero:publisher-auth-updated', () => this.render());
       window.addEventListener('bordero:request-state-updated', (event) => this.onCloudStateUpdated(event.detail));
       window.addEventListener('bordero:cloud-updated', (event) => this.onCloudStateUpdated(event.detail));
       window.addEventListener('storage', (event) => {
@@ -302,6 +307,9 @@
       const requests = this.getQuickRequests().sort((left, right) => String(left.createdAt).localeCompare(String(right.createdAt)));
       const catalogById = new Map(this.catalog.map((brano) => [String(brano.id ?? '').trim(), brano]));
       const stateBrani = new Map((current.ok ? current.state.brani : []).map((brano) => [String(brano.id ?? '').trim(), brano]));
+      const cloud = window.firebaseCloudClient;
+      const user = cloud?.publisherAuth?.currentUser;
+      const canRemoveRequests = Boolean(user && cloud?.isAuthorizedPublisher?.(user) && current.ok);
 
       tbody.innerHTML = requests.map((request) => {
         const catalogBrano = catalogById.get(String(request.id)) || {};
@@ -325,6 +333,12 @@
             ? cloudCatalogBrano.richieste
             : brano.richieste;
         const requestSources = `<span class="quick-source-label">VOCALE</span>${isOnline ? `<span class="quick-source-label is-online">ONLINE × ${this.escapeHtml(onlineCount)}</span>` : ''}`;
+        const removeDisabled = !canRemoveRequests || this.removingRequestIds.has(String(request.id));
+        const removeTitle = !canRemoveRequests
+          ? 'Accedi con un account autorizzato per rimuovere la richiesta'
+          : this.removingRequestIds.has(String(request.id))
+            ? 'Rimozione in corso'
+            : `Rimuovi ${this.getTitle(brano) || request.title}`;
         return `<tr data-brano-id="${this.escapeHtml(request.id)}">
           <td><span class="quick-readonly-indicator" aria-label="${isExecuted ? 'Eseguita' : 'Non eseguita'}">${flag}</span></td>
           <td>${this.escapeHtml(next)}</td>
@@ -336,10 +350,70 @@
           <td>${requestSources}</td>
           <td>${this.escapeHtml(brano.info_livello || '—')}</td>
           <td><span class="quick-board-state ${statusClass}">${status}</span></td>
+          <td><button type="button" class="quick-remove-button" data-action="remove-quick-request" data-brano-id="${this.escapeHtml(request.id)}" data-created-at="${this.escapeHtml(request.createdAt || '')}" title="${this.escapeHtml(removeTitle)}" aria-label="Rimuovi ${this.escapeHtml(this.getTitle(brano) || request.title)}" ${removeDisabled ? 'disabled' : ''}>Rimuovi</button></td>
         </tr>`;
       }).join('');
       empty.hidden = requests.length > 0;
       document.getElementById('quick-request-count').textContent = String(requests.length);
+    }
+
+    async removeRequest(branoId, createdAt) {
+      const current = this.getCurrentState();
+      if (!current.ok) {
+        this.showActionMessage(current.reason, true);
+        this.renderAvailability();
+        return;
+      }
+
+      const request = this.getQuickRequests().find((item) => String(item.id ?? '').trim() === String(branoId ?? '').trim());
+      if (!request || this.removingRequestIds.has(String(branoId))) return;
+      const brano = current.state.brani.find((item) => String(item?.id ?? '').trim() === String(branoId ?? '').trim())
+        || this.catalog.find((item) => String(item?.id ?? '').trim() === String(branoId ?? '').trim());
+      const title = this.getTitle(brano) || request.title || `ID ${branoId}`;
+      if (!window.confirm(`Rimuovere "${title}" (ID ${branoId}) dall’elenco delle Richieste Veloci?`)) return;
+
+      const cloud = window.firebaseCloudClient;
+      const user = cloud?.publisherAuth?.currentUser;
+      if (!user || !cloud.isAuthorizedPublisher(user)) {
+        this.showActionMessage('Accedi con un account Google autorizzato per rimuovere la richiesta.', true);
+        return;
+      }
+
+      this.removingRequestIds.add(String(branoId));
+      this.renderBoard();
+      this.showActionMessage(`Rimozione di "${title}" in corso…`);
+      try {
+        const result = await cloud.removeQuickRequest({
+          branoId,
+          serataKey: current.serataKey,
+          expectedCreatedAt: createdAt || request.createdAt || '',
+          expectedReservationId: request.reservationId || ''
+        }, (attempt, maxAttempts) => {
+          this.showActionMessage(`Server occupato: rimozione in coda (${attempt}/${maxAttempts})…`);
+        });
+        this.cloudState = result.state || cloud.latestCloudState || this.cloudState;
+        if (!result.ok) {
+          const messages = {
+            'serata-modificata': 'La serata è cambiata. Aggiorna il Borderò e riprova.',
+            'stato-non-disponibile': 'Non riesco a leggere lo stato condiviso dopo i tentativi. Verifica la connessione e riprova.',
+            'stato-non-aggiornato': 'Lo stato Borderò non è aggiornato. Sincronizza il Borderò e riprova.',
+            'richiesta-modificata': 'La richiesta è stata aggiornata da un’altra scheda. Ricarico l’elenco.'
+          };
+          this.showActionMessage(messages[result.reason] || 'La richiesta non è stata rimossa. Puoi riprovare.', true);
+          return;
+        }
+
+        this.showActionMessage(result.removed
+          ? `Richiesta "${title}" rimossa e sincronizzata con il Borderò.`
+          : `La richiesta "${title}" era già stata rimossa.`);
+      } catch (error) {
+        logger.error('Errore rimozione richiesta veloce', error);
+        this.cloudState = cloud.latestCloudState || this.cloudState;
+        this.showActionMessage(`Rimozione non riuscita: ${error.message}. Puoi riprovare.`, true);
+      } finally {
+        this.removingRequestIds.delete(String(branoId));
+        this.render();
+      }
     }
 
     render() {

@@ -201,16 +201,30 @@
         createdAt: new Date().toISOString(),
         reservationId: `${Date.now()}-${++this.quickRequestSequence}-${Math.random().toString(36).slice(2)}`
       };
-      const operation = this.quickRequestQueue.then(() => this.reserveQuickRequestWithRetry(reservation, onRetry));
-      this.quickRequestQueue = operation.then(() => undefined, () => undefined);
-      return operation;
+      return this.enqueueQuickRequest(() => this.runQuickRequestWithRetry(
+        () => this.reserveQuickRequestAttempt(reservation),
+        onRetry
+      ));
     }
 
-    async reserveQuickRequestWithRetry(request, onRetry) {
+    removeQuickRequest(request, onRetry = () => {}) {
+      return this.enqueueQuickRequest(() => this.runQuickRequestWithRetry(
+        () => this.removeQuickRequestAttempt(request),
+        onRetry
+      ));
+    }
+
+    enqueueQuickRequest(operation) {
+      const result = this.quickRequestQueue.then(operation);
+      this.quickRequestQueue = result.then(() => undefined, () => undefined);
+      return result;
+    }
+
+    async runQuickRequestWithRetry(operation, onRetry) {
       const maxAttempts = 4;
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
-          const result = await this.reserveQuickRequestAttempt(request);
+          const result = await operation();
           if (result.ok || !['conflitto-server', 'stato-non-disponibile'].includes(result.reason) || attempt === maxAttempts) {
             return result;
           }
@@ -332,6 +346,94 @@
       this.requestStateLastUpdatedAt = String(committedState.updatedAt || '');
       this.dispatchRequestStateUpdate(committedState);
       return { ok: true, request: requestRecord, state: committedState };
+    }
+
+    async removeQuickRequestAttempt({ branoId, serataKey, expectedCreatedAt, expectedReservationId }) {
+      await this.authReady;
+      const user = this.publisherAuth?.currentUser;
+      if (!user || !this.isAuthorizedPublisher(user)) {
+        throw new Error('Accedi con un account Google autorizzato per rimuovere la richiesta.');
+      }
+      if (!this.publisherDatabase) throw new Error('Firebase Realtime Database non è inizializzato.');
+
+      const normalizedId = String(branoId ?? '').trim();
+      if (!normalizedId || !serataKey) {
+        throw new Error('La richiesta selezionata o la serata corrente non è valida.');
+      }
+
+      const requestKey = this.getBranoRequestKey(normalizedId);
+      const token = await user.getIdToken();
+      const endpoint = `${this.getDbEndpoint()}?auth=${encodeURIComponent(token)}&t=${Date.now()}`;
+      const readResponse = await fetch(endpoint, {
+        cache: 'no-store',
+        headers: { 'X-Firebase-ETag': 'true' }
+      });
+      if (!readResponse.ok) {
+        const error = new Error(`Lettura stato Firebase non riuscita (HTTP ${readResponse.status}).`);
+        error.retryable = readResponse.status === 408 || readResponse.status === 429 || readResponse.status >= 500;
+        throw error;
+      }
+
+      const currentState = await readResponse.json();
+      const etag = readResponse.headers.get('ETag');
+      if (!currentState || typeof currentState !== 'object' || !etag) {
+        return { ok: false, reason: 'stato-non-disponibile' };
+      }
+      if (this.getSerataKey(currentState.serata) !== serataKey) {
+        return { ok: false, reason: 'serata-modificata' };
+      }
+      const stateTimestamp = Date.parse(currentState.updatedAt || '');
+      const stateAge = Date.now() - stateTimestamp;
+      if (!Number.isFinite(stateTimestamp) || stateAge < -5 * 60 * 1000 || stateAge > MAX_CLOUD_STATE_AGE_MS) {
+        return { ok: false, reason: 'stato-non-aggiornato' };
+      }
+
+      const requestsBySerata = currentState.quickRequestsBySerata || {};
+      const serataRequests = requestsBySerata[serataKey] || {};
+      const existingRequest = serataRequests[requestKey];
+      if (!existingRequest) {
+        return { ok: true, removed: false, state: currentState };
+      }
+      if (
+        (expectedReservationId && existingRequest.reservationId !== expectedReservationId)
+        || (expectedCreatedAt && existingRequest.createdAt !== expectedCreatedAt)
+      ) {
+        return { ok: false, reason: 'richiesta-modificata' };
+      }
+
+      const updatedSerataRequests = { ...serataRequests };
+      delete updatedSerataRequests[requestKey];
+      const updatedRequestsBySerata = { ...requestsBySerata };
+      if (Object.keys(updatedSerataRequests).length) {
+        updatedRequestsBySerata[serataKey] = updatedSerataRequests;
+      } else {
+        delete updatedRequestsBySerata[serataKey];
+      }
+      const updatedState = {
+        ...currentState,
+        quickRequestsBySerata: updatedRequestsBySerata,
+        updatedAt: this.getNextUpdatedAt(currentState.updatedAt)
+      };
+      const writeResponse = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'if-match': etag
+        },
+        body: JSON.stringify(updatedState)
+      });
+      if (writeResponse.status === 412) return { ok: false, reason: 'conflitto-server' };
+      if (!writeResponse.ok) {
+        const error = new Error(`Rimozione richiesta non riuscita (HTTP ${writeResponse.status}).`);
+        error.retryable = writeResponse.status === 408 || writeResponse.status === 429 || writeResponse.status >= 500;
+        throw error;
+      }
+
+      const responseState = await writeResponse.json();
+      const committedState = responseState && typeof responseState === 'object' ? responseState : updatedState;
+      this.requestStateLastUpdatedAt = String(committedState.updatedAt || '');
+      this.dispatchRequestStateUpdate(committedState);
+      return { ok: true, removed: true, state: committedState };
     }
 
     async initializePublisherAuth() {
