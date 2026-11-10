@@ -234,6 +234,37 @@ test('Registro Coreografie week values map through the confirmed academic season
   assert.equal(alpha.info_livello, 'BASE');
 });
 
+test('Insegnate fino alla settimana matches explained and jolly activities from Registro column F', async (t) => {
+  const h = await harness(t);
+  const { window, manager } = h;
+  const imported = window.courseArchives.validateCsv([
+    'Data registrazione,Insegnante,Settimana,Sede corso,Livello corso,Tipo attività,Livello coreografia,Coreografia',
+    '04/11/2026,Anna Beretta,45 - Lun 02/11 – Dom 08/11/2026,Giovedì — 21:30 — ALZANO LOMBARDO,Corso BASE,COREOGRAFIA SPIEGATA,BASE,Alpha',
+    '04/11/2026,Anna Beretta,45 - Lun 02/11 – Dom 08/11/2026,Giovedì — 21:30 — ALZANO LOMBARDO,Corso BASE 2,COREOGRAFIA JOLLY,,Bravo',
+    '04/11/2026,Anna Beretta,45 - Lun 02/11 – Dom 08/11/2026,Giovedì — 21:30 — ALZANO LOMBARDO,Corso BASE,Ripasso,BASE,Charlie'
+  ].join('\n'));
+  window.courseArchives.persistExternal(imported);
+  window.courseArchives.setActive('external');
+  manager.courseSelection = {
+    seasonId: activeSeason, archiveId: 'external', archiveSeason: '2026/2027',
+    level: 'BASE', course: 'Giovedì — 21:30 — ALZANO LOMBARDO', week: 45
+  };
+
+  manager.refreshCourseProgramFilter();
+
+  assert.deepEqual(h.visibleIds(), ['001']);
+  assert.equal(manager.allBrani.find((row) => row.id === '001').course_week, '45');
+  assert.equal(manager.allBrani.find((row) => row.id === '002').course_week, '');
+  assert.equal(manager.allBrani.find((row) => row.id === '003').course_week, '');
+
+  manager.courseSelection.level = 'BASE 2';
+  manager.refreshCourseProgramFilter();
+
+  assert.ok(Array.from(window.document.getElementById('course-board-level').options, (option) => option.value).includes('BASE 2'));
+  assert.deepEqual(h.visibleIds(), ['002']);
+  assert.equal(manager.allBrani.find((row) => row.id === '002').course_week, '45');
+});
+
 test('week 53 is shown and included in curriculum level/week filters', async (t) => {
   const h = await harness(t);
   const state = curriculum();

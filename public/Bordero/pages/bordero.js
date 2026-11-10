@@ -241,12 +241,18 @@ class BorderoTableManager {
       this.courseSelection.level = '';
       this.courseSelection.course = '';
     }
-    level.replaceChildren(new Option('Tutto il catalogo', ''));
-    BORDERO_CONFIG.LIVELLI.forEach((value) => level.add(new Option(value, value)));
-    level.value = this.courseSelection.level || '';
-    this.courseSelection.level = level.value;
     const isExternal = archive !== 'manual';
     const currentRecords = isExternal ? window.courseArchives?.getRecords(archive, state) || [] : [];
+    level.replaceChildren(new Option('Tutto il catalogo', ''));
+    const levelOptions = isExternal
+      ? [...new Set([
+          ...BORDERO_CONFIG.LIVELLI,
+          ...currentRecords.filter((record) => this.isTeachingCourseActivity(record)).map((record) => this.normalizeCourseLevel(record.level)).filter(Boolean)
+        ])]
+      : BORDERO_CONFIG.LIVELLI;
+    levelOptions.forEach((value) => level.add(new Option(value, value)));
+    level.value = this.courseSelection.level || '';
+    this.courseSelection.level = level.value;
     const normalizeSeason = (value) => String(value || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
     const activeSeason = normalizeSeason(season?.label || state.activeSeason);
     const archiveSeasons = [...new Set(currentRecords.map((record) => String(record.season || '').trim()).filter(Boolean))];
@@ -259,7 +265,7 @@ class BorderoTableManager {
       : '';
     if (isExternal) this.courseSelection.archiveSeason = archiveSeason;
     const selectedSeason = normalizeSeason(archiveSeason);
-    const courseNames = [...new Set(currentRecords.filter((record) => record.course && record.level === level.value && normalizeSeason(record.season) === selectedSeason).map((record) => String(record.course).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
+    const courseNames = [...new Set(currentRecords.filter((record) => this.isTeachingCourseActivity(record) && record.course && this.normalizeCourseLevel(record.level) === level.value && normalizeSeason(record.season) === selectedSeason).map((record) => String(record.course).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'it'));
     course.replaceChildren(new Option(isExternal ? 'Seleziona corso / sede' : 'Non applicabile all’archivio manuale', ''));
     courseNames.forEach((value) => course.add(new Option(value, value)));
     if (this.courseSelection.course && !courseNames.includes(this.courseSelection.course)) this.courseSelection.course = '';
@@ -296,12 +302,12 @@ class BorderoTableManager {
       const activeSeason = state?.seasons?.[state.activeSeason];
       const expectedSeason = String(this.courseSelection.archiveSeason || activeSeason?.label || state?.activeSeason || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
       const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
-      const courses = new Set(records.filter((record) => record.course && record.level === this.courseSelection.level && String(record.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-') === expectedSeason).map((record) => String(record.course).trim()));
+      const courses = new Set(records.filter((record) => this.isTeachingCourseActivity(record) && record.course && this.normalizeCourseLevel(record.level) === this.courseSelection.level && String(record.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-') === expectedSeason).map((record) => String(record.course).trim()));
       if (!this.courseSelection.course && courses.size > 1) return new Set();
       const ids = new Set();
       records.filter((record) => {
         const recordSeason = String(record.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
-        return Boolean(record.course && record.level === this.courseSelection.level && expectedSeason && recordSeason === expectedSeason && (!this.courseSelection.course || String(record.course).trim() === this.courseSelection.course)) && Number(record.week) <= this.courseSelection.week;
+        return Boolean(this.isTeachingCourseActivity(record) && record.course && this.normalizeCourseLevel(record.level) === this.courseSelection.level && expectedSeason && recordSeason === expectedSeason && (!this.courseSelection.course || String(record.course).trim() === this.courseSelection.course)) && Number(record.week) <= this.courseSelection.week;
       }).forEach((record) => {
         if (record.branoId) { ids.add(String(record.branoId)); return; }
         const title = normalizeTitle(record.title);
@@ -317,11 +323,31 @@ class BorderoTableManager {
       .map((record) => String(record.branoId)));
   }
 
+  normalizeCourseLevel(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLocaleUpperCase('it')
+      .replace(/^CORSO\s+/, '');
+  }
+
+  isTeachingCourseActivity(record) {
+    const activity = String(record.activity || record.raw?.activity || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLocaleUpperCase('it');
+    return !activity || activity === 'COREOGRAFIA SPIEGATA' || activity === 'COREOGRAFIA JOLLY';
+  }
+
   applyCourseWeeksToBrani() {
     const state = window.choreoProgramStore?.getState();
     const archive = window.courseArchives?.getActive() || 'manual';
     if (archive !== 'manual') {
-      const records = window.courseArchives.getRecords(archive, state);
+      const records = window.courseArchives.getRecords(archive, state).filter((record) => this.isTeachingCourseActivity(record));
       const season = state?.seasons?.[state.activeSeason];
       const expectedSeason = String(this.courseSelection?.archiveSeason || season?.label || state?.activeSeason || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
       const level = this.courseSelection?.level || '';
@@ -357,14 +383,14 @@ class BorderoTableManager {
         });
         const contextual = matches.filter((r) => {
           const gotSeason = String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
-          return Boolean(expectedSeason && gotSeason === expectedSeason && r.course && (!level || String(r.level || '') === level) && (!this.courseSelection?.course || String(r.course).trim() === this.courseSelection.course));
+          return Boolean(expectedSeason && gotSeason === expectedSeason && r.course && (!level || this.normalizeCourseLevel(r.level) === level) && (!this.courseSelection?.course || String(r.course).trim() === this.courseSelection.course));
         });
-        const matchingCourses = new Set(matches.filter((r) => String(r.level || '') === level && String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-') === expectedSeason && r.course).map((r) => String(r.course).trim()));
+        const matchingCourses = new Set(matches.filter((r) => this.normalizeCourseLevel(r.level) === level && String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-') === expectedSeason && r.course).map((r) => String(r.course).trim()));
         const courseAmbiguous = Boolean(level && !this.courseSelection?.course && matchingCourses.size > 1);
         const selectedCourse = this.courseSelection?.course || '';
         const possibleContext = matches.filter((r) => {
           const recordSeason = String(r.season || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
-          const recordLevel = String(r.level || '');
+          const recordLevel = this.normalizeCourseLevel(r.level);
           const recordCourse = String(r.course || '').trim();
           return (!r.season || recordSeason === expectedSeason)
             && (!level || !recordLevel || recordLevel === level)
