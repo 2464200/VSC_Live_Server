@@ -12,6 +12,7 @@ class ElencoRichiestePage {
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
     this.requestersByBranoId = new Map();
+    this.cloudState = null;
     this.autoRefreshIntervalMs = 60 * 1000;
     this.autoRefreshTimer = null;
     this.autoRefreshInProgress = false;
@@ -22,6 +23,8 @@ class ElencoRichiestePage {
     try {
       await dataLoader.initialize();
       await this.refreshFromCurrentData({ forceRemote: true, silent: true });
+      this.cloudState = window.firebaseCloudClient?.latestCloudState || null;
+      this.applyCloudSnapshotToBrani();
       await this.loadRequestersFromAccoda();
       await this.refreshSyncDiagnostic();
       this.render();
@@ -126,6 +129,44 @@ class ElencoRichiestePage {
     }
 
     return false;
+  }
+
+  getQuickRequestForBrano(brano) {
+    const state = this.cloudState || window.firebaseCloudClient?.latestCloudState;
+    const cloud = window.firebaseCloudClient;
+    if (!brano || !state || !cloud?.getSerataKey || !cloud?.getBranoRequestKey) return null;
+    const serataKey = cloud.getSerataKey(state.serata);
+    if (!serataKey) return null;
+    return state.quickRequestsBySerata?.[serataKey]?.[cloud.getBranoRequestKey(brano.id)] || null;
+  }
+
+  isBranoRequested(brano) {
+    return Boolean(brano && (
+      !this.isRichiesteZeroValue(brano.richieste)
+      || this.getQuickRequestForBrano(brano)
+    ));
+  }
+
+  applyCloudSnapshotToBrani() {
+    const stateBrani = new Map((Array.isArray(this.cloudState?.brani) ? this.cloudState.brani : [])
+      .map((brano) => [String(brano?.id ?? '').trim(), brano]));
+    const catalogBrani = new Map((Array.isArray(this.cloudState?.catalogBrani) ? this.cloudState.catalogBrani : [])
+      .map((brano) => [String(brano?.id ?? '').trim(), brano]));
+    this.brani = this.brani.map((brano) => {
+      const stateBrano = stateBrani.get(String(brano.id ?? '').trim());
+      const catalogBrano = catalogBrani.get(String(brano.id ?? '').trim());
+      if (!stateBrano && !catalogBrano) return brano;
+      return {
+        ...brano,
+        richieste: catalogBrano?.richieste ?? brano.richieste,
+        flag: stateBrano?.flag ?? brano.flag,
+        timestamp: stateBrano?.timestamp || brano.timestamp,
+        next_selected: stateBrano?.next_selected ?? brano.next_selected,
+        executed: stateBrano?.executed ?? brano.executed
+      };
+    });
+    if (this.cloudState?.serata) this.serata = this.cloudState.serata;
+    this.requested = this.getUniqueRequestedBrani(this.brani);
   }
 
   async loadRequestersFromAccoda() {
@@ -416,7 +457,7 @@ class ElencoRichiestePage {
     const uniqueById = new Map();
 
     collection.forEach((brano) => {
-      if (!brano || this.isRichiesteZeroValue(brano.richieste)) return;
+      if (!brano || !this.isBranoRequested(brano)) return;
       const key = String(brano.id ?? '').trim();
       if (!key || uniqueById.has(key)) return;
       uniqueById.set(key, brano);
@@ -526,6 +567,9 @@ class ElencoRichiestePage {
         const titolo = brano.titolo || brano.coreografia || brano.brano || '--';
         const statoClass = isExecuted ? 'executed-status' : 'pending-status';
         const statoLabel = isExecuted ? 'Eseguito' : 'Da eseguire';
+        const quickRequest = this.getQuickRequestForBrano(brano);
+        const onlineRequest = !this.isRichiesteZeroValue(brano.richieste);
+        const requestSources = `${onlineRequest ? `<span class="quick-source-label is-online">ONLINE × ${brano.richieste}</span>` : ''}${quickRequest ? '<span class="quick-source-label">VOCALE</span>' : ''}`;
         const videoButtonDisabledClass = isExecuted ? ' is-disabled' : '';
         const videoButtonDisabledAttr = isExecuted ? ' disabled aria-disabled="true" tabindex="-1"' : '';
         const videoButtonTitle = isExecuted ? 'Brano eseguito: VideoClip non disponibile' : 'Apri VideoClip';
@@ -534,7 +578,7 @@ class ElencoRichiestePage {
           : '-';
 
         const richiedenteNome = brano.nome || brano.requester || brano.richiedente || brano.requestedBy ||
-          (this.requestersByBranoId.get(String(brano.id || '')) || []).join(', ') || '--';
+          (this.requestersByBranoId.get(String(brano.id || '')) || []).join(', ') || (quickRequest ? 'Richiesta a voce' : '--');
 
         return `
           <tr class="requested-row" data-brano-id="${brano.id}">
@@ -542,9 +586,9 @@ class ElencoRichiestePage {
             <td class="col-titolo">${titolo}</td>
             <td class="col-autore">${brano.autore || '--'}</td>
             <td class="col-coreografo">${brano.coreografo || '--'}</td>
-            <td class="col-richieste">${brano.richieste || '--'}</td>
+            <td class="col-richieste">${brano.richieste || '--'} ${requestSources}</td>
             <td class="col-nome">${richiedenteNome}</td>
-            <td class="col-timestamp">${brano.timestamp || '--'}</td>
+            <td class="col-timestamp">${brano.timestamp || quickRequest?.createdAt || '--'}</td>
             <td>
               <span class="action-inline ${statoClass}" aria-live="polite">
                 ${isExecuted ? '✅' : '⬜'} ${statoLabel}
@@ -592,6 +636,16 @@ class ElencoRichiestePage {
     document.getElementById('btn-bordero')?.addEventListener('click', () => {
       window.location.href = 'bordero.html';
     });
+    const handleCloudState = (state) => {
+      this.cloudState = state || null;
+      this.applyCloudSnapshotToBrani();
+      this.render();
+    };
+    window.addEventListener('bordero:request-state-updated', (event) => handleCloudState(event.detail));
+    window.addEventListener('bordero:cloud-updated', (event) => handleCloudState(event.detail));
+    if (window.firebaseCloudClient?.latestCloudState) {
+      handleCloudState(window.firebaseCloudClient.latestCloudState);
+    }
   }
 }
 

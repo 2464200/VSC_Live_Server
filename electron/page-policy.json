@@ -31,6 +31,10 @@
     "primary": true,
     "secondary": false
   },
+  "/bordero/pages/richieste-veloci.html": {
+    "primary": true,
+    "secondary": false
+  },
   "/bordero/pages/display.html": {
     "primary": false,
     "secondary": true

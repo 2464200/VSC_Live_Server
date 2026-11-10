@@ -144,6 +144,57 @@ test('ORDINA PER RICHIESTE starts with requested choreography at the top', async
   assert.deepEqual(Array.from(manager.filteredBrani, (brano) => brano.id), ['001', '003', '005', '002', '004']);
 });
 
+test('RICHIESTE sort ranks ONLINE counts and VOCALE sources together', async (t) => {
+  const h = await harness(t);
+  const { manager, window } = h;
+  manager.allBrani = [
+    { id: '001', titolo: 'No requests', richieste: '' },
+    { id: '002', titolo: 'Online 2', richieste: '2' },
+    { id: '003', titolo: 'Voice only', richieste: '0' },
+    { id: '004', titolo: 'Online 5', richieste: '5' },
+    { id: '005', titolo: 'Online and voice', richieste: '2' },
+    { id: '006', titolo: 'Non-numeric online', richieste: 'SI' }
+  ];
+  manager.filteredBrani = [...manager.allBrani];
+  window.firebaseCloudClient = {
+    getSerataKey: () => 'serata-test',
+    getBranoRequestKey: (id) => String(id)
+  };
+  manager.quickRequestState = {
+    serata: { dj: 'DJ Test', data: '2026-11-10' },
+    quickRequestsBySerata: {
+      'serata-test': {
+        '003': { id: '003' },
+        '005': { id: '005' }
+      }
+    }
+  };
+
+  window.document.getElementById('btn-sort-richieste').click();
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  assert.deepEqual(
+    Array.from(manager.filteredBrani, (brano) => brano.id),
+    ['004', '005', '002', '003', '006', '001']
+  );
+
+  window.document.getElementById('btn-sort-richieste').click();
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  assert.deepEqual(
+    Array.from(manager.filteredBrani, (brano) => brano.id),
+    ['001', '003', '006', '002', '005', '004']
+  );
+
+  manager.currentFilters.richieste = { mode: 'richiesteNonZero' };
+  manager.applyFilters();
+  assert.deepEqual(
+    Array.from(manager.filteredBrani, (brano) => brano.id).sort(),
+    ['002', '003', '004', '005', '006']
+  );
+  manager.currentFilters.richieste = { mode: 'emptyValue' };
+  manager.applyFilters();
+  assert.deepEqual(Array.from(manager.filteredBrani, (brano) => brano.id), ['001']);
+});
+
 test('RICHIESTE filter opens with descending priority and preserves other active filters', async (t) => {
   const h = await harness(t);
   const { manager, window } = h;

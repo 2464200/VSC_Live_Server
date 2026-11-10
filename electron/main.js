@@ -82,6 +82,7 @@ const PAGE_POLICY = new Map([
   ['/bordero/pages/brani-eseguiti.html', { primary: true, secondary: true }],
   ['/bordero/pages/coreografie-stampa.html', { primary: true, secondary: false }],
   ['/bordero/pages/coreografie-corsi.html', { primary: true, secondary: false }],
+  ['/bordero/pages/richieste-veloci.html', { primary: true, secondary: false }],
   ['/bordero/pages/display.html', { primary: false, secondary: true }],
   ['/bordero/pages/elenco-richieste.html', { primary: true, secondary: false }],
   ['/bordero/pages/lista-serata.html', { primary: true, secondary: true }],

@@ -32,7 +32,12 @@ const context = {
 context.window = context;
 const createElement = () => ({
   style: {},
-  classList: { add() {}, remove() {}, toggle() {} },
+  classList: {
+    add() {},
+    remove() {},
+    toggle(name, force) { this[name] = force; return force; },
+    contains(name) { return Boolean(this[name]); }
+  },
   setAttribute() {},
   appendChild() {},
   click() {},
@@ -62,6 +67,7 @@ const elements = {
   'btn-search-general': createElement(),
   'btn-search-title': createElement(),
   'btn-search-id': createElement(),
+  'btn-richieste-veloci': createElement(),
 };
 
 context.document = {
@@ -194,6 +200,40 @@ if (context.window.isVideoOnlyBrano('ordinary choreography')) {
 }
 
 const BaseManager = context.BorderoTableManager;
+const originalFirebaseCloudClient = context.firebaseCloudClient;
+context.firebaseCloudClient = {
+  getSerataKey: () => 'serata-test',
+  isBranoExecuted: (brano) => String(brano?.flag || '').toUpperCase() === 'X',
+};
+const quickRequestsButtonManager = Object.create(BaseManager.prototype);
+quickRequestsButtonManager.refreshQuickRequestsButton({
+  serata: { dj: 'DJ Test', data: '2026-11-10' },
+  quickRequestsBySerata: {
+    'serata-test': {
+      '1': { id: '1' },
+      '2': { id: '2' },
+    },
+  },
+  brani: [
+    { id: '1', flag: '' },
+    { id: '2', flag: 'X' },
+  ],
+});
+if (!elements['btn-richieste-veloci'].classList.contains('quick-requests-pending-blink')) {
+  throw new Error('Quick Requests link did not blink for a request that is not executed');
+}
+if (elements['btn-richieste-veloci'].title !== '1 richiesta veloce non ancora eseguita · Apri Richieste Veloci') {
+  throw new Error('Quick Requests link did not report the pending-request count');
+}
+quickRequestsButtonManager.refreshQuickRequestsButton({
+  serata: { dj: 'DJ Test', data: '2026-11-10' },
+  quickRequestsBySerata: { 'serata-test': { '1': { id: '1' } } },
+  brani: [{ id: '1', flag: 'X' }],
+});
+if (elements['btn-richieste-veloci'].classList.contains('quick-requests-pending-blink')) {
+  throw new Error('Quick Requests link kept blinking after all quick requests were executed');
+}
+context.firebaseCloudClient = originalFirebaseCloudClient;
 const videoMatchManager = Object.create(BaseManager.prototype);
 videoMatchManager.videoClipCatalog = [
   { prefix: '005', fullName: '005 16 TONS.mp4' },

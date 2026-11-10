@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BORDERÒ - Richieste Veloci</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/bordero.css" />
+  <link rel="stylesheet" href="richieste-veloci.css" />
+  <script src="../assets/lib/xlsx.min.js"></script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/excel-sync.js"></script>
+  <script defer src="../js/data-loader.js"></script>
+  <script defer src="../js/home-nav-guard.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script defer src="../js/firebase-cloud-client.js"></script>
+  <script defer src="richieste-veloci.js"></script>
+</head>
+<body>
+  <div class="container quick-requests-page">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="app-title">BORDERÒ - Richieste Veloci</h1>
+        <p class="app-subtitle">Registra una coreografia chiesta a voce · seleziona, verifica, prenota</p>
+      </div>
+    </header>
+
+    <nav class="nav-breadcrumb" aria-label="Navigazione">
+      <a href="../index.html">Home</a><span class="breadcrumb-sep">/</span>
+      <a href="bordero.html">Borderò</a><span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">Richieste Veloci</span>
+    </nav>
+
+    <section class="quick-sync-panel" aria-label="Sincronizzazione e serata corrente">
+      <div>
+        <strong>Stato condiviso con il Borderò</strong>
+        <p id="quick-serata-info" role="status" aria-live="polite">Verifica della serata in corso…</p>
+      </div>
+      <div class="quick-sync-actions">
+        <button id="firebase-cloud-auth" class="btn btn-primary" type="button">Accedi con Google</button>
+        <span id="firebase-cloud-badge" role="status" aria-live="polite">Verifica sincronizzazione…</span>
+      </div>
+    </section>
+
+    <main class="quick-requests-layout">
+      <section class="quick-panel" aria-labelledby="quick-booking-title">
+        <div class="quick-panel-heading">
+          <div>
+            <h2 id="quick-booking-title">Registra una richiesta a voce</h2>
+            <p>Scrivi il titolo e scegli la coreografia corretta. Se ci sono omonimi, confronta l’ID.</p>
+          </div>
+        </div>
+
+        <label class="quick-search-label" for="quick-song-search">Coreografia</label>
+        <div class="quick-search-wrap">
+          <input
+            id="quick-song-search"
+            class="input-text"
+            type="search"
+            autocomplete="off"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded="false"
+            aria-controls="quick-song-suggestions"
+            aria-describedby="quick-search-help"
+            placeholder="Digita il titolo della coreografia…"
+          />
+          <div id="quick-song-suggestions" class="quick-suggestions" role="listbox" aria-label="Coreografie corrispondenti" hidden></div>
+        </div>
+        <p id="quick-search-help" class="quick-help">La selezione usa l’ID del catalogo Borderò, non il solo titolo.</p>
+
+        <div id="quick-selected-song" class="quick-selected-song" hidden></div>
+
+        <section id="quick-availability" class="quick-availability" data-state="checking" aria-live="polite" aria-label="Stato della coreografia">
+          <span class="quick-status-label">Stato:</span>
+          <strong id="quick-availability-text">Verifica in corso…</strong>
+          <span id="quick-availability-detail"></span>
+        </section>
+
+        <form id="quick-request-form">
+          <button id="btn-book-quick-request" class="btn btn-primary quick-book-button" type="submit" disabled>Prenota richiesta</button>
+        </form>
+        <p id="quick-action-message" class="quick-action-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="quick-panel quick-board-panel" aria-labelledby="quick-board-title">
+        <div class="quick-panel-heading">
+          <div>
+            <h2 id="quick-board-title">Richieste veloci</h2>
+            <p>Elenco di sola consultazione. FLAG e NEXT mostrano lo stato del Borderò e non sono modificabili qui.</p>
+          </div>
+          <span id="quick-request-count" class="quick-count">0</span>
+        </div>
+        <div class="quick-table-wrap">
+          <table class="brani-table quick-requests-table">
+            <thead>
+              <tr>
+                <th>FLAG</th>
+                <th>NEXT</th>
+                <th>ID</th>
+                <th>TIMESTAMP</th>
+                <th>COREOGRAFIA</th>
+                <th>AUTORE</th>
+                <th>BRANO</th>
+                <th>RICHIESTE</th>
+                <th>LIVELLO</th>
+                <th>STATO</th>
+              </tr>
+            </thead>
+            <tbody id="quick-requests-body"></tbody>
+          </table>
+        </div>
+        <p id="quick-board-empty" class="quick-board-empty">Nessuna richiesta veloce registrata per la serata corrente.</p>
+      </section>
+    </main>
+  </div>
+  <script src="/nav.js"></script>
+</body>
+</html>

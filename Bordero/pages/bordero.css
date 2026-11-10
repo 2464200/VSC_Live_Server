@@ -593,6 +593,10 @@
   animation: richiesteGreenPulse 1s ease-in-out infinite;
 }
 
+#btn-richieste-veloci.quick-requests-pending-blink {
+  animation: bordero-reset-active-blink 1.2s ease-in-out infinite;
+}
+
 @keyframes richiesteGreenPulse {
   0%,
   100% {
@@ -613,8 +617,8 @@
 
 .remote-rolling-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 150px));
-  width: min(100%, 308px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
   gap: 8px;
   margin-top: 2px;
   align-items: flex-start;
@@ -653,6 +657,12 @@
 
 #console-status-signal {
   grid-area: 4 / 1;
+}
+
+#btn-richieste-veloci {
+  grid-area: 4 / 2;
+  text-align: center;
+  text-decoration: none;
 }
 
 .remote-rolling-btn.remote-action-pending {
@@ -1476,6 +1486,39 @@
   background: linear-gradient(135deg, rgba(95, 143, 95, 0.34), rgba(140, 201, 140, 0.28));
   color: #e9ffe9;
   font-weight: 700;
+}
+
+.col-richieste.richieste-quick:not(.richieste-nonzero) {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(255, 224, 130, 0.2));
+  color: #fff1b8;
+}
+
+.request-source-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.request-source-badge {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 5px;
+  border-radius: 999px;
+  font-size: 0.62em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.request-source-online {
+  background: rgba(57, 128, 69, 0.75);
+  color: #e8ffe9;
+}
+
+.request-source-quick {
+  border: 1px solid rgba(255, 214, 102, 0.65);
+  background: rgba(143, 105, 0, 0.78);
+  color: #fff1b8;
 }
 
 .col-genere {

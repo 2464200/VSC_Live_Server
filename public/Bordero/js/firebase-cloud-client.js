@@ -25,7 +25,12 @@
       this.isPublisherPage = this.detectPublisherPage();
       this.isAdminPage = this.detectAdminPage();
       this.isCoursePage = /\/pages\/coreografie-corsi\.html$/i.test(window.location.pathname);
+      this.isQuickRequestsPage = /\/pages\/richieste-veloci\.html$/i.test(window.location.pathname);
+      this.isRequestStateConsumerPage = /\/pages\/(?:bordero|richieste-veloci|elenco-richieste)\.html$/i.test(window.location.pathname);
       this.eventSource = null;
+      this.requestStateEventSource = null;
+      this.requestStatePollingTimer = null;
+      this.requestStateLastUpdatedAt = null;
       this.pollingTimer = null;
       this.lastStateTimestamp = null;
       this.latestCloudState = null;
@@ -35,6 +40,8 @@
       this.localPushDebounceTimer = null;
       this.publisherAuth = null;
       this.publisherDatabase = null;
+      this.quickRequestQueue = Promise.resolve();
+      this.quickRequestSequence = 0;
       this.authReady = Promise.resolve();
 
       this.init();
@@ -57,7 +64,7 @@
 
     detectPublisherPage() {
       if (typeof window === 'undefined' || !window.location) return false;
-      return /\/pages\/(?:bordero|admin|dj-preselezione|coreografie-corsi)\.html$/i.test(window.location.pathname);
+      return /\/pages\/(?:bordero|admin|dj-preselezione|coreografie-corsi|richieste-veloci)\.html$/i.test(window.location.pathname);
     }
 
     detectAdminPage() {
@@ -66,7 +73,14 @@
     }
 
     init() {
-      if (this.isCoursePage) {
+      if (this.isQuickRequestsPage) {
+        this.authReady = this.initializePublisherAuth();
+        if (this.isCloudHost) {
+          this.startCloudListener();
+        } else {
+          this.setupLocalSyncTriggers();
+        }
+      } else if (this.isCoursePage) {
         this.authReady = this.initializePublisherAuth();
       } else if (this.isCloudHost) {
         console.log('[FirebaseCloudClient] Modalità Cloud attiva (Host:', window.location.hostname, ')');
@@ -76,7 +90,248 @@
         this.authReady = this.initializePublisherAuth();
         this.setupLocalSyncTriggers();
       }
+      if (this.isRequestStateConsumerPage && !this.isCloudHost) {
+        this.startRequestStateListener();
+      }
       this.injectStatusIndicator();
+    }
+
+    getSerataKey(serata) {
+      if (!serata || typeof serata !== 'object') return '';
+      const date = String(serata.data || serata.date || '').trim().toLowerCase().replace(/\s+/g, ' ');
+      const dj = String(serata.dj || '').trim().toLowerCase().replace(/\s+/g, ' ');
+      if (!date || !dj) return '';
+      const encodeKeyPart = (value) => encodeURIComponent(value).replace(/[.#$/\[\]]/g, '_');
+      return `v1_${encodeKeyPart(date)}_${encodeKeyPart(dj)}`;
+    }
+
+    getBranoRequestKey(branoId) {
+      return encodeURIComponent(String(branoId ?? '').trim()).replace(/[.#$/\[\]]/g, '_');
+    }
+
+    isBranoExecuted(brano) {
+      return Boolean(
+        brano && (
+          String(brano.flag || brano.eseguito || brano.executed || '').toUpperCase() === 'X'
+          || brano.executed === true
+          || brano.eseguito === true
+        )
+      );
+    }
+
+    isRichiestaOnline(brano) {
+      const value = String(brano?.richieste ?? '').trim();
+      if (!value || value === '-') return false;
+      const numeric = value.replace(',', '.');
+      return !(/^-?\d+(\.\d+)?$/.test(numeric) && Number(numeric) === 0);
+    }
+
+    dispatchRequestStateUpdate(state) {
+      this.latestCloudState = state;
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('bordero:request-state-updated', { detail: state }));
+      }
+    }
+
+    startRequestStateListener() {
+      const refresh = () => this.fetchRequestStateDirect();
+      if (typeof EventSource !== 'undefined') {
+        try {
+          this.requestStateEventSource = new EventSource(this.getDbEndpoint());
+          this.requestStateEventSource.addEventListener('put', refresh);
+          this.requestStateEventSource.addEventListener('patch', refresh);
+          this.requestStateEventSource.onerror = () => this.ensureRequestStatePolling();
+        } catch (error) {
+          console.warn('[FirebaseCloudClient] Listener richieste non disponibile, uso polling:', error);
+          this.ensureRequestStatePolling();
+        }
+      } else {
+        this.ensureRequestStatePolling();
+      }
+
+      refresh();
+      window.addEventListener('pagehide', () => {
+        this.requestStateEventSource?.close();
+        if (this.requestStatePollingTimer) {
+          clearInterval(this.requestStatePollingTimer);
+          this.requestStatePollingTimer = null;
+        }
+      }, { once: true });
+    }
+
+    ensureRequestStatePolling() {
+      if (this.requestStatePollingTimer) return;
+      this.requestStatePollingTimer = setInterval(() => this.fetchRequestStateDirect(), 3000);
+    }
+
+    async fetchRequestStateDirect() {
+      try {
+        const response = await fetch(`${this.getDbEndpoint()}?t=${Date.now()}`, { cache: 'no-store' });
+        if (response.status === 404) {
+          if (this.requestStateLastUpdatedAt !== null) {
+            this.requestStateLastUpdatedAt = null;
+            this.dispatchRequestStateUpdate(null);
+          }
+          return null;
+        }
+        if (!response.ok) throw new Error(`Lettura stato richieste non riuscita (HTTP ${response.status}).`);
+
+        const state = await response.json();
+        if (!state || typeof state !== 'object') return null;
+        const updatedAt = String(state.updatedAt || '');
+        if (updatedAt === this.requestStateLastUpdatedAt) return state;
+        this.requestStateLastUpdatedAt = updatedAt;
+        this.dispatchRequestStateUpdate(state);
+        return state;
+      } catch (error) {
+        console.warn('[FirebaseCloudClient] Lettura stato richieste non riuscita:', error);
+        return null;
+      }
+    }
+
+    getNextUpdatedAt(previousValue) {
+      const previousTime = Date.parse(previousValue || '');
+      const nextTime = Math.max(Date.now(), Number.isFinite(previousTime) ? previousTime + 1 : 0);
+      return new Date(nextTime).toISOString();
+    }
+
+    reserveQuickRequest(request, onRetry = () => {}) {
+      const reservation = {
+        ...request,
+        createdAt: new Date().toISOString(),
+        reservationId: `${Date.now()}-${++this.quickRequestSequence}-${Math.random().toString(36).slice(2)}`
+      };
+      const operation = this.quickRequestQueue.then(() => this.reserveQuickRequestWithRetry(reservation, onRetry));
+      this.quickRequestQueue = operation.then(() => undefined, () => undefined);
+      return operation;
+    }
+
+    async reserveQuickRequestWithRetry(request, onRetry) {
+      const maxAttempts = 4;
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          const result = await this.reserveQuickRequestAttempt(request);
+          if (result.ok || !['conflitto-server', 'stato-non-disponibile'].includes(result.reason) || attempt === maxAttempts) {
+            return result;
+          }
+        } catch (error) {
+          if (!this.isRetryableQuickRequestError(error) || attempt === maxAttempts) throw error;
+        }
+
+        onRetry(attempt + 1, maxAttempts);
+        await new Promise((resolve) => setTimeout(resolve, Math.min(400 * (2 ** (attempt - 1)), 3200)));
+      }
+
+      return { ok: false, reason: 'stato-non-disponibile' };
+    }
+
+    isRetryableQuickRequestError(error) {
+      if (error?.code === 'PERMISSION_DENIED' || /permission[_ ]denied|unauthorized|not authenticated/i.test(error?.message || '')) {
+        return false;
+      }
+      return error?.retryable === true
+        || error?.name === 'TypeError'
+        || /network|fetch failed|timed out|temporarily unavailable/i.test(error?.message || '');
+    }
+
+    async reserveQuickRequestAttempt({ branoId, title, serataKey, createdAt, reservationId }) {
+      await this.authReady;
+      const user = this.publisherAuth?.currentUser;
+      if (!user || !this.isAuthorizedPublisher(user)) {
+        throw new Error('Accedi con un account Google autorizzato per prenotare la richiesta.');
+      }
+      if (!this.publisherDatabase) throw new Error('Firebase Realtime Database non è inizializzato.');
+
+      const normalizedId = String(branoId ?? '').trim();
+      if (!normalizedId || !String(title || '').trim() || !serataKey) {
+        throw new Error('Seleziona una coreografia valida e verifica la serata corrente.');
+      }
+
+      const requestKey = this.getBranoRequestKey(normalizedId);
+      const token = await user.getIdToken();
+      const endpoint = `${this.getDbEndpoint()}?auth=${encodeURIComponent(token)}&t=${Date.now()}`;
+      const readResponse = await fetch(endpoint, {
+        cache: 'no-store',
+        headers: { 'X-Firebase-ETag': 'true' }
+      });
+      if (!readResponse.ok) {
+        const error = new Error(`Lettura stato Firebase non riuscita (HTTP ${readResponse.status}).`);
+        error.retryable = readResponse.status === 408 || readResponse.status === 429 || readResponse.status >= 500;
+        throw error;
+      }
+      const currentState = await readResponse.json();
+      const etag = readResponse.headers.get('ETag');
+      if (!currentState || typeof currentState !== 'object' || !etag) {
+        return { ok: false, reason: 'stato-non-disponibile' };
+      }
+
+      const savedRequest = currentState.quickRequestsBySerata?.[serataKey]?.[requestKey];
+      if (savedRequest?.reservationId === reservationId) {
+        return { ok: true, request: savedRequest, state: currentState };
+      }
+      if (this.getSerataKey(currentState.serata) !== serataKey) {
+        return { ok: false, reason: 'serata-modificata' };
+      }
+      const stateTimestamp = Date.parse(currentState.updatedAt || '');
+      const stateAge = Date.now() - stateTimestamp;
+      if (!Number.isFinite(stateTimestamp) || stateAge < -5 * 60 * 1000 || stateAge > MAX_CLOUD_STATE_AGE_MS) {
+        return { ok: false, reason: 'stato-non-aggiornato' };
+      }
+
+      const brano = (Array.isArray(currentState.brani) ? currentState.brani : [])
+        .find((item) => String(item?.id ?? '').trim() === normalizedId);
+      if (!brano) return { ok: false, reason: 'brano-non-disponibile' };
+      if (this.isBranoExecuted(brano)) return { ok: false, reason: 'gia-eseguita' };
+
+      const catalogBrano = (Array.isArray(currentState.catalogBrani) ? currentState.catalogBrani : [])
+        .find((item) => String(item?.id ?? '').trim() === normalizedId);
+      if (this.isRichiestaOnline(catalogBrano) || this.isRichiestaOnline(brano)) {
+        return { ok: false, reason: 'gia-prenotata' };
+      }
+
+      const requestsBySerata = currentState.quickRequestsBySerata || {};
+      const serataRequests = requestsBySerata[serataKey] || {};
+      if (serataRequests[requestKey]) return { ok: false, reason: 'gia-prenotata' };
+
+      const requestRecord = {
+        id: normalizedId,
+        title: String(title).trim(),
+        source: 'richiesta-veloce',
+        createdAt,
+        reservationId,
+        serataKey
+      };
+      const updatedState = {
+        ...currentState,
+        quickRequestsBySerata: {
+          ...requestsBySerata,
+          [serataKey]: {
+            ...serataRequests,
+            [requestKey]: requestRecord
+          }
+        },
+        updatedAt: this.getNextUpdatedAt(currentState.updatedAt)
+      };
+      const writeResponse = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'if-match': etag
+        },
+        body: JSON.stringify(updatedState)
+      });
+      if (writeResponse.status === 412) return { ok: false, reason: 'conflitto-server' };
+      if (!writeResponse.ok) {
+        const error = new Error(`Salvataggio Firebase non riuscito (HTTP ${writeResponse.status}).`);
+        error.retryable = writeResponse.status === 408 || writeResponse.status === 429 || writeResponse.status >= 500;
+        throw error;
+      }
+
+      const responseState = await writeResponse.json();
+      const committedState = responseState && typeof responseState === 'object' ? responseState : updatedState;
+      this.requestStateLastUpdatedAt = String(committedState.updatedAt || '');
+      this.dispatchRequestStateUpdate(committedState);
+      return { ok: true, request: requestRecord, state: committedState };
     }
 
     async initializePublisherAuth() {
@@ -93,7 +348,7 @@
           ? window.firebase.app()
           : window.firebase.initializeApp(firebaseConfig);
         this.publisherAuth = app.auth();
-        this.publisherDatabase = app.database();
+        this.publisherDatabase = app.database(this.dbUrl);
 
         await new Promise((resolve) => {
           let resolved = false;
@@ -203,6 +458,9 @@
       }
       if (publishButton) {
         publishButton.hidden = !user || !this.isAuthorizedPublisher(user);
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('bordero:publisher-auth-updated', { detail: { user } }));
       }
     }
 
@@ -496,17 +754,31 @@
         ...(this.latestCloudState || {}),
         ...this.getCurrentLocalState(),
         ...payload,
-        updatedAt: new Date().toISOString(),
         source: 'bordero-google-auth'
       };
       const databasePath = this.syncPath.replace(/\.json$/, '').replace(/^\/+/, '');
 
       try {
-        await this.publisherDatabase.ref(databasePath).set(state);
-        this.latestCloudState = state;
+        const stateRef = this.publisherDatabase.ref(databasePath);
+        const result = await stateRef.transaction((currentState) => {
+          const current = currentState && typeof currentState === 'object' ? currentState : {};
+          const merged = { ...current, ...state };
+          if (!Object.prototype.hasOwnProperty.call(payload, 'quickRequestsBySerata')) {
+            const requests = current.quickRequestsBySerata ?? state.quickRequestsBySerata;
+            if (requests) merged.quickRequestsBySerata = requests;
+            else delete merged.quickRequestsBySerata;
+          }
+          return {
+            ...merged,
+            updatedAt: this.getNextUpdatedAt(currentState?.updatedAt)
+          };
+        }, undefined, false);
+        if (!result.committed) throw new Error('Aggiornamento dello stato condiviso annullato.');
+        const publishedState = result.snapshot.val();
+        this.dispatchRequestStateUpdate(publishedState);
         this.isConnected = true;
         this.updateStatusBadge(true, '🟢 Cloud aggiornato');
-        return state;
+        return publishedState;
       } catch (error) {
         const denied = error?.code === 'PERMISSION_DENIED'
           || /permission_denied|permission denied/i.test(error?.message || '');

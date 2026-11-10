@@ -963,6 +963,9 @@ class BorderoTableManager {
   }
 
   setupDataRefreshListeners() {
+    this.quickRequestState = window.firebaseCloudClient?.latestCloudState || null;
+    this.refreshQuickRequestsButton(this.quickRequestState);
+
     window.removeEventListener('bordero:data-updated', this.handleDataRefreshBound);
     this.handleDataRefreshBound = () => {
       this.refreshFromCurrentData({ silent: true });
@@ -976,6 +979,64 @@ class BorderoTableManager {
       }
     };
     window.addEventListener('storage', this.handleStorageRefreshBound);
+
+    window.removeEventListener('bordero:request-state-updated', this.handleRequestStateRefreshBound);
+    this.handleRequestStateRefreshBound = (event) => {
+      this.refreshQuickRequestState(event.detail);
+    };
+    window.addEventListener('bordero:request-state-updated', this.handleRequestStateRefreshBound);
+
+    window.removeEventListener('bordero:cloud-updated', this.handleCloudRequestRefreshBound);
+    this.handleCloudRequestRefreshBound = (event) => {
+      this.refreshQuickRequestState(event.detail || window.firebaseCloudClient?.latestCloudState);
+    };
+    window.addEventListener('bordero:cloud-updated', this.handleCloudRequestRefreshBound);
+  }
+
+  refreshQuickRequestState(state) {
+    this.quickRequestState = state || null;
+    this.refreshQuickRequestsButton(this.quickRequestState);
+    const catalogBrani = Array.isArray(state?.catalogBrani)
+      ? state.catalogBrani
+      : (Array.isArray(state?.brani) ? state.brani : []);
+    if (catalogBrani.length) {
+      const catalogById = new Map(catalogBrani.map((brano) => [String(brano?.id ?? '').trim(), brano]));
+      this.allBrani = this.allBrani.map((brano) => {
+        const latest = catalogById.get(String(brano.id ?? '').trim());
+        return latest && latest.richieste !== undefined
+          ? { ...brano, richieste: latest.richieste }
+          : brano;
+      });
+    }
+    this.applyFilters();
+  }
+
+  refreshQuickRequestsButton(state) {
+    const button = document.getElementById('btn-richieste-veloci');
+    if (!button) return;
+
+    const cloud = window.firebaseCloudClient;
+    const serataKey = state && cloud?.getSerataKey?.(state.serata);
+    const requests = serataKey ? state.quickRequestsBySerata?.[serataKey] : null;
+    const brani = Array.isArray(state?.brani) ? state.brani : [];
+    const pendingCount = Object.values(requests || {}).filter((request) => {
+      if (!request || typeof request !== 'object') return false;
+      const requestId = String(request.id ?? '').trim();
+      const brano = brani.find((item) => String(item?.id ?? '').trim() === requestId);
+      return !brano || !cloud?.isBranoExecuted?.(brano);
+    }).length;
+    const hasPendingRequests = pendingCount > 0;
+    const pendingLabel = pendingCount === 1
+      ? '1 richiesta veloce non ancora eseguita'
+      : `${pendingCount} richieste veloci non ancora eseguite`;
+
+    button.classList.toggle('quick-requests-pending-blink', hasPendingRequests);
+    button.title = hasPendingRequests
+      ? `${pendingLabel} · Apri Richieste Veloci`
+      : 'Apri Richieste Veloci';
+    button.setAttribute('aria-label', hasPendingRequests
+      ? `Richieste Veloci: ${pendingLabel}`
+      : 'Richieste Veloci');
   }
 
   setupAutoRefresh() {
@@ -1993,6 +2054,37 @@ class BorderoTableManager {
     return false;
   }
 
+  getQuickRequestForBrano(brano) {
+    const state = this.quickRequestState || window.firebaseCloudClient?.latestCloudState;
+    const cloud = window.firebaseCloudClient;
+    if (!brano || !state || !cloud?.getSerataKey || !cloud?.getBranoRequestKey) return null;
+    const serataKey = cloud.getSerataKey(state.serata);
+    if (!serataKey) return null;
+    const requestKey = cloud.getBranoRequestKey(brano.id);
+    return state.quickRequestsBySerata?.[serataKey]?.[requestKey] || null;
+  }
+
+  isBranoRequested(brano) {
+    return Boolean(brano && (
+      !this.isRichiesteZeroValue(brano.richieste)
+      || this.getQuickRequestForBrano(brano)
+    ));
+  }
+
+  getRequestSourceMarkup(brano) {
+    const isOnline = !this.isRichiesteZeroValue(brano.richieste);
+    const quickRequest = this.getQuickRequestForBrano(brano);
+    const badges = [];
+    if (isOnline) {
+      const count = this.escapeHtml(brano.richieste);
+      badges.push(`<span class="request-source-badge request-source-online" title="Richiesta online · Modulo 8+12">ONLINE × ${count}</span>`);
+    }
+    if (quickRequest) {
+      badges.push('<span class="request-source-badge request-source-quick" title="Richiesta registrata dal DJ">VOCALE</span>');
+    }
+    return badges.join('');
+  }
+
   applyValueFilterFromPicker(selectedIndex) {
     if (!this.activeFilterPicker) return;
 
@@ -2227,6 +2319,26 @@ class BorderoTableManager {
   sortCollection(collection, field, ascending) {
     if (!Array.isArray(collection)) return [];
 
+    const sortByField = (items) => {
+      if (field !== 'richieste') return ObjectUtils.sortByField(items, field, ascending);
+
+      const rankedItems = items.map((brano, index) => {
+        const requestValue = String(brano?.richieste ?? '').trim().replace(',', '.');
+        const quickRequestCount = this.getQuickRequestForBrano(brano) ? 1 : 0;
+        const onlineCount = /^-?\d+(\.\d+)?$/.test(requestValue)
+          ? Number(requestValue)
+          : (this.isRichiesteZeroValue(brano?.richieste) ? 0 : (requestValue ? 1 : 0));
+        const requestCount = onlineCount + quickRequestCount;
+        return {
+          index,
+          value: requestCount === 0 && this.isEmptyFilterValue(brano?.richieste) ? -1 : requestCount
+        };
+      });
+
+      return ObjectUtils.sortByField(rankedItems, 'value', ascending)
+        .map(({ index }) => items[index]);
+    };
+
     const activeId = this.getActiveNextSelectionId();
     const prioritized = this.applyNextSelectionPriority(collection);
     const selectedItem = activeId
@@ -2238,15 +2350,15 @@ class BorderoTableManager {
 
     if (!this.keepExecutedAtBottom) {
       return selectedItem
-        ? [selectedItem, ...ObjectUtils.sortByField(remainingItems, field, ascending)]
-        : ObjectUtils.sortByField(prioritized, field, ascending);
+        ? [selectedItem, ...sortByField(remainingItems)]
+        : sortByField(prioritized);
     }
 
     const pending = remainingItems.filter(item => !this.isExecutedBrano(item));
     const executed = remainingItems.filter(item => this.isExecutedBrano(item));
 
-    const pendingSorted = ObjectUtils.sortByField(pending, field, ascending);
-    const executedSorted = ObjectUtils.sortByField(executed, field, ascending);
+    const pendingSorted = sortByField(pending);
+    const executedSorted = sortByField(executed);
 
     return selectedItem
       ? [selectedItem, ...pendingSorted, ...executedSorted]
@@ -2379,18 +2491,22 @@ class BorderoTableManager {
       if (config.mode === 'hasValue') {
         const fields = config.fields || [key];
         this.filteredBrani = this.filteredBrani.filter(item =>
-          fields.some(field => !this.isEmptyFilterValue(item[field]))
+          fields.some(field => field === 'richieste'
+            ? this.isBranoRequested(item)
+            : !this.isEmptyFilterValue(item[field]))
         );
       } else if (config.mode === 'emptyValue') {
         this.filteredBrani = this.filteredBrani.filter(item =>
           key === 'course_week'
             ? (item.course_weeks || []).length === 0
-            : this.isEmptyFilterValue(item[key])
+            : key === 'richieste'
+              ? this.isEmptyFilterValue(item.richieste) && !this.getQuickRequestForBrano(item)
+              : this.isEmptyFilterValue(item[key])
         );
       } else if (config.mode === 'richiesteZero') {
-        this.filteredBrani = this.filteredBrani.filter(item => this.isRichiesteZeroValue(item.richieste));
+        this.filteredBrani = this.filteredBrani.filter(item => !this.isBranoRequested(item));
       } else if (config.mode === 'richiesteNonZero') {
-        this.filteredBrani = this.filteredBrani.filter(item => !this.isRichiesteZeroValue(item.richieste));
+        this.filteredBrani = this.filteredBrani.filter(item => this.isBranoRequested(item));
       } else if (config.mode === 'exactValue') {
         const expected = this.normalizeFilterFieldValue(key, config.value);
         this.filteredBrani = this.filteredBrani.filter(item =>
@@ -2448,6 +2564,9 @@ class BorderoTableManager {
 
   getSearchFieldValue(item, field) {
     if (field === 'flag') return item.flag || item.eseguito;
+    if (field === 'richieste' && this.getQuickRequestForBrano(item)) {
+      return [item.richieste, 'Richiesta vocale'].filter(Boolean).join(' ');
+    }
     if (field === 'next_coreo') {
       return item.next_coreo || item.nextCoreo || item['next coreo'] || (item.next_selected ? 'NEXT selezionato' : '');
     }
@@ -2762,9 +2881,14 @@ class BorderoTableManager {
     const completedClass = isCompleted ? 'completed' : '';
     const flagLabel = isCompleted ? 'Ripristina disponibilita' : 'Segna come eseguito (seleziona prima NEXT)';
     const timestamp = brano.timestamp || '';
-    const richiesteHighlightClass = !isCompleted && !this.isRichiesteZeroValue(brano.richieste)
-      ? ' richieste-nonzero'
+    const isOnlineRequest = !this.isRichiesteZeroValue(brano.richieste);
+    const quickRequest = this.getQuickRequestForBrano(brano);
+    const richiesteHighlightClass = !isCompleted
+      ? `${isOnlineRequest ? ' richieste-nonzero' : ''}${quickRequest ? ' richieste-quick' : ''}`
       : '';
+    const richiesteContent = isOnlineRequest || quickRequest
+      ? `<span class="request-source-list">${this.getRequestSourceMarkup(brano)}</span>`
+      : this.escapeHtml(brano.richieste || '-');
     const videoButtonDisabledClass = isCompleted ? ' is-disabled' : '';
     const videoButtonDisabledAttr = isCompleted ? ' disabled aria-disabled="true" tabindex="-1"' : '';
     const videoButtonTitle = isCompleted ? 'Brano eseguito: VideoClip non disponibile' : 'Apri VideoClip';
@@ -2789,7 +2913,7 @@ class BorderoTableManager {
         <td class="col-coreografia">${brano.titolo || brano.coreografia || '-'}</td>
         <td class="col-autore">${brano.autore}</td>
         <td class="col-titolo-brano">${brano.brano || brano.song || brano.canzone || ''}</td>
-        <td class="col-richieste${richiesteHighlightClass}">${brano.richieste || '-'}</td>
+        <td class="col-richieste${richiesteHighlightClass}">${richiesteContent}</td>
         <td class="col-livello">${brano.info_livello || '-'}</td>
         <td class="col-settimana" title="${this.escapeHtml(brano.course_week_details || 'Coreografia non prevista nel programma della stagione attiva').replace(/"/g, '&quot;')}">${brano.course_week || '-'}</td>
         <td class="col-coreo-1">${brano.info_coreo_1 || brano.info_coreo || '-'}</td>
@@ -3960,7 +4084,7 @@ class BorderoTableManager {
     const uniqueById = new Map();
 
     collection.forEach((brano) => {
-      if (!brano || this.isRichiesteZeroValue(brano.richieste)) return;
+      if (!brano || !this.isBranoRequested(brano)) return;
       const key = String(brano.id ?? '').trim();
       if (!key || uniqueById.has(key)) return;
       uniqueById.set(key, brano);
