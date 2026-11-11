@@ -8,7 +8,7 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const root = path.resolve(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, ...file.split('/')), 'utf8');
 
-test('NEXT then FLAG persists execution, highlights orange on Bordero and DISPLAY without VirtualDJ calls', async (t) => {
+test('NEXT then FLAG persists execution, keeps Bordero gray and DISPLAY orange without VirtualDJ calls', async (t) => {
   const windows = [];
   const values = new Map();
   const errors = [];
@@ -133,7 +133,8 @@ test('NEXT then FLAG persists execution, highlights orange on Bordero and DISPLA
   assert.equal(track.executed, true);
 
   const borderoRow = main.document.querySelector('[data-brano-id="001"]');
-  assert.equal(main.getComputedStyle(borderoRow).backgroundColor, 'rgb(255, 127, 0)');
+  assert.equal(main.getComputedStyle(borderoRow).backgroundColor, 'rgb(74, 74, 74)');
+  assert.equal(main.getComputedStyle(borderoRow.querySelector('td')).color, 'rgb(136, 136, 136)');
 
   const displayedRow = Array.from(display.document.querySelectorAll('#display-tbody tr'))
     .find((row) => row.querySelector('.col-id').textContent === '001');
