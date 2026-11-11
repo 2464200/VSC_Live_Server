@@ -8,7 +8,7 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const root = path.resolve(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, ...file.split('/')), 'utf8');
 
-test('NEXT then FLAG persists execution, updates yellow DISPLAY and Brani Eseguiti without VirtualDJ calls', async (t) => {
+test('NEXT then FLAG persists execution, highlights orange on Bordero and DISPLAY without VirtualDJ calls', async (t) => {
   const windows = [];
   const values = new Map();
   const errors = [];
@@ -132,11 +132,14 @@ test('NEXT then FLAG persists execution, updates yellow DISPLAY and Brani Esegui
   assert.ok(track.timestamp);
   assert.equal(track.executed, true);
 
+  const borderoRow = main.document.querySelector('[data-brano-id="001"]');
+  assert.equal(main.getComputedStyle(borderoRow).backgroundColor, 'rgb(255, 127, 0)');
+
   const displayedRow = Array.from(display.document.querySelectorAll('#display-tbody tr'))
     .find((row) => row.querySelector('.col-id').textContent === '001');
   assert.ok(displayedRow, 'Executed tracks with zero requests must appear on DISPLAY');
   assert.equal(displayedRow.classList.contains('completed'), true);
-  assert.equal(display.getComputedStyle(displayedRow).backgroundColor, 'rgb(255, 255, 0)');
+  assert.equal(display.getComputedStyle(displayedRow).backgroundColor, 'rgb(255, 127, 0)');
   assert.equal(executed.document.querySelector('#executed-count').textContent, '1 brani');
   assert.equal(executed.document.querySelector('#executed-tbody .col-titolo').textContent, '101');
 

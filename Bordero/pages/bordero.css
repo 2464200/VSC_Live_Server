@@ -1372,12 +1372,17 @@
 }
 
 .brani-table tbody tr.completed {
-  background-color: #4a4a4a;
-  color: #999;
+  background-color: #ff7f00;
+  color: #111;
+  font-weight: 700;
 }
 
 .brani-table tbody tr.completed td {
-  color: #888;
+  color: #111;
+}
+
+.brani-table tbody tr.completed:hover {
+  background-color: #ff9933;
 }
 
 .brani-table tbody tr.console-row-playing {
