@@ -106,12 +106,18 @@ L'applicazione consente ai DJ di:
 
 Il file `Bordero/data/Accoda 8+12.csv` combina due schede dello stesso foglio pubblicato, leggendo le colonne `A:AI`:
 
-- **Modulo 8:** [foglio risposte pubblicato](https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pubhtml?gid=1561978718&single=true), `gid=1561978718`.
-- **Modulo 12:** [stesso foglio pubblicato](https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pubhtml?gid=1644446046&single=true), `gid=1644446046`.
+- **Modulo 8:** [foglio risposte pubblicato](https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pubhtml?gid=1932672514&single=true), `gid=1932672514`.
+- **Modulo 12:** [stesso foglio pubblicato](https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pubhtml?gid=575474364&single=true), `gid=575474364`.
 
 Per entrambe le schede il sync usa l'export CSV pubblico, non l'ID del link privato `/edit`.
 
 Il merge mantiene le regole esistenti: intestazione comune scelta tra quelle più lunghe, allineamento per nome colonna e occorrenza per intestazioni duplicate, righe del Modulo 8 prima di quelle del Modulo 12, senza ordinamento o deduplicazione. Le righe vuote e quelle con solo timestamp/nome vengono escluse. Entrambe le sorgenti devono avere l'intestazione `Informazioni cronologiche`; schede con la sola intestazione sono ammesse, mentre sorgenti senza intestazioni valide non sovrascrivono gli ultimi CSV validi. La copia pubblica è `public/Bordero/data/Accoda 8+12.csv` e si aggiorna con `npm run sync:public`.
+
+#### Propagazione a monitor e pagine pubblicate
+
+Il server aggiorna le sorgenti Google ogni 60 secondi. Borderò rilegge il catalogo con lo stesso intervallo; il monitor interno rilegge il catalogo ogni 30 secondi e ridisegna la tabella ogni secondo. Quando la proiezione filtrata e ordinata del monitor cambia, genera atomicamente `display.csv` e `public/display.csv` nel formato a sei colonne usato dalla schermata classica. Quest'ultima rilegge il file ogni 120 secondi su desktop e ogni 200 secondi su mobile.
+
+Ogni lettura valida del catalogo segnala il nuovo stato al publisher locale Firebase, che evita scritture identiche e ritenta al ciclo successivo dopo un errore temporaneo. Il Display pubblicato riceve lo stato da Realtime Database; la build Hosting include anche `display.csv` come copia statica. `npm run sync:public` prepara la destinazione `public-display/`; la pubblicazione Hosting resta governata dal flusso di deploy configurato.
 
 ### Pubblicazione live su Firebase
 

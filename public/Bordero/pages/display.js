@@ -36,6 +36,11 @@ class DisplayMonitor {
     this.lastRenderedSignature = '';
     this.lastDisplayCsvLoadAt = 0;
     this.lastDisplayCsvLoadResult = null;
+    this.lastPublishedDisplaySignature = '';
+    this.lastFailedDisplayCsvSignature = '';
+    this.lastDisplayCsvPublishAttemptAt = 0;
+    this.displayCsvPublishInProgress = false;
+    this.displayCsvPublishRetryMs = 30000;
     this.hasRequestedBrani = false;
     this.footerRollingHint = 'Parametri rolling: configura da ADMIN';
     this.scrollCommandStorageKey = BORDERO_CONFIG?.DISPLAY_SCROLL_COMMAND_STORAGE_KEY || 'BORDERO_DISPLAY_SCROLL_COMMAND';
@@ -215,6 +220,7 @@ class DisplayMonitor {
       isRequested: (brano) => !this.isRichiesteZeroValue(brano?.richieste),
     });
     const displayBrani = this.orderDisplayByState(annotatedBrani);
+    this.syncDisplayCsv(displayBrani);
 
     // Aggiorna header
     this.updateHeader(displayBrani);
@@ -233,6 +239,56 @@ class DisplayMonitor {
     this.lastRefresh = new Date();
     document.getElementById('footer-timestamp').textContent = 
       `Ultimo aggiornamento: ${DateUtils.formatTime(this.lastRefresh)}`;
+  }
+
+  buildDisplayCsvRows(brani) {
+    return brani.slice(0, 1000).map((brano) => ({
+      id: brano?.id ?? '',
+      coreografia: brano?.titolo ?? brano?.coreografia ?? '',
+      brano: brano?.brano ?? brano?.song ?? '',
+      autore: brano?.autore ?? brano?.author ?? '',
+      coreografo: brano?.coreografo ?? '',
+      executed: this.isBranoExecuted(brano),
+    }));
+  }
+
+  async syncDisplayCsv(brani) {
+    const hostname = window.location?.hostname?.toLowerCase();
+    if (!['localhost', '127.0.0.1', '::1'].includes(hostname)) return;
+    if (!Array.isArray(brani) || brani.length === 0 || this.displayCsvPublishInProgress) return;
+
+    const rows = this.buildDisplayCsvRows(brani);
+    const dateKey = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome' }).format(new Date());
+    const signature = JSON.stringify({ dateKey, rows });
+    if (signature === this.lastPublishedDisplaySignature) return;
+
+    const now = Date.now();
+    if (signature === this.lastFailedDisplayCsvSignature
+        && now - this.lastDisplayCsvPublishAttemptAt < this.displayCsvPublishRetryMs) {
+      return;
+    }
+
+    this.displayCsvPublishInProgress = true;
+    this.lastDisplayCsvPublishAttemptAt = now;
+    try {
+      const response = await fetch('/api/bordero/display-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows }),
+        cache: 'no-store',
+      });
+      const result = await response.json();
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || `HTTP ${response.status}`);
+      }
+      this.lastPublishedDisplaySignature = signature;
+      this.lastFailedDisplayCsvSignature = '';
+    } catch (error) {
+      this.lastFailedDisplayCsvSignature = signature;
+      logger.error('Errore aggiornamento display.csv', error);
+    } finally {
+      this.displayCsvPublishInProgress = false;
+    }
   }
 
   buildRenderSignature(brani) {

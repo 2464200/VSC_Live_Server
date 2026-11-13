@@ -1,10 +1,13 @@
 (function () {
     // Browser pages share the machine preference; Electron also loads it from preload.
-    if (['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+    const mobileDisplayPage = /\/mobile(?:\d+)?\.html$/i.test(window.location.pathname);
+    if (!mobileDisplayPage
+        && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
         && !window.machineUiTheme
         && !document.querySelector('script[data-machine-ui-theme], script[src*="machine-ui-theme.js"]')) {
         const themeScript = document.createElement('script');
-        themeScript.src = '/Bordero/js/machine-ui-theme.js';
+        const themeScriptPath = '/Bordero/js/machine-ui-theme.js';
+        themeScript.src = window.resolveAppUrl ? window.resolveAppUrl(themeScriptPath) : themeScriptPath;
         themeScript.dataset.machineUiTheme = 'true';
         document.head.appendChild(themeScript);
     }

@@ -12,6 +12,10 @@ test('source and published Bordero clients target the Hosting project Realtime D
   const publishedConfig = fs.readFileSync(path.join(repoRoot, 'public/Bordero/js/config.js'), 'utf8');
   const sourceClient = fs.readFileSync(path.join(repoRoot, 'Bordero/js/firebase-cloud-client.js'), 'utf8');
   const publishedClient = fs.readFileSync(path.join(repoRoot, 'public/Bordero/js/firebase-cloud-client.js'), 'utf8');
+  const sourceDataLoader = fs.readFileSync(path.join(repoRoot, 'Bordero/js/data-loader.js'), 'utf8');
+  const publishedDataLoader = fs.readFileSync(path.join(repoRoot, 'public/Bordero/js/data-loader.js'), 'utf8');
+  const sourceDisplay = fs.readFileSync(path.join(repoRoot, 'Bordero/pages/display.js'), 'utf8');
+  const publishedDisplay = fs.readFileSync(path.join(repoRoot, 'public/Bordero/pages/display.js'), 'utf8');
   const sourceRules = fs.readFileSync(path.join(repoRoot, 'Bordero/pages/bordero.js'), 'utf8');
   const publishedRules = fs.readFileSync(path.join(repoRoot, 'public/Bordero/pages/bordero.js'), 'utf8');
 
@@ -21,6 +25,8 @@ test('source and published Bordero clients target the Hosting project Realtime D
     assert.ok(!config.includes('europe-west1-3c18b-default-rtdb'));
   }
   assert.equal(sourceClient, publishedClient);
+  assert.equal(sourceDataLoader, publishedDataLoader);
+  assert.equal(sourceDisplay, publishedDisplay);
   assert.equal(sourceRules, publishedRules);
   assert.ok(sourceClient.includes(`|| '${expectedDatabaseUrl}'`));
 });
@@ -65,8 +71,12 @@ test('Firebase Auth enables Google Sign-In for the local and hosted Bordero doma
   }
 });
 
-async function createPublisherClient(email, url = 'http://localhost:5500/Bordero/pages/bordero.html') {
+async function createPublisherClient(email, url = 'http://localhost:5500/Bordero/pages/bordero.html', options = {}) {
   const writes = [];
+  let transactionAttempts = 0;
+  let activeTransactions = 0;
+  let maxConcurrentTransactions = 0;
+  let failuresRemaining = options.failTransactions || 0;
   const user = { email };
   const auth = {
     currentUser: user,
@@ -80,7 +90,25 @@ async function createPublisherClient(email, url = 'http://localhost:5500/Bordero
     auth: () => auth,
     database: () => ({
       ref: (databasePath) => ({
-        set: async (value) => writes.push({ databasePath, value }),
+        transaction: async (updateState) => {
+          transactionAttempts += 1;
+          activeTransactions += 1;
+          maxConcurrentTransactions = Math.max(maxConcurrentTransactions, activeTransactions);
+          try {
+            if (options.transactionDelayMs) {
+              await new Promise((resolve) => setTimeout(resolve, options.transactionDelayMs));
+            }
+            if (failuresRemaining > 0) {
+              failuresRemaining -= 1;
+              throw new Error('temporary write failure');
+            }
+            const value = updateState(null);
+            writes.push({ databasePath, value });
+            return { committed: true, snapshot: { val: () => value } };
+          } finally {
+            activeTransactions -= 1;
+          }
+        },
       }),
     }),
   };
@@ -137,7 +165,14 @@ async function createPublisherClient(email, url = 'http://localhost:5500/Bordero
   assert.ok(client.publisherDatabase);
   await new Promise((resolve) => dom.window.setTimeout(resolve, 0));
 
-  return { dom, client, writes, fetched };
+  return {
+    dom,
+    client,
+    writes,
+    fetched,
+    get transactionAttempts() { return transactionAttempts; },
+    get maxConcurrentTransactions() { return maxConcurrentTransactions; },
+  };
 }
 
 test('course page authenticates on local and cloud hosts without publishing or loading evening state', async () => {
@@ -175,6 +210,67 @@ test('authorized Google publisher writes through the authenticated Realtime Data
   assert.equal(state.nextCoreo, 'Coreografia test');
   assert.ok(Number.isFinite(Date.parse(state.updatedAt)));
   dom.window.close();
+});
+
+test('unchanged catalog publications are deduplicated and failed writes can retry next cycle', async () => {
+  const clientWithNoChanges = await createPublisherClient('lucafaby@gmail.com');
+  const state = {
+    nextCoreo: 'Coreografia test',
+    serata: { dj: 'Test DJ' },
+    brani: [{ id: '1' }],
+  };
+  await clientWithNoChanges.client.publishState(state);
+  await clientWithNoChanges.client.publishState(state);
+  assert.equal(clientWithNoChanges.writes.length, 1);
+  clientWithNoChanges.dom.window.close();
+
+  const retryingClient = await createPublisherClient(
+    'lucafaby@gmail.com',
+    'http://localhost:5500/Bordero/pages/bordero.html',
+    { failTransactions: 1 },
+  );
+  await assert.rejects(retryingClient.client.publishState(state), /temporary write failure/);
+  await retryingClient.client.publishState(state);
+  assert.equal(retryingClient.transactionAttempts, 2);
+  assert.equal(retryingClient.writes.length, 1);
+  retryingClient.dom.window.close();
+});
+
+test('a later catalog update event retries a previously failed Firebase publication', async () => {
+  const retryingClient = await createPublisherClient(
+    'lucafaby@gmail.com',
+    'http://localhost:5500/Bordero/pages/bordero.html',
+    { failTransactions: 1 },
+  );
+  const waitForDebounce = () => new Promise((resolve) => retryingClient.dom.window.setTimeout(resolve, 350));
+
+  retryingClient.dom.window.dispatchEvent(new retryingClient.dom.window.Event('bordero:data-updated'));
+  await waitForDebounce();
+  assert.equal(retryingClient.transactionAttempts, 1);
+  assert.equal(retryingClient.writes.length, 0);
+
+  retryingClient.dom.window.dispatchEvent(new retryingClient.dom.window.Event('bordero:data-updated'));
+  await waitForDebounce();
+  assert.equal(retryingClient.transactionAttempts, 2);
+  assert.equal(retryingClient.writes.length, 1);
+  retryingClient.dom.window.close();
+});
+
+test('concurrent state changes are serialized into non-overlapping Firebase writes', async () => {
+  const publisher = await createPublisherClient(
+    'lucafaby@gmail.com',
+    'http://localhost:5500/Bordero/pages/bordero.html',
+    { transactionDelayMs: 20 },
+  );
+
+  await Promise.all([
+    publisher.client.publishState({ nextCoreo: 'Prima coreografia' }),
+    publisher.client.publishState({ nextCoreo: 'Seconda coreografia' }),
+  ]);
+
+  assert.equal(publisher.writes.length, 2);
+  assert.equal(publisher.maxConcurrentTransactions, 1);
+  publisher.dom.window.close();
 });
 
 test('unauthorized Google accounts cannot invoke cloud writes', async () => {

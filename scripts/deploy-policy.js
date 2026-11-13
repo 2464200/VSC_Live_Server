@@ -1,4 +1,4 @@
-const SHARED_CSV_PATH = /^Bordero\/data\/.*\.csv$/i;
+const SHARED_CSV_PATH = /^(?:Bordero\/data\/.*\.csv|display\.csv|public\/display\.csv)$/i;
 const LOCAL_ONLY_CSV_PATHS = new Set([
   'Bordero/data/get-camera-name.csv',
   'Bordero/data/music-archive-index.csv',

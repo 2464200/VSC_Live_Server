@@ -441,13 +441,20 @@ class DataLoader {
 
     try {
       const csvContent = await Network.fetchCSV(this.resolveDataUrl(BORDERO_CONFIG.CSV_BRANI));
-      this.brani = this.normalizeBraniList(CSVParser.parse(csvContent));
+      const loadedBrani = this.normalizeBraniList(CSVParser.parse(csvContent));
+      if (loadedBrani.length === 0) {
+        throw new Error('Il CSV non contiene brani validi; mantengo l’ultimo stato disponibile.');
+      }
+      this.brani = loadedBrani;
 
       // Salva in cache
       Storage.set('BORDERO_BRANI_DATA', this.brani);
       Storage.set(BORDERO_CONFIG.CACHE_KEY_BRANI, this.brani);
       this.lastSync = DateUtils.now();
       Storage.set(BORDERO_CONFIG.CACHE_KEY_SYNC, this.lastSync);
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new Event('bordero:data-updated'));
+      }
 
       logger.info(`Caricati ${this.brani.length} brani da CSV`);
       if (!silent) {

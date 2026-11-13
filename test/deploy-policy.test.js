@@ -30,6 +30,8 @@ test('publishes shared Bordero CSV updates while keeping machine-specific CSVs d
     'Bordero/data/comuni_italia.csv',
     'Bordero/data/music-archive-index.csv',
     'Bordero/data/get-camera-name.csv',
+    'display.csv',
+    'public/display.csv',
     'Bordero/js/admin.js',
     '*',
   ]);
@@ -41,6 +43,8 @@ test('publishes shared Bordero CSV updates while keeping machine-specific CSVs d
     '*',
   ]);
   assert.equal(isSharedCsvPath('Bordero\\data\\location.csv'), true);
+  assert.equal(isSharedCsvPath('display.csv'), true);
+  assert.equal(isSharedCsvPath('public/display.csv'), true);
   assert.equal(isSharedCsvPath('Bordero/data/music-archive-index.csv'), false);
   assert.deepEqual([...LOCAL_ONLY_CSV_PATHS], [
     'Bordero/data/get-camera-name.csv',

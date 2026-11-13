@@ -49,7 +49,10 @@
     }
 
     if (path.startsWith('/')) {
-      const cleanBase = basePath === '/' ? '/' : basePath.replace(/\/+$/, '/') + '';
+      const cleanBase = basePath === '/' ? '/' : basePath.replace(/\/+$/, '') + '/';
+      if (cleanBase !== '/' && (path === cleanBase.slice(0, -1) || path.startsWith(cleanBase))) {
+        return input;
+      }
       const cleanPath = path.replace(/^\/+/, '');
       return cleanBase + cleanPath + query + hash;
     }

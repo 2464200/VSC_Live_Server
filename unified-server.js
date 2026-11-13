@@ -31,6 +31,7 @@ const { syncBraniJson, appendExtraBrano, updateExtraBrano, deleteExtraBrano, loa
 const { resolveDjAction } = require('./Eventi/dj-association');
 const { createActionPermissionsStore } = require('./Eventi/action-permissions');
 const { syncAll: syncGoogleSheetsData } = require('./Bordero/server/google-sheets-sync');
+const { createDisplayCsvSync, createDisplayCsvHandler } = require('./Bordero/server/display-csv-sync');
 const { syncRegistro: syncRegistroGoogleSheetsData } = require('./scripts/sync-registro-sheets');
 const { getBranoMatchProfile, resolveMusicArchiveMatch } = require('./Bordero/server/music-archive-match');
 const { firebaseCloudSync } = require('./Bordero/server/firebase-cloud-sync');
@@ -38,6 +39,12 @@ const DjPreselectionFile = require('./Bordero/pages/dj-preselezione-file');
 const { DEPLOY_CONTROL_VERSION, resolveDeployControl } = require('./scripts/deploy-policy');
 
 const app = express();
+const syncDisplayCsv = createDisplayCsvSync({
+    outputPaths: [
+        path.join(__dirname, 'display.csv'),
+        path.join(__dirname, 'public', 'display.csv')
+    ]
+});
 const CANONICAL_PROJECT_PORT = 5500;
 const PROJECT_FALLBACK_PORTS = [5501, 5502];
 const configuredPort = Number(process.env.UNIFIED_PORT);
@@ -3234,6 +3241,7 @@ app.use('/__/auth', (req, res) => {
 });
 
 app.use(express.json({ limit: '2mb' }));
+app.post('/api/bordero/display-csv', createDisplayCsvHandler(syncDisplayCsv));
 app.use('/api/local-ui/preferences', createUiPreferencesRouter(createMachineUiPreferencesStore(getLocalConfigPath('bordero/ui-preferences.json'))));
 app.use('/api/bordero/course-program/files', createChoreoProgramFileRouter(createChoreoProgramFileStore(projectConfig.choreoProgramDir)));
 

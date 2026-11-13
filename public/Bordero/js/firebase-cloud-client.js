@@ -38,6 +38,11 @@
       this.latestNextCoreo = '--';
       this.isConnected = false;
       this.localPushDebounceTimer = null;
+      this.localPushInProgress = false;
+      this.localPushQueued = false;
+      this.statePublishQueue = Promise.resolve();
+      this.lastLocalPublishSignature = '';
+      this.lastPublishedState = null;
       this.publisherAuth = null;
       this.publisherDatabase = null;
       this.quickRequestQueue = Promise.resolve();
@@ -800,6 +805,12 @@
     }
 
     async pushCurrentLocalStateToBackend() {
+      if (this.localPushInProgress) {
+        this.localPushQueued = true;
+        return;
+      }
+
+      this.localPushInProgress = true;
       try {
         await this.authReady;
         const user = this.publisherAuth?.currentUser;
@@ -810,6 +821,22 @@
         await this.publishState(this.getCurrentLocalState());
       } catch (error) {
         console.error('[FirebaseCloudClient] Pubblicazione locale non riuscita:', error);
+      } finally {
+        this.localPushInProgress = false;
+        if (this.localPushQueued) {
+          this.localPushQueued = false;
+          const currentState = {
+            ...(this.latestCloudState || {}),
+            ...this.getCurrentLocalState(),
+          };
+          if (this.getPublishableStateSignature(currentState) !== this.lastLocalPublishSignature) {
+            if (this.localPushDebounceTimer) clearTimeout(this.localPushDebounceTimer);
+            this.localPushDebounceTimer = setTimeout(() => {
+              this.localPushDebounceTimer = null;
+              this.pushCurrentLocalStateToBackend();
+            }, 300);
+          }
+        }
       }
     }
 
@@ -841,7 +868,25 @@
       };
     }
 
-    async publishState(payload = {}) {
+    getPublishableStateSignature(state) {
+      return JSON.stringify({
+        nextCoreo: state?.nextCoreo || '--',
+        serata: state?.serata && typeof state.serata === 'object' ? state.serata : {},
+        brani: Array.isArray(state?.brani) ? state.brani : [],
+        catalogBrani: Array.isArray(state?.catalogBrani) ? state.catalogBrani : [],
+        quickRequestsBySerata: state?.quickRequestsBySerata && typeof state.quickRequestsBySerata === 'object'
+          ? state.quickRequestsBySerata
+          : {},
+      });
+    }
+
+    publishState(payload = {}) {
+      const queuedPublish = this.statePublishQueue.then(() => this.publishStateNow(payload));
+      this.statePublishQueue = queuedPublish.catch(() => undefined);
+      return queuedPublish;
+    }
+
+    async publishStateNow(payload = {}) {
       await this.authReady;
       const user = this.publisherAuth?.currentUser;
       if (!user || !this.isAuthorizedPublisher(user)) {
@@ -858,6 +903,12 @@
         ...payload,
         source: 'bordero-google-auth'
       };
+      const publishableSignature = this.getPublishableStateSignature(state);
+      if (publishableSignature === this.lastLocalPublishSignature && this.lastPublishedState) {
+        this.isConnected = true;
+        this.updateStatusBadge(true, '🟢 Cloud aggiornato');
+        return this.lastPublishedState;
+      }
       const databasePath = this.syncPath.replace(/\.json$/, '').replace(/^\/+/, '');
 
       try {
@@ -877,6 +928,9 @@
         }, undefined, false);
         if (!result.committed) throw new Error('Aggiornamento dello stato condiviso annullato.');
         const publishedState = result.snapshot.val();
+        this.latestCloudState = publishedState;
+        this.lastPublishedState = publishedState;
+        this.lastLocalPublishSignature = this.getPublishableStateSignature(publishedState);
         this.dispatchRequestStateUpdate(publishedState);
         this.isConnected = true;
         this.updateStatusBadge(true, '🟢 Cloud aggiornato');

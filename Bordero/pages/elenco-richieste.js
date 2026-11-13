@@ -11,7 +11,7 @@ class ElencoRichiestePage {
     this.videoClipFiles = [];
     this.videoClipCatalog = [];
     this.videoClipAvailableMap = new Map();
-    this.requestersByBranoId = new Map();
+    this.requestDetailsByBranoId = new Map();
     this.cloudState = null;
     this.autoRefreshIntervalMs = 60 * 1000;
     this.autoRefreshTimer = null;
@@ -19,13 +19,46 @@ class ElencoRichiestePage {
     this.init();
   }
 
+  async waitForInitialGoogleSync() {
+    const deadline = Date.now() + 60 * 1000;
+
+    while (true) {
+      let response;
+      try {
+        response = await fetch('/api/bordero/sync-google/status', { cache: 'no-store' });
+      } catch (error) {
+        logger.warn('Stato sync Google non disponibile; carico i dati locali', error?.message || error);
+        return;
+      }
+
+      if (!response.ok) {
+        logger.warn(`Stato sync Google non disponibile (HTTP ${response.status}); carico i dati locali`);
+        return;
+      }
+
+      const state = (await response.json())?.state;
+      if (!state?.inProgress) {
+        if (state?.lastError) {
+          logger.warn('Sync Google non completata; carico l’ultimo CSV valido', state.lastError);
+        }
+        return;
+      }
+
+      if (Date.now() >= deadline) {
+        throw new Error('La sincronizzazione Google è ancora in corso dopo 60 secondi.');
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  }
+
   async init() {
     try {
+      await this.waitForInitialGoogleSync();
       await dataLoader.initialize();
       await this.refreshFromCurrentData({ forceRemote: true, silent: true });
       this.cloudState = window.firebaseCloudClient?.latestCloudState || null;
       this.applyCloudSnapshotToBrani();
-      await this.loadRequestersFromAccoda();
       await this.refreshSyncDiagnostic();
       this.render();
       this.setupAutoRefresh();
@@ -112,8 +145,8 @@ class ElencoRichiestePage {
       await this.refreshVideoClipAvailability();
       this.applyVideoClipAvailabilityToBrani();
 
-      this.requested = this.getUniqueRequestedBrani(this.brani);
       await this.loadRequestersFromAccoda();
+      this.requested = this.getUniqueRequestedBrani(this.brani);
     } finally {
       this.autoRefreshInProgress = false;
     }
@@ -144,6 +177,7 @@ class ElencoRichiestePage {
     return Boolean(brano && (
       !this.isRichiesteZeroValue(brano.richieste)
       || this.getQuickRequestForBrano(brano)
+      || this.requestDetailsByBranoId.has(String(brano.id ?? '').trim())
     ));
   }
 
@@ -170,7 +204,7 @@ class ElencoRichiestePage {
   }
 
   async loadRequestersFromAccoda() {
-    this.requestersByBranoId = new Map();
+    this.requestDetailsByBranoId = new Map();
 
     try {
       const accodaUrl = new URL('../data/Accoda 8+12.csv', window.location.href).href + '?t=' + Date.now();
@@ -182,13 +216,12 @@ class ElencoRichiestePage {
       if (lines.length < 2) return;
 
       const rows = lines.slice(1).map((line) => CSVParser.parseCSVLine(line));
-      const requestedNames = new Map();
+      const requestDetails = new Map();
 
       for (const row of rows) {
         const requester = String(row[1] || '').trim();
-        if (!requester) continue;
-
-        const relevantCells = row.slice(2).filter((cell) => typeof cell === 'string' && cell.trim().length > 0);
+        const timestamp = String(row[0] || '').trim();
+        const relevantCells = row.slice(3).filter((cell) => typeof cell === 'string' && cell.trim().length > 0);
         for (const brano of this.brani) {
           const variants = [brano.titolo, brano.coreografia, brano.brano, brano.song, brano.canzone]
             .filter(Boolean)
@@ -197,11 +230,7 @@ class ElencoRichiestePage {
           const matched = relevantCells.some((cell) => {
             const cellText = String(cell).trim();
             const normalizedCell = this.normalizeForMatch(cellText);
-            return variants.some((variant) => variant && (
-              variant === normalizedCell ||
-              variant.includes(normalizedCell) ||
-              normalizedCell.includes(variant)
-            ));
+            return variants.some((variant) => variant && variant === normalizedCell);
           });
 
           if (!matched) continue;
@@ -209,18 +238,16 @@ class ElencoRichiestePage {
           const key = String(brano.id || '').trim();
           if (!key) continue;
 
-          const current = requestedNames.get(key) || [];
-          if (!current.includes(requester)) {
-            current.push(requester);
-            requestedNames.set(key, current);
-          }
+          const current = requestDetails.get(key) || [];
+          current.push({ name: requester, timestamp });
+          requestDetails.set(key, current);
         }
       }
 
-      this.requestersByBranoId = requestedNames;
+      this.requestDetailsByBranoId = requestDetails;
     } catch (error) {
       logger.debug('Nessun mapping richiedenti da Accoda CSV disponibile', error?.message || error);
-      this.requestersByBranoId = new Map();
+      this.requestDetailsByBranoId = new Map();
     }
   }
 
@@ -327,6 +354,16 @@ class ElencoRichiestePage {
       .replace(/[^a-z0-9]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
+  }
+
+  escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    })[character]);
   }
 
   tokenizeForMatch(normalizedText) {
@@ -568,8 +605,14 @@ class ElencoRichiestePage {
         const statoClass = isExecuted ? 'executed-status' : 'pending-status';
         const statoLabel = isExecuted ? 'Eseguito' : 'Da eseguire';
         const quickRequest = this.getQuickRequestForBrano(brano);
-        const onlineRequest = !this.isRichiesteZeroValue(brano.richieste);
-        const requestSources = `${onlineRequest ? `<span class="quick-source-label is-online">ONLINE × ${brano.richieste}</span>` : ''}${quickRequest ? '<span class="quick-source-label">VOCALE</span>' : ''}`;
+        const requestDetails = this.requestDetailsByBranoId.get(String(brano.id || '')) || [];
+        const requestNames = [...new Set(requestDetails.map((request) => request.name).filter(Boolean))];
+        const requestDates = [...new Set(requestDetails.map((request) => request.timestamp).filter(Boolean))];
+        const requestCount = requestDetails.length > 0 && this.isRichiesteZeroValue(brano.richieste)
+          ? requestDetails.length
+          : brano.richieste || '--';
+        const onlineRequest = requestDetails.length > 0 || !this.isRichiesteZeroValue(brano.richieste);
+        const requestSources = `${onlineRequest ? `<span class="quick-source-label is-online">ONLINE × ${requestCount}</span>` : ''}${quickRequest ? '<span class="quick-source-label">VOCALE</span>' : ''}`;
         const videoButtonDisabledClass = isExecuted ? ' is-disabled' : '';
         const videoButtonDisabledAttr = isExecuted ? ' disabled aria-disabled="true" tabindex="-1"' : '';
         const videoButtonTitle = isExecuted ? 'Brano eseguito: VideoClip non disponibile' : 'Apri VideoClip';
@@ -577,8 +620,9 @@ class ElencoRichiestePage {
           ? `<button type="button" class="videoclip-open${videoButtonDisabledClass}" data-brano-id="${brano.id}" aria-label="Apri VideoClip per ${String(brano.titolo || brano.id || 'brano')}" title="${videoButtonTitle}"${videoButtonDisabledAttr}>🎬</button>`
           : '-';
 
-        const richiedenteNome = brano.nome || brano.requester || brano.richiedente || brano.requestedBy ||
-          (this.requestersByBranoId.get(String(brano.id || '')) || []).join(', ') || (quickRequest ? 'Richiesta a voce' : '--');
+        const richiedenteNome = requestNames.join(', ') || brano.nome || brano.requester || brano.richiedente || brano.requestedBy ||
+          (quickRequest ? 'Richiesta a voce' : '--');
+        const requestTimestamp = requestDates.join(', ') || brano.timestamp || quickRequest?.createdAt || '--';
 
         return `
           <tr class="requested-row" data-brano-id="${brano.id}">
@@ -586,9 +630,9 @@ class ElencoRichiestePage {
             <td class="col-titolo">${titolo}</td>
             <td class="col-autore">${brano.autore || '--'}</td>
             <td class="col-coreografo">${brano.coreografo || '--'}</td>
-            <td class="col-richieste">${brano.richieste || '--'} ${requestSources}</td>
-            <td class="col-nome">${richiedenteNome}</td>
-            <td class="col-timestamp">${brano.timestamp || quickRequest?.createdAt || '--'}</td>
+            <td class="col-richieste">${requestCount} ${requestSources}</td>
+            <td class="col-nome">${this.escapeHtml(richiedenteNome)}</td>
+            <td class="col-timestamp">${this.escapeHtml(requestTimestamp)}</td>
             <td>
               <span class="action-inline ${statoClass}" aria-live="polite">
                 ${isExecuted ? '✅' : '⬜'} ${statoLabel}

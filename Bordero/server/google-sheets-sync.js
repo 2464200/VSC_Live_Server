@@ -60,9 +60,9 @@ const SHEETS = [
         name: 'Modulo 8',
         id: process.env.GOOGLE_SHEET_MODULO8?.trim() || '',
         range: process.env.GOOGLE_SHEET_MODULO8_RANGE || "'Risposte del modulo 8'!A:AI",
-        gid: process.env.GOOGLE_SHEET_MODULO8_GID || '1561978718',
+        gid: process.env.GOOGLE_SHEET_MODULO8_GID || '1932672514',
         publicUrl: process.env.GOOGLE_SHEET_MODULO8_PUBLIC_URL?.trim() ||
-          'https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pub?gid=1561978718&single=true&output=csv',
+          'https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pub?gid=1932672514&single=true&output=csv',
         preferPublicUrl: true,
         expectedHeaders: ['informazioni cronologiche'],
         allowEmpty: true
@@ -71,9 +71,9 @@ const SHEETS = [
         name: 'Modulo 12',
         id: process.env.GOOGLE_SHEET_MODULO12?.trim() || '',
         range: process.env.GOOGLE_SHEET_MODULO12_RANGE || "'Risposte del modulo 12'!A:AI",
-        gid: process.env.GOOGLE_SHEET_MODULO12_GID || '1644446046',
+        gid: process.env.GOOGLE_SHEET_MODULO12_GID || '575474364',
         publicUrl: process.env.GOOGLE_SHEET_MODULO12_PUBLIC_URL?.trim() ||
-          'https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pub?gid=1644446046&single=true&output=csv',
+          'https://docs.google.com/spreadsheets/d/e/2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/pub?gid=575474364&single=true&output=csv',
         preferPublicUrl: true,
         expectedHeaders: ['informazioni cronologiche'],
         allowEmpty: true
@@ -975,6 +975,7 @@ module.exports = {
   syncAll,
   syncSheet,
   mergeSourceTables,
+  writeCsvFilesSafely,
   SHEETS,
   OUTPUT_DIR
 };

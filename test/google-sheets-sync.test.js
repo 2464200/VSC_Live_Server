@@ -11,13 +11,13 @@ test('Modulo 8+12 reads the published Modulo 8 and the separate Modulo 12 sheet 
   const modulo12 = sheet.mergeSources.find((source) => source.name === 'Modulo 12');
 
   assert.equal(modulo8.range, "'Risposte del modulo 8'!A:AI");
-  assert.equal(modulo8.gid, '1561978718');
+  assert.equal(modulo8.gid, '1932672514');
   assert.equal(modulo8.preferPublicUrl, true);
   assert.match(modulo8.publicUrl, /2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG/);
   assert.equal(modulo12.range, "'Risposte del modulo 12'!A:AI");
-  assert.equal(modulo12.gid, '1644446046');
+  assert.equal(modulo12.gid, '575474364');
   assert.equal(modulo12.preferPublicUrl, true);
-  assert.match(modulo12.publicUrl, /2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG\/pub\?gid=1644446046/);
+  assert.match(modulo12.publicUrl, /2PACX-1vQP_nAjR6JfVSlC6eHYDc2xnCAdfJ_Bpt3zKhMyv6VFOTcuMqdX8AHB28pMQz68mZDp6Hrdh8sd5odG\/pub\?gid=575474364/);
 });
 
 test('merge keeps values under later duplicate response headers', () => {

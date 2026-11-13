@@ -32,7 +32,8 @@
       const link = document.createElement('link');
       link.id = 'primary-monitor-layout-css';
       link.rel = 'stylesheet';
-      link.href = '/Bordero/assets/css/primary-monitor-layout.css';
+      const stylesheetPath = '/Bordero/assets/css/primary-monitor-layout.css';
+      link.href = window.resolveAppUrl ? window.resolveAppUrl(stylesheetPath) : stylesheetPath;
       document.head.appendChild(link);
     }
     document.documentElement.setAttribute('data-monitor-role', layoutRole);
@@ -49,7 +50,8 @@
         const link = document.createElement('link');
         link.id = 'machine-ui-theme-css';
         link.rel = 'stylesheet';
-        link.href = '/Bordero/assets/css/machine-ui-theme.css';
+        const stylesheetPath = '/Bordero/assets/css/machine-ui-theme.css';
+        link.href = window.resolveAppUrl ? window.resolveAppUrl(stylesheetPath) : stylesheetPath;
         document.head.appendChild(link);
       }
       document.documentElement.setAttribute('data-primary-theme', 'day');
