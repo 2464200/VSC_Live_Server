@@ -41,6 +41,7 @@
     "editor.insertSpaces": true,
     "editor.detectIndentation": true,
     "editor.wordWrap": "on",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.bracketPairColorization.enabled": true,
     "editor.guides.bracketPairs": true,
     "editor.linkedEditing": true,
@@ -72,6 +73,7 @@
         "editor.formatOnSave": true
     },
     "prettier.requireConfig": true,
+    "prettier.prettierPath": "./node_modules/prettier",
     "eslint.validate": [
         "javascript"
     ],
