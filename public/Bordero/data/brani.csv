@@ -3,7 +3,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,002,1540,what the heaven,kyle park,03:29,,ALTRE COREO
 ,,003,16 BARS,16 bars,the southern gothic,03:43,,ALTRE COREO
 ,,004,16 STEPS,crime of the century,shania twain,06:05,,ALTRE COREO,COPPIA,CERCHIO
-,,005,16 TONS,sixteen tons,tennessee ernie ford,02:39,1,ALTRE COREO
+,,005,16 TONS,sixteen tons,tennessee ernie ford,02:39,,ALTRE COREO
 ,,006,19 FOREVER,19 forever,granger smith,03:24,,ALTRE COREO
 ,,007,1929,1929,tara oram,02:58,,ALTRE COREO,,,,Sonia Hemmes,,64 conteggi 4 muri
 ,,008,3 FLICKS,1 2 3,ann tayler,03:04,,AVANZATO 2,,,,David Villelas,Pol F. Ryan David Prestor,64 conteggi 4 muri 3 tag 1 restart
@@ -13,7 +13,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,012,50 SHOTS,shoulda,kylie morgan,02:47,,ALTRE COREO
 ,,013,8 BALLS,outback booty call,8 ball aitken,02:43,,ALTRE COREO
 ,,014,99 BOTTLES,99 bottles,zane williams,04:07,,SUPER AVANZATO 2
-,,015,A BAR SONG,a bar song (tipsy),shaboozey,02:52,,INTERMEDIO,,,,Ben Murphy,,32 conteggi 4 muri (Tag di 4 conteggi alla fine 10° muro)
+,,015,A BAR SONG,a bar song (tipsy),shaboozey,02:52,1,INTERMEDIO,,,,Ben Murphy,,32 conteggi 4 muri (Tag di 4 conteggi alla fine 10° muro)
 ,,016,A DIFFERENT SUMMER,nothing that a beer can't fix,thomas rhett,03:34,,ALTRE COREO,,,,Neus Llioveras,Lourdes Martin,32 conteggi 2 muri
 ,,017,A SWING TO QUIT,whole lotta quit,randy houser,04:26,,ALTRE COREO
 ,,018,AA,aa,walker hayes,03:10,,ALTRE COREO,,,,Linda Scott,,32 conteggi 4 muri
@@ -147,7 +147,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,146,DON'T MAKE ME BEG,don't make me beg,steve holy,03:27,,ALTRE COREO,,,,,,2 muri  frasata Parte A (32 counts) B (32 counts ) C (32 counts) SEQUENZA    A A B B C A A B B C C C A B B C C C
 ,,147,DOUBLE DUTCH,some beach,blake shelton,03:23,,ALTRE COREO,COPPIA,CERCHIO
 ,,148,DRIVEN,driven,casey james,03:32,,ALTRE COREO
-,,149,DUTY FREE,natural disaster,zac brown band,03:03,1,AVANZATO 2,,,,Esther & José,,A 20c B 38c C 16c 1muro [A BB A BB(24) CCC BB(24)]
+,,149,DUTY FREE,natural disaster,zac brown band,03:03,,AVANZATO 2,,,,Esther & José,,A 20c B 38c C 16c 1muro [A BB A BB(24) CCC BB(24)]
 ,,150,EASY COME EASY GO,hillbilly rock hillibilly roll,die campbell,02:40,,ALTRE COREO
 ,,151,EASY TWIST,anyone can play,gle campbell,02:37,,ALTRE COREO
 ,,152,EASY WAY,just be you,billy yates,03:26,,ALTRE COREO
@@ -210,7 +210,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,209,HEADIN WEST,headin' west,daly stephenson,02:45,,ALTRE COREO
 ,,210,HEART ATTACK,heart attack,boy named banjo,02:43,,ALTRE COREO,,,,Stefano Civa
 ,,211,HEAVEN ON DIRT,heaven on dirt,doc walker,03:01,,ALTRE COREO
-,,212,HEEL TOE POLKA,barn dance,mark geslison & geoff groberg,03:37,1,ALTRE COREO,COPPIA,CERCHIO,,Unknown,,32 conteggi (couple and circle)
+,,212,HEEL TOE POLKA,barn dance,mark geslison & geoff groberg,03:37,,ALTRE COREO,COPPIA,CERCHIO,,Unknown,,32 conteggi (couple and circle)
 ,,213,HEYDAY TONIGHT,heyday tonight,aaron watson,02:51,,ALTRE COREO,CONTRA
 ,,214,HILLBILLY GIRL,hillbilly girl,lisa mchugh,02:49,,ALTRE COREO
 ,,215,HOLD,maybe i shouldn't,matt borden,03:13,,AVANZATO 1,,,,Jgor Pasin,,96 conteggi A B A B A (32 conteggi) A (32 conteggi) B B A 16 conteggi)
@@ -320,7 +320,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,319,PICK A BALE,pick a bale of cotton,riverside,04:13,,ALTRE COREO,STAGE
 ,,320,PIZZA AND BEER,dreaming enough to get me by,tony ramey,03:36,,SUPER AVANZATO 3
 ,,321,POP CORN,corn,blake shelton,03:00,,ALTRE COREO
-,,322,POTA,kentucky,tiziano incani,03:07,1,ALTRE COREO,,,,Gianni Hook Valassi
+,,322,POTA,kentucky,tiziano incani,03:07,,ALTRE COREO,,,,Gianni Hook Valassi
 ,,323,POWERFULL STUFF,powerfull stuff,rascal flatts,03:16,,ALTRE COREO,,,,Jgor Pasin
 ,,324,PRESS REWIND,take it back,jef miles,03:41,,ALTRE COREO,,,,Fabian Muller,,32 conteggi 4 muri
 ,,325,PRETTY MAE,ballad of pretty mae,phill vassar,04:13,,ALTRE COREO,,,,Jgor Pasin
@@ -455,7 +455,7 @@ Colonna 1,Colonna 2,ID,coreografia,brano,autore,durata,richieste,info livello,in
 ,,454,WHAT DO I KNOW,what do i know,ricochet,03:35,,ALTRE COREO,,,,Gianni Hook Valassi
 ,,455,WHEN YOU SMILE,when you smile,rune rudberg,03:24,,ALTRE COREO
 ,,456,WHISKEY WHISKEY,1 2 3 4,alan doyle,03:04,,ALTRE COREO,STAGE
-,,457,WHISKEY WIGGLE,every little thing,carlene carter,03:15,1,INTERMEDIO,COPPIA,CERCHIO,,Joyce Warren,,48 conteggi [coppia cerchio]
+,,457,WHISKEY WIGGLE,every little thing,carlene carter,03:15,,INTERMEDIO,COPPIA,CERCHIO,,Joyce Warren,,48 conteggi [coppia cerchio]
 ,,458,WHITE SOLDIER,when i'm gone,the wild horses,03:08,,INTERMEDIO,,,,Pol F. Ryan,Johnny Rossato,32 conteggi 2 muri (1°tag di 16 counts alla fine del 3 muro) (2°tag di 8 counts alla fine del 7 muro)
 ,,459,WILD AT HEART,wild at heart,gloriana,03:43,,ALTRE COREO
 ,,460,WILD NIGHTS,wild night,martina mcbride,03:07,,INTERMEDIO,,,,Dan Albro,,64 conteggi 4 muri
