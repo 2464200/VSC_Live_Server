@@ -43,7 +43,7 @@ PASSO 3: Testare il Sistema
 In una NUOVA finestra PowerShell, esegui il test automatico:
 
    cd C:\VSC_Live_Server
-   powershell -File test_scriptpdf1_monitor.ps1
+   powershell -File test_scriptpdf1_monitor_fixed.ps1
 
 Il test verificherà:
 ✅ Connessione al server
@@ -92,7 +92,7 @@ AVVIARE SERVER:
   cd C:\VSC_Live_Server && node pdf-server.js
 
 ESEGUIRE TEST:
-  powershell -File test_scriptpdf1_monitor.ps1
+   powershell -File test_scriptpdf1_monitor_fixed.ps1
 
 APRIRE PAGINA HTML:
   http://localhost:5500/pdf/pages/script-pdf-prova.html
@@ -208,7 +208,7 @@ C:\VSC_Live_Server                       ← Cartella principale
 ├── Prova\
 │   ├── ScriptPDF1.html                  ← Pagina HTML (apri questo)
 │   └── test-scriptpdf1.html             ← Test automatico (vecchio)
-├── test_scriptpdf1_monitor.ps1          ← Test PowerShell (esegui questo)
+├── test_scriptpdf1_monitor_fixed.ps1    ← Test PowerShell
 ├── SCRIPTPDF1_MONITOR.txt               ← Documentazione completa
 ├── SCRIPTPDF1_QUICK_START.txt           ← Questo file
 └── package.json                         ← Dipendenze Node.js
@@ -262,7 +262,7 @@ Chrome non si posiziona               SCRIPTPDF1_MONITOR.txt (sezione ⚙️)
 Dashboard / Pagina HTML               ScriptPDF1.html (vedi fonte HTML)
 Integrazioni Excel                    INTEGRAZIONE_EXCEL.txt
 Errori server                         Console di Node.js
-Test automatico                       test_scriptpdf1_monitor.ps1
+Test automatico                       test_scriptpdf1_monitor_fixed.ps1
 
 
 ═════════════════════════════════════════════════════════════════════════════════
