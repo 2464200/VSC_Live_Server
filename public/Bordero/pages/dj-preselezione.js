@@ -26,6 +26,7 @@
     archiveCount: document.getElementById('archive-count'),
     archiveAvailableCount: document.getElementById('archive-available-count'),
     archiveSearch: document.getElementById('archive-search'),
+    archiveListHeader: document.querySelector('.track-list-header'),
     archiveList: document.getElementById('archive-list'),
     archiveEmpty: document.getElementById('archive-empty'),
     archiveVisibleCount: document.getElementById('archive-visible-count'),
@@ -48,6 +49,8 @@
   let activeFilterField = null;
   let savedState = loadSavedState();
   let archiveRefreshInProgress = false;
+  let archiveRefreshRequested = false;
+  let courseProgramLoadStarted = false;
 
   function createId() {
     return globalThis.crypto?.randomUUID?.() || `list-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -215,6 +218,8 @@
         filteredTracks.sort((left, right) => Number(selectedIds.has(String(right.id))) - Number(selectedIds.has(String(left.id))));
       } else if (currentSort === 'restorable') {
         filteredTracks.sort((left, right) => Number(isTrackExecuted(right)) - Number(isTrackExecuted(left)));
+      } else if (currentSort === 'course_week') {
+        filteredTracks.sort((left, right) => window.DjPreselectionCourseWeek.compare(left, right, currentSortDirection));
       } else {
         const direction = currentSortDirection === 'asc' ? 1 : -1;
         filteredTracks.sort((left, right) => compareTracks(left, right, currentSort) * direction);
@@ -225,6 +230,7 @@
     currentPage = Math.min(currentPage, pageCount);
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const visible = filteredTracks.slice(start, start + ITEMS_PER_PAGE);
+    elements.archiveListHeader.hidden = visible.length === 0;
     elements.archiveList.replaceChildren();
     for (const track of visible) {
       const row = document.createElement('div');
@@ -242,6 +248,9 @@
       row.append(createTextElement('span', 'track-meta', track.coreografo || '—'));
       row.append(createTextElement('span', 'track-meta', track.info_livello || track.info_coreo_1 || '—'));
       row.append(createTextElement('span', 'track-requests', track.richieste || '—'));
+      const week = createTextElement('span', 'track-week', track.course_week || '—');
+      if (track.course_week_details) week.title = track.course_week_details;
+      row.append(week);
 
       const statusActions = document.createElement('div');
       statusActions.className = 'track-status-actions';
@@ -326,7 +335,7 @@
       ? ['titolo']
       : searchMode === 'id'
         ? ['id']
-        : ['id', 'titolo', 'brano', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2'];
+        : ['id', 'titolo', 'brano', 'autore', 'richieste', 'coreografo', 'collaboratori', 'genere', 'info_livello', 'info_coreo_1', 'info_coreo_2', 'course_week'];
     return fields.some((field) => normalize(track[field]).includes(query));
   }
 
@@ -347,7 +356,7 @@
   }
 
   function updateSortButtonStates() {
-    const fields = { 'btn-sort-id': 'id', 'btn-sort-coreografo': 'coreografo', 'btn-sort-autore': 'autore', 'btn-sort-richieste': 'richieste', 'btn-sort-selected': 'selected', 'btn-sort-restorable': 'restorable' };
+    const fields = { 'btn-sort-id': 'id', 'btn-sort-week': 'course_week', 'btn-sort-coreografo': 'coreografo', 'btn-sort-autore': 'autore', 'btn-sort-richieste': 'richieste', 'btn-sort-selected': 'selected', 'btn-sort-restorable': 'restorable' };
     for (const [id, field] of Object.entries(fields)) {
       const button = document.getElementById(id);
       button?.classList.toggle('active', currentSort === field);
@@ -937,16 +946,35 @@
     }
   }
 
+  function enrichCourseWeeks(tracks) {
+    const store = window.choreoProgramStore;
+    if (store && !courseProgramLoadStarted) {
+      courseProgramLoadStarted = true;
+      store.load()
+        .then(() => refreshArchive({ silent: true }))
+        .catch((error) => console.warn('Lettura del programma corsi non riuscita', error?.message || error));
+    }
+    const programState = store?.getState() || null;
+    const archives = window.courseArchives;
+    const archive = archives?.getActive() || 'manual';
+    const records = archives?.getRecords(archive, programState) || [];
+    return window.DjPreselectionCourseWeek.enrichTracks(tracks, records, programState?.activeSeason);
+  }
+
   async function refreshArchive({ silent = false, initialize = !silent } = {}) {
-    if (archiveRefreshInProgress) return;
+    if (archiveRefreshInProgress) {
+      archiveRefreshRequested = true;
+      return;
+    }
     archiveRefreshInProgress = true;
     if (!silent) setArchiveStatus('Lettura del database Borderò...');
     try {
       if (initialize) await dataLoader.initialize(false);
       const loadedTracks = await dataLoader.loadBrani({ silent: true });
+      const courseTracks = enrichCourseWeeks(loadedTracks);
       const currentSerata = dataLoader.getCurrentSerata();
       const executedMap = new Map((currentSerata?.brani || []).map((item) => [String(item.id), item]));
-      archiveTracks = loadedTracks.map((track) => {
+      archiveTracks = courseTracks.map((track) => {
         const saved = executedMap.get(String(track.id));
         if (!saved || !Object.prototype.hasOwnProperty.call(saved, 'flag')) return track;
         const isExecuted = String(saved.flag || '').toUpperCase() === 'X' && !window.isVideoOnlyBrano?.(track);
@@ -986,6 +1014,10 @@
       setArchiveStatus(`Aggiornamento database Borderò non riuscito: ${error?.message || error}`, 'error');
     } finally {
       archiveRefreshInProgress = false;
+      if (archiveRefreshRequested) {
+        archiveRefreshRequested = false;
+        refreshArchive({ silent: true });
+      }
     }
   }
 
@@ -1089,6 +1121,7 @@
 
   const sortButtons = {
     'btn-sort-id': 'id',
+    'btn-sort-week': 'course_week',
     'btn-sort-coreografo': 'coreografo',
     'btn-sort-autore': 'autore',
     'btn-sort-richieste': 'richieste',
@@ -1200,5 +1233,8 @@
   });
   window.addEventListener('bordero:serata-updated', syncSelectionExecutionState);
   window.addEventListener('bordero:next-coreo-updated', renderSelection);
+  window.addEventListener('bordero:course-archive-updated', () => refreshArchive({ silent: true }));
+  window.addEventListener('bordero:course-archive-changed', () => refreshArchive({ silent: true }));
+  window.addEventListener('bordero:choreo-program-updated', () => refreshArchive({ silent: true }));
   nextCoreoChannel?.addEventListener('message', renderSelection);
 })();
