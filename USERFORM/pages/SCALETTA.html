@@ -8,6 +8,8 @@
   <script defer src="../js/userform-registry.js"></script>
   <script defer src="../js/userform-page.js"></script>
   <script defer src="../../Bordero/pages/dj-preselezione-file.js"></script>
+  <script defer src="../../Bordero/js/choreo-program-store.js"></script>
+  <script defer src="../../Bordero/js/course-archives.js"></script>
   <script defer src="../js/scaletta-generator.js"></script>
   <script defer src="../js/scaletta-actions.js"></script>
 </head>
@@ -62,6 +64,8 @@
 
         <fieldset class="setlist-advanced">
           <legend>Avanzate</legend>
+          <label class="setlist-taught-toggle"><input id="setlist-include-taught" type="checkbox" checked /> Includi i brani già insegnati nei corsi</label>
+          <p class="setlist-taught-help">Se disattivato, la scaletta esclude i brani del programma corsi attivo in Borderò.</p>
           <div class="setlist-info-filter-mode" role="radiogroup" aria-label="Modalità filtro categorie">
             <label><input type="radio" name="setlist-info-filter-mode" value="all" checked /> Tutte le categorie</label>
             <label><input type="radio" name="setlist-info-filter-mode" value="include" /> Includi selezionate</label>

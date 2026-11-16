@@ -843,6 +843,10 @@ body.fit-video-frame .page-shell.scaletta-shell > .scaletta-navigation { grid-ar
   font-weight: 700;
 }
 
+.setlist-taught-toggle { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.setlist-taught-toggle input { accent-color: var(--accent, #4f7cac); }
+.setlist-taught-help { margin: 0 0 4px 24px; color: var(--muted, #687386); font-size: 0.82rem; }
+
 .setlist-info-filter-mode {
   display: flex;
   flex-wrap: wrap;

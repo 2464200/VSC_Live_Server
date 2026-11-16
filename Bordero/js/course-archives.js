@@ -15,7 +15,7 @@
   const STORAGE_KEY = 'bordero_course_archives_v1';
   const PREF_KEY = 'bordero_course_archive_active_v1';
   const ACTIVE_MIGRATION_KEY = 'bordero_course_archive_active_migrated_v1';
-  const EXTERNAL_EXEC_URL = 'https://docs.google.com/spreadsheets/d/1SNiw3qc6bZ76duNSxIzxZ2GKHKO8XUpIcl_jZbXs5wY/export?format=csv&gid=2136651580';
+  const EXTERNAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGT0qpTsOI4OGeceaWqtkJ0zzayML5E9NADxLWkVQ4WYhI8cMHVKUafQDXN_hjecjKag7yK9bGHm2C/pub?gid=2136651580&single=true&output=csv';
   const clean = (value) => String(value ?? '').trim();
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const headerKey = (value) => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -308,7 +308,7 @@
   async function readExternal() {
     const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 10000);
     try {
-      const response = await fetch(EXTERNAL_EXEC_URL, { method: 'GET', mode: 'cors', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json,text/csv' } });
+      const response = await fetch(EXTERNAL_CSV_URL, { method: 'GET', mode: 'cors', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json,text/csv' } });
       if (!response.ok) throw new Error(`Fonte esterna non disponibile (HTTP ${response.status}).`);
       const text = await response.text();
       if (!text.trim()) throw new Error('La fonte esterna ha restituito una risposta vuota.');

@@ -6,6 +6,7 @@
   const generateButton = document.getElementById('btn-generate-setlist');
   const newButton = document.getElementById('btn-new-setlist');
   const saveButton = document.getElementById('btn-save-setlist');
+  const includeTaughtInput = document.getElementById('setlist-include-taught');
   const infoOptionsNode = document.getElementById('setlist-info-options');
   const INCLUDE_FILTER_WARNING = 'Con “Includi selezionate” attivare almeno una categoria oppure scegliere “Tutte le categorie”.';
   const GOOGLE_SYNC_STORAGE_KEY = 'bordero-google-sync-completed';
@@ -49,6 +50,7 @@
         time: document.getElementById('setlist-available-time').value,
         counts: Object.fromEntries([...levelInputs].map(([key, input]) => [key, input.value])),
         infoFilter: getInfoFilter(),
+        includeTaught: includeTaughtInput.checked,
         dj: fileFields.dj.value,
         date: fileFields.date.value,
         event: fileFields.event.value,
@@ -64,6 +66,7 @@
     const state = readStoredValue(STORAGE_KEY);
     if (!state || typeof state !== 'object') return;
     pendingInfoFilter = state.infoFilter && typeof state.infoFilter === 'object' ? state.infoFilter : null;
+    if (typeof state.includeTaught === 'boolean') includeTaughtInput.checked = state.includeTaught;
     if (typeof state.time === 'string') document.getElementById('setlist-available-time').value = state.time;
     levelInputs.forEach((input, key) => {
       if (state.counts && state.counts[key] !== undefined) input.value = String(state.counts[key]);
@@ -283,7 +286,52 @@
     }
   }
 
-  function generate() {
+  function normalizeSeason(value) {
+    return String(value || '').replace(/\s/g, '').replace(/[–—]/g, '-').replace('/', '-');
+  }
+
+  function isTeachingRecord(record) {
+    const activity = String(record.activity || record.raw?.activity || '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleUpperCase('it');
+    return !activity || activity === 'COREOGRAFIA SPIEGATA' || activity === 'COREOGRAFIA JOLLY';
+  }
+
+  async function filterTaughtTracks(sourceCatalog) {
+    if (includeTaughtInput.checked) return { catalog: sourceCatalog, count: 0 };
+    const store = window.choreoProgramStore;
+    const archives = window.courseArchives;
+    if (!store || !archives) return { catalog: sourceCatalog, count: 0, unavailable: true };
+    await store.load();
+    const state = store.getState();
+    const season = state.seasons?.[state.activeSeason];
+    const archive = archives.getActive();
+    const records = archives.getRecords(archive, state).filter(isTeachingRecord);
+    const expectedSeason = normalizeSeason(season?.label || state.activeSeason);
+    const relevant = archive === 'manual'
+      ? records
+      : records.filter((record) => expectedSeason && normalizeSeason(record.season) === expectedSeason);
+    const ids = new Set(relevant.map((record) => String(record.branoId || '').trim()).filter(Boolean));
+    const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
+    const byTitle = new Map();
+    sourceCatalog.tracks.forEach((track) => {
+      const key = normalizeTitle(track.coreografia);
+      if (key) byTitle.set(key, (byTitle.get(key) || 0) + 1);
+    });
+    relevant.forEach((record) => {
+      if (record.branoId) return;
+      const key = normalizeTitle(record.title || record.trackTitle);
+      if (key && byTitle.get(key) === 1) {
+        const track = sourceCatalog.tracks.find((item) => normalizeTitle(item.coreografia) === key);
+        if (track?.id) ids.add(String(track.id));
+      }
+    });
+    const tracks = sourceCatalog.tracks.filter((track) => !ids.has(String(track.id)));
+    const remaining = new Set(tracks.map((track) => track.id));
+    const catalogByLevel = Object.fromEntries(Object.entries(sourceCatalog.catalogByLevel).map(([level, items]) => [level, items.filter((track) => remaining.has(track.id))]));
+    return { catalog: { ...sourceCatalog, tracks, catalogByLevel }, count: sourceCatalog.tracks.length - tracks.length };
+  }
+
+  async function generate() {
     if (!catalog) {
       setStatus('Catalogo non disponibile. Ricaricare la pagina o controllare il server.', 'error');
       return;
@@ -296,7 +344,14 @@
       return;
     }
 
-    const result = generator.generateSetlist({ catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter });
+    let availableCatalog;
+    try {
+      availableCatalog = await filterTaughtTracks(catalog);
+    } catch (error) {
+      setStatus(`Impossibile leggere il programma corsi: ${error.message}`, 'error');
+      return;
+    }
+    const result = generator.generateSetlist({ catalog: availableCatalog.catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter });
     if (result.errors.length) {
       setStatus(result.errors.join('\n'), 'error');
       return;
@@ -304,7 +359,7 @@
 
     renderSetlist(result, availableSeconds);
     persistState();
-    const statusMessages = [`Scaletta generata: ${result.tracks.length} brani in ${generator.formatDuration(result.totalDurationSeconds)}.`, ...result.warnings];
+    const statusMessages = [`Scaletta generata: ${result.tracks.length} brani in ${generator.formatDuration(result.totalDurationSeconds)}.`, ...(availableCatalog.unavailable ? ['Archivio corsi non disponibile: nessuna esclusione applicata.'] : !includeTaughtInput.checked ? [`Brani già insegnati esclusi: ${availableCatalog.count}.`] : []), ...result.warnings];
     setStatus(statusMessages.join('\n'), result.warnings.length ? 'warning' : 'success');
   }
 
@@ -399,6 +454,7 @@
   newButton?.addEventListener('click', generate);
   saveButton?.addEventListener('click', saveSetlistForPreselection);
   document.getElementById('btn-clear-setlist')?.addEventListener('click', clearSetlist);
+  includeTaughtInput?.addEventListener('change', persistState);
   document.querySelectorAll('input[name="setlist-info-filter-mode"]').forEach((input) => {
     input.addEventListener('change', () => {
       setInfoFilterMode(input.value);

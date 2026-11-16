@@ -34,8 +34,8 @@ async function run() {
     'REGISTRO COREOGRAFIE should be a USERFORM page.',
   );
   const registryPage = fs.readFileSync(path.join(root, 'USERFORM', 'pages', 'REGISTRO-COREOGRAFIE.html'), 'utf8');
-  assert.match(registryPage, /class="btn registry-project-access" href="https:\/\/script\.google\.com\/macros\/s\/AKfycbwz8qXT73Pv7t_vDaZZHQvAUAE8VwB3BS0jxwyt7ADA1v8-MvxWv8SDcMIf2sDJAgJ1Gw\/exec"/);
-  assert.match(registryPage, /class="btn" href="https:\/\/docs\.google\.com\/spreadsheets\/d\/1SNiw3qc6bZ76duNSxIzxZ2GKHKO8XUpIcl_jZbXs5wY\/edit\?usp=drive_link"[^>]*>Apri Base Dati/);
+  assert.match(registryPage, /class="btn registry-project-access" href="https:\/\/script\.google\.com\/macros\/s\/AKfycbyYTyThFhLA-ATpHWL5uq_oNhnJFJg1gcHSO80qmw2gXC1cQODg5b1H0ZiDxqUOGI7N2A\/exec"/);
+  assert.match(registryPage, /class="btn" href="https:\/\/docs\.google\.com\/spreadsheets\/d\/e\/2PACX-1vSGT0qpTsOI4OGeceaWqtkJ0zzayML5E9NADxLWkVQ4WYhI8cMHVKUafQDXN_hjecjKag7yK9bGHm2C\/pubhtml"[^>]*>Apri Base Dati/);
 
   for (const [pageId, selector] of [['PAGINA07', '#next-form'], ['PAGINA09', '#prev-form']]) {
     const navDom = new JSDOM('<a id="prev-form"></a><a id="next-form"></a>', {
