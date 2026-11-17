@@ -754,6 +754,11 @@
     padding: 8mm;
   }
 
+  .print-document.level-print-order .letter-section + .letter-section {
+    break-before: page;
+    page-break-before: always;
+  }
+
   .cover {
     height: 297mm;
     min-height: 297mm;

@@ -251,6 +251,7 @@ class CoreografieStampaPage {
     documentNode.style.setProperty('--event-column-count', String(this.getEventColumnCount(this.settings.eventMode || this.settings.columnLabels.length)));
     documentNode.classList.toggle('numbered-pages', this.settings.numberPages);
     documentNode.classList.toggle('duplex-print', this.settings.duplex);
+    documentNode.classList.toggle('level-print-order', this.settings.printOrder === 'level');
     documentNode.classList.toggle('level-enabled', this.settings.includeLevel);
     documentNode.classList.toggle('week-enabled', this.settings.includeWeek);
     documentNode.classList.toggle('info-coreo-1-enabled', this.settings.includeInfoCoreo1);
@@ -324,6 +325,16 @@ class CoreografieStampaPage {
   }
 
   groupByLevel(brani) {
+    const preferredOrder = [
+      'BASE',
+      'INTERMEDIO',
+      'AVANZATO 1',
+      'AVANZATO 2',
+      'SUPER AVANZATO 1',
+      'SUPER AVANZATO 2',
+      'SUPER AVANZATO 3',
+    ];
+    const preferredRank = new Map(preferredOrder.map((level, index) => [level, index]));
     const groups = {};
     const seenTitles = new Set();
     brani.filter(brano => brano && (brano.titolo || brano.coreografia)).forEach((brano) => {
@@ -341,8 +352,19 @@ class CoreografieStampaPage {
     });
     return Object.fromEntries(Object.entries(groups)
       .sort(([first], [second]) => {
-        if (first === 'Senza livello') return 1;
-        if (second === 'Senza livello') return -1;
+        const firstKey = first.trim().toLocaleUpperCase('it-IT');
+        const secondKey = second.trim().toLocaleUpperCase('it-IT');
+        if (firstKey === 'ALTRE COREO') return secondKey === 'ALTRE COREO' ? 0 : 1;
+        if (secondKey === 'ALTRE COREO') return -1;
+        const firstRank = preferredRank.get(firstKey);
+        const secondRank = preferredRank.get(secondKey);
+        if (firstRank !== undefined || secondRank !== undefined) {
+          if (firstRank === undefined) return 1;
+          if (secondRank === undefined) return -1;
+          return firstRank - secondRank;
+        }
+        if (firstKey === 'SENZA LIVELLO') return 1;
+        if (secondKey === 'SENZA LIVELLO') return -1;
         return first.localeCompare(second, 'it', { sensitivity: 'base', numeric: true });
       })
       .map(([level, entries]) => [level, entries.sort((a, b) => this.titleOf(a).localeCompare(this.titleOf(b), 'it', { sensitivity: 'base', numeric: true }))]));
