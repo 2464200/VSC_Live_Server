@@ -307,6 +307,7 @@
 
 .print-document .cover,
 .print-document .letter-section {
+  box-sizing: border-box;
   background: #fff;
   width: 210mm;
   min-height: 297mm;
@@ -437,8 +438,8 @@
   min-height: auto;
   padding-top: 2.5mm;
   padding-bottom: 2.5mm;
-  break-inside: avoid;
-  page-break-inside: avoid;
+  break-inside: auto;
+  page-break-inside: auto;
 }
 
 .letter-heading {
@@ -469,11 +470,11 @@
 }
 
 .coreography-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
+  display: block;
   border: 1px solid #bfc5ca;
   border-top: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .coreography-column-headings,
@@ -492,6 +493,8 @@
   text-transform: uppercase;
   background: #eef0f2;
   border: 1px solid #bfc5ca;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .coreography-column-headings > span:nth-child(1),
@@ -540,6 +543,11 @@
   border-bottom: 1px solid #d9dde1;
   break-inside: avoid;
   align-items: stretch;
+}
+
+.coreography-list > .coreography-entry:first-child {
+  break-before: avoid;
+  page-break-before: avoid;
 }
 
 .coreography-entry:nth-child(even) {
@@ -639,14 +647,16 @@
 }
 
 .page-number {
-  display: block;
-  position: absolute;
-  right: 12mm;
-  bottom: 5mm;
+  display: none;
+  position: fixed;
+  right: 8mm;
+  bottom: 8mm;
+  z-index: 1;
   color: #58636d;
   font-size: 8pt;
   font-weight: 400;
   text-align: right;
+  white-space: pre;
 }
 
 .coreography-id {
@@ -723,9 +733,8 @@
     display: block;
   }
 
-  .print-document.duplex-print .cover,
-  .print-document.duplex-print .letter-section {
-    break-after: page;
+  .print-document.numbered-pages .page-number::after {
+    content: counter(page);
   }
 
   #print-document {
@@ -739,6 +748,10 @@
     width: 210mm;
     margin: 0;
     box-shadow: none;
+  }
+
+  .print-document .letter-section {
+    padding: 8mm;
   }
 
   .cover {
@@ -848,11 +861,6 @@
   .coreography-column-headings,
   .coreography-entry {
     grid-template-columns: var(--coreography-mobile-columns, 13mm minmax(0, 1fr));
-  }
-
-  .letter-section {
-    break-inside: avoid;
-    page-break-inside: avoid;
   }
 
   .coreography-column-headings .event-columns,

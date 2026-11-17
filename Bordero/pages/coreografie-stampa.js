@@ -1,7 +1,6 @@
 class CoreografieStampaPage {
   constructor() {
     this.settingsStorageKey = 'bordero_coreografie_stampa_settings';
-    this.standardRowsPerPage = 36;
     this.brani = [];
     this.serata = {};
     this.djNames = [];
@@ -228,7 +227,6 @@ class CoreografieStampaPage {
     const selectedCount = selectedGroups.reduce((total, [, entries]) => total + entries.length, 0);
     const eventName = this.escape(settings.eventName || 'Evento Monster Country Group');
     const eventDate = this.escape(this.formatDate(settings.date));
-    this.nextPrintPageNumber = settings.includeCover ? 2 : 1;
     const cover = settings.includeCover ? `
       <section class="cover" aria-label="Copertina">
         <img class="cover-logo" src="../../MonsterCountryGroup_grey.png" alt="Monster Country Group" />
@@ -246,7 +244,7 @@ class CoreografieStampaPage {
               <div class="cover-siae-signature"><span>Firma autografa del DJ</span><span class="cover-signature-box" aria-hidden="true"></span></div>
             </div>
         </div>
-        ${this.pageNumberMarkup(1)}
+        ${this.pageNumberMarkup()}
       </section>
     ` : '';
 
@@ -271,7 +269,7 @@ class CoreografieStampaPage {
     `;
     this.fitLevelText();
 
-    const duplexMessage = this.settings.duplex ? ' · fronte/retro selezionato nel documento' : '';
+    const duplexMessage = this.settings.duplex ? ' · fronte/retro: attivalo nel dialogo di stampa (rilegatura lato lungo)' : '';
     const selectedLabel = settings.printOrder === 'level'
       ? `${groupCount} livelli`
       : (settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`);
@@ -380,35 +378,22 @@ class CoreografieStampaPage {
     const columnHeadings = this.settings.columnLabels.slice(0, this.getEventColumnCount(this.settings.eventMode))
       .map((label) => `<div class="event-column-heading">${this.escape(label || 'Evento')}</div>`)
       .join('');
-    const pages = [];
-    for (let start = 0; start < entries.length; start += this.standardRowsPerPage) {
-      const pageEntries = entries.slice(start, start + this.standardRowsPerPage);
-      const pageNumber = Math.floor(start / this.standardRowsPerPage) + 1;
-      const emptyRows = Math.max(0, this.standardRowsPerPage - pageEntries.length);
-      const pageLabel = pageNumber > 1
-        ? `<small class="continuation-label">${pageNumber === 2 ? 'seconda' : this.pageWord(pageNumber)} pagina</small>`
-        : '';
-      const printPageNumber = this.nextPrintPageNumber++;
-      const fillerMarkup = Array.from({ length: emptyRows }, () => this.renderEmptyEntry()).join('');
-      pages.push(`
-        <section class="letter-section${pageNumber > 1 ? ' continuation-page' : ''}">
-          <div class="letter-heading"><h2>${this.escape(initial)} ${pageLabel}</h2><span>${pageEntries.length} di ${entries.length} coreografie</span></div>
+    return `
+        <section class="letter-section">
+          <div class="letter-heading"><h2>${this.escape(initial)}</h2><span>${entries.length} coreografie</span></div>
           <div class="coreography-column-headings">
             <span>ID</span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeWeek ? '<span class="coreography-week-heading">Settimana</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
           </div>
           <div class="coreography-list">
-            ${pageEntries.map((brano) => this.renderEntry(brano)).join('')}
-            ${fillerMarkup}
+            ${entries.map((brano) => this.renderEntry(brano)).join('')}
           </div>
-          ${this.pageNumberMarkup(printPageNumber)}
+          ${this.pageNumberMarkup()}
         </section>
-      `);
-    }
-    return pages.join('');
+      `;
   }
 
-  pageNumberMarkup(pageNumber) {
-    return this.settings.numberPages ? `<div class="page-number">Pagina ${pageNumber}</div>` : '';
+  pageNumberMarkup() {
+    return this.settings.numberPages ? '<div class="page-number">Pagina </div>' : '';
   }
 
   renderEntry(brano) {
@@ -426,26 +411,6 @@ class CoreografieStampaPage {
         <div class="event-columns">${columns}</div>
       </article>
     `;
-  }
-
-  renderEmptyEntry() {
-    const columns = this.settings.columnLabels.slice(0, this.getEventColumnCount(this.settings.eventMode)).map(() => '<div class="event-column"></div>').join('');
-    return `
-      <article class="coreography-entry empty-entry" aria-hidden="true">
-        <div class="coreography-id"></div>
-        <div class="coreography-main"></div>
-        ${this.settings.includeLevel ? '<div class="coreography-level"></div>' : ''}
-        ${this.settings.includeWeek ? '<div class="coreography-week"></div>' : ''}
-        ${this.settings.includeInfoCoreo1 ? '<div class="coreography-info-coreo"></div>' : ''}
-        ${this.settings.includeInfoCoreo2 ? '<div class="coreography-info-coreo"></div>' : ''}
-        <div class="event-columns">${columns}</div>
-      </article>
-    `;
-  }
-
-  pageWord(pageNumber) {
-    const words = ['prima', 'seconda', 'terza', 'quarta', 'quinta'];
-    return words[pageNumber - 1] || `pagina ${pageNumber}`;
   }
 
   titleOf(brano) {
@@ -484,8 +449,8 @@ class CoreografieStampaPage {
       this.render();
       this.showPreview();
     });
-    document.getElementById('btn-print').addEventListener('click', () => window.print());
-    document.getElementById('btn-print-top').addEventListener('click', () => window.print());
+    document.getElementById('btn-print').addEventListener('click', () => this.printDocument());
+    document.getElementById('btn-print-top').addEventListener('click', () => this.printDocument());
     document.getElementById('btn-edit-settings').addEventListener('click', () => {
       this.showSettings();
     });
@@ -515,6 +480,13 @@ class CoreografieStampaPage {
     document.querySelector('.settings-layout').hidden = true;
     document.getElementById('preview-toolbar-top').hidden = false;
     document.getElementById('preview-toolbar').hidden = false;
+  }
+
+  printDocument() {
+    if (this.settings?.duplex) {
+      window.alert('Nel dialogo di stampa o nelle proprietà della stampante attiva «Stampa su entrambi i lati» / «Fronte/retro» e scegli la rilegatura sul lato lungo per il formato A4 verticale.');
+    }
+    window.print();
   }
 
   showSettings() {
