@@ -15,7 +15,18 @@
   const STORAGE_KEY = 'bordero_course_archives_v1';
   const PREF_KEY = 'bordero_course_archive_active_v1';
   const ACTIVE_MIGRATION_KEY = 'bordero_course_archive_active_migrated_v1';
-  const EXTERNAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGT0qpTsOI4OGeceaWqtkJ0zzayML5E9NADxLWkVQ4WYhI8cMHVKUafQDXN_hjecjKag7yK9bGHm2C/pub?gid=2136651580&single=true&output=csv';
+  const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGT0qpTsOI4OGeceaWqtkJ0zzayML5E9NADxLWkVQ4WYhI8cMHVKUafQDXN_hjecjKag7yK9bGHm2C/pub?gid={gid}&single=true&output=csv';
+  const GOOGLE_SHEETS = [
+    { key: 'catalogo-brani', label: 'Catalogo brani', gid: '0' },
+    { key: 'utenti', label: 'Utenti', gid: '924106801' },
+    { key: 'documentazione', label: 'Documentazione', gid: '535634987' },
+    { key: 'settimane', label: 'Settimane', gid: '1342177182' },
+    { key: 'richieste', label: 'Richieste', gid: '426713820' },
+    { key: 'registrazioni', label: 'Registrazioni', gid: '2136651580' },
+    { key: 'livelli-coreografie', label: 'Livelli coreografie', gid: '55344186' },
+    { key: 'insegnanti', label: 'Insegnanti', gid: '1779704275' },
+    { key: 'corsi', label: 'Corsi', gid: '899165151' }
+  ];
   const clean = (value) => String(value ?? '').trim();
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const headerKey = (value) => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -29,7 +40,7 @@
     date: ['datalezione', 'lessondate', 'date'], registeredAt: ['dataregistrazione', 'registrationdate'], sourceId: ['recordid', 'sourceid', 'idrecord', 'uuid']
   };
   const findColumn = (headers, names) => headers.findIndex((h) => names.includes(headerKey(h)));
-  const parseCsv = (input) => {
+  const parseCsv = (input, allowHeaderOnly = false) => {
     const first = String(input).split(/\r?\n/, 1)[0] || '';
     const delimiter = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
     const rows = []; let row = []; let cell = ''; let quoted = false;
@@ -46,9 +57,41 @@
     }
     row.push(cell); if (row.some((v) => clean(v))) rows.push(row);
     if (quoted) throw new Error('CSV non valido: virgolette non bilanciate.');
-    if (rows.length < 2) throw new Error('Il CSV deve contenere intestazioni e almeno una riga.');
+    if (rows.length < (allowHeaderOnly ? 1 : 2)) throw new Error('Il CSV deve contenere intestazioni e almeno una riga.');
     return rows;
   };
+  function sanitizeSheetCsv(input) {
+    const source = String(input || '').replace(/^\uFEFF/, '').trim();
+    if (/^(?:<!doctype\s+html|<html\b|<head\b|<body\b)/i.test(source)) {
+      throw new Error('Google ha restituito una pagina HTML invece dei dati CSV.');
+    }
+    const rows = parseCsv(source, true);
+    if (!rows[0]?.some((cell) => clean(cell))) throw new Error('Il foglio Google non contiene intestazioni.');
+    const secretColumns = new Set(rows[0].flatMap((header, index) =>
+      /(password|passcode|parola|secret)/i.test(headerKey(header)) ? [index] : []));
+    return rows.map((row, rowIndex) => rows[0].map((_header, index) => {
+      const value = rowIndex > 0 && secretColumns.has(index) ? '' : row[index] || '';
+      return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+    }).join(',')).join('\r\n');
+  }
+  async function readGoogleSheets(fetchImpl = fetch) {
+    return Promise.all(GOOGLE_SHEETS.map(async (sheet) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      try {
+        const response = await fetchImpl(GOOGLE_SHEET_URL.replace('{gid}', sheet.gid), {
+          method: 'GET', mode: 'cors', cache: 'no-store', signal: controller.signal,
+          headers: { Accept: 'text/csv' }
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const csv = sanitizeSheetCsv(await response.text());
+        return { ...sheet, csv };
+      } catch (error) {
+        if (error.name === 'AbortError') throw new Error(`Timeout leggendo il foglio “${sheet.label}”.`);
+        throw new Error(`Lettura del foglio “${sheet.label}” non riuscita: ${error.message}`);
+      } finally { clearTimeout(timer); }
+    }));
+  }
   const fingerprint = (record) => [record.branoId, record.season, record.course, record.level, record.choreoLevel, record.activity, record.week, record.weekLabel, record.date, record.registeredAt, record.title, record.instructor]
     .map((value) => clean(value)).join('\u001f');
   const stableId = (value) => {
@@ -259,16 +302,30 @@
     if (!['manual', 'external', 'unified'].includes(value)) throw new Error('Archivio non riconosciuto.');
     localStorage.setItem(PREF_KEY, value); window.dispatchEvent(new CustomEvent('bordero:course-archive-changed', { detail: { archive: value } }));
   }
-  function persistExternal(imported) {
+  function persistExternal(imported, { activate = true, acquiredAt = '' } = {}) {
     if (!imported.valid.length) throw new Error('Nessun record valido: l’ultima acquisizione resta invariata.');
-    const state = read(); const timestamp = new Date().toISOString();
+    const state = read(); const timestamp = clean(acquiredAt) || new Date().toISOString();
     const snapshot = { records: imported.valid, origin: imported.origin || 'CSV importato dall’operatore; fonte Google non verificata', acquiredAt: timestamp, status: 'imported', total: imported.total, rejected: imported.rejected, ambiguous: imported.ambiguous, delta: imported.delta || { added: [], removed: [], changed: [] } };
     state.history = [...(state.history || []), ...(state.external ? [{ savedAt: timestamp, external: state.external, unified: state.unified }] : [])].slice(-5);
     state.operations = [...(state.operations || []), { action: 'external-import', at: timestamp, records: imported.valid.length, rejected: imported.rejected.length, removed: snapshot.delta.removed.length, changed: snapshot.delta.changed.length, origin: snapshot.origin }].slice(-50);
     state.external = snapshot; localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    setActive('external');
+    if (activate) setActive('external');
     localStorage.setItem(ACTIVE_MIGRATION_KEY, '1');
     window.dispatchEvent(new CustomEvent('bordero:course-archive-updated')); return snapshot;
+  }
+  function persistGoogleSheetsSync(sync) {
+    const state = read();
+    state.googleSheetsSync = {
+      syncedAt: clean(sync?.syncedAt) || new Date().toISOString(),
+      sheets: Math.max(0, Number(sync?.sheets) || 0),
+      files: Array.isArray(sync?.files) ? sync.files.map(clean).filter(Boolean) : [],
+      directory: clean(sync?.directory),
+      fileArchiveAvailable: Boolean(sync?.fileArchiveAvailable),
+      fileArchiveError: clean(sync?.fileArchiveError)
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.dispatchEvent(new CustomEvent('bordero:course-archive-updated'));
+    return state.googleSheetsSync;
   }
   function persistUnified(records, picks = {}) {
     const state = read(); const timestamp = new Date().toISOString();
@@ -308,15 +365,13 @@
   async function readExternal() {
     const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 10000);
     try {
-      const response = await fetch(EXTERNAL_CSV_URL, { method: 'GET', mode: 'cors', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json,text/csv' } });
+      const response = await fetch(GOOGLE_SHEET_URL.replace('{gid}', '2136651580'), { method: 'GET', mode: 'cors', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json,text/csv' } });
       if (!response.ok) throw new Error(`Fonte esterna non disponibile (HTTP ${response.status}).`);
-      const text = await response.text();
-      if (!text.trim()) throw new Error('La fonte esterna ha restituito una risposta vuota.');
-      return text;
+      return sanitizeSheetCsv(await response.text());
     } catch (error) {
       if (error.name === 'AbortError') throw new Error('Timeout durante la lettura della fonte esterna.');
       throw new Error(`Lettura remota non verificabile: ${error.message}`);
     } finally { clearTimeout(timer); }
   }
-  return { STORAGE_KEY, PREF_KEY, validateCsv, externalPayloadToCsv, manualRecords, compareExternalSnapshot, compare, merge, read, getActive, setActive, persistExternal, persistUnified, backupManualSeason, restoreHistory, getRecords, readExternal };
+  return { STORAGE_KEY, PREF_KEY, GOOGLE_SHEETS, sanitizeSheetCsv, readGoogleSheets, validateCsv, externalPayloadToCsv, manualRecords, compareExternalSnapshot, compare, merge, read, getActive, setActive, persistExternal, persistGoogleSheetsSync, persistUnified, backupManualSeason, restoreHistory, getRecords, readExternal };
 });

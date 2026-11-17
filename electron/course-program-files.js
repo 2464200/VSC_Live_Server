@@ -20,6 +20,9 @@ function registerCourseProgramFileHandlers({ ipcMain, dialog, BrowserWindow, sto
     return parent ? dialog[method](parent, options) : dialog[method](options);
   };
   register('bordero-course-files:directory', () => ({ ok: true, directory: store.getDirectory() }));
+  register('bordero-course-files:list-google-sheets-snapshots', () => ({ ok: true, directory: store.getGoogleSheetsDirectory(), files: store.listGoogleSheetsSnapshots() }));
+  register('bordero-course-files:read-google-sheets-snapshot', (_event, name) => ({ ok: true, directory: store.getGoogleSheetsDirectory(), ...store.readGoogleSheetsSnapshot(name) }));
+  register('bordero-course-files:save-google-sheets-snapshot', (_event, payload) => ({ ok: true, ...store.saveGoogleSheetsSnapshot(payload?.sheets, payload?.syncedAt) }));
   register('bordero-course-files:open-csv', async (event) => {
     const directory = store.getDirectory();
     const result = await showDialog('showOpenDialog', event, {

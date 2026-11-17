@@ -40,6 +40,8 @@
         this.populateSongOptions();
         this.render();
         this.store.startPolling();
+        // La lettura Google parte in background: non ritarda l'apertura della pagina.
+        this.refreshGoogleSheets({ automatic: true });
         if (this.isLocalFileHost()) {
           this.checkGoogleCatalogSync();
           this.catalogSyncTimer = window.setInterval(() => this.checkGoogleCatalogSync(), 5000);
@@ -150,16 +152,7 @@
         event.target.value = '';
       });
       document.getElementById('btn-read-external').addEventListener('click', async (event) => {
-        const button = event.currentTarget; button.disabled = true;
-        const revision = this.externalRequestRevision = (this.externalRequestRevision || 0) + 1;
-        this.setArchiveMessage('Lettura della fonte esterna in corso…');
-        try {
-          const csv = archives.externalPayloadToCsv(await archives.readExternal());
-          if (revision !== this.externalRequestRevision) return;
-          this.previewExternalCsv(csv, 'Foglio Google · Registrazioni');
-        }
-        catch (error) { this.setArchiveMessage(`${error.message} Puoi consultare la copia locale precedente o caricare un CSV esportato dal proprietario.`, true); }
-        finally { button.disabled = false; }
+        await this.refreshGoogleSheets({ automatic: false });
       });
       document.getElementById('btn-compare-archives').addEventListener('click', () => this.compareArchives());
       document.getElementById('btn-build-unified').addEventListener('click', () => this.buildUnifiedArchive());
@@ -168,8 +161,153 @@
       document.querySelectorAll('[data-archive-filter-field]').forEach((input) => input.addEventListener('input', () => {
         if (this.archiveComparisonRows) this.renderArchiveComparison(this.archiveComparisonRows);
       }));
-      window.addEventListener('bordero:course-archive-updated', () => this.renderArchiveMetadata());
+      window.addEventListener('bordero:course-archive-updated', () => {
+        select.value = window.courseArchives.getActive();
+        this.renderArchiveMetadata();
+        this.renderSelectedSeason();
+      });
       this.renderArchiveMetadata();
+      this.renderGoogleSheetFiles();
+    }
+
+    async saveGoogleSheetFiles(sheets, syncedAt) {
+      const native = window.electronAPI?.courseProgramFiles;
+      if (native?.saveGoogleSheetsSnapshot) {
+        const result = await native.saveGoogleSheetsSnapshot({ sheets, syncedAt });
+        if (!result.ok) throw new Error(result.error || 'Salvataggio CSV Google non riuscito.');
+        return result;
+      }
+      if (this.isLocalFileHost()) {
+        return this.programFileRequest('/snapshots', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sheets, syncedAt })
+        });
+      }
+      throw new Error('Apri il progetto sul PC per archiviare i CSV nella cartella VSC_PROGRAMMA.');
+    }
+
+    async readGoogleSheetFile(name) {
+      const native = window.electronAPI?.courseProgramFiles;
+      if (native?.readGoogleSheetsSnapshot) return native.readGoogleSheetsSnapshot(name);
+      if (this.isLocalFileHost()) return this.programFileRequest(`/snapshots/${encodeURIComponent(name)}`);
+      throw new Error('L’archivio CSV locale non è disponibile da questo host.');
+    }
+
+    async renderGoogleSheetFiles() {
+      const container = document.getElementById('google-sheet-files');
+      container.replaceChildren();
+      const title = document.createElement('strong');
+      title.textContent = 'CSV Google più recenti';
+      container.append(title);
+      try {
+        const native = window.electronAPI?.courseProgramFiles;
+        const result = native?.listGoogleSheetsSnapshots
+          ? await native.listGoogleSheetsSnapshots()
+          : this.isLocalFileHost() ? await this.programFileRequest('/snapshots') : null;
+        if (!result?.ok) throw new Error('Disponibili avviando il progetto sul PC.');
+        const files = (result.files || []).filter((file) => /-latest\.csv$/i.test(file.name));
+        if (!files.length) {
+          container.append(document.createTextNode(' Nessun CSV archiviato.'));
+          return;
+        }
+        files.forEach((file) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'btn btn-small btn-secondary';
+          button.textContent = window.courseArchives.GOOGLE_SHEETS.find((sheet) => file.name === `google-sheet-${sheet.key}-latest.csv`)?.label || file.name;
+          button.title = `Scarica ${file.name}`;
+          button.addEventListener('click', async () => {
+            try {
+              const content = (await this.readGoogleSheetFile(file.name)).content;
+              const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = file.name;
+              link.click();
+              setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (error) { this.setArchiveMessage(`Lettura CSV non riuscita: ${error.message}`, true); }
+          });
+          container.append(button);
+        });
+      } catch (error) {
+        container.append(document.createTextNode(` ${error.message}`));
+      }
+    }
+
+    async refreshGoogleSheets({ automatic = false } = {}) {
+      if (this.googleSheetsRefreshPromise) return this.googleSheetsRefreshPromise;
+      const button = document.getElementById('btn-read-external');
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Lettura Google…';
+      if (automatic) this.setArchiveMessage('Aggiornamento dei fogli Google in background…');
+
+      this.googleSheetsRefreshPromise = (async () => {
+        const archives = window.courseArchives;
+        const sheets = await archives.readGoogleSheets();
+        const registrationSheet = sheets.find((sheet) => sheet.key === 'registrazioni');
+        if (!registrationSheet) throw new Error('Il foglio Registrazioni non è stato trovato.');
+        const origin = `Google Sheet · ${registrationSheet.label}`;
+        const preview = this.prepareExternalPreview(registrationSheet.csv, origin);
+        if (!preview.valid.length) throw new Error('La fonte Google non contiene registrazioni valide; la copia precedente è stata conservata.');
+
+        const syncedAt = new Date().toISOString();
+        let fileArchive = null;
+        let fileArchiveError = '';
+        try { fileArchive = await this.saveGoogleSheetFiles(sheets, syncedAt); }
+        catch (error) { fileArchiveError = error.message; }
+
+        const activeBeforeRefresh = archives.getActive();
+        const hadExternal = Boolean(archives.read().external);
+        const activate = !automatic || (!hadExternal && archives.getActive() === 'manual');
+        const snapshot = archives.persistExternal({ ...preview, origin }, { activate });
+        let unifiedNote = '';
+        if (automatic && activeBeforeRefresh === 'unified') {
+          const merged = archives.merge(archives.manualRecords(this.store.getState()), snapshot.records);
+          if (merged.ok) {
+            archives.persistUnified(merged.records, merged.picks);
+            unifiedNote = ' Archivio A+B aggiornato automaticamente.';
+          } else {
+            unifiedNote = ` Archivio A+B invariato: ${merged.conflicts.length} conflitti richiedono una risoluzione nella sezione archivi.`;
+          }
+        }
+        archives.persistGoogleSheetsSync({
+          syncedAt, sheets: sheets.length, files: fileArchive?.files || [],
+          directory: fileArchive?.directory || '', fileArchiveAvailable: Boolean(fileArchive), fileArchiveError
+        });
+        await this.renderGoogleSheetFiles();
+        this.renderArchiveMetadata();
+        this.renderSelectedSeason();
+        const archiveNote = fileArchive
+          ? `${fileArchive.files.length} CSV salvati in ${fileArchive.directory}.`
+          : `Avviso: ${fileArchiveError}`;
+        this.setArchiveMessage(`Aggiornati ${sheets.length} fogli Google. Archivio esterno aggiornato: ${snapshot.records.length} registrazioni valide, ${preview.delta.added.length} nuove, ${preview.delta.changed.length} modificate, ${preview.delta.removed.length} rimosse.${unifiedNote} ${archiveNote} La versione precedente è recuperabile.`);
+        return { sheets, snapshot, fileArchive };
+      })();
+
+      try { return await this.googleSheetsRefreshPromise; }
+      catch (error) {
+        try {
+          const archives = window.courseArchives;
+          const local = await this.readGoogleSheetFile('google-sheet-registrazioni-latest.csv');
+          const preview = this.prepareExternalPreview(local.content, 'CSV locale · ultimo foglio Registrazioni acquisito');
+          if (!preview.valid.length) throw new Error('Il CSV locale non contiene registrazioni valide.');
+          const activate = !archives.read().external && archives.getActive() === 'manual';
+          const snapshot = archives.persistExternal({ ...preview, origin: 'CSV locale · ultimo foglio Registrazioni acquisito' }, {
+            activate, acquiredAt: local.modifiedAt || ''
+          });
+          this.renderArchiveMetadata();
+          this.renderSelectedSeason();
+          this.setArchiveMessage(`Google non raggiungibile (${error.message}). Caricata la copia locale del ${new Date(snapshot.acquiredAt).toLocaleString('it-IT')}: ${snapshot.records.length} registrazioni.`, true);
+        } catch (localError) {
+          this.setArchiveMessage(`Aggiornamento Google non riuscito: ${error.message}. ${localError.message} La copia esterna precedente è rimasta disponibile.`, true);
+        }
+        return null;
+      } finally {
+        this.googleSheetsRefreshPromise = null;
+        button.disabled = false;
+        button.textContent = originalLabel;
+      }
     }
 
     setArchiveMessage(message, isError = false) {
@@ -183,11 +321,13 @@
       const active = window.courseArchives.getActive();
       const external = data.external;
       const unified = data.unified;
+      const googleSync = data.googleSheetsSync;
       document.getElementById('archive-status').textContent = `Attivo: ${{ manual: 'Manuale', external: 'Esterno', unified: 'A+B' }[active] || 'Manuale'} · ${{ manual: this.store.getState().seasons[this.store.getState().activeSeason]?.records?.length || 0, external: external?.records?.length || 0, unified: unified?.records?.length || 0 }[active] || 0} record`;
       document.getElementById('archive-metadata').textContent = [
         `Esterno: ${external ? `${external.records.length} record · acquisito ${new Date(external.acquiredAt).toLocaleString('it-IT')} · ${external.origin}` : 'nessuna copia locale acquisita'}`,
         `A+B: ${unified ? `${unified.records.length} record · salvato ${new Date(unified.acquiredAt).toLocaleString('it-IT')}` : 'non creato'}`,
         `Recupero disponibile: ${(data.history || []).length} versioni esterno/A+B e ${(data.manualBackups || []).length} backup manuali.`,
+        googleSync ? `Fogli Google aggiornati ${new Date(googleSync.syncedAt).toLocaleString('it-IT')} · ${googleSync.sheets} fogli${googleSync.fileArchiveAvailable ? ` · CSV in ${googleSync.directory || 'cartella google-sheets'}` : ` · archivio CSV non disponibile${googleSync.fileArchiveError ? `: ${googleSync.fileArchiveError}` : ''}`}.` : 'Aggiornamento CSV Google non ancora eseguito.',
         `Ultima operazione: ${data.operations?.length ? `${data.operations.at(-1).action} · ${new Date(data.operations.at(-1).at).toLocaleString('it-IT')}` : 'nessuna'}.`
       ].join(' ');
       const historySelect = document.getElementById('archive-history-select');
@@ -215,8 +355,7 @@
       document.getElementById('btn-build-unified').disabled = !external;
     }
 
-    previewExternalCsv(csv, origin) {
-      document.getElementById('archive-compare-filters').hidden = true;
+    prepareExternalPreview(csv, origin) {
       const preview = window.courseArchives.validateCsv(csv);
       const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
       const idWarning = 'ID coreografia assente; possibile associazione solo per titolo esatto e univoco';
@@ -245,6 +384,12 @@
       preview.origin = origin;
       preview.baseExternal = baseExternal;
       preview.delta = window.courseArchives.compareExternalSnapshot(window.courseArchives.read().external?.records || [], preview.valid);
+      return preview;
+    }
+
+    previewExternalCsv(csv, origin) {
+      document.getElementById('archive-compare-filters').hidden = true;
+      const preview = this.prepareExternalPreview(csv, origin);
       this.externalImportPreview = preview;
       const lines = [`Anteprima ${origin}: ${preview.valid.length} validi, ${preview.rejected.length} scartati/duplicati, ${preview.ambiguous.length} corrispondenze dubbie.`, `Rispetto alla copia precedente: ${preview.delta.added.length} aggiunti, ${preview.delta.removed.length} non più presenti nella fonte, ${preview.delta.changed.length} modificati.`];
       if (!preview.valid.length) lines.push('Nessun record acquisibile; i dati precedenti sono intatti.');

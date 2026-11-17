@@ -207,6 +207,13 @@
         filteredTracks = filteredTracks.filter((track) => isZero(track.richieste));
       } else if (filter.mode === 'richiesteNonZero') {
         filteredTracks = filteredTracks.filter((track) => !isZero(track.richieste));
+      } else if (filter.mode === 'courseWeek') {
+        filteredTracks = filteredTracks.filter((track) => (track.course_weeks || [])
+          .some((week) => Number(week) === Number(filter.value)));
+      } else if (filter.mode === 'fieldFilled') {
+        filteredTracks = filteredTracks.filter((track) => hasFilterValue(track, field));
+      } else if (filter.mode === 'fieldEmpty') {
+        filteredTracks = filteredTracks.filter((track) => !hasFilterValue(track, field));
       } else {
         filteredTracks = filteredTracks.filter((track) => normalize(track[field]) === normalize(filter.value));
       }
@@ -344,6 +351,12 @@
     return !text || text === '-' || (Number.isFinite(Number(text)) && Number(text) === 0);
   }
 
+  function hasFilterValue(track, field) {
+    if (field === 'course_week') return (track.course_weeks || []).length > 0;
+    const value = track[field];
+    return value !== null && value !== undefined && String(value).trim() !== '' && String(value).trim() !== '-';
+  }
+
   function compareTracks(left, right, field) {
     const leftText = String(left[field] ?? '').trim();
     const rightText = String(right[field] ?? '').trim();
@@ -366,7 +379,7 @@
   }
 
   function updateFilterButtonStates() {
-    const fields = { 'btn-filter-coreografia': 'info_livello', 'btn-filter-livello': 'coreografo', 'btn-filter-altro': 'autore', 'btn-filter-richieste': 'richieste', 'btn-filter-restorable': 'restorable' };
+    const fields = { 'btn-filter-coreografia': 'info_livello', 'btn-filter-livello': 'coreografo', 'btn-filter-week': 'course_week', 'btn-filter-altro': 'autore', 'btn-filter-richieste': 'richieste', 'btn-filter-restorable': 'restorable' };
     for (const [id, field] of Object.entries(fields)) {
       document.getElementById(id)?.classList.toggle('active', Boolean(currentFilters[field]));
     }
@@ -385,11 +398,24 @@
     const options = document.getElementById('filter-picker-options');
     const query = normalize(document.getElementById('filter-picker-search').value);
     const field = activeFilterField;
-    const values = [...new Set(archiveTracks.map((track) => String(track[field] || '').trim()).filter(Boolean))]
-      .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
-    const entries = field === 'richieste'
-      ? [{ label: 'Richieste = 0', filter: { mode: 'richiesteZero' } }, { label: 'Richieste > 0', filter: { mode: 'richiesteNonZero' } }, ...values.map((value) => ({ label: value, filter: { mode: 'exactValue', value } }))]
-      : values.map((value) => ({ label: value, filter: { mode: 'exactValue', value } }));
+    const values = field === 'course_week'
+      ? [...new Set(archiveTracks.flatMap((track) => track.course_weeks || []).map(Number).filter(Number.isInteger))]
+        .sort((a, b) => a - b).map(String)
+      : [...new Set(archiveTracks.map((track) => String(track[field] || '').trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+    const entries = [
+      { label: 'Solo valorizzati', filter: { mode: 'fieldFilled' } },
+      { label: 'Solo vuoti', filter: { mode: 'fieldEmpty' } },
+      ...(field === 'course_week'
+        ? values.map((value) => ({ label: `Settimana ${value}`, filter: { mode: 'courseWeek', value } }))
+        : field === 'richieste'
+          ? [
+            { label: 'Richieste = 0', filter: { mode: 'richiesteZero' } },
+            { label: 'Richieste > 0', filter: { mode: 'richiesteNonZero' } },
+            ...values.map((value) => ({ label: value, filter: { mode: 'exactValue', value } }))
+          ]
+          : values.map((value) => ({ label: value, filter: { mode: 'exactValue', value } })))
+    ];
     options.replaceChildren();
     const clear = document.createElement('button');
     clear.type = 'button';
@@ -1142,6 +1168,7 @@
   const filterButtons = {
     'btn-filter-coreografia': ['info_livello', 'LIVELLO'],
     'btn-filter-livello': ['coreografo', 'COREOGRAFO'],
+    'btn-filter-week': ['course_week', 'SETTIMANA'],
     'btn-filter-altro': ['autore', 'AUTORE'],
     'btn-filter-richieste': ['richieste', 'RICHIESTE'],
     'btn-filter-restorable': ['restorable', 'RIPRISTINABILI']

@@ -35,6 +35,22 @@ test('program CSV files share one folder, retain UTF-8/IDs and require explicit 
   assert.equal(store.read(loaded.name).content, '\uFEFFnuovo CSV');
 });
 
+test('Google sheet snapshots are versioned in a separate folder and expose stable latest CSVs', (t) => {
+  const store = createChoreoProgramFileStore(temporaryDirectory(t));
+  const result = store.saveGoogleSheetsSnapshot([
+    { key: 'registrazioni', csv: 'Data,Coreografia\n17/11/2026,Alpha' },
+    { key: 'insegnanti', csv: 'Insegnante,Password\nAnna,' }
+  ], '2026-11-17T10:15:30.123Z');
+  assert.equal(result.files.length, 4);
+  assert.ok(result.directory.endsWith('google-sheets'));
+  assert.equal(store.readGoogleSheetsSnapshot('google-sheet-registrazioni-latest.csv').content,
+    '\uFEFFData,Coreografia\n17/11/2026,Alpha');
+  assert.equal(store.listGoogleSheetsSnapshots().length, 4);
+  assert.equal(store.list().length, 0);
+  assert.equal(fs.readFileSync(path.join(result.directory, 'google-sheet-registrazioni-20261117101530123.csv'), 'utf8'),
+    '\uFEFFData,Coreografia\n17/11/2026,Alpha');
+});
+
 test('program file storage rejects paths outside the folder, non-CSV and oversized contents', (t) => {
   const store = createChoreoProgramFileStore(temporaryDirectory(t));
   for (const name of ['../altro.csv', '..\\altro.csv', 'C:\\altro.csv', 'file.json', 'NUL.csv']) {
@@ -73,6 +89,15 @@ test('local browser endpoints save/list/load CSVs and reject cross-origin and fo
   assert.equal(await getStatusWithHeaders({ 'Sec-Fetch-Site': 'cross-site' }), 403);
   assert.equal((await fetch(base, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: csv })).status, 415);
   assert.equal((await fetch(`${base}/${encodeURIComponent('..\\altro.csv')}`)).status, 400);
+  const snapshotResponse = await fetch(`${base}/snapshots`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ syncedAt: '2026-11-17T10:15:30.123Z', sheets: [{ key: 'registrazioni', csv }] })
+  });
+  assert.equal(snapshotResponse.status, 200);
+  const snapshots = await snapshotResponse.json();
+  assert.equal(snapshots.files.length, 2);
+  const latestSnapshot = await fetch(`${base}/snapshots/google-sheet-registrazioni-latest.csv`);
+  assert.equal((await latestSnapshot.json()).content, `\uFEFF${csv}`);
 });
 
 test('Electron open/save dialogs default to the program folder and accept explicit alternate locations', async (t) => {
@@ -99,6 +124,15 @@ test('Electron open/save dialogs default to the program folder and accept explic
   assert.ok(options[1].properties.includes('showOverwriteConfirmation'));
   assert.equal(saved.filePath, `${target}.csv`);
   assert.equal(fs.readFileSync(saved.filePath, 'utf8'), `\uFEFF${csv}`);
+  const snapshot = await handlers.get('bordero-course-files:save-google-sheets-snapshot')(event, {
+    syncedAt: '2026-11-17T10:15:30.123Z', sheets: [{ key: 'registrazioni', csv }]
+  });
+  assert.equal(snapshot.ok, true);
+  assert.equal(snapshot.files.length, 2);
+  const snapshotList = await handlers.get('bordero-course-files:list-google-sheets-snapshots')(event);
+  assert.equal(snapshotList.files.length, 2);
+  const snapshotCsv = await handlers.get('bordero-course-files:read-google-sheets-snapshot')(event, 'google-sheet-registrazioni-latest.csv');
+  assert.equal(snapshotCsv.content, `\uFEFF${csv}`);
   const refused = await handlers.get('bordero-course-files:save-csv')({ senderFrame: { url: 'https://example.com/Bordero/pages/coreografie-corsi.html' } }, { name: 'programma.csv', content: csv });
   assert.equal(refused.ok, false);
   assert.equal(options.length, 2);

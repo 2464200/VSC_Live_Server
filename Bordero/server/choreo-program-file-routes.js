@@ -18,6 +18,19 @@ function createChoreoProgramFileRouter(store) {
   router.get('/', (_req, res, next) => {
     try { res.json({ ok: true, directory: store.getDirectory(), files: store.list() }); } catch (error) { next(error); }
   });
+  router.get('/snapshots', (_req, res, next) => {
+    try { res.json({ ok: true, directory: store.getGoogleSheetsDirectory(), files: store.listGoogleSheetsSnapshots() }); } catch (error) { next(error); }
+  });
+  router.get('/snapshots/:name', (req, res, next) => {
+    try { res.json({ ok: true, directory: store.getGoogleSheetsDirectory(), ...store.readGoogleSheetsSnapshot(req.params.name) }); } catch (error) { next(error); }
+  });
+  router.post('/snapshots', (req, res, next) => {
+    if (!req.is('application/json')) return res.status(415).json({ error: 'Invia i CSV in formato JSON.' });
+    try {
+      const result = store.saveGoogleSheetsSnapshot(req.body?.sheets, req.body?.syncedAt);
+      res.json({ ok: true, ...result });
+    } catch (error) { next(error); }
+  });
   router.get('/:name', (req, res, next) => {
     try { res.json({ ok: true, directory: store.getDirectory(), ...store.read(req.params.name) }); } catch (error) { next(error); }
   });

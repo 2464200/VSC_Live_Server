@@ -70,7 +70,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   courseProgramFiles: {
     getDirectory: () => ipcRenderer.invoke('bordero-course-files:directory'),
     openCsv: () => ipcRenderer.invoke('bordero-course-files:open-csv'),
-    saveCsv: (payload) => ipcRenderer.invoke('bordero-course-files:save-csv', payload)
+    saveCsv: (payload) => ipcRenderer.invoke('bordero-course-files:save-csv', payload),
+    saveGoogleSheetsSnapshot: (payload) => ipcRenderer.invoke('bordero-course-files:save-google-sheets-snapshot', payload),
+    listGoogleSheetsSnapshots: () => ipcRenderer.invoke('bordero-course-files:list-google-sheets-snapshots'),
+    readGoogleSheetsSnapshot: (name) => ipcRenderer.invoke('bordero-course-files:read-google-sheets-snapshot', name)
   },
   uiPreferences: {
     get: () => ipcRenderer.invoke('bordero-ui-preferences:get'),

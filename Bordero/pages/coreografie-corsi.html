@@ -18,8 +18,8 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script defer src="../js/firebase-cloud-client.js"></script>
   <script defer src="../js/choreo-program-store.js"></script>
-  <script defer src="../js/course-archives.js?v=20261030-1"></script>
-  <script defer src="coreografie-corsi.js?v=20261107-1"></script>
+  <script defer src="../js/course-archives.js?v=20261117-1"></script>
+  <script defer src="coreografie-corsi.js?v=20261117-1"></script>
 </head>
 <body>
   <div class="container choreo-course-page">
@@ -61,8 +61,9 @@
           <button id="btn-compare-archives" class="btn btn-secondary" type="button">Confronta archivi</button>
           <button id="btn-build-unified" class="btn btn-primary" type="button">Crea / aggiorna A+B</button>
         </div>
-        <p class="course-help">Per il Registro Coreografie importa un CSV del foglio <strong>Registrazioni</strong>. Sono riconosciute le colonne Data registrazione, Insegnante, Settimana, Sede corso, Livello corso, Tipo attività, Livello coreografia e Coreografia. Nel box Programma della stagione non vengono mostrate le attività “Ripasso” e “Nessuna coreografia inserita”; se un nome compare più volte nel catalogo Borderò, viene mostrato l’ID della prima corrispondenza. Le colonne password vengono scartate.</p>
+        <p class="course-help">All’apertura della pagina e a ogni clic su <strong>Leggi fonte Google</strong> vengono acquisiti in background tutti i fogli pubblicati. Ogni foglio viene salvato come CSV aggiornato e come snapshot datato in <code>VSC_PROGRAMMA\google-sheets</code>; i CSV più recenti si possono scaricare qui sotto. Le colonne password sono svuotate nei file. La scheda <strong>Registrazioni</strong> aggiorna l’Archivio esterno e la relativa vista in Programma della stagione; vengono riconosciute le colonne Data registrazione, Insegnante, Settimana, Sede corso, Livello corso, Tipo attività, Livello coreografia e Coreografia. Non vengono mostrate le attività “Ripasso” e “Nessuna coreografia inserita”.</p>
         <p id="archive-metadata" class="course-help"></p>
+        <div id="google-sheet-files" class="course-season-controls" aria-label="CSV archiviati dai fogli Google"></div>
         <div class="course-season-controls"><label for="archive-history-select">Versione precedente da recuperare<select id="archive-history-select" class="select-input"><option value="">Nessuna versione precedente</option></select></label><button id="btn-restore-archive" class="btn btn-secondary" type="button" disabled>Recupera versione</button></div>
         <div class="course-season-controls"><label for="manual-backup-select">Backup programma manuale<select id="manual-backup-select" class="select-input"><option value="">Nessun backup</option></select></label><button id="btn-restore-manual-backup" class="btn btn-secondary" type="button" disabled>Recupera programma manuale</button></div>
         <div id="archive-compare-filters" class="course-records-filters" role="group" aria-label="Filtri confronto archivi" hidden>

@@ -60,6 +60,25 @@ test('JSON read adapter accepts record arrays while stripping password fields be
   assert.equal(csv.includes('fixture-secret'), false);
 });
 
+test('Google sheet snapshots cover every published tab and redact password cells in the CSV archive', async () => {
+  assert.equal(archives.GOOGLE_SHEETS.length, 9);
+  const secret = archives.sanitizeSheetCsv('Insegnante,Email,Password\nAnna,anna@example.test,fixture-secret');
+  assert.match(secret, /Insegnante,Email,Password/);
+  assert.match(secret, /Anna,anna@example\.test,/);
+  assert.equal(secret.includes('fixture-secret'), false);
+  assert.equal(archives.sanitizeSheetCsv('Settimana,Stato\n38,Attiva'), 'Settimana,Stato\r\n38,Attiva');
+  assert.equal(archives.sanitizeSheetCsv('Ruolo,Email\r\n'), 'Ruolo,Email');
+  const requested = [];
+  const sheets = await archives.readGoogleSheets(async (url) => {
+    requested.push(url);
+    return { ok: true, text: async () => 'Colonna,Valore\nDato,1' };
+  });
+  assert.equal(sheets.length, 9);
+  assert.equal(requested.length, 9);
+  assert.equal(sheets.find((sheet) => sheet.key === 'registrazioni').csv, 'Colonna,Valore\r\nDato,1');
+  await assert.rejects(() => archives.readGoogleSheets(async () => ({ ok: false, status: 404, text: async () => '' })), /HTTP 404/);
+});
+
 test('remote adapter rejects HTML login or spreadsheet pages instead of previewing them as CSV', () => {
   assert.throws(() => archives.externalPayloadToCsv('<!doctype html><html><head><title>Registro</title></head></html>'), /pagina HTML invece dei dati del registro/);
 });
@@ -159,6 +178,8 @@ test('external acquisition is isolated, active choice is separate, and invalid i
     archives.setActive('external');
     assert.equal(archives.getActive(), 'external');
     archives.setActive('manual');
+    assert.equal(archives.getActive(), 'manual');
+    archives.persistExternal({ ...parsed, origin: 'aggiornamento in background' }, { activate: false });
     assert.equal(archives.getActive(), 'manual');
     assert.equal(archives.read().unified, null);
     const manualSeason = { id: '2026-2027', label: '2026/2027', records: [{ id: 'm1', branoId: '001', week: 38 }] };
