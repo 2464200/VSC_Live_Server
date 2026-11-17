@@ -52,10 +52,12 @@
         return !recordSeason || recordSeason === season;
       });
       const missingContext = possibleContext.some((record) =>
-        !normalizeSeason(record.season) || !clean(record.course) || !clean(record.level));
+        !normalizeSeason(record.season) || !clean(record.level)
+        || (record.source !== 'manual' && !clean(record.course)));
       const weeks = season && !missingContext
         ? [...new Set(matches
-          .filter((record) => normalizeSeason(record.season) === season && clean(record.course) && clean(record.level))
+          .filter((record) => normalizeSeason(record.season) === season && clean(record.level)
+            && (record.source === 'manual' || clean(record.course)))
           .map((record) => Number(record.week))
           .filter((week) => Number.isInteger(week) && week >= 1 && week <= 53))]
           .sort((left, right) => left - right)
@@ -69,7 +71,7 @@
         course_week_details: weeks.length
           ? `${season}: ${matches
             .filter((record) => normalizeSeason(record.season) === season && weeks.includes(Number(record.week)))
-            .map((record) => `${record.course} · ${record.level} · settimana ${record.week}`)
+            .map((record) => `${record.course || 'programma generale'} · ${record.level} · settimana ${record.week}`)
             .join('; ')}`
           : ''
       };
