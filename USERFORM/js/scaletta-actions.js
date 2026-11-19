@@ -7,6 +7,7 @@
   const newButton = document.getElementById('btn-new-setlist');
   const saveButton = document.getElementById('btn-save-setlist');
   const includeTaughtInput = document.getElementById('setlist-include-taught');
+  const prioritizeTaughtWeeksInput = document.getElementById('setlist-prioritize-taught-weeks');
   const infoOptionsNode = document.getElementById('setlist-info-options');
   const INCLUDE_FILTER_WARNING = 'Con “Includi selezionate” attivare almeno una categoria oppure scegliere “Tutte le categorie”.';
   const GOOGLE_SYNC_STORAGE_KEY = 'bordero-google-sync-completed';
@@ -51,6 +52,7 @@
         counts: Object.fromEntries([...levelInputs].map(([key, input]) => [key, input.value])),
         infoFilter: getInfoFilter(),
         includeTaught: includeTaughtInput.checked,
+        prioritizeTaughtWeeks: prioritizeTaughtWeeksInput.checked,
         dj: fileFields.dj.value,
         date: fileFields.date.value,
         event: fileFields.event.value,
@@ -67,6 +69,8 @@
     if (!state || typeof state !== 'object') return;
     pendingInfoFilter = state.infoFilter && typeof state.infoFilter === 'object' ? state.infoFilter : null;
     if (typeof state.includeTaught === 'boolean') includeTaughtInput.checked = state.includeTaught;
+    if (typeof state.prioritizeTaughtWeeks === 'boolean') prioritizeTaughtWeeksInput.checked = state.prioritizeTaughtWeeks;
+    syncTaughtPriorityControl();
     if (typeof state.time === 'string') document.getElementById('setlist-available-time').value = state.time;
     levelInputs.forEach((input, key) => {
       if (state.counts && state.counts[key] !== undefined) input.value = String(state.counts[key]);
@@ -80,6 +84,10 @@
     if (state.result && Array.isArray(state.result.tracks) && state.result.tracks.length && state.availableSeconds > 0) {
       renderSetlist(state.result, state.availableSeconds);
     }
+  }
+
+  function syncTaughtPriorityControl() {
+    prioritizeTaughtWeeksInput.disabled = !includeTaughtInput.checked;
   }
 
   function setStatus(message, kind = 'info') {
@@ -296,8 +304,9 @@
     return !activity || activity === 'COREOGRAFIA SPIEGATA' || activity === 'COREOGRAFIA JOLLY';
   }
 
-  async function filterTaughtTracks(sourceCatalog) {
-    if (includeTaughtInput.checked) return { catalog: sourceCatalog, count: 0 };
+  async function prepareCourseCatalog(sourceCatalog) {
+    const prioritizeWeeks = includeTaughtInput.checked && prioritizeTaughtWeeksInput.checked;
+    if (includeTaughtInput.checked && !prioritizeWeeks) return { catalog: sourceCatalog, count: 0, prioritizedTrackCount: 0 };
     const store = window.choreoProgramStore;
     const archives = window.courseArchives;
     if (!store || !archives) return { catalog: sourceCatalog, count: 0, unavailable: true };
@@ -309,7 +318,7 @@
     const expectedSeason = normalizeSeason(season?.label || state.activeSeason);
     const relevant = archive === 'manual'
       ? records
-      : records.filter((record) => expectedSeason && normalizeSeason(record.season) === expectedSeason);
+      : records.filter((record) => expectedSeason && normalizeSeason(record.season).toLocaleLowerCase('it-IT') === expectedSeason.toLocaleLowerCase('it-IT'));
     const ids = new Set(relevant.map((record) => String(record.branoId || '').trim()).filter(Boolean));
     const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it');
     const byTitle = new Map();
@@ -317,18 +326,41 @@
       const key = normalizeTitle(track.coreografia);
       if (key) byTitle.set(key, (byTitle.get(key) || 0) + 1);
     });
+    const weekByTrack = new Map();
     relevant.forEach((record) => {
-      if (record.branoId) return;
-      const key = normalizeTitle(record.title || record.trackTitle);
-      if (key && byTitle.get(key) === 1) {
-        const track = sourceCatalog.tracks.find((item) => normalizeTitle(item.coreografia) === key);
-        if (track?.id) ids.add(String(track.id));
+      let id = String(record.branoId || '').trim();
+      if (!id) {
+        const key = normalizeTitle(record.title || record.trackTitle);
+        if (key && byTitle.get(key) === 1) {
+          const track = sourceCatalog.tracks.find((item) => normalizeTitle(item.coreografia) === key);
+          id = track?.id ? String(track.id) : '';
+        }
+      }
+      if (!id) return;
+      ids.add(id);
+      const week = Number(record.week);
+      if (Number.isInteger(week) && week >= 1 && week <= 53) {
+        weekByTrack.set(id, Math.max(weekByTrack.get(id) || 0, week));
       }
     });
-    const tracks = sourceCatalog.tracks.filter((track) => !ids.has(String(track.id)));
+    const enrichedTracks = sourceCatalog.tracks.map((track) => ({
+      ...track,
+      taughtWeek: weekByTrack.get(String(track.id)) || 0
+    }));
+    const tracks = includeTaughtInput.checked
+      ? enrichedTracks
+      : enrichedTracks.filter((track) => !ids.has(String(track.id)));
     const remaining = new Set(tracks.map((track) => track.id));
-    const catalogByLevel = Object.fromEntries(Object.entries(sourceCatalog.catalogByLevel).map(([level, items]) => [level, items.filter((track) => remaining.has(track.id))]));
-    return { catalog: { ...sourceCatalog, tracks, catalogByLevel }, count: sourceCatalog.tracks.length - tracks.length };
+    const enrichedById = new Map(tracks.map((track) => [track.id, track]));
+    const catalogByLevel = Object.fromEntries(Object.entries(sourceCatalog.catalogByLevel).map(([level, items]) => [
+      level,
+      items.filter((track) => remaining.has(track.id)).map((track) => enrichedById.get(track.id))
+    ]));
+    return {
+      catalog: { ...sourceCatalog, tracks, catalogByLevel },
+      count: sourceCatalog.tracks.length - tracks.length,
+      prioritizedTrackCount: prioritizeWeeks ? tracks.filter((track) => track.taughtWeek > 0).length : 0
+    };
   }
 
   async function generate() {
@@ -346,12 +378,13 @@
 
     let availableCatalog;
     try {
-      availableCatalog = await filterTaughtTracks(catalog);
+      availableCatalog = await prepareCourseCatalog(catalog);
     } catch (error) {
       setStatus(`Impossibile leggere il programma corsi: ${error.message}`, 'error');
       return;
     }
-    const result = generator.generateSetlist({ catalog: availableCatalog.catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter });
+    const prioritizeTaughtWeeks = includeTaughtInput.checked && prioritizeTaughtWeeksInput.checked;
+    const result = generator.generateSetlist({ catalog: availableCatalog.catalog, counts: getCounts(), durationSeconds: availableSeconds, infoFilter, prioritizeTaughtWeeks });
     if (result.errors.length) {
       setStatus(result.errors.join('\n'), 'error');
       return;
@@ -359,8 +392,15 @@
 
     renderSetlist(result, availableSeconds);
     persistState();
-    const statusMessages = [`Scaletta generata: ${result.tracks.length} brani in ${generator.formatDuration(result.totalDurationSeconds)}.`, ...(availableCatalog.unavailable ? ['Archivio corsi non disponibile: nessuna esclusione applicata.'] : !includeTaughtInput.checked ? [`Brani già insegnati esclusi: ${availableCatalog.count}.`] : []), ...result.warnings];
-    setStatus(statusMessages.join('\n'), result.warnings.length ? 'warning' : 'success');
+    const statusMessages = [
+      `Scaletta generata: ${result.tracks.length} brani in ${generator.formatDuration(result.totalDurationSeconds)}.`,
+      ...(availableCatalog.unavailable ? [prioritizeTaughtWeeks ? 'Archivio corsi non disponibile: priorità alle settimane non applicata.' : 'Archivio corsi non disponibile: nessuna esclusione applicata.'] : !includeTaughtInput.checked ? [`Brani già insegnati esclusi: ${availableCatalog.count}.`] : []),
+      ...(prioritizeTaughtWeeks && !availableCatalog.unavailable && !availableCatalog.prioritizedTrackCount ? ['Nessuna settimana di insegnamento valida: priorità non applicata.'] : []),
+      ...(prioritizeTaughtWeeks && availableCatalog.prioritizedTrackCount ? [`Priorità settimane attiva su ${availableCatalog.prioritizedTrackCount} coreografie.`] : []),
+      ...result.warnings
+    ];
+    const priorityUnavailable = prioritizeTaughtWeeks && (availableCatalog.unavailable || !availableCatalog.prioritizedTrackCount);
+    setStatus(statusMessages.join('\n'), result.warnings.length || priorityUnavailable ? 'warning' : 'success');
   }
 
   function clearSetlist() {
@@ -369,6 +409,7 @@
     document.querySelector('input[name="setlist-info-filter-mode"][value="all"]').checked = true;
     document.querySelectorAll('#setlist-info-options input[type="checkbox"]').forEach((input) => { input.checked = false; });
     setInfoFilterMode('all');
+    prioritizeTaughtWeeksInput.checked = false;
     fileFields.dj.value = '';
     fileFields.date.value = '';
     fileFields.event.value = '';
@@ -454,7 +495,8 @@
   newButton?.addEventListener('click', generate);
   saveButton?.addEventListener('click', saveSetlistForPreselection);
   document.getElementById('btn-clear-setlist')?.addEventListener('click', clearSetlist);
-  includeTaughtInput?.addEventListener('change', persistState);
+  includeTaughtInput?.addEventListener('change', () => { syncTaughtPriorityControl(); persistState(); });
+  prioritizeTaughtWeeksInput?.addEventListener('change', persistState);
   document.querySelectorAll('input[name="setlist-info-filter-mode"]').forEach((input) => {
     input.addEventListener('change', () => {
       setInfoFilterMode(input.value);
@@ -471,5 +513,6 @@
   });
   initializeFileMetadata();
   restoreState();
+  syncTaughtPriorityControl();
   void loadCatalog();
 })();

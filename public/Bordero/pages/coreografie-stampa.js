@@ -298,19 +298,19 @@ class CoreografieStampaPage {
   }
 
   filterBraniWithCourseWeek(brani) {
-    // course_weeks è derivato dai record della stagione didattica attiva; "?" e valori vuoti non sono settimane assegnate.
+    // Usa solo settimane numeriche associate al livello attuale; i valori convenzionali ambigui non formano gruppi.
     const grouped = new Map();
     brani.forEach((brano) => {
       const title = String(brano?.titolo || brano?.coreografia || '').trim();
-      if (!title || this.isExcludedFromPrint(brano)) return;
+      if (!title || this.isExcludedFromPrint(brano) || String(brano.course_week || '').trim() === '?') return;
       const level = String(brano?.info_livello || '').trim() || 'Senza livello';
-      const levelKey = level.toLocaleLowerCase('it-IT');
+      const levelKey = this.normalizeCourseLevel(level);
       const levelWeeks = brano.course_weeks_by_level || {};
       const matchingLevel = Object.keys(levelWeeks).find((candidate) => candidate.toLocaleLowerCase('it-IT') === levelKey);
       // Se il programma contiene livelli espliciti, evita di attribuire al brano settimane di un altro livello.
       const sourceWeeks = matchingLevel
         ? levelWeeks[matchingLevel]
-        : Object.keys(levelWeeks).length ? [] : brano.course_weeks;
+        : Object.keys(levelWeeks).length || (brano.course_week_grouping_source && brano.course_week_grouping_source !== 'manual') ? [] : brano.course_weeks;
       const weeks = [...new Set((sourceWeeks || []).map(Number)
         .filter((week) => Number.isInteger(week) && week >= 1 && week <= 53))].sort((a, b) => a - b);
       if (!weeks.length) return;
@@ -369,15 +369,45 @@ class CoreografieStampaPage {
     const season = state?.seasons[state.activeSeason];
     const assignments = new Map();
     const assignmentsByLevel = new Map();
+    const archive = window.courseArchives?.getActive() || 'manual';
+    const sourceRecords = archive === 'manual'
+      ? (season?.records || [])
+      : (window.courseArchives?.getRecords(archive, state) || []);
+    const expectedSeason = this.normalizeCourseSeason(season?.label || state?.activeSeason || '');
+    // Keep the original print modes tied to the manual curriculum, as before.
     for (const record of season?.records || []) {
       const week = Number(record.week);
       if (!Number.isInteger(week) || week < 1 || week > 53) continue;
-      const id = String(record.branoId);
+      const id = String(record.branoId || '').trim();
+      if (!id) continue;
       if (!assignments.has(id)) assignments.set(id, []);
       assignments.get(id).push(week);
+    }
+    const titleCounts = new Map();
+    const normalizeTitle = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('it-IT');
+    this.brani.forEach((brano) => {
+      const title = normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano);
+      if (title) titleCounts.set(title, (titleCounts.get(title) || 0) + 1);
+    });
+    for (const record of sourceRecords) {
+      const week = Number(record.week);
+      if (!Number.isInteger(week) || week < 1 || week > 53) continue;
+      const activity = String(record.activity || record.raw?.activity || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleUpperCase('it-IT');
+      if (activity && !['COREOGRAFIA SPIEGATA', 'COREOGRAFIA JOLLY'].includes(activity)) continue;
+      const recordSeason = this.normalizeCourseSeason(record.season || '');
+      if (expectedSeason && recordSeason && recordSeason !== expectedSeason) continue;
+      if (archive !== 'manual' && (!recordSeason || !record.course || !record.level)) continue;
+      let id = String(record.branoId || '').trim();
+      if (!id) {
+        const title = normalizeTitle(record.title || record.trackTitle);
+        const matches = this.brani.filter((brano) => normalizeTitle(brano?.titolo || brano?.coreografia || brano?.brano) === title);
+        if (!title || matches.length !== 1 || titleCounts.get(title) !== 1) continue;
+        id = String(matches[0].id || '').trim();
+      }
+      if (!id) continue;
       const level = String(record.level || '').trim();
       if (level) {
-        const key = `${id}|${level.toLocaleLowerCase('it-IT')}`;
+        const key = `${id}|${this.normalizeCourseLevel(level)}`;
         if (!assignmentsByLevel.has(key)) assignmentsByLevel.set(key, []);
         assignmentsByLevel.get(key).push(week);
       }
@@ -388,7 +418,17 @@ class CoreografieStampaPage {
       brano.course_weeks_by_level = Object.fromEntries([...assignmentsByLevel.entries()]
         .filter(([key]) => key.startsWith(`${String(brano.id)}|`))
         .map(([key, weeks]) => [key.slice(String(brano.id).length + 1), [...new Set(weeks)].sort((a, b) => a - b)]));
+      brano.course_week_grouping_source = archive;
     }
+  }
+
+  normalizeCourseSeason(value) {
+    return String(value || '').trim().replace(/\s/g, '').replace(/[–—]/g, '-').replace(/\//g, '-').toLocaleLowerCase('it-IT');
+  }
+
+  normalizeCourseLevel(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ').trim().toLocaleUpperCase('it-IT').replace(/^CORSO\s+/, '').toLocaleLowerCase('it-IT');
   }
 
   groupByInitial(brani) {

@@ -166,6 +166,17 @@
     return normalizeText(track.coreografia) || `track:${track.id}`;
   }
 
+  function taughtWeek(track) {
+    const week = Number(track?.taughtWeek);
+    return Number.isInteger(week) && week >= 1 && week <= 53 ? week : 0;
+  }
+
+  function prioritizeWeekCandidates(candidates, enabled) {
+    if (!enabled || !candidates.length) return candidates;
+    const latestWeek = Math.max(...candidates.map(taughtWeek));
+    return latestWeek > 0 ? candidates.filter((track) => taughtWeek(track) === latestWeek) : candidates;
+  }
+
   function getInfoTags(record) {
     const tags = new Map();
     Object.entries(record).forEach(([field, value]) => {
@@ -273,7 +284,7 @@
     return { errors, requested };
   }
 
-  function chooseTrack(pool, used, usedChoreographies, remainingSeconds, previousArtist, random) {
+  function chooseTrack(pool, used, usedChoreographies, remainingSeconds, previousArtist, random, prioritizeTaughtWeeks = false) {
     let candidates = pool.filter((track) => !used.has(track.id) && track.durationSeconds <= remainingSeconds);
     if (!candidates.length) return null;
     const newChoreographies = candidates.filter((track) => {
@@ -281,6 +292,7 @@
       return !identity || !usedChoreographies.has(identity);
     });
     if (newChoreographies.length) candidates = newChoreographies;
+    candidates = prioritizeWeekCandidates(candidates, prioritizeTaughtWeeks);
     if (previousArtist) {
       const differentArtist = candidates.filter((track) => normalizeText(track.autore) !== previousArtist);
       if (differentArtist.length) candidates = differentArtist;
@@ -290,10 +302,10 @@
     return shortlist[Math.floor(random() * shortlist.length)];
   }
 
-  function chooseTrackForLevel(catalogByLevel, startIndex, used, usedChoreographies, remainingSeconds, previousArtist, random) {
+  function chooseTrackForLevel(catalogByLevel, startIndex, used, usedChoreographies, remainingSeconds, previousArtist, random, prioritizeTaughtWeeks) {
     for (let levelIndex = startIndex; levelIndex < LEVELS.length; levelIndex += 1) {
       const level = LEVELS[levelIndex];
-      const track = chooseTrack(catalogByLevel[level.key], used, usedChoreographies, remainingSeconds, previousArtist, random);
+      const track = chooseTrack(catalogByLevel[level.key], used, usedChoreographies, remainingSeconds, previousArtist, random, prioritizeTaughtWeeks);
       if (track) return { track, levelKey: level.key };
     }
     return null;
@@ -335,7 +347,7 @@
     return repeats;
   }
 
-  function runSelection(catalogByLevel, counts, durationSeconds, random) {
+  function runSelection(catalogByLevel, counts, durationSeconds, random, prioritizeTaughtWeeks = false) {
     const used = new Set();
     const usedChoreographies = new Set();
     const selected = [];
@@ -357,7 +369,7 @@
         const level = LEVELS[requestedIndex];
         for (let index = 0; index < counts[level.key]; index += 1) {
           const remaining = durationSeconds - totalDurationSeconds;
-          const choice = chooseTrackForLevel(catalogByLevel, requestedIndex, used, usedChoreographies, remaining, previousArtistByLevel[level.key], random);
+          const choice = chooseTrackForLevel(catalogByLevel, requestedIndex, used, usedChoreographies, remaining, previousArtistByLevel[level.key], random, prioritizeTaughtWeeks);
           if (!choice) continue;
           const { track, levelKey } = choice;
           used.add(track.id);
@@ -393,6 +405,7 @@
           return !usedChoreographies.has(identity);
         });
         if (newChoreographies.length) pool = newChoreographies;
+        pool = prioritizeWeekCandidates(pool, prioritizeTaughtWeeks);
         const track = pool[Math.floor(random() * pool.length)];
         const trackLevels = track.levels.filter((levelKey) => eligibleLevelKeys.has(levelKey));
         const levelKey = trackLevels[Math.floor(random() * trackLevels.length)];
@@ -416,7 +429,8 @@
       fullCycles: completedCycles(counts, fulfilledCounts),
       ratioError: proportionError(counts, fulfilledCounts),
       artistRepeats: artistRepeats(selected),
-      choreographyRepeats: choreographyRepeats(selected)
+      choreographyRepeats: choreographyRepeats(selected),
+      taughtWeekOrder: prioritizeTaughtWeeks ? selected.map(taughtWeek).sort((a, b) => b - a) : []
     };
   }
 
@@ -424,12 +438,17 @@
     if (!current) return true;
     if (candidate.fullCycles !== current.fullCycles) return candidate.fullCycles > current.fullCycles;
     if (candidate.choreographyRepeats !== current.choreographyRepeats) return candidate.choreographyRepeats < current.choreographyRepeats;
+    for (let index = 0; index < Math.max(candidate.taughtWeekOrder.length, current.taughtWeekOrder.length); index += 1) {
+      const candidateWeek = candidate.taughtWeekOrder[index] || 0;
+      const currentWeek = current.taughtWeekOrder[index] || 0;
+      if (candidateWeek !== currentWeek) return candidateWeek > currentWeek;
+    }
     if (Math.abs(candidate.ratioError - current.ratioError) > 0.0001) return candidate.ratioError < current.ratioError;
     if (candidate.totalDurationSeconds !== current.totalDurationSeconds) return candidate.totalDurationSeconds > current.totalDurationSeconds;
     return candidate.artistRepeats < current.artistRepeats;
   }
 
-  function generateSetlist({ catalog, counts, durationSeconds, random = Math.random, attempts = 24, infoFilter } = {}) {
+  function generateSetlist({ catalog, counts, durationSeconds, random = Math.random, attempts = 24, infoFilter, prioritizeTaughtWeeks = false } = {}) {
     const validation = validateCounts(counts, durationSeconds);
     if (validation.errors.length) return { errors: validation.errors, warnings: [], tracks: [] };
     if (!catalog?.tracks?.length) return { errors: ['Il catalogo dei brani e vuoto o non valido.'], warnings: [], tracks: [] };
@@ -442,7 +461,7 @@
     let best = null;
     const totalAttempts = Math.max(1, Math.min(40, Number(attempts) || 1));
     for (let attempt = 0; attempt < totalAttempts; attempt += 1) {
-      const candidate = runSelection(filteredCatalog.catalogByLevel, counts, durationSeconds, random);
+      const candidate = runSelection(filteredCatalog.catalogByLevel, counts, durationSeconds, random, prioritizeTaughtWeeks);
       if (isBetter(candidate, best)) best = candidate;
     }
 
@@ -466,7 +485,10 @@
     return {
       errors: [],
       warnings,
-      tracks: best.tracks.map(({ source, levels, cycle, ...track }) => ({ ...track })),
+      tracks: best.tracks.map(({ source, levels, cycle, ...track }) => {
+        delete track.taughtWeek;
+        return { ...track };
+      }),
       levelCounts: best.selectedCounts,
       totalDurationSeconds: best.totalDurationSeconds,
       availableByLevel: Object.fromEntries(LEVELS.map((level) => [level.key, filteredCatalog.catalogByLevel[level.key].length])),

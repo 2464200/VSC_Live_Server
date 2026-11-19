@@ -167,6 +167,7 @@ async function syncRegistro(dependencies = {}) {
   const resolveAuth = dependencies.getApiAuth || getApiAuth;
   const resolveSheets = dependencies.listSheets || listSheets;
   const resolveValues = dependencies.fetchSheetValues || fetchSheetValues;
+  const oldFiles = previousManifest(outputDir);
   const auth = await resolveAuth();
   const sheets = await resolveSheets(auth);
 
@@ -178,12 +179,19 @@ async function syncRegistro(dependencies = {}) {
     const filename = safeFilename(sheet.title, usedNames);
     const values = await resolveValues(sheet, auth);
     if (!hasDataRows(values)) {
-      throw new Error(`La scheda "${sheet.title}" non contiene righe dati; sincronizzazione annullata e snapshot precedenti mantenuti.`);
+      const previousPath = path.join(outputDir, filename);
+      if (oldFiles.includes(filename) && fs.existsSync(previousPath)) {
+        // Una scheda vuota può essere legittima o una risposta incompleta: conserva l'ultimo snapshot valido.
+        files.set(filename, { contents: fs.readFileSync(previousPath), rowCount: null, preserved: true });
+        console.warn(`  ${filename}: scheda vuota, mantenuto lo snapshot precedente.`);
+      } else {
+        files.set(filename, { contents: valuesToCsv(values), rowCount: 0 });
+      }
+      continue;
     }
     files.set(filename, { contents: valuesToCsv(values), rowCount: Math.max(0, values.length - 1) });
   }
 
-  const oldFiles = previousManifest(outputDir);
   fs.mkdirSync(outputDir, { recursive: true });
   const staging = fs.mkdtempSync(path.join(outputDir, '.registro-sync-'));
   try {
@@ -208,14 +216,14 @@ async function syncRegistro(dependencies = {}) {
 
   console.log(`Registro aggiornato: ${files.size} CSV da Google Sheets.`);
   for (const [filename, file] of files) {
-    console.log(`  ${filename}: ${file.rowCount} righe`);
+    console.log(`  ${filename}: ${file.preserved ? 'snapshot precedente mantenuto' : `${file.rowCount} righe`}`);
   }
   return {
     success: true,
     source: SHEET_ID,
     files: [...files].map(([filename, file]) => ({ filename, rows: file.rowCount })),
     fileCount: files.size,
-    totalRows: [...files.values()].reduce((total, file) => total + file.rowCount, 0)
+    totalRows: [...files.values()].reduce((total, file) => total + (file.rowCount || 0), 0)
   };
 }
 

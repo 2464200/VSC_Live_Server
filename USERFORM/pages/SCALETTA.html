@@ -10,8 +10,8 @@
   <script defer src="../../Bordero/pages/dj-preselezione-file.js"></script>
   <script defer src="../../Bordero/js/choreo-program-store.js"></script>
   <script defer src="../../Bordero/js/course-archives.js"></script>
-  <script defer src="../js/scaletta-generator.js"></script>
-  <script defer src="../js/scaletta-actions.js"></script>
+  <script defer src="../js/scaletta-generator.js?v=20261119-week-priority"></script>
+  <script defer src="../js/scaletta-actions.js?v=20261119-week-priority"></script>
 </head>
 <body class="fit-video-frame">
   <div class="layout">
@@ -66,6 +66,8 @@
           <legend>Avanzate</legend>
           <label class="setlist-taught-toggle"><input id="setlist-include-taught" type="checkbox" checked /> Includi i brani già insegnati nei corsi</label>
           <p class="setlist-taught-help">Se disattivato, la scaletta esclude i brani del programma corsi attivo in Borderò.</p>
+          <label class="setlist-taught-toggle"><input id="setlist-prioritize-taught-weeks" type="checkbox" /> Dai priorità alle coreografie insegnate nelle settimane più recenti</label>
+          <p class="setlist-taught-help">Tra i brani compatibili, le settimane più recenti vengono considerate prima (per esempio 44 prima di 38). Restano attivi i vincoli di livello, tempo, categorie e ripetizioni.</p>
           <div class="setlist-info-filter-mode" role="radiogroup" aria-label="Modalità filtro categorie">
             <label><input type="radio" name="setlist-info-filter-mode" value="all" checked /> Tutte le categorie</label>
             <label><input type="radio" name="setlist-info-filter-mode" value="include" /> Includi selezionate</label>

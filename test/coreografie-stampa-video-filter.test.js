@@ -3,11 +3,15 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-function loadPrintPage(courseState = null) {
+function loadPrintPage(courseState = null, courseArchive = null) {
   const printDocument = { style: { setProperty() {} }, classList: { toggle() {} }, innerHTML: '' };
   const printStatus = { textContent: '' };
   const context = {
-    window: { isVideoOnlyBrano: () => false, choreoProgramStore: { getState: () => courseState } },
+    window: {
+      isVideoOnlyBrano: () => false,
+      choreoProgramStore: { getState: () => courseState },
+      ...(courseArchive ? { courseArchives: courseArchive } : {})
+    },
     document: {
       addEventListener() {},
       getElementById(id) { return id === 'print-document' ? printDocument : printStatus; }
@@ -115,4 +119,39 @@ test('repeated choreography prints once at its latest week and keeps all weeks i
   assert.match(reverseOutput, /<h3 class="print-subgroup-heading">BASE<\/h3>/);
   assert.match(reverseOutput, /class="coreography-week">38,39<\/div>/);
   assert.equal((reverseOutput.match(/class="coreography-entry"/g) || []).length, 1);
+});
+
+test('print grouping reads repeated teaching weeks from the selected course archive by level', () => {
+  const archive = {
+    getActive: () => 'external',
+    getRecords: () => [
+      { branoId: '502', title: 'BACK TO THE START', season: '2026/2027', course: 'BASE Bergamo', level: 'BASE', week: 38, activity: 'COREOGRAFIA SPIEGATA' },
+      { branoId: '502', title: 'BACK TO THE START', season: '2026/2027', course: 'BASE Curno', level: 'BASE', week: 39, activity: 'COREOGRAFIA SPIEGATA' },
+      { branoId: '502', title: 'BACK TO THE START', season: '2026/2027', course: 'Intermedio', level: 'INTERMEDIO', week: 35, activity: 'COREOGRAFIA SPIEGATA' }
+    ]
+  };
+  const page = loadPrintPage({ activeSeason: '2026-2027', seasons: { '2026-2027': { label: '2026/2027', records: [] } } }, archive);
+  page.brani = [{ id: '502', titolo: 'BACK TO THE START', info_livello: 'BASE' }];
+  page.applyCourseWeeksToBrani();
+  const base = page.filterBraniWithCourseWeek(page.brani);
+  const levels = page.groupByLevelThenWeek(base);
+
+  assert.deepEqual(Object.keys(levels.BASE), ['Settimana 39']);
+  assert.equal(levels.BASE['Settimana 39'][0].course_week_for_print, '38,39');
+  assert.equal(Object.keys(levels).length, 1);
+  page.settings = { printOrder: 'level-week', includeCover: false, levelFilters: [], letterFilter: 'ALL', includeWeek: true, includeLevel: false, includeInfoCoreo1: false, includeInfoCoreo2: false, columnLabels: ['Evento'], eventMode: 1 };
+  page.render();
+  let output = page.renderedDocument.innerHTML;
+  assert.match(output, /<h2>BASE<\/h2>/);
+  assert.match(output, /<h3 class="print-subgroup-heading">Settimana 39<\/h3>/);
+  assert.match(output, /class="coreography-week">38,39<\/div>/);
+  assert.equal((output.match(/class="coreography-entry"/g) || []).length, 1);
+
+  page.settings.printOrder = 'week-level';
+  page.render();
+  output = page.renderedDocument.innerHTML;
+  assert.match(output, /<h2>Settimana 39<\/h2>/);
+  assert.match(output, /<h3 class="print-subgroup-heading">BASE<\/h3>/);
+  assert.match(output, /class="coreography-week">38,39<\/div>/);
+  assert.equal((output.match(/class="coreography-entry"/g) || []).length, 1);
 });

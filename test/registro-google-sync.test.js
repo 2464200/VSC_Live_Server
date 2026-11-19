@@ -5,9 +5,9 @@ const os = require('node:os');
 const path = require('node:path');
 const { hasDataRows, syncRegistro } = require('../scripts/sync-registro-sheets');
 
-test('Registro import rejects an empty tab without replacing existing snapshots', async () => {
+test('Registro import preserves an empty tab snapshot while syncing populated tabs', async () => {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'registro-google-sync-'));
-  const previousFileName = 'Registrazioni.csv';
+  const previousFileName = 'Vuoto.csv';
   const previousContents = 'timestamp,value\nlast valid snapshot,keep\n';
   fs.writeFileSync(path.join(outputDir, previousFileName), previousContents);
   fs.writeFileSync(
@@ -16,23 +16,20 @@ test('Registro import rejects an empty tab without replacing existing snapshots'
   );
 
   try {
-    await assert.rejects(
-      syncRegistro({
+    const result = await syncRegistro({
         outputDir,
         getApiAuth: async () => ({}),
         listSheets: async () => [{ title: 'Registrazioni' }, { title: 'Vuoto' }],
         fetchSheetValues: async (sheet) => sheet.title === 'Registrazioni'
           ? [['timestamp', 'value'], ['new row', 'new value']]
           : [['timestamp', 'value']]
-      }),
-      /non contiene righe dati/
-    );
+      });
 
+    assert.equal(result.success, true);
+    assert.equal(result.fileCount, 2);
     assert.equal(fs.readFileSync(path.join(outputDir, previousFileName), 'utf8'), previousContents);
-    assert.deepEqual(fs.readdirSync(outputDir).sort(), [
-      '.registro-sync-manifest.json',
-      previousFileName
-    ]);
+    assert.match(fs.readFileSync(path.join(outputDir, 'Registrazioni.csv'), 'utf8'), /new row,new value/);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(outputDir, '.registro-sync-manifest.json'), 'utf8')).files, ['Registrazioni.csv', 'Vuoto.csv']);
   } finally {
     fs.rmSync(outputDir, { recursive: true, force: true });
   }

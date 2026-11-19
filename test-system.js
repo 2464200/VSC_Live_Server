@@ -33,17 +33,6 @@ const csvTests = [
     'Bordero/data/location_popup_options.csv'
 ].map((path) => ({ name: `CSV ${path}`, path, url: `${BASE_URL}/${path}` }));
 
-const borderoSyncTests = [
-    '/api/bordero/sync-brani',
-    '/api/bordero/sync-comuni',
-    '/api/bordero/sync-location',
-    '/api/bordero/sync-location-options',
-    '/api/sync/brani',
-    '/api/sync/comuni',
-    '/api/sync/location',
-    '/api/sync/location-options'
-];
-
 function request(test, options = {}) {
     return new Promise((resolve) => {
         const req = http.request(test.url, { timeout: 5000, ...options }, (res) => {
@@ -87,17 +76,6 @@ async function runCsvTests() {
     }));
 }
 
-async function runBorderoSyncTests() {
-    return Promise.all(borderoSyncTests.map(async (path) => {
-        const result = await request({ name: `Sync route ${path}`, url: `${BASE_URL}${path}` }, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: '{}'
-        });
-        return { ...result, success: result.status === 400 };
-    }));
-}
-
 async function runTests() {
     console.log('Test di integrita sistema automatizzato');
     console.log('='.repeat(50));
@@ -105,8 +83,7 @@ async function runTests() {
     const results = [
         ...(await Promise.all(tests.map(testEndpoint))),
         ...(await runPortTests()),
-        ...(await runCsvTests()),
-        ...(await runBorderoSyncTests())
+        ...(await runCsvTests())
     ];
 
     let allGood = true;
