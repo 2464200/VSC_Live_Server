@@ -118,7 +118,9 @@ Risultato:
 
 Le schede "Risposte del modulo 8" e "Risposte del modulo 12" possono anche contenere solo le intestazioni. In questo caso il sync è valido: il CSV Accoda contiene le sole intestazioni e il conteggio delle richieste in `brani.csv` viene azzerato secondo le regole esistenti. Se mancano le intestazioni o non corrispondono a quelle attese, l'import fallisce e gli ultimi CSV validi vengono mantenuti.
 
-Anche l'esportazione del Registro (`scripts/sync-registro-sheets.js`) annulla l'intero aggiornamento se una scheda non contiene righe dati, così gli ultimi CSV esportati restano disponibili invece di essere sostituiti da file vuoti.
+L'esportazione del Registro (`scripts/sync-registro-sheets.js`) conserva lo snapshot locale quando una scheda è legittimamente vuota e non pubblica CSV parziali. Il task confronta le intestazioni con gli snapshot locali, scrive e valida in staging, usa un lock esclusivo e ripristina i file precedenti se la pubblicazione si interrompe.
+
+In caso di errore, il task crea un rapporto in `logs/registro-sync-diagnosis-<data>.json` e, in una sessione interattiva di VS Code su Windows, mostra una finestra per interrompere o continuare con gli snapshot precedenti validi. La chiusura equivale all'interruzione; il task resta con esito fallito in entrambi i casi. Eseguirlo da un terminale non interattivo stampa la diagnosi e termina senza attendere una scelta. Per avviarlo manualmente: **Terminale → Esegui task… → Aggiorna CSV Registro da Google Sheets**. La sorgente Google è letta con credenziali in sola lettura.
 
 ## Sync automatico nel server unificato
 
