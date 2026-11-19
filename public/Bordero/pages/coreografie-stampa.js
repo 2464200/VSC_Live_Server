@@ -15,7 +15,6 @@ class CoreografieStampaPage {
       await dataLoader.initialize();
       this.brani = await dataLoader.loadBrani({ silent: true });
       await window.choreoProgramStore?.load({ force: true });
-      this.applyCourseWeeksToBrani();
       this.djNames = (await dataLoader.loadDJ())
         .map((dj) => typeof dj === 'string' ? dj : (dj?.nome || dj?.name || ''))
         .filter((dj) => !/^(nome|name|dj)$/i.test(dj.trim()))
@@ -27,6 +26,7 @@ class CoreografieStampaPage {
           this.brani = dataLoader.normalizeBraniList(currentSerata.brani);
         }
       }
+      this.applyCourseWeeksToBrani();
       if (!this.serata.evento || !this.serata.luogo) {
         const locations = await dataLoader.loadLocations();
         const location = locations[0] || {};
@@ -218,20 +218,29 @@ class CoreografieStampaPage {
     const documentNode = document.getElementById('print-document');
     const settings = this.settings;
     const filteredBrani = this.filterBraniByLevel(this.brani, settings.levelFilters);
+    const weekMode = ['level-week', 'week-level'].includes(settings.printOrder);
+    const printBrani = weekMode ? this.filterBraniWithCourseWeek(filteredBrani) : filteredBrani;
     const groups = settings.printOrder === 'level'
       ? this.groupByLevel(filteredBrani)
-      : this.groupByInitial(filteredBrani);
-    const selectedGroups = Object.entries(groups)
-      .filter(([initial]) => settings.printOrder === 'level' || settings.letterFilter === 'ALL' || initial === settings.letterFilter);
-    const groupCount = Object.values(groups).filter((entries) => entries.length).length;
-    const selectedCount = selectedGroups.reduce((total, [, entries]) => total + entries.length, 0);
+      : settings.printOrder === 'level-week'
+        ? this.groupByLevelThenWeek(printBrani)
+        : settings.printOrder === 'week-level'
+          ? this.groupByWeekThenLevel(printBrani)
+          : this.groupByInitial(filteredBrani);
+    const selectedGroups = weekMode
+      ? Object.entries(groups)
+      : Object.entries(groups).filter(([initial]) => settings.printOrder === 'level' || settings.letterFilter === 'ALL' || initial === settings.letterFilter);
+    const groupCount = selectedGroups.length;
+    const selectedCount = weekMode
+      ? selectedGroups.reduce((total, [, subgroups]) => total + Object.values(subgroups).flat().length, 0)
+      : selectedGroups.reduce((total, [, entries]) => total + entries.length, 0);
     const eventName = this.escape(settings.eventName || 'Evento Monster Country Group');
     const eventDate = this.escape(this.formatDate(settings.date));
     const cover = settings.includeCover ? `
       <section class="cover" aria-label="Copertina">
         <img class="cover-logo" src="../../MonsterCountryGroup_grey.png" alt="Monster Country Group" />
         <div class="cover-event">
-          <div class="cover-event-label">${settings.printOrder === 'level' ? 'Elenco per Livello' : 'Elenco Alfabetico'} Coreografie dell'Evento</div>
+          <div class="cover-event-label">${this.printOrderLabel(settings.printOrder)} Coreografie dell'Evento</div>
           <h1 class="cover-event-name">${eventName}</h1>
           <div class="cover-event-date"><span>${eventDate}</span><span class="cover-event-time">dalle ore&nbsp;&nbsp; ___ : ___ &nbsp;&nbsp;alle ore&nbsp;&nbsp; ___ : ___</span></div>
           <div class="cover-event-detail">DJ: ${this.escape(settings.djs || 'Nessun DJ selezionato')}</div>
@@ -252,6 +261,7 @@ class CoreografieStampaPage {
     documentNode.classList.toggle('numbered-pages', this.settings.numberPages);
     documentNode.classList.toggle('duplex-print', this.settings.duplex);
     documentNode.classList.toggle('level-print-order', this.settings.printOrder === 'level');
+    documentNode.classList.toggle('hierarchical-print-order', weekMode);
     documentNode.classList.toggle('level-enabled', this.settings.includeLevel);
     documentNode.classList.toggle('week-enabled', this.settings.includeWeek);
     documentNode.classList.toggle('info-coreo-1-enabled', this.settings.includeInfoCoreo1);
@@ -266,15 +276,86 @@ class CoreografieStampaPage {
     documentNode.style.setProperty('--coreography-mobile-columns', columns.join(' '));
     documentNode.innerHTML = `
       ${cover}
-      ${selectedGroups.filter(([, entries]) => entries.length).map(([initial, entries]) => this.renderGroup(initial, entries)).join('')}
+      ${weekMode
+        ? (selectedCount === 0
+          ? '<p class="empty-print">Nessuna coreografia con settimana del corso valorizzata</p>'
+          : selectedGroups.map(([main, subgroups]) => this.renderHierarchicalGroup(main, subgroups)).join(''))
+        : selectedGroups.filter(([, entries]) => entries.length).map(([initial, entries]) => this.renderGroup(initial, entries)).join('')}
     `;
     this.fitLevelText();
 
     const duplexMessage = this.settings.duplex ? ' · fronte/retro: attivalo nel dialogo di stampa (rilegatura lato lungo)' : '';
     const selectedLabel = settings.printOrder === 'level'
       ? `${groupCount} livelli`
-      : (settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`);
+      : weekMode ? `${groupCount} sezioni con settimana`
+        : (settings.letterFilter === 'ALL' ? `${groupCount} sezioni` : `sezione ${settings.letterFilter}`);
     document.getElementById('print-status').textContent = `${selectedCount} coreografie in ${selectedLabel}${duplexMessage}`;
+    if (weekMode && selectedCount === 0) document.getElementById('print-status').textContent = `Nessuna coreografia con settimana del corso valorizzata${duplexMessage}`;
+  }
+
+  printOrderLabel(order) {
+    return ({ alphabetical: 'Elenco Alfabetico', level: 'Elenco per Livello', 'level-week': 'Elenco per Livello e Settimana', 'week-level': 'Elenco per Settimana e Livello' })[order] || 'Elenco Alfabetico';
+  }
+
+  filterBraniWithCourseWeek(brani) {
+    // course_weeks è derivato dai record della stagione didattica attiva; "?" e valori vuoti non sono settimane assegnate.
+    const grouped = new Map();
+    brani.forEach((brano) => {
+      const title = String(brano?.titolo || brano?.coreografia || '').trim();
+      if (!title || this.isExcludedFromPrint(brano)) return;
+      const level = String(brano?.info_livello || '').trim() || 'Senza livello';
+      const levelKey = level.toLocaleLowerCase('it-IT');
+      const levelWeeks = brano.course_weeks_by_level || {};
+      const matchingLevel = Object.keys(levelWeeks).find((candidate) => candidate.toLocaleLowerCase('it-IT') === levelKey);
+      // Se il programma contiene livelli espliciti, evita di attribuire al brano settimane di un altro livello.
+      const sourceWeeks = matchingLevel
+        ? levelWeeks[matchingLevel]
+        : Object.keys(levelWeeks).length ? [] : brano.course_weeks;
+      const weeks = [...new Set((sourceWeeks || []).map(Number)
+        .filter((week) => Number.isInteger(week) && week >= 1 && week <= 53))].sort((a, b) => a - b);
+      if (!weeks.length) return;
+      const key = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').toLocaleLowerCase('it-IT');
+      const groupKey = `${levelKey}|${key}`;
+      const existing = grouped.get(groupKey);
+      const allWeeks = [...new Set([...(existing?.course_weeks_for_print || []), ...weeks])].sort((a, b) => a - b);
+      const chosen = !existing || weeks[weeks.length - 1] > existing.course_weeks_for_print.at(-1) ? brano : existing;
+      grouped.set(groupKey, {
+        ...chosen,
+        course_weeks_for_print: allWeeks,
+        course_week_for_print: allWeeks.join(','),
+      });
+    });
+    return [...grouped.values()];
+  }
+
+  groupByLevelThenWeek(brani) {
+    return Object.fromEntries(Object.entries(this.groupByLevel(brani)).map(([level, entries]) => [level, this.groupByWeek(entries)]));
+  }
+
+  groupByWeekThenLevel(brani) {
+    return Object.fromEntries(Object.entries(this.groupByWeek(brani)).map(([week, entries]) => [week, this.groupByLevel(entries)]));
+  }
+
+  groupByWeek(brani) {
+    const groups = new Map();
+    brani.forEach((brano) => {
+      // Ogni coreografia compare nel box della sua settimana più recente; la colonna conserva l'intero storico.
+      const weeks = brano.course_weeks_for_print || brano.course_weeks || [];
+      const number = Math.max(...weeks.map(Number).filter((week) => Number.isInteger(week) && week >= 1 && week <= 53));
+      if (!Number.isInteger(number) || number < 1 || number > 53) return;
+      if (!groups.has(number)) groups.set(number, []);
+      groups.get(number).push(brano);
+    });
+    return Object.fromEntries([...groups.entries()].sort(([a], [b]) => b - a)
+      .map(([week, entries]) => [`Settimana ${week}`, Object.values(this.groupByLevel(entries)).flat()])
+      .filter(([, entries]) => entries.length));
+  }
+
+  renderHierarchicalGroup(mainTitle, subgroups) {
+    const rendered = Object.entries(subgroups).filter(([, entries]) => entries.length).map(([subTitle, entries]) =>
+      `<div class="print-subgroup"><h3 class="print-subgroup-heading">${this.escape(subTitle)}</h3>${this.renderTable(entries)}</div>`).join('');
+    if (!rendered) return '';
+    return `<section class="letter-section"><div class="letter-heading"><h2>${this.escape(mainTitle)}</h2></div>${rendered}${this.pageNumberMarkup()}</section>`;
   }
 
   filterBraniByLevel(brani, levelFilters) {
@@ -287,16 +368,26 @@ class CoreografieStampaPage {
     const state = window.choreoProgramStore?.getState();
     const season = state?.seasons[state.activeSeason];
     const assignments = new Map();
+    const assignmentsByLevel = new Map();
     for (const record of season?.records || []) {
       const week = Number(record.week);
       if (!Number.isInteger(week) || week < 1 || week > 53) continue;
       const id = String(record.branoId);
       if (!assignments.has(id)) assignments.set(id, []);
       assignments.get(id).push(week);
+      const level = String(record.level || '').trim();
+      if (level) {
+        const key = `${id}|${level.toLocaleLowerCase('it-IT')}`;
+        if (!assignmentsByLevel.has(key)) assignmentsByLevel.set(key, []);
+        assignmentsByLevel.get(key).push(week);
+      }
     }
     for (const brano of this.brani) {
       brano.course_weeks = [...new Set(assignments.get(String(brano.id)) || [])].sort((a, b) => a - b);
       brano.course_week = brano.course_weeks.join(', ');
+      brano.course_weeks_by_level = Object.fromEntries([...assignmentsByLevel.entries()]
+        .filter(([key]) => key.startsWith(`${String(brano.id)}|`))
+        .map(([key, weeks]) => [key.slice(String(brano.id).length + 1), [...new Set(weeks)].sort((a, b) => a - b)]));
     }
   }
 
@@ -397,20 +488,20 @@ class CoreografieStampaPage {
   }
 
   renderGroup(initial, entries) {
+    return `<section class="letter-section"><div class="letter-heading"><h2>${this.escape(initial)}</h2><span>${entries.length} coreografie</span></div>${this.renderTable(entries)}${this.pageNumberMarkup()}</section>`;
+  }
+
+  renderTable(entries) {
     const columnHeadings = this.settings.columnLabels.slice(0, this.getEventColumnCount(this.settings.eventMode))
       .map((label) => `<div class="event-column-heading">${this.escape(label || 'Evento')}</div>`)
       .join('');
     return `
-        <section class="letter-section">
-          <div class="letter-heading"><h2>${this.escape(initial)}</h2><span>${entries.length} coreografie</span></div>
           <div class="coreography-column-headings">
             <span>ID</span><span>Coreografia</span>${this.settings.includeLevel ? '<span>Livello</span>' : ''}${this.settings.includeWeek ? '<span class="coreography-week-heading">Settimana</span>' : ''}${this.settings.includeInfoCoreo1 ? '<span>INFO COREO 1</span>' : ''}${this.settings.includeInfoCoreo2 ? '<span>INFO COREO 2</span>' : ''}<div class="event-columns">${columnHeadings}</div>
           </div>
           <div class="coreography-list">
             ${entries.map((brano) => this.renderEntry(brano)).join('')}
           </div>
-          ${this.pageNumberMarkup()}
-        </section>
       `;
   }
 
@@ -427,7 +518,7 @@ class CoreografieStampaPage {
           <h3 class="coreography-title">${this.escape(this.titleOf(brano))}</h3>
         </div>
         ${this.settings.includeLevel ? `<div class="coreography-level">${this.escape(brano.info_livello || '')}</div>` : ''}
-        ${this.settings.includeWeek ? `<div class="coreography-week">${this.escape(brano.course_week || '-')}</div>` : ''}
+        ${this.settings.includeWeek ? `<div class="coreography-week">${this.escape(brano.course_week_for_print || brano.course_week || '-')}</div>` : ''}
         ${this.settings.includeInfoCoreo1 ? `<div class="coreography-info-coreo">${this.escape(this.infoCoreoValue(brano, 1))}</div>` : ''}
         ${this.settings.includeInfoCoreo2 ? `<div class="coreography-info-coreo">${this.escape(this.infoCoreoValue(brano, 2))}</div>` : ''}
         <div class="event-columns">${columns}</div>

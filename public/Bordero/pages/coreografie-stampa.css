@@ -469,6 +469,20 @@
   font-size: 9pt;
 }
 
+.print-subgroup-heading {
+  margin: 2mm 0 1mm;
+  padding: 0 2mm;
+  color: #59636c;
+  font-size: 11pt;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.print-subgroup .coreography-column-headings {
+  break-before: avoid;
+  page-break-before: avoid;
+}
+
 .coreography-list {
   display: block;
   border: 1px solid #bfc5ca;
@@ -755,6 +769,11 @@
   }
 
   .print-document.level-print-order .letter-section + .letter-section {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .print-document.hierarchical-print-order .letter-section + .letter-section {
     break-before: page;
     page-break-before: always;
   }

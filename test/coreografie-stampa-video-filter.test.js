@@ -4,16 +4,23 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 
 function loadPrintPage(courseState = null) {
+  const printDocument = { style: { setProperty() {} }, classList: { toggle() {} }, innerHTML: '' };
+  const printStatus = { textContent: '' };
   const context = {
     window: { isVideoOnlyBrano: () => false, choreoProgramStore: { getState: () => courseState } },
-    document: { addEventListener() {} },
+    document: {
+      addEventListener() {},
+      getElementById(id) { return id === 'print-document' ? printDocument : printStatus; }
+    },
     console
   };
   vm.createContext(context);
   const source = fs.readFileSync('Bordero/pages/coreografie-stampa.js', 'utf8')
     .replace(/document\.addEventListener\('DOMContentLoaded',[\s\S]*$/, 'globalThis.CoreografieStampaPage = CoreografieStampaPage;');
   vm.runInContext(source, context);
-  return Object.create(context.CoreografieStampaPage.prototype);
+  const page = Object.create(context.CoreografieStampaPage.prototype);
+  page.renderedDocument = printDocument;
+  return page;
 }
 
 test('stampa coreografie excludes video positions 600-606 and keeps normal songs', () => {
@@ -48,4 +55,64 @@ test('stampa coreografie retains week 53 from the active curriculum', () => {
   page.brani = [{ id: '001', titolo: 'Coreografia' }];
   page.applyCourseWeeksToBrani();
   assert.equal(page.brani[0].course_week, '1, 53');
+});
+
+test('week print orders sort weeks numerically descending, preserve level order and omit unassigned choreography', () => {
+  const page = loadPrintPage();
+  const brani = [
+    { id: '1', titolo: 'Bravo', info_livello: 'BASE', course_weeks: [10] },
+    { id: '2', titolo: 'Alfa', info_livello: 'BASE', course_weeks: [2] },
+    { id: '3', titolo: 'Charlie', info_livello: 'INTERMEDIO', course_weeks: [2] },
+    { id: '4', titolo: 'Non assegnata', info_livello: 'BASE', course_weeks: [] },
+    { id: '5', titolo: 'Solo spazi', info_livello: 'BASE', course_weeks: ['   '] }
+  ];
+  const assigned = page.filterBraniWithCourseWeek(brani);
+  const levelFirst = page.groupByLevelThenWeek(assigned);
+  const weekFirst = page.groupByWeekThenLevel(assigned);
+
+  assert.deepEqual(Object.keys(levelFirst), ['BASE', 'INTERMEDIO']);
+  assert.deepEqual(Object.keys(levelFirst.BASE), ['Settimana 10', 'Settimana 2']);
+  assert.deepEqual(Object.keys(weekFirst), ['Settimana 10', 'Settimana 2']);
+  assert.deepEqual(Object.keys(weekFirst['Settimana 2']), ['BASE', 'INTERMEDIO']);
+  assert.equal(Array.from(weekFirst['Settimana 2'].BASE, (item) => item.titolo).join(','), 'Alfa');
+  assert.equal(page.filterBraniWithCourseWeek(brani.slice(3)).length, 0);
+
+  page.settings = { printOrder: 'week-level', numberPages: false, columnLabels: ['Evento'], eventMode: 1 };
+  const longList = Array.from({ length: 100 }, (_, index) => ({
+    id: String(index + 1), titolo: `Brano ${index + 1}`, info_livello: 'BASE', course_weeks: [2]
+  }));
+  const longSection = page.renderHierarchicalGroup('Settimana 2', page.groupByWeekThenLevel(longList)['Settimana 2']);
+  assert.equal((longSection.match(/class="coreography-entry"/g) || []).length, 100);
+  assert.match(longSection, /Settimana 2/);
+});
+
+test('repeated choreography prints once at its latest week and keeps all weeks in the week column', () => {
+  const page = loadPrintPage({ activeSeason: '2026-2027', seasons: {
+    '2026-2027': { records: [
+      { branoId: '001', level: 'BASE', week: 38 },
+      { branoId: '001', level: 'BASE', week: 39 }
+    ] }
+  } });
+  page.brani = [{ id: '001', titolo: 'BACK TO THE START', info_livello: 'BASE' }];
+  page.applyCourseWeeksToBrani();
+  const assigned = page.filterBraniWithCourseWeek(page.brani);
+  const levelFirst = page.groupByLevelThenWeek(assigned);
+  const weekFirst = page.groupByWeekThenLevel(assigned);
+
+  assert.deepEqual(Object.keys(levelFirst.BASE), ['Settimana 39']);
+  assert.deepEqual(Object.keys(weekFirst), ['Settimana 39']);
+  assert.equal(levelFirst.BASE['Settimana 39'][0].course_week_for_print, '38,39');
+  page.settings = { printOrder: 'level-week', includeCover: false, levelFilters: [], letterFilter: 'ALL', includeWeek: true, includeLevel: false, includeInfoCoreo1: false, includeInfoCoreo2: false, columnLabels: ['Evento'], eventMode: 1 };
+  page.render();
+  const output = page.renderedDocument.innerHTML;
+  assert.match(output, /Settimana 39/);
+  assert.match(output, /class="coreography-week">38,39<\/div>/);
+  assert.equal((output.match(/class="coreography-entry"/g) || []).length, 1);
+  page.settings.printOrder = 'week-level';
+  page.render();
+  const reverseOutput = page.renderedDocument.innerHTML;
+  assert.match(reverseOutput, /<h2>Settimana 39<\/h2>/);
+  assert.match(reverseOutput, /<h3 class="print-subgroup-heading">BASE<\/h3>/);
+  assert.match(reverseOutput, /class="coreography-week">38,39<\/div>/);
+  assert.equal((reverseOutput.match(/class="coreography-entry"/g) || []).length, 1);
 });
